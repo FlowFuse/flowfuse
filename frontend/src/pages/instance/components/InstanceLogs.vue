@@ -115,7 +115,6 @@ export default {
                 const toPrepend = []
                 if (entries.log.length > 0) {
                     entries.log.forEach(l => {
-                        console.log(l)
                         const d = new Date(parseInt(l.ts.substring(0, l.ts.length - 4)))
                         l.date = `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`
                         if (typeof l.msg !== 'string') {
