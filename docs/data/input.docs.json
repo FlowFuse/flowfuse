@@ -106,6 +106,8 @@
         "examples": [{
             "code": "<ff-radio-group v-model=\"myVar\" :options=\"[{label: 'Option 1', value: 1, checked: false}, {label: 'Option 2', value: 2}]\"></ff-radio-group>"
         }, {
+            "code": "<ff-radio-group label=\"We can also provide a label here\" v-model=\"myVar\" orientation=\"grid\" :options=\"[{label: 'Option 1', value: 1, checked: false}, {label: 'Option 2', value: 2}, {label: 'Option 3', value: 3, checked: false}, {label: 'Option 4', value: 4}]\"></ff-radio-group>"
+        },  {
             "code": "<ff-radio-group label=\"We can also provide a label here\" v-model=\"myVar\" orientation=\"vertical\" :options=\"[{label: 'Option 1', value: 1, checked: false, description: 'This is a description of this particular option'}, {label: 'Option 2', value: 2, description: 'Another description'}]\"></ff-radio-group>"
         }, {
             "code": "<ff-radio-group label=\"We can also provide a label here\" v-model=\"myVar\" orientation=\"vertical\" :options=\"[{label: 'Option 1', value: 1, checked: false, description: 'This is a description of this particular option'}, {label: 'Disabled Options', disabled: true, value: 2, description: 'Another description'}]\"></ff-radio-group>"
