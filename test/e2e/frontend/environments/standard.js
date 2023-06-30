@@ -91,7 +91,7 @@ module.exports = async function (settings = {}, config = {}) {
     // Application and Instances
     const application1 = await factory.createApplication({ name: 'application-1' }, team1)
     await factory.createInstance({ name: 'instance-1-1' }, application1, stack, template, projectType)
-    // await factory.createInstance({ name: 'instance-1-2' }, application1, stack, template, projectType)
+    await factory.createInstance({ name: 'instance-1-2' }, application1, stack, template, projectType)
 
     /// Team 2
     const team2 = await factory.createTeam({ name: 'BTeam' })
