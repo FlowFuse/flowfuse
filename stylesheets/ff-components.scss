@@ -414,13 +414,20 @@ li.ff-list-item {
     display: block;
     margin-bottom: 1rem;
   }
-  &.ff-radio-group--horizontal {
+  .ff-radio-group--horizontal {
     display: flex;
     .ff-radio-btn {
       margin-right: $ff-funit-lg;
     }
   }
-  &.ff-radio-group--vertical {
+  .ff-radio-group--vertical {
+    .ff-radio-btn {
+      display: block;
+      margin-bottom: $ff-funit-md;
+    }
+  }
+  .ff-radio-group--grid {
+    display: grid;
     .ff-radio-btn {
       display: block;
       margin-bottom: $ff-funit-md;

@@ -1,13 +1,15 @@
 <template>
-    <div class="ff-radio-group" :class="'ff-radio-group--' + orientation">
-        <label v-if="label" class="ff-radio-group-label">{{ label }}</label>
-        <ff-radio-button v-for="option in internalOptions" :key="option.label" ref="inputs"
-            :value="option.value" :label="option.label" :checked="option.checked"
-            :description="option.description"
-            :disabled="option.disabled"
-            :hide-description="orientation === 'horizontal'"
-            @select="select"
-        ></ff-radio-button>
+    <div class="ff-radio-group">
+        <p v-if="label" class="ff-radio-group-label">{{ label }}</p>
+        <div class="ff-radio-group-options" :class="'ff-radio-group--' + orientation" :style="orientation === 'grid' ? {'grid-template-columns': `repeat(${columns}, 1fr)`} : ''">
+            <ff-radio-button v-for="option in internalOptions" :key="option.label" ref="inputs"
+                :value="option.value" :label="option.label" :checked="option.checked"
+                :description="option.description"
+                :disabled="option.disabled"
+                :hide-description="orientation === 'horizontal'"
+                @select="select"
+            ></ff-radio-button>
+        </div>
     </div>
 </template>
 
@@ -26,6 +28,10 @@ export default {
         orientation: {
             default: 'horizontal',
             type: String
+        },
+        columns: {
+            default: 2,
+            type: Number
         },
         options: {
             default: null,
