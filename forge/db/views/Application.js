@@ -33,14 +33,14 @@ module.exports = {
         }
     },
     async teamApplicationList (app, applications, { includeInstances = false } = {}) {
-        return await Promise.all(applications.map(async (application) => {
+        return applications.map((application) => {
             const summary = app.db.views.Application.applicationSummary(application)
             if (includeInstances) {
-                summary.instances = await app.db.views.Project.instancesList(application.Instances)
+                summary.instances = app.db.views.Project.instancesSummaryList(application.Instances)
             }
 
             return summary
-        }))
+        })
     },
     async instanceStatuses (app, instancesArray) {
         return await Promise.all(instancesArray.map(async (instance) => {

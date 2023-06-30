@@ -104,6 +104,9 @@ const getPipelines = async (applicationId) => {
             // In the backend, multiple instances per pipeline are supported
             // @see getPipelineStage in frontend Pipeline API
             stage.instance = stage.instances?.[0]
+            if (!stage.instances) {
+                stage.instances = []
+            }
 
             return stage
         })

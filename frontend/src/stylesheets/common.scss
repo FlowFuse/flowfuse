@@ -151,3 +151,15 @@ label {
 .ff-data-table--data .ff-data-table--row--nested.selectable:hover .ff-data-table--cell {
     background-color: $ff-grey-100;
 }
+
+.ff-page-banner {
+    border-radius: 5px;
+    background-color: $ff-blue-100;
+    color: $ff-grey-600;
+    text-align: left;
+    border: 1px solid $ff-blue-300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+}

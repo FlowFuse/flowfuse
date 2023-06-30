@@ -23,11 +23,14 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.login('bob', 'bbPassword')
         cy.home()
         navigateToApplication('BTeam', 'application-2')
-        cy.get('[data-nav="application-pipelines"]').should('not.exist')
+        cy.get('[data-nav="application-pipelines"]').get('[data-el="premium-feature"]').should('exist')
     })
 
-    it('cannot navigate to the /pipelines page without premium license', () => {
+    it('is prompted that DevOps Pipelines are a premium feature', () => {
         cy.visit(`/application/${application.id}/pipelines`)
-        cy.url().should('include', `/application/${application.id}/instances`)
+        cy.url().should('include', `/application/${application.id}/pipelines`)
+        cy.get('[data-el="page-banner-feature-unavailable"]').should('exist')
+
+        cy.get('[data-action="pipeline-add"]').should('be.disabled')
     })
 })

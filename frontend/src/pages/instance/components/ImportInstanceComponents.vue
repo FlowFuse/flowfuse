@@ -1,12 +1,12 @@
 <template>
     <div class="space-y-4 my-3">
-        <FormRow ref="flows" v-model="localData.flows" type="file" accept=".json" :error="errors.flows">
+        <FormRow ref="flows" v-model="localData.flows" data-form="instance-flow-file" type="file" accept=".json" :error="errors.flows">
             Flow File
         </FormRow>
-        <FormRow ref="creds" v-model="localData.creds" type="file" accept=".json" :errors="errors.creds">
+        <FormRow ref="creds" v-model="localData.creds" data-form="instance-creds-file" type="file" accept=".json" :errors="errors.creds">
             Credentials File
         </FormRow>
-        <FormRow v-model="localData.secret" :disabled="withCreds" type="text">
+        <FormRow v-model="localData.secret" data-form="instance-creds-secret" :disabled="withCreds" type="text">
             Credentials Secret
         </FormRow>
     </div>
@@ -99,15 +99,9 @@ export default {
             const reader = new FileReader()
             reader.onload = (evt) => {
                 try {
-                    const creds = JSON.parse(reader.result)
-                    if (creds.$) {
-                        // Good Start
-                        this.parts.credentials = reader.result
-                        this.errors.creds = ''
-                    } else {
-                        this.parts.credentials = undefined
-                        this.errors.creds = 'Does not look like a creds file'
-                    }
+                    JSON.parse(reader.result)
+                    this.parts.credentials = reader.result
+                    this.errors.creds = ''
                 } catch (err) {
                     // problem
                     console.error(err)

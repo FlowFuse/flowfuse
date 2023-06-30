@@ -9,6 +9,14 @@ A Device runs a software agent that connects back to the platform to receive upd
 
 This guide explains how to get starting with the Devices feature.
 
+## Prerequisites
+
+ - NodeJS v16 or later
+ 
+## Supported Operating Systems
+
+The Device Agent can be installed on most Linux distributions, Windows, and MacOS.
+
 ## Installing the Device Agent
 
 The Device Agent is published to the public npm repository as [@flowforge/flowforge-device-agent](https://www.npmjs.com/package/@flowforge/flowforge-device-agent).
@@ -16,9 +24,18 @@ The Device Agent is published to the public npm repository as [@flowforge/flowfo
 It can be installed as a global npm module. This will ensure the agent
 command is on the path:
 
+### Linux/MacOS
+
 ```bash
 sudo npm install -g @flowforge/flowforge-device-agent
 ```
+
+### Windows
+
+```bash
+npm install -g @flowforge/flowforge-device-agent
+```
+
 
 Or you can chose to run the Docker container. When you do, you'll need to mount
 the `device.yaml` obtained when [Registering the device](#register-the-device):
@@ -44,22 +61,25 @@ services:
 
 ## Configuration
 
+The agent configuration is provided by a `device.yml` file within its working
+directory.
+
 ### Working directory
 
-By default the agent uses `/opt/flowforge-device` or `c:\opt\flowforge-device` as its working directory. 
-This can be overridden with the `-d/--dir` option.
+By default the agent uses `/opt/flowforge-device` or `c:\opt\flowforge-device` as
+its working directory. This can be overridden with the `-d/--dir` option.
 
 The directory must exist and be accessible to the user that will be
 running the agent.
 
-#### Linux
+#### Linux/MacOS
 
 ```bash
 sudo mkdir /opt/flowforge-device
 sudo chown -R $USER /opt/flowforge-device
 ```
 
-#### Windows
+#### Windows (run elevated)
 
 ```bash
 mkdir c:\opt\flowforge-device
@@ -200,7 +220,7 @@ flowforge-device-agent -p 8080
 _Start the agent with a different working directory and the Web UI enabled_
 
 ```bash
-flowforge-device-agent -d /path/to/working/directory -w -ui-user admin -ui-pass password --ui-port 8081
+flowforge-device-agent -d /path/to/working/directory -w --ui-user admin --ui-pass password --ui-port 8081
 ```
 
 
@@ -265,7 +285,7 @@ about working with snapshots.
 * The Web UI requires Device Agent v0.9.0 or later.
 * The device must first have a snapshot applied before editor access is possible.
 * The device will not receive any updates from the platform while in Developer Mode.
-* Disabling Developer Mode will cause the device to re-connected to the platform and any change to the target snapshot will cause the device to be updated. This will overwrite any changes made in Developer Mode. Therefore, it is recommended to create a snapshot of the changes before disabling Developer Mode.
+* Disabling Developer Mode will cause the device to check-in with the platform. If the device flows hve changed, it will be reloaded with the current target snapshot assigned to that device, causing any changes made in Developer Mode to be overwritten. Therefore, it is recommended to create a snapshot of the changes before disabling Developer Mode.
 * The device must be online and connected to the platform to enable "Editor Access".
 * To minimise server and device resources, it is recommended to disable "Editor Access" when not actively developing flows on a device.
 

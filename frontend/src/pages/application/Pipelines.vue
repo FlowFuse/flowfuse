@@ -25,6 +25,7 @@
                     name: 'CreatePipeline',
                     params: { applicationId: application.id },
                 }"
+                :disabled="!featureEnabled"
             >
                 <template #icon-left>
                     <PlusSmIcon />
@@ -34,20 +35,20 @@
         </template>
     </SectionTopMenu>
 
-    <div v-if="pipelines?.length > 0" class="pt-4 space-y-6">
+    <div v-if="pipelines?.length > 0" class="pt-4 space-y-6" data-el="pipelines-list">
         <PipelineRow
             v-for="pipeline in pipelines"
             :key="pipeline.id"
             :application="application"
             :pipeline="pipeline"
-            :status-map="instanceStatusMap"
-            @deploy-started="beginPolling"
-            @deploy-complete="loadPipelines"
+            :instance-status-map="instanceStatusMap"
+            @stage-deploy-starting="stageDeployStarting"
+            @stage-deploy-started="startPollingForDeployStatus"
             @pipeline-deleted="loadPipelines"
             @stage-deleted="(stageIndex) => stageDeleted(pipeline, stageIndex)"
         />
     </div>
-    <EmptyState v-else>
+    <EmptyState v-else :featureUnavailable="!featureEnabled">
         <template #header>Add your Application's First DevOps Pipeline</template>
         <template #img>
             <img src="../../images/empty-states/application-pipelines.png">
@@ -72,6 +73,7 @@
                     name: 'CreatePipeline',
                     params: { applicationId: application.id },
                 }"
+                :disabled="!featureEnabled"
             >
                 <template #icon-left><PlusSmIcon /></template>
                 Add Pipeline
@@ -123,23 +125,34 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features'])
+        ...mapState('account', ['features']),
+        featureEnabled () {
+            return this.features['devops-pipelines']
+        }
     },
     mounted () {
-        if (this.features['devops-pipelines']) {
+        if (this.featureEnabled) {
             this.loadPipelines()
-        } else {
-            this.$router.push({
-                name: 'Application',
-                params: {
-                    id: this.application.id
-                }
-            })
         }
     },
     methods: {
-        beginPolling () {
+        stageDeployStarting (stage, nextStage) {
+            if (!nextStage.instance?.id) {
+                return console.warn('Deployment starting to stage without an instance.')
+            }
+
+            // Optimistic flagging of deployment in progress for the single instance inside the target stage
+            this.instanceStatusMap.get(nextStage.instance.id).isDeploying = true
+        },
+        startPollingForDeployStatus (stage) {
+            clearInterval(this.polling)
             this.polling = setInterval(this.loadInstanceStatus, 5000)
+        },
+        stageDeployCompleted () {
+            clearInterval(this.polling)
+            this.polling = null
+
+            Alerts.emit('Deployment of stage successful.', 'confirmation')
         },
         async stageDeleted (pipeline, stageIndex) {
             pipeline.stages.splice(stageIndex, 1)
@@ -165,21 +178,27 @@ export default {
         async loadInstanceStatus () {
             ApplicationAPI.getApplicationInstancesStatuses(this.application.id)
                 .then((instances) => {
+                    const deployingInstances = instances.some((instance) => {
+                        return instance.meta.isDeploying
+                    })
+
                     if (this.polling) {
-                        let allRunning = true
-                        for (const instance of instances) {
-                            if (instance.meta.state !== 'running') {
-                                allRunning = false
-                            }
+                        // We were polling for status (triggered by deploy start) and all instances have finished deploying
+                        if (!deployingInstances) {
+                            this.stageDeployCompleted()
                         }
-                        // we were polling for status (triggered by deploy) but now everything is "running"
-                        if (this.polling && allRunning) {
-                            clearInterval(this.polling)
-                            Alerts.emit('Deployment of stage successful.', 'confirmation')
+                    } else {
+                        // Some instances are deploying, so we need to start polling for status
+                        if (deployingInstances) {
+                            this.startPollingForDeployStatus()
                         }
                     }
+
                     this.instanceStatusMap = new Map(
-                        instances.map((obj) => [obj.id, obj.meta])
+                        instances.map((obj) => {
+                            const previousStatus = this.instanceStatusMap.get(obj.id)
+                            return [obj.id, { ...previousStatus, ...obj.meta }]
+                        })
                     )
                 })
                 .catch((err) => {

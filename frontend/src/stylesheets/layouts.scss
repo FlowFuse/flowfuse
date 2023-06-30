@@ -449,6 +449,10 @@ $nav_height: 60px;
             cursor: pointer;
             svg {
                 fill: $ff-teal-100;
+                &.hollow {
+                    fill: none;
+                    stroke: $ff-teal-100;
+                }
             }
             label {
                 color: $ff-teal-100;
@@ -465,6 +469,10 @@ $nav_height: 60px;
     svg {
         fill: $ff-white;
         width: 20px;
+    }
+    svg.hollow {
+        fill: none;
+        stroke: $ff-white;
     }
     label {
         margin-left: 12px;
@@ -540,6 +548,9 @@ $nav_height: 60px;
                         display: none;
                     }
                 }
+                svg.hollow {
+                    display: none
+                }
             }
             // nested menu options
             .ff-side-navigation--nested {
@@ -564,6 +575,10 @@ $nav_height: 60px;
                 }
                 svg {
                     fill: $ff-teal-300;
+                    &.hollow {
+                        fill: none;
+                        stroke: $ff-teal-300;
+                    }
                 }
             }
         }
@@ -595,6 +610,10 @@ $nav_height: 60px;
             }
             svg {
                 fill: $ff-teal-300;
+                &.hollow {
+                    fill: none;
+                    stroke: $ff-teal-300;
+                }
             }
         }
     }

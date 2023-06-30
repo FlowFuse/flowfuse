@@ -58,7 +58,7 @@
                 </div>
                 <div class="min-w-fit flex-shrink-0">
                     <ff-button data-action="import-instance" kind="secondary" @click="showImportInstanceDialog()">Import Instance</ff-button>
-                    <ImportInstanceDialog ref="importProjectDialog" @confirm="importProject" />
+                    <ImportInstanceDialog ref="importInstanceDialog" data-el="dialog-import-instance" @confirm="importInstance" />
                 </div>
             </div>
         </template>
@@ -185,7 +185,7 @@ export default {
             })
         },
         showImportInstanceDialog () {
-            this.$refs.importProjectDialog.show(this.instance)
+            this.$refs.importInstanceDialog.show(this.instance)
         },
         upgradeStack () {
             this.changeStack(this.instance.stack.replacedBy)
@@ -202,9 +202,9 @@ export default {
                 this.loading.duplicating = false
             })
         },
-        importProject (parts) {
+        importInstance (parts) {
             this.loading.importing = true
-            InstanceApi.importProject(this.instance.id, parts).then(result => {
+            InstanceApi.importInstance(this.instance.id, parts).then(result => {
                 this.$router.push({ name: 'Instance', params: { id: this.instance.id } })
                 alerts.emit('Instance flows imported.', 'confirmation')
             }).catch(err => {

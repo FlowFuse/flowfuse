@@ -81,14 +81,14 @@ Cypress.Commands.add('enableBilling', () => {
         })
     }).as('getSettings')
 
-    cy.intercept('/api/*/teams/*', (req) => {
+    cy.intercept('/api/*/teams/slug/*', (req) => {
         req.reply((response) => {
             response.body.billing = {
                 active: true
             }
             return response
         })
-    }).as('getTeam')
+    }).as('getTeamBySlug')
 
     cy.intercept('/api/*/teams/*', (req) => {
         req.reply((response) => {

@@ -3,28 +3,44 @@
         <div class="ff-pipeline-stage-banner">
             <label>{{ stage.name }}</label>
             <div class="ff-pipeline-actions">
-                <PencilAltIcon
-                    v-if="editEnabled && application?.id && !deploying"
-                    class="ff-icon ff-clickable"
+                <span
+                    data-action="stage-edit"
                     @click="edit"
-                />
-                <TrashIcon
-                    v-if="editEnabled && application?.id && !deploying"
-                    class="ff-icon ff-clickable"
+                >
+                    <PencilAltIcon
+                        v-if="editEnabled && application?.id && !deploying"
+                        class="ff-icon ff-clickable"
+                    />
+                </span>
+                <span
+                    data-action="stage-delete"
                     @click="deleteStage"
-                />
-                <PlayIcon
-                    v-if="playEnabled && pipeline?.id && !deploying"
-                    class="ff-icon ff-clickable"
+                >
+                    <TrashIcon
+                        v-if="editEnabled && application?.id && !deploying"
+                        class="ff-icon ff-clickable"
+                    />
+                </span>
+                <span
+                    data-action="stage-run"
                     @click="runStage"
-                />
+                >
+                    <PlayIcon
+                        v-if="playEnabled && pipeline?.id && !deploying"
+                        class="ff-icon ff-clickable"
+                    />
+                </span>
                 <SpinnerIcon v-if="deploying" class="ff-icon" />
             </div>
         </div>
         <div v-if="stage.instance" class="py-3">
             <div class="ff-pipeline-stage-row">
                 <label>Instance:</label>
-                <span>{{ stage.instance.name }}</span>
+                <span>
+                    <router-link :to="{name: 'Instance', params: { id: stage.instance.id }}">
+                        {{ stage.instance.name }}
+                    </router-link>
+                </span>
             </div>
             <div class="ff-pipeline-stage-row">
                 <label>URL:</label>
@@ -40,12 +56,12 @@
             </div>
             <div class="ff-pipeline-stage-row">
                 <label>Status:</label>
-                <InstanceStatusBadge :status="status" />
+                <InstanceStatusBadge :status="stage.state" />
             </div>
         </div>
         <div v-else class="flex justify-center py-6">No Instances Bound</div>
     </div>
-    <div v-else class="ff-pipeline-stage ff-pipeline-stage-ghost">
+    <div v-else class="ff-pipeline-stage ff-pipeline-stage-ghost" data-action="add-stage">
         <PlusCircleIcon class="ff-icon ff-icon-lg" />
         <label>Add Stage</label>
     </div>
@@ -85,14 +101,6 @@ export default {
             default: null,
             type: Object
         },
-        deploying: {
-            defaut: false,
-            type: Boolean
-        },
-        status: {
-            default: null,
-            type: String
-        },
         playEnabled: {
             default: false,
             type: Boolean
@@ -102,10 +110,13 @@ export default {
             type: Boolean
         }
     },
-    emits: ['stage-started', 'stage-complete', 'stage-deleted'],
+    emits: ['stage-deleted', 'stage-deploy-starting', 'stage-deploy-started'],
     computed: {
         lastDeployed: function () {
             return elapsedTime(this.stage.instance.updatedAt, new Date())
+        },
+        deploying () {
+            return this.stage.isDeploying
         }
     },
     methods: {
@@ -128,7 +139,7 @@ export default {
             }
 
             Dialog.show(msg, async () => {
-                this.$emit('stage-started')
+                this.$emit('stage-deploy-starting')
 
                 // settings for when we deploy to a new stage
                 this.parts = {
@@ -149,7 +160,7 @@ export default {
                     sourceProject: source
                 })
 
-                this.$emit('stage-complete')
+                this.$emit('stage-deploy-started')
                 Alerts.emit(
                     `Deployment from "${this.stage.name}" to "${target.name}" has started.`,
                     'confirmation'

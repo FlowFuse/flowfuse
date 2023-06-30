@@ -10,7 +10,7 @@
         <template #default>
             <form class="space-y-6" @submit.prevent>
                 <p>
-                    Select the new stack you want to use for this project:
+                    Select the new stack you want to use for this instance:
                 </p>
                 <FormRow
                     v-model="input.stack"

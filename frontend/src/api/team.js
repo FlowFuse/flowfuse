@@ -21,7 +21,7 @@ const getTeams = () => {
 const getTeam = (team) => {
     let url
     if (typeof team === 'object') {
-        url = `/api/v1/teams/?slug=${team.slug}`
+        url = `/api/v1/teams/slug/${team.slug}`
     } else {
         url = `/api/v1/teams/${team}`
     }
