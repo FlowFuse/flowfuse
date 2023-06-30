@@ -298,32 +298,51 @@ class DeviceCommsHandler {
      * @param {WebSocket} socket
      */
     streamLogs (teamId, deviceId, socket) {
-        if (this.deviceLogClients[deviceId]) {
-            this.deviceLogClients[deviceId].counter++
-        } else {
+        if (!this.deviceLogClients[deviceId]) {
             this.deviceLogClients[deviceId] = {
-                counter: 1,
-                socket
+                cache: [],
+                sockets: new Set()
             }
             this.sendCommand(teamId, deviceId, 'startLog', '')
             this.app.log.info(`Enable device logging ${deviceId}`)
         }
-
+        this.deviceLogClients[deviceId].sockets.add(socket)
+        for (let i = 0; i < this.deviceLogClients[deviceId].cache.length; i++) {
+            socket.send(this.deviceLogClients[deviceId].cache[i].logs)
+        }
         socket.on('close', () => {
-            if (this.deviceLogClients[deviceId]?.counter === 1) {
-                delete this.deviceLogClients[deviceId]
-                this.sendCommand(teamId, deviceId, 'stopLog', '')
-                this.app.log.info(`Disable device logging ${deviceId}`)
+            if (this.deviceLogClients[deviceId]) {
+                this.deviceLogClients[deviceId].sockets.delete(socket)
+                if (this.deviceLogClients[deviceId].sockets.size === 0) {
+                    delete this.deviceLogClients[deviceId]
+                    this.sendCommand(teamId, deviceId, 'stopLog', '')
+                    this.app.log.info(`Disable device logging ${deviceId}`)
+                }
             }
         })
     }
 
     forwardLog (log) {
-        const dev = this.deviceLogClients[log.id]
-        if (dev) {
-            dev.socket.send(log.logs)
+        const socketInfo = this.deviceLogClients[log.id]
+        if (socketInfo) {
+            socketInfo.cache.push(log)
+            if (socketInfo.cache.length > 10) {
+                socketInfo.cache.shift()
+            }
+            socketInfo.sockets.forEach(s => s.send(log.logs))
         } else {
-            // socket not found
+            // The device has sent some logs that no-one is listening for. We should
+            // tell the device to step sending them
+            const deviceId = log.id
+            this.app.db.models.Device.byId(deviceId).then(device => {
+                if (device) {
+                    this.sendCommand(device.Team.hashid, deviceId, 'stopLog', '')
+                    this.app.log.info(`Disable device logging ${deviceId}`)
+                }
+                return true
+            }).catch(_ => {
+                // Ignore any errors
+            })
         }
     }
 
