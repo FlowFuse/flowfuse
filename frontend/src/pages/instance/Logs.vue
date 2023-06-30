@@ -4,7 +4,7 @@
             <template v-if="instance.ha?.replicas != undefined" #tools>
                 <div style="display: flex;align-items: center;">
                     <div class="mr-2"><strong>Replica:</strong></div>
-                    <ff-dropdown ref="dropdown" v-model="selectedHAId">
+                    <ff-dropdown ref="dropdown" v-model="selectedHAId" data-el="select-ha-replica">
                         <ff-dropdown-option label="All" value="all" />
                         <ff-dropdown-option
                             v-for="id in haIds" :key="id"

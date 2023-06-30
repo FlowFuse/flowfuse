@@ -12,7 +12,11 @@
         <div v-if="prevCursor" class="flex">
             <a class=" text-center w-full hover:text-blue-400 cursor-pointer pb-1" @click="loadPrevious">Load earlier...</a>
         </div>
-        <div v-for="(item, itemIdx) in filteredLogEntries" :key="itemIdx" class="flex" :class="'forge-log-entry-level-' + item.level">
+        <div
+            v-for="(item, itemIdx) in filteredLogEntries" :key="itemIdx"
+            data-el="instance-log-row"
+            class="flex" :class="'forge-log-entry-level-' + item.level"
+        >
             <div v-if="instance.ha?.replicas !== undefined" class="w-14 flex-shrink-0">[{{ item.src }}]</div>
             <div class="w-40 flex-shrink-0">{{ item.date }}</div>
             <div class="w-20 flex-shrink-0 align-right">[{{ item.level }}]</div>
@@ -37,6 +41,7 @@ export default {
             required: true
         },
         filter: {
+            default: null,
             type: String,
             required: false
         }
@@ -110,6 +115,7 @@ export default {
                 const toPrepend = []
                 if (entries.log.length > 0) {
                     entries.log.forEach(l => {
+                        console.log(l)
                         const d = new Date(parseInt(l.ts.substring(0, l.ts.length - 4)))
                         l.date = `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`
                         if (typeof l.msg !== 'string') {
