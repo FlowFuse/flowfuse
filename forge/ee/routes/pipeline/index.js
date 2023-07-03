@@ -55,7 +55,25 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.application
      */
     app.get('/applications/:applicationId/pipelines', {
-        preHandler: app.needsPermission('application:pipelines:list')
+        preHandler: app.needsPermission('application:pipelines:list'),
+        schema: {
+            summary: 'List all pipelines within an application',
+            tags: ['Pipelines'],
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'PipelineList'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const pipelines = await app.db.models.Pipeline.byApplicationId(request.application.hashid)
         if (pipelines) {
@@ -74,7 +92,34 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.application
      */
     app.post('/applications/:applicationId/pipelines', {
-        preHandler: app.needsPermission('application:pipelines:create')
+        preHandler: app.needsPermission('application:pipelines:create'),
+        schema: {
+            summary: 'Create a new pipeline within an application',
+            tags: ['Pipelines'],
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'Pipeline'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const team = await request.teamMembership.getTeam()
         const name = request.body.name?.trim()
@@ -110,7 +155,26 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.application
      */
     app.delete('/applications/:applicationId/pipelines/:pipelineId', {
-        preHandler: app.needsPermission('application:pipelines:delete')
+        preHandler: app.needsPermission('application:pipelines:delete'),
+        schema: {
+            summary: 'Delete a pipeline',
+            tags: ['Pipelines'],
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' },
+                    pipelineId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const team = await request.teamMembership.getTeam()
         const pipelineId = request.params.pipelineId
@@ -140,7 +204,35 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.application
      */
     app.put('/applications/:applicationId/pipelines/:pipelineId', {
-        preHandler: app.needsPermission('application:pipelines:update')
+        preHandler: app.needsPermission('application:pipelines:update'),
+        schema: {
+            summary: 'Update a pipeline within an application',
+            tags: ['Pipelines'],
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' },
+                    pipelineId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'Pipeline'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const updates = new app.auditLog.formatters.UpdatesCollection()
         const pipelineId = request.params.pipelineId
@@ -197,7 +289,33 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.pipeline
      */
     app.post('/pipelines/:pipelineId/stages', {
-        preHandler: app.needsPermission('pipeline:edit')
+        preHandler: app.needsPermission('pipeline:edit'),
+        schema: {
+            summary: 'Add a new stage to an existing pipeline',
+            tags: ['Pipelines'],
+            params: {
+                type: 'object',
+                properties: {
+                    pipelineId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    instanceId: { type: 'string' },
+                    source: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'PipelineStage'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const team = await request.teamMembership.getTeam()
         const name = request.body.name?.trim() // name of the stage
@@ -237,7 +355,33 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.pipeline
      */
     app.put('/pipelines/:pipelineId/stages/:stageId', {
-        preHandler: app.needsPermission('pipeline:edit')
+        preHandler: app.needsPermission('pipeline:edit'),
+        schema: {
+            summary: 'Update details of a stage within a pipeline',
+            tags: ['Pipelines'],
+            params: {
+                type: 'object',
+                properties: {
+                    pipelineId: { type: 'string' },
+                    stageId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    instanceId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'PipelineStage'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         try {
             const stage = await app.db.models.PipelineStage.byId(request.params.stageId)
@@ -279,7 +423,29 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.pipeline
      */
     app.delete('/pipelines/:pipelineId/stages/:stageId', {
-        preHandler: app.needsPermission('pipeline:delete')
+        preHandler: app.needsPermission('pipeline:delete'),
+        schema: {
+            summary: 'Delete a pipeline stage',
+            tags: ['Pipelines'],
+            params: {
+                type: 'object',
+                properties: {
+                    pipelineId: { type: 'string' },
+                    stageId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         try {
             const stageId = request.params.stageId

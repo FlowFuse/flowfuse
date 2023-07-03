@@ -28,17 +28,13 @@ describe('Pipelines API', function () {
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
-    beforeEach(async function () {
+    before(async function () {
         app = await setup()
         sandbox.stub(app.log, 'info')
         sandbox.stub(app.log, 'warn')
         sandbox.stub(app.log, 'error')
 
         const factory = new TestModelFactory(app)
-
-        TestObjects.pipeline = await factory.createPipeline({ name: 'new-pipeline' }, app.application)
-
-        TestObjects.stageOne = await factory.createPipelineStage({ name: 'stage-one', instanceId: app.instance.id }, TestObjects.pipeline)
 
         TestObjects.factory = factory
 
@@ -59,14 +55,34 @@ describe('Pipelines API', function () {
         TestObjects.template = app.template
         TestObjects.projectType = app.projectType
 
+        const userPez = await TestObjects.factory.createUser({
+            admin: false,
+            username: 'pez',
+            name: 'Pez Cuckow',
+            email: 'pez@example.com',
+            password: 'ppPassword'
+        })
+
+        const team1 = await TestObjects.factory.createTeam({ name: 'PTeam' })
+        await team1.addUser(userPez, { through: { role: Roles.Owner } })
+
+        await login('pez', 'ppPassword')
+
         await login('alice', 'aaPassword')
     })
 
-    afterEach(async function () {
+    after(async function () {
         await app.close()
         sandbox.restore()
     })
-
+    beforeEach(async function () {
+        TestObjects.pipeline = await app.factory.createPipeline({ name: 'new-pipeline' }, app.application)
+        TestObjects.stageOne = await app.factory.createPipelineStage({ name: 'stage-one', instanceId: app.instance.id }, TestObjects.pipeline)
+    })
+    afterEach(async function () {
+        await app.db.models.PipelineStage.destroy({ where: {} })
+        await app.db.models.Pipeline.destroy({ where: {} })
+    })
     describe('Create Pipeline Stage', function () {
         it('Should create a new pipeline stage', async function () {
             const pipelineId = TestObjects.pipeline.hashid
@@ -101,7 +117,7 @@ describe('Pipelines API', function () {
                     payload: {
                         name: 'stage-two',
                         instanceId: TestObjects.instanceTwo.id,
-                        source: TestObjects.stageOne.id
+                        source: TestObjects.stageOne.hashid
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -548,19 +564,6 @@ describe('Pipelines API', function () {
 
         describe('For an application owned by another team', function () {
             it('Should fail validation', async function () {
-                const userPez = await TestObjects.factory.createUser({
-                    admin: false,
-                    username: 'pez',
-                    name: 'Pez Cuckow',
-                    email: 'pez@example.com',
-                    password: 'ppPassword'
-                })
-
-                const team1 = await TestObjects.factory.createTeam({ name: 'PTeam' })
-                await team1.addUser(userPez, { through: { role: Roles.Owner } })
-
-                await login('pez', 'ppPassword')
-
                 const pipelineName = 'new-pipeline'
                 const applicationId = TestObjects.application.hashid // we are logged in as pez, but this is owned by alice
 
@@ -690,19 +693,6 @@ describe('Pipelines API', function () {
 
         describe('For an pipeline that is owned by another team', function () {
             it('Should fail validation', async function () {
-                const userPez = await TestObjects.factory.createUser({
-                    admin: false,
-                    username: 'pez',
-                    name: 'Pez Cuckow',
-                    email: 'pez@example.com',
-                    password: 'ppPassword'
-                })
-
-                const team1 = await TestObjects.factory.createTeam({ name: 'PTeam' })
-                await team1.addUser(userPez, { through: { role: Roles.Owner } })
-
-                await login('pez', 'ppPassword')
-
                 const response = await app.inject({
                     method: 'DELETE',
                     url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines/${TestObjects.pipeline.hashid}`,
@@ -802,19 +792,6 @@ describe('Pipelines API', function () {
 
         describe('Owned by another team', function () {
             it('Should fail validation', async function () {
-                const userPez = await TestObjects.factory.createUser({
-                    admin: false,
-                    username: 'pez',
-                    name: 'Pez Cuckow',
-                    email: 'pez@example.com',
-                    password: 'ppPassword'
-                })
-
-                const team1 = await TestObjects.factory.createTeam({ name: 'PTeam' })
-                await team1.addUser(userPez, { through: { role: Roles.Owner } })
-
-                await login('pez', 'ppPassword')
-
                 const response = await app.inject({
                     method: 'PUT',
                     url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines/${TestObjects.pipeline.hashid}`,
