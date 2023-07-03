@@ -1,4 +1,4 @@
-#### 1.8.1: Release
+#### 1.8.2: Release
 
 Fixes:
 
