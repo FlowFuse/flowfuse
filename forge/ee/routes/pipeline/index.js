@@ -5,13 +5,11 @@ const { Roles } = require('../../../lib/roles.js')
 
 module.exports = async function (app) {
     registerPermissions({
-        'pipeline:view': { description: 'View a pipeline', role: Roles.Member },
+        'pipeline:read': { description: 'View a pipeline', role: Roles.Member },
+        'pipeline:create': { description: 'Create a pipeline', role: Roles.Owner },
         'pipeline:edit': { description: 'Edit a pipeline', role: Roles.Owner },
-        'pipeline:delete': { description: 'Delete a pipeline stage', role: Roles.Owner },
-        'application:pipelines:create': { description: 'Create a pipeline within an application', role: Roles.Owner },
-        'application:pipelines:list': { description: 'List pipelines within an application', role: Roles.Member },
-        'application:pipelines:delete': { description: 'Delete a pipeline from an application', role: Roles.Owner },
-        'application:pipelines:update': { description: 'Update a pipeline within an application', role: Roles.Owner }
+        'pipeline:delete': { description: 'Delete a pipeline', role: Roles.Owner },
+        'application:pipeline:list': { description: 'List pipelines within an application', role: Roles.Member }
     })
 
     app.addHook('preHandler', async (request, reply) => {
@@ -22,8 +20,8 @@ module.exports = async function (app) {
                 return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             }
         }
-        if (request.params.applicationId) {
-            const applicationId = request.params.applicationId
+        if (request.params.applicationId || request.body?.applicationId) {
+            const applicationId = request.params.applicationId || request.body?.applicationId
             request.application = await app.db.models.Application.byId(applicationId)
             if (!request.application) {
                 return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
@@ -48,9 +46,179 @@ module.exports = async function (app) {
     })
 
     /**
+     * Create a new Pipeline
+     * /api/v1/pipelines
+     */
+    app.post('/pipelines', {
+        preHandler: app.needsPermission('pipeline:create'),
+        schema: {
+            summary: 'Create a new pipeline within an application',
+            tags: ['Pipelines'],
+            body: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' },
+                    name: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'Pipeline'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const team = await request.teamMembership.getTeam()
+        const name = request.body.name?.trim()
+
+        // Security issue here, should check application is same team...
+
+        let pipeline
+        try {
+            pipeline = await app.db.models.Pipeline.create({
+                name,
+                ApplicationId: request.application.id
+            })
+        } catch (err) {
+            if (err instanceof ValidationError) {
+                if (err.errors[0]) {
+                    return reply.status(400).type('application/json').send({ code: `invalid_${err.errors[0].path}`, error: err.errors[0].message })
+                }
+
+                return reply.status(400).type('application/json').send({ code: 'invalid_input', error: err.message })
+            }
+
+            return reply.status(500).send({ code: 'unexpected_error', error: err.toString() })
+        }
+
+        await app.auditLog.Team.application.pipeline.created(request.session.User, null, team, request.application, pipeline)
+
+        reply.send(await app.db.views.Pipeline.pipeline(pipeline))
+    })
+
+    /**
+     * Delete a Pipeline
+     * /api/v1/pipelines/:id
+     */
+    app.delete('/pipelines/:pipelineId', {
+        preHandler: app.needsPermission('pipeline:delete'),
+        schema: {
+            summary: 'Delete a pipeline',
+            tags: ['Pipelines'],
+            params: {
+                type: 'object',
+                properties: {
+                    pipelineId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const team = await request.teamMembership.getTeam()
+        const pipelineId = request.params.pipelineId
+        const pipeline = await app.db.models.Pipeline.byId(pipelineId)
+
+        if (!pipeline) {
+            return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+
+        const stages = await pipeline.stages()
+        if (stages.length > 0) {
+            // delete stages too
+            for (let i = 0; i < stages.length; i++) {
+                stages[i].destroy()
+            }
+        }
+
+        await pipeline.destroy()
+        await app.auditLog.Team.application.pipeline.deleted(request.session.User, null, team, request.application, pipeline)
+
+        reply.send({ status: 'okay' })
+    })
+
+    /**
+     * Update a Pipeline
+     * /api/v1/pipelines/:id
+     */
+    app.put('/pipelines/:pipelineId', {
+        preHandler: app.needsPermission('pipeline:edit'),
+        schema: {
+            summary: 'Update a pipeline within an application',
+            tags: ['Pipelines'],
+            params: {
+                type: 'object',
+                properties: {
+                    pipelineId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'Pipeline'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const updates = new app.auditLog.formatters.UpdatesCollection()
+        const pipelineId = request.params.pipelineId
+        const pipeline = await app.db.models.Pipeline.byId(pipelineId)
+
+        try {
+            const reqName = request.body.pipeline.name?.trim()
+            updates.push('name', pipeline.name, reqName)
+            pipeline.name = reqName
+
+            await pipeline.save()
+        } catch (error) {
+            if (error instanceof ValidationError) {
+                if (error.errors[0]) {
+                    return reply.status(400).type('application/json').send({ code: `invalid_${error.errors[0].path}`, error: error.errors[0].message })
+                }
+
+                return reply.status(400).type('application/json').send({ code: 'invalid_input', error: error.message })
+            }
+
+            app.log.error('Error while updating pipeline:')
+            app.log.error(error)
+
+            return reply.code(500).send({ code: 'unexpected_error', error: error.toString() })
+        }
+
+        const team = request.application.Team
+        if (team) {
+            await app.auditLog.Team.application.pipeline.updated(request.session.User, null, team, request.application, pipeline, updates)
+        }
+
+        reply.send(pipeline)
+    })
+
+    /**
      * Add a new stage to an existing Pipeline
-     * @name /api/v1/pipelines/:pipelineId/stages
-     * @memberof forge.routes.api.pipeline
+     * /api/v1/pipelines/:pipelineId/stages
      */
     app.post('/pipelines/:pipelineId/stages', {
         preHandler: app.needsPermission('pipeline:edit'),
@@ -114,11 +282,10 @@ module.exports = async function (app) {
 
     /**
      * Get details of a single stage within a pipeline
-     * @name /api/v1/pipelines/:pipelineId/stages/:stageId
-     * @memberof forge.routes.api.pipeline
+     * /api/v1/pipelines/:pipelineId/stages/:stageId
      */
     app.get('/pipelines/:pipelineId/stages/:stageId', {
-        preHandler: app.needsPermission('pipeline:view')
+        preHandler: app.needsPermission('pipeline:read')
     }, async (request, reply) => {
         const stage = await app.db.models.PipelineStage.byId(request.params.stageId)
         if (!stage) {
@@ -130,8 +297,7 @@ module.exports = async function (app) {
 
     /**
      * Update details of a single stage within a pipeline
-     * @name /api/v1/pipelines/:pipelineId/stages/:stageId
-     * @memberof forge.routes.api.pipeline
+     * /api/v1/pipelines/:pipelineId/stages/:stageId
      */
     app.put('/pipelines/:pipelineId/stages/:stageId', {
         preHandler: app.needsPermission('pipeline:edit'),
@@ -194,8 +360,7 @@ module.exports = async function (app) {
 
     /**
      * Delete a pipeline stage
-     * @name /api/v1/pipelines/:pipelineId/stages/:stageId
-     * @memberof forge.routes.api.pipeline
+     * /api/v1/pipelines/:pipelineId/stages/:stageId
      */
     app.delete('/pipelines/:pipelineId/stages/:stageId', {
         preHandler: app.needsPermission('pipeline:delete'),
@@ -252,11 +417,10 @@ module.exports = async function (app) {
 
     /**
      * List all pipelines within an Application
-     * @name /api/v1/application/:id/pipelines
-     * @memberof forge.routes.api.application
+     * /api/v1/applications/:id/pipelines
      */
     app.get('/applications/:applicationId/pipelines', {
-        preHandler: app.needsPermission('application:pipelines:list'),
+        preHandler: app.needsPermission('application:pipeline:list'),
         schema: {
             summary: 'List all pipelines within an application',
             tags: ['Pipelines'],
@@ -289,186 +453,5 @@ module.exports = async function (app) {
         } else {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
-    })
-
-    /**
-     * Create a new Pipeline within an Application
-     * @name /api/v1/application/:id/pipelines
-     * @memberof forge.routes.api.application
-     */
-    app.post('/applications/:applicationId/pipelines', {
-        preHandler: app.needsPermission('application:pipelines:create'),
-        schema: {
-            summary: 'Create a new pipeline within an application',
-            tags: ['Pipelines'],
-            params: {
-                type: 'object',
-                properties: {
-                    applicationId: { type: 'string' }
-                }
-            },
-            body: {
-                type: 'object',
-                properties: {
-                    name: { type: 'string' }
-                }
-            },
-            response: {
-                200: {
-                    $ref: 'Pipeline'
-                },
-                '4xx': {
-                    $ref: 'APIError'
-                },
-                500: {
-                    $ref: 'APIError'
-                }
-            }
-        }
-    }, async (request, reply) => {
-        const team = await request.teamMembership.getTeam()
-        const name = request.body.name?.trim()
-
-        // Security issue here, should check application is same team...
-
-        let pipeline
-        try {
-            pipeline = await app.db.models.Pipeline.create({
-                name,
-                ApplicationId: request.application.id
-            })
-        } catch (err) {
-            if (err instanceof ValidationError) {
-                if (err.errors[0]) {
-                    return reply.status(400).type('application/json').send({ code: `invalid_${err.errors[0].path}`, error: err.errors[0].message })
-                }
-
-                return reply.status(400).type('application/json').send({ code: 'invalid_input', error: err.message })
-            }
-
-            return reply.status(500).send({ code: 'unexpected_error', error: err.toString() })
-        }
-
-        await app.auditLog.Team.application.pipeline.created(request.session.User, null, team, request.application, pipeline)
-
-        reply.send(await app.db.views.Pipeline.pipeline(pipeline))
-    })
-
-    /**
-     * Delete a Pipeline from an Application
-     * @name /api/v1/application/:id/pipelines
-     * @memberof forge.routes.api.application
-     */
-    app.delete('/applications/:applicationId/pipelines/:pipelineId', {
-        preHandler: app.needsPermission('application:pipelines:delete'),
-        schema: {
-            summary: 'Delete a pipeline',
-            tags: ['Pipelines'],
-            params: {
-                type: 'object',
-                properties: {
-                    applicationId: { type: 'string' },
-                    pipelineId: { type: 'string' }
-                }
-            },
-            response: {
-                200: {
-                    $ref: 'APIStatus'
-                },
-                '4xx': {
-                    $ref: 'APIError'
-                }
-            }
-        }
-    }, async (request, reply) => {
-        const team = await request.teamMembership.getTeam()
-        const pipelineId = request.params.pipelineId
-        const pipeline = await app.db.models.Pipeline.byId(pipelineId)
-
-        if (!pipeline) {
-            return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-        }
-
-        const stages = await pipeline.stages()
-        if (stages.length > 0) {
-            // delete stages too
-            for (let i = 0; i < stages.length; i++) {
-                stages[i].destroy()
-            }
-        }
-
-        await pipeline.destroy()
-        await app.auditLog.Team.application.pipeline.deleted(request.session.User, null, team, request.application, pipeline)
-
-        reply.send({ status: 'okay' })
-    })
-
-    /**
-     * Update a Pipeline within an Application
-     * @name /api/v1/application/:id/pipelines
-     * @memberof forge.routes.api.application
-     */
-    app.put('/applications/:applicationId/pipelines/:pipelineId', {
-        preHandler: app.needsPermission('application:pipelines:update'),
-        schema: {
-            summary: 'Update a pipeline within an application',
-            tags: ['Pipelines'],
-            params: {
-                type: 'object',
-                properties: {
-                    applicationId: { type: 'string' },
-                    pipelineId: { type: 'string' }
-                }
-            },
-            body: {
-                type: 'object',
-                properties: {
-                    name: { type: 'string' }
-                }
-            },
-            response: {
-                200: {
-                    $ref: 'Pipeline'
-                },
-                '4xx': {
-                    $ref: 'APIError'
-                },
-                500: {
-                    $ref: 'APIError'
-                }
-            }
-        }
-    }, async (request, reply) => {
-        const updates = new app.auditLog.formatters.UpdatesCollection()
-        const pipelineId = request.params.pipelineId
-        const pipeline = await app.db.models.Pipeline.byId(pipelineId)
-
-        try {
-            const reqName = request.body.pipeline.name?.trim()
-            updates.push('name', pipeline.name, reqName)
-            pipeline.name = reqName
-
-            await pipeline.save()
-        } catch (error) {
-            if (error instanceof ValidationError) {
-                if (error.errors[0]) {
-                    return reply.status(400).type('application/json').send({ code: `invalid_${error.errors[0].path}`, error: error.errors[0].message })
-                }
-
-                return reply.status(400).type('application/json').send({ code: 'invalid_input', error: error.message })
-            }
-
-            app.log.error('Error while updating pipeline:')
-            app.log.error(error)
-
-            return reply.code(500).send({ code: 'unexpected_error', error: error.toString() })
-        }
-
-        const team = request.application.Team
-        if (team) {
-            await app.auditLog.Team.application.pipeline.updated(request.session.User, null, team, request.application, pipeline, updates)
-        }
-
-        reply.send(pipeline)
     })
 }

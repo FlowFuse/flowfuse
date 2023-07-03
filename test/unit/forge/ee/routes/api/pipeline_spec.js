@@ -462,8 +462,9 @@ describe('Pipelines API', function () {
 
                 const response = await app.inject({
                     method: 'POST',
-                    url: `/api/v1/applications/${applicationId}/pipelines`,
+                    url: '/api/v1/pipelines',
                     payload: {
+                        applicationId,
                         name: pipelineName
                     },
                     cookies: { sid: TestObjects.tokens.alice }
@@ -485,8 +486,10 @@ describe('Pipelines API', function () {
 
                 const response = await app.inject({
                     method: 'POST',
-                    url: `/api/v1/applications/${applicationId}/pipelines`,
-                    payload: {},
+                    url: '/api/v1/pipelines',
+                    payload: {
+                        applicationId
+                    },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
 
@@ -503,9 +506,10 @@ describe('Pipelines API', function () {
 
                 const response = await app.inject({
                     method: 'POST',
-                    url: `/api/v1/applications/${applicationId}/pipelines`,
+                    url: '/api/v1/pipelines',
                     payload: {
-                        name: ' '
+                        name: ' ',
+                        applicationId
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -526,9 +530,10 @@ describe('Pipelines API', function () {
 
                 const response = await app.inject({
                     method: 'POST',
-                    url: `/api/v1/applications/${applicationId}/pipelines`,
+                    url: '/api/v1/pipelines',
                     payload: {
-                        name: pipelineName
+                        name: pipelineName,
+                        applicationId
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -546,9 +551,10 @@ describe('Pipelines API', function () {
 
                 const response = await app.inject({
                     method: 'POST',
-                    url: `/api/v1/applications/${applicationId}/pipelines`,
+                    url: '/api/v1/pipelines',
                     payload: {
-                        name: pipelineName
+                        name: pipelineName,
+                        applicationId
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -568,9 +574,10 @@ describe('Pipelines API', function () {
 
                 const response = await app.inject({
                     method: 'POST',
-                    url: `/api/v1/applications/${applicationId}/pipelines`,
+                    url: '/api/v1/pipelines',
                     payload: {
-                        name: pipelineName
+                        name: pipelineName,
+                        applicationId
                     },
                     cookies: { sid: TestObjects.tokens.pez }
                 })
@@ -590,9 +597,10 @@ describe('Pipelines API', function () {
 
                 const response = await app.inject({
                     method: 'POST',
-                    url: `/api/v1/applications/${applicationId}/pipelines`,
+                    url: '/api/v1/pipelines',
                     payload: {
-                        name: pipelineName
+                        name: pipelineName,
+                        applicationId
                     }
                 })
 
@@ -614,7 +622,7 @@ describe('Pipelines API', function () {
 
                 const response = await app.inject({
                     method: 'DELETE',
-                    url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines/${pipeline.hashid}`,
+                    url: `/api/v1/pipelines/${pipeline.hashid}`,
                     cookies: { sid: TestObjects.tokens.alice }
                 })
 
@@ -641,7 +649,7 @@ describe('Pipelines API', function () {
 
                 const response = await app.inject({
                     method: 'DELETE',
-                    url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines/${pipeline.hashid}`,
+                    url: `/api/v1/pipelines/${pipeline.hashid}`,
                     cookies: { sid: TestObjects.tokens.alice }
                 })
 
@@ -666,7 +674,7 @@ describe('Pipelines API', function () {
             it('Should fail gracefully', async function () {
                 const response = await app.inject({
                     method: 'DELETE',
-                    url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines/`,
+                    url: '/api/v1/pipelines/',
                     cookies: { sid: TestObjects.tokens.alice }
                 })
 
@@ -680,7 +688,7 @@ describe('Pipelines API', function () {
             it('Should fail gracefully', async function () {
                 const response = await app.inject({
                     method: 'DELETE',
-                    url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines/doesnotexist`,
+                    url: '/api/v1/pipelines/doesnotexist',
                     cookies: { sid: TestObjects.tokens.alice }
                 })
 
@@ -694,7 +702,7 @@ describe('Pipelines API', function () {
             it('Should fail validation', async function () {
                 const response = await app.inject({
                     method: 'DELETE',
-                    url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines/${TestObjects.pipeline.hashid}`,
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}`,
                     cookies: { sid: TestObjects.tokens.pez }
                 })
 
@@ -718,7 +726,7 @@ describe('Pipelines API', function () {
             it('Should update the name of the pipeline', async function () {
                 const response = await app.inject({
                     method: 'PUT',
-                    url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines/${TestObjects.pipeline.hashid}`,
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}`,
                     payload: {
                         pipeline: { name: 'new-name' }
                     },
@@ -739,7 +747,7 @@ describe('Pipelines API', function () {
             it('Unset - Should fail gracefully', async function () {
                 const response = await app.inject({
                     method: 'PUT',
-                    url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines/${TestObjects.pipeline.hashid}`,
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}`,
                     payload: {
                         pipeline: {}
                     },
@@ -755,7 +763,7 @@ describe('Pipelines API', function () {
             it('Blank - Should fail gracefully', async function () {
                 const response = await app.inject({
                     method: 'PUT',
-                    url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines/${TestObjects.pipeline.hashid}`,
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}`,
                     payload: {
                         pipeline: {
                             name: ''
@@ -773,7 +781,7 @@ describe('Pipelines API', function () {
             it('String of spaces - Should fail gracefully', async function () {
                 const response = await app.inject({
                     method: 'PUT',
-                    url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines/${TestObjects.pipeline.hashid}`,
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}`,
                     payload: {
                         pipeline: {
                             name: '    '
@@ -793,7 +801,7 @@ describe('Pipelines API', function () {
             it('Should fail validation', async function () {
                 const response = await app.inject({
                     method: 'PUT',
-                    url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines/${TestObjects.pipeline.hashid}`,
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}`,
                     payload: {
                         name: 'haxor'
                     },
