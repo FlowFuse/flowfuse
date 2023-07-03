@@ -41,18 +41,19 @@ The third one `user` is set for the instance, the value can be edited or the var
 
 ## Standard environment variables
 
-Instances running on FlowForge are assigned a standard set environment variables as follows.
+Standard environment variables are set for all Node-RED instances running
+within the platform:
 
 - `FF_INSTANCE_ID`
 - `FF_INSTANCE_NAME`
-- `FF_PROJECT_ID` (depreciated as of V1.6.0, use `FF_INSTANCE_ID` instead)
-- `FF_PROJECT_NAME` (depreciated as of V1.6.0, use `FF_INSTANCE_NAME` instead)
-- `FF_DEVICE_ID` (devices only)
-- `FF_DEVICE_NAME` (devices only)
-- `FF_DEVICE_TYPE` (devices only)
 
-`FF_INSTANCE_ID` and `FF_INSTANCE_NAME` are assigned to the Node-RED instance running on the FlowForge server as well as all associated Devices.
+In addition, the following variables are set when running on a device:
 
-Devices also have `FF_DEVICE_ID`, `FF_DEVICE_NAME` and `FF_DEVICE_TYPE` set so that flows can know where they are running.
+- `FF_DEVICE_ID`
+- `FF_DEVICE_NAME`
+- `FF_DEVICE_TYPE`
+- `FF_SNAPSHOT_ID`
+- `FF_SNAPSHOT_NAME`
 
-
+When deploying the same set of flows out to multiple devices, these variables can
+be used by the flows to identify the specific device being run on.
