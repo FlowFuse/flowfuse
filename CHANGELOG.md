@@ -1,3 +1,22 @@
+#### 1.8.1: Release
+
+Fixes:
+
+ - Ensure pipeline stages are listed in the correct order (backport #2384) (#2385) @app/github-actions
+
+Docs:
+
+ - Add note about PostgreSQL DB on x86-64 (backport #2382) (#2383) @app/github-actions
+ - Update device agent docs around windows support (backport #2320) (#2358) @app/github-actions
+ - Add nginx ingress size setting to docs (backport #2277) (#2280) @app/github-actions
+ - Increase default helm install timeout (backport #2336) (#2337) @app/github-actions
+ - Fix broken link (backport #2316) (#2317) @app/github-actions
+ - docs: Update support section for FF Cloud (backport #2312) (#2313) @app/github-actions
+ - Update device agent docs for https/httpStatic config (backport #2306) (#2308) @app/github-actions
+ - Use 3.0.2 for the example stack (backport #2274) (#2275) @app/github-actions
+ - Update instance-settings.md (backport #2265) (#2266) @app/github-actions
+ - docs: Fix broken anchor in docs (backport #2263) (#2264) @app/github-actions
+
 #### 1.8.0: Release
 
  - Disable "Dev Mode" button (#2256) @hardillb
