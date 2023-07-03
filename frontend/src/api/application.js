@@ -132,9 +132,10 @@ const getPipeline = async (applicationId, pipelineId) => {
  */
 const createPipeline = async (applicationId, name) => {
     const options = {
-        name
+        name,
+        applicationId
     }
-    return client.post(`/api/v1/applications/${applicationId}/pipelines`, options)
+    return client.post('/api/v1/pipelines', options)
         .then(res => {
             const props = {
                 'pipeline-id': res.data.id,
@@ -152,7 +153,7 @@ const createPipeline = async (applicationId, name) => {
  * @param {string} pipelineId
  */
 const deletePipeline = async (applicationId, pipelineId) => {
-    return client.delete(`/api/v1/applications/${applicationId}/pipelines/${pipelineId}`)
+    return client.delete(`/api/v1/pipelines/${pipelineId}`)
         .then(res => {
             const props = {
                 'pipeline-id': pipelineId,
@@ -175,7 +176,7 @@ const updatePipeline = async (applicationId, pipeline) => {
             name: pipeline.name
         }
     }
-    return client.put(`/api/v1/applications/${applicationId}/pipelines/${pipeline.id}`, body)
+    return client.put(`/api/v1/pipelines/${pipeline.id}`, body)
         .then(res => {
             return res.data
         })

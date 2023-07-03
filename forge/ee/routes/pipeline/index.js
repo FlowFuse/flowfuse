@@ -7,13 +7,11 @@ const { createSnapshot, copySnapshot } = require('../../../services/snapshots')
 
 module.exports = async function (app) {
     registerPermissions({
-        'pipeline:view': { description: 'View a pipeline', role: Roles.Member },
+        'pipeline:read': { description: 'View a pipeline', role: Roles.Member },
+        'pipeline:create': { description: 'Create a pipeline', role: Roles.Owner },
         'pipeline:edit': { description: 'Edit a pipeline', role: Roles.Owner },
-        'pipeline:delete': { description: 'Delete a pipeline stage', role: Roles.Owner },
-        'application:pipelines:create': { description: 'Create a pipeline within an application', role: Roles.Owner },
-        'application:pipelines:list': { description: 'List pipelines within an application', role: Roles.Member },
-        'application:pipelines:delete': { description: 'Delete a pipeline from an application', role: Roles.Owner },
-        'application:pipelines:update': { description: 'Update a pipeline within an application', role: Roles.Owner }
+        'pipeline:delete': { description: 'Delete a pipeline', role: Roles.Owner },
+        'application:pipeline:list': { description: 'List pipelines within an application', role: Roles.Member }
     })
 
     app.addHook('preHandler', async (request, reply) => {
@@ -24,8 +22,8 @@ module.exports = async function (app) {
                 return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             }
         }
-        if (request.params.applicationId) {
-            const applicationId = request.params.applicationId
+        if (request.params.applicationId || request.body?.applicationId) {
+            const applicationId = request.params.applicationId || request.body?.applicationId
             request.application = await app.db.models.Application.byId(applicationId)
             if (!request.application) {
                 return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
@@ -50,65 +48,18 @@ module.exports = async function (app) {
     })
 
     /**
-     * List all pipelines within an Application
-     * @name /api/v1/application/:id/pipelines
-     * @memberof forge.routes.api.application
+     * Create a new Pipeline
+     * /api/v1/pipelines
      */
-    app.get('/applications/:applicationId/pipelines', {
-        preHandler: app.needsPermission('application:pipelines:list'),
-        schema: {
-            summary: 'List all pipelines within an application',
-            tags: ['Pipelines'],
-            params: {
-                type: 'object',
-                properties: {
-                    applicationId: { type: 'string' }
-                }
-            },
-            response: {
-                200: {
-                    type: 'object',
-                    properties: {
-                        count: { type: 'number' },
-                        pipelines: { $ref: 'PipelineList' }
-                    }
-                },
-                '4xx': {
-                    $ref: 'APIError'
-                }
-            }
-        }
-    }, async (request, reply) => {
-        const pipelines = await app.db.models.Pipeline.byApplicationId(request.application.hashid)
-        if (pipelines) {
-            reply.send({
-                count: pipelines.length,
-                pipelines: await app.db.views.Pipeline.pipelineList(pipelines)
-            })
-        } else {
-            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-        }
-    })
-
-    /**
-     * Create a new Pipeline within an Application
-     * @name /api/v1/application/:id/pipelines
-     * @memberof forge.routes.api.application
-     */
-    app.post('/applications/:applicationId/pipelines', {
-        preHandler: app.needsPermission('application:pipelines:create'),
+    app.post('/pipelines', {
+        preHandler: app.needsPermission('pipeline:create'),
         schema: {
             summary: 'Create a new pipeline within an application',
             tags: ['Pipelines'],
-            params: {
-                type: 'object',
-                properties: {
-                    applicationId: { type: 'string' }
-                }
-            },
             body: {
                 type: 'object',
                 properties: {
+                    applicationId: { type: 'string' },
                     name: { type: 'string' }
                 }
             },
@@ -154,19 +105,17 @@ module.exports = async function (app) {
     })
 
     /**
-     * Delete a Pipeline from an Application
-     * @name /api/v1/application/:id/pipelines
-     * @memberof forge.routes.api.application
+     * Delete a Pipeline
+     * /api/v1/pipelines/:id
      */
-    app.delete('/applications/:applicationId/pipelines/:pipelineId', {
-        preHandler: app.needsPermission('application:pipelines:delete'),
+    app.delete('/pipelines/:pipelineId', {
+        preHandler: app.needsPermission('pipeline:delete'),
         schema: {
             summary: 'Delete a pipeline',
             tags: ['Pipelines'],
             params: {
                 type: 'object',
                 properties: {
-                    applicationId: { type: 'string' },
                     pipelineId: { type: 'string' }
                 }
             },
@@ -203,19 +152,17 @@ module.exports = async function (app) {
     })
 
     /**
-     * Update a Pipeline within an Application
-     * @name /api/v1/application/:id/pipelines
-     * @memberof forge.routes.api.application
+     * Update a Pipeline
+     * /api/v1/pipelines/:id
      */
-    app.put('/applications/:applicationId/pipelines/:pipelineId', {
-        preHandler: app.needsPermission('application:pipelines:update'),
+    app.put('/pipelines/:pipelineId', {
+        preHandler: app.needsPermission('pipeline:edit'),
         schema: {
             summary: 'Update a pipeline within an application',
             tags: ['Pipelines'],
             params: {
                 type: 'object',
                 properties: {
-                    applicationId: { type: 'string' },
                     pipelineId: { type: 'string' }
                 }
             },
@@ -575,6 +522,46 @@ module.exports = async function (app) {
                 console.warn('Deploy failed, but response already sent', err)
                 reply.code(500).send(resp)
             }
+        }
+    })
+
+    /**
+     * List all pipelines within an Application
+     * /api/v1/applications/:id/pipelines
+     */
+    app.get('/applications/:applicationId/pipelines', {
+        preHandler: app.needsPermission('application:pipeline:list'),
+        schema: {
+            summary: 'List all pipelines within an application',
+            tags: ['Pipelines'],
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        count: { type: 'number' },
+                        pipelines: { $ref: 'PipelineList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const pipelines = await app.db.models.Pipeline.byApplicationId(request.application.hashid)
+        if (pipelines) {
+            reply.send({
+                count: pipelines.length,
+                pipelines: await app.db.views.Pipeline.pipelineList(pipelines)
+            })
+        } else {
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
     })
 }
