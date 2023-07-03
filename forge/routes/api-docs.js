@@ -27,6 +27,7 @@ module.exports = fp(async function (app, opts, done) {
                 { name: 'Instance Actions', description: '' },
                 { name: 'Devices', description: '' },
                 { name: 'Snapshots', description: '' },
+                { name: 'Pipelines', description: '' },
                 { name: 'Stacks', description: '' },
                 { name: 'Templates', description: '' },
                 { name: 'Platform', description: '' },

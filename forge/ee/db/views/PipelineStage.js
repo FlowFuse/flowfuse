@@ -1,5 +1,15 @@
-module.exports = {
-    async stage (app, stage) {
+module.exports = function (app) {
+    app.addSchema({
+        $id: 'PipelineStage',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            instances: { type: 'array', items: { ref: 'InstanceSummaryList' } },
+            NextStageId: { type: 'string' }
+        }
+    })
+    async function stage (stage) {
         const result = stage.toJSON()
         const filtered = {
             id: result.hashid,
@@ -7,7 +17,7 @@ module.exports = {
         }
 
         if (stage.Instances?.length > 0) {
-            filtered.instances = await app.db.views.Project.instancesList(stage.Instances)
+            filtered.instances = await app.db.views.Project.instancesSummaryList(stage.Instances)
         }
 
         if (stage.NextStageId) {
@@ -19,8 +29,21 @@ module.exports = {
         }
 
         return filtered
-    },
-    async stageList (app, stages) {
-        return await Promise.all(stages.map(app.db.views.PipelineStage.stage))
+    }
+
+    app.addSchema({
+        $id: 'PipelineStageList',
+        type: 'array',
+        items: {
+            ref: 'PipelineStage'
+        }
+    })
+    async function stageList (stages) {
+        return await Promise.all(stages.map(stage))
+    }
+
+    return {
+        stage,
+        stageList
     }
 }
