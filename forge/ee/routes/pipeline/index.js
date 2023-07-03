@@ -48,135 +48,6 @@ module.exports = async function (app) {
     })
 
     /**
-     * Add a new stage to an existing Pipeline
-     * @name /api/v1/pipelines/:pipelineId/stages
-     * @memberof forge.routes.api.pipeline
-     */
-    app.post('/pipelines/:pipelineId/stages', {
-        preHandler: app.needsPermission('pipeline:edit')
-    }, async (request, reply) => {
-        const team = await request.teamMembership.getTeam()
-        const name = request.body.name?.trim() // name of the stage
-        const instanceId = request.body.instanceId // instance id
-
-        let stage
-        try {
-            const options = {
-                name,
-                instanceId
-            }
-            if (request.body.source) {
-                options.source = request.body.source
-            }
-            stage = await app.db.controllers.Pipeline.addPipelineStage(
-                request.pipeline,
-                options
-            )
-        } catch (err) {
-            console.error(err)
-            return reply.status(500).send({ code: 'unexpected_error', error: err.toString() })
-        }
-        const instance = await app.db.models.Project.byId(instanceId)
-        await app.auditLog.Team.application.pipeline.stageAdded(request.session.User, null, team, request.application, request.pipeline, stage)
-        await app.auditLog.Project.project.assignedToPipelineStage(request.session.User, null, instance, request.pipeline, stage)
-
-        // ById includes related models
-        const hydratedStage = await app.db.models.PipelineStage.byId(stage.id)
-
-        reply.send(await app.db.views.PipelineStage.stage(hydratedStage))
-    })
-
-    /**
-     * Get details of a single stage within a pipeline
-     * @name /api/v1/pipelines/:pipelineId/stages/:stageId
-     * @memberof forge.routes.api.pipeline
-     */
-    app.get('/pipelines/:pipelineId/stages/:stageId', {
-        preHandler: app.needsPermission('pipeline:view')
-    }, async (request, reply) => {
-        const stage = await app.db.models.PipelineStage.byId(request.params.stageId)
-        if (!stage) {
-            return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-        }
-
-        reply.send(await app.db.views.PipelineStage.stage(stage))
-    })
-
-    /**
-     * Update details of a single stage within a pipeline
-     * @name /api/v1/pipelines/:pipelineId/stages/:stageId
-     * @memberof forge.routes.api.pipeline
-     */
-    app.put('/pipelines/:pipelineId/stages/:stageId', {
-        preHandler: app.needsPermission('pipeline:edit')
-    }, async (request, reply) => {
-        try {
-            const stage = await app.db.models.PipelineStage.byId(request.params.stageId)
-
-            if (request.body.name) {
-                stage.name = request.body.name
-            }
-
-            if (request.body.instanceId) {
-                // Currently only one instance per stage is supported
-                const instances = await stage.getInstances()
-                for (const instance of instances) {
-                    await stage.removeInstance(instance)
-                }
-
-                await stage.addInstanceId(request.body.instanceId)
-            }
-
-            await stage.save()
-
-            // ById includes related models
-            const hydratedStage = await app.db.models.PipelineStage.byId(stage.id)
-
-            // TODO - Audit log entry?
-
-            reply.send(await app.db.views.PipelineStage.stage(hydratedStage))
-        } catch (err) {
-            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
-        }
-    })
-
-    /**
-     * Delete a pipeline stage
-     * @name /api/v1/pipelines/:pipelineId/stages/:stageId
-     * @memberof forge.routes.api.pipeline
-     */
-    app.delete('/pipelines/:pipelineId/stages/:stageId', {
-        preHandler: app.needsPermission('pipeline:delete')
-    }, async (request, reply) => {
-        try {
-            const stageId = request.params.stageId
-
-            const stage = await app.db.models.PipelineStage.byId(stageId)
-
-            // Update the previous stage to point to the next stage when this model is deleted
-            // e.g. A -> B -> C to A -> C when B is deleted
-            const previousStage = await app.db.models.PipelineStage.byNextStage(stageId)
-            if (previousStage) {
-                if (stage.NextStageId) {
-                    previousStage.NextStageId = stage.NextStageId
-                } else {
-                    previousStage.NextStageId = null
-                }
-
-                await previousStage.save()
-            }
-
-            await stage.destroy()
-
-            // TODO - Audit log entry?
-
-            reply.send({ status: 'okay' })
-        } catch (err) {
-            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
-        }
-    })
-
-    /**
      * List all pipelines within an Application
      * @name /api/v1/application/:id/pipelines
      * @memberof forge.routes.api.application
@@ -300,5 +171,134 @@ module.exports = async function (app) {
         }
 
         reply.send(pipeline)
+    })
+
+    /**
+     * Get details of a single stage within a pipeline
+     * @name /api/v1/pipelines/:pipelineId/stages/:stageId
+     * @memberof forge.routes.api.pipeline
+     */
+    app.get('/pipelines/:pipelineId/stages/:stageId', {
+        preHandler: app.needsPermission('pipeline:view')
+    }, async (request, reply) => {
+        const stage = await app.db.models.PipelineStage.byId(request.params.stageId)
+        if (!stage) {
+            return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+
+        reply.send(await app.db.views.PipelineStage.stage(stage))
+    })
+
+    /**
+     * Add a new stage to an existing Pipeline
+     * @name /api/v1/pipelines/:pipelineId/stages
+     * @memberof forge.routes.api.pipeline
+     */
+    app.post('/pipelines/:pipelineId/stages', {
+        preHandler: app.needsPermission('pipeline:edit')
+    }, async (request, reply) => {
+        const team = await request.teamMembership.getTeam()
+        const name = request.body.name?.trim() // name of the stage
+        const instanceId = request.body.instanceId // instance id
+
+        let stage
+        try {
+            const options = {
+                name,
+                instanceId
+            }
+            if (request.body.source) {
+                options.source = request.body.source
+            }
+            stage = await app.db.controllers.Pipeline.addPipelineStage(
+                request.pipeline,
+                options
+            )
+        } catch (err) {
+            console.error(err)
+            return reply.status(500).send({ code: 'unexpected_error', error: err.toString() })
+        }
+        const instance = await app.db.models.Project.byId(instanceId)
+        await app.auditLog.Team.application.pipeline.stageAdded(request.session.User, null, team, request.application, request.pipeline, stage)
+        await app.auditLog.Project.project.assignedToPipelineStage(request.session.User, null, instance, request.pipeline, stage)
+
+        // ById includes related models
+        const hydratedStage = await app.db.models.PipelineStage.byId(stage.id)
+
+        reply.send(await app.db.views.PipelineStage.stage(hydratedStage))
+    })
+
+    /**
+     * Update details of a single stage within a pipeline
+     * @name /api/v1/pipelines/:pipelineId/stages/:stageId
+     * @memberof forge.routes.api.pipeline
+     */
+    app.put('/pipelines/:pipelineId/stages/:stageId', {
+        preHandler: app.needsPermission('pipeline:edit')
+    }, async (request, reply) => {
+        try {
+            const stage = await app.db.models.PipelineStage.byId(request.params.stageId)
+
+            if (request.body.name) {
+                stage.name = request.body.name
+            }
+
+            if (request.body.instanceId) {
+                // Currently only one instance per stage is supported
+                const instances = await stage.getInstances()
+                for (const instance of instances) {
+                    await stage.removeInstance(instance)
+                }
+
+                await stage.addInstanceId(request.body.instanceId)
+            }
+
+            await stage.save()
+
+            // ById includes related models
+            const hydratedStage = await app.db.models.PipelineStage.byId(stage.id)
+
+            // TODO - Audit log entry?
+
+            reply.send(await app.db.views.PipelineStage.stage(hydratedStage))
+        } catch (err) {
+            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
+        }
+    })
+
+    /**
+     * Delete a pipeline stage
+     * @name /api/v1/pipelines/:pipelineId/stages/:stageId
+     * @memberof forge.routes.api.pipeline
+     */
+    app.delete('/pipelines/:pipelineId/stages/:stageId', {
+        preHandler: app.needsPermission('pipeline:delete')
+    }, async (request, reply) => {
+        try {
+            const stageId = request.params.stageId
+
+            const stage = await app.db.models.PipelineStage.byId(stageId)
+
+            // Update the previous stage to point to the next stage when this model is deleted
+            // e.g. A -> B -> C to A -> C when B is deleted
+            const previousStage = await app.db.models.PipelineStage.byNextStage(stageId)
+            if (previousStage) {
+                if (stage.NextStageId) {
+                    previousStage.NextStageId = stage.NextStageId
+                } else {
+                    previousStage.NextStageId = null
+                }
+
+                await previousStage.save()
+            }
+
+            await stage.destroy()
+
+            // TODO - Audit log entry?
+
+            reply.send({ status: 'okay' })
+        } catch (err) {
+            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
+        }
     })
 }
