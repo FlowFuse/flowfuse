@@ -5,10 +5,10 @@
                 <div class="inline-block">
                     <img class="max-h-32" src="../../images/pictograms/envelope.png" alt="Email Envelope">
                 </div>
-                <h3 class="text-lg font-bold">Please verify your Email</h3>
+                <h3 class="text-lg font-bold">Please verify your email</h3>
                 <p class="text-gray-400">Once verified, you will be able to access the platform.</p>
                 <div class="mx-auto mt-10">
-                    <ff-button class="mx-auto" @click="verifyEmail()">Verify My Email</ff-button>
+                    <ff-button class="mx-auto" @click="verifyEmail()">Verify my email</ff-button>
                 </div>
             </div>
         </form>
