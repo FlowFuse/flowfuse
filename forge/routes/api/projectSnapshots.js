@@ -8,6 +8,9 @@
  * @namespace project
  * @memberof forge.routes.api
  */
+
+const { createSnapshot } = require('../../services/snapshots')
+
 module.exports = async function (app) {
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.snapshotId !== undefined) {
@@ -180,31 +183,12 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const snapShot = await app.db.controllers.ProjectSnapshot.createSnapshot(
-            request.project,
-            request.session.User,
-            request.body
-        )
-        snapShot.User = request.session.User
-        await app.auditLog.Project.project.snapshot.created(request.session.User, null, request.project, snapShot)
-        if (request.body.setAsTarget) {
-            await snapShot.reload()
-            await request.project.updateSetting('deviceSettings', {
-                targetSnapshot: snapShot.id
-            })
-            // Update the targetSnapshot of the devices assigned to this project
-            await app.db.models.Device.update({ targetSnapshotId: snapShot.id }, {
-                where: {
-                    ProjectId: request.project.id
-                }
-            })
-            await app.auditLog.Project.project.snapshot.deviceTargetSet(request.session.User, null, request.project, snapShot)
-            if (app.comms) {
-                app.comms.devices.sendCommandToProjectDevices(request.project.Team.hashid, request.project.id, 'update', {
-                    snapshot: snapShot.hashid
-                })
-            }
-        }
+        const project = request.project
+        const user = request.session.User
+        const snapshotProperties = request.body
+        const setAsTarget = request.body.setAsTarget
+
+        const snapShot = await createSnapshot(app, project, user, snapshotProperties, setAsTarget)
         reply.send(app.db.views.ProjectSnapshot.snapshot(snapShot))
     })
 }
