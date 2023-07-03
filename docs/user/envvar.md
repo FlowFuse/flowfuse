@@ -53,6 +53,7 @@ In addition, the following variables are set when running on a device:
 - `FF_DEVICE_NAME`
 - `FF_DEVICE_TYPE`
 - `FF_SNAPSHOT_ID`
+- `FF_SNAPSHOT_NAME`
 
 When deploying the same set of flows out to multiple devices, these variables can
 be used by the flows to identify the specific device being run on.

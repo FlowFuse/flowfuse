@@ -20,15 +20,17 @@ describe('Device controller', function () {
                 name: 'device1',
                 type: 'PI4',
                 targetSnapshot: {
+                    name: 'snapshot-name',
                     hashid: 'snapshot-id'
                 }
             }
             const env = app.db.controllers.Device.insertPlatformSpecificEnvVars(device, null)
-            should(env).be.an.Array().with.lengthOf(4)
+            should(env).be.an.Array().with.lengthOf(5)
             env.should.containEql({ name: 'FF_DEVICE_ID', value: device.hashid, platform: true })
             env.should.containEql({ name: 'FF_DEVICE_NAME', value: 'device1', platform: true })
             env.should.containEql({ name: 'FF_DEVICE_TYPE', value: 'PI4', platform: true })
             env.should.containEql({ name: 'FF_SNAPSHOT_ID', value: 'snapshot-id', platform: true })
+            env.should.containEql({ name: 'FF_SNAPSHOT_NAME', value: 'snapshot-name', platform: true })
         })
         it('merges env vars', async function () {
             const device = {
@@ -42,7 +44,7 @@ describe('Device controller', function () {
                 { name: 'two', value: '2' }
             ]
             const env = app.db.controllers.Device.insertPlatformSpecificEnvVars(device, dummyEnvVars)
-            should(env).be.an.Array().with.lengthOf(6)
+            should(env).be.an.Array().with.lengthOf(7)
             env.should.containEql({ name: 'FF_DEVICE_ID', value: device.hashid, platform: true })
             env.should.containEql({ name: 'FF_DEVICE_NAME', value: 'device2', platform: true })
             env.should.containEql({ name: 'FF_DEVICE_TYPE', value: 'PI3b', platform: true })
