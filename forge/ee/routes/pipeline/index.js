@@ -67,7 +67,11 @@ module.exports = async function (app) {
             },
             response: {
                 200: {
-                    $ref: 'PipelineList'
+                    type: 'object',
+                    properties: {
+                        count: { type: 'number' },
+                        pipelines: { $ref: 'PipelineList' }
+                    }
                 },
                 '4xx': {
                     $ref: 'APIError'
