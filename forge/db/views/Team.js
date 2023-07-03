@@ -36,7 +36,7 @@ module.exports = function (app) {
                     name: { type: 'string' }
                 }
             },
-            projectCount: { type: 'number' },
+            instanceCount: { type: 'number' },
             memberCount: { type: 'number' },
             createdAt: { type: 'string' },
             updatedAt: { type: 'string' },
@@ -54,7 +54,7 @@ module.exports = function (app) {
                 type: app.db.views.TeamType.teamType(result.TeamType),
                 slug: result.slug,
                 avatar: result.avatar,
-                projectCount: result.projectCount,
+                instanceCount: result.projectCount,
                 memberCount: result.memberCount,
                 createdAt: result.createdAt,
                 updatedAt: result.updatedAt,
@@ -85,7 +85,7 @@ module.exports = function (app) {
                 slug: d.Team.slug,
                 avatar: d.Team.avatar,
                 role: d.role,
-                projectCount: d.projectCount,
+                instanceCount: d.projectCount,
                 memberCount: d.memberCount,
                 links: d.Team.links
             }

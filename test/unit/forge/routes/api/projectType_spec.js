@@ -60,7 +60,7 @@ describe('Project Type API', function () {
             result.should.have.property('name', name)
             result.should.have.property('active', true)
             result.should.have.property('description', 'another-project-type')
-            result.should.have.property('projectCount', 0)
+            result.should.have.property('instanceCount', 0)
             result.should.have.property('stackCount', 0)
             result.should.have.property('properties')
             result.should.have.property('defaultStack', null)

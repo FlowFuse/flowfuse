@@ -12,9 +12,9 @@ module.exports = async function (app) {
             adminCount: 0,
             teamCount: await app.db.models.Team.count(),
             maxTeams: license.teams,
-            projectCount: 0,
-            maxProjects: license.projects,
-            projectsByState: {}
+            instanceCount: 0,
+            maxInstances: license.projects,
+            instancesByState: {}
         }
         userCount.forEach(u => {
             result.userCount += u.count
@@ -24,8 +24,8 @@ module.exports = async function (app) {
         })
 
         projectStateCounts.forEach(projectState => {
-            result.projectCount += projectState.count
-            result.projectsByState[projectState.state] = projectState.count
+            result.instanceCount += projectState.count
+            result.instancesByState[projectState.state] = projectState.count
         })
         if (app.billing) {
             const teamStateCounts = await app.db.models.Subscription.count({ attributes: ['status'], group: 'status' })

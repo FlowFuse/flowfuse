@@ -16,7 +16,7 @@ module.exports = function (app) {
                 name: result.name,
                 description: result.description,
                 active: result.active,
-                projectCount: result.projectCount,
+                instanceCount: result.projectCount,
                 settings: result.settings || {},
                 policy: result.policy || {},
                 createdAt: result.createdAt,
@@ -42,7 +42,7 @@ module.exports = function (app) {
             name: { type: 'string' },
             description: { type: 'string' },
             active: { type: 'boolean' },
-            projectCount: { type: 'number' },
+            instanceCount: { type: 'number' },
             createdAt: { type: 'string' },
             links: { $ref: 'LinksMeta' },
             owner: { $ref: 'UserSummary' }
@@ -56,7 +56,7 @@ module.exports = function (app) {
                 name: result.name,
                 description: result.description,
                 active: result.active,
-                projectCount: result.projectCount,
+                instanceCount: result.projectCount,
                 createdAt: result.createdAt,
                 links: result.links
             }

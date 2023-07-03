@@ -483,7 +483,7 @@ export default {
         //     - already has a instance created
         if (this.team.billing?.canceled ||
             !this.team.billing?.trial ||
-            (this.team.billing?.trialEnded || this.team.projectCount > 0)
+            (this.team.billing?.trialEnded || this.team.instanceCount > 0)
         ) {
             this.$router.push({
                 path: `/team/${this.team.slug}/billing`

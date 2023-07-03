@@ -28,7 +28,7 @@ module.exports = function (app) {
             properties: { type: 'object', additionalProperties: true },
             createdAt: { type: 'string' },
             defaultStack: { type: 'string', nullable: true },
-            projectCount: { type: 'number' },
+            instanceCount: { type: 'number' },
             stackCount: { type: 'number' }
 
         }
@@ -47,7 +47,7 @@ module.exports = function (app) {
                 defaultStack: app.db.models.ProjectStack.encodeHashid(result.defaultStackId) || null
             }
             if (includeCount) {
-                filtered.projectCount = parseInt(result.projectCount) || 0
+                filtered.instanceCount = parseInt(result.projectCount) || 0
                 filtered.stackCount = parseInt(result.stackCount) || 0
             }
             return filtered

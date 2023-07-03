@@ -225,7 +225,7 @@ export default {
             showEdit (stack) {
                 this.$refs.dialog.show()
                 this.stack = stack
-                this.editDisabled = stack.projectCount > 0
+                this.editDisabled = stack.instanceCount > 0
                 this.editTypeDisabled = !!stack.projectType
                 this.input = {
                     name: stack.name,

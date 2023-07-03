@@ -13,15 +13,15 @@
         </div>
         <div class="border rounded p-4 text-center">
             <router-link to="/admin/teams">
-                <div class="text-xl">{{stats.teamCount}}/{{stats.maxProjects}}</div>
+                <div class="text-xl">{{stats.teamCount}}/{{stats.maxTeams}}</div>
                 <div>{{ $filters.pluralize(stats.teamCount,'Team')}}</div>
             </router-link>
         </div>
         <div class="border rounded p-4 text-center">
-            <div class="text-xl">{{stats.projectCount}}/{{stats.maxProjects}}</div>
-            <div>{{ $filters.pluralize(stats.projectCount,'Project')}}</div>
-            <div v-if="stats.projectsByState && Object.keys(stats.projectsByState).length > 0" class="w-full grid grid-cols-1 pt-1 mt-2 border-t">
-                <div v-for="(count, state) in stats.projectsByState" :key="state">
+            <div class="text-xl">{{stats.instanceCount}}/{{stats.maxInstances}}</div>
+            <div>{{ $filters.pluralize(stats.instanceCount,'Project')}}</div>
+            <div v-if="stats.instancesByState && Object.keys(stats.instancesByState).length > 0" class="w-full grid grid-cols-1 pt-1 mt-2 border-t">
+                <div v-for="(count, state) in stats.instancesByState" :key="state">
                     {{ count }} {{ state }}
                 </div>
             </div>

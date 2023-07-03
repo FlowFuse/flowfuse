@@ -11,7 +11,7 @@ module.exports = function (app) {
             properties: { type: 'object', additionalProperties: true },
             replacedBy: { type: 'string' },
             createdAt: { type: 'string' },
-            projectCount: { type: 'number' },
+            instanceCount: { type: 'number' },
             links: { $ref: 'LinksMeta' }
         }
     })
@@ -31,7 +31,7 @@ module.exports = function (app) {
                 links: stack.links
             }
             if (includeCount) {
-                filtered.projectCount = parseInt(result.projectCount) || 0
+                filtered.instanceCount = parseInt(result.projectCount) || 0
             }
             return filtered
         } else {
