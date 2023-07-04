@@ -2,7 +2,7 @@
     "name": "@flowforge/flowforge",
     "version": "1.8.0",
     "description": "An open source low-code development platform",
-    "homepage": "https://github.com/flowforge/flowforge#readme",
+    "homepage": "https://flowforge.com",
     "bugs": {
         "url": "https://github.com/flowforge/flowforge/issues"
     },
