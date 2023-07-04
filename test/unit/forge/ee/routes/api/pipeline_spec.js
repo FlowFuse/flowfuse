@@ -875,7 +875,6 @@ describe('Pipelines API', function () {
 
         describe('With invalid target stages', function () {
             it('Should fail gracefully when not found', async function () {
-
                 const response = await app.inject({
                     method: 'PUT',
                     url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/invalid/deploy`,
