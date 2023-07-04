@@ -9,7 +9,7 @@
             <div class="ff-layout--box--right">
                 <div class="ff-layout--box--content">
                     <div class="ff-logo">
-                        <img src="../images/ff-logo--wordmark-caps--dark.png" />
+                        <img src="/ff-logo--wordmark-caps--dark.png" />
                     </div>
                     <slot></slot>
                 </div>

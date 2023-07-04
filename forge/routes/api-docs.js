@@ -1,5 +1,5 @@
-// const { readFileSync } = require('fs')
-// const path = require('path')
+const { readFileSync, existsSync } = require('fs')
+const path = require('path')
 
 const fp = require('fastify-plugin')
 module.exports = fp(async function (app, opts, done) {
@@ -57,24 +57,12 @@ module.exports = fp(async function (app, opts, done) {
         hideUntagged: true
     })
 
-    await app.register(require('@fastify/swagger-ui'), {
+    const swaggerUIOptions = {
         routePrefix: '/api/',
-        // logo: {
-        //     type: 'image/png',
-        //     content: readFileSync(path.join(__dirname, '../../frontend/src/images/ff-logo--wordmark-caps--dark.png'))
-        // },
         theme: {
             title: 'FlowForge API Documentation'
-            // favicon: [
-            //     {
-            //         filename: 'favicon.png',
-            //         rel: 'icon',
-            //         sizes: '32x32',
-            //         type: 'image/png',
-            //         content: readFileSync(path.join(__dirname, '../../frontend/public/favicon-32x32.png'))
-            //     }
-            // ]
         },
+        logLevel: 'silent',
         hideUntagged: true,
         uiConfig: {
             defaultModelsExpandDepth: -1,
@@ -88,7 +76,41 @@ module.exports = fp(async function (app, opts, done) {
             supportedSubmitMethods: [''],
             validatorUrl: null
         }
-    })
+    }
+
+    // Fully built path
+    let logoPath = path.join(__dirname, '../../frontend/dist/ff-logo--wordmark-caps--dark.png')
+    if (!existsSync(logoPath)) {
+        // Local dev mode, not yet built
+        logoPath = path.join(__dirname, '../../frontend/src/images/ff-logo--wordmark-caps--dark.png')
+    }
+    if (existsSync(logoPath)) {
+        // Only set a logo if we found it
+        swaggerUIOptions.logo = {
+            type: 'image/png',
+            content: readFileSync(logoPath)
+        }
+    }
+    // Fully built path
+    let faviconPath = path.join(__dirname, '../../frontend/dist/favicon-32x32.png')
+    if (!existsSync(faviconPath)) {
+        // Local dev mode, not yet built
+        faviconPath = path.join(__dirname, '../../frontend/public/favicon-32x32.png')
+    }
+    if (existsSync(faviconPath)) {
+        // Only set a favicon if we found it
+        swaggerUIOptions.theme.favicon = [
+            {
+                filename: 'favicon.png',
+                rel: 'icon',
+                sizes: '32x32',
+                type: 'image/png',
+                content: readFileSync(faviconPath)
+            }
+        ]
+    }
+
+    await app.register(require('@fastify/swagger-ui'), swaggerUIOptions)
 
     app.addSchema({
         $id: 'APIStatus',
