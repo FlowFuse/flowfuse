@@ -100,7 +100,7 @@ const setMode = async (deviceId, mode) => {
 
 /**
  * create a snapshot from a device
- * @param {string} projectId - the project id
+ * @param {string} instanceId - the project id
  * @param {string} deviceId - the device id
  * @param {object} options - the options
  * @param {string} options.name - the name of the snapshot
@@ -108,7 +108,7 @@ const setMode = async (deviceId, mode) => {
  * @param {boolean} [options.setAsTarget] - set the snapshot as the new target for all devices
  * @see https://docs.flowforge.io/api/#operation/createSnapshot
  */
-const createSnapshot = async (projectId, deviceId, options) => {
+const createSnapshot = async (instanceId, deviceId, options) => {
     const data = {
         name: options.name, // name of the snapshot
         description: options.description, // description of the snapshot
@@ -124,7 +124,7 @@ const createSnapshot = async (projectId, deviceId, options) => {
         res.data.createdSince = daysSince(res.data.createdAt)
         res.data.updatedSince = daysSince(res.data.updatedAt)
         product.capture('$ff-snapshot-device', props, {
-            instance: projectId
+            instance: instanceId
         })
         return res.data
     })

@@ -172,17 +172,17 @@ describe('Team Devices API', function () {
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
                     name: 'Provisioning Token',
-                    project: TestObjects.Project1.id
+                    instance: TestObjects.Project1.id
                 }
             })
             response.statusCode.should.equal(200)
             const result = response.json()
-            result.should.have.only.keys('token', 'id', 'name', 'expiresAt', 'team', 'project')
+            result.should.have.only.keys('token', 'id', 'name', 'expiresAt', 'team', 'instance')
             result.should.have.property('token').and.be.a.String()
             result.should.have.property('id').and.be.a.String()
             result.should.have.property('name', 'Provisioning Token')
             result.should.have.property('team', TestObjects.ATeam.hashid)
-            result.should.have.property('project', TestObjects.Project1.id)
+            result.should.have.property('instance', TestObjects.Project1.id)
         })
         it('Cannot generate a provisioning token with invalid name', async function () {
             // POST /api/v1/team/:teamId/devices/provisioning
@@ -208,16 +208,16 @@ describe('Team Devices API', function () {
                 url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices/provisioning/${TestObjects.provisioningTokens.token1.id}`,
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
-                    project: TestObjects.Project1.id
+                    instance: TestObjects.Project1.id
                 }
             })
             response.statusCode.should.equal(200)
             const result = response.json()
-            result.should.have.only.keys('id', 'name', 'expiresAt', 'team', 'project')
+            result.should.have.only.keys('id', 'name', 'expiresAt', 'team', 'instance')
             result.should.have.property('id', TestObjects.provisioningTokens.token1.id)
             result.should.have.property('name', 'Provisioning Token 1')
             result.should.have.property('team', TestObjects.ATeam.hashid)
-            result.should.have.property('project', TestObjects.Project1.id)
+            result.should.have.property('instance', TestObjects.Project1.id)
         })
         it('Edit a provisioning token to unassign a project', async function () {
             // PUT /api/v1/team/:teamId/devices/provisioning/:tokenId
@@ -227,7 +227,7 @@ describe('Team Devices API', function () {
                 url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices/provisioning/${TestObjects.provisioningTokens.token2.id}`,
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
-                    project: null
+                    instance: null
                 }
             })
             response.statusCode.should.equal(200)
@@ -245,7 +245,7 @@ describe('Team Devices API', function () {
                 url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices/provisioning/${TestObjects.provisioningTokens.token2.id}`,
                 cookies: { sid: TestObjects.tokens.chris },
                 payload: {
-                    project: null
+                    instance: null
                 }
             })
             response.statusCode.should.equal(401)

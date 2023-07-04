@@ -178,12 +178,12 @@ module.exports = async function (app) {
             if (request.session.provisioning.project) {
                 project = await app.db.models.Project.byId(request.session.provisioning.project)
                 if (!project) {
-                    reply.code(400).send({ code: 'invalid_project', error: 'Invalid project' })
+                    reply.code(400).send({ code: 'invalid_instance', error: 'Invalid instance' })
                     return
                 }
                 const projectTeam = await project.getTeam()
                 if (projectTeam.id !== team.id) {
-                    reply.code(400).send({ code: 'invalid_project', error: 'Invalid project' })
+                    reply.code(400).send({ code: 'invalid_instance', error: 'Invalid instance' })
                     return
                 }
             }
@@ -324,7 +324,7 @@ module.exports = async function (app) {
                 properties: {
                     name: { type: 'string' },
                     type: { type: 'string' },
-                    project: { type: 'string', nullable: true }
+                    instance: { type: 'string', nullable: true }
                 }
             },
             response: {
@@ -339,10 +339,10 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         let sendDeviceUpdate = false
         const device = request.device
-        if (request.body.project !== undefined) {
+        if (request.body.instance !== undefined) {
             // ### Add/Remove device to/from project ###
 
-            if (request.body.project === null) {
+            if (request.body.instance === null) {
                 // ### Remove device from project ###
 
                 if (device.Project !== null) {
@@ -367,17 +367,17 @@ module.exports = async function (app) {
                 // ### Add device to project ###
 
                 // Update includes a project id?
-                if (device.Project?.id === request.body.project) {
+                if (device.Project?.id === request.body.instance) {
                     // Project is already assigned to this project - nothing to do
                 } else {
                     // Check if the specified project is in the same team
-                    const project = await app.db.models.Project.byId(request.body.project)
+                    const project = await app.db.models.Project.byId(request.body.instance)
                     if (!project) {
-                        reply.code(400).send({ code: 'invalid_project', error: 'invalid project' })
+                        reply.code(400).send({ code: 'invalid_instance', error: 'invalid instance' })
                         return
                     }
                     if (project.Team.id !== device.Team.id) {
-                        reply.code(400).send({ code: 'invalid_project', error: 'invalid project' })
+                        reply.code(400).send({ code: 'invalid_instance', error: 'invalid instance' })
                         return
                     }
                     // Project exists and is in the right team - assign it to the project

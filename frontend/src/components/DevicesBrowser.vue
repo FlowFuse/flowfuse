@@ -410,10 +410,10 @@ export default {
         },
 
         async assignDevice (device, instanceId) {
-            const updatedDevice = await deviceApi.updateDevice(device.id, { project: instanceId })
+            const updatedDevice = await deviceApi.updateDevice(device.id, { instance: instanceId })
 
-            if (updatedDevice.project) {
-                device.instance = updatedDevice.project
+            if (updatedDevice.instance) {
+                device.instance = updatedDevice.instance
             }
 
             if (updatedDevice.application) {
@@ -504,7 +504,7 @@ export default {
                     text: 'Are you sure you want to remove this device from the instance? This will stop the flows running on the device.',
                     confirmLabel: 'Remove'
                 }, async () => {
-                    await deviceApi.updateDevice(device.id, { project: null })
+                    await deviceApi.updateDevice(device.id, { instance: null })
 
                     delete device.instance
                     delete device.application
