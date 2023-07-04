@@ -10,7 +10,7 @@
             </div>
         </template>
         <template v-slot:default>
-            <ul>
+            <ul class="ff-dropdown-option-list">
                 <ff-dropdown-option>
                     <nav-item v-for="t in teams" :key="t.id" :label="t.name" :avatar="t?.avatar" @click="selectTeam(t)" data-action="switch-team"></nav-item>
                 </ff-dropdown-option>
@@ -61,3 +61,8 @@ export default {
     }
 }
 </script>
+<style lang="scss">
+
+@import "../stylesheets/components/team-list.scss";
+
+</style>

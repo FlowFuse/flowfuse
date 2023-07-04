@@ -1,0 +1,19 @@
+@import "~@flowforge/forge-ui-components/dist/scss/forge-colors.scss";
+ 
+.ff-dropdown-option-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.ff-dropdown-option-list::-webkit-scrollbar {
+  width: 8px;
+  background-color: $ff-grey-600;
+}
+
+.ff-dropdown-option-list::-webkit-scrollbar-thumb {
+  background-color: $ff-grey-300;
+}
+
+.ff-dropdown-option-list::-webkit-scrollbar-thumb:hover {
+  background-color: $ff-grey-400;
+}
