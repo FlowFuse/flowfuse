@@ -44,48 +44,33 @@
                     {{ formatCurrency(subscription?.customer?.balance) }}
                 </div>
                 <div />
+                <div v-if="payableNow" data-el="payable-now-row">
+                    Payable Now
+                </div>
+                <div
+                    v-if="payableNow"
+                    data-el="payable-now-amount"
+                    class="text-right"
+                >
+                    {{ payableNow }}
+                </div>
+                <div v-if="payableNow" />
             </template>
         </div>
     </div>
-    <FormRow
-        v-if="!trialMode"
-        id="billing-confirmation"
-        v-model="localConfirmed"
-        type="checkbox"
-    >
-        Confirm additional charges
-        <template
-            v-if="selectedCostAfterCredit >= 0"
-            #description
-        >
-            {{ formatCurrency(selectedCostAfterCredit) }} now
-            <span v-if="pricingDetails?.interval">
-                then {{ formatCurrency(pricingDetails.cost) }}/{{ pricingDetails.interval }}
-            </span>
-        </template>
-    </FormRow>
 </template>
 
 <script>
-
-import FormRow from '../../../components/FormRow.vue'
 
 import formatCurrency from '../../../mixins/Currency.js'
 
 export default {
     name: 'InstanceChargesTable',
-    components: {
-        FormRow
-    },
     mixins: [formatCurrency],
     props: {
         subscription: {
             type: Object,
             default: null
-        },
-        confirmed: {
-            type: Boolean,
-            default: false
         },
         projectType: {
             type: Object,
@@ -96,20 +81,15 @@ export default {
             default: false
         }
     },
-    emits: [
-        'update:confirmed'
-    ],
     computed: {
+        payableNow () {
+            if (!this.projectType || this.trialMode || this.selectedCostAfterCredit <= 0) {
+                return ''
+            }
+            return `${this.formatCurrency(this.selectedCostAfterCredit)} `
+        },
         selectedCostAfterCredit () {
             return (this.pricingDetails?.cost ?? 0) + (this.subscription?.customer?.balance ?? 0)
-        },
-        localConfirmed: {
-            get () {
-                return this.confirmed
-            },
-            set (value) {
-                this.$emit('update:confirmed', value)
-            }
         },
         pricingDetails () {
             if (!this.projectType) {
