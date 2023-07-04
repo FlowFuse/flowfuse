@@ -1,4 +1,3 @@
-const { restart } = require('nodemon')
 const { ValidationError } = require('sequelize')
 
 const { registerPermissions } = require('../../../lib/permissions')
@@ -370,7 +369,7 @@ module.exports = async function (app) {
             // Todo: Flows and Modules?
             const sourceSnapshot = await createSnapshot(app, sourceInstance, user, {
                 name: `Deploy Snapshot: ${new Date().toISOString()}`,
-                description: `Snapshot created for pipeline deployment from ${sourceStage.name} to ${targetStage.name}`,
+                description: `Snapshot created for pipeline deployment from ${sourceStage.name} to ${targetStage.name} as part of pipeline ${request.pipeline.name}`,
                 setAsTarget: true
             })
 

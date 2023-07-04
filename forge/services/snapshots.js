@@ -37,7 +37,7 @@ module.exports.copySnapshot = async (app, snapshot, toInstance, setAsTarget = tr
     const { settings, flows, name, description } = snapshot.toJSON()
     const snapshotToCopyProps = { settings, flows, name, description }
 
-    const newSnapshot = await await app.db.models.ProjectSnapshot.create(
+    const newSnapshot = await app.db.models.ProjectSnapshot.create(
         { ...snapshotToCopyProps, ProjectId: toInstance.id, UserId: snapshot.User.id }
     )
 
