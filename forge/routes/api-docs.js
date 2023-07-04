@@ -85,7 +85,8 @@ module.exports = fp(async function (app, opts, done) {
                 theme: 'arta'
             },
             tryItOutEnabled: false,
-            supportedSubmitMethods: ['']
+            supportedSubmitMethods: [''],
+            validatorUrl: null
         }
     })
 
