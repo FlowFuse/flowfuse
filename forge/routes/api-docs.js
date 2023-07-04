@@ -1,5 +1,5 @@
 // const { readFileSync } = require('fs')
-const path = require('path')
+// const path = require('path')
 
 const fp = require('fastify-plugin')
 module.exports = fp(async function (app, opts, done) {
