@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div data-el="empty-state">
         <FeatureUnavailable v-if="featureUnavailable" />
         <div
             class="ff-empty-state" :class="{'ff-empty-state-feature-unavailable': featureUnavailable}"

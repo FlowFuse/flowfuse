@@ -1,4 +1,5 @@
 const TestModelFactory = require('../../../lib/TestModelFactory')
+const StripeMock = require('../../../lib/stripeMock.js')
 
 const FF_UTIL = require('flowforge-test-utils')
 const Forge = FF_UTIL.require('forge/forge.js')
@@ -25,11 +26,31 @@ module.exports = async function (settings = {}, config = {}) {
         }
     }
 
+    // mock out stripe JS library
+    if (config.billing) {
+        StripeMock({
+            teams: {
+                starter: {
+                    product: 'starterteamprod',
+                    price: 'starterteampprice'
+                }
+            }
+        })
+    }
+
     const forge = await Forge({ config })
     await forge.settings.set('setup:initialised', true)
     const factory = new TestModelFactory(forge)
 
-    /// Create users
+    const projectType = await factory.createProjectType({ name: 'type1' })
+    // configure trial mode
+    if (settings.trialMode) {
+        forge.settings.set('user:team:trial-mode', true)
+        forge.settings.set('user:team:trial-mode:duration', 5)
+        forge.settings.set('user:team:trial-mode:projectType', projectType.hashid)
+    }
+
+    // Create users
     // full platform & team1 admin
     const userAlice = await factory.createUser({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
 
@@ -45,7 +66,6 @@ module.exports = async function (settings = {}, config = {}) {
 
     // Platform Setup
     const template = await factory.createProjectTemplate({ name: 'template1' }, userAlice)
-    const projectType = await factory.createProjectType({ name: 'type1' })
     const stack = await factory.createStack({ name: 'stack1' }, projectType)
     await factory.createStack({ name: 'stack2' }, projectType)
 
@@ -62,6 +82,12 @@ module.exports = async function (settings = {}, config = {}) {
     // Create a pending invite for Dave to join ATeam
     await factory.createInvitation(team1, userAlice, userDave)
 
+    // Add subscription to ATeam if Billing enabled
+    // Must do this before Instance creation
+    if (config.billing) {
+        await factory.createSubscription(team1)
+    }
+
     // Application and Instances
     const application1 = await factory.createApplication({ name: 'application-1' }, team1)
     await factory.createInstance({ name: 'instance-1-1' }, application1, stack, template, projectType)
@@ -73,6 +99,11 @@ module.exports = async function (settings = {}, config = {}) {
 
     // Create pending invite for Dave to join BTeam
     await factory.createInvitation(team2, userBob, userDave)
+
+    // Add subscription to ATeam if Billing enabled
+    if (config.billing) {
+        await factory.createSubscription(team2)
+    }
 
     // Unassigned devices
     await factory.createDevice({ name: 'team2-unassigned-device', type: 'type2' }, team2)
@@ -88,6 +119,9 @@ module.exports = async function (settings = {}, config = {}) {
     await factory.createSnapshot({ name: 'snapshot 1' }, instanceWithDevices, userBob)
     await factory.createSnapshot({ name: 'snapshot 2' }, instanceWithDevices, userBob)
     await factory.createSnapshot({ name: 'snapshot 3' }, instanceWithDevices, userBob)
+
+    forge.teams = [team1, team2]
+    forge.projectTypes = [projectType, spareProjectType]
 
     return forge
 }

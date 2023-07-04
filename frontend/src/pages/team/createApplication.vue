@@ -138,7 +138,6 @@ export default {
                 return
             }
 
-            this.loading = false
             this.$router.push({ name: 'Application', params: { id: this.application.id } })
         },
         createApplication (applicationDetails) {
