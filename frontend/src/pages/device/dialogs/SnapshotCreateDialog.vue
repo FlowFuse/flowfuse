@@ -63,8 +63,8 @@ export default {
         }
     },
     computed: {
-        project () {
-            return this.device?.project
+        instance () {
+            return this.device?.instance
         },
         formValid () {
             return !this.submitted && !!(this.input.name)

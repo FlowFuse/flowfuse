@@ -56,7 +56,6 @@ export default {
                 team: this.team.id,
                 expiryAt: this.input.expiryAt
             }
-console.log(opts.instance)
             if (this.editMode) {
                 // Update
                 teamApi.updateTeamDeviceProvisioningToken(this.team.id, this.token.id, opts).then((response) => {

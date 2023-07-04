@@ -3,7 +3,6 @@
         <SideNavigationTeamOptions>
             <template #nested-menu>
                 <div class="ff-nested-title">Device</div>
-                <!-- <div class="ff-nested-title">{{ project.name }}</div> -->
                 <router-link v-for="route in navigation" :key="route.label" :to="route.path" :data-nav="route.tag">
                     <nav-item :icon="route.icon" :label="route.label" />
                 </router-link>
@@ -25,9 +24,9 @@
                         <DeviceLastSeenBadge class="mr-6" :last-seen-at="device.lastSeenAt" :last-seen-ms="device.lastSeenMs" :last-seen-since="device.lastSeenSince" />
                         <StatusBadge :status="device.status" />
                         <div class="w-full text-sm mt-1">
-                            <div v-if="device?.project">
+                            <div v-if="device?.instance">
                                 Instance:
-                                <router-link :to="{name: 'Instance', params: {id: device.project.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.project.name }}</router-link>
+                                <router-link :to="{name: 'Instance', params: {id: device.instance.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.instance.name }}</router-link>
                             </div>
                             <span v-else class="text-gray-400 italic">Device Not Assigned to an Instance</span>
                         </div>
@@ -47,7 +46,7 @@
                                 <ExternalLinkIcon />
                             </span>
                         </button>
-                        <ff-button :disabled="hasPermission('device:edit') !== true || !device?.project" :kind="developerMode?'primary':'secondary'" data-action="toggle-mode" @click="showModeChoiceDialog()">
+                        <ff-button :disabled="hasPermission('device:edit') !== true || !device?.instance" :kind="developerMode?'primary':'secondary'" data-action="toggle-mode" @click="showModeChoiceDialog()">
                             Developer Mode
                             <template #icon-right>
                                 <BeakerIcon />
@@ -62,7 +61,7 @@
                 <div class="ff-banner" data-el="banner-device-as-admin">You are viewing this device as an Administrator</div>
             </Teleport>
             <div class="px-3 pb-3 md:px-6 md:pb-6">
-                <router-view :instance="device.project" :device="device" @device-updated="loadDevice()" @device-refresh="loadDevice()" />
+                <router-view :instance="device.instance" :device="device" @device-updated="loadDevice()" @device-refresh="loadDevice()" />
             </div>
         </div>
         <ModeChoiceDialog ref="mode-choice-dialog" :device="device" @mode-change="setDeviceMode" />

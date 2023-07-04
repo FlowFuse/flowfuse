@@ -41,18 +41,18 @@
                 <tr class="border-b">
                     <td class="w-1/4 font-medium">Application</td>
                     <td class="py-2">
-                        <router-link v-if="device?.project" :to="{name: 'Application', params: { id: device.project.id }}">
-                            {{ device.project?.name }}
+                        <router-link v-if="device?.instance" :to="{name: 'Application', params: { id: device.instance.id }}">
+                            {{ device.instance?.name }}
                         </router-link>
                         <span v-else>None</span>
                     </td>
                 </tr>
-                <!-- TODO: Currently links to same object as project -->
+                <!-- TODO: Currently links to same object as instance -->
                 <tr class="border-b">
                     <td class="w-1/4 font-medium">Instance</td>
                     <td class="py-2">
-                        <router-link v-if="device?.project" :to="{name: 'Instance', params: { id: device.project.id }}">
-                            {{ device.project?.name }}
+                        <router-link v-if="device?.instance" :to="{name: 'Instance', params: { id: device.instance.id }}">
+                            {{ device.instance?.name }}
                         </router-link>
                         <span v-else>None</span>
                     </td>
