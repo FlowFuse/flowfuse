@@ -82,6 +82,7 @@ module.exports = async function (app) {
             params: {
                 type: 'object',
                 properties: {
+                    teamId: { type: 'string' },
                     userId: { type: 'string' }
                 }
             },
@@ -123,6 +124,7 @@ module.exports = async function (app) {
             params: {
                 type: 'object',
                 properties: {
+                    teamId: { type: 'string' },
                     userId: { type: 'string' }
                 }
             },

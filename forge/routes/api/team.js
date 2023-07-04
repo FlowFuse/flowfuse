@@ -612,6 +612,12 @@ module.exports = async function (app) {
                     { $ref: 'AuditLogQueryParams' }
                 ]
             },
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
             response: {
                 200: {
                     type: 'object',
