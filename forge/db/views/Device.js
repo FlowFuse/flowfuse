@@ -1,5 +1,35 @@
-module.exports = {
-    device: function (app, device, options) {
+module.exports = function (app) {
+    app.addSchema({
+        $id: 'Device',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            type: { type: 'string' },
+            createdAt: { type: 'string' },
+            updatedAt: { type: 'string' },
+            lastSeenAt: { nullable: true, type: 'string' },
+            lastSeenMs: { nullable: true, type: 'number' },
+            activeSnapshot: {
+                nullable: true,
+                allOf: [{ $ref: 'SnapshotSummary' }]
+            },
+            targetSnapshot: {
+                nullable: true,
+                allOf: [{ $ref: 'SnapshotSummary' }]
+            },
+            status: { type: 'string' },
+            agentVersion: { type: 'string' },
+            mode: { type: 'string' },
+            links: { $ref: 'LinksMeta' },
+            team: { $ref: 'TeamSummary' },
+            project: { $ref: 'InstanceSummary' },
+            application: { $ref: 'ApplicationSummary' },
+            editor: { type: 'object', additionalProperties: true }
+        }
+    })
+
+    function device (device, options) {
         if (!device) {
             return null
         }
@@ -15,8 +45,8 @@ module.exports = {
             updatedAt: result.updatedAt,
             lastSeenAt: result.lastSeenAt,
             lastSeenMs: result.lastSeenAt ? (Date.now() - new Date(result.lastSeenAt).valueOf()) : null,
-            activeSnapshot: app.db.views.ProjectSnapshot.snapshot(device.activeSnapshot),
-            targetSnapshot: app.db.views.ProjectSnapshot.snapshot(device.targetSnapshot),
+            activeSnapshot: app.db.views.ProjectSnapshot.snapshotSummary(device.activeSnapshot),
+            targetSnapshot: app.db.views.ProjectSnapshot.snapshotSummary(device.targetSnapshot),
             links: result.links,
             status: result.state || 'offline',
             agentVersion: result.agentVersion,
@@ -37,9 +67,18 @@ module.exports = {
             filtered.editor = tunnelManager.getTunnelStatus(result.hashid) || {}
         }
         return filtered
-    },
-
-    deviceSummary: function (app, device) {
+    }
+    app.addSchema({
+        $id: 'DeviceSummary',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            type: { type: 'string' },
+            links: { $ref: 'LinksMeta' }
+        }
+    })
+    function deviceSummary (device) {
         if (device) {
             const result = device.toJSON()
             const filtered = {
@@ -52,5 +91,10 @@ module.exports = {
         } else {
             return null
         }
+    }
+
+    return {
+        device,
+        deviceSummary
     }
 }

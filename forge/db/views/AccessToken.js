@@ -1,5 +1,25 @@
-module.exports = {
-    provisioningTokenSummary: async function (app, token) {
+module.exports = function (app) {
+    app.addSchema({
+        $id: 'ProvisioningTokenSummary',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            team: { type: 'string', nullable: true },
+            project: { type: 'string' },
+            expiresAt: { type: 'string', nullable: true },
+            targetSnapshot: { type: 'string' }
+        }
+    })
+    app.addSchema({
+        $id: 'ProvisioningToken',
+        type: 'object',
+        allOf: [{ $ref: 'ProvisioningTokenSummary' }],
+        properties: {
+            token: { type: 'string' }
+        }
+    })
+    async function provisioningTokenSummary (token) {
         // build a tokenSummary object from the token
         const tokenSummary = {
             id: token.hashid,
@@ -27,5 +47,8 @@ module.exports = {
             }
         }
         return tokenSummary
+    }
+    return {
+        provisioningTokenSummary
     }
 }

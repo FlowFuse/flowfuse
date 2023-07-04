@@ -14,7 +14,35 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.projectTypes
      */
     app.get('/', {
-        preHandler: app.needsPermission('project-type:list')
+        preHandler: app.needsPermission('project-type:list'),
+        schema: {
+            summary: 'Get a list of all instance types',
+            tags: ['Instance Types'],
+            query: {
+                allOf: [
+                    { $ref: 'PaginationParams' },
+                    {
+                        type: 'object',
+                        properties: {
+                            filter: { type: 'string' }
+                        }
+                    }
+                ]
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        types: { type: 'array', items: { $ref: 'InstanceType' } }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         let filter = { active: true }
@@ -37,10 +65,28 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.projectTypes
      */
-    app.get('/:projectTypeId', {
-        preHandler: app.needsPermission('project-type:read')
+    app.get('/:instanceTypeId', {
+        preHandler: app.needsPermission('project-type:read'),
+        schema: {
+            summary: 'Get a details of an instance types',
+            tags: ['Instance Types'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceTypeId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'InstanceType'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
-        const projectType = await app.db.models.ProjectType.byId(request.params.projectTypeId)
+        const projectType = await app.db.models.ProjectType.byId(request.params.instanceTypeId)
         if (projectType) {
             reply.send(app.db.views.ProjectType.projectType(projectType, request.session.User.admin))
         } else {
@@ -57,6 +103,8 @@ module.exports = async function (app) {
     app.post('/', {
         preHandler: app.needsPermission('project-type:create'),
         schema: {
+            summary: 'Create an instance type - admin-only',
+            tags: ['Instance Types'],
             body: {
                 type: 'object',
                 required: ['name'],
@@ -66,6 +114,14 @@ module.exports = async function (app) {
                     active: { type: 'boolean' },
                     properties: { type: 'object' },
                     order: { type: 'number' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'InstanceType'
+                },
+                '4xx': {
+                    $ref: 'APIError'
                 }
             }
         }
@@ -102,10 +158,33 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.projectTypes
      */
-    app.put('/:projectTypeId', {
-        preHandler: app.needsPermission('project-type:edit')
+    app.put('/:instanceTypeId', {
+        preHandler: app.needsPermission('project-type:edit'),
+        schema: {
+            summary: 'Update an instance type - admin-only',
+            tags: ['Instance Types'],
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    description: { type: 'string' },
+                    active: { type: 'boolean' },
+                    properties: { type: 'object' },
+                    order: { type: 'number' },
+                    defaultStack: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'InstanceType'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
-        const projectType = await app.db.models.ProjectType.byId(request.params.projectTypeId)
+        const projectType = await app.db.models.ProjectType.byId(request.params.instanceTypeId)
 
         const inUse = projectType.getDataValue('projectCount') > 0
         const updates = new app.auditLog.formatters.UpdatesCollection()
@@ -176,10 +255,28 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.projectTypes
      */
-    app.delete('/:projectTypeId', {
-        preHandler: app.needsPermission('project-type:delete')
+    app.delete('/:instanceTypeId', {
+        preHandler: app.needsPermission('project-type:delete'),
+        schema: {
+            summary: 'Delete an instance type - admin-only',
+            tags: ['Instance Types'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceTypeId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
-        const projectType = await app.db.models.ProjectType.byId(request.params.projectTypeId)
+        const projectType = await app.db.models.ProjectType.byId(request.params.instanceTypeId)
         // The `beforeDestroy` hook of the ProjectType model ensures
         // we don't delete an in-use stack
         if (projectType) {

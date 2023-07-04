@@ -15,8 +15,6 @@ const TeamMembers = require('./teamMembers.js')
  *    - request.teamMembership prepopulated with the user role ({role: "member"})
  *      (unless they are admin)
  *
- * @namespace team
- * @memberof forge.routes.api
  */
 module.exports = async function (app) {
     app.addHook('preHandler', async (request, reply) => {
@@ -98,11 +96,23 @@ module.exports = async function (app) {
     app.post('/check-slug', {
         preHandler: app.needsPermission('team:create'),
         schema: {
+            summary: 'Check a team slug is available',
+            tags: ['Teams'],
             body: {
                 type: 'object',
                 required: ['slug'],
                 properties: {
                     slug: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    description: 'Team slug is available',
+                    $ref: 'APIStatus'
+                },
+                409: {
+                    description: 'Team slug is not available',
+                    $ref: 'APIError'
                 }
             }
         }
@@ -146,14 +156,31 @@ module.exports = async function (app) {
     app.register(TeamMembers, { prefix: '/:teamId/members' })
     app.register(TeamInvitations, { prefix: '/:teamId/invitations' })
     app.register(TeamDevices, { prefix: '/:teamId/devices' })
+
     /**
      * Get the details of a team
-     * @name /api/v1/teams
-     * @static
-     * @memberof forge.routes.api.team
+     * /api/v1/teams/:teamId
      */
     app.get('/:teamId', {
-        preHandler: app.needsPermission('team:read')
+        preHandler: app.needsPermission('team:read'),
+        schema: {
+            summary: 'Get details of a team',
+            tags: ['Teams'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'Team'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         await getTeamDetails(request, reply, request.team)
     })
@@ -161,12 +188,28 @@ module.exports = async function (app) {
     /**
      * Get the details of a team via its slug
      *
-     * @name /api/v1/teams/slug/:teamSlug
-     * @static
-     * @memberof forge.routes.api.team
+     * /api/v1/teams/slug/:teamSlug
      */
     app.get('/slug/:teamSlug', {
-        preHandler: app.needsPermission('team:read')
+        preHandler: app.needsPermission('team:read'),
+        schema: {
+            summary: 'Get details of a team using its slug',
+            tags: ['Teams'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamSlug: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'Team'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         await getTeamDetails(request, reply, request.team)
     })
@@ -175,7 +218,25 @@ module.exports = async function (app) {
      * Get a list of all teams (admin-only)
      */
     app.get('/', {
-        preHandler: app.needsPermission('team:list')
+        preHandler: app.needsPermission('team:list'),
+        schema: {
+            summary: 'Get a list of all teams - admin-only',
+            tags: ['Teams'],
+            query: { $ref: 'PaginationParams' },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        teams: { type: 'array', items: { $ref: 'Team' } }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         // Admin request for all teams
         const paginationOptions = app.getPaginationOptions(request)
@@ -185,17 +246,40 @@ module.exports = async function (app) {
     })
 
     /**
-     * @name /api/v1/teams/:teamId/applications
-     * @static
-     * @memberof forge.routes.api.team
+     * Get a list of the teams applications
+     * /api/v1/teams/:teamId/applications
      */
     app.get('/:teamId/applications', {
-        preHandler: app.needsPermission('team:projects:list') // TODO Using project level permissions
+        preHandler: app.needsPermission('team:projects:list'), // TODO Using project level permissions
+        schema: {
+            summary: 'Get a list of the teams applications',
+            tags: ['Teams'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        // meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        applications: { $ref: 'TeamApplicationList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const includeInstances = true
         const applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances })
 
         reply.send({
+            // meta: {},
             count: applications.length,
             applications: await app.db.views.Application.teamApplicationList(applications, { includeInstances })
         })
@@ -207,21 +291,38 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.application
      */
     app.get('/:teamId/applications/status', {
-        preHandler: app.needsPermission('team:projects:list') // TODO Using project level permissions
+        preHandler: app.needsPermission('team:projects:list'), // TODO Using project level permissions
+        schema: {
+            summary: 'Get a list of the teams applications statuses',
+            tags: ['Teams'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        // meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        applications: { $ref: 'ApplicationInstanceStatusList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances: true })
         if (!applications) {
             return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
-
-        const instancesByApplicationWithStatus = await Promise.all(applications.map(async (application) => {
-            return {
-                id: application.hashid,
-                instances: await app.db.views.Application.instanceStatuses(application.Instances)
-            }
-        }))
-
+        const instancesByApplicationWithStatus = await app.db.views.Application.applicationInstanceStatusList(applications)
         reply.send({
+            // meta: {},
             count: instancesByApplicationWithStatus.length,
             applications: instancesByApplicationWithStatus
         })
@@ -255,13 +356,13 @@ module.exports = async function (app) {
 
     /**
      * Create a new team
-     * @name /api/v1/teams
-     * @static
-     * @memberof forge.routes.api.team
+     * /api/v1/teams
      */
     app.post('/', {
         preHandler: app.needsPermission('team:create'),
         schema: {
+            summary: 'Create a new team',
+            tags: ['Teams'],
             body: {
                 type: 'object',
                 required: ['name'],
@@ -269,6 +370,14 @@ module.exports = async function (app) {
                     name: { type: 'string' },
                     type: { type: 'string' },
                     slug: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'Team'
+                },
+                '4xx': {
+                    $ref: 'APIError'
                 }
             }
         }
@@ -337,11 +446,29 @@ module.exports = async function (app) {
 
     /**
      * Delete a team
-     * @name /api/v1/teams/:teamId
-     * @static
-     * @memberof forge.routes.api.team
+     * /api/v1/teams/:teamId
      */
-    app.delete('/:teamId', { preHandler: app.needsPermission('team:delete') }, async (request, reply) => {
+    app.delete('/:teamId', {
+        preHandler: app.needsPermission('team:delete'),
+        schema: {
+            summary: 'Delete a team',
+            tags: ['Teams'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         // At this point we know the requesting user has permission to do this.
         // But we also need to ensure the team has no projects
         // That is handled by the beforeDestroy hook on the Team model and the
@@ -368,11 +495,36 @@ module.exports = async function (app) {
 
     /**
      * Update a team
-     * @name /api/v1/teams/:teamId
-     * @static
-     * @memberof forge.routes.api.team
+     * /api/v1/teams/:teamId
      */
-    app.put('/:teamId', { preHandler: app.needsPermission('team:edit') }, async (request, reply) => {
+    app.put('/:teamId', {
+        preHandler: app.needsPermission('team:edit'),
+        schema: {
+            summary: 'Update a team',
+            tags: ['Teams'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    slug: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'Team'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         try {
             const updates = new app.auditLog.formatters.UpdatesCollection()
             if (request.body.name) {
@@ -407,7 +559,29 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.team
      */
-    app.get('/:teamId/user', async (request, reply) => {
+    app.get('/:teamId/user', {
+        schema: {
+            summary: 'Get the current users team membership',
+            tags: ['Teams'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        role: { type: 'number' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         if (request.teamMembership) {
             reply.send({
                 role: request.teamMembership.role
@@ -427,7 +601,32 @@ module.exports = async function (app) {
      * @name /api/v1/team/:teamId/audit-log
      * @memberof forge.routes.api.project
      */
-    app.get('/:teamId/audit-log', { preHandler: app.needsPermission('team:audit-log') }, async (request, reply) => {
+    app.get('/:teamId/audit-log', {
+        preHandler: app.needsPermission('team:audit-log'),
+        schema: {
+            summary: 'Get team audit event entries',
+            tags: ['Teams'],
+            query: {
+                allOf: [
+                    { $ref: 'PaginationParams' },
+                    { $ref: 'AuditLogQueryParams' }
+                ]
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        log: { $ref: 'AuditLogEntryList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const logEntries = await app.db.models.AuditLog.forTeam(request.team.id, paginationOptions)
         const result = app.db.views.AuditLog.auditLog(logEntries)

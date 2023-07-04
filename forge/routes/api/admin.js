@@ -86,7 +86,33 @@ module.exports = async function (app) {
         return lines.join('\n') + '\n'
     }
 
-    app.get('/stats', { preHandler: app.needsPermission('platform:stats') }, async (request, reply) => {
+    app.get('/stats', {
+        preHandler: app.needsPermission('platform:stats'),
+        schema: {
+            summary: 'Get a platform stats - admin-only',
+            tags: ['Platform'],
+            response: {
+                200: {
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                additionalProperties: true
+                            }
+                        },
+                        'application/openmetrics-text': {
+                            schema: {
+                                type: 'string'
+                            }
+                        }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         const stats = await getStats()
 
         if (request.headers.accept?.includes('application/openmetrics-text')) {
@@ -96,19 +122,45 @@ module.exports = async function (app) {
         }
     })
 
-    app.get('/license', { preHandler: app.needsPermission('license:read') }, async (request, reply) => {
+    app.get('/license', {
+        preHandler: app.needsPermission('license:read'),
+        schema: {
+            summary: 'Get a platform license - admin-only',
+            tags: ['Platform'],
+            response: {
+                200: {
+                    type: 'object',
+                    additionalProperties: true
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         reply.send(app.license.get() || {})
     })
 
     app.put('/license', {
         preHandler: app.needsPermission('license:edit'),
         schema: {
+            summary: 'Apply a platform license - admin-only',
+            tags: ['Platform'],
             body: {
                 type: 'object',
                 required: ['license', 'action'],
                 properties: {
                     license: { type: 'string' },
                     action: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    additionalProperties: true
+                },
+                '4xx': {
+                    $ref: 'APIError'
                 }
             }
         }
@@ -141,7 +193,26 @@ module.exports = async function (app) {
         }
     })
 
-    app.get('/invitations', { preHandler: app.needsPermission('invitation:list') }, async (request, reply) => {
+    app.get('/invitations', {
+        preHandler: app.needsPermission('invitation:list'),
+        schema: {
+            summary: 'Get a list of all invitations - admin-only',
+            tags: ['Platform'],
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        // meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        invitations: { $ref: 'InvitationList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         // TODO: Pagination
         const invitations = await app.db.models.Invitation.get()
         const result = app.db.views.Invitation.invitationList(invitations)
@@ -152,9 +223,11 @@ module.exports = async function (app) {
         })
     })
 
+    // Undocumented
     app.get('/debug/db-migrations', { preHandler: app.needsPermission('platform:debug') }, async (request, reply) => {
         reply.send((await app.db.sequelize.query('select * from "MetaVersions"'))[0])
     })
+    // Undocumented
     app.get('/debug/db-schema', { preHandler: app.needsPermission('platform:debug') }, async (request, reply) => {
         const result = {}
         let tables
@@ -183,18 +256,74 @@ module.exports = async function (app) {
      * @name /api/v1/admin/audit-log
      * @memberof forge.routes.api.admin
      */
-    app.get('/audit-log', { preHandler: app.needsPermission('platform:audit-log') }, async (request, reply) => {
+    app.get('/audit-log', {
+        preHandler: app.needsPermission('platform:audit-log'),
+        schema: {
+            summary: 'Get platform audit event entries - admin-only',
+            tags: ['Platform'],
+            query: {
+                allOf: [
+                    { $ref: 'PaginationParams' },
+                    { $ref: 'AuditLogQueryParams' }
+                ]
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        log: { $ref: 'AuditLogEntryList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const logEntries = await app.db.models.AuditLog.forPlatform(paginationOptions)
         const result = app.db.views.AuditLog.auditLog(logEntries)
         reply.send(result)
     })
 
-    app.post('/stats-token', { preHandler: app.needsPermission('platform:stats:token') }, async (request, reply) => {
+    app.post('/stats-token', {
+        preHandler: app.needsPermission('platform:stats:token'),
+        schema: {
+            summary: 'Regenerate platform stats access token - admin-only',
+            tags: ['Platform'],
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        token: { type: 'string' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         const token = await app.db.controllers.AccessToken.generatePlatformStatisticsToken(request.session.User)
         reply.send(token)
     })
-    app.delete('/stats-token', { preHandler: app.needsPermission('platform:stats:token') }, async (request, reply) => {
+    app.delete('/stats-token', {
+        preHandler: app.needsPermission('platform:stats:token'),
+        schema: {
+            summary: 'Remove platform stats access token - admin-only',
+            tags: ['Platform'],
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         await app.db.controllers.AccessToken.removePlatformStatisticsToken()
         reply.send({ status: 'okay' })
     })

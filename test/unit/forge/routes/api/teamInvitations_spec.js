@@ -176,6 +176,10 @@ describe('Team Invitations API', function () {
         })
 
         describe('external users', async function () {
+            after(function () {
+                app.settings.set('team:user:invite:external', false)
+            })
+
             it('team owner cannot invite external user if disabled', async () => {
                 // Alice cannot invite dave@example.com to ATeam
                 const response = await app.inject({
@@ -193,12 +197,67 @@ describe('Team Invitations API', function () {
 
                 app.config.email.transport.getMessageQueue().should.have.lengthOf(0)
             })
+
+            it('team owner can invite external user if disabled', async () => {
+                app.settings.set('team:user:invite:external', true)
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/invitations`,
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: {
+                        user: 'dave@example.com'
+                    }
+                })
+                const result = response.json()
+                result.should.have.property('status', 'okay')
+                app.config.email.transport.getMessageQueue().should.have.lengthOf(1)
+                app.config.email.transport.getMessageQueue()[0].should.have.property('to', 'dave@example.com')
+            })
         })
     })
 
     describe('List team invitations', async function () {
-        // GET /api/v1/teams/:teamId/invitations
+        before(function () {
+            app.settings.set('team:user:invite:external', true)
+        })
+        after(function () {
+            app.settings.set('team:user:invite:external', false)
+        })
 
+        // GET /api/v1/teams/:teamId/invitations
+        it('team owner can get the list of invites', async () => {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations`,
+                cookies: { sid: TestObjects.tokens.bob },
+                payload: {
+                    user: 'chris , evans@example.com'
+                }
+            })
+            const result = response.json()
+            result.should.have.property('status', 'okay')
+
+            const inviteListResponse = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            const inviteList = inviteListResponse.json()
+            inviteList.should.have.property('count', 2)
+            inviteList.should.have.property('invitations')
+            inviteList.invitations.should.have.length(2)
+
+            inviteList.invitations[0].team.should.have.property('id', TestObjects.BTeam.hashid)
+            inviteList.invitations[1].team.should.have.property('id', TestObjects.BTeam.hashid)
+            inviteList.invitations[0].invitor.should.have.property('id', TestObjects.bob.hashid)
+            inviteList.invitations[1].invitor.should.have.property('id', TestObjects.bob.hashid)
+
+            inviteList.invitations[0].invitee.should.have.property('id', TestObjects.chris.hashid)
+            inviteList.invitations[0].invitee.should.not.have.property('external')
+
+            inviteList.invitations[1].invitee.should.have.property('email', 'evans@example.com')
+            inviteList.invitations[1].invitee.should.have.property('external', true)
+        })
     })
 
     describe('Delete an invitation team member', async function () {

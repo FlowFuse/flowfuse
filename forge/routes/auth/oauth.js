@@ -42,8 +42,15 @@ module.exports = async function (app) {
 
     app.get('/account/authorize', {
         schema: {
+            tags: ['Authentication', 'X-HIDDEN'],
             querystring: {
                 type: 'object',
+                properties: {
+                    response_type: { type: 'string' },
+                    scope: { type: 'string' },
+                    code_challenge: { type: 'string' },
+                    code_challenge_method: { type: 'string' }
+                },
                 // client_id and redirect_uri are handled manually
                 required: ['response_type', 'scope', 'code_challenge', 'code_challenge_method']
             }
@@ -131,7 +138,11 @@ module.exports = async function (app) {
         reply.redirect(`${app.config.base_url}/account/request/${requestId}`)
     })
 
-    app.get('/account/complete/:code', async function (request, reply) {
+    app.get('/account/complete/:code', {
+        schema: {
+            tags: ['Authentication', 'X-HIDDEN']
+        }
+    }, async function (request, reply) {
         const requestId = request.params.code
         const requestObject = requestCache.get(requestId)
         requestCache.delete(requestId)
@@ -197,7 +208,11 @@ module.exports = async function (app) {
         }
         return badRequest(reply, 'access_denied', 'Access Denied')
     })
-    app.get('/account/reject/:code', async function (request, reply) {
+    app.get('/account/reject/:code', {
+        schema: {
+            tags: ['Authentication', 'X-HIDDEN']
+        }
+    }, async function (request, reply) {
         const requestId = request.params.code
         const requestObject = requestCache.get(requestId)
         requestCache.delete(requestId)
@@ -209,8 +224,18 @@ module.exports = async function (app) {
 
     app.post('/account/token', {
         schema: {
+            tags: ['Authentication', 'X-HIDDEN'],
             body: {
                 type: 'object',
+                properties: {
+                    grant_type: { type: 'string' },
+                    code: { type: 'string' },
+                    code_verifier: { type: 'string' },
+                    client_id: { type: 'string' },
+                    client_secret: { type: 'string' },
+                    redirect_uri: { type: 'string' },
+                    refresh_token: { type: 'string' }
+                },
                 // client_id, redirect_uri, code, code_verifier are handled manually
                 required: ['grant_type']
             }
@@ -377,7 +402,10 @@ module.exports = async function (app) {
     app.get('/account/check/:ownerType/:ownerId', {
         // Add an explicit function here as `app.verifySession` will not have been
         // mounted at the point this route is being registered
-        preHandler: (request, reply) => app.verifySession(request, reply)
+        preHandler: (request, reply) => app.verifySession(request, reply),
+        schema: {
+            tags: ['Authentication', 'X-HIDDEN']
+        }
     }, async (request, reply) => {
         if (request.params.ownerType === request.session.ownerType && request.params.ownerId === request.session.ownerId) {
             reply.code(200).send()

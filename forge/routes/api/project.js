@@ -16,7 +16,7 @@ const ProjectSnapshots = require('./projectSnapshots')
  *
  * - /api/v1/projects
  *
- * - Any route that has a :projectId parameter will:
+ * - Any route that has a :instanceId parameter will:
  *    - Ensure the session user is either admin or has a role on the corresponding team
  *    - request.project prepopulated with the team object
  *    - request.teamMembership prepopulated with the user role ({role: XYZ})
@@ -43,10 +43,10 @@ const bannedNameList = [
 
 module.exports = async function (app) {
     app.addHook('preHandler', async (request, reply) => {
-        if (request.params.projectId !== undefined) {
-            if (request.params.projectId) {
+        if (request.params.instanceId !== undefined) {
+            if (request.params.instanceId) {
                 try {
-                    request.project = await app.db.models.Project.byId(request.params.projectId)
+                    request.project = await app.db.models.Project.byId(request.params.instanceId)
                     if (!request.project) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return
@@ -57,7 +57,7 @@ module.exports = async function (app) {
                             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                             return // eslint-disable-line no-useless-return
                         }
-                    } else if (request.session.ownerId !== request.params.projectId) {
+                    } else if (request.session.ownerId !== request.params.instanceId) {
                         // AccesToken being used - but not owned by this project
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return // eslint-disable-line no-useless-return
@@ -71,18 +71,39 @@ module.exports = async function (app) {
         }
     })
 
-    app.register(ProjectDevices, { prefix: '/:projectId/devices' })
-    app.register(ProjectActions, { prefix: '/:projectId/actions' })
-    app.register(ProjectSnapshots, { prefix: '/:projectId/snapshots' })
+    app.register(ProjectDevices, { prefix: '/:instanceId/devices' })
+    app.register(ProjectActions, { prefix: '/:instanceId/actions' })
+    app.register(ProjectSnapshots, { prefix: '/:instanceId/snapshots' })
 
     /**
      * Get the details of a given instance
-     * @name /api/v1/projects/:projectId
+     * @name /api/v1/projects/:instanceId
      * @static
      * @memberof forge.routes.api.project
      */
-    app.get('/:projectId', {
-        preHandler: app.needsPermission('project:read')
+    app.get('/:instanceId', {
+        preHandler: app.needsPermission('project:read'),
+        schema: {
+            summary: 'Get details of an instance',
+            tags: ['Instances'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    allOf: [
+                        { $ref: 'Instance' },
+                        { $ref: 'InstanceStatus' }
+                    ]
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const projectPromise = app.db.views.Project.project(request.project)
         const projectStatePromise = request.project.liveState()
@@ -114,12 +135,14 @@ module.exports = async function (app) {
             app.needsPermission('project:create')
         ],
         schema: {
+            summary: 'Create of an instance',
+            tags: ['Instances'],
             body: {
                 type: 'object',
                 required: ['name', 'projectType', 'stack', 'template', 'applicationId'],
                 properties: {
                     name: { type: 'string' },
-                    applicationId: { anyOf: [{ type: 'string' }, { type: 'number' }] },
+                    applicationId: { type: 'string' },
                     projectType: { type: 'string' },
                     stack: { type: 'string' },
                     template: { type: 'string' },
@@ -130,6 +153,17 @@ module.exports = async function (app) {
                             options: { type: 'object' }
                         }
                     }
+                }
+            },
+            response: {
+                200: {
+                    allOf: [
+                        { $ref: 'Instance' },
+                        { $ref: 'InstanceStatus' }
+                    ]
+                },
+                '4xx': {
+                    $ref: 'APIError'
                 }
             }
         }
@@ -334,7 +368,30 @@ module.exports = async function (app) {
      * @name /api/v1/projects/:id
      * @memberof forge.routes.api.project
      */
-    app.delete('/:projectId', { preHandler: app.needsPermission('project:delete') }, async (request, reply) => {
+    app.delete('/:instanceId', {
+        preHandler: app.needsPermission('project:delete'),
+        schema: {
+            summary: 'Delete an instance',
+            tags: ['Instances'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         try {
             try {
                 await app.containers.remove(request.project)
@@ -366,7 +423,7 @@ module.exports = async function (app) {
      * @name /api/v1/projects/:id
      * @memberof forge.routes.api.project
      */
-    app.put('/:projectId', {
+    app.put('/:instanceId', {
         preHandler: async (request, reply) => {
             // First, check what is being set & check permissions accordingly.
             // * If the only value sent is `request.body.settings.env`, then we only need 'project:edit-env' permission
@@ -380,6 +437,47 @@ module.exports = async function (app) {
                     request.allSettingsEdit = true
                     return res
                 })
+            }
+        },
+        schema: {
+            summary: 'Update an instance',
+            tags: ['Instances'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    hostname: { type: 'string' },
+                    settings: { type: 'object' },
+                    projectType: { type: 'string' },
+                    stack: { type: 'string' },
+                    sourceProject: {
+                        type: 'object',
+                        properties: {
+                            id: { type: 'string' },
+                            options: { type: 'object' }
+                        }
+                    }
+                }
+            },
+            response: {
+                200: {
+                    allOf: [
+                        { $ref: 'Instance' },
+                        { $ref: 'InstanceStatus' }
+                    ]
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
             }
         }
     }, async (request, reply) => {
@@ -790,7 +888,7 @@ module.exports = async function (app) {
      * @name /api/v1/projects/:id/settings
      * @memberof forge.routes.api.project
      */
-    app.get('/:projectId/settings', {
+    app.get('/:instanceId/settings', {
         preHandler: (request, reply, done) => {
             // check accessToken is project scope
             // (ownerId already checked at top-level preHandler)
@@ -798,6 +896,25 @@ module.exports = async function (app) {
                 reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
             } else {
                 done()
+            }
+        },
+        schema: {
+            summary: 'Get an instance runtime settings (instance tokens only)',
+            tags: ['Instances'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    additionalProperties: true
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
             }
         }
     }, async (request, reply) => {
@@ -839,8 +956,36 @@ module.exports = async function (app) {
      * @name /api/v1/projects/:id/logs
      * @memberof forge.routes.api.project
      */
-    app.get('/:projectId/logs', {
-        preHandler: app.needsPermission('project:log')
+    app.get('/:instanceId/logs', {
+        preHandler: app.needsPermission('project:log'),
+        schema: {
+            summary: 'Get instance logs',
+            tags: ['Instances'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            query: {
+                $ref: 'PaginationParams'
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        log: { type: 'array', items: { type: 'object', additionalProperties: true } }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         if (request.project.state === 'suspended') {
             reply.code(400).send({ code: 'project_suspended', error: 'Project suspended' })
@@ -917,7 +1062,38 @@ module.exports = async function (app) {
      * @name /api/v1/projects/:id/audit-log
      * @memberof forge.routes.api.project
      */
-    app.get('/:projectId/audit-log', { preHandler: app.needsPermission('project:audit-log') }, async (request, reply) => {
+    app.get('/:instanceId/audit-log', {
+        preHandler: app.needsPermission('project:audit-log'),
+        schema: {
+            summary: 'Get instance audit event entries',
+            tags: ['Instances'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            query: {
+                allOf: [
+                    { $ref: 'PaginationParams' },
+                    { $ref: 'AuditLogQueryParams' }
+                ]
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        log: { $ref: 'AuditLogEntryList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const logEntries = await app.db.models.AuditLog.forProject(request.project.id, paginationOptions)
         const result = app.db.views.AuditLog.auditLog(logEntries)
@@ -929,9 +1105,17 @@ module.exports = async function (app) {
      * @name /api/v1/projects/:id/import
      * @memberof forge.routes.api.project
      */
-    app.post('/:projectId/import', {
+    app.post('/:instanceId/import', {
         preHandler: app.needsPermission('project:edit'),
         schema: {
+            summary: 'Import flows to the instance',
+            tags: ['Instances'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
             body: {
                 type: 'object',
                 properties: {
@@ -939,16 +1123,27 @@ module.exports = async function (app) {
                     credentials: { type: 'string' },
                     credsSecret: { type: 'string' }
                 }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
             }
         }
     }, async (request, reply) => {
         try {
-            const projectImport = await app.db.controllers.Project.importProject(request.project, request.body)
+            await app.db.controllers.Project.importProject(request.project, request.body)
             await app.auditLog.Project.project.flowImported(request.session.User, null, request.project)
-            reply.send(projectImport)
+            reply.send({ status: 'okay' })
         } catch (err) {
             if (err.name === 'SyntaxError') {
-                reply.code(403).send({ code: 'credentials_bad_secret', error: 'incorrect credential secret' })
+                reply.code(403).send({ code: 'invalid_credentials_secret', error: 'incorrect credential secret' })
             } else {
                 reply.code(500).send({ code: 'unknown_error', error: 'unknown error' })
             }
@@ -982,7 +1177,7 @@ module.exports = async function (app) {
         return crypto.randomBytes(32).toString('hex')
     }
 
-    // app.get('/:projectId/ha', {
+    // app.get('/:instanceId/ha', {
     //     preHandler: app.needsPermission('project:read')
     // }, async (request, reply) => {
     //     reply.send(await request.project.getHASettings())

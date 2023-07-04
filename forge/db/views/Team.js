@@ -1,22 +1,16 @@
-module.exports = {
-    userTeamList: function (app, teamList) {
-        return teamList.map((t) => {
-            const d = t.get({ plain: true })
-            const filtered = {
-                id: d.Team.hashid,
-                name: d.Team.name,
-                type: app.db.views.TeamType.teamTypeSummary(d.Team.TeamType),
-                slug: d.Team.slug,
-                avatar: d.Team.avatar,
-                role: d.role,
-                projectCount: d.projectCount,
-                memberCount: d.memberCount,
-                links: d.Team.links
-            }
-            return filtered
-        })
-    },
-    teamSummary: function (app, team) {
+module.exports = function (app) {
+    app.addSchema({
+        $id: 'TeamSummary',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            slug: { type: 'string' },
+            avatar: { type: 'string' },
+            links: { $ref: 'LinksMeta' }
+        }
+    })
+    function teamSummary (team) {
         if (Object.hasOwn(team, 'get')) {
             team = team.get({ plain: true })
         }
@@ -28,8 +22,30 @@ module.exports = {
             links: team.links
         }
         return result
-    },
-    team: function (app, team) {
+    }
+
+    app.addSchema({
+        $id: 'Team',
+        type: 'object',
+        allOf: [{ $ref: 'TeamSummary' }],
+        properties: {
+            type: {
+                type: 'object',
+                properties: {
+                    id: { type: 'string' },
+                    name: { type: 'string' }
+                }
+            },
+            projectCount: { type: 'number' },
+            memberCount: { type: 'number' },
+            createdAt: { type: 'string' },
+            updatedAt: { type: 'string' },
+            billing: { type: 'object', additionalProperties: true },
+            billingURL: { type: 'string' }
+        },
+        additionalProperties: true
+    })
+    function team (team) {
         if (team) {
             const result = team.toJSON()
             const filtered = {
@@ -48,5 +64,37 @@ module.exports = {
         } else {
             return null
         }
+    }
+
+    app.addSchema({
+        $id: 'UserTeamList',
+        type: 'array',
+        items: {
+            allOf: [{ $ref: 'Team' }],
+            properties: { role: { type: 'number' } }
+        }
+    })
+
+    function userTeamList (teamList) {
+        return teamList.map(t => {
+            const d = t.get({ plain: true })
+            const filtered = {
+                id: d.Team.hashid,
+                name: d.Team.name,
+                type: app.db.views.TeamType.teamTypeSummary(d.Team.TeamType),
+                slug: d.Team.slug,
+                avatar: d.Team.avatar,
+                role: d.role,
+                projectCount: d.projectCount,
+                memberCount: d.memberCount,
+                links: d.Team.links
+            }
+            return filtered
+        })
+    }
+    return {
+        team,
+        teamSummary,
+        userTeamList
     }
 }

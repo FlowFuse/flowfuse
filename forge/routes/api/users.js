@@ -33,7 +33,27 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.users
      */
-    app.get('/', { preHandler: app.needsPermission('user:list') }, async (request, reply) => {
+    app.get('/', {
+        preHandler: app.needsPermission('user:list'),
+        schema: {
+            summary: 'Get a list of all users (admin-only)',
+            tags: ['Users'],
+            query: { $ref: 'PaginationParams' },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        users: { $ref: 'UserList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const users = await app.db.models.User.getAll(paginationOptions)
         users.users = users.users.map(u => app.db.views.User.userProfile(u))
@@ -46,7 +66,27 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.users
      */
-    app.get('/:userId', { preHandler: app.needsPermission('user:read') }, async (request, reply) => {
+    app.get('/:userId', {
+        preHandler: app.needsPermission('user:read'),
+        schema: {
+            summary: 'Get a user profile (admin-only)',
+            tags: ['Users'],
+            params: {
+                type: 'object',
+                properties: {
+                    userId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'User'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         reply.send(app.db.views.User.userProfile(request.user))
     })
 
@@ -56,7 +96,41 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.users
      */
-    app.put('/:userId', { preHandler: app.needsPermission('user:edit') }, async (request, reply) => {
+    app.put('/:userId', {
+        preHandler: app.needsPermission('user:edit'),
+        schema: {
+            summary: 'Update a users settings (admin-only)',
+            tags: ['Users'],
+            params: {
+                type: 'object',
+                properties: {
+                    userId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    username: { type: 'string' },
+                    email: { type: 'string' },
+                    tcs_accepted: { type: 'boolean' },
+                    email_verified: { type: 'boolean' },
+                    admin: { type: 'boolean' },
+                    password_expired: { type: 'boolean' },
+                    suspended: { type: 'boolean' },
+                    defaultTeam: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'User'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         await sharedUser.updateUser(app, request.user, request, reply, 'users')
     })
 
@@ -69,6 +143,8 @@ module.exports = async function (app) {
     app.post('/', {
         preHandler: app.needsPermission('user:create'),
         schema: {
+            summary: 'Create a new user (admin-only)',
+            tags: ['Users'],
             body: {
                 type: 'object',
                 required: ['name', 'username', 'password'],
@@ -78,6 +154,14 @@ module.exports = async function (app) {
                     password: { type: 'string' },
                     isAdmin: { type: 'boolean' },
                     createDefaultTeam: { type: 'boolean' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'User'
+                },
+                '4xx': {
+                    $ref: 'APIError'
                 }
             }
         }
@@ -151,7 +235,27 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.users
      */
-    app.delete('/:userId', { preHandler: app.needsPermission('user:delete') }, async (request, reply) => {
+    app.delete('/:userId', {
+        preHandler: app.needsPermission('user:delete'),
+        schema: {
+            summary: 'Delete a user (admin-only)',
+            tags: ['Users'],
+            params: {
+                type: 'object',
+                properties: {
+                    userId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         try {
             await request.user.destroy()
             await app.auditLog.User.users.userDeleted(request.session.User, null, request.user)
@@ -169,11 +273,36 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.user
      */
-    app.get('/:userId/teams', { preHandler: app.needsPermission('user:team:list') }, async (request, reply) => {
+    app.get('/:userId/teams', {
+        preHandler: app.needsPermission('user:team:list'),
+        schema: {
+            summary: 'Get a list of a users teams (admin-only)',
+            tags: ['Users'],
+            params: {
+                type: 'object',
+                properties: {
+                    userId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        // meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        teams: { $ref: 'UserTeamList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         const teams = await app.db.models.Team.forUser(request.user)
         const result = await app.db.views.Team.userTeamList(teams)
         reply.send({
-            meta: {}, // For future pagination
+            // meta: {}, // For future pagination
             count: result.length,
             teams: result
         })

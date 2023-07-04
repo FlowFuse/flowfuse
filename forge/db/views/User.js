@@ -1,40 +1,20 @@
-function publicUserProfile (app, user) {
-    const result = {
-        id: user.hashid
-    };
-    [
-        'username',
-        'name',
-        'email',
-        'avatar',
-        'admin',
-        'createdAt',
-        'suspended'
-    ].forEach(p => { result[p] = user[p] })
-    return result
-}
-
-function shortProfile (app, user) {
-    const result = {
-        id: user.hashid
-    };
-    [
-        'username',
-        'avatar'
-    ].forEach(p => { result[p] = user[p] })
-    return result
-}
-
-module.exports = {
-    /**
-     * Render a User object for returning on the API.
-     *
-     * Only fields listed here will be returned - ensuring that if a new field
-     * is added to the model, it won't accidentally leak out of the API
-     *
-     */
-    userProfile: function (app, user) {
-        const result = publicUserProfile(app, user)
+module.exports = function (app) {
+    app.addSchema({
+        $id: 'User',
+        type: 'object',
+        allOf: [{ $ref: 'UserSummary' }],
+        properties: {
+            email_verified: { type: 'boolean' },
+            defaultTeam: { type: 'string' },
+            sso_enabled: { type: 'boolean' },
+            free_trial_available: { type: 'boolean' },
+            tcs_accepted: { type: 'string' },
+            password_expired: { type: 'boolean' },
+            pendingEmailChange: { type: 'boolean' }
+        }
+    })
+    function userProfile (user) {
+        const result = userSummary(user)
         if (user.password_expired) {
             result.password_expired = true
         }
@@ -50,20 +30,66 @@ module.exports = {
             result.sso_enabled = !!user.sso_enabled
         }
         return result
-    },
+    }
 
-    publicUserProfile,
-    shortProfile,
-    teamMemberList: function (app, users) {
+    app.addSchema({
+        $id: 'UserSummary',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            username: { type: 'string' },
+            name: { type: 'string' },
+            email: { type: 'string' },
+            avatar: { type: 'string' },
+            admin: { type: 'boolean' },
+            createdAt: { type: 'string' },
+            suspended: { type: 'boolean' }
+        }
+    })
+    function userSummary (user) {
+        const result = {
+            id: user.hashid
+        };
+        [
+            'username',
+            'name',
+            'email',
+            'avatar',
+            'admin',
+            'createdAt',
+            'suspended'
+        ].forEach(p => { result[p] = user[p] })
+        return result
+    }
+
+    app.addSchema({
+        $id: 'TeamMemberList',
+        type: 'array',
+        items: {
+            allOf: [{ $ref: 'UserSummary' }],
+            properties: { role: { type: 'number' } }
+        }
+    })
+    function teamMemberList (users) {
         const result = users.map(u => {
-            return {
-                id: u.hashid,
-                username: u.username,
-                name: u.name,
-                avatar: u.avatar,
-                role: u.Teams[0].TeamMember.role
-            }
+            const user = userSummary(u)
+            user.role = u.Teams[0].TeamMember.role
+            return user
         })
         return result
+    }
+
+    app.addSchema({
+        $id: 'UserList',
+        type: 'array',
+        items: {
+            $ref: 'User'
+        }
+    })
+
+    return {
+        userSummary,
+        userProfile,
+        teamMemberList
     }
 }

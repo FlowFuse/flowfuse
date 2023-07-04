@@ -16,7 +16,31 @@ module.exports = async function (app) {
     // All routes require user to be owner of team
     app.addHook('preHandler', app.needsPermission('team:user:invite'))
 
-    app.get('/', async (request, reply) => {
+    app.get('/', {
+        schema: {
+            summary: 'Get a list of the teams invitations',
+            tags: ['Team Invitations'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        // meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        invitations: { $ref: 'InvitationList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         const invitations = await app.db.models.Invitation.forTeam(request.team)
         const result = app.db.views.Invitation.invitationList(invitations)
         reply.send({
@@ -30,7 +54,40 @@ module.exports = async function (app) {
      * Create an invitation
      * POST [/api/v1/teams/:teamId/invitations]/
      */
-    app.post('/', async (request, reply) => {
+    app.post('/', {
+        schema: {
+            summary: 'Create an invitation',
+            tags: ['Team Invitations'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    user: { type: 'string' },
+                    role: { type: 'number' }
+                },
+                required: ['user']
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        status: { type: 'string' },
+                        code: { type: 'string' },
+                        error: { type: 'object', additionalProperties: true }
+
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         const userDetails = request.body.user.split(',').map(u => u.trim()).filter(Boolean)
         if (userDetails.length > 5) {
             reply.code(429).send({ code: 'too_many_invites', error: 'maximum 5 invites at a time' })
@@ -106,7 +163,27 @@ module.exports = async function (app) {
      * Delete an invitation
      * DELETE [/api/v1/teams/:teamId/invitations]/:invitationId
      */
-    app.delete('/:invitationId', async (request, reply) => {
+    app.delete('/:invitationId', {
+        schema: {
+            summary: 'Delete an invitation',
+            tags: ['Team Invitations'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' },
+                    invitationId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         const invitation = await app.db.models.Invitation.byId(request.params.invitationId)
         if (invitation) {
             const role = invitation.role || Roles.Member

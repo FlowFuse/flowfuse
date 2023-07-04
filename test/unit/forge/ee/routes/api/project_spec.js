@@ -71,20 +71,18 @@ describe('Projects API - with billing enabled', function () {
                 // Put project in running state
                 await app.containers.start(project)
                 app.billing.addProject.resetHistory()
-
                 const response = await app.inject({
                     method: 'PUT',
                     url: `/api/v1/projects/${app.project.id}`,
                     payload: {
-                        projectType: projectType.id,
-                        stack: stack.id
+                        projectType: projectType.hashid,
+                        stack: stack.hashid
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
-
                 response.statusCode.should.equal(200)
 
-                await sleep(START_DELAY + STOP_DELAY + 50)
+                await sleep(START_DELAY + STOP_DELAY + 100)
 
                 should.equal(app.billing.removeProject.calledOnce, true)
                 should.equal(app.billing.addProject.calledOnce, true)
@@ -116,7 +114,7 @@ describe('Projects API - with billing enabled', function () {
                     method: 'PUT',
                     url: `/api/v1/projects/${app.project.id}`,
                     payload: {
-                        stack: stack.id
+                        stack: stack.hashid
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })

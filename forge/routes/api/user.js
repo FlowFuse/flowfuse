@@ -9,19 +9,27 @@ const UserInvitations = require('./userInvitations')
  * These routes all operate in the context of the logged-in user
  * req.session.User
  *
- * @namespace user
- * @memberof forge.routes.api
  */
 module.exports = async function (app) {
     app.register(UserInvitations, { prefix: '/invitations' })
 
     /**
      * Get the profile of the current logged in user
-     * @name /api/v1/user
-     * @static
-     * @memberof forge.routes.api.user
+     * /api/v1/user
      */
     app.get('/', {
+        schema: {
+            summary: 'Get the current user profile',
+            tags: ['User'],
+            response: {
+                200: {
+                    $ref: 'User'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        },
         preHandler: app.needsPermission('user:read'),
         config: { allowUnverifiedEmail: true, allowExpiredPassword: true }
     }, async (request, reply) => {
@@ -37,20 +45,28 @@ module.exports = async function (app) {
 
     /**
      * Update the current user's password
-     * @name /api/v1/user/change_password
-     * @static
-     * @memberof forge.routes.api.user
+     * /api/v1/user/change_password
      */
     app.put('/change_password', {
         preHandler: app.needsPermission('user:edit'),
         config: { allowExpiredPassword: true },
         schema: {
+            summary: 'Change the current users password',
+            tags: ['User'],
             body: {
                 type: 'object',
                 required: ['old_password', 'password'],
                 properties: {
-                    old_password: { type: 'string' },
+                    old_password: { type: 'string', description: 'the old password' },
                     password: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
                 }
             }
         }
@@ -69,12 +85,27 @@ module.exports = async function (app) {
 
     /**
      * Get the teams of the current logged in user
-     * @name /api/v1/user/teams
-     * @static
-     * @memberof forge.routes.api.user
+     * /api/v1/user/teams
      */
     app.get('/teams', {
-        preHandler: app.needsPermission('user:team:list')
+        preHandler: app.needsPermission('user:team:list'),
+        schema: {
+            summary: 'Get a list of the current users teams',
+            tags: ['User'],
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        teams: { $ref: 'UserTeamList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const teams = await app.db.models.Team.forUser(request.session.User)
         const result = await app.db.views.Team.userTeamList(teams)
@@ -87,12 +118,32 @@ module.exports = async function (app) {
 
     /**
      * Update user settings
-     * @name /api/v1/user/
-     * @static
-     * @memberof forge.routes.api.user
+     * /api/v1/user/
      */
     app.put('/', {
-        preHandler: app.needsPermission('user:edit')
+        preHandler: app.needsPermission('user:edit'),
+        schema: {
+            summary: 'Update the current users settings',
+            tags: ['User'],
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    username: { type: 'string' },
+                    email: { type: 'string' },
+                    tcs_accepted: { type: 'boolean' },
+                    defaultTeam: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'User'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         sharedUser.updateUser(app, request.session.User, request, reply, 'user')
         return reply // fix errors in tests "Promise may not be fulfilled with 'undefined' when statusCode is not 204" https://github.com/fastify/help/issues/627
@@ -100,12 +151,22 @@ module.exports = async function (app) {
 
     /**
      * Delete user
-     * @name /api/v1/user/
-     * @static
-     * @memberof forge.routes.api.user
+     * /api/v1/user/
      */
     app.delete('/', {
-        preHandler: app.needsPermission('user:delete')
+        preHandler: app.needsPermission('user:delete'),
+        schema: {
+            summary: 'Delete the current user',
+            tags: ['User'],
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         try {
             const user = request.session.User

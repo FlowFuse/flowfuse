@@ -34,7 +34,32 @@ module.exports = async function (app) {
         }
     })
 
-    app.get('/', { preHandler: app.needsPermission('team:user:list') }, async (request, reply) => {
+    app.get('/', {
+        preHandler: app.needsPermission('team:user:list'),
+        schema: {
+            summary: 'Get a list of the teams members',
+            tags: ['Team Members'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        // meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        members: { $ref: 'TeamMemberList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         const members = await app.db.models.User.inTeam(request.params.teamId)
         const result = app.db.views.User.teamMemberList(members)
         reply.send({
@@ -45,27 +70,31 @@ module.exports = async function (app) {
     })
 
     /**
-     * Add member to group
-     *  - only admins should be able to do this
-     *  - team owners can do this for now - but will need to enable invite-only workflow
-     * POST [/api/v1/teams/:teamId/members]/
-     */
-    // app.post('/', { preHandler: app.needsPermission('team:user:add') }, async (request, reply) => {
-    //     // await app.db.controllers.AuditLog.teamLog(
-    //     //     request.team.id,
-    //     //     request.session.User.id,
-    //     //     "user.added",
-    //     //     { user: userToRemove.username }
-    //     // )
-    //     reply.code(400).send({ error: 'POST /api/v1/teams/:teamId/members not implemented' })
-    // })
-
-    /**
      * Remove member from group
      *  - admin/owner/self
      * DELETE [/api/v1/teams/:teamId/members]/:userId
      */
-    app.delete('/:userId', { preHandler: app.needsPermission('team:user:remove') }, async (request, reply) => {
+    app.delete('/:userId', {
+        preHandler: app.needsPermission('team:user:remove'),
+        schema: {
+            summary: 'Remove a team member',
+            tags: ['Team Members'],
+            params: {
+                type: 'object',
+                properties: {
+                    userId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         // request.user and request.userRole will already be set via the preHandler
         // added at the top of this file
         // the needsPermission handler will have ensured the requesting user is allowed
@@ -86,7 +115,34 @@ module.exports = async function (app) {
      *  - only admins or owner should be able to do this
      * POST [/api/v1/teams/:teamId/members]/:userId
      */
-    app.put('/:userId', { preHandler: app.needsPermission('team:user:change-role') }, async (request, reply) => {
+    app.put('/:userId', {
+        preHandler: app.needsPermission('team:user:change-role'),
+        schema: {
+            summary: 'Change a members role',
+            tags: ['Team Members'],
+            params: {
+                type: 'object',
+                properties: {
+                    userId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    role: { type: 'number' }
+                },
+                required: ['role']
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         const newRole = parseInt(request.body.role)
         if (TeamRoles.includes(newRole)) {
             try {
@@ -100,7 +156,7 @@ module.exports = async function (app) {
                 }
                 reply.send({ status: 'okay' })
             } catch (err) {
-                reply.code(403).type('text/html').send('Forbidden')
+                reply.code(403).send({ code: 'invalid_request', error: 'Invalid request' })
             }
         } else {
             reply.code(400).send({ code: 'invalid_team_role', error: 'invalid role' })
