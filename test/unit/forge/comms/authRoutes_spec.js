@@ -735,7 +735,7 @@ describe('Broker Auth API', async function () {
                             method: 'PUT',
                             url: `/api/v1/devices/${TestObjects.DeviceA.id}`,
                             body: {
-                                project: TestObjects.ProjectA.id
+                                instance: TestObjects.ProjectA.id
                             },
                             cookies: { sid: TestObjects.tokens.alice }
                         })
