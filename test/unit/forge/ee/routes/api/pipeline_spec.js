@@ -829,4 +829,66 @@ describe('Pipelines API', function () {
             })
         })
     })
+
+    describe('Deploy Pipeline Stage', function () {
+        describe('With valid input', function () {
+            it('Creates a snapshot of the pipeline stage, and copies to the next stage', async function () {
+                // 1 -> 2
+                TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageTwo.hashid}/deploy`,
+                    payload: {
+                        sourceStageId: TestObjects.stageOne.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const body = await response.json()
+                body.should.have.property('status', 'importing')
+
+                async function isDeployComplete () {
+                    const instanceStatusResponse = (await app.inject({
+                        method: 'GET',
+                        url: `/api/v1/projects/${TestObjects.instanceTwo.id}`,
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })).json()
+
+                    return !instanceStatusResponse.isDeploying
+                }
+
+                await new Promise((resolve, reject) => {
+                    const refreshIntervalId = setInterval(async () => {
+                        if (await isDeployComplete()) {
+                            clearInterval(refreshIntervalId)
+                            resolve()
+                        }
+                    }, 250)
+                })
+
+                // Now actually check things worked
+                // Credentials?
+            })
+        })
+
+        describe('With invalid target stages', function () {
+            it('Should fail gracefully when not found')
+            it('Should fail gracefully if the stage is not part of the pipeline')
+            it('Should fail gracefully if the stage has no instances')
+            it('Should fail gracefully if the stage has more than one instance')
+        })
+
+        describe('With invalid source stages', function () {
+            it('Should fail gracefully when not set')
+            it('Should fail gracefully when not found')
+            it('Should fail gracefully if the stage is not part of the pipeline')
+            it('Should fail gracefully if the stage has no instances')
+            it('Should fail gracefully if the stage has more than one instance')
+        })
+
+        describe('With instances that are on different teams', function () {
+            it('Should fail gracefully')
+        })
+    })
 })

@@ -186,9 +186,8 @@ module.exports = async function (app) {
         const project = request.project
         const user = request.session.User
         const snapshotProperties = request.body
-        const setAsTarget = request.body.setAsTarget
 
-        const snapShot = await createSnapshot(app, project, user, snapshotProperties, setAsTarget)
+        const snapShot = await createSnapshot(app, project, user, snapshotProperties)
         reply.send(app.db.views.ProjectSnapshot.snapshot(snapShot))
     })
 }
