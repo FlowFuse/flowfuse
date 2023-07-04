@@ -1,7 +1,10 @@
+const { restart } = require('nodemon')
 const { ValidationError } = require('sequelize')
 
 const { registerPermissions } = require('../../../lib/permissions')
 const { Roles } = require('../../../lib/roles.js')
+
+const { createSnapshot, copySnapshot } = require('../../../services/snapshots')
 
 module.exports = async function (app) {
     registerPermissions({
@@ -120,7 +123,7 @@ module.exports = async function (app) {
 
         const stages = await pipeline.stages()
         if (stages.length > 0) {
-            // delete stages too
+        // delete stages too
             for (let i = 0; i < stages.length; i++) {
                 stages[i].destroy()
             }
@@ -299,6 +302,100 @@ module.exports = async function (app) {
             reply.send({ status: 'okay' })
         } catch (err) {
             reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
+        }
+    })
+
+    /**
+     * Deploy one stage to another stage
+     * Create snapshot
+     * Copy over snapshot
+     * Set snapshot as target (and restart etc as needed)
+     */
+    app.put('/pipelines/:pipelineId/stages/:stageId/deploy', {
+        preHandler: app.needsPermission('application:pipelines:update')
+    }, async (request, reply) => {
+        if (!request.body.sourceStageId) {
+            return reply.code(400).send({ code: 'missing_source_stage', error: 'sourceStageId must be provided' })
+        }
+
+        const user = request.session.User
+
+        const targetStage = await app.db.models.PipelineStage.byId(request.params.stageId)
+        const sourceStage = await app.db.models.PipelineStage.byId(request.body.sourceStageId)
+
+        if (!targetStage) {
+            return reply.code(404).send({ code: 'not_found', error: 'Target stage not found' })
+        } else if (targetStage.pipelineId !== request.body.pipelineId) {
+            return reply.code(400).send({ code: 'invalid_stage', error: 'Target stage must be part of the same pipeline' })
+        }
+
+        if (!sourceStage) {
+            return reply.code(404).send({ code: 'not_found', error: 'Source stage not found' })
+        } else if (sourceStage.pipelineId !== request.body.pipelineId) {
+            return reply.code(400).send({ code: 'invalid_stage', error: 'Source stage must be part of the same pipeline' })
+        }
+
+        const sourceInstances = await sourceStage.getInstances()
+        if (sourceInstances.length === 0) {
+            return reply.code(400).send({ code: 'invalid_stage', error: 'Source stage must have at least one instance' })
+        } else if (sourceInstances.length > 1) {
+            return reply.code(400).send({ code: 'invalid_stage', error: 'Deployments are currently only supported for source stages with a single instance' })
+        }
+
+        const targetInstances = await targetStage.getInstances()
+        if (targetInstances.length === 0) {
+            return reply.code(400).send({ code: 'invalid_stage', error: 'Target stage must have at least one instance' })
+        } else if (targetInstances.length > 1) {
+            return reply.code(400).send({ code: 'invalid_stage', error: 'Deployments are currently only supported for target stages with a single instance' })
+        }
+
+        const sourceInstance = sourceInstances[0]
+        const targetInstance = targetInstances[0]
+
+        if (sourceInstance.TeamId !== targetInstance.TeamId) {
+            return reply.code(403).send('Source instance and Target instance not in same team')
+        }
+
+        const restartTargetInstance = targetInstance.state === 'running'
+
+        let repliedEarly = false
+        try {
+            app.db.controllers.Project.setInflightState(targetInstance, 'importing')
+            app.db.controllers.Project.setInDeploy(targetInstance)
+
+            // Early return, status is loaded async
+            reply.code(200).send({ status: 'importing' })
+            repliedEarly = true
+
+            // Todo: Flows and Modules?
+            const sourceSnapshot = await createSnapshot(app, sourceInstance, user, {
+                name: `Deploy Snapshot: ${new Date().toISOString()}`,
+                description: `Snapshot created for pipeline deployment from ${sourceStage.name} to ${targetStage.name}`,
+                setAsTarget: true
+            })
+
+            // eslint-disable-next-line no-unused-vars
+            const targetSnapshot = await copySnapshot(app, sourceSnapshot, targetInstance)
+
+            if (restartTargetInstance) {
+                await app.containers.restartFlows(targetInstance)
+            }
+
+            await app.auditLog.Project.project.imported(user.id, null, targetInstance, sourceInstance) // technically this isn't a project event
+            await app.auditLog.Project.project.snapshot.imported(user.id, null, targetInstance, sourceInstance)
+
+            app.db.controllers.Project.clearInflightState(targetInstance)
+        } catch (err) {
+            app.db.controllers.Project.clearInflightState(targetInstance)
+
+            const resp = { code: 'unexpected_error', error: err.toString() }
+            await app.auditLog.Project.project.imported(user.id, null, targetInstance, sourceInstance) // technically this isn't a project event
+            await app.auditLog.Project.project.snapshot.imported(user.id, resp, targetInstance, sourceInstance)
+
+            if (!repliedEarly) {
+                console.warn('Deploy failed, but response already sent', err)
+                reply.code(500).send(resp)
+            }
         }
     })
 }
