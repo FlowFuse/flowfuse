@@ -25,7 +25,7 @@
             </div>
             <div class="pt-3">
                 <ff-radio-group label="What brings you to FlowForge?" v-model="input.join_reason" orientation="grid"
-                                :options="[{label: 'Business Needs', value: 'business'}, {label: 'Personal Use', value: 'personal'}, {label: 'Learning Node-RED', value: 'learning'}, {label: 'Other', value: 'other'}]" />
+                                :options="[{label: 'Business Needs', value: 'business'}, {label: 'Personal Use', value: 'personal'}, {label: 'Educational Use', value: 'education'}, {label: 'Other', value: 'other'}]" />
             </div>
             <div v-if="settings['user:tcs-required']">
                 <ff-checkbox v-model="input.tcs_accepted">
