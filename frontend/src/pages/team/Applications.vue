@@ -150,7 +150,10 @@ export default {
     mounted () {
         this.fetchData()
         if ('billing_session' in this.$route.query) {
-            Alerts.emit('Thanks for signing up to FlowForge!', 'confirmation')
+            this.$nextTick(() => {
+                // allow the Alerts servcie to have subscription by wrapping in nextTick
+                Alerts.emit('Thanks for signing up to FlowForge!', 'confirmation')
+            })
         }
     },
     methods: {
