@@ -1,4 +1,4 @@
-name: Test Postgress
+name: Backend Tests - postgres
 
 on:
   push:
