@@ -29,7 +29,7 @@ const registerUser = async (options) => {
             email: options.email,
             'ff-cloud-user': true,
             'ff-cloud-joined': (new Date()).toUTCString(),
-            'ff-cloud-reason': options.join_reason
+            'join-reason': options.join_reason
         }
         product.identify(options.username, person)
         product.capture('$ff-user-registered')

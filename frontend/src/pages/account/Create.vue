@@ -23,7 +23,7 @@
                 <ff-text-input ref="signup-password" label="password" :error="errors.password" v-model="input.password" type="password"/>
                 <span class="ff-error-inline">{{ errors.password }}</span>
             </div>
-            <div class="pt-3">
+            <div class="pt-3" v-if="askJoinReason">
                 <ff-radio-group label="What brings you to FlowForge?" v-model="input.join_reason" orientation="grid"
                                 :options="[{label: 'Business Needs', value: 'business'}, {label: 'Personal Use', value: 'personal'}, {label: 'Educational Use', value: 'education'}, {label: 'Other', value: 'other'}]" />
             </div>
@@ -99,6 +99,9 @@ export default {
                    (this.input.join_reason) &&
                    (this.settings['user:tcs-required'] ? this.input.tcs_accepted : true) &&
                    (!this.errors.name)
+        },
+        askJoinReason () {
+            return !!window.posthog
         }
     },
     watch: {
