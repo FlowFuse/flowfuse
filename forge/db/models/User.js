@@ -36,6 +36,7 @@ module.exports = {
                 }
             }
         },
+        join_reason: { type: DataTypes.STRING, allowNull: true },
         tcs_accepted: { type: DataTypes.DATE, allowNull: true },
         suspended: {
             type: DataTypes.BOOLEAN,
