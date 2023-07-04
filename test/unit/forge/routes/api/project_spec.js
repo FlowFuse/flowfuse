@@ -1,7 +1,8 @@
-const should = require('should') // eslint-disable-line
-
 const crypto = require('crypto')
 const sleep = require('util').promisify(setTimeout)
+
+const should = require('should') // eslint-disable-line
+const sinon = require('sinon')
 
 const setup = require('../setup')
 
@@ -134,14 +135,14 @@ describe('Project API', function () {
             cookies: { sid: TestObjects.tokens.alice }
         })
     }
-    async function createInstance () {
+    async function createInstance (start = false) {
         return app.factory.createInstance(
             { name: generateProjectName() },
             app.application,
             app.stack,
             app.template,
             app.projectType,
-            { start: false }
+            { start }
         )
     }
     async function duplicateProject (srcId, team, template, stack, duplicateOpts, accessToken, name) {
@@ -1902,6 +1903,69 @@ describe('Project API', function () {
             Object.keys(newCreds).should.have.length(0)
         })
     })
+
+    describe('Delete Instance', function () {
+        it('Non-member cannot delete instance', async function () {
+            const aTeamInstance = await createInstance()
+
+            // Chris (non-member) cannot delete in ATeam
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/projects/${aTeamInstance.id}`, // ATeam Project
+                cookies: { sid: TestObjects.tokens.chris }
+            })
+            response.statusCode.should.equal(404)
+        })
+
+        it('Non-owner member cannot delete instance', async function () {
+            const aTeamInstance = await createInstance()
+
+            // Bob (non-owner) can delete in ATeam
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/projects/${aTeamInstance.id}`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+
+            const result = response.json()
+            result.should.have.property('code', 'unauthorized')
+
+            response.statusCode.should.equal(403)
+        })
+
+        it('Owner can delete an instance', async function () {
+            const aTeamInstance = await createInstance({ start: true })
+
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/projects/${aTeamInstance.id}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            const result = response.json()
+            result.should.have.property('status', 'okay')
+
+            response.statusCode.should.equal(200)
+        })
+
+        it('Handles trying to delete an already deleted container without error', async function () {
+            const aTeamInstance = await createInstance({ start: true })
+
+            sinon.stub(app.containers, 'remove').throws({ statusCode: 404, message: 'container not found' })
+
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/projects/${aTeamInstance.id}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            const result = response.json()
+            result.should.have.property('status', 'okay')
+
+            response.statusCode.should.equal(200)
+        })
+    })
+
     describe('Project Settings', function () {
         // helper function to get settings
         const getSettings = async () => {
@@ -1973,6 +2037,7 @@ describe('Project API', function () {
             settingsAfter.should.have.property('theme', 'forge-dark') // should now be forge-dark
         })
     })
+
     describe('Project import flows & credentials', function () {
         const flows = [
             {
