@@ -508,16 +508,22 @@
                         <code>{{ cGroups['input'].components[3].examples[0].code }}</code>
                     </div>
                     <div class="example">
-                        <h5>Example 2: Vertical &amp; Descriptions</h5>
-                        <ff-radio-group v-model="models.radio1" label="We can also provide a label here" :options="[{label: 'Option 1', value: 1, checked: false, description: 'This is a description of this particular option'}, {label: 'Option 2', value: 2, description: 'Another description'}]" orientation="vertical"></ff-radio-group>
+                        <h5>Example 2: Grid &amp; Label</h5>
+                        <ff-radio-group v-model="models.radio1" label="We can also provide a label here" :options="[{label: 'Option 1', value: 1, checked: false}, {label: 'Option 2', value: 2}, {label: 'Option 3', value: 3}, {label: 'Option 4', value: 4}]" orientation="grid" :columns="3"></ff-radio-group>
                         {{ models.radio1 }}
                         <code>{{ cGroups['input'].components[3].examples[1].code }}</code>
                     </div>
                     <div class="example">
-                        <h5>Example 3: Disabled Option</h5>
+                        <h5>Example 3: Vertical &amp; Descriptions</h5>
+                        <ff-radio-group v-model="models.radio1" label="We can also provide a label here" :options="[{label: 'Option 1', value: 1, checked: false, description: 'This is a description of this particular option'}, {label: 'Option 2', value: 2, description: 'Another description'}]" orientation="vertical"></ff-radio-group>
+                        {{ models.radio1 }}
+                        <code>{{ cGroups['input'].components[3].examples[2].code }}</code>
+                    </div>
+                    <div class="example">
+                        <h5>Example 4: Disabled Option</h5>
                         <ff-radio-group v-model="models.radio2" label="We can also provide a label here" :options="[{label: 'Option 1', value: 1, checked: false, description: 'This is a description of this particular option'}, {label: 'Disabled Option', value: 2, description: 'Another description', disabled: true}]" orientation="vertical"></ff-radio-group>
                         {{ models.radio2 }}
-                        <code>{{ cGroups['input'].components[3].examples[2].code }}</code>
+                        <code>{{ cGroups['input'].components[3].examples[3].code }}</code>
                     </div>
                 </div>
                 <!-- Tile Selection -->
