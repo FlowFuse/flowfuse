@@ -158,7 +158,7 @@ module.exports = async function (app) {
                 properties: {
                     name: { type: 'string' },
                     description: { type: 'string' },
-                    flows: { type: 'array' },
+                    flows: { type: 'array', items: { type: 'object' } },
                     credentials: { type: 'object' },
                     credentialSecret: { type: 'string' },
                     settings: {

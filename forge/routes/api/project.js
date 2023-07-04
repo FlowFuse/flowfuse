@@ -89,7 +89,7 @@ module.exports = async function (app) {
             params: {
                 type: 'object',
                 properties: {
-                    teamId: { type: 'string' }
+                    instanceId: { type: 'string' }
                 }
             },
             response: {

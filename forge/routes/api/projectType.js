@@ -163,6 +163,12 @@ module.exports = async function (app) {
         schema: {
             summary: 'Update an instance type - admin-only',
             tags: ['Instance Types'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceTypeId: { type: 'string' }
+                }
+            },
             body: {
                 type: 'object',
                 properties: {

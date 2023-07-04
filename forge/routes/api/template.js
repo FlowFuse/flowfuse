@@ -183,6 +183,12 @@ module.exports = async function (app) {
         schema: {
             summary: 'Update a template - admin-only',
             tags: ['Templates'],
+            params: {
+                type: 'object',
+                properties: {
+                    templateId: { type: 'string' }
+                }
+            },
             body: {
                 type: 'object',
                 required: ['name', 'settings', 'policy'],
