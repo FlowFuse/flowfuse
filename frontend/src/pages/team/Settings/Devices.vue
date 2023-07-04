@@ -70,13 +70,13 @@ const TokenFieldFormatter = {
     components: { KeyIcon }
 }
 
-const ProjectFieldFormatter = {
+const InstanceFieldFormatter = {
     template: `
-        <template v-if="project">
-            <router-link :to="{ name: 'Instance', params: { id: project }}">{{projectName}}</router-link>
+        <template v-if="instance">
+            <router-link :to="{ name: 'Instance', params: { id: instance }}">{{instanceName}}</router-link>
         </template>
         <template v-else><span class="italic text-gray-500">Don't assign</span></template>`,
-    props: ['project', 'projectName']
+    props: ['instance', 'instanceName']
 }
 
 export default {
@@ -90,7 +90,7 @@ export default {
             tokens: new Map(),
             checkInterval: null,
             nextCursor: null,
-            projectNames: []
+            instanceNames: []
         }
     },
     watch: {
@@ -113,8 +113,8 @@ export default {
             }
         },
         async fetchData (nextCursor = null, polled = false) {
-            // load project names into local cache (TODO: consider moving this to a vuex store for global access)
-            this.projectNames = await teamApi.getTeamInstancesList(this.team.id)
+            // load instance names into local cache (TODO: consider moving this to a vuex store for global access)
+            this.instanceNames = await teamApi.getTeamInstancesList(this.team.id)
             // get the tokens
             const data = await teamApi.getTeamDeviceProvisioningTokens(this.team.id, nextCursor)
 
@@ -131,15 +131,15 @@ export default {
                 this.nextCursor = data.meta.next_cursor
             }
         },
-        getProjectName (id) {
-            const project = this.projectNames?.find(p => p.id === id)
-            return project ? project.name : id
+        getInstanceName (id) {
+            const instance = this.instanceNames?.find(p => p.id === id)
+            return instance ? instance.name : id
         },
         async loadMore () {
             await this.fetchData(this.nextCursor)
         },
         showCreateTokenDialog () {
-            this.$refs.CreateProvisioningTokenDialog.show(null, this.project)
+            this.$refs.CreateProvisioningTokenDialog.show(null, this.instance)
         },
         showEditDialog (token) {
             this.$refs.CreateProvisioningTokenDialog.show(token)
@@ -160,7 +160,7 @@ export default {
             this.updateTokenCache(token)
         },
         updateTokenCache (token) {
-            token.projectName = this.getProjectName(token.project)
+            token.instanceName = this.getInstanceName(token.instance)
             this.tokens.set(token.id, token)
         },
         menuAction (action, tokenId) {
@@ -203,7 +203,7 @@ export default {
         columns: function () {
             return [
                 { label: 'Token Name', class: ['w-64'], key: 'name', sortable: true, component: { is: markRaw(TokenFieldFormatter) } },
-                { label: 'Auto Assign Project', class: ['w-64'], key: 'project', sortable: true, component: { is: markRaw(ProjectFieldFormatter) } },
+                { label: 'Auto Assign Instance', class: ['w-64'], key: 'instance', sortable: true, component: { is: markRaw(InstanceFieldFormatter) } },
                 { label: 'Target Snapshot', class: ['w-64'], key: 'targetSnapshot', sortable: true }
             ]
         }

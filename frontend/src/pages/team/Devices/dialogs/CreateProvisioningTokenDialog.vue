@@ -5,7 +5,7 @@
             <p>This will generate a <code>device.yml</code> to move to your device, that will auto register with this team.</p>
             <form class="space-y-6 mt-2 mb-2">
                 <FormRow data-form="token-name" v-model="input.name" :error="errors.name" :disabled="editMode">Token Name</FormRow>
-                <FormRow :options="projects" v-model="input.project">Auto assign instance (optional)</FormRow>
+                <FormRow :options="instances" v-model="input.instance">Auto assign instance (optional)</FormRow>
             </form>
         </template>
     </ff-dialog>
@@ -28,10 +28,10 @@ export default {
     data () {
         return {
             token: null,
-            projects: [],
+            instances: [],
             input: {
                 name: '',
-                project: '',
+                instance: '',
                 expiryAt: null
             },
             errors: {}
@@ -52,11 +52,10 @@ export default {
         confirm () {
             const opts = {
                 name: this.input.name.trim(),
-                project: this.input.project,
+                instance: this.input.instance,
                 team: this.team.id,
                 expiryAt: this.input.expiryAt
             }
-
             if (this.editMode) {
                 // Update
                 teamApi.updateTeamDeviceProvisioningToken(this.team.id, this.token.id, opts).then((response) => {
@@ -68,8 +67,8 @@ export default {
                     if (err.response.data) {
                         if (/expiryAt/.test(err.response.data.error)) {
                             this.errors.expiryAt = err.response.data.error
-                        } else if (/project/.test(err.response.data.error)) {
-                            this.errors.project = err.response.data.error
+                        } else if (/instance/.test(err.response.data.error)) {
+                            this.errors.instance = err.response.data.error
                         } else {
                             alerts.emit('Failed to update provisioning token: ' + err.response.data.error, 'warning', 7500)
                         }
@@ -86,8 +85,8 @@ export default {
                     if (err.response.data) {
                         if (/expiryAt/.test(err.response.data.error)) {
                             this.errors.expiryAt = err.response.data.error
-                        } else if (/project/.test(err.response.data.error)) {
-                            this.errors.project = err.response.data.error
+                        } else if (/instance/.test(err.response.data.error)) {
+                            this.errors.instance = err.response.data.error
                         } if (/name/.test(err.response.data.error)) {
                             this.errors.name = err.response.data.error
                         } else {
@@ -103,16 +102,16 @@ export default {
             async show (token) {
                 this.errors = {}
                 this.input.name = ''
-                this.input.project = ''
+                this.input.instance = ''
                 this.token = null
                 if (token) {
                     this.token = token
                     this.input.name = token.name
-                    this.input.project = token.project
+                    this.input.instance = token.instance
                 }
                 const result = await teamApi.getTeamInstancesList(this.team.id)
-                this.projects = result?.map(d => { return { value: d.id, label: d.name } }) || []
-                this.projects.unshift({ value: '', label: 'None' })
+                this.instances = result?.map(d => { return { value: d.id, label: d.name } }) || []
+                this.instances.unshift({ value: '', label: 'None' })
                 this.$refs.dialog.show()
             }
         }

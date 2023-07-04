@@ -30,7 +30,7 @@ export default {
     data () {
         return {
             input: {
-                projectName: ''
+                deviceName: ''
             },
             formValid: false,
             device: null

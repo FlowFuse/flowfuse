@@ -23,7 +23,7 @@ module.exports = function (app) {
             mode: { type: 'string' },
             links: { $ref: 'LinksMeta' },
             team: { $ref: 'TeamSummary' },
-            project: { $ref: 'InstanceSummary' },
+            instance: { $ref: 'InstanceSummary' },
             application: { $ref: 'ApplicationSummary' },
             editor: { type: 'object', additionalProperties: true }
         }
@@ -56,7 +56,7 @@ module.exports = function (app) {
             filtered.team = app.db.views.Team.teamSummary(device.Team)
         }
         if (device.Project) {
-            filtered.project = app.db.views.Project.projectSummary(device.Project)
+            filtered.instance = app.db.views.Project.projectSummary(device.Project)
             if (device.Project.Application) {
                 filtered.application = app.db.views.Application.applicationSummary(device.Project.Application)
             }

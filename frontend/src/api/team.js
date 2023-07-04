@@ -301,11 +301,11 @@ const getTeamDeviceProvisioningTokens = async (teamId, cursor, limit) => {
  */
 const generateTeamDeviceProvisioningToken = async (teamId, options) => {
     options = options || {}
-    const { name, project, expiresAt } = options
+    const { name, instance, expiresAt } = options
     return client.post(`/api/v1/teams/${teamId}/devices/provisioning`,
         {
             name: name || 'Auto Provisioning Token',
-            project,
+            instance,
             expiresAt
         }
     ).then(res => {
@@ -318,16 +318,16 @@ const generateTeamDeviceProvisioningToken = async (teamId, options) => {
  * @param {string} teamId The team ID (hash)
  * @param {string} tokenId The token ID (hash)
  * @param {object} options
- * @param {string} [options.project] The project ID (hash)
+ * @param {string} [options.instance] The instance ID (hash)
  * @param {string} [options.expiresAt] The expiry date of the token
  * @returns
  */
 const updateTeamDeviceProvisioningToken = async (teamId, tokenId, options) => {
     options = options || {}
-    const { project, expiresAt } = options
+    const { instance, expiresAt } = options
     return client.put(`/api/v1/teams/${teamId}/devices/provisioning/${tokenId}`,
         {
-            project,
+            instance,
             expiresAt
         }
     ).then(res => {

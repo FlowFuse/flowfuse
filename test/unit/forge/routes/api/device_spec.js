@@ -173,7 +173,7 @@ describe('Device API', async function () {
             result.should.have.property('type', 'test device')
             result.should.have.property('links').and.be.an.Object()
             result.should.have.property('team').and.be.an.Object()
-            result.should.not.have.property('project')
+            result.should.not.have.property('instance')
             result.should.have.property('credentials').and.be.an.Object()
 
             result.team.should.have.property('id', TestObjects.ATeam.hashid)
@@ -199,7 +199,7 @@ describe('Device API', async function () {
             result.should.have.property('type', 'test device')
             result.should.have.property('links').and.be.an.Object()
             result.should.have.property('team').and.be.an.Object()
-            result.should.not.have.property('project')
+            result.should.not.have.property('instance')
             result.should.have.property('credentials').and.be.an.Object()
 
             result.team.should.have.property('id', TestObjects.ATeam.hashid)
@@ -226,11 +226,11 @@ describe('Device API', async function () {
             result.should.have.property('lastSeenMs', null) // required for device list UI
             result.should.have.property('links').and.be.an.Object()
             result.should.have.property('team').and.be.an.Object()
-            result.should.have.property('project').and.be.an.Object()
+            result.should.have.property('instance').and.be.an.Object()
             result.should.have.property('credentials').and.be.an.Object()
 
             result.team.should.have.property('id', TestObjects.ATeam.hashid)
-            result.project.should.have.property('id', TestObjects.Project1.id)
+            result.instance.should.have.property('id', TestObjects.Project1.id)
             result.credentials.should.have.property('token')
         })
 
@@ -398,8 +398,8 @@ describe('Device API', async function () {
             result.should.not.have.property('accessToken')
 
             result.team.should.have.property('id', TestObjects.ATeam.hashid)
-            result.should.have.property('project')
-            result.project.should.have.property('id', TestObjects.deviceProject.id)
+            result.should.have.property('instance')
+            result.instance.should.have.property('id', TestObjects.deviceProject.id)
         })
 
         it('provides device details - unassigned project', async function () {
@@ -422,7 +422,7 @@ describe('Device API', async function () {
             result.should.have.property('targetSnapshot')
             result.should.have.property('activeSnapshot')
             result.team.should.have.property('id', TestObjects.ATeam.hashid)
-            result.should.not.have.property('project')
+            result.should.not.have.property('instance')
         })
 
         // GET /api/v1/devices/:deviceId
@@ -493,14 +493,14 @@ describe('Device API', async function () {
                     method: 'PUT',
                     url: `/api/v1/devices/${device.id}`,
                     body: {
-                        project: TestObjects.deviceProject.id
+                        instance: TestObjects.deviceProject.id
                     },
                     cookies: { sid: TestObjects.tokens.bob }
                 })
                 const result = response.json()
-                result.should.have.property('project')
+                result.should.have.property('instance')
                 result.should.have.property('targetSnapshot', null)
-                result.project.should.have.property('id', TestObjects.deviceProject.id)
+                result.instance.should.have.property('id', TestObjects.deviceProject.id)
             })
             it('can assign to a project - with active snapshot', async function () {
                 // Create a project
@@ -511,15 +511,15 @@ describe('Device API', async function () {
                     method: 'PUT',
                     url: `/api/v1/devices/${device.id}`,
                     body: {
-                        project: TestObjects.deviceProject.id
+                        instance: TestObjects.deviceProject.id
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
                 const result = response.json()
-                result.should.have.property('project')
+                result.should.have.property('instance')
                 result.should.have.property('targetSnapshot')
                 result.targetSnapshot.should.have.property('id', TestObjects.deviceProjectSnapshot.id)
-                result.project.should.have.property('id', TestObjects.deviceProject.id)
+                result.instance.should.have.property('id', TestObjects.deviceProject.id)
             })
             it('can unassign from a project', async function () {
                 await setupProjectWithSnapshot(true)
@@ -529,13 +529,13 @@ describe('Device API', async function () {
                     method: 'PUT',
                     url: `/api/v1/devices/${device.id}`,
                     body: {
-                        project: TestObjects.deviceProject.id
+                        instance: TestObjects.deviceProject.id
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
                 const result = response.json()
-                result.should.have.property('project')
-                result.project.should.have.property('id', TestObjects.deviceProject.id)
+                result.should.have.property('instance')
+                result.instance.should.have.property('id', TestObjects.deviceProject.id)
                 result.should.have.property('targetSnapshot')
                 result.targetSnapshot.should.have.property('id', TestObjects.deviceProjectSnapshot.id)
 
@@ -543,12 +543,12 @@ describe('Device API', async function () {
                     method: 'PUT',
                     url: `/api/v1/devices/${device.id}`,
                     body: {
-                        project: null
+                        instance: null
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
                 const result2 = response2.json()
-                result2.should.not.have.property('project')
+                result2.should.not.have.property('instance')
                 // Check the targetSnapshot has been cleared
                 result2.should.have.property('targetSnapshot', null)
             })
@@ -563,7 +563,7 @@ describe('Device API', async function () {
                     method: 'PUT',
                     url: `/api/v1/devices/${device.id}`,
                     body: {
-                        project: TestObjects.deviceProject.id
+                        instance: TestObjects.deviceProject.id
                     },
                     cookies: { sid: TestObjects.tokens.chris }
                 })
@@ -579,7 +579,7 @@ describe('Device API', async function () {
                     method: 'PUT',
                     url: `/api/v1/devices/${device.id}`,
                     body: {
-                        project: TestObjects.deviceProject.id
+                        instance: TestObjects.deviceProject.id
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })

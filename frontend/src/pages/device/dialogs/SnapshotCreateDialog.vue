@@ -63,8 +63,8 @@ export default {
         }
     },
     computed: {
-        project () {
-            return this.device?.project
+        instance () {
+            return this.device?.instance
         },
         formValid () {
             return !this.submitted && !!(this.input.name)
@@ -81,7 +81,7 @@ export default {
                     description: this.input.description,
                     setAsTarget: this.input.setAsTarget
                 }
-                deviceApi.createSnapshot(this.device.project.id, this.device.id, opts).then((response) => {
+                deviceApi.createSnapshot(this.device.instance.id, this.device.id, opts).then((response) => {
                     this.$emit('device-upload-success', response)
                     this.$refs.dialog.close()
                 }).catch(err => {

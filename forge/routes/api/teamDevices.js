@@ -139,7 +139,7 @@ module.exports = async function (app) {
                 required: ['name'],
                 properties: {
                     name: { type: 'string' },
-                    project: { type: 'string' },
+                    instance: { type: 'string' },
                     expiresAt: {
                         oneOf: [
                             { type: 'string' },
@@ -161,7 +161,7 @@ module.exports = async function (app) {
         /** @type {import('../../db/controllers/AccessToken.js')} */
         const AccessTokenController = app.db.controllers.AccessToken
         const team = request.team
-        const project = request.body.project
+        const instanceId = request.body.instance
         const tokenName = request.body.name?.trim()
         const expiresAt = request.body.expiresAt ? new Date(request.body.expiresAt) : null
         try {
@@ -172,8 +172,8 @@ module.exports = async function (app) {
             if (tokenName.length < 1 || tokenName.length > 80) {
                 throw new Error('Token name must be between 1 and 80 characters long')
             }
-            const token = await AccessTokenController.createTokenForTeamDeviceProvisioning(tokenName, team, project, expiresAt)
-            await app.auditLog.Team.team.device.provisioning.created(request.session.User, null, token.id, tokenName, team, project)
+            const token = await AccessTokenController.createTokenForTeamDeviceProvisioning(tokenName, team, instanceId, expiresAt)
+            await app.auditLog.Team.team.device.provisioning.created(request.session.User, null, token.id, tokenName, team, instanceId)
             reply.send(token)
         } catch (err) {
             let responseMessage
@@ -183,7 +183,7 @@ module.exports = async function (app) {
                 responseMessage = err.toString()
             }
             const resp = { code: 'unexpected_error', error: responseMessage }
-            await app.auditLog.Team.team.device.provisioning.created(request.session.User, resp, '', tokenName, team, project)
+            await app.auditLog.Team.team.device.provisioning.created(request.session.User, resp, '', tokenName, team, instanceId)
             reply.code(400).send({ code: 'unexpected_error', error: responseMessage })
         }
     })
@@ -209,7 +209,7 @@ module.exports = async function (app) {
             body: {
                 type: 'object',
                 properties: {
-                    project: { type: 'string' },
+                    instance: { type: 'string' },
                     expiresAt: { nullable: true, type: 'string' }
                 }
             },
@@ -226,7 +226,7 @@ module.exports = async function (app) {
         /** @type {import('../../db/controllers/AccessToken.js')} */
         const AccessTokenController = app.db.controllers.AccessToken
         const team = request.team
-        const project = request.body.project
+        const instanceId = request.body.instance
         const expiresAt = request.body.expiresAt ? new Date(request.body.expiresAt) : null
         let tokenName = 'unknown'
         const tokenId = request.params.tokenId
@@ -239,11 +239,11 @@ module.exports = async function (app) {
                 /** @type {import('../../auditLog/formatters').UpdatesCollection} */
                 const updates = new app.auditLog.formatters.UpdatesCollection()
                 updates.pushDifferences(
-                    { project: tokenDetails.project || '', expiresAt: tokenDetails.expiresAt || '' },
-                    { project: project || '', expiresAt: expiresAt || '' }
+                    { instance: tokenDetails.instance || '', expiresAt: tokenDetails.expiresAt || '' },
+                    { instance: instanceId || '', expiresAt: expiresAt || '' }
                 )
                 if (updates.length) {
-                    await AccessTokenController.updateTokenForTeamDeviceProvisioning(accessToken, project, expiresAt)
+                    await AccessTokenController.updateTokenForTeamDeviceProvisioning(accessToken, instanceId, expiresAt)
                     updatedTokenDetails = await app.db.views.AccessToken.provisioningTokenSummary(await app.db.models.AccessToken.byId(tokenId))
                     await app.auditLog.Team.team.device.provisioning.updated(request.session.User, null, tokenId, tokenName, team, updates)
                 }
@@ -259,7 +259,7 @@ module.exports = async function (app) {
                 responseMessage = err.toString()
             }
             const resp = { code: 'unexpected_error', error: responseMessage }
-            await app.auditLog.Team.team.device.provisioning.created(request.session.User, resp, tokenId, tokenName, team, project)
+            await app.auditLog.Team.team.device.provisioning.created(request.session.User, resp, tokenId, tokenName, team, instanceId)
             reply.code(400).send({ code: 'unexpected_error', error: responseMessage })
         }
     })

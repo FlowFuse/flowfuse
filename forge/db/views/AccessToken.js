@@ -6,7 +6,7 @@ module.exports = function (app) {
             id: { type: 'string' },
             name: { type: 'string' },
             team: { type: 'string', nullable: true },
-            project: { type: 'string' },
+            instance: { type: 'string' },
             expiresAt: { type: 'string', nullable: true },
             targetSnapshot: { type: 'string' }
         }
@@ -38,6 +38,8 @@ module.exports = function (app) {
         // look up the snapshot name if a snapshot id is present
         if (tokenSummary.project) {
             const project = await app.db.models.Project.byId(tokenSummary.project)
+            // Map to the external property name
+            tokenSummary.instance = tokenSummary.project
             const deviceSettings = await project?.getSetting('deviceSettings') || {
                 targetSnapshot: null
             }

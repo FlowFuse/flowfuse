@@ -110,7 +110,7 @@ describe('Project/Device API', async function () {
             method: 'PUT',
             url: `/api/v1/devices/${device.id}`,
             body: {
-                project: project.id
+                instance: project.id
             },
             cookies: { sid: userToken }
         })
@@ -209,14 +209,14 @@ describe('Project/Device API', async function () {
                 method: 'PUT',
                 url: `/api/v1/devices/${device.id}`,
                 body: {
-                    project: TestObjects.deviceProject.id
+                    instance: TestObjects.deviceProject.id
                 },
                 cookies: { sid: TestObjects.tokens.alice }
             })
             const result = response.json()
-            result.should.have.property('project')
+            result.should.have.property('instance')
             result.should.have.property('targetSnapshot', null)
-            result.project.should.have.property('id', TestObjects.deviceProject.id)
+            result.instance.should.have.property('id', TestObjects.deviceProject.id)
 
             // Create a second device not in this project
             const device2 = await createDevice({ name: generateDeviceName(), type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
