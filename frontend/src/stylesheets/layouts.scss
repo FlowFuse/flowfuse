@@ -96,6 +96,10 @@ $nav_height: 60px;
         margin-bottom: 4px;
         font-size: 0.75rem;
     }
+    .ff-radio-btn label {
+        color: $ff-grey-100;
+        font-weight: normal;
+    }
     p {
         margin-bottom: 1rem;
     }
@@ -113,6 +117,22 @@ $nav_height: 60px;
         }
         &:focus-within {
             border-color: $ff-teal-400;
+        }
+    }
+    .ff-radio-btn {
+        .checkbox {
+          border: 1px solid $ff-grey-600;
+          background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%23374151' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='4'/%3e%3c/svg%3e")    
+        }
+    }
+
+    .checkbox {
+        &[checked=true] {
+            background-color: $ff-white;
+            border-color: $ff-grey-700;
+        }
+        &[checked=true]:after {
+            display: block;
         }
     }
     .ff-error-inline {

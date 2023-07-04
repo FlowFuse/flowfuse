@@ -11,20 +11,24 @@
                v-html="settings['branding:account:signUpTopBanner']"></p>
             <div>
                 <label>Username</label>
-                <ff-text-input ref="signup-username" label="username" :error="errors.username" v-model="input.username" />
+                <ff-text-input ref="signup-username" data-form="signup-username" label="username" :error="errors.username" v-model="input.username" />
                 <span class="ff-error-inline">{{ errors.username }}</span>
                 <label>Full Name</label>
-                <ff-text-input ref="signup-fullname" label="Full Name" :error="errors.name" v-model="input.name" />
+                <ff-text-input ref="signup-fullname" data-form="signup-fullname" label="Full Name" :error="errors.name" v-model="input.name" />
                 <span class="ff-error-inline">{{ errors.name }}</span>
                 <label>E-Mail Address</label>
-                <ff-text-input ref="signup-email" label="E-Mail Address" :error="errors.email" v-model="input.email" />
+                <ff-text-input ref="signup-email" data-form="signup-email" label="E-Mail Address" :error="errors.email" v-model="input.email" />
                 <span class="ff-error-inline">{{ errors.email }}</span>
                 <label>Password</label>
-                <ff-text-input ref="signup-password" label="password" :error="errors.password" v-model="input.password" type="password"/>
+                <ff-text-input ref="signup-password" data-form="signup-password" label="password" :error="errors.password" v-model="input.password" type="password"/>
                 <span class="ff-error-inline">{{ errors.password }}</span>
             </div>
+            <div class="pt-3" v-if="askJoinReason">
+                <ff-radio-group label="What brings you to FlowForge?" v-model="input.join_reason" orientation="grid"
+                                data-form="signup-join-reason" :options="reasons" />
+            </div>
             <div v-if="settings['user:tcs-required']">
-                <ff-checkbox v-model="input.tcs_accepted">
+                <ff-checkbox v-model="input.tcs_accepted" data-form="signup-accept-tcs">
                     I accept the <a target="_blank" :href="settings['user:tcs-url']">FlowForge Terms &amp; Conditions.</a>
                 </ff-checkbox>
             </div>
@@ -70,13 +74,20 @@ export default {
                 username: '',
                 email: '',
                 password: '',
+                join_reason: null,
                 tcs_accepted: false,
                 code: ''
             },
             errors: {
                 email: '',
                 password: ''
-            }
+            },
+            reasons: [
+                { label: 'Business Needs', value: 'business' },
+                { label: 'Personal Use', value: 'personal' },
+                { label: 'Educational Use', value: 'education' },
+                { label: 'Other', value: 'other' }
+            ]
         }
     },
     mounted () {
@@ -91,8 +102,12 @@ export default {
             return (this.input.email && !this.errors.email) &&
                    (this.input.username && !this.errors.username) &&
                    this.input.password.length >= 8 &&
+                   (this.input.join_reason) &&
                    (this.settings['user:tcs-required'] ? this.input.tcs_accepted : true) &&
                    (!this.errors.name)
+        },
+        askJoinReason () {
+            return !!window.posthog
         }
     },
     watch: {

@@ -23,13 +23,15 @@ const logout = () => {
 
 const registerUser = async (options) => {
     return client.post('/account/register', options).then((res) => {
-        product.identify(options.username, {
+        const person = {
             name: options.name,
             username: options.username,
             email: options.email,
             'ff-cloud-user': true,
-            'ff-cloud-joined': (new Date()).toUTCString()
-        })
+            'ff-cloud-joined': (new Date()).toUTCString(),
+            'join-reason': options.join_reason
+        }
+        product.identify(options.username, person)
         product.capture('$ff-user-registered')
         return res.data
     })
