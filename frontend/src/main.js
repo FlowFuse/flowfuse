@@ -13,14 +13,13 @@ import Alerts from './services/alerts.js'
 import store from './store/index.js'
 import './index.css'
 
-// Globally available FF Components
-
 const app = createApp(App)
     .use(ForgeUIComponents)
-    .use(LottieAnimation)
     .use(store)
     .use(router)
 
+// Globally available FF Components
+app.component('lottie-animation', LottieAnimation)
 app.component('ff-loading', Loading)
 
 app.config.errorHandler = function (err, vm, info) {
