@@ -1,6 +1,11 @@
-# FlowForge
-
-https://flowforge.com/
+<div align="center"> <a href="https://flowforge.com/">
+    <img
+      src="https://flowforge.com/images/flowforge-logo-wordmark.svg"
+      width="300"
+      height="auto"
+    />
+  </a>
+</div>
 
 FlowForge helps Node-RED developers deliver applications in a more reliable, collaborative and secure manner. Node-RED’s intuitive, low-code development environment is great for connecting together hardware devices, APIs and online services. FlowForge adds to Node-RED collaborative development, management of remote deployments, support for DevOps deliver pipelines, and the ability to host Node-RED applications on FlowForge Cloud. FlowForge is the devops platform for Node-RED application development and delivery.
 
