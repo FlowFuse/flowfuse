@@ -69,7 +69,7 @@ export default {
             return (this.$slots['nested-menu'] && this.loaded) || this.closeNested
         },
         navigation () {
-            return {
+            const result = {
                 general: [{
                     label: 'Applications',
                     to: '/applications',
@@ -116,13 +116,20 @@ export default {
                     icon: CogIcon
                 }]
             }
+            if (this.features?.billing) {
+                // insert billing in second slot of admin
+                result.admin.splice(1, 0, {
+                    label: 'Billing',
+                    to: '/billing',
+                    tag: 'team-billing',
+                    icon: CurrencyDollarIcon
+                })
+            }
+            return result
         }
     },
     mounted () {
-        this.checkFeatures()
-        window.setTimeout(() => {
-            this.loaded = true
-        }, 0)
+        this.loaded = true
     },
     beforeMount () {
         const lastUrl = this.$router.options.history.state.back
@@ -162,17 +169,6 @@ export default {
                 if (this.$route.path.indexOf('/instance') === 0) {
                     return true
                 }
-            }
-        },
-        checkFeatures () {
-            if (this.features.billing) {
-                // insert billing in second slot of admin
-                this.navigation.admin.splice(1, 0, {
-                    label: 'Billing',
-                    to: '/billing',
-                    tag: 'team-billing',
-                    icon: CurrencyDollarIcon
-                })
             }
         },
         switchTeam () {
