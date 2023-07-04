@@ -1,4 +1,4 @@
-const { readFileSync } = require('fs')
+// const { readFileSync } = require('fs')
 const path = require('path')
 
 const fp = require('fastify-plugin')
@@ -59,21 +59,21 @@ module.exports = fp(async function (app, opts, done) {
 
     await app.register(require('@fastify/swagger-ui'), {
         routePrefix: '/api/',
-        logo: {
-            type: 'image/png',
-            content: readFileSync(path.join(__dirname, '../../frontend/src/images/ff-logo--wordmark-caps--dark.png'))
-        },
+        // logo: {
+        //     type: 'image/png',
+        //     content: readFileSync(path.join(__dirname, '../../frontend/src/images/ff-logo--wordmark-caps--dark.png'))
+        // },
         theme: {
-            title: 'FlowForge API Documentation',
-            favicon: [
-                {
-                    filename: 'favicon.png',
-                    rel: 'icon',
-                    sizes: '32x32',
-                    type: 'image/png',
-                    content: readFileSync(path.join(__dirname, '../../frontend/public/favicon-32x32.png'))
-                }
-            ]
+            title: 'FlowForge API Documentation'
+            // favicon: [
+            //     {
+            //         filename: 'favicon.png',
+            //         rel: 'icon',
+            //         sizes: '32x32',
+            //         type: 'image/png',
+            //         content: readFileSync(path.join(__dirname, '../../frontend/public/favicon-32x32.png'))
+            //     }
+            // ]
         },
         hideUntagged: true,
         uiConfig: {
