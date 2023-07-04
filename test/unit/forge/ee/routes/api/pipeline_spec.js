@@ -889,6 +889,7 @@ describe('Pipelines API', function () {
                 body.should.have.property('code', 'not_found')
                 response.statusCode.should.equal(404)
             })
+
             it('Should fail gracefully if the stage is not part of the pipeline', async function () {
                 TestObjects.pipeline2 = await TestObjects.factory.createPipeline({ name: 'new-pipeline-2' }, TestObjects.application)
                 TestObjects.pl2StageOne = await TestObjects.factory.createPipelineStage({ name: 'pl2-stage-one', instanceId: TestObjects.instanceOne.id }, TestObjects.pipeline2)
@@ -907,6 +908,7 @@ describe('Pipelines API', function () {
                 body.should.have.property('code', 'invalid_stage')
                 response.statusCode.should.equal(400)
             })
+
             // not sure how to do this as we can't create a stage with no instance?
             // it('Should fail gracefully if the stage has no instances', async function () {
             //     TestObjects.pipeline2 = await TestObjects.factory.createPipeline({ name: 'new-pipeline-2' }, TestObjects.application)
@@ -947,6 +949,7 @@ describe('Pipelines API', function () {
                 body.should.have.property('code', 'missing_source_stage')
                 response.statusCode.should.equal(400)
             })
+
             it('Should fail gracefully when not found', async function () {
                 const response = await app.inject({
                     method: 'PUT',
@@ -962,6 +965,7 @@ describe('Pipelines API', function () {
                 body.should.have.property('code', 'not_found')
                 response.statusCode.should.equal(404)
             })
+
             it('Should fail gracefully if the stage is not part of the pipeline', async function () {
                 TestObjects.pipeline2 = await TestObjects.factory.createPipeline({ name: 'new-pipeline-2' }, TestObjects.application)
                 TestObjects.pl2StageOne = await TestObjects.factory.createPipelineStage({ name: 'pl2-stage-one', instanceId: TestObjects.instanceOne.id }, TestObjects.pipeline2)

@@ -70,9 +70,7 @@
 <script>
 import { PencilAltIcon, PlayIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/outline'
 
-import InstancesAPI from '../../api/instances.js'
 import PipelineAPI from '../../api/pipeline.js'
-import SnapshotApi from '../../api/projectSnapshots.js'
 
 import InstanceStatusBadge from '../../pages/instance/components/InstanceStatusBadge.vue'
 
