@@ -62,7 +62,7 @@
         "@fastify/passport": "^2.3.0",
         "@fastify/static": "^6.10.2",
         "@fastify/websocket": "^8.1.0",
-        "@flowforge/forge-ui-components": "^0.6.3",
+        "@flowforge/forge-ui-components": "^0.6.4",
         "@flowforge/localfs": "^1.8.0",
         "@headlessui/vue": "1.7.14",
         "@heroicons/vue": "1.0.6",
