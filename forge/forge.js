@@ -52,7 +52,20 @@ module.exports = async (options = {}) => {
                     singleLine: true
                 }
             },
-            level: loggerLevel
+            level: loggerLevel,
+            serializers: {
+                res (reply) {
+                    return {
+                        statusCode: reply.statusCode,
+                        request: {
+                            url: reply.request.raw.url,
+                            method: reply.request.method,
+                            remoteAddress: reply.request.socket.remoteAddress,
+                            remotePort: reply.request.socket.remotePort
+                        }
+                    }
+                }
+            }
         }
     })
     server.addHook('onError', async (request, reply, error) => {
