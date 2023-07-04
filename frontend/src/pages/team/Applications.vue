@@ -70,12 +70,6 @@
                 </li>
             </ul>
         </template>
-        <div v-else-if="justSetupBilling">
-            <div class=" mt-8 text-center text-lg">
-                <strong class="mb-2 block">Thank you for signing up to FlowForge!</strong>
-                You are now able to create applications, instances & devices.
-            </div>
-        </div>
         <div v-else>
             <EmptyState>
                 <template #img>
@@ -124,6 +118,7 @@ import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import ProjectIcon from '../../components/icons/Projects.js'
 import permissionsMixin from '../../mixins/Permissions.js'
+import Alerts from '../../services/alerts.js'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 import InstanceEditorLinkCell from '../instance/components/cells/InstanceEditorLink.vue'
 export default {
@@ -149,16 +144,17 @@ export default {
             ]
         }
     },
-    computed: {
-        justSetupBilling () {
-            return 'billing_session' in this.$route.query
-        }
-    },
     watch: {
         team: 'fetchData'
     },
     mounted () {
         this.fetchData()
+        if ('billing_session' in this.$route.query) {
+            this.$nextTick(() => {
+                // allow the Alerts servcie to have subscription by wrapping in nextTick
+                Alerts.emit('Thanks for signing up to FlowForge!', 'confirmation')
+            })
+        }
     },
     methods: {
         async fetchData () {

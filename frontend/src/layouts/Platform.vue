@@ -11,7 +11,7 @@
             </div>
             <TransitionGroup class="ff-notifications" name="notifications-list" tag="div">
                 <ff-notification-toast v-for="(a, $index) in alertsReversed" :key="a.timestamp"
-                                       :type="a.type" :message="a.message"
+                                       :type="a.type" :message="a.message" data-el="notification-alert"
                                        :countdown="a.countdown || 3000" @close="clear($index)"></ff-notification-toast>
             </TransitionGroup>
             <interview-popup v-if="interview?.enabled" :flag="interview.flag" :payload="interview.payload"></interview-popup>
