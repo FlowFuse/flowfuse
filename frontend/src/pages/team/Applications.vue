@@ -24,7 +24,7 @@
         </template>
     </SectionTopMenu>
     <div class="space-y-6">
-        <ff-loading v-if="loading" message="Loading Applications..." />
+        <ff-loading v-if="true" message="Loading Applications..." />
         <template v-else-if="!loading && applications.size > 0">
             <ul class="ff-applications-list">
                 <li v-for="application in Array.from(applications.values())" :key="application.id">
