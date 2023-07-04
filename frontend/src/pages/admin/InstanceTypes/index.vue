@@ -15,7 +15,7 @@
                                       :editable="true" @edit="showEditInstanceTypeDialog(instanceType)" :price="instanceType.properties?.billingDescription?.split('/')[0]"
                                       :price-interval="instanceType.properties?.billingDescription?.split('/')[1]"
                                       :label="instanceType.name" :description="instanceType.description"
-                                      :meta="[{key: 'Instance Count', value: instanceType.projectCount}, {key: 'Stack Count', value: instanceType.stackCount}]"/>
+                                      :meta="[{key: 'Instance Count', value: instanceType.instanceCount}, {key: 'Stack Count', value: instanceType.stackCount}]"/>
         </ff-tile-selection>
         <div v-if="nextCursor">
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
@@ -62,7 +62,7 @@ export default {
                 { label: 'Type', key: 'name', sortable: true },
                 { label: 'Description', key: 'description', sortable: true, component: { is: markRaw(InstanceTypeDescriptionCell) } },
                 { label: 'Default Stack', class: ['w-48'], key: 'defaultStack', sortable: true },
-                { label: 'Application Instances', class: ['w-32', 'text-center'], key: 'projectCount', sortable: true },
+                { label: 'Application Instances', class: ['w-32', 'text-center'], key: 'instanceCount', sortable: true },
                 { label: 'Stacks', class: ['w-32', 'text-center'], key: 'stackCount', sortable: true }
             ]
         }
@@ -103,13 +103,13 @@ export default {
             this.$refs.adminInstanceTypeEditDialog.show(instanceType)
         },
         showConfirmInstanceTypeDeleteDialog (instanceType) {
-            const text = instanceType.projectCount > 0 ? 'You cannot delete an instance type that is still being used by instances.' : 'Are you sure you want to delete this instance type?'
+            const text = instanceType.instanceCount > 0 ? 'You cannot delete an instance type that is still being used by instances.' : 'Are you sure you want to delete this instance type?'
             Dialog.show({
                 header: 'Delete Instance Type',
                 kind: 'danger',
                 text,
                 confirmLabel: 'Delete',
-                disablePrimary: instanceType.projectCount > 0
+                disablePrimary: instanceType.instanceCount > 0
             }, async () => {
                 // on confirm - delete the instance type
                 await instanceTypesApi.deleteInstanceType(instanceType.id)

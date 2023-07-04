@@ -65,7 +65,7 @@ export default {
                         }
                     }
                 },
-                { label: 'Project Count', key: 'projectCount', class: ['w-32'], sortable: true }
+                { label: 'Instance Count', key: 'instanceCount', class: ['w-32'], sortable: true }
             ]
         }
     },
@@ -97,13 +97,13 @@ export default {
             })
         },
         showDeleteDialog (template) {
-            const text = template.projectCount > 0 ? 'You cannot delete a template that is still being used by projects.' : 'Are you sure you want to delete this template?'
+            const text = template.instanceCount > 0 ? 'You cannot delete a template that is still being used by instances.' : 'Are you sure you want to delete this template?'
             Dialog.show({
                 header: 'Delete Template',
                 kind: 'danger',
                 text,
                 confirmLabel: 'Delete',
-                disablePrimary: template.projectCount > 0
+                disablePrimary: template.instanceCount > 0
             }, async () => {
                 await templatesApi.deleteTemplate(template.id)
                 const index = this.templates.indexOf(template)

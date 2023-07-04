@@ -143,7 +143,7 @@ export default {
                 this.instanceType = instanceType
                 this.stacks = []
                 if (instanceType) {
-                    this.editDisabled = instanceType.projectCount > 0
+                    this.editDisabled = instanceType.instanceCount > 0
                     this.input = {
                         name: instanceType.name,
                         active: instanceType.active,

@@ -184,7 +184,7 @@ module.exports = async function (app) {
                 await replacedStack.save()
             }
             const response = app.db.views.ProjectStack.stack(stack)
-            response.projectCount = 0
+            response.instanceCount = 0
             reply.send(response)
         } catch (err) {
             let responseMessage

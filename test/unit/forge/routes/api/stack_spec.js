@@ -77,7 +77,7 @@ describe('Stack API', function () {
             result.should.have.property('name', stackName)
             result.should.have.property('active', true)
             result.should.have.property('projectType', TestObjects.projectType1.hashid)
-            result.should.have.property('projectCount', 0)
+            result.should.have.property('instanceCount', 0)
             result.should.have.property('properties')
             result.properties.should.have.property('foo', 'bar')
             result.should.not.have.property('replacedBy')
@@ -245,7 +245,7 @@ describe('Stack API', function () {
     })
 
     describe('Get stack info', async function () {
-        it('Includes projectCount for admin user', async function () {
+        it('Includes instanceCount for admin user', async function () {
             const response = await app.inject({
                 method: 'GET',
                 url: `/api/v1/stacks/${TestObjects.stack1.hashid}`,
@@ -255,9 +255,9 @@ describe('Stack API', function () {
             result.should.have.property('id')
             result.should.have.property('name', 'stack1')
             result.should.have.property('active', true)
-            result.should.have.property('projectCount', 1)
+            result.should.have.property('instanceCount', 1)
         })
-        it('Excludes projectCount for non-admin user', async function () {
+        it('Excludes instanceCount for non-admin user', async function () {
             const response = await app.inject({
                 method: 'GET',
                 url: `/api/v1/stacks/${TestObjects.stack1.hashid}`,
@@ -267,7 +267,7 @@ describe('Stack API', function () {
             result.should.have.property('id')
             result.should.have.property('name', 'stack1')
             result.should.have.property('active', true)
-            result.should.not.have.property('projectCount')
+            result.should.not.have.property('instanceCount')
         })
     })
 
@@ -311,7 +311,7 @@ describe('Stack API', function () {
             result.should.have.property('id')
             result.should.have.property('name', 'stack1')
             result.should.have.property('active', false)
-            result.should.have.property('projectCount', 1)
+            result.should.have.property('instanceCount', 1)
 
             // Restore the flag for later tests
             await app.inject({

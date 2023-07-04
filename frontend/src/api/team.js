@@ -32,8 +32,8 @@ const getTeam = (team) => {
         const props = {
             'team-name': res.data.name,
             'created-at': res.data.createdAt,
-            'count-applications': res.data.projectCount,
-            'count-instances': res.data.projectCount,
+            'count-applications': res.data.instanceCount,
+            'count-instances': res.data.instanceCount,
             'count-members': res.data.memberCount
         }
         if ('billing' in res.data) {

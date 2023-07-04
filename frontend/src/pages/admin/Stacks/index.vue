@@ -96,13 +96,13 @@ export default {
             activeColumns: [
                 { label: 'Stack', key: 'name', component: { is: markRaw(StackName) } },
                 { label: 'Properties', component: { is: markRaw(StackPropertiesCell) } },
-                { label: 'Project Count', key: 'projectCount', class: ['w-32', 'text-center'] }
+                { label: 'Instance Count', key: 'instanceCount', class: ['w-32', 'text-center'] }
             ],
             inactiveColumns: [
                 { label: 'Stack', component: { is: markRaw(StackName) } },
                 { label: 'Properties', component: { is: markRaw(StackPropertiesCell) } },
                 { label: 'Replaced By', key: 'replacedBy', class: ['w-56'] },
-                { label: 'Project Count', key: 'projectCount', class: ['w-32', 'text-center'] }
+                { label: 'Instance Count', key: 'instanceCount', class: ['w-32', 'text-center'] }
             ]
         }
     },
@@ -135,13 +135,13 @@ export default {
                     this.$refs.adminStackEditDialog.showEdit(stack)
                     break
                 case 'delete': {
-                    const text = stack.projectCount > 0 ? 'You cannot delete a stack that is still being used by projects.' : 'Are you sure you want to delete this stack?'
+                    const text = stack.instanceCount > 0 ? 'You cannot delete a stack that is still being used by instances.' : 'Are you sure you want to delete this stack?'
                     Dialog.show({
                         header: 'Delete Stack',
                         kind: 'danger',
                         text,
                         confirmLabel: 'Delete',
-                        disablePrimary: stack.projectCount > 0
+                        disablePrimary: stack.instanceCount > 0
                     }, async () => {
                         // on confirm - delete the stack
                         stacksApi.deleteStack(stack.id)
