@@ -868,7 +868,8 @@ describe('Pipelines API', function () {
                 })
 
                 // Now actually check things worked
-                // Credentials?
+                // Snapshot created in stage 1, and set as target
+                // Snapshot created in stage 2, and set as target
             })
         })
 

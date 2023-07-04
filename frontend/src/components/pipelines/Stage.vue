@@ -72,10 +72,15 @@ import { PencilAltIcon, PlayIcon, PlusCircleIcon, TrashIcon } from '@heroicons/v
 
 import InstancesAPI from '../../api/instances.js'
 import PipelineAPI from '../../api/pipeline.js'
+import SnapshotApi from '../../api/projectSnapshots.js'
+
 import InstanceStatusBadge from '../../pages/instance/components/InstanceStatusBadge.vue'
+
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
+
 import elapsedTime from '../../utils/elapsedTime.js'
+
 import SpinnerIcon from '../icons/Spinner.js'
 
 export default {
@@ -141,24 +146,12 @@ export default {
             Dialog.show(msg, async () => {
                 this.$emit('stage-deploy-starting')
 
-                // settings for when we deploy to a new stage
-                this.parts = {
-                    flows: true,
-                    credentials: true,
-                    template: false,
-                    nodes: true,
-                    settings: false,
-                    envVars: 'keys'
+                try {
+                    await PipelineAPI.deployPipelineStage(this.pipeline.id, this.stage.id, target.id)
+                } catch (error) {
+                    Alerts.emit(error.message, 'error')
+                    return
                 }
-
-                const source = {
-                    id: this.stage.instance.id,
-                    options: { ...this.parts }
-                }
-
-                await InstancesAPI.updateInstance(target.instance.id, {
-                    sourceProject: source
-                })
 
                 this.$emit('stage-deploy-started')
                 Alerts.emit(
