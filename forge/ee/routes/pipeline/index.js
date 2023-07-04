@@ -324,13 +324,13 @@ module.exports = async function (app) {
 
         if (!targetStage) {
             return reply.code(404).send({ code: 'not_found', error: 'Target stage not found' })
-        } else if (targetStage.pipelineId !== request.body.pipelineId) {
+        } else if (targetStage.PipelineId !== request.pipeline.id) {
             return reply.code(400).send({ code: 'invalid_stage', error: 'Target stage must be part of the same pipeline' })
         }
 
         if (!sourceStage) {
             return reply.code(404).send({ code: 'not_found', error: 'Source stage not found' })
-        } else if (sourceStage.pipelineId !== request.body.pipelineId) {
+        } else if (sourceStage.PipelineId !== request.pipeline.id) {
             return reply.code(400).send({ code: 'invalid_stage', error: 'Source stage must be part of the same pipeline' })
         }
 
