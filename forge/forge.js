@@ -59,8 +59,8 @@ module.exports = async (options = {}) => {
                         request: {
                             url: reply.request.raw.url,
                             method: reply.request.method,
-                            remoteAddress: reply.request.connection.remoteAddress,
-                            remotePort: reply.request.connection.remotePort
+                            remoteAddress: reply.request.socket.remoteAddress,
+                            remotePort: reply.request.socket.remotePort
                         }
                     }
                 }
