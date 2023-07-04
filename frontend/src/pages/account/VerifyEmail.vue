@@ -1,8 +1,15 @@
 <template>
     <ff-layout-box>
-        <form v-if="!pending" class="px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
-            <div>
-                <ff-button class="m-auto" @click="verifyEmail()">Click here to verify your email address</ff-button>
+        <form v-if="!pending" class="px-4 sm:px-6 lg:px-8 mt-4 space-y-4">
+            <div class="text-center mx-20 -mt-10">
+                <div class="inline-block">
+                    <img class="max-h-32" src="../../images/pictograms/envelope.png" alt="Email Envelope">
+                </div>
+                <h3 class="text-lg font-bold">Please verify your email</h3>
+                <p class="text-gray-400">Once verified, you will be able to access the platform.</p>
+                <div class="mx-auto mt-10">
+                    <ff-button class="mx-auto" @click="verifyEmail()">Verify my email</ff-button>
+                </div>
             </div>
         </form>
     </ff-layout-box>
