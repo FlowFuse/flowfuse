@@ -201,13 +201,14 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const team = await request.teamMembership.getTeam()
         const name = request.body.name?.trim() // name of the stage
-        const instanceId = request.body.instanceId // instance id
+        const { instanceId, deployToDevices } = request.body
 
         let stage
         try {
             const options = {
                 name,
-                instanceId
+                instanceId,
+                deployToDevices
             }
             if (request.body.source) {
                 options.source = request.body.source

@@ -129,7 +129,7 @@ export default {
             input: {
                 name: stage?.name,
                 instanceId: stage.instances?.[0].id,
-                deployToDevices: stage.deployToDevices
+                deployToDevices: stage.deployToDevices || false
             }
         }
     },
