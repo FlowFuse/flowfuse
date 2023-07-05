@@ -4,6 +4,7 @@
             :instances="instances"
             :pipeline="pipeline"
             :stage="{}"
+            :sourceStage="$route.query.sourceStage"
             @submit="create"
         />
     </main>

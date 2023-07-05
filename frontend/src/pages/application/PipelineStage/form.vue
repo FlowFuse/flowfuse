@@ -49,8 +49,10 @@
             v-model="input.deployToDevices"
             type="checkbox"
             data-form="stage-deploy-to-devices"
+            :disabled="!sourceStage"
+            class="max-w-md"
         >
-            Deploy to Devices
+            Deploy to Devices <template v-if="!sourceStage">- Not available for first stage in pipeline</template>
             <template #description>
                 When this stage is deployed to changes will also be be deployed to all devices connected to this stages instance.
             </template>
@@ -106,6 +108,10 @@ export default {
             default () {
                 return {}
             }
+        },
+        sourceStage: {
+            type: String,
+            default: null
         }
     },
     emits: ['submit'],
