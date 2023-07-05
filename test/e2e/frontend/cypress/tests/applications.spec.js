@@ -282,8 +282,7 @@ describe('FlowForge - Applications - With Billing', () => {
             cy.get('[data-el="selected-instance-type-cost"]').contains('$15.00')
             cy.get('[data-el="selected-instance-type-interval"]').contains('/mo')
 
-            // No credit balance, so payable now row is not shown
-            cy.get('[data-el="payable-now-amount"]').should('not.exist')
+            cy.get('[data-el="payable-now-summary"]').contains('$15.00 now').contains('$15.00 / month')
 
             cy.get('[data-action="create-project"]').should('not.be.disabled').click()
         })
@@ -319,7 +318,7 @@ describe('FlowForge - Applications - With Billing', () => {
             cy.get('[data-el="credit-balance-row"]').should('exist')
             cy.get('[data-el="credit-balance-amount"]').contains('$10.01')
 
-            cy.get('[data-el="payable-now-amount"]').contains('$4.99')
+            cy.get('[data-el="payable-now-summary"]').contains('$4.99')
 
             cy.get('[data-action="create-project"]').should('not.be.disabled').click()
         })

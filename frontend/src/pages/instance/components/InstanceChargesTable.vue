@@ -47,7 +47,11 @@
             </template>
         </div>
     </div>
-    <div v-if="!trialMode && selectedCostAfterCredit >= 0" class="text-right ff-description mb-2 space-y-1">
+    <div
+        v-if="!trialMode && selectedCostAfterCredit >= 0"
+        class="text-right ff-description mb-2 space-y-1"
+        data-el="payable-now-summary"
+    >
         {{ formatCurrency(selectedCostAfterCredit) }} now
         <span v-if="pricingDetails?.interval">
             then {{ formatCurrency(pricingDetails.cost) }} / {{ pricingDetails.interval }}
