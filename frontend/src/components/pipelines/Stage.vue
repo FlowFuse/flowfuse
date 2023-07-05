@@ -52,7 +52,7 @@
             </div>
             <div class="ff-pipeline-stage-row">
                 <label>Last Deployed:</label>
-                <span>{{ lastDeployed }} ago</span>
+                <span>{{ stage.flowLastUpdatedSince ? stage.flowLastUpdatedSince : 'Unknown' }}</span>
             </div>
             <div class="ff-pipeline-stage-row">
                 <label>Status:</label>
@@ -76,8 +76,6 @@ import InstanceStatusBadge from '../../pages/instance/components/InstanceStatusB
 
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
-
-import elapsedTime from '../../utils/elapsedTime.js'
 
 import SpinnerIcon from '../icons/Spinner.js'
 
@@ -115,9 +113,6 @@ export default {
     },
     emits: ['stage-deleted', 'stage-deploy-starting', 'stage-deploy-started'],
     computed: {
-        lastDeployed: function () {
-            return elapsedTime(this.stage.instance.updatedAt, new Date())
-        },
         deploying () {
             return this.stage.isDeploying
         }
