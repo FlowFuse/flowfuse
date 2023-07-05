@@ -282,7 +282,7 @@ describe('FlowForge - Applications - With Billing', () => {
             cy.get('[data-el="selected-instance-type-cost"]').contains('$15.00')
             cy.get('[data-el="selected-instance-type-interval"]').contains('/mo')
 
-            cy.get('[data-el="payable-now-summary"]').contains('$15.00 now').contains('$15.00 / month')
+            cy.get('[data-el="payable-now-summary"]').contains('$15.00 now').contains('$15.00 /month')
 
             cy.get('[data-action="create-project"]').should('not.be.disabled').click()
         })

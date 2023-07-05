@@ -54,7 +54,7 @@
     >
         {{ formatCurrency(selectedCostAfterCredit) }} now
         <span v-if="pricingDetails?.interval">
-            then {{ formatCurrency(pricingDetails.cost) }} / {{ pricingDetails.interval }}
+            then {{ formatCurrency(pricingDetails.cost) }} /{{ pricingDetails.interval }}
         </span>
     </div>
 </template>

@@ -80,7 +80,7 @@ export default {
         },
         billingDescription () {
             if (this.deviceIsBillable && this.team.type.properties.billing?.deviceCost > 0) {
-                return `${this.formatCurrency(this.team.type.properties.billing?.deviceCost * 100)}/month`
+                return `${this.formatCurrency(this.team.type.properties.billing?.deviceCost * 100)} /month`
             }
             return ''
         },
