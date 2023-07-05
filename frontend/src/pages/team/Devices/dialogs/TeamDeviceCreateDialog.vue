@@ -9,7 +9,7 @@
                 <FormRow v-model="input.name" data-form="device-name" :error="errors.name" :disabled="editDisabled">Name</FormRow>
                 <FormRow v-model="input.type" data-form="device-type" :error="errors.type" :disabled="editDisabled">Type</FormRow>
                 <div v-if="billingDescription">
-                   <b>Price: {{ billingDescription }}</b>
+                    <b>Price: {{ billingDescription }}</b>
                 </div>
             </form>
         </template>
