@@ -354,7 +354,12 @@ module.exports = async function (app) {
         const targetInstance = targetInstances[0]
 
         if (sourceInstance.TeamId !== targetInstance.TeamId) {
-            return reply.code(403).send('Source instance and Target instance not in same team')
+            return reply.code(403).send({ code: 'invalid_stage', erro: 'Source instance and Target instance not in same team' })
+        }
+
+        targetInstance.Team = await app.db.models.Team.byId(targetInstance.TeamId)
+        if (!targetInstance.Team) {
+            return reply.code(404).send({ code: 'invalid_stage', error: 'Instance not associated with a team' })
         }
 
         const restartTargetInstance = targetInstance.state === 'running'
