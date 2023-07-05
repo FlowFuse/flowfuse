@@ -4,6 +4,30 @@ navTitle: API Design
 
 # HTTP API of the FlowForge platform
 
+## API documentation
+
+All public API routes should include a `schema` as part of their definition. This
+serves a number of purposes:
+
+ - It will be included in the auto-generated OpenAPI 3.0 spec
+ - Fastify will validate requests include any required properties
+ - Fastify will ensure the response object matches the defined schema
+
+Some general guidance:
+
+ - Ensure the routes have an approriate tag set - this determines where in the
+   Swagger UI it gets displayed.
+ - Ensure the tag is listed in `forge/routes/api-docs.js` so it appears in the right place
+ - We define view schemas under `forge/db/views/*` alongside the code that generates the view.
+   Keep the naming consistent with other views.
+ - Learn from the existing schemas - be consistent in style.
+ 
+References:
+
+ - [Fastify Validation and Serialization](https://fastify.dev/docs/latest/Reference/Validation-and-Serialization)
+ - [OpenAPI 3.0 spec](https://swagger.io/specification/)
+
+
 ## Object Ids
 
 Most database models have a primary key of an auto-incrementing integer stored in
