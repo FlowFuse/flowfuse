@@ -374,7 +374,7 @@ module.exports = async function (app) {
                 setAsTarget: false // no need to deploy to devices of the source
             })
 
-            const setAsTargetForDevices = sourceStage.deployToDevices ?? false
+            const setAsTargetForDevices = targetStage.deployToDevices ?? false
             const targetSnapshot = await copySnapshot(app, sourceSnapshot, targetInstance, { // eslint-disable-line no-unused-vars
                 importSnapshot: true, // target instance should import the snapshot
                 setAsTarget: setAsTargetForDevices
