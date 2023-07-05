@@ -373,11 +373,11 @@ module.exports = async function (app) {
             const sourceSnapshot = await createSnapshot(app, sourceInstance, user, {
                 name: `Deploy Snapshot: ${new Date().toLocaleString('sv-SE')}`, // YYYY-MM-DD HH:MM:SS
                 description: `Snapshot created for pipeline deployment from ${sourceStage.name} to ${targetStage.name} as part of pipeline ${request.pipeline.name}`,
-                setAsTarget: true
+                setAsTarget: false // no need to deploy to devices of the source
             })
 
-            // eslint-disable-next-line no-unused-vars
-            const targetSnapshot = await copySnapshot(app, sourceSnapshot, targetInstance)
+            const setAsTargetForDevices = sourceStage.deployToDevices ?? false
+            const targetSnapshot = await copySnapshot(app, sourceSnapshot, targetInstance, setAsTargetForDevices) // eslint-disable-line no-unused-vars
 
             if (restartTargetInstance) {
                 await app.containers.restartFlows(targetInstance)
