@@ -44,19 +44,14 @@
                     {{ formatCurrency(subscription?.customer?.balance) }}
                 </div>
                 <div />
-                <div v-if="payableNow" data-el="payable-now-row">
-                    Payable Now
-                </div>
-                <div
-                    v-if="payableNow"
-                    data-el="payable-now-amount"
-                    class="text-right"
-                >
-                    {{ payableNow }}
-                </div>
-                <div v-if="payableNow" />
             </template>
         </div>
+    </div>
+    <div v-if="!trialMode && selectedCostAfterCredit >= 0" class="text-right ff-description mb-2 space-y-1">
+        {{ formatCurrency(selectedCostAfterCredit) }} now
+        <span v-if="pricingDetails?.interval">
+            then {{ formatCurrency(pricingDetails.cost) }} / {{ pricingDetails.interval }}
+        </span>
     </div>
 </template>
 
@@ -82,12 +77,6 @@ export default {
         }
     },
     computed: {
-        payableNow () {
-            if (!this.projectType || this.trialMode || this.selectedCostAfterCredit <= 0) {
-                return ''
-            }
-            return `${this.formatCurrency(this.selectedCostAfterCredit)} `
-        },
         selectedCostAfterCredit () {
             return (this.pricingDetails?.cost ?? 0) + (this.subscription?.customer?.balance ?? 0)
         },
