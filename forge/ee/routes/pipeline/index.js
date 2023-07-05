@@ -370,9 +370,8 @@ module.exports = async function (app) {
             reply.code(200).send({ status: 'importing' })
             repliedEarly = true
 
-            // Todo: Flows and Modules?
             const sourceSnapshot = await createSnapshot(app, sourceInstance, user, {
-                name: `Deploy Snapshot: ${new Date().toISOString()}`,
+                name: `Deploy Snapshot: ${new Date().toLocaleString('sv-SE')}`, // YYYY-MM-DD HH:MM:SS
                 description: `Snapshot created for pipeline deployment from ${sourceStage.name} to ${targetStage.name} as part of pipeline ${request.pipeline.name}`,
                 setAsTarget: true
             })
