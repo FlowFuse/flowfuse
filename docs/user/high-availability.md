@@ -25,7 +25,7 @@ become a chargeable feature in a future release.
  - Any internal state of the flows is not shared between the HA copies.
  - The [FlowForge Persistent Context](./persistent-context.md) is not synchronised
    between the HA copies
- - The Logs view displays combined logs from all copies. An identifier indicates which replica the log message originates from. You have the possibility to filter the messages.
+ - The logs view show combined logs of all copies. An identifier indicates which replica the log message originates from. You have the possibility to filter the messages.
 
 More details of these restrictions are available below.
 
