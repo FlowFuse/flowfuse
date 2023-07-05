@@ -7,8 +7,7 @@ navTitle: High Availability mode
 High Availability mode allows you to run multiple copies of your Node-RED instance,
 with incoming work distributed between them.
 
-This is a [Preview Feature](https://flowforge.com/handbook/product/versioning/#preview-features)
-that is available with:
+The following requirements apply:
 
  - FlowForge 1.8+ running with an EE license and the kubernetes driver
  - FlowForge Cloud
@@ -26,7 +25,7 @@ become a chargeable feature in a future release.
  - Any internal state of the flows is not shared between the HA copies.
  - The [FlowForge Persistent Context](./persistent-context.md) is not synchronised
    between the HA copies
- - The logs view show combined logs of all copies.
+ - The logs view show combined logs of all copies. An identifier indicates which replica the log message originates from. You have the possibility to filter the messages.
 
 More details of these restrictions are available below.
 
