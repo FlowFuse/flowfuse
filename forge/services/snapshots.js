@@ -18,8 +18,10 @@ async function setSnapShotAsTarget (app, snapshot, instance, user) {
 }
 
 module.exports.createSnapshot = async (app, instance, user, snapshotProps) => {
+    const fullInstanceObject = await app.db.models.Project.byId(instance.id)
+
     const snapShot = await app.db.controllers.ProjectSnapshot.createSnapshot(
-        instance,
+        fullInstanceObject, // expects Project.byId for all extra props
         user,
         snapshotProps
     )

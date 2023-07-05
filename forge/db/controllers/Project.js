@@ -113,13 +113,12 @@ module.exports = {
         return result
     },
 
-    exportProject: async function (app, project, components) {
-        components = components || {
-            flows: true,
-            credentials: true,
-            settings: true,
-            envVars: true
-        }
+    exportProject: async function (app, project, components = {
+        flows: true,
+        credentials: true,
+        settings: true,
+        envVars: true
+    }) {
         const projectExport = {}
         if (components.flows) {
             const flows = await app.db.models.StorageFlow.byProject(project.id)

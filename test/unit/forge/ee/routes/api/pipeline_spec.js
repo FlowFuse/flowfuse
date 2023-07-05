@@ -2,6 +2,7 @@ const should = require('should')
 const sinon = require('sinon')
 const { v4: uuidv4 } = require('uuid')
 
+const { addFlowsToProject } = require('../../../../../lib/Snapshots.js')
 const TestModelFactory = require('../../../../../lib/TestModelFactory.js')
 
 const setup = require('../../setup')
@@ -832,7 +833,42 @@ describe('Pipelines API', function () {
 
     describe('Deploy Pipeline Stage', function () {
         describe('With valid input', function () {
+            beforeEach(async function () {
+                TestObjects.tokens.instanceOne = (await TestObjects.instanceOne.refreshAuthTokens()).token
+                TestObjects.tokens.instanceTwo = (await TestObjects.instanceTwo.refreshAuthTokens()).token
+            })
+
             it('Creates a snapshot of the pipeline stage, and copies to the next stage', async function () {
+                // Setup an initial configuration
+                const setupResult = await addFlowsToProject(app,
+                    TestObjects.instanceOne.id,
+                    TestObjects.tokens.instanceOne,
+                    TestObjects.tokens.alice,
+                    [{ id: 'node1' }], // flows
+                    { testCreds: 'abc' }, // credentials
+                    'key1', // key
+                    // settings
+                    {
+                        httpAdminRoot: '/test-red',
+                        dashboardUI: '/test-dash',
+                        palette: {
+                            modules: [
+                                { name: 'module1', version: '1.0.0' }
+                            ]
+                        },
+                        env: [
+                            { name: 'one', value: 'a' },
+                            { name: 'two', value: 'b' }
+                        ]
+                    }
+                )
+
+                // ensure setup was successful before generating a snapshot & performing rollback
+                setupResult.flowsAddResponse.statusCode.should.equal(200)
+                setupResult.credentialsCreateResponse.statusCode.should.equal(200)
+                setupResult.storageSettingsResponse.statusCode.should.equal(200)
+                setupResult.updateProjectSettingsResponse.statusCode.should.equal(200)
+
                 // 1 -> 2
                 TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
 
@@ -867,6 +903,25 @@ describe('Pipelines API', function () {
                 // Now actually check things worked
                 // Snapshot created in stage 1 and set as target
                 // Snapshot created in stage 2, flows created, and set as target
+
+                // Get the snapshot for instance 2 post deploy
+                const snapshots = (await app.db.models.ProjectSnapshot.forProject(TestObjects.instanceTwo.id)).snapshots
+                snapshots.should.have.lengthOf(1)
+
+                const targetSnapshot = await app.db.models.ProjectSnapshot.byId(snapshots[0].id)
+
+                targetSnapshot.flows.should.have.property('flows')
+                targetSnapshot.flows.flows.should.have.lengthOf(1)
+                targetSnapshot.flows.flows[0].should.have.property('id', 'node1')
+                targetSnapshot.flows.should.have.property('credentials')
+                targetSnapshot.flows.credentials.should.have.property('$')
+                targetSnapshot.settings.should.have.property('settings')
+                targetSnapshot.settings.settings.should.have.property('httpAdminRoot', '/test-red')
+                targetSnapshot.settings.settings.should.have.property('dashboardUI', '/test-dash')
+                targetSnapshot.settings.should.have.property('env')
+                targetSnapshot.settings.env.should.have.property('one', 'a')
+                targetSnapshot.settings.env.should.have.property('two', 'b')
+                targetSnapshot.settings.should.have.property('modules')
             })
         })
 
