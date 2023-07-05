@@ -830,7 +830,7 @@ describe('Pipelines API', function () {
         })
     })
 
-    describe('Deploy Pipeline Stage', function () {
+    describe.only('Deploy Pipeline Stage', function () {
         describe('With valid input', function () {
             it('Creates a snapshot of the pipeline stage, and copies to the next stage', async function () {
                 // 1 -> 2
@@ -838,10 +838,7 @@ describe('Pipelines API', function () {
 
                 const response = await app.inject({
                     method: 'PUT',
-                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageTwo.hashid}/deploy`,
-                    payload: {
-                        sourceStageId: TestObjects.stageOne.hashid
-                    },
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageOne.hashid}/deploy`,
                     cookies: { sid: TestObjects.tokens.alice }
                 })
 
@@ -868,19 +865,29 @@ describe('Pipelines API', function () {
                 })
 
                 // Now actually check things worked
-                // Snapshot created in stage 1, and set as target
-                // Snapshot created in stage 2, and set as target
+                // Snapshot created in stage 1 and set as target
+                // Snapshot created in stage 2, flows created, and set as target
             })
         })
 
-        describe('With invalid target stages', function () {
+        describe('With invalid source stages', function () {
+            it('Should fail gracefully when not set', async function () {
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages//deploy`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const body = await response.json()
+
+                body.should.have.property('code', 'not_found')
+                response.statusCode.should.equal(404)
+            })
+
             it('Should fail gracefully when not found', async function () {
                 const response = await app.inject({
                     method: 'PUT',
                     url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/invalid/deploy`,
-                    payload: {
-                        sourceStageId: TestObjects.stageOne.hashid
-                    },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
 
@@ -897,9 +904,6 @@ describe('Pipelines API', function () {
                 const response = await app.inject({
                     method: 'PUT',
                     url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.pl2StageOne.hashid}/deploy`,
-                    payload: {
-                        sourceStageId: TestObjects.stageOne.hashid
-                    },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
 
@@ -909,81 +913,6 @@ describe('Pipelines API', function () {
                 response.statusCode.should.equal(400)
             })
 
-            // not sure how to do this as we can't create a stage with no instance?
-            // it('Should fail gracefully if the stage has no instances', async function () {
-            //     TestObjects.pipeline2 = await TestObjects.factory.createPipeline({ name: 'new-pipeline-2' }, TestObjects.application)
-            //     TestObjects.pl2StageOne = await TestObjects.factory.createPipelineStage({ name: 'pl2-stage-one', instanceId: undefined }, TestObjects.pipeline2)
-
-            //     const response = await app.inject({
-            //         method: 'PUT',
-            //         url: `/api/v1/pipelines/${TestObjects.pipeline2.hashid}/stages/${TestObjects.pl2StageOne.hashid}/deploy`,
-            //         payload: {
-            //             sourceStageId: TestObjects.stageOne.hashid
-            //         },
-            //         cookies: { sid: TestObjects.tokens.alice }
-            //     })
-
-            //     const body = await response.json()
-
-            //     console.log(body)
-
-            //     body.should.have.property('code', 'invalid_stage')
-            //     response.statusCode.should.equal(400)
-
-            // })
-            // it('Should fail gracefully if the stage has more than one instance')
-        })
-
-        describe('With invalid source stages', function () {
-            it('Should fail gracefully when not set', async function () {
-                const response = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageTwo.hashid}/deploy`,
-                    payload: {
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-
-                const body = await response.json()
-
-                body.should.have.property('code', 'missing_source_stage')
-                response.statusCode.should.equal(400)
-            })
-
-            it('Should fail gracefully when not found', async function () {
-                const response = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageTwo.hashid}/deploy`,
-                    payload: {
-                        sourceStageId: 'invalid'
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-
-                const body = await response.json()
-
-                body.should.have.property('code', 'not_found')
-                response.statusCode.should.equal(404)
-            })
-
-            it('Should fail gracefully if the stage is not part of the pipeline', async function () {
-                TestObjects.pipeline2 = await TestObjects.factory.createPipeline({ name: 'new-pipeline-2' }, TestObjects.application)
-                TestObjects.pl2StageOne = await TestObjects.factory.createPipelineStage({ name: 'pl2-stage-one', instanceId: TestObjects.instanceOne.id }, TestObjects.pipeline2)
-
-                const response = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageTwo.hashid}/deploy`,
-                    payload: {
-                        sourceStageId: TestObjects.pl2StageOne.hashid
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-
-                const body = await response.json()
-
-                body.should.have.property('code', 'invalid_stage')
-                response.statusCode.should.equal(400)
-            })
             it('Should fail gracefully if the stage has no instances')
             it('Should fail gracefully if the stage has more than one instance')
         })

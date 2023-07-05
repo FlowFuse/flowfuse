@@ -318,25 +318,22 @@ module.exports = async function (app) {
     app.put('/pipelines/:pipelineId/stages/:stageId/deploy', {
         preHandler: app.needsPermission('application:pipelines:update')
     }, async (request, reply) => {
-        if (!request.body.sourceStageId) {
-            return reply.code(400).send({ code: 'missing_source_stage', error: 'sourceStageId must be provided' })
-        }
-
         const user = request.session.User
 
-        const targetStage = await app.db.models.PipelineStage.byId(request.params.stageId)
-        const sourceStage = await app.db.models.PipelineStage.byId(request.body.sourceStageId)
-
-        if (!targetStage) {
-            return reply.code(404).send({ code: 'not_found', error: 'Target stage not found' })
-        } else if (targetStage.PipelineId !== request.pipeline.id) {
-            return reply.code(400).send({ code: 'invalid_stage', error: 'Target stage must be part of the same pipeline' })
-        }
+        const sourceStage = await app.db.models.PipelineStage.byId(request.params.stageId)
 
         if (!sourceStage) {
             return reply.code(404).send({ code: 'not_found', error: 'Source stage not found' })
         } else if (sourceStage.PipelineId !== request.pipeline.id) {
             return reply.code(400).send({ code: 'invalid_stage', error: 'Source stage must be part of the same pipeline' })
+        }
+
+        const targetStage = await app.db.models.PipelineStage.byId(sourceStage.NextStageId)
+
+        if (!targetStage) {
+            return reply.code(404).send({ code: 'not_found', error: 'Target stage not found' })
+        } else if (targetStage.PipelineId !== request.pipeline.id) {
+            return reply.code(400).send({ code: 'invalid_stage', error: 'Target stage must be part of the same pipeline' })
         }
 
         const sourceInstances = await sourceStage.getInstances()

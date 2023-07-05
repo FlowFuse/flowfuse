@@ -144,7 +144,7 @@ export default {
                 this.$emit('stage-deploy-starting')
 
                 try {
-                    await PipelineAPI.deployPipelineStage(this.pipeline.id, this.stage.id, target.id)
+                    await PipelineAPI.deployPipelineStage(this.pipeline.id, this.stage.id)
                 } catch (error) {
                     Alerts.emit(error.message, 'error')
                     return

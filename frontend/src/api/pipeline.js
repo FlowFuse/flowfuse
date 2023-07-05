@@ -72,10 +72,8 @@ const deletePipelineStage = async (pipelineId, stageId) => {
  * @param {string} targetStageId
  * Deploy pipeline stage
  * */
-const deployPipelineStage = async (pipelineId, sourceStageId, targetStageId) => {
-    return client.put(`/api/v1/pipelines/${pipelineId}/stages/${targetStageId}/deploy`, {
-        sourceStageId
-    }).then(res => {
+const deployPipelineStage = async (pipelineId, sourceStageId) => {
+    return client.put(`/api/v1/pipelines/${pipelineId}/stages/${sourceStageId}/deploy`).then(res => {
         return res.data
     })
 }
