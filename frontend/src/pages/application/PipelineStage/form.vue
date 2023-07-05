@@ -44,6 +44,18 @@
             </template>
         </FormRow>
 
+        <!-- Deploy to Devices -->
+        <FormRow
+            v-model="input.deployToDevices"
+            type="checkbox"
+            data-form="stage-deploy-to-devices"
+        >
+            Deploy to Devices
+            <template #description>
+                When this stage is deployed to changes will also be be deployed to all devices connected to this stages instance.
+            </template>
+        </FormRow>
+
         <div class="flex flex-wrap gap-1 items-center">
             <ff-button
                 class="ff-btn--secondary"
@@ -110,7 +122,8 @@ export default {
             },
             input: {
                 name: stage?.name,
-                instanceId: stage.instances?.[0].id
+                instanceId: stage.instances?.[0].id,
+                deployToDevices: stage.deployToDevices
             }
         }
     },
@@ -119,7 +132,11 @@ export default {
             return !!this.stage.id
         },
         formDirty () {
-            return this.input.name !== this.stage.name || this.input.instanceId !== this.stage.instances?.[0].id
+            return (
+                this.input.name !== this.stage.name ||
+                this.input.instanceId !== this.stage.instances?.[0].id ||
+                this.input.deployToDevices !== this.stage.deployToDevices
+            )
         },
         submitEnabled () {
             return this.formDirty && this.input.instanceId && this.input.name

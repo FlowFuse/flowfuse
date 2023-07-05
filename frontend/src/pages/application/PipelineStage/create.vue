@@ -53,7 +53,8 @@ export default {
         async create (input) {
             const options = {
                 name: input.name,
-                instanceId: input.instanceId
+                instanceId: input.instanceId,
+                deployToDevices: input.deployToDevices
             }
             if (this.$route.query.sourceStage) {
                 options.source = this.$route.query.sourceStage

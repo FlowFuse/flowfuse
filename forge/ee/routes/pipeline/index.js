@@ -255,6 +255,10 @@ module.exports = async function (app) {
                 await stage.addInstanceId(request.body.instanceId)
             }
 
+            if (request.body.deployToDevices !== undefined) {
+                stage.deployToDevices = request.body.deployToDevices
+            }
+
             await stage.save()
 
             // ById includes related models
