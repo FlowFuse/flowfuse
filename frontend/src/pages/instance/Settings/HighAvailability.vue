@@ -1,7 +1,7 @@
 <template>
     <ff-loading v-if="updating" message="Updating Instance..." />
     <template v-else>
-        <FormHeading>High Availability (preview)</FormHeading>
+        <FormHeading>High Availability</FormHeading>
         <FormRow>
             <template #description>
                 <p class="mb-3">
@@ -10,11 +10,11 @@
                     between them.
                 </p>
                 <p>
-                    This Preview Feature is currently free to use, but
-                    will become a chargable feature in a future release.
+                    This feature is currently free to use, but
+                    will become a chargeable feature in a future release.
                 </p>
                 <p>
-                    When HA mode is enabled the following restrictions currently apply:
+                    When HA mode is enabled the following restrictions apply:
                 </p>
                 <ul class="list-disc pl-6">
                     <li>Enabling or disabling HA mode requires a restart of the Instance.</li>
@@ -23,7 +23,7 @@
                     <li>Any internal state of the flows is not shared between the HA copies.</li>
                 </ul>
                 <p>
-                    Check the documentation for more information about the <a class="underline" href="https://flowforge.com/docs/user/high-availability/">High Availability preview feature</a>.
+                    Check the documentation for more information about <a class="underline" href="https://flowforge.com/docs/user/high-availability/">High Availability</a>.
                 </p>
             </template>
             <template #input>&nbsp;</template>
