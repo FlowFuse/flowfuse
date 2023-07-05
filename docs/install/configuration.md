@@ -15,10 +15,25 @@ the options available in the configuration file.
 
 Option | Description
 -------|------------
-`host` | The address to serve the web ui on. This defaults to `localhost` which means the ui will only be available when browsing from the same server that is running the platform. To make it accessible to other devices on the network, set it to `0.0.0.0`. <br>NOTE: If `host` is changed, please also update `base_url` to match e.g.  `http://[ip-address-of-host]:3000`<br>NOTE: We do not support changing the host value once you have created a Node-RED instance.
+`host` | The address to serve the web ui on. This defaults to `localhost` which means the ui will only be available when browsing from the same server that is running the platform. To make it accessible to other devices on the network, set it to `0.0.0.0`. <br>NOTE: If `host` is changed, please also update `base_url` to match e.g.  `http://[ip-address-of-host]:3000`
 `port` | The TCP port the platform serves its web ui. Default: `3000`
-`base_url` | The url to access the platform. This defaults to `http://localhost:3000` which means a number of internally generated URLs will only work when browsing on the same device as is running the platform. To be able to access the platform remotely, replace `localhost` with the ip address of the device running FlowForge. IMPORTANT: This should not be changed after starting Node-RED instances as it is used by the instances to find the core platform.
+`base_url` | The url to access the platform. This defaults to `http://localhost:3000` which means a number of internally generated URLs will only work when browsing on the same device as is running the platform. To be able to access the platform remotely, replace `localhost` with the ip address of the device running FlowForge. 
+`domain` | The domain that instance names will be pre-pended to on Docker & Kubernetes platforms to create a hostname to access the instance. A wildcard DNS A record should point be configured to point to the FlowForge entry IP Address.
 `support_contact` | a URL or string with contact details for the administrator e.g `mailto:support@example.com` or `https://support.example.com` . Defaults to the email address of the first admin user or `the administrator` if no email address set.
+
+
+NOTE: Changing the `base_url` and `domain` after Node-RED instances have been created is possible, but the original hostname and domain must remain active in order to access the instances and for an them to be able to access the FlowForge resources.
+
+An example workflow would be:
+
+1. Register new domain
+2. Set up DNS entries for:
+    - A record for the forge app
+    - wildcard A record for the domain
+3. Leave the existing entries for the old domain in place
+4. Stop the forge app
+5. Edit the flowforge.yml to set the base_url and domain entries
+6. Restart the forge app
 
 ## Database configuration
 
