@@ -11,6 +11,37 @@ describe('FlowForge - Sign Up Page', () => {
 
         cy.get('[data-form="signup-join-reason"]').should('not.exist')
         cy.get('[data-form="signup-accept-tcs"]').should('not.exist')
+
+        cy.get('[data-action="sign-up"]').should('be.disabled')
+
+        // Check sign-up button is enabled only when all the required fields are filled in
+        cy.get('[data-form="signup-username"] input').type('username')
+        cy.get('[data-action="sign-up"]').should('be.disabled')
+        cy.get('[data-form="signup-fullname"] input').type('fullname')
+        cy.get('[data-action="sign-up"]').should('be.disabled')
+        cy.get('[data-form="signup-email"] input').type('email@example.com')
+        cy.get('[data-action="sign-up"]').should('be.disabled')
+        cy.get('[data-form="signup-password"] input').type('password')
+        cy.get('[data-action="sign-up"]').should('not.be.disabled')
+
+        // Now the form is valid, check additional constraints
+
+        // Valid email
+        cy.get('[data-form="signup-email"] + span.ff-error-inline').should('be.empty')
+        cy.get('[data-form="signup-email"] input').clear()
+        cy.get('[data-form="signup-email"] input').type('email')
+        cy.get('[data-action="sign-up"]').should('be.disabled')
+        cy.get('[data-form="signup-email"] + span.ff-error-inline').should('not.be.empty')
+        cy.get('[data-form="signup-email"] input').type('@example.com')
+        cy.get('[data-action="sign-up"]').should('not.be.disabled')
+        cy.get('[data-form="signup-email"] + span.ff-error-inline').should('be.empty')
+
+        // Password length
+        cy.get('[data-form="signup-password"] input').clear()
+        cy.get('[data-form="signup-password"] input').type('1234')
+        cy.get('[data-action="sign-up"]').should('be.disabled')
+        cy.get('[data-form="signup-password"] input').type('5678')
+        cy.get('[data-action="sign-up"]').should('not.be.disabled')
     })
 
     it('should present the option to accept the T&Cs if user settings are set accordingly', () => {
@@ -27,6 +58,15 @@ describe('FlowForge - Sign Up Page', () => {
 
         cy.get('[data-form="signup-accept-tcs"]').should('be.visible')
         cy.get('[data-form="signup-accept-tcs"] a').should('have.attr', 'href', EXAMPLE_TCS_URL)
+
+        // Check sign-up button is enabled only when all the required fields are filled in
+        cy.get('[data-form="signup-username"] input').type('username')
+        cy.get('[data-form="signup-fullname"] input').type('fullname')
+        cy.get('[data-form="signup-email"] input').type('email@example.com')
+        cy.get('[data-form="signup-password"] input').type('password')
+        cy.get('[data-action="sign-up"]').should('be.disabled')
+        cy.get('[data-form="signup-accept-tcs"] span.checkbox').click()
+        cy.get('[data-action="sign-up"]').should('not.be.disabled')
     })
 
     it('should present the "What brings you to FlowForge" question if configured', () => {
@@ -43,6 +83,16 @@ describe('FlowForge - Sign Up Page', () => {
         cy.wait('@getUserSettings')
 
         cy.get('[data-form="signup-join-reason"]').should('be.visible')
+
+        // Check sign-up button is enabled only when all the required fields are filled in
+        cy.get('[data-form="signup-username"] input').type('username')
+        cy.get('[data-form="signup-fullname"] input').type('fullname')
+        cy.get('[data-form="signup-email"] input').type('email@example.com')
+        cy.get('[data-form="signup-password"] input').type('password')
+        cy.get('[data-action="sign-up"]').should('be.disabled')
+
+        cy.get('[data-form="signup-join-reason"] span.checkbox').first().click()
+        cy.get('[data-action="sign-up"]').should('not.be.disabled')
     })
 
     // it('requires a password', () => {

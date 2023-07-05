@@ -102,7 +102,7 @@ export default {
             return (this.input.email && !this.errors.email) &&
                    (this.input.username && !this.errors.username) &&
                    this.input.password.length >= 8 &&
-                   (this.input.join_reason) &&
+                   (this.askJoinReason ? this.input.join_reason : true) &&
                    (this.settings['user:tcs-required'] ? this.input.tcs_accepted : true) &&
                    (!this.errors.name)
         },
