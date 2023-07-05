@@ -385,7 +385,7 @@ module.exports = async function (app) {
             }
 
             await app.auditLog.Project.project.imported(user.id, null, targetInstance, sourceInstance) // technically this isn't a project event
-            await app.auditLog.Project.project.snapshot.imported(user.id, null, targetInstance, sourceInstance)
+            await app.auditLog.Project.project.snapshot.imported(user.id, null, targetInstance, sourceInstance, targetSnapshot)
 
             app.db.controllers.Project.clearInflightState(targetInstance)
         } catch (err) {
@@ -393,7 +393,7 @@ module.exports = async function (app) {
 
             const resp = { code: 'unexpected_error', error: err.toString() }
             await app.auditLog.Project.project.imported(user.id, null, targetInstance, sourceInstance) // technically this isn't a project event
-            await app.auditLog.Project.project.snapshot.imported(user.id, resp, targetInstance, sourceInstance)
+            await app.auditLog.Project.project.snapshot.imported(user.id, resp, targetInstance, sourceInstance, null)
 
             if (!repliedEarly) {
                 console.warn('Deploy failed, but response already sent', err)

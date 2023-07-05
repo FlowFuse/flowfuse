@@ -81,8 +81,8 @@ module.exports = {
                 async deviceTargetSet (actionedBy, error, project, snapshot) {
                     await log('project.snapshot.device-target-set', actionedBy, project?.id, generateBody({ error, project, snapshot }))
                 },
-                async imported (actionedBy, error, project, sourceProject) {
-                    await log('project.snapshot.imported', actionedBy, project?.id, generateBody({ error, project, sourceProject }))
+                async imported (actionedBy, error, project, sourceProject, snapshot) {
+                    await log('project.snapshot.imported', actionedBy, project?.id, generateBody({ error, project, sourceProject, snapshot }))
                 }
             }
         }
