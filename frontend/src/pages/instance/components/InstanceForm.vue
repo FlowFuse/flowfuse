@@ -150,7 +150,7 @@
         >
             <label class="w-full block text-sm font-medium text-gray-700 mb-1">Template</label>
             <label
-                v-if="!input.projectType && !input.stack"
+                v-if="!input.projectType || !input.stack"
                 class="text-sm text-gray-400"
             >Please select a Instance Type &amp; Stack first.</label>
             <label
@@ -158,7 +158,7 @@
                 class="text-sm text-gray-400"
             >{{ errors.template }}</label>
             <ff-tile-selection
-                v-if="input.projectType"
+                v-if="input.projectType && input.stack"
                 v-model="input.template"
                 data-form="project-template"
             >
@@ -187,7 +187,7 @@
         <!-- Billing details -->
         <div v-if="showBilling">
             <InstanceChargesTable
-                v-model:confirmed="input.billingConfirmation"
+                v-model:confirmed="submitEnabled"
                 :project-type="selectedProjectType"
                 :subscription="subscription"
                 :trialMode="isTrialProjectSelected"
@@ -313,8 +313,6 @@ export default {
             projectTypes: [],
             subscription: null,
             input: {
-                billingConfirmation: false,
-
                 applicationName,
                 applicationId,
 
@@ -373,8 +371,7 @@ export default {
               (this.applicationSelection ? this.input.applicationId : true)
         },
         submitEnabled () {
-            const billingConfirmed = !this.showBilling || this.team.billing?.trial || this.input.billingConfirmation
-            return billingConfirmed && this.formValid && this.formDirty
+            return this.formValid && this.formDirty
         },
         isTrialProjectSelected () {
             //  - Team is in trial mode, and
@@ -401,6 +398,8 @@ export default {
         'input.projectType': async function (value, oldValue) {
             if (value) {
                 await this.updateInstanceType(value)
+            } else {
+                this.selectedProjectType = null
             }
         }
     },

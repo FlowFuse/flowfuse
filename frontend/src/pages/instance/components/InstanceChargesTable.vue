@@ -47,45 +47,29 @@
             </template>
         </div>
     </div>
-    <FormRow
-        v-if="!trialMode"
-        id="billing-confirmation"
-        v-model="localConfirmed"
-        type="checkbox"
+    <div
+        v-if="!trialMode && selectedCostAfterCredit >= 0"
+        class="text-right ff-description mb-2 space-y-1"
+        data-el="payable-now-summary"
     >
-        Confirm additional charges
-        <template
-            v-if="selectedCostAfterCredit >= 0"
-            #description
-        >
-            {{ formatCurrency(selectedCostAfterCredit) }} now
-            <span v-if="pricingDetails?.interval">
-                then {{ formatCurrency(pricingDetails.cost) }}/{{ pricingDetails.interval }}
-            </span>
-        </template>
-    </FormRow>
+        {{ formatCurrency(selectedCostAfterCredit) }} now
+        <span v-if="pricingDetails?.interval">
+            then {{ formatCurrency(pricingDetails.cost) }} /{{ pricingDetails.interval }}
+        </span>
+    </div>
 </template>
 
 <script>
-
-import FormRow from '../../../components/FormRow.vue'
 
 import formatCurrency from '../../../mixins/Currency.js'
 
 export default {
     name: 'InstanceChargesTable',
-    components: {
-        FormRow
-    },
     mixins: [formatCurrency],
     props: {
         subscription: {
             type: Object,
             default: null
-        },
-        confirmed: {
-            type: Boolean,
-            default: false
         },
         projectType: {
             type: Object,
@@ -96,20 +80,9 @@ export default {
             default: false
         }
     },
-    emits: [
-        'update:confirmed'
-    ],
     computed: {
         selectedCostAfterCredit () {
             return (this.pricingDetails?.cost ?? 0) + (this.subscription?.customer?.balance ?? 0)
-        },
-        localConfirmed: {
-            get () {
-                return this.confirmed
-            },
-            set (value) {
-                this.$emit('update:confirmed', value)
-            }
         },
         pricingDetails () {
             if (!this.projectType) {

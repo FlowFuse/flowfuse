@@ -91,7 +91,6 @@ describe('FlowForge - Instances', () => {
                     name: INSTANCE_NAME,
                     stack: stack.id,
                     template: template.id,
-                    billingConfirmation: false,
                     projectType: type.id,
                     team: team.id,
                     applicationId: application.id
