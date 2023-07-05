@@ -138,7 +138,11 @@ export default {
 
             const msg = {
                 header: `Push to "${target.name}"`,
-                html: `<p>Are you sure you want to push from "${this.stage.name}" to "${target.name}"?</p><p>This will copy over all flows, nodes and credentials from "${this.stage.name}".</p><p>It will also transfer the keys of any newly created Environment Variables that your target instance does not currently have.</p>`
+                html: `
+                    <p>Are you sure you want to push from "${this.stage.name}" to "${target.name}"?</p>
+                    <p>This will copy over all flows, nodes and credentials from "${this.stage.name}".</p>
+                    ${target.deployToDevices ? `<p>And push out the changes to all devices connected to "${target.name}".</p>` : ''}
+                    <p>It will also transfer the keys of any newly created Environment Variables that your target instance does not currently have.</p>`
             }
 
             Dialog.show(msg, async () => {
@@ -153,7 +157,7 @@ export default {
 
                 this.$emit('stage-deploy-started')
                 Alerts.emit(
-                    `Deployment from "${this.stage.name}" to "${target.name}" has started.`,
+                    `Deployment from "${this.stage.name}" to "${target.name}"${target.deployToDevices ? ', and all it\'s devices, ' : ''} has started.`,
                     'confirmation'
                 )
             })
