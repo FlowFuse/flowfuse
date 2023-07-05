@@ -375,7 +375,10 @@ module.exports = async function (app) {
             })
 
             const setAsTargetForDevices = sourceStage.deployToDevices ?? false
-            const targetSnapshot = await copySnapshot(app, sourceSnapshot, targetInstance, setAsTargetForDevices) // eslint-disable-line no-unused-vars
+            const targetSnapshot = await copySnapshot(app, sourceSnapshot, targetInstance, { // eslint-disable-line no-unused-vars
+                importSnapshot: true, // target instance should import the snapshot
+                setAsTarget: setAsTargetForDevices
+            })
 
             if (restartTargetInstance) {
                 await app.containers.restartFlows(targetInstance)

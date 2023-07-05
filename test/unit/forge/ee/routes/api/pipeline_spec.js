@@ -830,7 +830,7 @@ describe('Pipelines API', function () {
         })
     })
 
-    describe.only('Deploy Pipeline Stage', function () {
+    describe('Deploy Pipeline Stage', function () {
         describe('With valid input', function () {
             it('Creates a snapshot of the pipeline stage, and copies to the next stage', async function () {
                 // 1 -> 2

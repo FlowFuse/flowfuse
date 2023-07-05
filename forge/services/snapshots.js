@@ -33,13 +33,17 @@ module.exports.createSnapshot = async (app, instance, user, snapshotProps) => {
     return snapShot
 }
 
-module.exports.copySnapshot = async (app, snapshot, toInstance, setAsTarget = true) => {
+module.exports.copySnapshot = async (app, snapshot, toInstance, { importSnapshot, setAsTarget } = { importSnapshot: true, setAsTarget: false }) => {
     const { settings, flows, name, description } = snapshot.toJSON()
     const snapshotToCopyProps = { settings, flows, name, description }
 
     const newSnapshot = await app.db.models.ProjectSnapshot.create(
         { ...snapshotToCopyProps, ProjectId: toInstance.id, UserId: snapshot.User.id }
     )
+
+    if (importSnapshot) {
+        await app.db.controllers.Project.importProjectSnapshot(toInstance, newSnapshot)
+    }
 
     if (setAsTarget) {
         await setSnapShotAsTarget(app, newSnapshot, toInstance, snapshot.User)
