@@ -152,7 +152,7 @@ export default {
 
                 this.$emit('stage-deploy-started')
                 Alerts.emit(
-                    `Deployment from "${this.stage.name}" to "${target.name}"${target.deployToDevices ? ', and all it\'s devices, ' : ''} has started.`,
+                    `Deployment from "${this.stage.name}" to "${target.name}"${target.deployToDevices ? ', and all its devices, ' : ''} has started.`,
                     'confirmation'
                 )
             })
