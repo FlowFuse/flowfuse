@@ -5,7 +5,7 @@
                                :type="a.type" :message="a.message"
                                :countdown="a.countdown || 3000" @close="clearAlert($index)" />
     </div>
-    <nav :class="{'ff-bg-light': theme === 'light', 'ff-bg-dark': theme === 'dark'}">
+    <nav :class="{'ff-bg-light ff-theme-light': theme === 'light', 'ff-bg-dark ff-theme-dark': theme === 'dark'}">
         <h2 class="">Components</h2>
         <ul id="grouplist">
             <li v-for="g in cGroups" :key="g.name">
@@ -25,7 +25,7 @@
             </li>
         </ul>
     </nav>
-    <main :class="{'ff-bg-light': theme === 'light', 'ff-bg-dark': theme === 'dark'}">
+    <main :class="{'ff-bg-light ff-theme-light': theme === 'light', 'ff-bg-dark ff-theme-dark': theme === 'dark'}">
         <!-- Theme Selection -->
         <div class="theme-selection">
             <label>Theme:</label>
@@ -204,10 +204,10 @@
                         <p style="margin-bottom: 6px;">
                             <b>Map</b><br />
                         </p>
-                        <pre style="margin-bottom: 6px;">"map": {
+                        <code><pre style="margin-bottom: 6px;">"map": {
     "count": "number",
     "name": "user.name",
-},</pre>
+},</pre></code>
                         <p style="margin-bottom: 12px;">
                             Maps the row properties <code style="display:inline;">number</code> and <code style="display:inline;">user.name</code>
                             to <code style="display:inline;">number</code> and <code style="display:inline;">name</code> respectively.
@@ -215,10 +215,10 @@
                         <p style="margin-bottom: 6px;">
                             <b>extraProps</b><br />
                         </p>
-                        <pre  style="margin-bottom: 6px;">"extraProps": {
+                        <code><pre  style="margin-bottom: 6px;">"extraProps": {
     "total": this.totalRows,
     "disabled": this.tableDisabled,
-},</pre>
+},</pre></code>
                         <p style="margin-bottom: 12px;">
                             Passes the properties <code style="display:inline;">totalRows</code> and <code style="display:inline;">tableDisabled</code> from wherever columns is defined into the component.
                         </p>
