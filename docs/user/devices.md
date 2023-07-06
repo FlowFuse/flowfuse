@@ -11,7 +11,10 @@ This guide explains how to get starting with the Devices feature.
 
 ## Prerequisites
 
- - NodeJS v14 or later
+ - NodeJS v16 or later
+
+Device Agent v1.9.3+ also supports running on NodeJS v14 for hardware devices that are not
+able to update to more recent versions.
  
 ## Supported Operating Systems
 
