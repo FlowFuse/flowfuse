@@ -55,13 +55,41 @@
       }
     }
 
-    .checkbox {
-        &[checked=true] {
-            background-color: $ff-white;
-            border-color: $ff-grey-700;
+    .ff-checkbox {
+        .checkbox[checked=true] {
+            background-color: transparent;
         }
-        &[checked=true]:after {
-            display: block;
+        &:hover:not([disabled=true]) {
+            .checkbox {
+                background-color: $ff-grey-600;
+            }
+        }
+        &:hover:not([disabled=true]) {
+            .checkbox[checked=true] {
+                background-color: $ff-grey-800;
+            }
+        }
+    }
+    
+    .ff-radio-btn {
+        .checkbox {
+            &[checked=true] {
+                background-color: $ff-white;
+                border-color: $ff-grey-700;
+            }
+            &[checked=true]:after {
+                display: block;
+            }
+        }
+        &:hover:not([disabled=true]) {
+            .checkbox {
+                background-color: $ff-grey-600;
+            }
+        }
+        &:hover:not([disabled=true]) {
+            .checkbox[checked=true] {
+                background-color: $ff-white;
+            }
         }
     }
 }
