@@ -1,3 +1,74 @@
+#### 1.9.0: Release
+
+ - Add docs about swagger ui (#2418) @knolleary
+ - remove billing confirmation (#2404) @Steve-Mcl
+ - Add docs for changing base_url and domain (#2415) @hardillb
+ - Fix sign-up form when posthog not enabled (#2414) @knolleary
+ - High Availability from preview mode to generally available (#2413) @MarianRaphael
+ - Update package-lock (#2410) @Pezmc
+ - Bump c8 from 7.14.0 to 8.0.0 (#2314) @app/dependabot
+ - Bump lru-cache from 9.1.2 to 10.0.0 (#2315) @app/dependabot
+ - Bump fastify from 4.18.0 to 4.19.2 (#2387) @app/dependabot
+ - Ensure Team Billing link is present on initial page load (#2406) @knolleary
+ - Bump pg from 8.11.0 to 8.11.1 (#2389) @app/dependabot
+ - Add "What brings you to FF?" to sign-up form (#2378) @joepavitt
+ - Log url, method along with response (#2281) @hardillb
+ - Rename build/test gh actions for consistency (#2405) @knolleary
+ - Rename device/provisioningToken project field to instance in api (#2400) @knolleary
+ - Fix swagger images (#2403) @knolleary
+ - Fix swagger validation errors (#2402) @knolleary
+ - Disable swagger ui images (#2396) @knolleary
+ - Post Billing Setup - Empty State & Alert (#2395) @joepavitt
+ - Replace projectCount with instanceCount on public api (#2393) @knolleary
+ - Add api schemas and swagger ui support (#2351) @knolleary
+ - Fix LottieAnimations import and assignment at app-level (#2394) @joepavitt
+ - Improve email verification screen (#2392) @Steve-Mcl
+ - make team selection scrollable (#2310) @sumitshinde-84
+ - Guard against a container not existing and still allow removal (#2307) @Pezmc
+ - Add links to flowforge.com for easier navigation to our website. (#2347) @iskerrett
+ - Add trial user E2E Testing & ensure redirect correct after creating first application (#2352) @joepavitt
+ - Add FF_SNAPSHOT_ID to devices (#2377) @knolleary
+ - Ensure pipeline stages are listed in the correct order (#2384) @knolleary
+ - Add note about PostgreSQL DB on x86-64 (#2382) @hardillb
+ - Allow filtering of Node-RED logs when in HA mode (#2367) @hardillb
+ - Ensure instance-updated event is passed up from Instance Danger component (#2371) @knolleary
+ - Support multiple stream access to device logs (#2374) @knolleary
+ - Fix instance flow update dialog (#2355) @knolleary
+ - Improve logging and UX around switching Developer mode (#2365) @Steve-Mcl
+ - disable delete application button when application does contain i… (#2309) @sumitshinde-84
+ - Update device agent docs around windows support (#2320) @Steve-Mcl
+ - Refector application collection endpoints to not return full Instance objects (#2349) @knolleary
+ - Bump @aws-sdk/credential-provider-node from 3.358.0 to 3.360.0 (#2353) @app/dependabot
+ - Bump @aws-sdk/client-ses from 3.357.0 to 3.359.0 (#2342) @app/dependabot
+ - Bump eslint-plugin-vue from 9.15.0 to 9.15.1 (#2343) @app/dependabot
+ - Remove overloading of /api/v1/teams endpoint (#2345) @knolleary
+ - Add EE E2E Test Coverage Support and Fix Edit Stage Instance Bug (#2326) @Pezmc
+ - Show premium feature pages - even when feature is not available (#2290) @Pezmc
+ - Pipelines: Server side deployment state tracking (#2283) @Pezmc
+ - Increase default helm install timeout (#2336) @hardillb
+ - Limit invitiations to max 5 users at a time (#2330) @hardillb
+ - Add package-lock.json (#2324) @Pezmc
+ - Use findOrCreate to handle retrying failed setup (#2325) @Pezmc
+ - docs(docker): Update devices.md (#2327) @biancode
+ - Improve error handling and UI for launcher "offline" (#2318) @Steve-Mcl
+ - Explicitly upgrade to latest lottie and use new import style (#2322) @Pezmc
+ - Update no access graphic to proper one (#2319) @knolleary
+ - Feature: Setup "Default Palette Modules" in a template (#2295) @Steve-Mcl
+ - Fix broken link (#2316) @ZJvandeWeg
+ - docs: Update support section for FF Cloud (#2312) @ZJvandeWeg
+ - Attempt to fix postgres OOM test failures (#2311) @Pezmc
+ - Remove some more lint test excludes (#2305) @hardillb
+ - Add dashboard-only team role (#2292) @knolleary
+ - Update device agent docs for https/httpStatic config (#2306) @knolleary
+ - make Instance and application names in delete popup easily selectable (#2291) @sumitshinde-84
+ - Remove forge/app.js forge/auditLog forge/comms forge/config forge/containers forge/db forge/ee forge/forge.js forge/housekeeper forge/lib forge/licensing forge/monitor forge/postoffice forge/routes forge/settings files from promise/catch-or-return rule (#2284) @hardillb
+ - Experiment: Mass minor upgrade of all packages (#2193) @Pezmc
+ - Bump vitest from 0.31.4 to 0.32.0 (#2270) @app/dependabot
+ - Add nginx ingress size setting to docs (#2277) @hardillb
+ - Use 3.0.2 for the example stack (#2274) @hardillb
+ - Update instance-settings.md (#2265) @Pezmc
+ - docs: Fix broken anchor in docs (#2263) @ZJvandeWeg
+
 #### 1.8.0: Release
 
  - Disable "Dev Mode" button (#2256) @hardillb
