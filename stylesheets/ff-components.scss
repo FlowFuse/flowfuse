@@ -360,7 +360,8 @@ li.ff-list-item {
     width: 16px;
     border-radius: 4px;
     background-color: transparent;
-    border: 1px solid $ff-grey-400;    
+    border: 1px solid;
+    border-color: $ff-grey-400;    
   }
   &:hover:not([disabled=true]) {
     .checkbox {
