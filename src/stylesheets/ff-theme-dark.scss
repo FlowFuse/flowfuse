@@ -90,6 +90,7 @@
     .ff-checkbox {
         .checkbox[checked=true] {
             background-color: transparent;
+            border-color: $ff-grey-500;
         }
         &:hover:not([disabled=true]) {
             .checkbox {
@@ -99,6 +100,7 @@
         &:hover:not([disabled=true]) {
             .checkbox[checked=true] {
                 background-color: $ff-grey-800;
+                border-color: $ff-grey-600;
             }
         }
     }
