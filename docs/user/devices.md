@@ -11,7 +11,7 @@ This guide explains how to get starting with the Devices feature.
 
 ## Prerequisites
 
- - NodeJS v16 or later
+ - NodeJS v14 or later
  
 ## Supported Operating Systems
 
