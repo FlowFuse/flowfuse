@@ -262,7 +262,6 @@ li.ff-list-item {
 .ff-dropdown {
   position: relative;
   display: inline-block;
-  background-color: white;
   cursor: pointer;
   &[disabled="true"] {
     cursor: not-allowed;
@@ -270,6 +269,7 @@ li.ff-list-item {
     color: $ff-grey-400;
   }
   .ff-dropdown-selected {
+    background-color: white;
     border: 1px solid $ff-grey-300;
     border-radius: $ff-unit-sm;
     padding: $ff-unit-sm $ff-unit-md;
@@ -360,7 +360,8 @@ li.ff-list-item {
     width: 16px;
     border-radius: 4px;
     background-color: transparent;
-    border: 1px solid $ff-grey-400;    
+    border: 1px solid;
+    border-color: $ff-grey-400;    
   }
   &:hover:not([disabled=true]) {
     .checkbox {
