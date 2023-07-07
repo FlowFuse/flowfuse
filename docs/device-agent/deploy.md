@@ -1,6 +1,6 @@
 ---
 navTitle: Deploying your Flows
-navOrder: 6
+navOrder: 5
 ---
 
 # Deploying Flows to the Device Agent

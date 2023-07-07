@@ -1,6 +1,6 @@
 ---
 navTitle: Running the Agent
-navOrder: 7
+navOrder: 4
 ---
 
 # Running the Device Agent

@@ -1,6 +1,6 @@
 ---
 navTitle: Installation
-navOrder: 9
+navOrder: 2
 ---
 
 # Installing Device Agent
