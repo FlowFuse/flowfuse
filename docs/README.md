@@ -14,7 +14,7 @@ remote deployments, support for DevOps delivery pipelines, and the ability to
 host Node-RED applications on FlowForge. FlowForge is the DevOps platform for
 Node-RED application development and delivery.
 
-## Using FlowForge
+## Getting started
 
  - [FlowForge Concepts](./user/concepts.md) - Understanding the core terminology and concepts that make up the FlowForge platform.
  - [User documentation](./user/) - Detailed documentation on how to use FlowForge.
