@@ -1,5 +1,5 @@
 ---
-navOrder: 10
+navOrder: 1
 ---
 # FlowForge Device Agent
 
