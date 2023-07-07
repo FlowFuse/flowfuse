@@ -1,23 +1,26 @@
 <template>
     <ff-dialog ref="dialog" header="Device Credentials">
         <template v-slot:default>
-            <form class="space-y-6 mt-2">
+            <form class="text-gray-800">
                 <template v-if="!hasCredentials">
-                    <p class="text-sm text-gray-500">
+                    <p>
                         Are you sure you want to regenerate credentials for this device?
                     </p>
-                    <p class="text-sm text-gray-500">
+                    <p class="mt-3 mb-6">
                         The existing credentials will be reset and the device will not
                         be able to reconnect until it has been given its new credentials.
                     </p>
                 </template>
                 <template v-if="hasCredentials">
-                    <p class="text-sm text-gray-500">
+                    <p>
                         To connect your device to the platform, use the following
-                        credentials. Make a note of them as this is the only
+                        credentials.
+                    </p>
+                    <p class="font-bold italic mt-3 mb-6">
+                        Make a note of them as this is the only
                         time you will see them.
                     </p>
-                    <pre class="overflow-auto text-sm p-4 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
+                    <pre class="overflow-auto text-sm p-4 mt-6 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
                 </template>
             </form>
         </template>
