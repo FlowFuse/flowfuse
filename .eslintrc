@@ -633,10 +633,7 @@
                 "frontend/src/pages/admin/InstanceTypes/index.vue",
                 "frontend/src/pages/admin/Stacks/index.vue",
                 "frontend/src/pages/admin/Users/General.vue",
-                "frontend/src/pages/admin/Users/UserDetails.vue",
-                "frontend/src/pages/team/Members/General.vue",
-                "frontend/src/pages/team/Settings/Danger.vue",
-                "frontend/src/pages/team/Settings/Devices.vue"
+                "frontend/src/pages/admin/Users/UserDetails.vue"
             ]
         },
         {
