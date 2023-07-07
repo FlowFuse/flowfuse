@@ -49,6 +49,7 @@ Node-RED application development and delivery.
  - [Useful Information](./contribute/#contributing-to-flowforge/) - Learn the foundational concepts of how FlowForge is built & structured. 
  - [Development Setup](./contribute/#development-setup/) - Configure your local development environment to contribute to FlowForge.
  - [Testing](./contribute/#testing/) - Understand our testing philosophy at FlowForge.
+ 
 ## Support
 
 - [Troubleshooting](./user/#debugging-and-fixing-node-red-issues)
