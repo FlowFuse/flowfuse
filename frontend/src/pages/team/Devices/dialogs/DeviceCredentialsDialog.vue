@@ -16,7 +16,7 @@
                         To connect your device to the platform, use the following
                         credentials.
                     </p>
-                    <p class="font-bold italic mt-3 mb-6">
+                    <p class="font-bold mt-3 mb-6">
                         Make a note of them as this is the only
                         time you will see them.
                     </p>
