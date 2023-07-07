@@ -28,7 +28,7 @@ jobs:
         run: npm run lint
       # and run all Cypress tests
       - name: Run UI Unit Tests
-        run: npm run test:unit:frontend
+        run: npm run cover:unit:frontend
       - name: Run UI E2E (Cypress) Tests - OS
         uses: cypress-io/github-action@v4
         with:
