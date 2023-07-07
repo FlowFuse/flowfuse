@@ -34,5 +34,12 @@ jobs:
       run: npm ci
     - name: Build the forge
       run: npm run build
-    - name: Test the forge
-      run: npm run test
+    - name: Run forge unit tests
+      run: npm run cover:unit:forge
+    - name: Run forge system tests
+      run: npm run cover:system
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        flags: backend
