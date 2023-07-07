@@ -6,8 +6,14 @@
         <template #default>
             <slot name="description" />
             <form class="space-y-6 mt-2">
-                <FormRow v-model="input.name" data-form="device-name" :error="errors.name" :disabled="editDisabled">Name</FormRow>
-                <FormRow v-model="input.type" data-form="device-type" :error="errors.type" :disabled="editDisabled">Type</FormRow>
+                <FormRow v-model="input.name" data-form="device-name" :error="errors.name" :disabled="editDisabled" container-class="w-full">
+                    <template #default>Name</template>
+                    <template #description>Provide a unique, identifiable name for your device.</template>
+                </FormRow>
+                <FormRow v-model="input.type" data-form="device-type" :error="errors.type" :disabled="editDisabled" container-class="w-full">
+                    <template #default>Type</template>
+                    <template #description>Use this field to better identify your device, and sort/filter in your device list.</template>
+                </FormRow>
                 <div v-if="billingDescription">
                     <b>Price: {{ billingDescription }}</b>
                 </div>
