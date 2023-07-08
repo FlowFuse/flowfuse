@@ -16,9 +16,9 @@ you will have needed to have completed these steps:
 
 To deploy a Node-RED instance to the device:
 
-1. [Create a snapshot](snapshots.md#create-a-snapshot) - a point-in-time
+1. [Create a snapshot](../user/snapshots.md#create-a-snapshot) - a point-in-time
 backup of the Node-RED flows and configuration.
-2. [Mark that snapshot](snapshots.md#setting-a-device-target-snapshot) as the **Device Target** snapshot.
+2. [Mark that snapshot](../user/snapshots.md#setting-a-device-target-snapshot) as the **Device Target** snapshot.
 
 This model allows you to develop your flows in FlowForge and only push it out
 to the registered devices when you're happy with what you've created.
@@ -55,7 +55,7 @@ when new snapshots are deployed.
 To create an instance snapshot from the device use the **Create Snapshot** button
 in the Developer Mode options panel.
 
-You will be prompted to give the snapshot a name and description. See [Snapshots](snapshots.md) for more information
+You will be prompted to give the snapshot a name and description. See [Snapshots](../user/snapshots.md) for more information
 about working with snapshots.
 
 ### Important Notes

@@ -16,7 +16,7 @@ flowforge-device-agent
 ```
 
 By default Node-RED will listen to port `1880`, you can change there using the options
-detailed [here](./install#listen-port).
+detailed [here](./install.md#listen-port).
 
 This will start the agent, and connect to FlowForge, waiting until a Target Snapshot
 has been assigned to it.

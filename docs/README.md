@@ -23,10 +23,10 @@ Node-RED application development and delivery.
 
 ## Device Agent (Edge Compute)
 
-- [Install the Device Agent](./user/devices.md) - Install the Device Agent on your own hardware to remotely manage your Node-RED instances.
-- [Registering your Device](./user/devices.md#register-the-device) - Connect with Device with FlowForge.
-- [Deploying flows to your Device](./user/devices.md#deploying-a-node-red-instance-to-the-device) - Learn how to remotely deploy flows to your Device.
-- [Editing flows on your Device](.//user/devices.md#editing-the-node-red-flows-on-a-device) - Setup "Developer Mode" to enable editing of your flows, directly on your Device.
+- [Install the Device Agent](./device-agent/install.md) - Install the Device Agent on your own hardware to remotely manage your Node-RED instances.
+- [Registering your Device](./device-agent/register.md) - Connect with Device with FlowForge.
+- [Deploying flows to your Device](./device-agent/deploy.md) - Learn how to remotely deploy flows to your Device.
+- [Editing flows on your Device](./device-agent/deploy.md#editing-the-node-red-flows-on-a-device) - Setup "Developer Mode" to enable editing of your flows, directly on your Device.
 
 ## FlowForge Cloud
  - [FlowForge Cloud](./cloud/) - find out how we've configured FlowForge for FlowForge Cloud.
