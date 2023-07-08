@@ -57,7 +57,7 @@ next time they check in.
 
 It is possible to create a Snapshot from a device that is connected to the platform.
 The device must be set to Developer Mode for this to work.
-See [Working with Devices](./devices.md#editing-the-node-red-flows-on-a-device) for
+See [Working with Devices](../device-agent/deploy.md#editing-the-node-red-flows-on-a-device) for
 more information.
 
 ## Creating a Snapshot locally
