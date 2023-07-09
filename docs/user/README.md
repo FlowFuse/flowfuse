@@ -46,7 +46,7 @@ For more details on these and other core concepts, you can learn about them [her
 FlowForge supports deploying projects to remote _Devices_. They run a software agent
 that connects back to the platform to receive updates.
 
- - [Working with Devices](devices.md)
+ - [Working with Devices](../device-agent/introduction.md)
 
 ## Working with Files and Context
 
