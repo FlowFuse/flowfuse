@@ -8,7 +8,7 @@ describe('Default Admin User', function () {
     // inbox - a local transport we can use to capture email without an SMTP server
     const inbox = new LocalTransport()
 
-     before(async function () {
+    before(async function () {
         // Create the FF application with a suitable test configuration
         forge = await FF_UTIL.setupApp({
             telemetry: { enabled: false },
