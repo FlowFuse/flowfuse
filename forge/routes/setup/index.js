@@ -6,15 +6,15 @@
  * @namespace setup
  * @memberof forge.routes
  */
+const crypto = require('crypto')
 const fs = require('fs/promises')
 const path = require('path')
-const crypto = require('crypto')
 
 const setupApp = path.join(__dirname, '../../../frontend/dist-setup/setup.html')
 
 const generatePassword = () => {
     const charList = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz~!@-#$'
-    return Array.from(crypto.randomFillSync(new Uint32Array(8))).map( x => charList[x % charList.length]).join('')
+    return Array.from(crypto.randomFillSync(new Uint32Array(8))).map(x => charList[x % charList.length]).join('')
 }
 
 module.exports = async function (app) {
@@ -34,7 +34,7 @@ module.exports = async function (app) {
                     name: 'Default Admin',
                     email: 'admin@example.com',
                     email_verified: true,
-                    password: password,
+                    password,
                     admin: true,
                     password_expired: true
                 })
