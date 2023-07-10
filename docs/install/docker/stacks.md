@@ -35,19 +35,15 @@ COPY package.json /data
 ...
 ```
 
-To add nodes to the default image you can add them to the `package.json` file along 
-side the FlowForge plugins
+To add nodes to the default image you can add them to the `package.json` file
 
 ```json
 {
     "name": "node-red-project",
     "description": "A Node-RED Project",
-    "version": "0.7.0",
+    "version": "0.1.9",
     "private": true,
     "dependencies":{
-        "@flowforge/nr-storage": "^0.10.0",
-        "@flowforge/nr-auth": "^0.10.0",
-        "@flowforge/nr-audit-logger": "^0.10.0",
         "node-red-dashboard": "^3.1.6"
     }
 }
