@@ -30,8 +30,8 @@ Node-RED application development and delivery.
 
 ## FlowForge Cloud
  - [FlowForge Cloud](./cloud/) - find out how we've configured FlowForge for FlowForge Cloud.
- - [Network Connections](./cloud/#network-connections/) - Details what connections can and cannot be established to Node-RED instances running in FlowForge Cloud.
- - [Single Sign On](./cloud/#single-sign-on/) - FlowForge supports configuring SAML-based Single Sign-On for particular email domains. Contact us to configure for your team.
+ - [Network Connections](./cloud/#network-connections) - Details what connections can and cannot be established to Node-RED instances running in FlowForge Cloud.
+ - [Single Sign On](./cloud/#single-sign-on) - FlowForge supports configuring SAML-based Single Sign-On for particular email domains. Contact us to configure for your team.
  - [Billing](./cloud/) - find out how we've configured FlowForge for FlowForge Cloud.
 
 ## Managing FlowForge
@@ -46,9 +46,9 @@ Node-RED application development and delivery.
 - [From Open Source to Premium](./upgrade/open-source-to-premium.md)
 
  ## Contributing to FlowForge
- - [Useful Information](./contribute/#contributing-to-flowforge/) - Learn the foundational concepts of how FlowForge is built & structured. 
- - [Development Setup](./contribute/#development-setup/) - Configure your local development environment to contribute to FlowForge.
- - [Testing](./contribute/#testing/) - Understand our testing philosophy at FlowForge.
+ - [Useful Information](./contribute/#contributing-to-flowforge) - Learn the foundational concepts of how FlowForge is built & structured. 
+ - [Development Setup](./contribute/#development-setup) - Configure your local development environment to contribute to FlowForge.
+ - [Testing](./contribute/#testing) - Understand our testing philosophy at FlowForge.
  
 ## Support
 
