@@ -51,6 +51,34 @@ module.exports = async function (app) {
         }
     })
 
+    app.get('/:projectId/snapshots/:snapshotId', async (request, response) => {
+
+        const id = request.params.snapshotId
+        const trace = `Project.getSnapshot. projectId=${request.params.projectId}. Snapshot id=${id}`
+        console.log(`${trace}. Request received`);
+        const snapshot = await app.db.models.ProjectSnapshot.byId(id)
+
+        if (snapshot) {
+            let snapshotObj = snapshot.get()
+            const user = await snapshot.getUser()
+            if (user) {
+                snapshotObj.user = app.db.views.User.userSummary(user)
+                const { UserId, ...newSnapshotObj } = snapshotObj;
+                snapshotObj = newSnapshotObj;
+            }
+            console.log(`${trace}. Snapshot is extracted`);
+
+            const result = {
+                ...snapshotObj,
+                id: id
+            }
+            response.type('application/json').send(result)
+        } else {
+            console.error(`${trace}. No snapshot is extracted.`);
+            response.send({})
+        }
+    })
+
     app.post('/:projectId/credentials', async (request, response) => {
         const id = request.params.projectId
         let creds = await app.db.models.StorageCredentials.byProject(id)
