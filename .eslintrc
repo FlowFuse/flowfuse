@@ -537,16 +537,6 @@
         },
         {
             "rules": {
-                "vue/prop-name-casing": "off"
-            },
-            "files": [
-                "frontend/src/components/PageHeader.vue",
-                "frontend/src/components/SideNavigation.vue",
-                "frontend/src/components/SideNavigationTeamOptions.vue"
-            ]
-        },
-        {
-            "rules": {
                 "vue/require-explicit-emits": "off"
             },
             "files": [

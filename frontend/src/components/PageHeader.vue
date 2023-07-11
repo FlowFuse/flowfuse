@@ -65,7 +65,7 @@ import TeamSelection from './TeamSelection.vue'
 export default {
     name: 'NavBar',
     props: {
-        'mobile-menu-open': {
+        mobileMenuOpen: {
             type: Boolean
         }
     },

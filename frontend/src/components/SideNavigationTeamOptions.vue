@@ -51,7 +51,7 @@ export default {
     },
     mixins: [permissionsMixin],
     props: {
-        'mobile-menu-open': {
+        mobileMenuOpen: {
             type: Boolean,
             default: false
         }
