@@ -1,5 +1,5 @@
 ---
-navGroup: Overview
+navGroup: Running FlowForge
 navTitle: Administering FlowForge
 ---
 # Administering FlowForge
