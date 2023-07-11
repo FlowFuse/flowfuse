@@ -198,4 +198,8 @@ module.exports = class TestModelFactory {
             }
         )
     }
+
+    get Roles () {
+        return { ...Roles }
+    }
 }
