@@ -627,17 +627,6 @@
         },
         {
             "rules": {
-                "vue/v-on-event-hyphenation": "off"
-            },
-            "files": [
-                "frontend/src/pages/admin/InstanceTypes/index.vue",
-                "frontend/src/pages/admin/Stacks/index.vue",
-                "frontend/src/pages/admin/Users/General.vue",
-                "frontend/src/pages/admin/Users/UserDetails.vue"
-            ]
-        },
-        {
-            "rules": {
                 "vue/v-slot-style": "off"
             },
             "files": [
