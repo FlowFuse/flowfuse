@@ -12,9 +12,11 @@ export default defineConfig({
         globals: true,
         environment: 'jsdom',
         coverage: {
+            provider: 'istanbul',
             src: ['./frontend/src'],
-            reportsDirectory: './coverage/frontend',
-            all: true
+            reportsDirectory: 'coverage/reports/frontend',
+            all: true,
+            reporter: [ 'json' ]
         }
     },
     resolve: {
