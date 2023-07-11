@@ -7,13 +7,19 @@ const { Roles } = require('../../lib/roles.js')
 // them (as that requires reprovisioning of devices and restaging of projects)
 const IMPLICIT_TOKEN_SCOPES = {
     device: [
-        'team:projects:list' // permit a device being edited via a tunnel in developer mode to list projects
+        'team:projects:list', // permit a device being edited via a tunnel in developer mode to list projects
+        'library:entry:create', // permit a device being edited via a tunnel in developer mode to create library entries
+        'library:entry:list', // permit a device being edited via a tunnel in developer mode to list library entries
+        'library:entry:delete' // permit a device being edited via a tunnel in developer mode to delete library entries
     ],
     project: [
         'user:read',
         'project:flows:view',
         'project:flows:edit',
-        'team:projects:list'
+        'team:projects:list',
+        'library:entry:create',
+        'library:entry:list',
+        'library:entry:delete'
     ]
 }
 

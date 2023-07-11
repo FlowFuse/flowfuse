@@ -18,11 +18,18 @@ module.exports = async function (app) {
         const team = await app.db.models.Team.byId(id)
         if (team) {
             request.team = team
-            // If this is a project session token, verify the project is in the team
+            // If this is a session token, verify the project or device is in the team
             if (request.session.ownerType === 'project') {
                 const project = await app.db.models.Project.byId(request.session.ownerId)
                 if (project.Team.hashid === id) {
-                    // Project exists and the auth token is for this project
+                    // Project exists and the auth token is for this team
+                    return
+                }
+            } else if (request.session.ownerType === 'device') {
+                const deviceId = +request.session.ownerId
+                const device = await app.db.models.Device.byId(deviceId)
+                if (device?.Team.hashid === id) {
+                    // Device exists and the auth token is for this team
                     return
                 }
             } else if (!request.session.ownerType) {
@@ -39,9 +46,7 @@ module.exports = async function (app) {
 
     app.post('/storage/library/:libraryId/*', {
         preHandler: async (request, reply) => {
-            if (request.teamMembership) {
-                return app.needsPermission('library:entry:create')(request, reply)
-            }
+            return app.needsPermission('library:entry:create')(request, reply)
         }
     }, async (request, response) => {
         const type = request.body.type
@@ -106,9 +111,7 @@ module.exports = async function (app) {
 
     app.get('/storage/library/:libraryId/*', {
         preHandler: async (request, reply) => {
-            if (request.teamMembership) {
-                return app.needsPermission('library:entry:list')(request, reply)
-            }
+            return app.needsPermission('library:entry:list')(request, reply)
         }
     }, async (request, response) => {
         const type = request.query.type
