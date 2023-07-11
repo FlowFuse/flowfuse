@@ -27,13 +27,13 @@
                 <ff-radio-group label="What brings you to FlowForge?" v-model="input.join_reason" orientation="grid"
                                 data-form="signup-join-reason" :options="reasons" />
             </div>
-            <div v-if="settings['user:tcs-required']">
+            <div class="pt-3" v-if="settings['user:tcs-required']">
                 <ff-checkbox v-model="input.tcs_accepted" data-form="signup-accept-tcs">
                     I accept the <a target="_blank" :href="settings['user:tcs-url']">FlowForge Terms &amp; Conditions.</a>
                 </ff-checkbox>
             </div>
-            <label v-if="errors.general" class="pt-4 ff-error-inline">{{ errors.general }}</label>
-            <div class="ff-actions pt-4">
+            <label v-if="errors.general" class="pt-3 ff-error-inline">{{ errors.general }}</label>
+            <div class="ff-actions pt-2">
                 <ff-button :disabled="!formValid" @click="registerUser()" data-action="sign-up">Sign Up</ff-button>
                 <p class="flex text-gray-400 font-light mt-6 gap-2 w-full justify-center">
                     Already registered? <a href="/" data-action="login">Log in here</a>

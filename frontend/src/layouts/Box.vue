@@ -7,7 +7,7 @@
                 </div>
             </div>
             <div class="ff-layout--box--right">
-                <div class="ff-layout--box--content">
+                <div class="ff-layout--box--content ff-theme-dark">
                     <div class="ff-logo">
                         <img src="/ff-logo--wordmark-caps--dark.png" />
                     </div>
