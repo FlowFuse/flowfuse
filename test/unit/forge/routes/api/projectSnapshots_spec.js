@@ -1,3 +1,5 @@
+const crypto = require('crypto')
+
 const should = require('should') // eslint-disable-line no-unused-vars
 
 const { addFlowsToProject } = require('../../../../lib/Snapshots')
@@ -5,6 +7,12 @@ const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
+
+function encryptCredentials (key, plain) {
+    const initVector = crypto.randomBytes(16)
+    const cipher = crypto.createCipheriv('aes-256-ctr', key, initVector)
+    return { $: initVector.toString('hex') + cipher.update(JSON.stringify(plain), 'utf8', 'base64') + cipher.final('base64') }
+}
 
 describe('Project Snapshots API', function () {
     let app
@@ -59,6 +67,14 @@ describe('Project Snapshots API', function () {
         await app.close()
     })
 
+    async function exportSnapshot(projectId, snapshotId, token=null, cookie=null){
+        return await app.inject({
+            method: 'GET',
+            url: `/storage/${projectId}/snapshots/${snapshotId}`,
+            ...( cookie ? { cookies: { sid: cookie } } : {} ),
+            ...( token ? { headers: { authorization: `Bearer ${token}` } } : {} ),
+        })
+    }
     async function createSnapshot (projectId, name, token) {
         return await app.inject({
             method: 'POST',
@@ -210,6 +226,82 @@ describe('Project Snapshots API', function () {
             snapshot.settings.env.should.have.property('two', 'b')
             snapshot.settings.should.have.property('modules')
             snapshot.settings.modules.should.have.property('foo', '1.2')
+        })
+    })
+
+    describe('Export a snapshot', function() {
+
+        it("User cookie can't be used for project snapshot extraction", async function () {
+
+            // Alice, who is allowed to interact with public APIs for the project, can't use "export snapshot" API.
+            // This API is internal and is intended for automation CD.
+            const response = await createSnapshot(TestObjects.project1.id, 'test-project-snapshot-03', TestObjects.tokens.alice)
+            response.statusCode.should.equal(200)
+            const result = response.json()
+
+            const exportResponse = await exportSnapshot(TestObjects.project1.id, result.id, null, TestObjects.tokens.alice)
+            exportResponse.statusCode.should.equal(404)
+        })
+
+        it('Export project snapshot using Project token', async function () {
+
+            await addFlowsToProject(app,
+                TestObjects.project1.id,
+                TestObjects.tokens.project,
+                TestObjects.tokens.alice,
+                [{ id: 'node1' }],
+                { testCreds: 'abc' },
+                'key1',
+                {
+                    httpAdminRoot: '/test-red',
+                    dashboardUI: '/test-dash',
+                    env: [
+                        { name: 'one', value: 'a' },
+                        { name: 'two', value: 'b' }
+                    ]
+                }
+            )
+
+            const snapshotName = 'test-project-snapshot-03'
+            const response = await createSnapshot(TestObjects.project1.id, snapshotName, TestObjects.tokens.alice)
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('id')
+            result.should.have.property('name', snapshotName)
+            result.should.have.property('createdAt')
+            result.should.have.property('updatedAt')
+            result.should.have.property('user')
+            result.user.should.have.property('id', TestObjects.alice.hashid)
+
+            const snapshotObj = await app.db.models.ProjectSnapshot.byId(result.id)
+            const snapshot = snapshotObj.toJSON()
+            snapshot.flows.should.have.property('flows')
+            snapshot.flows.flows.should.have.lengthOf(1)
+            snapshot.flows.flows[0].should.have.property('id', 'node1')
+            snapshot.flows.should.have.property('credentials')
+            snapshot.flows.credentials.should.have.property('$')
+            snapshot.settings.should.have.property('settings')
+            snapshot.settings.settings.should.have.property('httpAdminRoot', '/test-red')
+            snapshot.settings.settings.should.have.property('dashboardUI', '/test-dash')
+            snapshot.settings.should.have.property('env')
+            snapshot.settings.env.should.have.property('one', 'a')
+            snapshot.settings.env.should.have.property('two', 'b')
+            snapshot.settings.should.have.property('modules')
+
+            const exportResponse = await exportSnapshot(TestObjects.project1.id, result.id, TestObjects.tokens.project)
+            exportResponse.statusCode.should.equal(200)
+
+            const exportResult = exportResponse.json()
+            exportResult.should.have.property('id', result.id)
+            exportResult.should.have.property('name', snapshotName)
+            exportResult.should.have.property('createdAt')
+            exportResult.should.have.property('updatedAt')
+            exportResult.should.have.property('user')
+            exportResult.user.should.have.property('id', TestObjects.alice.hashid)
+            exportResult.should.have.property('flows')
+            exportResult.flows.should.have.property('flows')
+            exportResult.flows.flows.should.have.lengthOf(1)
+            snapshot.flows.flows[0].should.have.property('id', 'node1')
         })
     })
 
