@@ -7,7 +7,10 @@ navOrder: 2
 
 ## Prerequisites
 
- - NodeJS v16 or later
+ - NodeJS v14 or later
+
+Note that NodeJS v14 is no longer maintained by the Node project. It is not recommended
+for new installations.
  
 ## Supported Operating Systems
 
