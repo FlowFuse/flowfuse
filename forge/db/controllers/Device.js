@@ -37,7 +37,8 @@ module.exports = {
                 project: device.Project?.id || null,
                 snapshot: device.targetSnapshot?.hashid || null,
                 settings: device.settingsHash || null,
-                mode: device.mode
+                mode: device.mode,
+                licensed: app.license.active()
             }
             app.comms.devices.sendCommand(device.Team.hashid, device.hashid, 'update', payload)
         }
