@@ -55,6 +55,22 @@ module.exports = function (app) {
             return null
         }
     }
+    app.addSchema({
+        $id: 'ExportedSnapshot',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            description: { type: 'string' },
+            createdAt: { type: 'string' },
+            updatedAt: { type: 'string' },
+            user: { $ref: 'UserSummary' },
+            userWhoExported: { $ref: 'UserSummary' },
+            modules: { type: 'object', additionalProperties: true },
+            flows: { type: 'object', additionalProperties: true },
+            settings: { type: 'object', additionalProperties: true },
+        }
+    })
 
     return {
         snapshot,
