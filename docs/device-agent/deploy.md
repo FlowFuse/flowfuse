@@ -28,8 +28,9 @@ to the registered devices when you're happy with what you've created.
 The device agent does not allow local access to the Node-RED editor. This ensures
 the device is running the deployed snapshot without modification.
 
-When running on FlowForge Cloud, or a premium licensed FlowForge instance, a
-device can be placed in Developer Mode that enables remote access to the editor.
+When running on FlowForge Cloud, or a premium licensed FlowForge instance (with the
+[MQTT broker enabled](https://flowforge.com/docs/install/local/#setting-up-mosquitto-(optional))
+access to the editor.
 
 This can then be used to develop the flows directly on the device and a new snapshot
 generated from the device that can be deployed to other devices in the application.
