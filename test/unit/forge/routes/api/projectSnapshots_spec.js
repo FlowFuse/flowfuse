@@ -14,6 +14,15 @@ function encryptCredentials (key, plain) {
     return { $: initVector.toString('hex') + cipher.update(JSON.stringify(plain), 'utf8', 'base64') + cipher.final('base64') }
 }
 
+function decryptCredentials (key, cipher) {
+    let flows = cipher.$
+    const initVector = Buffer.from(flows.substring(0, 32), 'hex')
+    flows = flows.substring(32)
+    const decipher = crypto.createDecipheriv('aes-256-ctr', key, initVector)
+    const decrypted = decipher.update(flows, 'base64', 'utf8') + decipher.final('utf8')
+    return JSON.parse(decrypted)
+}
+
 describe('Project Snapshots API', function () {
     let app
     const TestObjects = {}
@@ -22,6 +31,7 @@ describe('Project Snapshots API', function () {
         app = await setup()
 
         TestObjects.project1 = app.project
+        TestObjects.project2 = app.project2
 
         // alice : admin
         // bob
@@ -47,6 +57,7 @@ describe('Project Snapshots API', function () {
 
         // TestObjects.tokens.alice = (await app.db.controllers.AccessToken.createTokenForPasswordReset(TestObjects.alice)).token
         TestObjects.tokens.project = (await app.project.refreshAuthTokens()).token
+        TestObjects.tokens.project2 = (await app.project2.refreshAuthTokens()).token
 
         TestObjects.template1 = app.template
         TestObjects.stack1 = app.stack
@@ -67,12 +78,15 @@ describe('Project Snapshots API', function () {
         await app.close()
     })
 
-    async function exportSnapshot(projectId, snapshotId, token=null, cookie=null){
+    async function exportSnapshot(projectId, snapshotId, key, cookie, credentials=null){
         return await app.inject({
-            method: 'GET',
-            url: `/storage/${projectId}/snapshots/${snapshotId}`,
+            method: 'POST',
+            url: `/api/v1/projects/${projectId}/snapshots/${snapshotId}/export`,
             ...( cookie ? { cookies: { sid: cookie } } : {} ),
-            ...( token ? { headers: { authorization: `Bearer ${token}` } } : {} ),
+            payload: {
+                credentialSecret: key,
+                ...(credentials ? {credentials: credentials} : {})
+            },
         })
     }
     async function createSnapshot (projectId, name, token) {
@@ -85,6 +99,57 @@ describe('Project Snapshots API', function () {
             cookies: { sid: token }
         })
     }
+
+    async function validateProjectSnapshotsBase(projectId, token, expectedSnapshotsNum, checkSpecificSnapshotId=null){
+        const projectSnapshots = (await listProjectSnapshots(projectId, token)).json()
+        projectSnapshots.snapshots.should.have.lengthOf(expectedSnapshotsNum)
+
+        // Question inline: Is this by design that there's no unique constraint among 'visible' snapshot's
+        // identification data (name, or more compound {name + description} ?
+        // Having such constraint would simplify version control using what operator can see in UX (name, description),
+        // not just internal id (which they not only do not see but also do not control)
+        if (checkSpecificSnapshotId){
+            const importedSnapshot = projectSnapshots.snapshots.filter(snap => snap.id === checkSpecificSnapshotId)
+            importedSnapshot.should.have.lengthOf(1)
+        }
+    }
+
+    async function importSnapshot (projectId, token, credentialSecret,
+                                   setAsTarget,
+                                   snapshot)
+    /**
+     * A flavor of 'create snapshot' while allow partial/full override of project's (denoted by "projectId") aspect,
+     * one of the [flows, credentials, settings].
+     * @param projectId also known as "instance id" - id of project A
+     * @param token auth token
+     * @param credentialSecret credentials secret of project A
+     *
+     * @param setAsTarget snapshot: boolean flag, indicates whether this snapshot should be set as target for project
+     *
+     * @param snapshot just our snapshot
+
+     * @return {Promise<*>}
+     */
+    {
+        if (!snapshot || !credentialSecret){
+            return { statusCode: 500 }
+        }
+        proto = {...snapshot}
+        proto.credentials = proto.flows.credentials
+        proto.flows = proto.flows.flows
+
+        return await app.inject({
+            method: 'POST',
+            url: `/api/v1/projects/${projectId}/snapshots`,
+            payload: {
+                setAsTarget: setAsTarget ? setAsTarget : false,
+                ...proto,
+                credentialSecret: credentialSecret
+            },
+            cookies: { sid: token }
+        })
+    }
+
     async function listProjectSnapshots (projectId, token) {
         return await app.inject({
             method: 'GET',
@@ -231,33 +296,71 @@ describe('Project Snapshots API', function () {
 
     describe('Export a snapshot', function() {
 
-        it("User cookie can't be used for project snapshot extraction", async function () {
+        const projectCredentialsSecretA = 'keyA';
+        const projectCredentialsSecretB = 'keyB';
 
-            // Alice, who is allowed to interact with public APIs for the project, can't use "export snapshot" API.
-            // This API is internal and is intended for automation CD.
-            const response = await createSnapshot(TestObjects.project1.id, 'test-project-snapshot-03', TestObjects.tokens.alice)
-            response.statusCode.should.equal(200)
-            const result = response.json()
+        it('Non-member cannot export project snapshot', async function () {
+            // Chris (non-member) cannot export ("create" permission at the moment) in ATeam
+            const response = await exportSnapshot(TestObjects.project1.id,
+                'test-project-snapshot-03',
+                projectCredentialsSecretB,
+                TestObjects.tokens.chris)
 
-            const exportResponse = await exportSnapshot(TestObjects.project1.id, result.id, null, TestObjects.tokens.alice)
-            exportResponse.statusCode.should.equal(404)
+            // 404 as a non member should not know the resource exists
+            response.statusCode.should.equal(404)
+        })
+        it('Non-Team admin cannot export project snapshot', async function () {
+            // Bob (regular member) cannot export ("create" permission at the moment) in ATeam
+            const response = await exportSnapshot(TestObjects.project1.id,
+                'test-project-snapshot-03',
+                projectCredentialsSecretB,
+                TestObjects.tokens.bob)
+
+            // 404 as a non member should not know the resource exists
+            response.statusCode.should.equal(404)
         })
 
-        it('Export project snapshot using Project token', async function () {
+        it('Export project A snapshot and apply it to project B', async function () {
+
+            const aCreds = { testCreds: 'abc' }
+            const bCredsRaw = { testCreds: 'def' }
+
+            const aFlowSignificatorNodeId = 'node1'
+            const bFlowSignificatorNodeId = 'node2'
+
+            const aEnvSignificator = 'one'
+            const bEnvSignificator = 'three'
 
             await addFlowsToProject(app,
                 TestObjects.project1.id,
                 TestObjects.tokens.project,
                 TestObjects.tokens.alice,
-                [{ id: 'node1' }],
-                { testCreds: 'abc' },
-                'key1',
+                [{ id: aFlowSignificatorNodeId }],
+                aCreds,
+                projectCredentialsSecretA,
                 {
                     httpAdminRoot: '/test-red',
                     dashboardUI: '/test-dash',
                     env: [
-                        { name: 'one', value: 'a' },
+                        { name: aEnvSignificator, value: 'a' },
                         { name: 'two', value: 'b' }
+                    ]
+                }
+            )
+
+            await addFlowsToProject(app,
+                TestObjects.project2.id,
+                TestObjects.tokens.project2,
+                TestObjects.tokens.alice,
+                [{ id: bFlowSignificatorNodeId }],
+                bCredsRaw,
+                projectCredentialsSecretB,
+                {
+                    httpAdminRoot: '/test-red-2',
+                    dashboardUI: '/test-dash-2',
+                    env: [
+                        { name: bEnvSignificator, value: 'c' },
+                        { name: 'four', value: 'd' }
                     ]
                 }
             )
@@ -288,20 +391,97 @@ describe('Project Snapshots API', function () {
             snapshot.settings.env.should.have.property('two', 'b')
             snapshot.settings.should.have.property('modules')
 
-            const exportResponse = await exportSnapshot(TestObjects.project1.id, result.id, TestObjects.tokens.project)
+            // we consider in this test that credentials of Project B will be used.
+            // If credentials of Project A are fine, credentials can be left blank in request
+            const exportResponse = await exportSnapshot(
+                TestObjects.project1.id,
+                result.id,
+                projectCredentialsSecretB,
+                TestObjects.tokens.alice,
+                bCredsRaw)
             exportResponse.statusCode.should.equal(200)
 
             const exportResult = exportResponse.json()
+
+            // verify the integrity of exported snapshot
             exportResult.should.have.property('id', result.id)
             exportResult.should.have.property('name', snapshotName)
             exportResult.should.have.property('createdAt')
             exportResult.should.have.property('updatedAt')
             exportResult.should.have.property('user')
             exportResult.user.should.have.property('id', TestObjects.alice.hashid)
+
             exportResult.should.have.property('flows')
             exportResult.flows.should.have.property('flows')
             exportResult.flows.flows.should.have.lengthOf(1)
-            snapshot.flows.flows[0].should.have.property('id', 'node1')
+            exportResult.flows.flows[0].should.have.property('id', 'node1')
+
+            // verify credentials of exported snapshot. Should belong to Project B according to setup above
+            exportResult.flows.should.have.property('credentials')
+            exportResult.flows.credentials.should.have.only.keys('$')
+
+            const credSecretB = await TestObjects.project2.getCredentialSecret()
+            const keyHashB = crypto.createHash('sha256').update(credSecretB).digest()
+
+            const decryptedCreds = decryptCredentials(keyHashB, exportResult.flows.credentials)
+            JSON.stringify(decryptedCreds).should.equal(JSON.stringify(bCredsRaw));
+
+            // time to create this snapshot on project B
+            // check that public API works
+            const importResponse = await importSnapshot(
+                TestObjects.project2.id,
+                TestObjects.tokens.alice,
+                projectCredentialsSecretB,
+                true,
+                exportResult)
+
+            importResponse.statusCode.should.equal(200)
+            const importResult = importResponse.json()
+            importResult.should.have.property('id')
+            importResult.should.have.property('name', snapshotName)
+
+            await validateProjectSnapshotsBase(
+                TestObjects.project2.id,
+                TestObjects.tokens.alice,
+                1,
+                importResult.id
+            )
+
+            // create this snapshot once again via controller to verify the imported snapshot integrity
+            const options = {...exportResult, name: 'test-project-snapshot-04'}
+            options.credentials = options.flows.credentials
+            options.flows = options.flows.flows
+            options.credentialSecret = credSecretB
+
+            const snapshotViaController =
+                await app.db.controllers.ProjectSnapshot.createSnapshot(
+                    TestObjects.project2,
+                    TestObjects.alice,
+                    options)
+
+            snapshotViaController.should.have.property('flows')
+            snapshotViaController.flows.should.have.only.keys('flows', 'credentials')
+            snapshotViaController.flows.flows.should.have.length(1)
+            snapshotViaController.flows.flows[0].should.have.property('id', aFlowSignificatorNodeId)
+            snapshotViaController.flows.credentials.should.have.only.keys('$')
+            snapshotViaController.should.have.property('settings')
+            snapshotViaController.settings.should.have.property('env')
+
+            // verify result has the proper env
+            snapshotViaController.settings.env.should.have.property(aEnvSignificator)
+            snapshotViaController.settings.env.should.have.property(aEnvSignificator)
+            snapshotViaController.settings.env.should.have.property('FF_INSTANCE_ID', TestObjects.project2.id)
+
+            // verify that credentials belong to Project B
+            const iDecryptedCreds = decryptCredentials(keyHashB, snapshotViaController.flows.credentials)
+            JSON.stringify(iDecryptedCreds).should.equal(JSON.stringify(bCredsRaw));
+
+            // verify we have expected number of snapshots now (2)
+            await validateProjectSnapshotsBase(
+                TestObjects.project2.id,
+                TestObjects.tokens.alice,
+                2
+            )
         })
     })
 

@@ -190,4 +190,56 @@ module.exports = async function (app) {
         const snapShot = await createSnapshot(app, project, user, snapshotProperties)
         reply.send(app.db.views.ProjectSnapshot.snapshot(snapShot))
     })
+
+    /**
+     * Export snapshot: return the full snapshot, including settings, envars, flows and re-encrypted credentials.
+     * /api/v1/projects/:instanceId/snapshots/:snapshotId/export
+     */
+    app.post('/:snapshotId/export', {
+        preHandler: app.needsPermission('project:snapshot:create'),
+        schema: {
+            summary: "Export snapshot of instance A re-encrypted to be used in project B according to 'credentialSecret'",
+            tags: ['Snapshots'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' },
+                    snapshotId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    credentialSecret: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'ExportedSnapshot'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+
+        if (!request.body.credentialSecret){
+            reply.code(400).send({ code: 'bad_request', error: 'credentialSecret is mandatory in the body' })
+        }
+
+        const snapShot = await app.db.controllers.ProjectSnapshot.exportSnapshot(
+            request.project,
+            request.snapshot,
+            request.body
+        )
+        if (snapShot){
+            await app.auditLog.Project.project.snapshot.exported(request.session.User, null, request.project, snapShot)
+            snapShot.userWhoExported = request.session.User
+            reply.send(snapShot)
+        } else {
+            console.error(`${trace}. No snapshot is extracted.`);
+            reply.send({})
+        }
+    })
 }
