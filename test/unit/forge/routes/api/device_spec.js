@@ -948,6 +948,84 @@ describe('Device API', async function () {
         })
     })
 
+    describe('Device state', function () {
+        async function setupProjectWithSnapshot (setActive) {
+            TestObjects.deviceProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
+            TestObjects.deviceProject.setTeam(TestObjects.ATeam)
+            // Create a snapshot
+            TestObjects.deviceProjectSnapshot = (await createSnapshot(TestObjects.deviceProject.id, 'test-snapshot', TestObjects.tokens.alice)).json()
+            if (setActive) {
+                // Set snapshot as active
+                await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/projects/${TestObjects.deviceProject.id}/devices/settings`,
+                    body: {
+                        targetSnapshot: TestObjects.deviceProjectSnapshot.id
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+            }
+        }
+        describe('unlicensed', function () {
+            it('gets live state', async function () {
+                await setupProjectWithSnapshot(true)
+                const device = await createDevice({ name: 'dev_lst_1', type: 'dev_lst_1_type', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const dbDevice = await app.db.models.Device.byId(device.id)
+                dbDevice.setProject(TestObjects.deviceProject)
+                const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
+                dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
+                await dbDevice.save()
+
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${device.id}/live/state`,
+                    headers: {
+                        authorization: `Bearer ${device.credentials.token}`,
+                        'content-type': 'application/json'
+                    }
+                })
+                const body = JSON.parse(response.body)
+                response.statusCode.should.equal(200)
+                body.should.have.keys('project', 'snapshot', 'settings', 'mode', 'licensed')
+                body.licensed.should.equal(false)
+            })
+        })
+        describe('licensed', function () {
+            before(async function () {
+                const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
+                await app.close()
+                await setupApp(license)
+            })
+            after(async function () {
+                // After this set of tests, close the app and recreate (ie remove the license)
+                await app.close()
+                await setupApp()
+            })
+            it('gets live state', async function () {
+                await setupProjectWithSnapshot(true)
+                const device = await createDevice({ name: 'Ad1', type: 'Ad1_type', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const dbDevice = await app.db.models.Device.byId(device.id)
+                dbDevice.setProject(TestObjects.deviceProject)
+                const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
+                dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
+                await dbDevice.save()
+
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${device.id}/live/state`,
+                    headers: {
+                        authorization: `Bearer ${device.credentials.token}`,
+                        'content-type': 'application/json'
+                    }
+                })
+                const body = JSON.parse(response.body)
+                response.statusCode.should.equal(200)
+                body.should.have.keys('project', 'snapshot', 'settings', 'mode', 'licensed')
+                body.licensed.should.equal(true)
+            })
+        })
+    })
+
     describe('Get list of a teams devices', async function () {
         async function listDevices (options) {
             const response = await app.inject({
