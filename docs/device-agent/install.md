@@ -37,14 +37,14 @@ npm install -g @flowforge/flowforge-device-agent
 
 
 Or you can chose to run the Docker container. When you do, you'll need to mount
-the `device.yaml` obtained when [Registering the device](./register.md):
+the `device.yml` obtained when [Registering the device](./register.md):
 
 ```bash
 docker run --mount /path/to/device.yml:/opt/flowforge-device/device.yml -p 1880:1880 flowforge/device-agent:latest
 ```
 
 Or you can chose to run the Docker-Compose via a docker-compose.yml file. When you do, you'll need to mount
-the `device.yaml` as in Docker obtained when [Registering the device](./register.md):
+the `device.yml` as in Docker obtained when [Registering the device](./register.md):
 
 ```yaml
 version: '3.9'
