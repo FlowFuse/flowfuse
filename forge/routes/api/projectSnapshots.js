@@ -223,8 +223,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-
-        if (!request.body.credentialSecret){
+        if (!request.body.credentialSecret) {
             reply.code(400).send({ code: 'bad_request', error: 'credentialSecret is mandatory in the body' })
         }
 
@@ -233,12 +232,11 @@ module.exports = async function (app) {
             request.snapshot,
             request.body
         )
-        if (snapShot){
+        if (snapShot) {
             await app.auditLog.Project.project.snapshot.exported(request.session.User, null, request.project, snapShot)
             snapShot.userWhoExported = request.session.User
             reply.send(snapShot)
         } else {
-            console.error(`${trace}. No snapshot is extracted.`);
             reply.send({})
         }
     })

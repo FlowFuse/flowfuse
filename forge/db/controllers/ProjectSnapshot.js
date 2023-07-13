@@ -32,17 +32,18 @@ module.exports = {
         if (options.settings?.modules) {
             snapshotOptions.settings.modules = options.settings.modules
         }
-        if (options.settings?.env){
+        if (options.settings?.env) {
             // derive the project's service env but not the rest
-            const service_env = ["FF_INSTANCE_ID", "FF_INSTANCE_NAME", "FF_PROJECT_ID", "FF_PROJECT_NAME"]
+            const serviceEnv = ['FF_INSTANCE_ID', 'FF_INSTANCE_NAME', 'FF_PROJECT_ID', 'FF_PROJECT_NAME']
             snapshotOptions.settings.env = {
                 ...options.settings.env,
-                ...service_env.reduce((obj, key) => {
-                    if(key in snapshotOptions.settings.env) {
-                        obj[key] = snapshotOptions.settings.env[key];
+                ...serviceEnv.reduce((obj, key) => {
+                    if (key in snapshotOptions.settings.env) {
+                        obj[key] = snapshotOptions.settings.env[key]
                     }
-                    return obj;
-                }, {})}
+                    return obj
+                }, { })
+            }
         }
         const snapshot = await app.db.models.ProjectSnapshot.create(snapshotOptions)
         await snapshot.save()
@@ -97,42 +98,30 @@ module.exports = {
     exportSnapshot: async function (app, project, snapshot, options) {
 
         let snapshotObj = snapshot.get()
-        const ctx = `ProjectSnapshotController.exportSnapshot. projectId=${project.id}. Snapshot id=${snapshotObj.hashid}`
 
-        if (!options.credentialSecret){
-            console.error(`${ctx}. credentialSecret is missing`)
+        if (!options.credentialSecret) {
             return null
         }
-
-        console.log(`${ctx}. Request received`);
 
         const user = await snapshot.getUser()
         if (user) {
             snapshotObj.user = app.db.views.User.userSummary(user)
-            const { UserId, id, ...newSnapshotObj } = snapshotObj;
-            snapshotObj = newSnapshotObj;
-            snapshotObj.id = snapshotObj.hashid;
+            const { UserId, id, ...newSnapshotObj } = snapshotObj
+            snapshotObj = newSnapshotObj
+            snapshotObj.id = snapshotObj.hashid
         }
-        console.log(`${ctx}. Snapshot is extracted`);
 
-        const proj_env_anonymization_list = ['FF_INSTANCE_ID', 'FF_INSTANCE_NAME', 'FF_PROJECT_ID', 'FF_PROJECT_NAME']
-        proj_env_anonymization_list.forEach((key) => {
-            delete snapshotObj.settings.env[key];
-        });
+        const serviceEnv = ['FF_INSTANCE_ID', 'FF_INSTANCE_NAME', 'FF_PROJECT_ID', 'FF_PROJECT_NAME']
+        serviceEnv.forEach((key) => {
+            delete snapshotObj.settings.env[key]
+        })
 
-        let result = null;
-        try{
-            result = {
-                ...snapshotObj
-            }
-        }
-        catch(error){
-            console.log(`${ctx}: ${error}`)
-            throw error
+        const result = {
+            ...snapshotObj
         }
 
         const projectSecret = await project.getCredentialSecret()
-        const credentials = options.credentials? options.credentials: result.flows.credentials
+        const credentials = options.credentials ? options.credentials : result.flows.credentials
 
         // if provided credentials already encrypted: "exportCredentials" will just return the same credentials
         // if provided credentials are raw: "exportCredentials" will encrypt them with the secret provided

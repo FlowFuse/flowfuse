@@ -78,15 +78,15 @@ describe('Project Snapshots API', function () {
         await app.close()
     })
 
-    async function exportSnapshot(projectId, snapshotId, key, cookie, credentials=null){
+    async function exportSnapshot (projectId, snapshotId, key, cookie, credentials = null) {
         return await app.inject({
             method: 'POST',
             url: `/api/v1/projects/${projectId}/snapshots/${snapshotId}/export`,
-            ...( cookie ? { cookies: { sid: cookie } } : {} ),
+            ...(cookie ? { cookies: { sid: cookie } } : {}),
             payload: {
                 credentialSecret: key,
-                ...(credentials ? {credentials: credentials} : {})
-            },
+                ...(credentials ? { credentials } : {})
+            }
         })
     }
     async function createSnapshot (projectId, name, token) {
@@ -100,7 +100,10 @@ describe('Project Snapshots API', function () {
         })
     }
 
-    async function validateProjectSnapshotsBase(projectId, token, expectedSnapshotsNum, checkSpecificSnapshotId=null){
+    async function validateProjectSnapshotsBase (projectId,
+        token,
+        expectedSnapshotsNum,
+        checkSpecificSnapshotId = null) {
         const projectSnapshots = (await listProjectSnapshots(projectId, token)).json()
         projectSnapshots.snapshots.should.have.lengthOf(expectedSnapshotsNum)
 
@@ -108,33 +111,34 @@ describe('Project Snapshots API', function () {
         // identification data (name, or more compound {name + description} ?
         // Having such constraint would simplify version control using what operator can see in UX (name, description),
         // not just internal id (which they not only do not see but also do not control)
-        if (checkSpecificSnapshotId){
+        if (checkSpecificSnapshotId) {
             const importedSnapshot = projectSnapshots.snapshots.filter(snap => snap.id === checkSpecificSnapshotId)
             importedSnapshot.should.have.lengthOf(1)
         }
     }
 
-    async function importSnapshot (projectId, token, credentialSecret,
-                                   setAsTarget,
-                                   snapshot)
     /**
      * A flavor of 'create snapshot' while allow partial/full override of project's (denoted by "projectId") aspect,
      * one of the [flows, credentials, settings].
-     * @param projectId also known as "instance id" - id of project A
-     * @param token auth token
-     * @param credentialSecret credentials secret of project A
+     * @param {*} projectId also known as "instance id" - id of project A
+     * @param {*} token auth token
+     * @param {*} credentialSecret credentials secret of project A
      *
-     * @param setAsTarget snapshot: boolean flag, indicates whether this snapshot should be set as target for project
+     * @param {*} setAsTarget: boolean flag, indicates whether this snapshot should be set as target for project
      *
-     * @param snapshot just our snapshot
+     * @param {*} snapshot just our snapshot
 
      * @return {Promise<*>}
      */
-    {
-        if (!snapshot || !credentialSecret){
+    async function importSnapshot (projectId,
+        token,
+        credentialSecret,
+        setAsTarget,
+        snapshot) {
+        if (!snapshot || !credentialSecret) {
             return { statusCode: 500 }
         }
-        proto = {...snapshot}
+        const proto = { ...snapshot }
         proto.credentials = proto.flows.credentials
         proto.flows = proto.flows.flows
 
@@ -142,9 +146,9 @@ describe('Project Snapshots API', function () {
             method: 'POST',
             url: `/api/v1/projects/${projectId}/snapshots`,
             payload: {
-                setAsTarget: setAsTarget ? setAsTarget : false,
+                setAsTarget,
                 ...proto,
-                credentialSecret: credentialSecret
+                credentialSecret
             },
             cookies: { sid: token }
         })
@@ -157,6 +161,7 @@ describe('Project Snapshots API', function () {
             cookies: { sid: token }
         })
     }
+
     describe('Create project snapshot', function () {
         it('Non-owner can create project snapshot', async function () {
             // Bob (non-owner) can create in ATeam
@@ -295,9 +300,8 @@ describe('Project Snapshots API', function () {
     })
 
     describe('Export a snapshot', function() {
-
-        const projectCredentialsSecretA = 'keyA';
-        const projectCredentialsSecretB = 'keyB';
+        const projectCredentialsSecretA = 'keyA'
+        const projectCredentialsSecretB = 'keyB'
 
         it('Non-member cannot export project snapshot', async function () {
             // Chris (non-member) cannot export ("create" permission at the moment) in ATeam
@@ -321,7 +325,6 @@ describe('Project Snapshots API', function () {
         })
 
         it('Export project A snapshot and apply it to project B', async function () {
-
             const aCreds = { testCreds: 'abc' }
             const bCredsRaw = { testCreds: 'def' }
 
@@ -424,7 +427,7 @@ describe('Project Snapshots API', function () {
             const keyHashB = crypto.createHash('sha256').update(credSecretB).digest()
 
             const decryptedCreds = decryptCredentials(keyHashB, exportResult.flows.credentials)
-            JSON.stringify(decryptedCreds).should.equal(JSON.stringify(bCredsRaw));
+            JSON.stringify(decryptedCreds).should.equal(JSON.stringify(bCredsRaw))
 
             // time to create this snapshot on project B
             // check that public API works
@@ -448,7 +451,7 @@ describe('Project Snapshots API', function () {
             )
 
             // create this snapshot once again via controller to verify the imported snapshot integrity
-            const options = {...exportResult, name: 'test-project-snapshot-04'}
+            const options = { ...exportResult, name: 'test-project-snapshot-04' }
             options.credentials = options.flows.credentials
             options.flows = options.flows.flows
             options.credentialSecret = credSecretB
@@ -474,7 +477,7 @@ describe('Project Snapshots API', function () {
 
             // verify that credentials belong to Project B
             const iDecryptedCreds = decryptCredentials(keyHashB, snapshotViaController.flows.credentials)
-            JSON.stringify(iDecryptedCreds).should.equal(JSON.stringify(bCredsRaw));
+            JSON.stringify(iDecryptedCreds).should.equal(JSON.stringify(bCredsRaw))
 
             // verify we have expected number of snapshots now (2)
             await validateProjectSnapshotsBase(
