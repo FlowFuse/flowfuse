@@ -1,3 +1,14 @@
+#### 1.9.1: Release
+
+ - Add checks for empty values in logging stream (backport #2479) (#2480) @app/github-actions
+ - Fix yaml -> yml references in device docs (backport #2469) (#2477) @app/github-actions
+ - Update node version statement in devices docs (backport #2468) (#2478) @app/github-actions
+ - Update ui-components & utilise new ff-theme-dark on signup/login (backport #2425) (#2470) @app/github-actions
+ - Doc Fixes: Remove trailing / on links with # and broken device-agent link (backport #2466) (#2467) @app/github-actions
+ - Doc updates: Device Agent (backport) (#2457) @knolleary
+ - Update custom stack information (backport #2442) (#2444) @app/github-actions
+ - Update devices.md (#2441) @ZJvandeWeg
+
 #### 1.9.0: Release
 
  - Add docs about swagger ui (#2418) @knolleary
