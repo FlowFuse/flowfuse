@@ -1,19 +1,33 @@
 <template>
-    <label class="ff-toggle-switch" :disabled="disabled">
-        <input v-model="model" type="checkbox" :value="modelValue" :disabled="disabled" @click="toggle" />
-        <div class="ff-toggle-switch-slider">
+    <label class="ff-toggle-switch" :disabled="disabled" :class="{'checked': model}">
+        <!-- <input v-model="model" type="checkbox" :value="modelValue" /> -->
+        <div class="ff-toggle-switch-slider" @click="toggle">
             <div class="ff-toggle-switch-button">
-                <slot></slot>
+                <slot v-if="!loading"></slot>
+                <FFSpinner v-else />
             </div>
         </div>
     </label>
 </template>
 
 <script>
+import FFSpinner from '@/components/Spinner.vue'
+
 export default {
     name: 'ff-toggle-switch',
+    components: {
+        FFSpinner
+    },
     props: {
         disabled: {
+            default: false,
+            type: Boolean
+        },
+        mode: {
+            default: 'sync',
+            type: String
+        },
+        loading: {
             default: false,
             type: Boolean
         },
@@ -22,7 +36,7 @@ export default {
             type: Boolean
         }
     },
-    emits: ['update:modelValue'],
+    emits: ['update:modelValue', 'click'],
     computed: {
         model: {
             get () {
@@ -41,8 +55,16 @@ export default {
             this.$refs.input?.blur()
         },
         toggle () {
+            console.log('toggling')
             if (!this.disabled) {
-                this.model = !this.model
+                if (this.mode === 'sync') {
+                    console.log('switch model')
+                    this.model = !this.model
+                } else if (this.mode === 'async') {
+                    this.$emit('click')
+                } else {
+                    throw new Error('Invalid mode')
+                }
             }
         }
     }

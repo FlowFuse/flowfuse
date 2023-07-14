@@ -201,11 +201,26 @@
             "code": "<ff-toggle-switch v-model=\"myVar\"><CodeIcon /></ff-toggle-switch>"
         }, {
             "code": "<ff-toggle-switch v-model=\"myVar\" disabled=\"true\"><CodeIcon /></ff-toggle-switch>"
+        }, {
+            "code": "<ff-toggle-switch v-model=\"myVar\" mode=\"async\" :loading=\"loading\"><CodeIcon /></ff-toggle-switch>"
+        }],
+        "emits": [{
+            "event": "click",
+            "example": null,
+            "description": "This event is emitted when the toggle switch is clicked and running in 'async' mode. State management for the switch value must then be controlled by the parent."
         }],
         "props": [{
+            "key": "mode",
+            "default": "sync",
+            "description": "sync | async. When in 'sync' mode (default), the switch will automatically update the value of v-model. When in 'async' mode, the switch will instead emit an '@click' event for the parent to handle the state management."
+        }, {
             "key": "disabled",
             "default": "false",
             "description": "Whether or not the switch can be toggled."
+        }, {
+            "key": "loading",
+            "default": "false",
+            "description": "Displays a loading spinner inside the button of the switch."
         }],
         "slots": [{
             "name": "default",

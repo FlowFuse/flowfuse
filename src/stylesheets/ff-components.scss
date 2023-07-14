@@ -425,10 +425,10 @@ li.ff-list-item {
     input {
       display: none;
     }
-    input:checked + .ff-toggle-switch-slider {
+    &.checked .ff-toggle-switch-slider {
       background-color: $ff-blue-900;
     }
-    input:checked + .ff-toggle-switch-slider .ff-toggle-switch-button{
+    &.checked .ff-toggle-switch-slider .ff-toggle-switch-button{
       -webkit-transform: translateX(var(--ff-toggle-translate));
       -ms-transform: translateX(var(--ff-toggle-translate));
       transform: translateX(var(--ff-toggle-translate));
@@ -1099,5 +1099,27 @@ $countdown_size: 20px;
   vertical-align: bottom;
   &:hover .ff-tooltip {
     opacity: 1;
+  }
+}
+
+.ff-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  color: $ff-grey-500;
+  circle {
+    stroke: transparent;
+  }
+  animation: spin 1s ease-in-out infinite;
+  -webkit-animation: spin 1s ease-in-out infinite;
+  @keyframes spin {
+    to {
+      -webkit-transform: rotate(360deg);
+    }
+  }
+  @-webkit-keyframes spin {
+    to {
+      -webkit-transform: rotate(360deg);
+    }
   }
 }

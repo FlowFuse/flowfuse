@@ -572,11 +572,13 @@
                 <props-table :rows="cGroups['input'].components[5].props"></props-table>
                 <h3>Slots:</h3>
                 <slots-table :rows="cGroups['input'].components[5].slots"></slots-table>
+                <h3>Emits:</h3>
+                <events-table :rows="cGroups['input'].components[5].emits"></events-table>
                 <h3>Examples:</h3>
                 <div class="examples">
                     <div class="example">
                         <h5>Example 1: Default</h5>
-                        <ff-toggle-switch v-model="models.switch0" />
+                        <ff-toggle-switch v-model="models.switch0"/>
                         {{ models.switch0 }}
                         <code>{{ cGroups['input'].components[5].examples[0].code }}</code>
                     </div>
@@ -595,6 +597,15 @@
                         </ff-toggle-switch>
                         {{ models.switch2 }}
                         <code>{{ cGroups['input'].components[5].examples[2].code }}</code>
+                    </div>
+                    <div class="example">
+                        <h5>Example 4: Async State</h5>
+                        <p style="margin-bottom: 9px;">Calls a function with a fixed timeout of 2 seconds, then sets the relevant state. Will show a "loading" state intermittently until state is resolved within the function.</p>
+                        <ff-toggle-switch v-model="models.switch3" mode="async" :loading="loading.switch3" @click="onSwitchClick">
+                            <CodeIcon />
+                        </ff-toggle-switch>
+                        {{ models.switch3 }}
+                        <code>{{ cGroups['input'].components[5].examples[3].code }}</code>
                     </div>
                 </div>
             </div>
@@ -789,12 +800,17 @@ export default {
                 checkbox2: false,
                 switch0: false,
                 switch1: false,
+                switch2: false,
+                switch3: false,
                 radio0: null,
                 radio1: null,
                 radio2: null,
                 tiles0: null,
                 tiles1: null,
                 tiles3: 3
+            },
+            loading: {
+                switch3: false
             },
             // components
             cGroups: {
@@ -1028,6 +1044,13 @@ export default {
         },
         clearAlert (i) {
             this.alerts.splice(this.alerts.length - 1 - i, 1)
+        },
+        onSwitchClick () {
+            this.loading.switch3 = true
+            setTimeout(() => {
+                this.models.switch3 = !this.models.switch3
+                this.loading.switch3 = false
+            }, 2000)
         }
     }
 }
