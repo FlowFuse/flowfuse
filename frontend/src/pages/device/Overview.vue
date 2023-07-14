@@ -120,7 +120,7 @@
             <table class="table-fixed w-full" v-if="device">
                 <tr class="border-b">
                     <td class="w-1/4 font-medium">Editor Access</td>
-                    <td class="w-26 font-medium">
+                    <td class="w-28 font-medium">
                         <div class="forge-badge" :class="'forge-status-' + (editorEnabled ? (editorTunnelConnected ? 'running' : 'error') : 'stopped')">
                             <span v-if="editorEnabled">
                                 <span v-if="editorTunnelConnected">enabled</span>
@@ -157,7 +157,7 @@
                 </tr>
                 <tr class="border-b">
                     <td class="w-1/4 font-medium">Device Flows</td>
-                    <td class="w-26 font-medium">&nbsp;</td>
+                    <td class="w-28 font-medium">&nbsp;</td>
                     <td class="py-2">
                         <ff-button
                             kind="secondary"
