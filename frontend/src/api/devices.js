@@ -73,8 +73,8 @@ const updateSettings = async (deviceId, settings) => {
 }
 
 const enableEditorTunnel = async (deviceId) => {
-    // * Enable Device Editor (Step 2) - (frontendApi->forge:HTTP) {put} /api/v1/devices/{deviceId}/editor { tunnel: 'enable' }
-    return client.put(`/api/v1/devices/${deviceId}/editor`, { tunnel: 'enable' }).then(res => {
+    // * Enable Device Editor (Step 2) - (frontendApi->forge:HTTP) {put} /api/v1/devices/{deviceId}/editor { enabled: true }
+    return client.put(`/api/v1/devices/${deviceId}/editor`, { enabled: true }).then(res => {
         // * Enable Device Editor (Step 12) - (frontendApi->browser) return result step 1 (THE END)
         return res.data
     })
@@ -82,7 +82,7 @@ const enableEditorTunnel = async (deviceId) => {
 
 const disableEditorTunnel = async (deviceId) => {
     // (api->forge) {put} /api/v1/devices/{deviceId}/editor { tunnel: 'disable' }
-    return client.put(`/api/v1/devices/${deviceId}/editor`, { tunnel: 'disable' }).then(res => {
+    return client.put(`/api/v1/devices/${deviceId}/editor`, { enabled: false }).then(res => {
         return res.data
     })
 }
