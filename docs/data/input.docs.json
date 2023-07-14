@@ -37,8 +37,7 @@
         },{
             "name": "blur",
             "description": "Removes focus from the element"
-        }
-    ],
+        }],
         "slots": [{
             "name": "icon",
             "description": "Pass in an icon to this slot to render it on hte left-side of the input field"
@@ -192,6 +191,25 @@
         },{
             "name": "blur",
             "description": "Removes focus from all tile selections"
+        }]
+    }, {
+        "name": "ff-toggle-switch",
+        "description": "This requires a pairing of components. The container, `ff-tile-selection`, and the options, `ff-tile-selection-options`. The following properties are available to the options.",
+        "examples": [{
+            "code": "<ff-toggle-switch v-model=\"myVar\"></ff-toggle-switch>"
+        }, {
+            "code": "<ff-toggle-switch v-model=\"myVar\"><CodeIcon /></ff-toggle-switch>"
+        }, {
+            "code": "<ff-toggle-switch v-model=\"myVar\" disabled=\"true\"><CodeIcon /></ff-toggle-switch>"
+        }],
+        "props": [{
+            "key": "disabled",
+            "default": "false",
+            "description": "Whether or not the switch can be toggled."
+        }],
+        "slots": [{
+            "name": "default",
+            "description": "Pass in an icon to this slot to render it within the button of the switch."
         }]
     }]
 }
