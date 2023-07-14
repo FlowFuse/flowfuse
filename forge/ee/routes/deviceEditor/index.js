@@ -121,7 +121,8 @@ module.exports = async function (app) {
     })
 
     /**
-     * Initiate inbound websocket connection from device
+     * End-point used by devices to create their websocket tunnel back to the
+     * platform
      * @name /api/v1/devices/:deviceId/editor/comms/:access_token
      */
     app.get('/comms/:access_token', {
@@ -155,17 +156,35 @@ module.exports = async function (app) {
     app.route({
         method: 'GET', // only GET is permitted for WS
         url: '/proxy/*',
+        // Set 'allowAnonymous' as we don't want to return the standard API
+        // response object. Instead, we will use the preHandler to detect
+        // there's no session user and redirect to the device overview
+        config: { allowAnonymous: true },
+        preHandler: async (request, reply) => {
+            if (!request.session?.User) {
+                // Failed authentication. Redirect to the device overview page
+                reply.redirect(303, `/device/${request.params.deviceId}/overview`)
+            } else {
+                // For a websocket comms request
+                if (/\/comms$/.test(request.url)) {
+                    const status = getTunnelManager().getTunnelStatus(request.params.deviceId)
+                    if (!status?.connected) {
+                        reply.code(502).send('The connection to the editor is currently unavailable')
+                    }
+                }
+            }
+        },
         handler: (request, reply) => {
             // Handle HTTP GET requests from the device
             const tunnelManager = getTunnelManager()
             if (tunnelManager.handleHTTP(request.params.deviceId, request, reply)) {
                 return
             } else if (tunnelManager.getTunnelStatus(request.params.deviceId)) {
-                reply.code(502).send() // Bad Gateway (tunnel exists but it has lost connection or is in an intermediate state)
+                reply.code(502).send('The connection to the editor is currently unavailable') // Bad Gateway (tunnel exists but it has lost connection or is in an intermediate state)
                 return
             }
             // tunnel does not exist
-            reply.code(503).send() // Service Unavailable
+            reply.code(503).send('The editor is not currently enabled for this device') // Service Unavailable
         },
         wsHandler: (connection, request) => {
             // Handle WS connection from the device
