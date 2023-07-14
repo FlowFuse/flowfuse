@@ -144,7 +144,8 @@
         "vue-template-compiler": "^2.7.14",
         "webpack": "^5.84.1",
         "webpack-cli": "^5.1.1",
-        "webpack-dev-server": "^4.15.0"
+        "webpack-dev-server": "^4.15.0",
+        "ws": "^8.13.0"
     },
     "engines": {
         "node": ">=16.x"

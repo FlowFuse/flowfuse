@@ -47,6 +47,12 @@ class DeviceTunnelManager {
         /** @type {ForgeApplication}  Forge application (Fastify app) */
         this.app = app
         this.#tunnels = new Map()
+
+        this.app.addHook('onClose', async (_) => {
+            Object.keys(this.#tunnels).forEach(deviceId => {
+                this.closeTunnel(deviceId)
+            })
+        })
     }
 
     /**
@@ -93,7 +99,7 @@ class DeviceTunnelManager {
     getTunnelStatus (deviceId) {
         const exists = this.#tunnels.has(deviceId)
         if (!exists) {
-            return null
+            return { enabled: false }
         }
         const url = this.getTunnelUrl(deviceId)
         const enabled = this.isEnabled(deviceId)
@@ -105,7 +111,6 @@ class DeviceTunnelManager {
         const tunnel = this.#getTunnel(deviceId)
         if (tunnel) {
             tunnel.socket?.close()
-            tunnel.socket?.removeAllListeners()
             // Close all of the editor websockets that were using this tunnel
             Object.keys(tunnel?.forwardedWS).forEach(reqId => {
                 const wsClient = tunnel.forwardedWS[reqId]
@@ -153,7 +158,6 @@ class DeviceTunnelManager {
         // Close any existing tunnel
         if (tunnel.socket) {
             tunnel.socket.close()
-            tunnel.socket.removeAllListeners()
         }
         tunnel.socket = inboundDeviceConnection.socket
 
