@@ -202,7 +202,7 @@
         }, {
             "code": "<ff-toggle-switch v-model=\"myVar\" disabled=\"true\"><CodeIcon /></ff-toggle-switch>"
         }, {
-            "code": "<ff-toggle-switch v-model=\"myVar\" mode=\"async\" :loading=\"loading\"><CodeIcon /></ff-toggle-switch>"
+            "code": "<ff-toggle-switch v-model=\"myVar\" mode=\"async\" :loading=\"loading\" @click=\"onSwitchClick\"><CodeIcon /></ff-toggle-switch>"
         }],
         "emits": [{
             "event": "click",

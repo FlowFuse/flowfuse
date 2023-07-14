@@ -601,6 +601,7 @@
                     <div class="example">
                         <h5>Example 4: Async State</h5>
                         <p style="margin-bottom: 9px;">Calls a function with a fixed timeout of 2 seconds, then sets the relevant state. Will show a "loading" state intermittently until state is resolved within the function.</p>
+                        <p style="margin-bottom: 9px;">Be sure to clear the "loading" state in your onSwitchClick function when appropriate.</p>
                         <ff-toggle-switch v-model="models.switch3" mode="async" :loading="loading.switch3" @click="onSwitchClick">
                             <CodeIcon />
                         </ff-toggle-switch>
