@@ -21,7 +21,7 @@ jobs:
       - name: "Set dependecies versions"
         run: |
           npm version prerelease --preid `git rev-parse --short HEAD`-`date +%Y%m%d` --no-git-tag-version
-          cat package.json | jq '.dependencies["@flowforge/localfs"] = "{{ env.release_name }}" | .dependencies["@flowforge/forge-ui-components"] = "{{ env.release_name }}"' > package.json-patched
+          cat package.json | jq '.dependencies["@flowforge/localfs"] = "${{ env.release_name }}" | .dependencies["@flowforge/forge-ui-components"] = "${{ env.release_name }}"' > package.json-patched
           mv package.json-patched package.json
       - name: "Publish npm package"
         uses: JS-DevTools/npm-publish@v2
