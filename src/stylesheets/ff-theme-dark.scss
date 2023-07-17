@@ -106,6 +106,40 @@
     }
 
     /**
+    *  FF Toggle Switch
+    */
+    .ff-toggle-switch {
+        svg {
+          color: $ff-grey-800;
+        }
+        input:checked + .ff-toggle-switch-slider {
+          background-color: $ff-blue-600;
+        }
+        &[disabled=true] {
+          .ff-toggle-switch-slider {
+            background-color: $ff-grey-700;
+          }
+          .ff-toggle-switch-button {
+            background-color: $ff-grey-800;
+          }
+          svg {
+            color: $ff-grey-500;
+          }
+        }
+    }
+
+    .ff-toggle-switch-slider {
+        background-color: $ff-grey-600;
+        &:hover {
+          background-color: $ff-indigo-500 !important;
+        }
+    }
+
+    .ff-toggle-switch-button {
+        background-color: $ff-white;
+    }
+
+    /**
     *  Radio Group
     */
 

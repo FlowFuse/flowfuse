@@ -37,8 +37,7 @@
         },{
             "name": "blur",
             "description": "Removes focus from the element"
-        }
-    ],
+        }],
         "slots": [{
             "name": "icon",
             "description": "Pass in an icon to this slot to render it on hte left-side of the input field"
@@ -192,6 +191,40 @@
         },{
             "name": "blur",
             "description": "Removes focus from all tile selections"
+        }]
+    }, {
+        "name": "ff-toggle-switch",
+        "description": "This requires a pairing of components. The container, `ff-tile-selection`, and the options, `ff-tile-selection-options`. The following properties are available to the options.",
+        "examples": [{
+            "code": "<ff-toggle-switch v-model=\"myVar\"></ff-toggle-switch>"
+        }, {
+            "code": "<ff-toggle-switch v-model=\"myVar\"><CodeIcon /></ff-toggle-switch>"
+        }, {
+            "code": "<ff-toggle-switch v-model=\"myVar\" disabled=\"true\"><CodeIcon /></ff-toggle-switch>"
+        }, {
+            "code": "<ff-toggle-switch v-model=\"myVar\" mode=\"async\" :loading=\"loading\" @click=\"onSwitchClick\"><CodeIcon /></ff-toggle-switch>"
+        }],
+        "emits": [{
+            "event": "click",
+            "example": null,
+            "description": "This event is emitted when the toggle switch is clicked and running in 'async' mode. State management for the switch value must then be controlled by the parent."
+        }],
+        "props": [{
+            "key": "mode",
+            "default": "sync",
+            "description": "sync | async. When in 'sync' mode (default), the switch will automatically update the value of v-model. When in 'async' mode, the switch will instead emit an '@click' event for the parent to handle the state management."
+        }, {
+            "key": "disabled",
+            "default": "false",
+            "description": "Whether or not the switch can be toggled."
+        }, {
+            "key": "loading",
+            "default": "false",
+            "description": "Displays a loading spinner inside the button of the switch."
+        }],
+        "slots": [{
+            "name": "default",
+            "description": "Pass in an icon to this slot to render it within the button of the switch."
         }]
     }]
 }
