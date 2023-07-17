@@ -58,7 +58,7 @@
         "@fastify/cookie": "^8.3.0",
         "@fastify/csrf-protection": "^6.3.0",
         "@fastify/formbody": "^7.4.0",
-        "@fastify/helmet": "^10.1.1",
+        "@fastify/helmet": "^11.0.0",
         "@fastify/passport": "^2.3.0",
         "@fastify/static": "^6.10.2",
         "@fastify/swagger": "^8.6.0",
