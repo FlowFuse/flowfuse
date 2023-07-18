@@ -291,6 +291,36 @@ function prepareTemplateForEdit (template) {
     return result
 }
 
+/**
+ * Parse .env file data into an object
+ * NOTES:
+ * * Variable expansion is not supported
+ * * Comments are not supported
+ * * Only simple key/value pairs are supported
+ * * Only single-line values are supported
+ * @param {String} data The env file data to parse
+ * @returns key/value pairs
+ */
+function parseDotEnv (data) {
+    const result = {}
+    const lines = data.split('\n')
+    for (const line of lines) {
+        const match = line.match(/^([^=:#]+?)[=:](.*)/)
+        if (match) {
+            const key = match[1].trim()
+            let value // get value from match[2], trimming any surrounding quotes
+            const valueMatch = match[2].trim().match(/^(['"]?)(.+)\1$/)
+            if (valueMatch) {
+                value = valueMatch[2]
+            } else {
+                value = match[2].trim()
+            }
+            result[key] = value
+        }
+    }
+    return result
+}
+
 function isPasswordField (path) {
     return passwordTypes.includes(path)
 }
@@ -358,6 +388,7 @@ export {
     defaultTemplateValues,
     templateFields,
     templateValidators,
+    parseDotEnv,
     prepareTemplateForEdit,
     comparePaletteModules
 }
