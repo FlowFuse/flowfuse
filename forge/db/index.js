@@ -50,7 +50,9 @@ module.exports = fp(async function (app, _opts, next) {
         dbOptions.password = /* app.secrets.dbPassword || */ app.config.db.password
         dbOptions.database = app.config.db.database || 'flowforge'
         dbOptions.dialectOptions = {
-            sslmode: 'prefer'
+            ssl: {
+                sslmode: 'prefer'
+            }
         }
     }
 
