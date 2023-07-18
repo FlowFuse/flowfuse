@@ -33,6 +33,7 @@ import FFTab from './components/tabs/Tab.vue'
 import FFCheck from './components/Check.vue'
 import FFListItem from './components/ListItem.vue'
 import FFMarkdownViewer from './components/Markdown.vue'
+import FFSpinner from './components/Spinner.vue'
 
 export default {
     FFButton,
@@ -42,6 +43,7 @@ export default {
     FFListItem,
     FFCheck,
     FFMarkdownViewer,
+    FFSpinner,
     // Data Table
     FFDataTable,
     FFDataTableRow,

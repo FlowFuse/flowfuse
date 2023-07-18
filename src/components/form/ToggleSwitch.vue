@@ -4,20 +4,15 @@
         <div class="ff-toggle-switch-slider" @click="toggle">
             <div class="ff-toggle-switch-button">
                 <slot v-if="!loading"></slot>
-                <FFSpinner v-else />
+                <ff-spinner v-else />
             </div>
         </div>
     </label>
 </template>
 
 <script>
-import FFSpinner from '@/components/Spinner.vue'
-
 export default {
     name: 'ff-toggle-switch',
-    components: {
-        FFSpinner
-    },
     props: {
         disabled: {
             default: false,
