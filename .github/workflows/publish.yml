@@ -1,5 +1,14 @@
 name: Publish
 on:
+  workflow_dispatch:
+    inputs:
+      localfs_release_name:
+        description: 'localfs package version'
+        required: false
+        default: 'nightly'
+      localfs_ref:
+        description: 'localfs package ref'
+        required: false
   schedule:
     - cron: '0 23 * * *'
   push:
