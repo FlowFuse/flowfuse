@@ -123,12 +123,14 @@ export default {
                 this.original = preparedTemplate.original
                 const templateEnvMap = {}
                 this.templateEnvValues = {}
-                this.editable.settings.env.forEach(envVar => {
+                this.editable.settings.env.forEach((envVar, index) => {
+                    envVar.index = index // ensure all env vars have an index
                     templateEnvMap[envVar.name] = envVar
                     this.templateEnvValues[envVar.name] = envVar.value
                 })
                 if (this.project.settings.env) {
-                    this.project.settings.env.forEach(envVar => {
+                    this.project.settings.env.forEach((envVar) => {
+                        envVar.index = this.editable.settings.env.length // ensure all env vars have an index
                         if (templateEnvMap[envVar.name]) {
                             if (templateEnvMap[envVar.name].policy) {
                                 templateEnvMap[envVar.name].value = envVar.value
