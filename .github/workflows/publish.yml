@@ -50,6 +50,6 @@ jobs:
         with:
           workflow: flowforge-container.yml
           repo: flowforge/helm
-          ref: feat-publish-pipeline-poc
+          ref: feat-flowforge-container-poc
           token: ${{ steps.generate_token.outputs.token }}
           inputs: '{"flowforge_ref": "${{ github.ref }}", "flowforge_release_name": "${{ env.release_name }}"}'
