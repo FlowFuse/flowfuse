@@ -167,7 +167,7 @@ module.exports = {
         return projectExport
     },
 
-    importProjectSnapshot: async function restoreSnapshot (app, project, snapshot) {
+    importProjectSnapshot: async function restoreSnapshot (app, project, snapshot, { mergeEnvVars } = { mergeEnvVars: false }) {
         const t = await app.db.sequelize.transaction() // start a transaction
         try {
             if (snapshot?.flows?.flows) {

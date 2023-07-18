@@ -448,4 +448,49 @@ describe('Project controller', function () {
             ])
         })
     })
+
+    it('merges env vars with priority to the source if the flag is set', async function () {
+        const instance = await app.db.models.Project.create({
+            name: 'new-project',
+            type: '',
+            url: ''
+        })
+
+        await instance.updateSettings({
+            settings: {
+                // as array
+                env: [
+                    { name: 'REMOVED_KEY', value: 'old-value-1' }, // should not get changed
+                    { name: 'EXISTING_KEY', value: 'old-value-2' } // should not get changed
+                ]
+            }
+        })
+
+        const snapshot = {
+            flows: { flows: [] },
+            settings: {
+                // as object is convered to array when saved to DB
+                env: {
+                    EXISTING_KEY: 'new-value-2', // should do nothing
+                    NEW_KEY: 'new-value-3' // should be added
+                }
+            }
+        }
+
+        await app.db.controllers.Project.importProjectSnapshot(instance, snapshot, { mergeEnvVars: true })
+
+        const instanceSettings = await instance.getSetting('settings')
+
+        instanceSettings.env.length.should.equal(3)
+        instanceSettings.env.map((envVar) => envVar.name).should.match(['REMOVED_KEY', 'EXISTING_KEY', 'NEW_KEY'])
+
+        instanceSettings.env[0].name.should.equal('REMOVED_KEY')
+        instanceSettings.env[0].value.should.equal('old-value-1')
+
+        instanceSettings.env[1].name.should.equal('EXISTING_KEY')
+        instanceSettings.env[1].value.should.equal('old-value-2')
+
+        instanceSettings.env[2].name.should.equal('NEW_KEY')
+        instanceSettings.env[2].value.should.equal('new-value-3')
+    })
 })
