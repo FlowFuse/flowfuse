@@ -39,3 +39,17 @@ jobs:
           package: ./package.json
           registry: https://npm.pkg.github.com
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate a token
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.GH_BOT_APP_ID }}
+          private_key: ${{ secrets.GH_BOT_APP_KEY }}
+      - name: Trigger flowforge-container rebuild
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: flowforge-container.yml
+          repo: flowforge/helm
+          ref: feat-publish-pipeline-poc
+          token: ${{ steps.generate_token.outputs.token }}
+          inputs: '{"flowforge_ref": "${{ github.ref }}", "flowforge_release_name": "${{ env.release_name }}"}'
