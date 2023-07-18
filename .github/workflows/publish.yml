@@ -24,27 +24,39 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
       - name: Set nigthly release
         # if: ${{ github.event_name == 'schedule' }}
         run: echo "release_name=nightly" >> $GITHUB_ENV
+
       - name: "Set dependecies versions"
         run: |
           npm version prerelease --preid `git rev-parse --short HEAD`-`date +%Y%m%d` --no-git-tag-version
           cat package.json | jq '.dependencies["@flowforge/localfs"] = "${{ env.release_name }}" | .dependencies["@flowforge/forge-ui-components"] = "${{ env.release_name }}"' > package.json-patched
           mv package.json-patched package.json
-      - name: "Publish npm package"
+
+      - name: "Build flowforge package"
+        run: |
+          echo '//npm.pkg.github.com/:_authToken="${{ secrets.GITHUB_TOKEN }}"' > ~/.npmrc
+          npm install --@flowforge:registry=https://npm.pkg.github.com
+          npm run build
+          rm ~/.npmrc
+
+      - name: "Publish flowforge package"
         uses: JS-DevTools/npm-publish@v2
         with:
           tag: ${{ env.release_name }}
           package: ./package.json
           registry: https://npm.pkg.github.com
           token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Generate a token
         id: generate_token
         uses: tibdex/github-app-token@v1
         with:
           app_id: ${{ secrets.GH_BOT_APP_ID }}
           private_key: ${{ secrets.GH_BOT_APP_KEY }}
+
       - name: Trigger flowforge-container rebuild
         uses: benc-uk/workflow-dispatch@v1
         with:
