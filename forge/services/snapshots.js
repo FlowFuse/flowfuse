@@ -44,7 +44,7 @@ module.exports.copySnapshot = async (app, snapshot, toInstance, { importSnapshot
     )
 
     if (importSnapshot) {
-        await app.db.controllers.Project.importProjectSnapshot(toInstance, newSnapshot)
+        await app.db.controllers.Project.importProjectSnapshot(toInstance, newSnapshot, { mergeEnvVars: true })
     }
 
     if (setAsTarget) {
