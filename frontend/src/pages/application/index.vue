@@ -230,30 +230,28 @@ export default {
         async instanceStart (instance) {
             const mutator = new InstanceStateMutator(instance)
             mutator.setStateOptimistically('starting')
-
-            const err = await InstanceApi.startInstance(instance)
-            if (err) {
+            try {
+                await InstanceApi.startInstance(instance)
+                mutator.setStateAsPendingFromServer()
+            } catch (err) {
                 console.warn('Instance start failed.', err)
                 alerts.emit('Instance start failed.', 'warning')
 
                 mutator.restoreState()
-            } else {
-                mutator.setStateAsPendingFromServer()
             }
         },
 
         async instanceRestart (instance) {
             const mutator = new InstanceStateMutator(instance)
             mutator.setStateOptimistically('restarting')
-
-            const err = await InstanceApi.restartInstance(instance)
-            if (err) {
+            try {
+                await InstanceApi.restartInstance(instance)
+                mutator.setStateAsPendingFromServer()
+            } catch (err) {
                 console.warn('Instance restart failed.', err)
                 alerts.emit('Instance restart failed.', 'warning')
 
                 mutator.restoreState()
-            } else {
-                mutator.setStateAsPendingFromServer()
             }
         },
 
