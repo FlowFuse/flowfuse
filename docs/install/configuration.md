@@ -57,6 +57,7 @@ Option       | Description
 `db.database`| Database name on Postgres Server. Default: `flowforge`.
 `db.user`    | Username used when connecting to Postgres Server. 
 `db.password`| Password used when connecting to Postgres Server.
+`db.ssl`     | Client should connect with SSL/TLS. Default: `false`
 
 ## Node-RED Driver configuration
 
