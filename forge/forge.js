@@ -60,7 +60,7 @@ module.exports = async (options = {}) => {
                         request: {
                             url: reply.request?.raw?.url,
                             method: reply.request?.method,
-                            remoteAddress: reply.request?.socket.remoteAddress,
+                            remoteAddress: reply.request?.ip,
                             remotePort: reply.request?.socket.remotePort
                         }
                     }
