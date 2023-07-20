@@ -76,7 +76,8 @@ module.exports = async function (app) {
 
         const currentState = tunnelManager.getTunnelStatus(deviceId)
         if (currentState.enabled === mode) {
-            reply.code(400).send({ code: 'invalid_request', error: 'Device Editor already ' + (mode ? 'enabled' : 'disabled') })
+            const tunnelStatus = tunnelManager.getTunnelStatus(request.device.hashid) || { enabled: false }
+            reply.send(tunnelStatus)
             return
         }
 

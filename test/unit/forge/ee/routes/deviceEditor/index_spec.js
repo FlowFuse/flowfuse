@@ -123,7 +123,23 @@ describe('Device Editor API', function () {
             TestObjects.tokens.should.have.property(app.device.hashid)
         })
 
+        it('can enable an already enabled editor mode', async function () {
+            const result = await setDeviceEditorStatus(app.device.hashid, TestObjects.tokens.alice, true)
+            result.should.have.property('enabled', true)
+            result.should.have.property('connected', false)
+            result.should.have.property('url')
+            TestObjects.tokens.should.have.property(app.device.hashid)
+        })
+
         it('disable editor mode', async function () {
+            const result = await setDeviceEditorStatus(app.device.hashid, TestObjects.tokens.alice, false)
+            result.should.have.property('enabled', false)
+            result.should.not.have.property('connected')
+            result.should.not.have.property('url')
+            TestObjects.tokens.should.not.have.property(app.device.hashid)
+        })
+
+        it('can disable and already disabled editor mode', async function () {
             const result = await setDeviceEditorStatus(app.device.hashid, TestObjects.tokens.alice, false)
             result.should.have.property('enabled', false)
             result.should.not.have.property('connected')
