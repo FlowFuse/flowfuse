@@ -1,6 +1,6 @@
 {
     "name": "@flowforge/flowforge",
-    "version": "1.9.1",
+    "version": "1.9.2",
     "description": "An open source low-code development platform",
     "homepage": "https://flowforge.com",
     "bugs": {
@@ -65,7 +65,7 @@
         "@fastify/swagger-ui": "^1.9.0",
         "@fastify/websocket": "^8.1.0",
         "@flowforge/forge-ui-components": "^0.7.0",
-        "@flowforge/localfs": "^1.9.0",
+        "@flowforge/localfs": "^1.9.2",
         "@headlessui/vue": "1.7.14",
         "@heroicons/vue": "1.0.6",
         "@node-saml/passport-saml": "^4.0.4",
