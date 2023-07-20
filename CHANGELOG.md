@@ -1,3 +1,7 @@
+#### 1.9.3: Release
+
+ - Treat disabling an already disabled editor tunnel as a no-op (backport #2510) (#2511) @app/github-actions
+
 #### 1.9.2: Release
 
  - Improve error handling around Device Agent tunnels - backport (#2508) @knolleary
