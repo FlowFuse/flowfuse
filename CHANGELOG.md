@@ -1,3 +1,11 @@
+#### 1.9.2: Release
+
+ - Improve error handling around Device Agent tunnels - backport (#2508) @knolleary
+ - Fix incorrect 'start-failed' notifications (backport #2505) (#2506) @app/github-actions
+ - Update docker to use volume flag (backport #2498) (#2499) @app/github-actions
+ - Make the response log entry contains the real source IP address (backport #2503) (#2504) @app/github-actions
+ - typo: hve -> have (backport #2496) (#2497) @app/github-actions
+
 #### 1.9.1: Release
 
  - Add checks for empty values in logging stream (backport #2479) (#2480) @app/github-actions
