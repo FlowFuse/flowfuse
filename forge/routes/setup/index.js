@@ -40,7 +40,7 @@ module.exports = async function (app) {
                 })
                 app.log.info('[SETUP] Created default Admin User')
                 app.log.info('[SETUP] username: admin')
-                app.log.info(`[SETUP] password ${password}`)
+                app.log.info(`[SETUP] password: ${password}`)
             }
         }
 
