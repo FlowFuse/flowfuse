@@ -1,5 +1,6 @@
 const should = require('should') // eslint-disable-line
 const snapshots = require('../../../../forge/services/snapshots')
+const { decryptCreds } = require('../../../lib/decryptCreds')
 
 const FF_UTIL = require('flowforge-test-utils')
 
@@ -67,7 +68,7 @@ describe('Snapshots Service', function () {
         })
 
         it('Sets the snapshot as the target if setAsTarget is true', async function () {
-            const instance = await APP.db.models.Project.create({ name: 'instance-1', type: '', url: '' })
+            const instance = await APP.db.models.Project.create({ name: 'instance-2', type: '', url: '' })
 
             await TEAM.addProject(instance)
 
@@ -106,7 +107,7 @@ describe('Snapshots Service', function () {
 
     describe('copySnapshot', function () {
         it('Creates a copy of the passed snapshot', async function () {
-            const instance = await APP.db.models.Project.create({ name: 'instance-two', type: '', url: '' })
+            const instance = await APP.db.models.Project.create({ name: 'instance-3', type: '', url: '' })
 
             const snapshotProps = {
                 name: 'Test Snapshot',
@@ -151,7 +152,7 @@ describe('Snapshots Service', function () {
         })
 
         it('Imports the snapshot if importSnapshot copying across the environment variables', async function () {
-            const instance = await APP.db.models.Project.create({ name: 'instance-1', type: '', url: '' })
+            const instance = await APP.db.models.Project.create({ name: 'instance-4', type: '', url: '' })
 
             await TEAM.addProject(instance)
 
@@ -195,7 +196,7 @@ describe('Snapshots Service', function () {
         })
 
         it('Sets the snapshot as the target if setAsTarget is true', async function () {
-            const toInstance = await APP.db.models.Project.create({ name: 'instance-1', type: '', url: '' })
+            const toInstance = await APP.db.models.Project.create({ name: 'instance-5', type: '', url: '' })
 
             await TEAM.addProject(toInstance)
             toInstance.reload()
@@ -230,6 +231,47 @@ describe('Snapshots Service', function () {
 
             await deviceTwo.reload()
             deviceTwo.targetSnapshotId.should.equal(newSnapshot.id)
+        })
+
+        it('Re-encrypts any credentials found on the source instance', async function () {
+            const sourceInstance = await APP.db.models.Project.create({ name: 'instance-6', type: '', url: '' })
+
+            await TEAM.addProject(sourceInstance)
+            sourceInstance.reload()
+
+            // Credentials for source
+            const credentials = { 456: { a: 'b' } }
+            const credentialsSecret = APP.db.models.Project.generateCredentialSecret()
+            await sourceInstance.updateSetting('credentialSecret', credentialsSecret)
+            const credentialsEncrypted = APP.db.controllers.Project.exportCredentials(credentials, null, credentialsSecret)
+
+            await APP.db.controllers.StorageCredentials.updateOrCreateForProject(sourceInstance, credentialsEncrypted)
+
+            const sourceSnapshot = await snapshots.createSnapshot(APP, sourceInstance, USER, {
+                name: 'Test Snapshot',
+                description: 'Snapshot description',
+                setAsTarget: false // no need to deploy to devices of the source
+            })
+
+            sourceSnapshot.flows.credentials.should.match(credentialsEncrypted)
+
+            // Copy over
+            const toInstance = await APP.db.models.Project.create({ name: 'instance-7', type: '', url: '' })
+
+            await TEAM.addProject(toInstance)
+            toInstance.reload()
+
+            const newSnapshot = await snapshots.copySnapshot(APP, sourceSnapshot, toInstance, { importSnapshot: true })
+            newSnapshot.flows.credentials.should.not.match(credentialsEncrypted) // should have been re-encrypted
+            newSnapshot.flows.credentials.should.have.key('$')
+
+            // Set during the copy
+            const toInstanceCredentialSecret = await toInstance.getSetting('credentialSecret')
+            toInstanceCredentialSecret.should.not.equal(null)
+
+            // Credentials from the flow should match
+            const decryptedCredentials = decryptCreds(toInstanceCredentialSecret, newSnapshot.flows.credentials)
+            decryptedCredentials.should.match(credentials)
         })
     })
 })

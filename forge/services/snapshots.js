@@ -35,16 +35,37 @@ module.exports.createSnapshot = async (app, instance, user, snapshotProps) => {
     return snapShot
 }
 
-module.exports.copySnapshot = async (app, snapshot, toInstance, { importSnapshot, setAsTarget } = { importSnapshot: true, setAsTarget: false }) => {
+module.exports.copySnapshot = async (app, snapshot, toInstance, { importSnapshot, setAsTarget, decryptAndReEncryptCredentialsSecret } = { importSnapshot: true, setAsTarget: false, decryptAndReEncryptCredentialsSecret: null }) => {
     const { settings, flows, name, description } = snapshot.toJSON()
     const snapshotToCopyProps = { settings, flows, name, description }
+
+    // Decrypt and re-encrypt credentials
+    if (snapshotToCopyProps.flows.credentials) {
+        const oldCredentials = snapshotToCopyProps.flows.credentials
+
+        let targetInstanceSecret = await toInstance.getCredentialSecret()
+        if (!targetInstanceSecret) {
+            targetInstanceSecret = app.db.models.Project.generateCredentialSecret()
+            await toInstance.updateSetting('credentialSecret', targetInstanceSecret)
+        }
+
+        let newCredentials
+        if (!decryptAndReEncryptCredentialsSecret) {
+            console.warn('Assuming credentials are not encrypted as no decryptAndReEncryptCredentialsSecret was passed')
+            newCredentials = app.db.controllers.Project.exportCredentials(oldCredentials, null, targetInstanceSecret)
+        } else {
+            newCredentials = await app.db.controllers.Project.reEncryptCredentials(flows.credentials, decryptAndReEncryptCredentialsSecret, targetInstanceSecret)
+        }
+
+        snapshotToCopyProps.flows.credentials = newCredentials
+    }
 
     const newSnapshot = await app.db.models.ProjectSnapshot.create(
         { ...snapshotToCopyProps, ProjectId: toInstance.id, UserId: snapshot.UserId }
     )
 
     if (importSnapshot) {
-        await app.db.controllers.Project.importProjectSnapshot(toInstance, newSnapshot, { mergeEnvVars: true })
+        await app.db.controllers.Project.importProjectSnapshot(toInstance, newSnapshot, { mergeEnvVars: true, decryptAndReEncryptCredentialsSecret })
     }
 
     if (setAsTarget) {

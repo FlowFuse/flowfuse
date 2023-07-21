@@ -227,6 +227,19 @@ module.exports = {
     },
 
     /**
+     * Helper for the above exportCredentials method
+     * @param {*} existingCredentials
+     * @param {*} oldCredentialSecret
+     * @param {*} newCredentialSecret
+     * @returns
+     */
+    reEncryptCredentials (app, existingCredentials, oldCredentialSecret, newCredentialSecret) {
+        const srcCredentials = JSON.parse(existingCredentials.credentials)
+        const newCredentials = app.db.controllers.Project.exportCredentials(srcCredentials, oldCredentialSecret, newCredentialSecret)
+        return newCredentials
+    },
+
+    /**
      * Remove platform specific environment variables
      * @param {[{name:string, value:string}]} envVars Environment variables array
      */

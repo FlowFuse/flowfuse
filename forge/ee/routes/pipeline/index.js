@@ -382,7 +382,8 @@ module.exports = async function (app) {
             const setAsTargetForDevices = targetStage.deployToDevices ?? false
             const targetSnapshot = await copySnapshot(app, sourceSnapshot, targetInstance, { // eslint-disable-line no-unused-vars
                 importSnapshot: true, // target instance should import the snapshot
-                setAsTarget: setAsTargetForDevices
+                setAsTarget: setAsTargetForDevices,
+                decryptAndReEncryptCredentialsSecret: await sourceInstance.getCredentialSecret()
             })
 
             if (restartTargetInstance) {
