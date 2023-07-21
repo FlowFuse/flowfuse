@@ -1,5 +1,3 @@
-const crypto = require('crypto')
-
 const { KEY_HOSTNAME, KEY_SETTINGS } = require('../../db/models/ProjectSettings')
 const { Roles } = require('../../lib/roles')
 
@@ -284,7 +282,7 @@ module.exports = async function (app) {
                 newSettings.nodes = sourceSettings.nodes
             }
             const options = request.body.sourceProject.options
-            const newCredentialSecret = generateCredentialSecret()
+            const newCredentialSecret = app.db.models.Project.generateCredentialSecret()
             if (options.flows) {
                 const sourceFlows = await app.db.models.StorageFlow.byProject(sourceProject.id)
                 if (sourceFlows) {
@@ -303,15 +301,13 @@ module.exports = async function (app) {
                     //  - re-encrypt the credentials using the new key
                     const origCredentials = await app.db.models.StorageCredentials.byProject(sourceProject.id)
                     if (origCredentials) {
-                        // There are existing credentials to copy
-                        const srcCredentials = JSON.parse(origCredentials.credentials)
-                        const srcCredentialSecret = await sourceProject.getSetting('credentialSecret') || sourceSettings._credentialSecret
-                        const newCredentials = app.db.controllers.Project.exportCredentials(srcCredentials, srcCredentialSecret, newCredentialSecret)
-                        const credentials = await app.db.models.StorageCredentials.create({
+                        const origCredentialSecret = await sourceProject.getSetting('credentialSecret') || sourceSettings._credentialSecret // Legacy
+
+                        const newCredentials = await app.db.controllers.Project.reEncryptCredentials(origCredentials, origCredentialSecret, newCredentialSecret)
+                        await app.db.models.StorageCredentials.create({
                             credentials: JSON.stringify(newCredentials),
                             ProjectId: project.id
                         })
-                        await credentials.save()
                     }
                 }
             }
@@ -346,7 +342,7 @@ module.exports = async function (app) {
                 newProjectSettings.palette = { modules: [...template.settings.palette.modules] }
             }
             await project.updateSetting(KEY_SETTINGS, newProjectSettings)
-            await project.updateSetting('credentialSecret', generateCredentialSecret())
+            await project.updateSetting('credentialSecret', app.db.models.Project.generateCredentialSecret())
         }
 
         await app.containers.start(project)
@@ -828,7 +824,7 @@ module.exports = async function (app) {
                 if (origCredentials) {
                     let trgCredentialSecret = await targetProject.getSetting('credentialSecret')
                     if (trgCredentialSecret == null) {
-                        trgCredentialSecret = targetSettings?._credentialSecret || generateCredentialSecret()
+                        trgCredentialSecret = targetSettings?._credentialSecret || app.db.models.Project.generateCredentialSecret()
                         targetProject.updateSetting('credentialSecret', trgCredentialSecret)
                         delete targetSettings._credentialSecret
                     }
@@ -1171,10 +1167,6 @@ module.exports = async function (app) {
         }))
         const mergedKV = Object.assign({}, incomingKV, existingKV)
         return Object.entries(mergedKV).filter(e => !!e[0]).map(([k, v]) => { return { name: k, value: v } })
-    }
-
-    function generateCredentialSecret () {
-        return crypto.randomBytes(32).toString('hex')
     }
 
     // app.get('/:instanceId/ha', {
