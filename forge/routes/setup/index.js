@@ -30,7 +30,7 @@ module.exports = async function (app) {
             if (await app.db.models.User.count() === 0) {
                 const password = generatePassword()
                 await app.db.models.User.create({
-                    username: 'admin',
+                    username: 'ff-admin',
                     name: 'Default Admin',
                     email: 'admin@example.com',
                     email_verified: true,
