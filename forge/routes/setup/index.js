@@ -39,7 +39,7 @@ module.exports = async function (app) {
                     password_expired: true
                 })
                 app.log.info('[SETUP] Created default Admin User')
-                app.log.info('[SETUP] username: admin')
+                app.log.info('[SETUP] username: ff-admin')
                 app.log.info(`[SETUP] password: ${password}`)
             }
         }
