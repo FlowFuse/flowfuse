@@ -55,7 +55,7 @@ describe('Default Admin User', function () {
             }
         })
 
-        admin.should.have.property('username', 'admin')
+        admin.should.have.property('username', 'ff-admin')
         admin.should.have.property('email', 'admin@example.com')
         admin.should.have.property('password_expired', true)
     })
