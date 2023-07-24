@@ -1,10 +1,6 @@
 const crypto = require('crypto')
 
-module.exports.encryptCredentials = function (key, plain) {
-    const initVector = crypto.randomBytes(16)
-    const cipher = crypto.createCipheriv('aes-256-ctr', key, initVector)
-    return { $: initVector.toString('hex') + cipher.update(JSON.stringify(plain), 'utf8', 'base64') + cipher.final('base64') }
-}
+const { encryptCreds } = require('./credentials')
 
 module.exports.addFlowsToProject = async function (app, id, token, userToken, flows, creds, key, settings) {
     const flowsAddResponse = await app.inject({
@@ -19,7 +15,7 @@ module.exports.addFlowsToProject = async function (app, id, token, userToken, fl
     const credentialsCreateResponse = await app.inject({
         method: 'POST',
         url: `/storage/${id}/credentials`,
-        payload: module.exports.encryptCredentials(hashKey, creds),
+        payload: encryptCreds(hashKey, creds),
         headers: {
             authorization: `Bearer ${token}`
         }
