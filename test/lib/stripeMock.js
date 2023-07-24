@@ -40,7 +40,10 @@ module.exports = (testSpecificMock = {}) => {
                 }
                 // This is the initial add of an item
                 if (update.items) {
-                    update.items.forEach(item => {
+                    // Do not mutate the passed-in object as we have tests
+                    // that check these functions were called with the expected object
+                    const items = update.items.map(originalItem => {
+                        const item = { ...originalItem }
                         item.id = `item-${stripeItemCounter++}`
                         item.plan = {
                             product: (item.price || 'price').replace('price', 'product')
@@ -52,9 +55,10 @@ module.exports = (testSpecificMock = {}) => {
                             }
                         }
                         stripeItems[item.id] = item
+                        return item
                     })
                     stripeData[subId].items = {
-                        data: update.items
+                        data: items
                     }
                 }
             })
