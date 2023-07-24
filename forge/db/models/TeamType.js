@@ -11,7 +11,8 @@ module.exports = {
     name: 'TeamType',
     schema: {
         name: { type: DataTypes.STRING, allowNull: false },
-        enabled: { type: DataTypes.BOOLEAN, defaultValue: true },
+        active: { type: DataTypes.BOOLEAN, defaultValue: true },
+        order: { type: DataTypes.INTEGER, defaultValue: 0 },
         description: { type: DataTypes.TEXT },
         properties: {
             type: DataTypes.TEXT,
