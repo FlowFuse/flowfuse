@@ -48,6 +48,7 @@ module.exports = (testSpecificMock = {}) => {
                         item.plan = {
                             product: (item.price || 'price').replace('price', 'product')
                         }
+                        item._price = item.price
                         item.price = {
                             unit_amount: 123,
                             product: {

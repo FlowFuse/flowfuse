@@ -700,7 +700,7 @@ describe('Billing routes', function () {
             should.exist(stripe._.data.sub_1234567890)
             stripe._.data.sub_1234567890.items.data.should.have.length(1)
             const item = stripe._.data.sub_1234567890.items.data[0]
-            item.should.have.property('price', 'price_123')
+            item.should.have.property('_price', 'price_123')
             item.should.have.property('quantity', 1)
             item.plan.should.have.property('product', 'product_123')
         })
@@ -727,7 +727,7 @@ describe('Billing routes', function () {
             stripe.subscriptions.update.callCount.should.equal(1)
             stripe.subscriptionItems.update.callCount.should.equal(0)
             stripe._.data.sub_1234567890.items.data.should.have.length(1)
-            stripe._.data.sub_1234567890.items.data[0].should.have.property('price', 'price_123')
+            stripe._.data.sub_1234567890.items.data[0].should.have.property('_price', 'price_123')
             stripe._.data.sub_1234567890.items.data[0].should.have.property('quantity', 2)
             stripe._.data.sub_1234567890.items.data[0].plan.should.have.property('product', 'product_123')
 
@@ -745,7 +745,7 @@ describe('Billing routes', function () {
             stripe.subscriptions.update.callCount.should.equal(1)
             stripe.subscriptionItems.update.callCount.should.equal(1)
             stripe._.data.sub_1234567890.items.data.should.have.length(1)
-            stripe._.data.sub_1234567890.items.data[0].should.have.property('price', 'price_123')
+            stripe._.data.sub_1234567890.items.data[0].should.have.property('_price', 'price_123')
             stripe._.data.sub_1234567890.items.data[0].should.have.property('quantity', 1)
             stripe._.data.sub_1234567890.items.data[0].plan.should.have.property('product', 'product_123')
 
@@ -763,7 +763,7 @@ describe('Billing routes', function () {
             stripe.subscriptions.update.callCount.should.equal(1)
             stripe.subscriptionItems.update.callCount.should.equal(2)
             stripe._.data.sub_1234567890.items.data.should.have.length(1)
-            stripe._.data.sub_1234567890.items.data[0].should.have.property('price', 'price_123')
+            stripe._.data.sub_1234567890.items.data[0].should.have.property('_price', 'price_123')
             stripe._.data.sub_1234567890.items.data[0].should.have.property('quantity', 2)
             stripe._.data.sub_1234567890.items.data[0].plan.should.have.property('product', 'product_123')
 
