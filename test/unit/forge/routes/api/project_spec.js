@@ -5,21 +5,13 @@ const should = require('should') // eslint-disable-line
 const sinon = require('sinon')
 
 const { addFlowsToProject } = require('../../../../lib/Snapshots')
+const { decryptCreds } = require('../../../../lib/credentials')
 const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 const { KEY_HOSTNAME } = FF_UTIL.require('forge/db/models/ProjectSettings')
 const { START_DELAY, STOP_DELAY } = FF_UTIL.require('forge/containers/stub/index.js')
-
-function decryptCredentials (key, cipher) {
-    let flows = cipher.$
-    const initVector = Buffer.from(flows.substring(0, 32), 'hex')
-    flows = flows.substring(32)
-    const decipher = crypto.createDecipheriv('aes-256-ctr', key, initVector)
-    const decrypted = decipher.update(flows, 'base64', 'utf8') + decipher.final('utf8')
-    return JSON.parse(decrypted)
-}
 
 describe('Project API', function () {
     let app
@@ -526,7 +518,7 @@ describe('Project API', function () {
                 const srcCredKey = await TestObjects.project1.getSetting('credentialSecret')
                 newCredKey.should.not.eql(srcCredKey)
                 const newKey = crypto.createHash('sha256').update(newCredKey).digest()
-                const decrypted = decryptCredentials(newKey, newCreds)
+                const decrypted = decryptCreds(newKey, newCreds)
                 decrypted.should.have.property('testCreds', 'abc')
 
                 const runtimeSettings = (await app.inject({
@@ -1633,7 +1625,7 @@ describe('Project API', function () {
             should(credSecret).be.type('string', 'credentialSecret should be an auto generated string')
             should(credSecret.length).be.Number().eql(64, 'credentialSecret should be a string of 64 characters')
             const newKey = crypto.createHash('sha256').update(credSecret).digest()
-            const decrypted = decryptCredentials(newKey, newCreds)
+            const decrypted = decryptCreds(newKey, newCreds)
             decrypted.should.have.property('testCreds', 'abc')
 
             const runtimeSettings = (await app.inject({
@@ -2272,8 +2264,8 @@ describe('Project API', function () {
             const savedCreds = await app.db.models.StorageCredentials.byProject(app.project.id)
             const inputKey = crypto.createHash('sha256').update(credsSecret).digest()
             const savedKey = crypto.createHash('sha256').update(await app.project.getCredentialSecret()).digest()
-            const plainInputCreds = decryptCredentials(inputKey, credentials)
-            const plainSavedCreds = decryptCredentials(savedKey, JSON.parse(savedCreds.credentials))
+            const plainInputCreds = decryptCreds(inputKey, credentials)
+            const plainSavedCreds = decryptCreds(savedKey, JSON.parse(savedCreds.credentials))
             JSON.stringify(plainSavedCreds).should.eqls(JSON.stringify(plainInputCreds))
         })
 
@@ -2298,8 +2290,8 @@ describe('Project API', function () {
             savedFlow.flow.should.eqls(JSON.stringify(flows))
             const inputKey = crypto.createHash('sha256').update(credsSecret).digest()
             const savedKey = crypto.createHash('sha256').update(await app.project.getCredentialSecret()).digest()
-            const plainInputCreds = decryptCredentials(inputKey, credentials)
-            const plainSavedCreds = decryptCredentials(savedKey, JSON.parse(savedCreds.credentials))
+            const plainInputCreds = decryptCreds(inputKey, credentials)
+            const plainSavedCreds = decryptCreds(savedKey, JSON.parse(savedCreds.credentials))
             JSON.stringify(plainSavedCreds).should.eqls(JSON.stringify(plainInputCreds))
         })
         it('Import Credentials with bad secret', async function () {
