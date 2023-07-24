@@ -71,7 +71,7 @@ describe('Team controller', function () {
                 app = await setup()
             })
             it('prevents the team userLimit from being exceeded', async function () {
-                const teamType = await app.db.models.TeamType.findOne()
+                const teamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
                 const teamTypeProperties = { ...teamType.properties }
                 teamTypeProperties.users.limit = 3
                 teamType.properties = teamTypeProperties

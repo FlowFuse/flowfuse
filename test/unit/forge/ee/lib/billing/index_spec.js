@@ -35,7 +35,7 @@ describe('Billing', function () {
                 }
             })
 
-            const defaultTeamType = await app.db.models.TeamType.findOne()
+            const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
             const newTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
 
             const result = await app.billing.createSubscriptionSession(newTeam)
@@ -70,7 +70,7 @@ describe('Billing', function () {
                 }
             })
 
-            const defaultTeamType = await app.db.models.TeamType.findOne()
+            const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
             const newTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
             await newTeam.reload({
                 include: [{ model: app.db.models.TeamType }]
@@ -95,7 +95,7 @@ describe('Billing', function () {
                 }
             })
 
-            const defaultTeamType = await app.db.models.TeamType.findOne()
+            const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
             const newTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
             await app.db.controllers.Subscription.createSubscription(newTeam, 'existing-subscription', 'existing-customer')
             await newTeam.reload({
@@ -124,7 +124,7 @@ describe('Billing', function () {
                 })
 
                 it('sets the trial flag if the user is eligible for a trial', async function () {
-                    const defaultTeamType = await app.db.models.TeamType.findOne()
+                    const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
                     const newTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
                     const user = await app.db.models.User.create({ admin: true, username: 'new', name: 'New User', email: 'new@example.com', email_verified: true, password: 'aaPassword' })
                     await newTeam.addUser(user, { through: { role: Roles.Owner } })
@@ -138,7 +138,7 @@ describe('Billing', function () {
                 })
 
                 it('sets trial flag to false if the user is not eligible for a trial', async function () {
-                    const defaultTeamType = await app.db.models.TeamType.findOne()
+                    const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
                     const secondTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
                     const userAlice = await app.db.models.User.byEmail('alice@example.com')
                     await secondTeam.addUser(userAlice, { through: { role: Roles.Owner } })
@@ -168,7 +168,7 @@ describe('Billing', function () {
             })
 
             it('does not set trial flag even if the user is eligible for a trial', async function () {
-                const defaultTeamType = await app.db.models.TeamType.findOne()
+                const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
                 const newTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
                 const user = await app.db.models.User.create({ admin: true, username: 'new', name: 'New User', email: 'new@example.com', email_verified: true, password: 'aaPassword' })
                 await newTeam.addUser(user, { through: { role: Roles.Owner } })
@@ -195,7 +195,7 @@ describe('Billing', function () {
                     }
                 })
 
-                const defaultTeamType = await app.db.models.TeamType.findOne()
+                const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
                 const newTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
                 const userAlice = await app.db.models.User.byEmail('alice@example.com')
 

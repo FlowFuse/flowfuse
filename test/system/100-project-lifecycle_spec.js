@@ -60,7 +60,7 @@ describe('Project Lifecycle', function () {
 
         TestObjects.ProjectType1 = await factory.createProjectType({ name: 'projectType1' })
 
-        const defaultTeamType = await forge.db.models.TeamType.findOne()
+        const defaultTeamType = await forge.db.models.TeamType.findOne({ where: { id: 1 } })
         const teamTypeProps = defaultTeamType.properties
         teamTypeProps.instances[TestObjects.ProjectType1.hashid] = { active: true }
         defaultTeamType.properties = teamTypeProps

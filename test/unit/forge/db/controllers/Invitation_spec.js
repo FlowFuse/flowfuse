@@ -123,7 +123,7 @@ describe('Invitation controller', function () {
 
         it('rejects if team user limit will be exceeded', async function () {
             const invitor = await app.db.models.User.byUsername('alice')
-            const teamType = await app.db.models.TeamType.findOne()
+            const teamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
             const teamTypeProperties = { ...teamType.properties }
             teamTypeProperties.users.limit = 3
             teamType.properties = teamTypeProperties

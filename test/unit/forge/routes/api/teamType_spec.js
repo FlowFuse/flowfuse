@@ -35,7 +35,7 @@ describe('Team Type API', function () {
 
     describe('Default Team Type', async function () {
         it('A default team type exists', async function () {
-            const defaultTeamType = await app.db.models.TeamType.findOne()
+            const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
             should.exist(defaultTeamType)
 
             defaultTeamType.properties.should.have.property('instances')

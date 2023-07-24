@@ -96,7 +96,7 @@ describe('Library Storage API', function () {
         }
         async function createExtraTeamAndProject () {
             // Create a new team, add a project to it and return that project's auth tokens
-            const defaultTeamType = await app.db.models.TeamType.findOne()
+            const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
             const team3 = await app.db.models.Team.create({ name: generateName('team'), TeamTypeId: defaultTeamType.id })
             await team3.reload({ include: [{ model: app.db.models.TeamType }] })
             const project3 = await app.db.models.Project.create({ name: generateName('project'), type: '', url: '' })

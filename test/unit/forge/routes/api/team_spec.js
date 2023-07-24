@@ -415,7 +415,7 @@ describe('Team API', function () {
             await app.license.apply('eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo0LCJwcm9qZWN0cyI6NTAsImRldmljZXMiOjUwLCJkZXYiOnRydWUsImlhdCI6MTY2MjYzMTU4N30.J6ceWv3SdFC-J_dt05geeQZHosD1D102u54tVLeu_4EwRO5OYGiqMxFW3mx5pygod3xNT68e2Wq8A7wNVCt3Rg')
             // Alice create in setup()
             TestObjects.alice = await app.db.models.User.byUsername('alice')
-            TestObjects.defaultTeamType = await app.db.models.TeamType.findOne()
+            TestObjects.defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
             TestObjects.tokens = {}
             await login('alice', 'aaPassword')
 
@@ -445,7 +445,7 @@ describe('Team API', function () {
             app.license.defaults.teams = 4 // override default
             // Alice created in setup()
             TestObjects.alice = await app.db.models.User.byUsername('alice')
-            TestObjects.defaultTeamType = await app.db.models.TeamType.findOne()
+            TestObjects.defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
             TestObjects.tokens = {}
             await login('alice', 'aaPassword')
 

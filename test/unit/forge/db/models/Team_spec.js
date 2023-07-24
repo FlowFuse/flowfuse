@@ -16,7 +16,7 @@ describe('Team model', function () {
             pt3 = await app.db.models.ProjectType.create({ name: 'pt3', properties: {}, active: true })
 
             // Modify the default teamType to have some limits to test against
-            const teamType = await app.db.models.TeamType.findOne()
+            const teamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
             const teamTypeProperties = { ...teamType.properties }
             teamTypeProperties.users.limit = 3
             teamTypeProperties.instances = {
@@ -125,7 +125,7 @@ describe('Team model', function () {
             // Default setup creates 3 teams
             ;(await app.db.models.Team.count()).should.equal(3)
 
-            const defaultTeamType = await app.db.models.TeamType.findOne()
+            const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
 
             await app.db.models.Team.create({ name: 'T4', TeamTypeId: defaultTeamType.id })
             ;(await app.db.models.Team.count()).should.equal(4)
@@ -140,7 +140,7 @@ describe('Team model', function () {
             // Default setup creates 3 teams
             ;(await app.db.models.Team.count()).should.equal(3)
 
-            const defaultTeamType = await app.db.models.TeamType.findOne()
+            const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
 
             await app.db.models.Team.create({ name: 'T4', TeamTypeId: defaultTeamType.id })
             ;(await app.db.models.Team.count()).should.equal(4)

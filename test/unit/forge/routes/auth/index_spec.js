@@ -266,7 +266,7 @@ describe('Accounts API', async function () {
                 app.settings.set('user:team:auto-create', true)
 
                 // Set trial mode options against the default team type
-                const teamType = await app.db.models.TeamType.findOne()
+                const teamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
                 const props = teamType.properties
                 props.trial = {
                     active: true,

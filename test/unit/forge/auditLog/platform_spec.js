@@ -206,7 +206,7 @@ describe('Audit Log > Platform', async function () {
     // #region Team Tests
     it('Provides a logger for a platform team created', async function () {
         // platform - team - created
-        const defaultTeamType = await app.db.models.TeamType.findOne()
+        const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
         const TEAM = await app.db.models.Team.create({ name: 'temp-team1', active: true, TeamTypeId: defaultTeamType.id })
         await platformLogger.platform.team.created(ACTIONED_BY, null, TEAM)
 
@@ -224,7 +224,7 @@ describe('Audit Log > Platform', async function () {
     })
     it('Provides a logger for a platform team deleted', async function () {
         // platform - team - deleted
-        const defaultTeamType = await app.db.models.TeamType.findOne()
+        const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
         const TEAM = await app.db.models.Team.create({ name: 'temp-team2', active: true, TeamTypeId: defaultTeamType.id })
         await platformLogger.platform.team.deleted(ACTIONED_BY, null, TEAM)
 

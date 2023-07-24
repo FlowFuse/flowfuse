@@ -69,7 +69,7 @@ module.exports = async function (settings = {}, config = {}) {
     await factory.createStack({ name: 'stack1-for-type2' }, spareProjectType)
 
     // Ensure projectTypes are allowed to be used by the default team type
-    const teamType = await forge.db.models.TeamType.findOne()
+    const teamType = await forge.db.models.TeamType.findOne({ where: { id: 1 } })
     const teamTypeProperties = { ...teamType.properties }
     teamTypeProperties.instances = {
         [projectType.hashid]: { active: true },
