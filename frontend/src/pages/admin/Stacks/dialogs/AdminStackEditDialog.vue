@@ -53,7 +53,7 @@ export default {
     components: {
         FormRow
     },
-    emits: ['stackCreated', 'stackUpdated'],
+    emits: ['stack-created', 'stack-updated'],
     data () {
         return {
             stack: null,
@@ -177,7 +177,7 @@ export default {
                     }
                     // Update
                     stacksApi.updateStack(this.stack.id, opts).then((response) => {
-                        this.$emit('stackUpdated', response)
+                        this.$emit('stack-updated', response)
                     }).catch(err => {
                         console.error(err.response.data)
                         if (err.response.data) {
@@ -194,7 +194,7 @@ export default {
                             this.input.replaces.active = false
                             this.input.replaces.replacedBy = response.id
                         }
-                        this.$emit('stackCreated', response, this.input.replaces)
+                        this.$emit('stack-created', response, this.input.replaces)
                     }).catch(err => {
                         console.error(err.response.data)
                         if (err.response.data) {

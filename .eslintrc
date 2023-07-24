@@ -537,16 +537,6 @@
         },
         {
             "rules": {
-                "vue/prop-name-casing": "off"
-            },
-            "files": [
-                "frontend/src/components/PageHeader.vue",
-                "frontend/src/components/SideNavigation.vue",
-                "frontend/src/components/SideNavigationTeamOptions.vue"
-            ]
-        },
-        {
-            "rules": {
                 "vue/require-explicit-emits": "off"
             },
             "files": [
@@ -623,17 +613,6 @@
                 "frontend/src/pages/team/Settings/General.vue",
                 "frontend/src/pages/team/Settings/index.vue",
                 "frontend/src/pages/team/Settings/Permissions.vue"
-            ]
-        },
-        {
-            "rules": {
-                "vue/v-on-event-hyphenation": "off"
-            },
-            "files": [
-                "frontend/src/pages/admin/InstanceTypes/index.vue",
-                "frontend/src/pages/admin/Stacks/index.vue",
-                "frontend/src/pages/admin/Users/General.vue",
-                "frontend/src/pages/admin/Users/UserDetails.vue"
             ]
         },
         {

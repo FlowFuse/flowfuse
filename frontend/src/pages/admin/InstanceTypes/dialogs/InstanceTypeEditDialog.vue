@@ -35,7 +35,7 @@
         <template v-slot:actions>
             <div class="w-full grow flex justify-between">
                 <div>
-                    <ff-button v-if="instanceType" kind="danger" style="margin: 0;" @click="$emit('showDeleteDialog', instanceType); $refs.dialog.close()">Delete Instance Type</ff-button>
+                    <ff-button v-if="instanceType" kind="danger" style="margin: 0;" @click="$emit('show-delete-dialog', instanceType); $refs.dialog.close()">Delete Instance Type</ff-button>
                 </div>
                 <div class="flex">
                     <ff-button kind="secondary" @click="$refs['dialog'].close()">Cancel</ff-button>
@@ -57,7 +57,7 @@ import FormRow from '../../../../components/FormRow.vue'
 
 export default {
     name: 'AdminInstanceTypeCreateDialog',
-    emits: ['instanceTypeUpdated', 'instanceTypeCreated', 'showDeleteDialog'],
+    emits: ['instance-type-updated', 'instance-type-created', 'show-delete-dialog'],
     components: {
         FormRow,
         FormHeading
@@ -112,7 +112,7 @@ export default {
                     delete opts.properties
                     // Update
                     instanceTypesApi.updateInstanceType(this.instanceType.id, opts).then((response) => {
-                        this.$emit('instanceTypeUpdated', response)
+                        this.$emit('instance-type-updated', response)
                     }).catch(err => {
                         console.error(err.response.data)
                         if (err.response.data) {
@@ -123,7 +123,7 @@ export default {
                     })
                 } else {
                     instanceTypesApi.create(opts).then((response) => {
-                        this.$emit('instanceTypeCreated', response)
+                        this.$emit('instance-type-created', response)
                     }).catch(err => {
                         console.error(err.response.data)
                         if (err.response.data) {

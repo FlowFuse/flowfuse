@@ -31,8 +31,8 @@
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
         </div>
     </div>
-    <InstanceTypeEditDialog ref="adminInstanceTypeEditDialog" @instanceTypeCreated="instanceTypeCreated"
-                            @instanceTypeUpdated="instanceTypeUpdated" @showDeleteDialog="showConfirmInstanceTypeDeleteDialog"/>
+    <InstanceTypeEditDialog ref="adminInstanceTypeEditDialog" @instance-type-created="instanceTypeCreated"
+                            @instance-type-updated="instanceTypeUpdated" @show-delete-dialog="showConfirmInstanceTypeDeleteDialog"/>
 </template>
 
 <script>
