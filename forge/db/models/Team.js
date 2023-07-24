@@ -46,9 +46,9 @@ module.exports = {
                 team.slug = team.slug.toLowerCase()
             },
             beforeDestroy: async (team, opts) => {
-                const projectCount = await team.projectCount()
-                if (projectCount > 0) {
-                    throw new Error('Cannot delete team that owns projects')
+                const instanceCount = await team.instanceCount()
+                if (instanceCount > 0) {
+                    throw new Error('Cannot delete team that owns instances')
                 }
             },
             afterDestroy: async (team, opts) => {
@@ -248,21 +248,112 @@ module.exports = {
                     // All Team owners
                     return this.memberCount(Roles.Owner)
                 },
-                projectCount: async function (projectTypeId) {
+                instanceCount: async function (projectTypeId) {
                     const where = { TeamId: this.id }
                     if (projectTypeId) {
                         if (typeof projectTypeId === 'string') {
                             projectTypeId = M.ProjectType.decodeHashid(projectTypeId)
+                        } else if (projectTypeId.id) {
+                            projectTypeId = projectTypeId.id
                         }
                         where.ProjectTypeId = projectTypeId
                     }
                     return await M.Project.count({ where })
+                },
+                instanceCountByType: async function (where = {}) {
+                    where = { ...where, TeamId: this.id }
+                    const counts = await M.Project.count({
+                        where,
+                        attributes: ['ProjectTypeId'],
+                        group: 'ProjectTypeId'
+                    })
+                    const result = {}
+                    for (const instanceType of Object.values(counts)) {
+                        result[M.ProjectType.encodeHashid(instanceType.ProjectTypeId)] = instanceType.count
+                    }
+                    return result
                 },
                 pendingInviteCount: async function () {
                     return await M.Invitation.count({ where: { teamId: this.id } })
                 },
                 deviceCount: async function () {
                     return await M.Device.count({ where: { TeamId: this.id } })
+                },
+                /**
+                 * Many functions require this.TeamType to exist and be fully populated.
+                 * Depending on the route taken, it is possible this property has not
+                 * been fully loaded. This does the work to ensure it is there if needed.
+                 */
+                ensureTeamTypeExists: async function () {
+                    if (!this.TeamTypeId) {
+                        await this.reload({ include: [{ model: M.TeamType }] })
+                    } else if (!this.TeamType) {
+                        // TeamTypeId is present, but no TeamType
+                        this.TeamType = await this.getTeamType()
+                    }
+                },
+                getUserLimit: async function () {
+                    await this.ensureTeamTypeExists()
+                    return this.TeamType.getProperty('users.limit', -1)
+                },
+                getDeviceLimit: async function () {
+                    await this.ensureTeamTypeExists()
+                    return this.TeamType.getProperty('devices.limit', -1)
+                },
+                isInstanceTypeAvailable: async function (instanceType) {
+                    await this.ensureTeamTypeExists()
+                    return this.TeamType.getInstanceTypeProperty(instanceType, 'active', false)
+                },
+                getInstanceTypeLimit: async function (instanceType) {
+                    await this.ensureTeamTypeExists()
+                    if (!await this.isInstanceTypeAvailable(instanceType)) {
+                        return 0
+                    }
+                    return this.TeamType.getInstanceTypeProperty(instanceType, 'limit', -1)
+                },
+                /**
+                 * Checks if this team is allowed to create a new instance of the
+                 * given type.
+                 * At this level, the check looks at any restrictions applied
+                 * by the TeamType object.
+                 * When running with EE, this function is overloaded via
+                 * ee/lib/billing/Team.js to add EE-specific checks as well
+                 * (such as billing and trials)
+                 *
+                 * If the create is not allowed, an error is thrown with code/error
+                 * properties set
+                 * @param {object} instanceType - a fully populated ProjectType object
+                 */
+                checkInstanceTypeCreateAllowed: async function (instanceType) {
+                    await this.ensureTeamTypeExists()
+
+                    const instanceTypeLimit = await this.getInstanceTypeLimit(instanceType)
+                    // Note that if the instanceType is unavailable for this team type,
+                    // its limit is implicitly set to 0
+                    if (instanceTypeLimit > -1) {
+                        // This team type has a limit on how many instances of this type
+                        // can be created. Ensure we're within that limit
+                        const currentInstanceCount = await this.instanceCount(instanceType.hashid)
+                        if (currentInstanceCount >= instanceTypeLimit) {
+                            const err = new Error()
+                            err.code = 'instance_limit_reached'
+                            err.error = `Team instance limit reached for type '${instanceType.name}'`
+                            throw err
+                        }
+                    }
+                },
+
+                /**
+                 * Checks whether an instance may be started in this team. For CE
+                 * platforms, there are no restrictions on unsuspending an instance.
+                 *
+                 * When running with EE, this function is replaced via ee/lib/billing/Team.js
+                 * to add additional checks
+                 * @param {*} instance The instance to start
+                 * Throws an error if it is not allowed
+                 */
+                checkInstanceStartAllowed: async function (instance) {
+                    return true
                 }
             }
         }
