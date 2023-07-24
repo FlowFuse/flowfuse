@@ -131,6 +131,9 @@ module.exports = async (options = {}) => {
         // NOTE: This is only likely to do anything after a db upgrade where the settingsHashes are cleared.
         server.db.models.Device.recalculateSettingsHashes(false) // update device.settingsHash if null
 
+        // Ensure The defaultTeamType is in place
+        await server.db.controllers.TeamType.ensureDefaultTypeExists()
+
         return server
     } catch (err) {
         console.error(err)
