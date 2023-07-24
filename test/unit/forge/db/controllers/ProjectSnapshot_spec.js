@@ -1,7 +1,7 @@
 const crypto = require('crypto')
 
 const should = require('should') // eslint-disable-line
-const { decryptCreds } = require('../../../../lib/decryptCreds')
+const { decryptCreds } = require('../../../../lib/credentials')
 const setup = require('../setup')
 
 describe('ProjectSnapshot controller', function () {
