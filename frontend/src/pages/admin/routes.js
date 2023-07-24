@@ -13,6 +13,7 @@ import AdminSettingsSSO from './Settings/SSO/index.vue'
 import AdminSettings from './Settings/index.vue'
 // import AdminSettingsPermissions from './Settings/Permissions.vue'
 import AdminStacks from './Stacks/index.vue'
+import AdminTeamTypes from './TeamTypes/index.vue'
 import AdminTeams from './Teams.vue'
 import AdminTemplatePalette from './Template/Palette.vue'
 import AdminTemplateSettings from './Template/Settings.vue'
@@ -102,6 +103,13 @@ export default [
                 component: AdminTeams,
                 meta: {
                     title: 'Admin - Teams'
+                }
+            },
+            {
+                path: 'team-types',
+                component: AdminTeamTypes,
+                meta: {
+                    title: 'Admin - Team Types'
                 }
             },
             {

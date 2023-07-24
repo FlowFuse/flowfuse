@@ -22,14 +22,43 @@ const getTeamTypes = async (cursor, limit, filter) => {
             pt.value = pt.id
             pt.label = pt.name
             pt.htmlDescription = marked.parse(pt.description || '')
-            pt.isFree = !pt.properties?.billing || pt.properties?.billing?.userCost === 0
-            pt.billingPrice = pt.isFree ? 'free' : `$${pt.properties?.billing?.userCost}`
+            // TeamType is considered 'free' if:
+            // - no billing settings
+            // - billing.description is blank or equal 'free'
+            pt.isFree = !pt.properties?.billing?.description || pt.properties?.billing?.description === 'free'
+            if (!pt.isFree) {
+                const [price, interval] = pt.properties?.billing?.description.split('/')
+                pt.billingPrice = price
+                pt.billingInterval = interval
+            } else {
+                pt.billingPrice = 'free'
+                pt.billingInterval = ''
+            }
             return pt
         })
         return res.data
     })
 }
 
+const create = async (options) => {
+    return client.post('/api/v1/team-types/', options).then(res => {
+        return res.data
+    })
+}
+
+const updateTeamType = async (teamTypeId, options) => {
+    return client.put(`/api/v1/team-types/${teamTypeId}`, options).then(res => {
+        return res.data
+    })
+}
+
+const deleteTeamType = async (teamTypeId) => {
+    return await client.delete(`/api/v1/team-types/${teamTypeId}`)
+}
+
 export default {
-    getTeamTypes
+    getTeamTypes,
+    create,
+    updateTeamType,
+    deleteTeamType
 }
