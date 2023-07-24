@@ -198,9 +198,9 @@ describe('Project Type API', function () {
             const response = await app.inject({
                 method: 'DELETE',
                 url: `/api/v1/project-types/${TestObjects.projectType1.hashid}`,
-                cookies: { sid: TestObjects.tokens.bob }
+                cookies: { sid: TestObjects.tokens.alice }
             })
-            response.statusCode.should.equal(403)
+            response.statusCode.should.equal(400)
         })
         it('Allows admin to delete an unused project-type', async function () {
             const response = await app.inject({

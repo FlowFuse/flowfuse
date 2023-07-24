@@ -78,6 +78,8 @@ describe('Team API', function () {
                 response.statusCode.should.equal(200)
                 const result = response.json()
                 result.should.have.property('id', TestObjects.BTeam.hashid)
+                result.should.have.property('type')
+                result.type.should.have.property('id', app.defaultTeamType.hashid)
             })
             it('member can access team', async function () {
                 const response = await app.inject({

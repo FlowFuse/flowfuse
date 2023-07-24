@@ -61,6 +61,14 @@ module.exports = async function (config = {}) {
     forge.factory = factory
 
     forge.defaultTeamType = await forge.db.models.TeamType.findOne()
+    // Need to give the default TeamType permission to use projectType instances
+    const defaultTeamTypeProperties = forge.defaultTeamType.properties
+    defaultTeamTypeProperties.instances = {
+        [projectType.hashid]: { active: true }
+    }
+    forge.defaultTeamType.properties = defaultTeamTypeProperties
+    await forge.defaultTeamType.save()
+
     forge.team = team1
     forge.stack = stack
     forge.template = template

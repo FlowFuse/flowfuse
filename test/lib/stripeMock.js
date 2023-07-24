@@ -16,6 +16,7 @@ module.exports = (testSpecificMock = {}) => {
             }
         },
         customers: {
+            retrieve: sandbox.stub().resolves({ name: 'user', balance: 0 }),
             createBalanceTransaction: sandbox.stub().resolves({ status: 'ok' })
         },
         subscriptions: {
@@ -44,6 +45,12 @@ module.exports = (testSpecificMock = {}) => {
                         item.plan = {
                             product: (item.price || 'price').replace('price', 'product')
                         }
+                        item.price = {
+                            unit_amount: 123,
+                            product: {
+                                name: (item.price || 'price').replace('price', 'product')
+                            }
+                        }
                         stripeItems[item.id] = item
                     })
                     stripeData[subId].items = {
@@ -60,6 +67,12 @@ module.exports = (testSpecificMock = {}) => {
                 for (const [key, value] of Object.entries(update)) {
                     stripeItems[itemId][key] = value
                 }
+            }),
+            del: sandbox.stub().callsFake(async function (itemId, update) {
+                if (!stripeItems[itemId]) {
+                    throw new Error('unknown item')
+                }
+                delete stripeItems[itemId]
             })
         },
         promotionCodes: {

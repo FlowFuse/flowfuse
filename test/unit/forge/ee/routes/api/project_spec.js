@@ -8,7 +8,6 @@ const setup = require('../../setup')
 const FF_UTIL = require('flowforge-test-utils')
 
 const { START_DELAY, STOP_DELAY } = FF_UTIL.require('forge/containers/stub/index.js')
-const { KEY_BILLING_STATE } = FF_UTIL.require('forge/db/models/ProjectSettings')
 
 describe('Projects API - with billing enabled', function () {
     const sandbox = sinon.createSandbox()
@@ -91,8 +90,6 @@ describe('Projects API - with billing enabled', function () {
 
         describe('Change project stack', function () {
             it('Skips removing the project from billing when changing only stack but marks billing state as billed', async function () {
-                const BILLING_STATES = app.db.models.ProjectSettings.BILLING_STATES
-
                 const project = app.project
 
                 // Create a new stack
@@ -108,8 +105,6 @@ describe('Projects API - with billing enabled', function () {
                 await app.containers.start(project)
                 app.billing.addProject.resetHistory()
 
-                should(await project.getSetting(KEY_BILLING_STATE)).equal(BILLING_STATES.UNKNOWN)
-
                 const response = await app.inject({
                     method: 'PUT',
                     url: `/api/v1/projects/${app.project.id}`,
@@ -122,8 +117,6 @@ describe('Projects API - with billing enabled', function () {
                 response.statusCode.should.equal(200)
 
                 await sleep(STOP_DELAY + 50)
-
-                should(await project.getSetting(KEY_BILLING_STATE)).equal(BILLING_STATES.BILLED)
 
                 await sleep(START_DELAY + 50)
 

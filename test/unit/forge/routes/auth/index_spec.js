@@ -171,7 +171,7 @@ describe('Accounts API', async function () {
             // TODO: check user audit logs - expect 'account.xxx-yyy' { status: 'okay', ... }
         })
 
-        it('auto-creates personal team if option set', async function () {
+        it('auto-creates personal team if option set - default team type', async function () {
             app.settings.set('user:signup', true)
             app.settings.set('user:team:auto-create', true)
 
@@ -204,6 +204,47 @@ describe('Accounts API', async function () {
             userTeams.should.have.property('teams')
             userTeams.teams.should.have.length(1)
         })
+        it('auto-creates personal team if option set - selected team type', async function () {
+            app.settings.set('user:signup', true)
+            app.settings.set('user:team:auto-create', true)
+
+            const newTeamType = await app.db.models.TeamType.create({
+                name: 'new-starter',
+                properties: {}
+            })
+            app.settings.set('user:team:auto-create:teamType', newTeamType.hashid)
+
+            const response = await registerUser({
+                username: 'user2',
+                password: '12345678',
+                name: 'user',
+                email: 'user2@example.com'
+            })
+            response.statusCode.should.equal(200)
+
+            // Team is only created once they verify their email.
+            const user = await app.db.models.User.findOne({ where: { username: 'user2' } })
+            const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
+            await app.inject({
+                method: 'POST',
+                url: `/account/verify/${verificationToken}`,
+                payload: {},
+                cookies: { sid: TestObjects.tokens.user2 }
+            })
+            await login('user2', '12345678')
+
+            const userTeamsResponse = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user/teams',
+                cookies: { sid: TestObjects.tokens.user2 }
+            })
+
+            const userTeams = userTeamsResponse.json()
+            userTeams.should.have.property('teams')
+            userTeams.teams.should.have.length(1)
+            userTeams.teams[0].should.have.property('type')
+            userTeams.teams[0].type.should.have.property('id', newTeamType.hashid)
+        })
 
         describe('licensed instances', function () {
             before(async function () {
@@ -223,9 +264,16 @@ describe('Accounts API', async function () {
                 app = await setup({ license, billing: { stripe: {} } })
                 app.settings.set('user:signup', true)
                 app.settings.set('user:team:auto-create', true)
-                app.settings.set('user:team:trial-mode', true)
-                app.settings.set('user:team:trial-mode:duration', TEST_TRIAL_DURATION)
-                app.settings.set('user:team:trial-mode:projectType', app.projectType.id)
+
+                // Set trial mode options against the default team type
+                const teamType = await app.db.models.TeamType.findOne()
+                const props = teamType.properties
+                props.trial = {
+                    active: true,
+                    duration: TEST_TRIAL_DURATION
+                }
+                teamType.properties = props
+                await teamType.save()
 
                 const response = await registerUser({
                     username: 'user',
