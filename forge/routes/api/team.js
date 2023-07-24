@@ -133,9 +133,10 @@ module.exports = async function (app) {
 
     async function getTeamDetails (request, reply, team) {
         const result = app.db.views.Team.team(team)
+        result.instanceCountByType = await team.instanceCountByType()
         if (app.license.active() && app.billing) {
             result.billing = {}
-            const subscription = await app.db.models.Subscription.byTeamId(team.id)
+            const subscription = await team.getSubscription()
             if (subscription) {
                 result.billing.active = subscription.isActive()
                 result.billing.canceled = subscription.isCanceled()
@@ -144,7 +145,7 @@ module.exports = async function (app) {
                     result.billing.trial = true
                     result.billing.trialEnded = subscription.isTrialEnded()
                     result.billing.trialEndsAt = subscription.trialEndsAt
-                    result.billing.trialProjectAllowed = (await team.projectCount(app.settings.get('user:team:trial-mode:projectType'))) === 0
+                    result.billing.trialProjectAllowed = (await team.instanceCount(app.settings.get('user:team:trial-mode:projectType'))) === 0
                 }
             } else {
                 result.billing.active = false
@@ -398,7 +399,7 @@ module.exports = async function (app) {
         }
 
         const teamType = await app.db.models.TeamType.byId(request.body.type)
-        if (!teamType || !teamType.enabled) {
+        if (!teamType || !teamType.active) {
             reply.code(400).send({ code: 'invalid_team_type', error: 'unknown team type' })
             return
         }
@@ -475,7 +476,7 @@ module.exports = async function (app) {
         // call to destroy the team will throw an error
         try {
             if (app.license.active() && app.billing) {
-                const subscription = await app.db.models.Subscription.byTeamId(request.team.id)
+                const subscription = await request.team.getSubscription()
                 if (subscription && !subscription.isTrial()) {
                     // const subId = subscription.subscription
                     await app.billing.closeSubscription(subscription)

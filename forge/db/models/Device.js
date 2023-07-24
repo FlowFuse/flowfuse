@@ -170,7 +170,7 @@ module.exports = {
                         include: [
                             {
                                 model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
                             },
                             {
                                 model: M.Project,
@@ -192,7 +192,7 @@ module.exports = {
                             {
                                 model: M.Team,
                                 where: { id: teamId },
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
                             },
                             {
                                 model: M.Project,
@@ -208,7 +208,7 @@ module.exports = {
                         include: [
                             {
                                 model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
                             },
                             {
                                 model: M.Project,
@@ -242,7 +242,7 @@ module.exports = {
                     const includes = [
                         {
                             model: M.Team,
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
                         },
                         projectInclude,
                         { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
@@ -272,7 +272,7 @@ module.exports = {
                         include: [
                             {
                                 model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
                             },
                             {
                                 model: M.Project,
