@@ -169,7 +169,7 @@ export default {
             const { isValid, isChanged, changes } = this.getChanges()
             if (isValid && isChanged) {
                 usersApi.updateUser(this.user.id, changes).then((response) => {
-                    this.$emit('userUpdated', response)
+                    this.$emit('user-updated', response)
                     this.$refs.dialog.close()
                 }).catch(err => {
                     console.error(err.response.data)
@@ -213,7 +213,7 @@ export default {
         deleteUser () {
             usersApi.deleteUser(this.user.id).then((response) => {
                 this.$refs.dialog.close()
-                this.$emit('userDeleted', this.user.id)
+                this.$emit('user-deleted', this.user.id)
             }).catch(err => {
                 this.errors.deleteUser = err.response.data.error
             })
@@ -222,7 +222,7 @@ export default {
             usersApi.updateUser(this.user.id, { password_expired: true })
                 .then((response) => {
                     this.$refs.dialog.close()
-                    this.$emit('userUpdated', response)
+                    this.$emit('user-updated', response)
                 }).catch(err => {
                     this.errors.expirePassword = err.response.data.error
                 })

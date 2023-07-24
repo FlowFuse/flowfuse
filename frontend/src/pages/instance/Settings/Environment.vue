@@ -2,7 +2,7 @@
     <form class="space-y-6">
         <TemplateSettingsEnvironment v-model="editable" :readOnly="!hasPermission('device:edit-env')" :editTemplate="false" />
         <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
-            <ff-button size="small" :disabled="!unsavedChanges" @click="saveSettings()">Save settings</ff-button>
+            <ff-button size="small" :disabled="!unsavedChanges || hasErrors" @click="saveSettings()">Save settings</ff-button>
         </div>
     </form>
 </template>
@@ -54,6 +54,7 @@ export default {
     data () {
         return {
             unsavedChanges: false,
+            hasErrors: false,
             editable: {
                 name: '',
                 settings: { env: [] },
@@ -84,7 +85,7 @@ export default {
 
                     let originalCount = 0
                     this.editable.settings.env.forEach(field => {
-                        errors = errors || field.error
+                        errors = errors || !!field.error
                         if (/^add/.test(field.index)) {
                             changed = true
                         } else {
@@ -123,12 +124,14 @@ export default {
                 this.original = preparedTemplate.original
                 const templateEnvMap = {}
                 this.templateEnvValues = {}
-                this.editable.settings.env.forEach(envVar => {
+                this.editable.settings.env.forEach((envVar, index) => {
+                    envVar.index = index // ensure all env vars have an index
                     templateEnvMap[envVar.name] = envVar
                     this.templateEnvValues[envVar.name] = envVar.value
                 })
                 if (this.project.settings.env) {
-                    this.project.settings.env.forEach(envVar => {
+                    this.project.settings.env.forEach((envVar) => {
+                        envVar.index = this.editable.settings.env.length // ensure all env vars have an index
                         if (templateEnvMap[envVar.name]) {
                             if (templateEnvMap[envVar.name].policy) {
                                 templateEnvMap[envVar.name].value = envVar.value

@@ -54,7 +54,7 @@
             data-el="teams-table"
         />
     </div>
-    <AdminUserEditDialog @userUpdated="userUpdated" @userDeleted="userDeleted" ref="adminUserEditDialog"/>
+    <AdminUserEditDialog @user-updated="userUpdated" @user-deleted="userDeleted" ref="adminUserEditDialog"/>
 </template>
 
 <script>

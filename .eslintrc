@@ -190,7 +190,6 @@
                 "frontend/src/pages/admin/Teams.vue",
                 "frontend/src/pages/admin/Template/components/LockSetting.vue",
                 "frontend/src/pages/admin/Template/sections/Editor.vue",
-                "frontend/src/pages/admin/Template/sections/Environment.vue",
                 "frontend/src/pages/admin/Template/sections/Security.vue",
                 "frontend/src/pages/admin/Templates/index.vue",
                 "frontend/src/pages/admin/Users/createUser.vue",
@@ -267,7 +266,6 @@
                 "frontend/src/pages/account/Create.vue",
                 "frontend/src/pages/admin/InstanceTypes/index.vue",
                 "frontend/src/pages/admin/Stacks/index.vue",
-                "frontend/src/pages/admin/Template/sections/Environment.vue",
                 "frontend/src/pages/team/create.vue",
                 "frontend/src/pages/team/Devices/dialogs/CreateProvisioningTokenDialog.vue"
             ]
@@ -362,7 +360,6 @@
                 "frontend/src/pages/admin/Template/components/ChangeIndicator.vue",
                 "frontend/src/pages/admin/Template/components/LockSetting.vue",
                 "frontend/src/pages/admin/Template/sections/Editor.vue",
-                "frontend/src/pages/admin/Template/sections/Environment.vue",
                 "frontend/src/pages/admin/Template/sections/Security.vue",
                 "frontend/src/pages/admin/Template/Settings.vue",
                 "frontend/src/pages/admin/Users/createUser.vue",
@@ -403,7 +400,6 @@
                 "frontend/src/pages/admin/Stacks/dialogs/AdminStackEditDialog.vue",
                 "frontend/src/pages/admin/Stacks/index.vue",
                 "frontend/src/pages/admin/Template/sections/Editor.vue",
-                "frontend/src/pages/admin/Template/sections/Environment.vue",
                 "frontend/src/pages/admin/Template/Settings.vue",
                 "frontend/src/pages/admin/Users/createUser.vue",
                 "frontend/src/pages/admin/Users/dialogs/AdminUserEditDialog.vue",
@@ -487,7 +483,6 @@
                 "frontend/src/pages/admin/Template/components/ChangeIndicator.vue",
                 "frontend/src/pages/admin/Template/components/LockSetting.vue",
                 "frontend/src/pages/admin/Template/sections/Editor.vue",
-                "frontend/src/pages/admin/Template/sections/Environment.vue",
                 "frontend/src/pages/admin/Template/sections/Security.vue",
                 "frontend/src/pages/admin/Template/Settings.vue",
                 "frontend/src/pages/admin/Templates/index.vue",
@@ -537,16 +532,6 @@
         },
         {
             "rules": {
-                "vue/prop-name-casing": "off"
-            },
-            "files": [
-                "frontend/src/components/PageHeader.vue",
-                "frontend/src/components/SideNavigation.vue",
-                "frontend/src/components/SideNavigationTeamOptions.vue"
-            ]
-        },
-        {
-            "rules": {
                 "vue/require-explicit-emits": "off"
             },
             "files": [
@@ -586,7 +571,6 @@
                 "frontend/src/pages/admin/Template/components/ChangeIndicator.vue",
                 "frontend/src/pages/admin/Template/components/LockSetting.vue",
                 "frontend/src/pages/admin/Template/sections/Editor.vue",
-                "frontend/src/pages/admin/Template/sections/Environment.vue",
                 "frontend/src/pages/admin/Template/sections/Security.vue",
                 "frontend/src/pages/admin/Template/Settings.vue",
                 "frontend/src/pages/application/components/ExportProjectComponents.vue",
@@ -627,17 +611,6 @@
         },
         {
             "rules": {
-                "vue/v-on-event-hyphenation": "off"
-            },
-            "files": [
-                "frontend/src/pages/admin/InstanceTypes/index.vue",
-                "frontend/src/pages/admin/Stacks/index.vue",
-                "frontend/src/pages/admin/Users/General.vue",
-                "frontend/src/pages/admin/Users/UserDetails.vue"
-            ]
-        },
-        {
-            "rules": {
                 "vue/v-slot-style": "off"
             },
             "files": [
@@ -656,7 +629,6 @@
                 "frontend/src/pages/admin/Settings/SSO/index.vue",
                 "frontend/src/pages/admin/Stacks/dialogs/AdminStackEditDialog.vue",
                 "frontend/src/pages/admin/Stacks/index.vue",
-                "frontend/src/pages/admin/Template/sections/Environment.vue",
                 "frontend/src/pages/admin/Templates/index.vue",
                 "frontend/src/pages/admin/Users/createUser.vue",
                 "frontend/src/pages/admin/Users/dialogs/AdminUserEditDialog.vue",
