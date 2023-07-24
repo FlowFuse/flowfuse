@@ -299,10 +299,10 @@ module.exports = async function (app) {
                     //  - generate a new credentialSecret for the new project
                     //    (this is normally left to NR to do itself)
                     //  - re-encrypt the credentials using the new key
-                    const origCredentials = await app.db.models.StorageCredentials.byProject(sourceProject.id)
-                    if (origCredentials) {
+                    const origCredentialsModel = await app.db.models.StorageCredentials.byProject(sourceProject.id)
+                    if (origCredentialsModel) {
+                        const origCredentials = JSON.parse(origCredentialsModel.credentials) // .credentials is stored as text in the DB
                         const origCredentialSecret = await sourceProject.getSetting('credentialSecret') || sourceSettings._credentialSecret // Legacy
-
                         const newCredentials = await app.db.controllers.Project.reEncryptCredentials(origCredentials, origCredentialSecret, newCredentialSecret)
                         await app.db.models.StorageCredentials.create({
                             credentials: JSON.stringify(newCredentials),

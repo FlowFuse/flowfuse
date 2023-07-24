@@ -234,8 +234,7 @@ module.exports = {
      * @returns
      */
     reEncryptCredentials (app, existingCredentials, oldCredentialSecret, newCredentialSecret) {
-        const srcCredentials = JSON.parse(existingCredentials.credentials)
-        const newCredentials = app.db.controllers.Project.exportCredentials(srcCredentials, oldCredentialSecret, newCredentialSecret)
+        const newCredentials = app.db.controllers.Project.exportCredentials(existingCredentials, oldCredentialSecret, newCredentialSecret)
         return newCredentials
     },
 

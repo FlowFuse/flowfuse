@@ -1,6 +1,8 @@
+const crypto = require('crypto')
+
 const should = require('should') // eslint-disable-line
 const snapshots = require('../../../../forge/services/snapshots')
-const { decryptCreds } = require('../../../lib/decryptCreds')
+const { decryptCreds } = require('../../../lib/credentials')
 
 const FF_UTIL = require('flowforge-test-utils')
 
@@ -143,7 +145,10 @@ describe('Snapshots Service', function () {
             newSnapshot.flows.flows.length.should.equal(1)
 
             // Credentials
-            newSnapshot.flows.credentials.should.match({ CRED_ONE: { a: 'b' } })
+            const toInstanceCredentialSecret = await instance.getCredentialSecret()
+            const toInstanceCredentialSecretHash = crypto.createHash('sha256').update(toInstanceCredentialSecret).digest()
+            const decryptedCredentials = decryptCreds(toInstanceCredentialSecretHash, newSnapshot.flows.credentials)
+            decryptedCredentials.should.match({ CRED_ONE: { a: 'b' } })
 
             // Settings
             newSnapshot.settings.settings.settingOne.should.equal('test')
@@ -261,16 +266,18 @@ describe('Snapshots Service', function () {
             await TEAM.addProject(toInstance)
             toInstance.reload()
 
-            const newSnapshot = await snapshots.copySnapshot(APP, sourceSnapshot, toInstance, { importSnapshot: true })
+            const newSnapshot = await snapshots.copySnapshot(APP, sourceSnapshot, toInstance, { importSnapshot: true, decryptAndReEncryptCredentialsSecret: credentialsSecret })
             newSnapshot.flows.credentials.should.not.match(credentialsEncrypted) // should have been re-encrypted
             newSnapshot.flows.credentials.should.have.key('$')
 
             // Set during the copy
-            const toInstanceCredentialSecret = await toInstance.getSetting('credentialSecret')
+            const toInstanceCredentialSecret = await toInstance.getCredentialSecret()
             toInstanceCredentialSecret.should.not.equal(null)
 
+            const toInstanceCredentialSecretHash = crypto.createHash('sha256').update(toInstanceCredentialSecret).digest()
+
             // Credentials from the flow should match
-            const decryptedCredentials = decryptCreds(toInstanceCredentialSecret, newSnapshot.flows.credentials)
+            const decryptedCredentials = decryptCreds(toInstanceCredentialSecretHash, newSnapshot.flows.credentials)
             decryptedCredentials.should.match(credentials)
         })
     })
