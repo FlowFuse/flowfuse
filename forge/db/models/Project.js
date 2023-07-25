@@ -11,6 +11,8 @@
  * @typedef {{name: string, schema: ModelAttributes, model: Model, indexes?: ModelIndexesOptions[], scopes?: ModelScopeOptions, options?: InitOptions}} FFModel
  */
 
+const crypto = require('crypto')
+
 const { DataTypes, Op } = require('sequelize')
 
 const Controllers = require('../controllers')
@@ -429,6 +431,10 @@ module.exports = {
                     if (project) {
                         return project.TeamId
                     }
+                },
+
+                generateCredentialSecret () {
+                    return crypto.randomBytes(32).toString('hex')
                 }
             }
         }

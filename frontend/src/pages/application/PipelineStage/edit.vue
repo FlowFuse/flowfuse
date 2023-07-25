@@ -69,7 +69,8 @@ export default {
         async update (input) {
             const options = {
                 name: input.name,
-                instanceId: input.instanceId
+                instanceId: input.instanceId,
+                deployToDevices: input.deployToDevices
             }
 
             await PipelinesAPI.updatePipelineStage(this.pipeline.id, this.stage.id, options)

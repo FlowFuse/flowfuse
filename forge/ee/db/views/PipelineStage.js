@@ -3,7 +3,8 @@ module.exports = {
         const result = stage.toJSON()
         const filtered = {
             id: result.hashid,
-            name: result.name
+            name: result.name,
+            deployToDevices: result.deployToDevices
         }
 
         if (stage.Instances?.length > 0) {

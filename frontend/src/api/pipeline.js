@@ -25,7 +25,8 @@ const getPipelineStage = async (pipelineId, stageId) => {
 const addPipelineStage = async (pipelineId, stage) => {
     const options = {
         name: stage.name,
-        instanceId: stage.instanceId
+        instanceId: stage.instanceId,
+        deployToDevices: stage.deployToDevices
     }
     if (stage.source) {
         options.source = stage.source
@@ -65,9 +66,22 @@ const deletePipelineStage = async (pipelineId, stageId) => {
     })
 }
 
+/**
+ * @param {string} pipelineId
+ * @param {string} sourceStageId
+ * @param {string} targetStageId
+ * Deploy pipeline stage
+ * */
+const deployPipelineStage = async (pipelineId, sourceStageId) => {
+    return client.put(`/api/v1/pipelines/${pipelineId}/stages/${sourceStageId}/deploy`).then(res => {
+        return res.data
+    })
+}
+
 export default {
     getPipelineStage,
     addPipelineStage,
     updatePipelineStage,
-    deletePipelineStage
+    deletePipelineStage,
+    deployPipelineStage
 }
