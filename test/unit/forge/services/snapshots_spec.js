@@ -18,6 +18,10 @@ describe('Snapshots Service', function () {
         TEAM = await APP.db.models.Team.create({ name: 'ATeam', TeamTypeId: defaultTeamType.id })
     })
 
+    after(async function () {
+        await APP.close()
+    })
+
     describe('createSnapshot', function () {
         it('Creates a snapshot of the passed instance', async function () {
             const instance = await APP.db.models.Project.create({ name: 'instance-1', type: '', url: '' })
