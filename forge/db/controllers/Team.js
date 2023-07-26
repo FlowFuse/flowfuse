@@ -59,15 +59,12 @@ module.exports = {
                 include: [{ model: app.db.models.TeamType }]
             })
         }
-        const userLimit = team.TeamType.getProperty('userLimit')
+        const userLimit = await team.getUserLimit()
         if (userLimit > 0 && currentTeamMemberCount >= userLimit) {
             throw new Error('Team user limit reached')
         }
 
         await team.addUser(user, { through: { role: userRole } })
-        if (app.license.active() && app.billing) {
-            await app.billing.updateTeamMemberCount(team)
-        }
     },
     /**
      * Remove a user from a team
@@ -92,10 +89,6 @@ module.exports = {
                 await user.setDefaultTeam(null)
             }
             await userRole.destroy()
-
-            if (app.license.active() && app.billing) {
-                await app.billing.updateTeamMemberCount(team)
-            }
 
             return true
             // console.warn('TODO: forge.db.controllers.Team.removeUser - expire oauth sessions')

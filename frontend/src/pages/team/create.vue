@@ -21,7 +21,7 @@
                         <ff-tile-selection-option v-for="(teamType, index) in teamTypes" :key="index"
                                                   :label="teamType.name" :description="teamType.description"
                                                   :price="billingEnabled ? teamType.billingPrice : ''"
-                                                  :price-interval="billingEnabled ? (!teamType.isFree ? 'per user/month' : '') : ''"
+                                                  :price-interval="billingEnabled ? teamType.billingInterval : ''"
                                                   :value="teamType.id"/>
                     </ff-tile-selection>
                 </div>
@@ -41,15 +41,6 @@
                 <template v-if="billingEnabled">
                     <div class="mb-8 text-sm text-gray-500 space-y-2">
                         <p>To create the team we need to setup payment details via Stripe, our secure payment provider.</p>
-                        <p v-if="input.teamType">
-                            <span v-if="input.teamType.isFree">You will not be charged for creating this team.</span>
-                            <span v-else>You will be charged <b>{{ input.teamType.billingPrice }} for each team member per month</b>.</span>
-                            You will be charged for the application instances you create within the team.
-                            For more information on billing, please read our <a class="underline" href="https://flowforge.com/docs/cloud/billing/">Billing documentation</a>.
-                        </p>
-                        <p v-if="user.free_trial_available">
-                            As this is your first FlowForge team, free credit will be applied to use for your first project.
-                        </p>
                     </div>
                     <ff-button :disabled="!formValid" @click="createTeam()">
                         <template v-slot:icon-right><ExternalLinkIcon /></template>

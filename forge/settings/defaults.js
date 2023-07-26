@@ -37,6 +37,8 @@ module.exports = {
 
     // Should we auto-create a team for a user when they register
     'user:team:auto-create': false,
+    // The type of team to create - if null, will default to the 'first' in the list
+    'user:team:auto-create:teamType': null,
 
     // Can external users be invited to join teams
     'team:user:invite:external': false,

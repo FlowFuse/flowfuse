@@ -29,14 +29,9 @@ module.exports = function (app) {
         type: 'object',
         allOf: [{ $ref: 'TeamSummary' }],
         properties: {
-            type: {
-                type: 'object',
-                properties: {
-                    id: { type: 'string' },
-                    name: { type: 'string' }
-                }
-            },
+            type: { $ref: 'TeamType' },
             instanceCount: { type: 'number' },
+            instanceCountByType: { type: 'object', additionalProperties: true },
             memberCount: { type: 'number' },
             createdAt: { type: 'string' },
             updatedAt: { type: 'string' },

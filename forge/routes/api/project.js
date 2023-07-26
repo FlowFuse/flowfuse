@@ -167,18 +167,19 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const team = await request.teamMembership.getTeam()
-
         const projectType = await app.db.models.ProjectType.byId(request.body.projectType)
         if (!projectType) {
             reply.code(400).send({ code: 'invalid_project_type', error: 'Invalid project type' })
             return
         }
 
-        if (app.license.active() && app.billing) {
-            if (!await app.billing.isProjectCreateAllowed(team, projectType)) {
-                reply.code(402).send({ code: 'billing_required', error: 'Team billing not configured' })
-                return
-            }
+        try {
+            // This will perform all checks needed to ensure this instance type
+            // can be created for this team.
+            await team.checkInstanceTypeCreateAllowed(projectType)
+        } catch (err) {
+            reply.code(err.statusCode || 400).send({ code: err.code || 'unexpected_error', error: err.error || err.message })
+            return
         }
 
         let sourceProject
@@ -267,9 +268,6 @@ module.exports = async function (app) {
                 { model: app.db.models.ProjectSettings }
             ]
         })
-        if (app.license.active() && app.billing) {
-            await app.billing.initialiseProjectBillingState(team, project)
-        }
 
         if (sourceProject) {
             // need to copy values over

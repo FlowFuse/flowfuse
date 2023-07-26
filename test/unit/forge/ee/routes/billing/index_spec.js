@@ -5,7 +5,6 @@ const setup = require('../../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
-const { KEY_BILLING_STATE } = FF_UTIL.require('forge/db/models/ProjectSettings')
 
 describe('Billing routes', function () {
     const sandbox = sinon.createSandbox()
@@ -672,7 +671,7 @@ describe('Billing routes', function () {
                 },
                 cookies: { sid: TestObjects.tokens.alice }
             })
-            response.statusCode.should.equal(402)
+            response.statusCode.should.equal(400)
             const result = response.json()
             result.should.have.property('code', 'billing_required')
         })
@@ -694,17 +693,14 @@ describe('Billing routes', function () {
             response.statusCode.should.equal(200)
             const projectDetails = response.json()
             // Check the billing state is set to billed
-            const project = await app.db.models.Project.byId(projectDetails.id)
-            const billingState = await project.getSetting(KEY_BILLING_STATE)
-            billingState.should.equal(app.db.models.ProjectSettings.BILLING_STATES.BILLED)
+            await app.db.models.Project.byId(projectDetails.id)
             // Check we updated stripe
             stripe.subscriptions.update.called.should.be.true()
 
             should.exist(stripe._.data.sub_1234567890)
-            stripe._.data.sub_1234567890.metadata.should.have.property(project.id, 'true')
             stripe._.data.sub_1234567890.items.data.should.have.length(1)
             const item = stripe._.data.sub_1234567890.items.data[0]
-            item.should.have.property('price', 'price_123')
+            item.should.have.property('_price', 'price_123')
             item.should.have.property('quantity', 1)
             item.plan.should.have.property('product', 'product_123')
         })
@@ -727,14 +723,12 @@ describe('Billing routes', function () {
             const projectDetails = response.json()
             // Check the billing state is set to billed
             const project = await app.db.models.Project.byId(projectDetails.id)
-            ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.BILLED)
             // Check we updated stripe
             stripe.subscriptions.update.callCount.should.equal(1)
             stripe.subscriptionItems.update.callCount.should.equal(0)
-            stripe._.data.sub_1234567890.metadata.should.have.property(project.id, 'true')
             stripe._.data.sub_1234567890.items.data.should.have.length(1)
-            stripe._.data.sub_1234567890.items.data[0].should.have.property('price', 'price_123')
-            stripe._.data.sub_1234567890.items.data[0].should.have.property('quantity', 1)
+            stripe._.data.sub_1234567890.items.data[0].should.have.property('_price', 'price_123')
+            stripe._.data.sub_1234567890.items.data[0].should.have.property('quantity', 2)
             stripe._.data.sub_1234567890.items.data[0].plan.should.have.property('product', 'product_123')
 
             // Suspend it
@@ -747,15 +741,12 @@ describe('Billing routes', function () {
             suspendResponse.statusCode.should.equal(200)
             await project.reload()
             project.state.should.equal('suspended')
-            // Check the billing state is set to trial
-            ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.NOT_BILLED)
             // Check we updated stripe
-            stripe.subscriptions.update.callCount.should.equal(2)
+            stripe.subscriptions.update.callCount.should.equal(1)
             stripe.subscriptionItems.update.callCount.should.equal(1)
-            stripe._.data.sub_1234567890.metadata.should.have.property(project.id, '')
             stripe._.data.sub_1234567890.items.data.should.have.length(1)
-            stripe._.data.sub_1234567890.items.data[0].should.have.property('price', 'price_123')
-            stripe._.data.sub_1234567890.items.data[0].should.have.property('quantity', 0)
+            stripe._.data.sub_1234567890.items.data[0].should.have.property('_price', 'price_123')
+            stripe._.data.sub_1234567890.items.data[0].should.have.property('quantity', 1)
             stripe._.data.sub_1234567890.items.data[0].plan.should.have.property('product', 'product_123')
 
             // Resume it
@@ -768,15 +759,12 @@ describe('Billing routes', function () {
             startResponse.statusCode.should.equal(200)
             await project.reload()
             project.state.should.equal('running')
-            // Check the billing state is set to trial
-            ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.BILLED)
             // Check we updated stripe
-            stripe.subscriptions.update.callCount.should.equal(3)
+            stripe.subscriptions.update.callCount.should.equal(1)
             stripe.subscriptionItems.update.callCount.should.equal(2)
-            stripe._.data.sub_1234567890.metadata.should.have.property(project.id, 'true')
             stripe._.data.sub_1234567890.items.data.should.have.length(1)
-            stripe._.data.sub_1234567890.items.data[0].should.have.property('price', 'price_123')
-            stripe._.data.sub_1234567890.items.data[0].should.have.property('quantity', 1)
+            stripe._.data.sub_1234567890.items.data[0].should.have.property('_price', 'price_123')
+            stripe._.data.sub_1234567890.items.data[0].should.have.property('quantity', 2)
             stripe._.data.sub_1234567890.items.data[0].plan.should.have.property('product', 'product_123')
 
             // Wait for the stub driver to start the project to avoid
@@ -797,318 +785,542 @@ describe('Billing routes', function () {
         })
 
         describe('Trial Mode', function () {
-            afterEach(function () {
-                app.settings.set('user:team:trial-mode', false)
-            })
-            it('Fails to create project for trial-mode team if project-type not allowed', async function () {
-                app.settings.set('user:team:trial-mode', true)
-                app.settings.set('user:team:trial-mode:duration', 5)
-                app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
-
-                // Create trial team
-                const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam') })
-                await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
-                await app.factory.createTrialSubscription(trialTeam)
-
-                const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
-
+            let legacyTrialTeamType
+            let trialTeamType
+            let projectType2
+            before(async function () {
                 // Create a forbidden second projectType
-                const projectType2 = await app.db.models.ProjectType.create({
+                projectType2 = await app.db.models.ProjectType.create({
                     name: 'projectType2',
                     description: 'second project type',
                     active: true,
                     properties: { foo: 'bar' },
                     order: 1
                 })
-                // Give the type a stack
-                const stack2 = await app.db.models.ProjectStack.create({ name: 'stack2', active: true, properties: { nodered: '2.2.2' } })
-                await stack2.setProjectType(projectType2)
 
-                const response = await app.inject({
-                    method: 'POST',
-                    url: '/api/v1/projects',
-                    payload: {
-                        name: generateName('billing-project'),
-                        applicationId: application.hashid,
-                        projectType: projectType2.hashid,
-                        template: TestObjects.template1.hashid,
-                        stack: stack2.hashid
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                response.statusCode.should.equal(402)
-                const result = response.json()
-                result.should.have.property('code', 'billing_required')
-            })
-            it('Fails to create project for trial-mode team if trial has expired', async function () {
-                app.settings.set('user:team:trial-mode', true)
-                app.settings.set('user:team:trial-mode:duration', 5)
-                app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
-
-                // Create trial team
-                const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam') })
-                await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
-                await app.factory.createTrialSubscription(trialTeam, -1)
-
-                const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
-
-                const response = await app.inject({
-                    method: 'POST',
-                    url: '/api/v1/projects',
-                    payload: {
-                        name: generateName('billing-project'),
-                        applicationId: application.hashid,
-                        projectType: TestObjects.projectType1.hashid,
-                        template: TestObjects.template1.hashid,
-                        stack: TestObjects.stack1.hashid
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                response.statusCode.should.equal(402)
-                const result = response.json()
-                result.should.have.property('code', 'billing_required')
-            })
-
-            it('Creates a project for trial-mode team', async function () {
-                app.settings.set('user:team:trial-mode', true)
-                app.settings.set('user:team:trial-mode:duration', 5)
-                app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
-
-                // Create trial team
-                const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam') })
-                await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
-                await app.factory.createTrialSubscription(trialTeam)
-
-                const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
-
-                // Create project using the permitted projectType for trials - projectType1
-                const response = await app.inject({
-                    method: 'POST',
-                    url: '/api/v1/projects',
-                    payload: {
-                        name: generateName('billing-project'),
-                        applicationId: application.hashid,
-                        projectType: TestObjects.projectType1.hashid,
-                        template: TestObjects.template1.hashid,
-                        stack: TestObjects.stack1.hashid
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                response.statusCode.should.equal(200)
-                const projectDetails = response.json()
-
-                // Check the billing state is set to trial
-                const project = await app.db.models.Project.byId(projectDetails.id)
-                const billingState = await project.getSetting(KEY_BILLING_STATE)
-                billingState.should.equal(app.db.models.ProjectSettings.BILLING_STATES.TRIAL)
-
-                // Check we didn't try to update stripe
-                stripe.subscriptions.update.called.should.be.false()
-            })
-
-            it('Cannot create more than one trial project for trial-mode team', async function () {
-                app.settings.set('user:team:trial-mode', true)
-                app.settings.set('user:team:trial-mode:duration', 5)
-                app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
-
-                // Create trial team
-                const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam') })
-                await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
-                await app.factory.createTrialSubscription(trialTeam)
-
-                const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
-
-                // Create project using the permitted projectType for trials - projectType1
-                const response = await app.inject({
-                    method: 'POST',
-                    url: '/api/v1/projects',
-                    payload: {
-                        name: generateName('billing-project'),
-                        applicationId: application.hashid,
-                        projectType: TestObjects.projectType1.hashid,
-                        template: TestObjects.template1.hashid,
-                        stack: TestObjects.stack1.hashid
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                response.statusCode.should.equal(200)
-
-                const response2 = await app.inject({
-                    method: 'POST',
-                    url: '/api/v1/projects',
-                    payload: {
-                        name: generateName('billing-project'),
-                        applicationId: application.hashid,
-                        projectType: TestObjects.projectType1.hashid,
-                        template: TestObjects.template1.hashid,
-                        stack: TestObjects.stack1.hashid
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                response2.statusCode.should.equal(402)
-            })
-
-            it('Can suspend/resume a trial project without touching billing', async function () {
-                app.settings.set('user:team:trial-mode', true)
-                app.settings.set('user:team:trial-mode:duration', 5)
-                app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
-
-                // Create trial team
-                const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam') })
-                await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
-                await app.factory.createTrialSubscription(trialTeam)
-
-                const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
-
-                // Create project using the permitted projectType for trials - projectType1
-                const response = await app.inject({
-                    method: 'POST',
-                    url: '/api/v1/projects',
-                    payload: {
-                        name: generateName('billing-project'),
-                        applicationId: application.hashid,
-                        projectType: TestObjects.projectType1.hashid,
-                        template: TestObjects.template1.hashid,
-                        stack: TestObjects.stack1.hashid
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                response.statusCode.should.equal(200)
-                const projectDetails = response.json()
-
-                // Suspend it
-                const suspendResponse = await app.inject({
-                    method: 'POST',
-                    url: `/api/v1/projects/${projectDetails.id}/actions/suspend`,
-                    payload: {},
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                suspendResponse.statusCode.should.equal(200)
-                const createdProject = await app.db.models.Project.byId(projectDetails.id)
-                createdProject.state.should.equal('suspended')
-
-                // Check the billing state is set to trial
-                const project = await app.db.models.Project.byId(projectDetails.id)
-                const billingState = await project.getSetting(KEY_BILLING_STATE)
-                billingState.should.equal(app.db.models.ProjectSettings.BILLING_STATES.TRIAL)
-
-                // Check we didn't try to update stripe
-                stripe.subscriptions.update.called.should.be.false()
-
-                // Resume it
-                const startResponse = await app.inject({
-                    method: 'POST',
-                    url: `/api/v1/projects/${projectDetails.id}/actions/start`,
-                    payload: {},
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                startResponse.statusCode.should.equal(200)
-                await createdProject.reload()
-                createdProject.state.should.equal('running')
-
-                const billingState2 = await project.getSetting(KEY_BILLING_STATE)
-                billingState2.should.equal(app.db.models.ProjectSettings.BILLING_STATES.TRIAL)
-
-                // Check we didn't try to update stripe
-                stripe.subscriptions.update.called.should.be.false()
-
-                // Wait for the stub driver to start the project to avoid
-                // an async call to the audit log completing after the test
-                // has finished
-                app.db.controllers.Project.getInflightState(createdProject).should.equal('starting')
-                const { START_DELAY } = FF_UTIL.require('forge/containers/stub')
-                return new Promise((resolve, reject) => {
-                    setTimeout(() => {
-                        try {
-                            should.not.exist(app.db.controllers.Project.getInflightState(createdProject))
-                            resolve()
-                        } catch (err) {
-                            reject(err)
+                // Create a new teamType that is legacy trial mode (only one specific instance type allowed)
+                legacyTrialTeamType = await app.factory.createTeamType({
+                    name: 'legacy-type',
+                    properties: {
+                        instances: {
+                            [TestObjects.projectType1.hashid]: { active: true },
+                            [projectType2.hashid]: { active: true }
+                        },
+                        trial: {
+                            active: true,
+                            instanceType: TestObjects.projectType1.hashid,
+                            duration: 5
                         }
-                    }, START_DELAY + 150)
+                    }
+                })
+                trialTeamType = await app.factory.createTeamType({
+                    name: 'trial-type',
+                    properties: {
+                        instances: {
+                            [TestObjects.projectType1.hashid]: { active: true },
+                            [projectType2.hashid]: { active: true }
+                        },
+                        trial: {
+                            active: true,
+                            duration: 5
+                        }
+                    }
                 })
             })
 
-            it('Cannot create a project if trial-mode has expired', async function () {
-                app.settings.set('user:team:trial-mode', true)
-                app.settings.set('user:team:trial-mode:duration', 5)
-                app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
+            describe('Legacy trial teams', function () {
+                it('Fails to create project for trial-mode team if project-type not allowed', async function () {
+                    // Create trial team
+                    const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam'), TeamTypeId: legacyTrialTeamType.id })
+                    await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+                    await app.factory.createTrialSubscription(trialTeam)
 
-                // Create trial team - with trialEndsAt in the past
-                const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam') })
-                await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
-                await app.factory.createTrialSubscription(trialTeam, -1)
+                    const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
 
-                // Create trial team
-                const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
+                    // Give the type a stack
+                    const stack2 = await app.db.models.ProjectStack.create({ name: 'stack2', active: true, properties: { nodered: '2.2.2' } })
+                    await stack2.setProjectType(projectType2)
 
-                // Try to create project using the permitted projectType for trials - projectType1
-                const response = await app.inject({
-                    method: 'POST',
-                    url: '/api/v1/projects',
-                    payload: {
-                        name: generateName('billing-project'),
-                        applicationId: application.hashid,
-                        projectType: TestObjects.projectType1.hashid,
-                        template: TestObjects.template1.hashid,
-                        stack: TestObjects.stack1.hashid
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/projects',
+                        payload: {
+                            name: generateName('billing-project'),
+                            applicationId: application.hashid,
+                            projectType: projectType2.hashid,
+                            template: TestObjects.template1.hashid,
+                            stack: stack2.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(400)
+                    const result = response.json()
+                    result.should.have.property('code', 'billing_required')
                 })
-                response.statusCode.should.equal(402)
+                it('Fails to create project for trial-mode team if trial has expired', async function () {
+                    // Create trial team
+                    const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam'), TeamTypeId: legacyTrialTeamType.id })
+                    await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+                    await app.factory.createTrialSubscription(trialTeam, -1)
+
+                    const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
+
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/projects',
+                        payload: {
+                            name: generateName('billing-project'),
+                            applicationId: application.hashid,
+                            projectType: TestObjects.projectType1.hashid,
+                            template: TestObjects.template1.hashid,
+                            stack: TestObjects.stack1.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(400)
+                    const result = response.json()
+                    result.should.have.property('code', 'billing_required')
+                })
+
+                it('Creates a project for trial-mode team', async function () {
+                    // Create trial team
+                    const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam'), TeamTypeId: legacyTrialTeamType.id })
+                    await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+                    await app.factory.createTrialSubscription(trialTeam)
+
+                    const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
+
+                    // Create project using the permitted projectType for trials - projectType1
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/projects',
+                        payload: {
+                            name: generateName('billing-project'),
+                            applicationId: application.hashid,
+                            projectType: TestObjects.projectType1.hashid,
+                            template: TestObjects.template1.hashid,
+                            stack: TestObjects.stack1.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(200)
+
+                    // Check we didn't try to update stripe
+                    stripe.subscriptions.update.called.should.be.false()
+                })
+
+                it('Cannot create more than one trial project for trial-mode team', async function () {
+                    // Create trial team
+                    const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam'), TeamTypeId: legacyTrialTeamType.id })
+                    await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+                    await app.factory.createTrialSubscription(trialTeam)
+
+                    const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
+
+                    // Create project using the permitted projectType for trials - projectType1
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/projects',
+                        payload: {
+                            name: generateName('billing-project'),
+                            applicationId: application.hashid,
+                            projectType: TestObjects.projectType1.hashid,
+                            template: TestObjects.template1.hashid,
+                            stack: TestObjects.stack1.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(200)
+                    const response2 = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/projects',
+                        payload: {
+                            name: generateName('billing-project'),
+                            applicationId: application.hashid,
+                            projectType: TestObjects.projectType1.hashid,
+                            template: TestObjects.template1.hashid,
+                            stack: TestObjects.stack1.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response2.statusCode.should.equal(400)
+                })
+
+                it('Can suspend/resume a trial project without touching billing', async function () {
+                    // Create trial team
+                    const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam'), TeamTypeId: legacyTrialTeamType.id })
+                    await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+                    await app.factory.createTrialSubscription(trialTeam)
+
+                    const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
+
+                    // Create project using the permitted projectType for trials - projectType1
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/projects',
+                        payload: {
+                            name: generateName('billing-project'),
+                            applicationId: application.hashid,
+                            projectType: TestObjects.projectType1.hashid,
+                            template: TestObjects.template1.hashid,
+                            stack: TestObjects.stack1.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(200)
+                    const projectDetails = response.json()
+
+                    // Suspend it
+                    const suspendResponse = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/projects/${projectDetails.id}/actions/suspend`,
+                        payload: {},
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    suspendResponse.statusCode.should.equal(200)
+                    const createdProject = await app.db.models.Project.byId(projectDetails.id)
+                    createdProject.state.should.equal('suspended')
+
+                    // Check we didn't try to update stripe
+                    stripe.subscriptions.update.called.should.be.false()
+
+                    // Resume it
+                    const startResponse = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/projects/${projectDetails.id}/actions/start`,
+                        payload: {},
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    startResponse.statusCode.should.equal(200)
+                    await createdProject.reload()
+                    createdProject.state.should.equal('running')
+
+                    // Check we didn't try to update stripe
+                    stripe.subscriptions.update.called.should.be.false()
+
+                    // Wait for the stub driver to start the project to avoid
+                    // an async call to the audit log completing after the test
+                    // has finished
+                    app.db.controllers.Project.getInflightState(createdProject).should.equal('starting')
+                    const { START_DELAY } = FF_UTIL.require('forge/containers/stub')
+                    return new Promise((resolve, reject) => {
+                        setTimeout(() => {
+                            try {
+                                should.not.exist(app.db.controllers.Project.getInflightState(createdProject))
+                                resolve()
+                            } catch (err) {
+                                reject(err)
+                            }
+                        }, START_DELAY + 150)
+                    })
+                })
+
+                it('Cannot create a project if trial-mode has expired', async function () {
+                    // Create trial team - with trialEndsAt in the past
+                    const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam'), TeamTypeId: legacyTrialTeamType.id })
+                    await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+                    await app.factory.createTrialSubscription(trialTeam, -1)
+
+                    // Create trial team
+                    const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
+
+                    // Try to create project using the permitted projectType for trials - projectType1
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/projects',
+                        payload: {
+                            name: generateName('billing-project'),
+                            applicationId: application.hashid,
+                            projectType: TestObjects.projectType1.hashid,
+                            template: TestObjects.template1.hashid,
+                            stack: TestObjects.stack1.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(400)
+                })
+
+                it('Cannot restart suspended project if trial-mode has expired', async function () {
+                    // Create trial team
+                    const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam'), TeamTypeId: legacyTrialTeamType.id })
+                    await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+                    const trialSub = await app.factory.createTrialSubscription(trialTeam)
+
+                    const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
+
+                    // Create project
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/projects',
+                        payload: {
+                            name: generateName('billing-project'),
+                            applicationId: application.hashid,
+                            projectType: TestObjects.projectType1.hashid,
+                            template: TestObjects.template1.hashid,
+                            stack: TestObjects.stack1.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(200)
+                    const project = response.json()
+
+                    // Suspend it
+                    const suspendResponse = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/projects/${project.id}/actions/suspend`,
+                        payload: {},
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    suspendResponse.statusCode.should.equal(200)
+                    const createdProject = await app.db.models.Project.byId(project.id)
+                    createdProject.state.should.equal('suspended')
+
+                    // Update team subscription trial expiry
+                    trialSub.trialEndsAt = new Date(Date.now() - 1000)
+                    await trialSub.save()
+
+                    // Attempt to restart the project
+                    const unsuspendResponse = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/projects/${project.id}/actions/start`,
+                        payload: {},
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    unsuspendResponse.statusCode.should.equal(402)
+                })
             })
+            describe('Full trial teams', function () {
+                it('Fails to create project for trial-mode team if trial has expired', async function () {
+                    // Create trial team
+                    const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam'), TeamTypeId: trialTeamType.id })
+                    await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+                    await app.factory.createTrialSubscription(trialTeam, -1)
 
-            it('Cannot restart suspended project if trial-mode has expired', async function () {
-                app.settings.set('user:team:trial-mode', true)
-                app.settings.set('user:team:trial-mode:duration', 5)
-                app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
+                    const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
 
-                // Create trial team
-                const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam') })
-                await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
-                const trialSub = await app.factory.createTrialSubscription(trialTeam)
-
-                const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
-
-                // Create project
-                const response = await app.inject({
-                    method: 'POST',
-                    url: '/api/v1/projects',
-                    payload: {
-                        name: generateName('billing-project'),
-                        applicationId: application.hashid,
-                        projectType: TestObjects.projectType1.hashid,
-                        template: TestObjects.template1.hashid,
-                        stack: TestObjects.stack1.hashid
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/projects',
+                        payload: {
+                            name: generateName('billing-project'),
+                            applicationId: application.hashid,
+                            projectType: TestObjects.projectType1.hashid,
+                            template: TestObjects.template1.hashid,
+                            stack: TestObjects.stack1.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(400)
+                    const result = response.json()
+                    result.should.have.property('code', 'billing_required')
                 })
-                response.statusCode.should.equal(200)
-                const project = response.json()
 
-                // Suspend it
-                const suspendResponse = await app.inject({
-                    method: 'POST',
-                    url: `/api/v1/projects/${project.id}/actions/suspend`,
-                    payload: {},
-                    cookies: { sid: TestObjects.tokens.alice }
+                it('Creates a project for trial-mode team', async function () {
+                    // Create trial team
+                    const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam'), TeamTypeId: trialTeamType.id })
+                    await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+                    await app.factory.createTrialSubscription(trialTeam)
+
+                    const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
+
+                    // Create project using the permitted projectType for trials - projectType1
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/projects',
+                        payload: {
+                            name: generateName('billing-project'),
+                            applicationId: application.hashid,
+                            projectType: TestObjects.projectType1.hashid,
+                            template: TestObjects.template1.hashid,
+                            stack: TestObjects.stack1.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(200)
+
+                    // Check we didn't try to update stripe
+                    stripe.subscriptions.update.called.should.be.false()
                 })
-                suspendResponse.statusCode.should.equal(200)
-                const createdProject = await app.db.models.Project.byId(project.id)
-                createdProject.state.should.equal('suspended')
 
-                // Update team subscription trial expiry
-                trialSub.trialEndsAt = new Date(Date.now() - 1000)
-                await trialSub.save()
+                it('Can create more than one trial project for trial-mode team', async function () {
+                    // Create trial team
+                    const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam'), TeamTypeId: trialTeamType.id })
+                    await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+                    await app.factory.createTrialSubscription(trialTeam)
 
-                // Attempt to restart the project
-                const unsuspendResponse = await app.inject({
-                    method: 'POST',
-                    url: `/api/v1/projects/${project.id}/actions/start`,
-                    payload: {},
-                    cookies: { sid: TestObjects.tokens.alice }
+                    const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
+
+                    // Create project using the permitted projectType for trials - projectType1
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/projects',
+                        payload: {
+                            name: generateName('billing-project'),
+                            applicationId: application.hashid,
+                            projectType: TestObjects.projectType1.hashid,
+                            template: TestObjects.template1.hashid,
+                            stack: TestObjects.stack1.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(200)
+                    const response2 = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/projects',
+                        payload: {
+                            name: generateName('billing-project'),
+                            applicationId: application.hashid,
+                            projectType: TestObjects.projectType1.hashid,
+                            template: TestObjects.template1.hashid,
+                            stack: TestObjects.stack1.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response2.statusCode.should.equal(200)
                 })
-                unsuspendResponse.statusCode.should.equal(402)
+
+                it('Can suspend/resume a trial project without touching billing', async function () {
+                    // Create trial team
+                    const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam'), TeamTypeId: trialTeamType.id })
+                    await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+                    await app.factory.createTrialSubscription(trialTeam)
+
+                    const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
+
+                    // Create project using the permitted projectType for trials - projectType1
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/projects',
+                        payload: {
+                            name: generateName('billing-project'),
+                            applicationId: application.hashid,
+                            projectType: TestObjects.projectType1.hashid,
+                            template: TestObjects.template1.hashid,
+                            stack: TestObjects.stack1.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(200)
+                    const projectDetails = response.json()
+
+                    // Suspend it
+                    const suspendResponse = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/projects/${projectDetails.id}/actions/suspend`,
+                        payload: {},
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    suspendResponse.statusCode.should.equal(200)
+                    const createdProject = await app.db.models.Project.byId(projectDetails.id)
+                    createdProject.state.should.equal('suspended')
+
+                    // Check we didn't try to update stripe
+                    stripe.subscriptions.update.called.should.be.false()
+
+                    // Resume it
+                    const startResponse = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/projects/${projectDetails.id}/actions/start`,
+                        payload: {},
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    startResponse.statusCode.should.equal(200)
+                    await createdProject.reload()
+                    createdProject.state.should.equal('running')
+
+                    // Check we didn't try to update stripe
+                    stripe.subscriptions.update.called.should.be.false()
+
+                    // Wait for the stub driver to start the project to avoid
+                    // an async call to the audit log completing after the test
+                    // has finished
+                    app.db.controllers.Project.getInflightState(createdProject).should.equal('starting')
+                    const { START_DELAY } = FF_UTIL.require('forge/containers/stub')
+                    return new Promise((resolve, reject) => {
+                        setTimeout(() => {
+                            try {
+                                should.not.exist(app.db.controllers.Project.getInflightState(createdProject))
+                                resolve()
+                            } catch (err) {
+                                reject(err)
+                            }
+                        }, START_DELAY + 150)
+                    })
+                })
+
+                it('Cannot create a project if trial-mode has expired', async function () {
+                    // Create trial team - with trialEndsAt in the past
+                    const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam'), TeamTypeId: trialTeamType.id })
+                    await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+                    await app.factory.createTrialSubscription(trialTeam, -1)
+
+                    // Create trial team
+                    const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
+
+                    // Try to create project using the permitted projectType for trials - projectType1
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/projects',
+                        payload: {
+                            name: generateName('billing-project'),
+                            applicationId: application.hashid,
+                            projectType: TestObjects.projectType1.hashid,
+                            template: TestObjects.template1.hashid,
+                            stack: TestObjects.stack1.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(400)
+                })
+
+                it('Cannot restart suspended project if trial-mode has expired', async function () {
+                    // Create trial team
+                    const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam'), TeamTypeId: trialTeamType.id })
+                    await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+                    const trialSub = await app.factory.createTrialSubscription(trialTeam)
+
+                    const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
+
+                    // Create project
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/projects',
+                        payload: {
+                            name: generateName('billing-project'),
+                            applicationId: application.hashid,
+                            projectType: TestObjects.projectType1.hashid,
+                            template: TestObjects.template1.hashid,
+                            stack: TestObjects.stack1.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(200)
+                    const project = response.json()
+
+                    // Suspend it
+                    const suspendResponse = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/projects/${project.id}/actions/suspend`,
+                        payload: {},
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    suspendResponse.statusCode.should.equal(200)
+                    const createdProject = await app.db.models.Project.byId(project.id)
+                    createdProject.state.should.equal('suspended')
+
+                    // Update team subscription trial expiry
+                    trialSub.trialEndsAt = new Date(Date.now() - 1000)
+                    await trialSub.save()
+
+                    // Attempt to restart the project
+                    const unsuspendResponse = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/projects/${project.id}/actions/start`,
+                        payload: {},
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    unsuspendResponse.statusCode.should.equal(402)
+                })
             })
         })
     })

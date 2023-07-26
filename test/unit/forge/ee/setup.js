@@ -64,7 +64,15 @@ async function setup (config = {}) {
 
     forge.factory = factory
 
-    forge.defaultTeamType = await forge.db.models.TeamType.findOne()
+    forge.defaultTeamType = await forge.db.models.TeamType.findOne({ where: { id: 1 } })
+    // Need to give the default TeamType permission to use projectType instances
+    const defaultTeamTypeProperties = forge.defaultTeamType.properties
+    defaultTeamTypeProperties.instances = {
+        [projectType.hashid]: { active: true }
+    }
+    forge.defaultTeamType.properties = defaultTeamTypeProperties
+    await forge.defaultTeamType.save()
+
     forge.user = userAlice
     forge.team = team1
     forge.stack = stack

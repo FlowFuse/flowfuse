@@ -13,7 +13,7 @@ describe('Subscription controller', function () {
 
     describe('createSubscription', function () {
         it('creates a new subscription for the passed team', async function () {
-            const defaultTeamType = await app.db.models.TeamType.findOne()
+            const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
             const team = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: defaultTeamType.id })
 
             const newSubscription = await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
@@ -31,7 +31,7 @@ describe('Subscription controller', function () {
         })
 
         it('replaces an existing subscription if one already exists', async function () {
-            const defaultTeamType = await app.db.models.TeamType.findOne()
+            const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
             const team = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: defaultTeamType.id })
 
             await app.db.controllers.Subscription.createSubscription(team, 'old-subscription', 'customer')
@@ -125,7 +125,7 @@ describe('Subscription controller', function () {
 
     describe('Team Trials', function () {
         it('reports team trial status correctly', async function () {
-            const defaultTeamType = await app.db.models.TeamType.findOne()
+            const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
             const team = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: defaultTeamType.id })
             const trialSubscription = await app.db.controllers.Subscription.createTrialSubscription(team, Date.now() + (5 * 86400000))
 
@@ -144,7 +144,7 @@ describe('Subscription controller', function () {
 
     describe('Past Due state', function () {
         it('treats a past_due subscription as still active', async function () {
-            const defaultTeamType = await app.db.models.TeamType.findOne()
+            const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
             const team = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: defaultTeamType.id })
 
             const newSubscription = await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')

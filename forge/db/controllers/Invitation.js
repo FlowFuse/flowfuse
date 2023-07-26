@@ -49,10 +49,11 @@ module.exports = {
             opts.role = role
             pendingInvites.push({ userDetail, opts })
         }
-        if (team.TeamType.getProperty('userLimit') > 0) {
+        const teamUserLimit = await team.getUserLimit()
+        if (teamUserLimit > 0) {
             const currentTeamMemberCount = await team.memberCount()
             const currentTeamInviteCount = await team.pendingInviteCount()
-            if (currentTeamMemberCount + currentTeamInviteCount + pendingInvites.length > team.TeamType.getProperty('userLimit')) {
+            if (currentTeamMemberCount + currentTeamInviteCount + pendingInvites.length > teamUserLimit) {
                 throw new Error('Team user limit reached')
             }
         }

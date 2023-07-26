@@ -16,6 +16,7 @@ module.exports = (testSpecificMock = {}) => {
             }
         },
         customers: {
+            retrieve: sandbox.stub().resolves({ name: 'user', balance: 0 }),
             createBalanceTransaction: sandbox.stub().resolves({ status: 'ok' })
         },
         subscriptions: {
@@ -39,15 +40,26 @@ module.exports = (testSpecificMock = {}) => {
                 }
                 // This is the initial add of an item
                 if (update.items) {
-                    update.items.forEach(item => {
+                    // Do not mutate the passed-in object as we have tests
+                    // that check these functions were called with the expected object
+                    const items = update.items.map(originalItem => {
+                        const item = { ...originalItem }
                         item.id = `item-${stripeItemCounter++}`
                         item.plan = {
                             product: (item.price || 'price').replace('price', 'product')
                         }
+                        item._price = item.price
+                        item.price = {
+                            unit_amount: 123,
+                            product: {
+                                name: (item.price || 'price').replace('price', 'product')
+                            }
+                        }
                         stripeItems[item.id] = item
+                        return item
                     })
                     stripeData[subId].items = {
-                        data: update.items
+                        data: items
                     }
                 }
             })
@@ -60,6 +72,12 @@ module.exports = (testSpecificMock = {}) => {
                 for (const [key, value] of Object.entries(update)) {
                     stripeItems[itemId][key] = value
                 }
+            }),
+            del: sandbox.stub().callsFake(async function (itemId, update) {
+                if (!stripeItems[itemId]) {
+                    throw new Error('unknown item')
+                }
+                delete stripeItems[itemId]
             })
         },
         promotionCodes: {
