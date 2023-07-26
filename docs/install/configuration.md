@@ -142,8 +142,9 @@ Option        | Description
 
 By default, rate limiting is disabled and the platform will not rate limit any requests.
 
-To enable rate limiting, you can set the `rate_limits.enabled` option to `true`. This will enable rate limiting for all routes unless explicitly disabled (see note below).
-By default, all routes will be limited requests to 1000 per 1 minute window for logged in users, and 60 per 1 minute window for anonymous users.
+To enable rate limiting, you can set the `rate_limits.enabled` option to `true`. 
+
+When enabled, all routes will be limited to 1000 requests per 1 minute window. These defaults can be adjusted by setting values in the configuration options listed below.
 
 NOTE: Some routes are prohibited from being rate limited, such as the logout and acl routes.
 
