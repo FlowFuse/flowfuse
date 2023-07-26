@@ -3,6 +3,7 @@ const crypto = require('node:crypto')
 const should = require('should') // eslint-disable-line no-unused-vars
 
 const { base64URLEncode } = require('../../forge/db/utils')
+const { addFlowsToProject } = require('../lib/Snapshots')
 const TestModelFactory = require('../lib/TestModelFactory')
 
 const FF_UTIL = require('flowforge-test-utils')
@@ -84,8 +85,10 @@ describe('Node-RED Tools Plugin', function () {
         response.cookies[0].should.have.property('name', 'sid')
         TestObjects.accessToken = response.cookies[0].value
 
-        await addFlowsToProject(TestObjects.Instance1.id,
+        await addFlowsToProject(app,
+            TestObjects.Instance1.id,
             TestObjects.tokens.Instance1,
+            TestObjects.tokens.alice,
             [{ id: 'node1' }],
             { testCreds: 'abc' },
             'key1',
@@ -104,49 +107,6 @@ describe('Node-RED Tools Plugin', function () {
     after(function () {
         return app.close()
     })
-
-    function encryptCredentials (key, plain) {
-        const initVector = crypto.randomBytes(16)
-        const cipher = crypto.createCipheriv('aes-256-ctr', key, initVector)
-        return { $: initVector.toString('hex') + cipher.update(JSON.stringify(plain), 'utf8', 'base64') + cipher.final('base64') }
-    }
-
-    // This is copy/paste from project_spec.js - consider moving out to utils
-    async function addFlowsToProject (id, token, flows, creds, key, settings) {
-        await app.inject({
-            method: 'POST',
-            url: `/storage/${id}/flows`,
-            payload: flows,
-            headers: {
-                authorization: `Bearer ${token}`
-            }
-        })
-        const hashKey = crypto.createHash('sha256').update(key).digest()
-        await app.inject({
-            method: 'POST',
-            url: `/storage/${id}/credentials`,
-            payload: encryptCredentials(hashKey, creds),
-            headers: {
-                authorization: `Bearer ${token}`
-            }
-        })
-        await app.inject({
-            method: 'POST',
-            url: `/storage/${id}/settings`,
-            payload: { _credentialSecret: key },
-            headers: {
-                authorization: `Bearer ${token}`
-            }
-        })
-        await app.inject({
-            method: 'PUT',
-            url: `/api/v1/projects/${id}`,
-            payload: {
-                settings
-            },
-            cookies: { sid: TestObjects.tokens.alice }
-        })
-    }
 
     async function createSnapshot (projectId, name, token) {
         return await app.inject({

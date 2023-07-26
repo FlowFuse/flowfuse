@@ -10,8 +10,9 @@
 /**
  * A DeviceTunnel object keeps track of connections to a device.
  * @typedef {Object} DeviceTunnel
+ * @property {numner} id - A unique identifier for this tunnel instance
  * @property {string} deviceId - Device ID
- * @property {number} counter - Number of active connections
+ * @property {number} nextRequestId - Next available request id
  * @property {SocketStream} socket - Socket connection to device
  * @property {Array<FastifyRequest>} requests - List of pending requests
  * @property {Object} forwardedWS - List of forwarded websocket connections
@@ -46,6 +47,12 @@ class DeviceTunnelManager {
         /** @type {ForgeApplication}  Forge application (Fastify app) */
         this.app = app
         this.#tunnels = new Map()
+
+        this.app.addHook('onClose', async (_) => {
+            Object.keys(this.#tunnels).forEach(deviceId => {
+                this.closeTunnel(deviceId)
+            })
+        })
     }
 
     /**
@@ -58,7 +65,6 @@ class DeviceTunnelManager {
      * @param {String} token Token to use for tunnel
      * @see DeviceTunnelManager#initTunnel
      * @see DeviceTunnelManager#closeTunnel
-     * @see DeviceTunnelManager#removeTunnel
      */
     newTunnel (deviceId, token) {
         const manager = this
@@ -67,7 +73,7 @@ class DeviceTunnelManager {
         manager.closeTunnel(deviceId)
 
         // create a new tunnel object & add to list
-        manager.#tunnels.set(deviceId, newTunnel(deviceId, token))
+        manager.#tunnels.set(deviceId, createNewTunnel(deviceId, token))
 
         return !!manager.#getTunnel(deviceId)
     }
@@ -93,9 +99,9 @@ class DeviceTunnelManager {
     getTunnelStatus (deviceId) {
         const exists = this.#tunnels.has(deviceId)
         if (!exists) {
-            return null
+            return { enabled: false }
         }
-        const url = this.getTunnelUrl(deviceId, true)
+        const url = this.getTunnelUrl(deviceId)
         const enabled = this.isEnabled(deviceId)
         const connected = this.isConnected(deviceId)
         return { url, enabled, connected }
@@ -103,26 +109,23 @@ class DeviceTunnelManager {
 
     closeTunnel (deviceId) {
         const tunnel = this.#getTunnel(deviceId)
-        if (tunnel?.socket) {
-            tunnel.socket.close()
-            tunnel.socket.removeAllListeners()
+        if (tunnel) {
+            tunnel.socket?.close()
+            // Close all of the editor websockets that were using this tunnel
+            Object.keys(tunnel?.forwardedWS).forEach(reqId => {
+                const wsClient = tunnel.forwardedWS[reqId]
+                wsClient.close()
+            })
         }
-        this.removeTunnel(deviceId)
-    }
-
-    removeTunnel (deviceId) {
         if (this.#tunnels.has(deviceId)) {
             return this.#tunnels.delete(deviceId)
         }
     }
 
-    getTunnelUrl (deviceId, includeToken = false) {
+    getTunnelUrl (deviceId) {
         const tunnel = this.#getTunnel(deviceId)
         if (tunnel) {
-            if (includeToken) {
-                return `/api/v1/devices/${deviceId}/editor/proxy/?access_token=${tunnel.token}`
-            }
-            return `/api/v1/devices/${deviceId}/editor/proxy/`
+            return `/api/v1/devices/${deviceId}/editor/proxy/?access_token=${tunnel.token}`
         }
         return ''
     }
@@ -152,15 +155,13 @@ class DeviceTunnelManager {
             return false
         }
 
-        // ensure tunnel is not already open
+        // Close any existing tunnel
         if (tunnel.socket) {
             tunnel.socket.close()
-            tunnel.socket.removeAllListeners()
         }
-
         tunnel.socket = inboundDeviceConnection.socket
 
-        // handle messages from device
+        // Handle messages sent from the device
         tunnel.socket.on('message', msg => {
             const response = JSON.parse(msg.toString())
             if (response.id === undefined) {
@@ -178,9 +179,27 @@ class DeviceTunnelManager {
                     reply.send()
                 }
             } else if (response.ws) {
-                // Send message to device editor websocket
                 const wsSocket = tunnel.forwardedWS[response.id]
-                wsSocket.send(response.body)
+                if (wsSocket) {
+                    if (response.closed) {
+                        // The runtime has closed this session's websocket on the device
+                        // Pass that back to the editor so it knows something is up
+                        if (wsSocket) {
+                            wsSocket.close()
+                        }
+                        delete tunnel.forwardedWS[response.id]
+                    } else {
+                        // Send message to device editor websocket
+                        wsSocket.send(response.body)
+                    }
+                } else {
+                    // This is a message for a editor we don't know about.
+                    // This can happen with Device Agent <= 1.9.4 if multiple
+                    // editors were opened in a single session and then one
+                    // of them is closed. Older Agents don't know to disconnect
+                    // their local comms link for the closed editor, so continue
+                    // sending messages to everyone who was ever connected
+                }
             } else {
                 // TODO: remove/change temp debug
                 console.warn('device editor websocket message has no reply')
@@ -188,12 +207,20 @@ class DeviceTunnelManager {
         })
 
         tunnel.socket.on('close', () => {
-            manager.removeTunnel(deviceId)
+            // The ws connection from the device has closed.
+            delete tunnel.socket
+
+            // Close all of the editor websockets
+            for (const [id, wsSocket] of Object.entries(tunnel.forwardedWS)) {
+                wsSocket.close()
+                delete tunnel.forwardedWS[id]
+            }
+            this.app.log.info(`Device ${deviceId} tunnel closed. id:${tunnel.id}`)
         })
 
         /** @type {httpHandler} */
         tunnel._handleHTTPGet = (request, reply) => {
-            const id = tunnel.counter++
+            const id = tunnel.nextRequestId++
             tunnel.requests[id] = reply
             tunnel.socket.send(JSON.stringify({
                 id,
@@ -208,7 +235,7 @@ class DeviceTunnelManager {
                 tunnel._handleHTTPGet(request, reply)
                 return
             }
-            const requestId = tunnel.counter++
+            const requestId = tunnel.nextRequestId++
             tunnel.requests[requestId] = reply
             tunnel.socket.send(JSON.stringify({
                 id: requestId,
@@ -220,7 +247,8 @@ class DeviceTunnelManager {
         }
 
         tunnel._handleWS = (connection, request) => {
-            const requestId = tunnel.counter++
+            // A new editor websocket is connecting
+            const requestId = tunnel.nextRequestId++
             tunnel.socket.send(JSON.stringify({
                 id: requestId,
                 ws: true,
@@ -230,22 +258,34 @@ class DeviceTunnelManager {
             const wsToDevice = connection.socket
             tunnel.forwardedWS[requestId] = wsToDevice
 
-            // forward messages from device to client
+            this.app.log.info(`Device ${deviceId} tunnel id:${tunnel.id} - new editor connection req:${requestId} `)
+
             wsToDevice.on('message', msg => {
+                // Forward messages sent by the editor down to the device
+                // console.log(`[${tunnel.id}] [${requestId}] E>R`, msg.toString())
                 tunnel.socket.send(JSON.stringify({
                     id: requestId,
                     ws: true,
                     body: msg.toString()
                 }))
             })
-
-            connection.on('close', () => {
-                if (tunnel.forwardedWS[requestId]) {
-                    tunnel.forwardedWS[requestId].close()
+            wsToDevice.on('close', msg => {
+                this.app.log.info(`Device ${deviceId} tunnel id:${tunnel.id} - editor connection closed req:${requestId} `)
+                // The editor has closed its websocket. Send notification to the
+                // device so it can close its corresponing connection
+                // console.log(`[${tunnel.id}] [${requestId}] E>R closed`)
+                if (tunnel.forwardedWS[requestId] && tunnel.socket) {
+                    // console.log(`[${tunnel.id}] [${requestId}] E>R closed - notifying the device`)
+                    tunnel.socket.send(JSON.stringify({
+                        id: requestId,
+                        ws: true,
+                        closed: true
+                    }))
+                    delete tunnel.forwardedWS[requestId]
                 }
-                delete tunnel.forwardedWS[requestId]
             })
         }
+        this.app.log.info(`Device ${deviceId} tunnel connected. id:${tunnel.id}`)
         return true
     }
 
@@ -304,6 +344,7 @@ class DeviceTunnelManager {
     }
 }
 
+let tunnelCounter = 0
 /**
  * Create new tunnel
  * @param {String} deviceId Device ID
@@ -311,12 +352,13 @@ class DeviceTunnelManager {
  * @returns {DeviceTunnel}
  * @memberof DeviceTunnelManager
  * @static
- * @method newTunnel
+ * @method createNewTunnel
  */
-function newTunnel (deviceId, token) {
+function createNewTunnel (deviceId, token) {
     const tunnel = {
+        id: ++tunnelCounter,
         deviceId,
-        counter: 0,
+        nextRequestId: 1,
         socket: null,
         requests: {},
         forwardedWS: {},

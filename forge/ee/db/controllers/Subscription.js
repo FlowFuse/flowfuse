@@ -1,7 +1,7 @@
 module.exports = {
     createSubscription: async function (app, team, subscription, customer) {
         // Check to see if there is an existing subscription for this team.
-        const existingSub = await app.db.models.Subscription.byTeamId(team.id)
+        const existingSub = await team.getSubscription()
         if (existingSub) {
             existingSub.customer = customer
             existingSub.subscription = subscription
@@ -36,7 +36,7 @@ module.exports = {
         return newSubscription
     },
     deleteSubscription: async function (app, team) {
-        const subscription = await app.db.models.Subscription.byTeamId(team.id)
+        const subscription = await team.getSubscription()
         if (subscription) {
             subscription.destroy()
         }

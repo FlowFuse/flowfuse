@@ -58,10 +58,10 @@ module.exports = async (options = {}) => {
                     return {
                         statusCode: reply.statusCode,
                         request: {
-                            url: reply.request.raw.url,
-                            method: reply.request.method,
-                            remoteAddress: reply.request.socket.remoteAddress,
-                            remotePort: reply.request.socket.remotePort
+                            url: reply.request?.raw?.url,
+                            method: reply.request?.method,
+                            remoteAddress: reply.request?.ip,
+                            remotePort: reply.request?.socket.remotePort
                         }
                     }
                 }
@@ -130,6 +130,9 @@ module.exports = async (options = {}) => {
 
         // NOTE: This is only likely to do anything after a db upgrade where the settingsHashes are cleared.
         server.db.models.Device.recalculateSettingsHashes(false) // update device.settingsHash if null
+
+        // Ensure The defaultTeamType is in place
+        await server.db.controllers.TeamType.ensureDefaultTypeExists()
 
         return server
     } catch (err) {

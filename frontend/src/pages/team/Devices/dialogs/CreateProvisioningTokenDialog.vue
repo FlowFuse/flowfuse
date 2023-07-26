@@ -24,7 +24,7 @@ export default {
         FormRow
     },
     props: ['team'],
-    emits: ['tokenUpdated', 'tokenCreating', 'tokenCreated'],
+    emits: ['token-updated', 'token-creating', 'token-created'],
     data () {
         return {
             token: null,
@@ -59,10 +59,10 @@ export default {
             if (this.editMode) {
                 // Update
                 teamApi.updateTeamDeviceProvisioningToken(this.team.id, this.token.id, opts).then((response) => {
-                    this.$emit('tokenUpdated', response)
+                    this.$emit('token-updated', response)
                     alerts.emit('Device successfully updated.', 'confirmation')
                 }).catch(err => {
-                    this.$emit('tokenUpdated', null)
+                    this.$emit('token-updated', null)
                     console.error(err.response.data)
                     if (err.response.data) {
                         if (/expiryAt/.test(err.response.data.error)) {
@@ -75,12 +75,12 @@ export default {
                     }
                 })
             } else {
-                this.$emit('tokenCreating')
+                this.$emit('token-creating')
                 teamApi.generateTeamDeviceProvisioningToken(opts.team, opts).then((response) => {
-                    this.$emit('tokenCreated', response)
+                    this.$emit('token-created', response)
                     alerts.emit('Provisioning Token successfully created.', 'confirmation')
                 }).catch(err => {
-                    this.$emit('tokenCreated', null)
+                    this.$emit('token-created', null)
                     console.error(err.response.data)
                     if (err.response.data) {
                         if (/expiryAt/.test(err.response.data.error)) {

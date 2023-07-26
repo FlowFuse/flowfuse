@@ -11,21 +11,11 @@ const SettingTypes = {
 
 const KEY_SETTINGS = 'settings'
 const KEY_HOSTNAME = 'hostname'
-const KEY_BILLING_STATE = 'billingState'
 const KEY_HA = 'ha'
-
-const BILLING_STATES = {
-    UNKNOWN: undefined,
-    NOT_BILLED: 'not_billed',
-    BILLED: 'billed',
-    TRIAL: 'trial'
-}
-Object.freeze(BILLING_STATES)
 
 module.exports = {
     KEY_SETTINGS,
     KEY_HOSTNAME,
-    KEY_BILLING_STATE,
     KEY_HA,
     name: 'ProjectSettings',
     schema: {
@@ -59,7 +49,6 @@ module.exports = {
     finders: function (M) {
         return {
             static: {
-                BILLING_STATES,
                 isHostnameUsed: async (hostname) => {
                     const count = await this.count({
                         where: { key: KEY_HOSTNAME, value: hostname.toLowerCase() }

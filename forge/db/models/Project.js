@@ -11,6 +11,8 @@
  * @typedef {{name: string, schema: ModelAttributes, model: Model, indexes?: ModelIndexesOptions[], scopes?: ModelScopeOptions, options?: InitOptions}} FFModel
  */
 
+const crypto = require('crypto')
+
 const { DataTypes, Op } = require('sequelize')
 
 const Controllers = require('../controllers')
@@ -288,7 +290,7 @@ module.exports = {
                             include: [
                                 {
                                     model: M.Application,
-                                    attributes: ['hashid', 'id', 'name', 'links']
+                                    attributes: ['hashid', 'id', 'name', 'links', 'TeamTypeId']
                                 },
                                 {
                                     model: M.TeamMember,
@@ -318,7 +320,7 @@ module.exports = {
                         include: [
                             {
                                 model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
                             },
                             {
                                 model: M.Application,
@@ -356,7 +358,7 @@ module.exports = {
                     const include = [
                         {
                             model: M.Team,
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
                         },
                         {
                             model: M.Application,
@@ -399,7 +401,7 @@ module.exports = {
                             {
                                 model: M.Team,
                                 where: { id: teamId },
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
                             },
                             {
                                 model: M.Application,
@@ -429,6 +431,10 @@ module.exports = {
                     if (project) {
                         return project.TeamId
                     }
+                },
+
+                generateCredentialSecret () {
+                    return crypto.randomBytes(32).toString('hex')
                 }
             }
         }

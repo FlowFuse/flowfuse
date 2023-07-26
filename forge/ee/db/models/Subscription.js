@@ -65,6 +65,12 @@ module.exports = {
         const self = this
         return {
             instance: {
+                // States:
+                //  isActive : Billing details setup
+                //  isTrial  : In trial mode, no billing details setup, trial might have ended (isTrialEnded)
+                //  isActive && !isTrialEnded : Started as a trial, added billing, still in trial period
+                //  isActive && isTrialEnded  : Started as trial, added billing, trial ended
+
                 // Should this subscription be treated as active/usable
                 isActive () {
                     return this.status === STATUS.ACTIVE || this.status === STATUS.PAST_DUE
@@ -76,10 +82,15 @@ module.exports = {
                     return this.status === STATUS.PAST_DUE
                 },
                 isTrial () {
+                    // This subscription is in trial mode without billing setup
                     return !!this.trialEndsAt || this.status === STATUS.TRIAL
                 },
                 isTrialEnded () {
-                    return this.isTrial() && this.trialEndsAt < Date.now()
+                    // A Subscription can have status === ACTIVE but still be in
+                    // trial mode. This means they have entered billing details
+                    // but the trial has not yet expired.
+                    //
+                    return !this.trialEndsAt || this.trialEndsAt < Date.now()
                 }
 
             },

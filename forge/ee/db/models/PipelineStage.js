@@ -9,6 +9,10 @@ module.exports = {
             type: DataTypes.STRING,
             allowNull: false
         },
+        deployToDevices: {
+            type: DataTypes.BOOLEAN,
+            default: false
+        },
 
         NextStageId: {
             type: DataTypes.INTEGER,

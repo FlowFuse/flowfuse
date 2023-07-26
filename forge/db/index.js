@@ -49,6 +49,11 @@ module.exports = fp(async function (app, _opts, next) {
         dbOptions.username = app.config.db.user
         dbOptions.password = /* app.secrets.dbPassword || */ app.config.db.password
         dbOptions.database = app.config.db.database || 'flowforge'
+        if (app.config.db.ssl) {
+            dbOptions.dialectOptions = {
+                ssl: true
+            }
+        }
     }
 
     dbOptions.logging = !!app.config.db.logging
@@ -83,19 +88,6 @@ module.exports = fp(async function (app, _opts, next) {
     await models.init(app)
     await views.init(app)
     await controllers.init(app)
-
-    // Ensure default Team Types exist
-    const TeamTypeMigrations = [
-        './migrations/20220808-02-create-default-team-types'
-    ]
-    const queryInterface = sequelize.getQueryInterface()
-    for (let i = 0; i < TeamTypeMigrations.length; i++) {
-        const migration = require(TeamTypeMigrations[i])
-        await migration.up(queryInterface)
-    }
-
-    const { inject } = require('./test-data')
-    await inject(app)
 
     next()
 })

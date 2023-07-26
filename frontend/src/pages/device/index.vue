@@ -130,7 +130,13 @@ export default {
             return this.device && this.agentSupportsDeviceAccess && this.device.mode === 'developer'
         },
         editorAvailable: function () {
-            return this.isDevModeAvailable && this.device && this.agentSupportsDeviceAccess && this.developerMode && this.device.status === 'running' && this.deviceEditorURL
+            return this.isDevModeAvailable &&
+                this.device &&
+                this.agentSupportsDeviceAccess &&
+                this.developerMode &&
+                this.device.status === 'running' &&
+                this.deviceEditorURL &&
+                this.device.editor?.connected
         },
         deviceEditorURL: function () {
             return this.device.editor?.url || ''

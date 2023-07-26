@@ -7,7 +7,10 @@ navOrder: 2
 
 ## Prerequisites
 
- - NodeJS v16 or later
+ - NodeJS v14 or later
+
+Note that NodeJS v14 is no longer maintained by the Node project. It is not recommended
+for new installations.
  
 ## Supported Operating Systems
 
@@ -32,16 +35,17 @@ sudo npm install -g @flowforge/flowforge-device-agent
 npm install -g @flowforge/flowforge-device-agent
 ```
 
+### Docker
 
 Or you can chose to run the Docker container. When you do, you'll need to mount
-the `device.yaml` obtained when [Registering the device](#register-the-device):
+the `device.yml` obtained when [Registering the device](./register.md):
 
 ```bash
-docker run --mount /path/to/device.yml:/opt/flowforge-device/device.yml -p 1880:1880 flowforge/device-agent:latest
+docker run --mount type=bind,src=/path/to/device.yml,target=/opt/flowforge-device/device.yml -p 1880:1880 flowforge/device-agent:latest
 ```
 
 Or you can chose to run the Docker-Compose via a docker-compose.yml file. When you do, you'll need to mount
-the `device.yaml` as in Docker obtained when [Registering the device](#register-the-device):
+the `device.yml` as in Docker obtained when [Registering the device](./register.md):
 
 ```yaml
 version: '3.9'

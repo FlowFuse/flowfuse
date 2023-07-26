@@ -120,9 +120,13 @@
             <table class="table-fixed w-full" v-if="device">
                 <tr class="border-b">
                     <td class="w-1/4 font-medium">Editor Access</td>
-                    <td class="w-26 font-medium">
-                        <div class="forge-badge" :class="'forge-status-' + (editorEnabled ? 'running' : 'stopped')">
-                            <span v-if="editorEnabled">enabled</span><span v-else>disabled</span>
+                    <td class="w-28 font-medium">
+                        <div class="forge-badge" :class="'forge-status-' + (editorEnabled ? (editorTunnelConnected ? 'running' : 'error') : 'stopped')">
+                            <span v-if="editorEnabled">
+                                <span v-if="editorTunnelConnected">enabled</span>
+                                <span v-else>not connected</span>
+                            </span>
+                            <span v-else>disabled</span>
                         </div>
                     </td>
                     <td class="py-2">
@@ -153,7 +157,7 @@
                 </tr>
                 <tr class="border-b">
                     <td class="w-1/4 font-medium">Device Flows</td>
-                    <td class="w-26 font-medium">&nbsp;</td>
+                    <td class="w-28 font-medium">&nbsp;</td>
                     <td class="py-2">
                         <ff-button
                             kind="secondary"
@@ -209,6 +213,9 @@ export default {
         StatusBadge,
         SnapshotCreateDialog
     },
+    beforeRouteLeave () {
+        clearInterval(this.polling)
+    },
     computed: {
         ...mapState('account', ['settings', 'features']),
         targetSnapshotDeployed: function () {
@@ -220,14 +227,23 @@ export default {
         developerMode: function () {
             return this.device?.mode === 'developer'
         },
-        editorAvailable: function () {
-            return this.isDevModeAvailable && this.agentSupportsDeviceAccess && this.developerMode && this.device?.status === 'running'
+        editorTunnelConnected: function () {
+            return !!this.device?.editor?.connected
         },
         editorEnabled: function () {
             return !!this.device?.editor?.enabled
         },
         editorCanBeEnabled: function () {
             return this.developerMode && this.device.status === 'running'
+        },
+        lastSeenAt: function () {
+            return this.device?.lastSeenAt || ''
+        },
+        lastSeenMs: function () {
+            return this.device?.lastSeenMs || 0
+        },
+        lastSeenSince: function () {
+            return this.device?.lastSeenSince || ''
         }
     },
     data () {
@@ -236,9 +252,23 @@ export default {
             busy: false,
             openingTunnel: false,
             closingTunnel: false,
-            lastSeenAt: this.device?.lastSeenAt || '',
-            lastSeenMs: this.device?.lastSeenMs || 0,
-            lastSeenSince: this.device?.lastSeenSince || ''
+            polling: null
+        }
+    },
+    watch: {
+        'device.editor' (v) {
+            if (this.isDevModeAvailable) {
+                if (v.enabled) {
+                    // If the editor is enabled, start polling so we can
+                    // promptly report if it is unavailable
+                    clearInterval(this.polling)
+                    this.polling = setInterval(() => {
+                        this.$emit('device-refresh')
+                    }, 5000)
+                } else {
+                    clearInterval(this.polling)
+                }
+            }
         }
     },
     mounted () {
@@ -248,12 +278,6 @@ export default {
     methods: {
         refreshDevice: function () {
             this.$emit('device-refresh') // cause parent to refresh device
-            // on next tick, update our local data
-            this.$nextTick(() => {
-                this.lastSeenAt = this.device?.lastSeenAt || ''
-                this.lastSeenMs = this.device?.lastSeenMs || 0
-                this.lastSeenSince = this.device?.lastSeenSince || ''
-            })
         },
         showCreateSnapshotDialog () {
             this.busy = true
@@ -314,6 +338,8 @@ export default {
             this.device.editor.url = status.url
             // eslint-disable-next-line vue/no-mutating-props
             this.device.editor.enabled = !!status.enabled
+            // eslint-disable-next-line vue/no-mutating-props
+            this.device.editor.connected = !!status.connected
             // use the tunnel-changed event to notify the parent component
         }
     }

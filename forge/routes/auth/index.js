@@ -442,16 +442,26 @@ module.exports = fp(async function (app, opts, done) {
 
             // only create a personal team if no other teams exist
             if (app.settings.get('user:team:auto-create') && !((await app.db.models.Team.forUser(verifiedUser)).length)) {
+                let teamTypeId = app.settings.get('user:team:auto-create:teamType')
+
+                if (!teamTypeId) {
+                    // No team type set - pick the 'first' one based on 'order'
+                    const teamTypes = await app.db.models.TeamType.findAll({ where: { active: true }, order: [['order', 'ASC']], limit: 1 })
+                    teamTypeId = teamTypes[0].id
+                } else {
+                    teamTypeId = app.db.models.TeamType.decodeHashid(teamTypeId)
+                }
                 const teamProperties = {
                     name: `Team ${verifiedUser.name}`,
                     slug: verifiedUser.username,
-                    TeamTypeId: (await app.db.models.TeamType.byName('starter')).id
+                    TeamTypeId: teamTypeId
                 }
                 const team = await app.db.controllers.Team.createTeamForUser(teamProperties, verifiedUser)
                 await app.auditLog.Platform.platform.team.created(request.session?.User || verifiedUser, null, team)
                 await app.auditLog.User.account.verify.autoCreateTeam(request.session?.User || verifiedUser, null, team)
 
-                if (app.license.active() && app.billing && app.settings.get('user:team:trial-mode')) {
+                if (app.license.active() && app.billing) {
+                    // This checks to see if the team should be in trial mode
                     await app.billing.setupTrialTeamSubscription(team, verifiedUser)
                 }
             }

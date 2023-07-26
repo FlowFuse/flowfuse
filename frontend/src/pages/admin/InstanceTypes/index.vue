@@ -15,7 +15,7 @@
                                       :editable="true" @edit="showEditInstanceTypeDialog(instanceType)" :price="instanceType.properties?.billingDescription?.split('/')[0]"
                                       :price-interval="instanceType.properties?.billingDescription?.split('/')[1]"
                                       :label="instanceType.name" :description="instanceType.description"
-                                      :meta="[{key: 'Instance Count', value: instanceType.instanceCount}, {key: 'Stack Count', value: instanceType.stackCount}]"/>
+                                      :meta="[{key: 'ID', value: instanceType.id}, {key: 'Instance Count', value: instanceType.instanceCount}, {key: 'Stack Count', value: instanceType.stackCount}]"/>
         </ff-tile-selection>
         <div v-if="nextCursor">
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
@@ -31,8 +31,8 @@
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
         </div>
     </div>
-    <InstanceTypeEditDialog ref="adminInstanceTypeEditDialog" @instanceTypeCreated="instanceTypeCreated"
-                            @instanceTypeUpdated="instanceTypeUpdated" @showDeleteDialog="showConfirmInstanceTypeDeleteDialog"/>
+    <InstanceTypeEditDialog ref="adminInstanceTypeEditDialog" @instance-type-created="instanceTypeCreated"
+                            @instance-type-updated="instanceTypeUpdated" @show-delete-dialog="showConfirmInstanceTypeDeleteDialog"/>
 </template>
 
 <script>
@@ -59,6 +59,7 @@ export default {
             loading: false,
             nextCursor: null,
             columns: [
+                { label: 'ID', key: 'id', sortable: true, class: ['w-32'] },
                 { label: 'Type', key: 'name', sortable: true },
                 { label: 'Description', key: 'description', sortable: true, component: { is: markRaw(InstanceTypeDescriptionCell) } },
                 { label: 'Default Stack', class: ['w-48'], key: 'defaultStack', sortable: true },

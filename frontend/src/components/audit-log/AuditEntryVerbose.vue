@@ -429,6 +429,11 @@
         <span v-if="!error && entry.body?.project && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been set as the device target for Instance '{{ entry.body.project?.name }}'.</span>
         <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'project.snapshot.imported'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.project && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been imported for Instance '{{ entry.body.project?.name }}' from Instance '{{ entry.body.sourceProject?.name }}'.</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
+    </template>
 
     <!-- Node-RED Events -->
     <template v-else-if="entry.event === 'crashed'">

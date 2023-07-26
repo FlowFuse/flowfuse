@@ -60,6 +60,12 @@ describe('Project Lifecycle', function () {
 
         TestObjects.ProjectType1 = await factory.createProjectType({ name: 'projectType1' })
 
+        const defaultTeamType = await forge.db.models.TeamType.findOne({ where: { id: 1 } })
+        const teamTypeProps = defaultTeamType.properties
+        teamTypeProps.instances[TestObjects.ProjectType1.hashid] = { active: true }
+        defaultTeamType.properties = teamTypeProps
+        await defaultTeamType.save()
+
         TestObjects.Stack1 = await factory.createStack({ name: 'stack1', properties: { foo: 'bar' } }, TestObjects.ProjectType1)
         TestObjects.Stack2 = await factory.createStack({ name: 'stack2', properties: { foo: 'bar' } }, TestObjects.ProjectType1)
 

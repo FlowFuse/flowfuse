@@ -25,17 +25,22 @@ their value can be set to blank.
 
 ## Node-RED instance variables
 
-You can create additional variables for an individual Node-RED instance by entering the name and value in the boxes at the bottom of the list and clicking the `+` button.
+You can create additional variables for an individual Node-RED instance clicking the `Add variable` button.
+
+You can import variables from a `.env` file using the `Import .env` button.
 
 You can delete a variable using the trash can icon.
 
-The image below shows an instance with 3 environment variables.
+The image below shows an instance with the following environment variables:
 
-The first one `foo` is set by the template but the value `bar` is editable
+* `policy_item_locked` - added by the template, locked
+* `policy_item_editable` - added by the template, editable
+* `FF_INSTANCE_ID` - provided by the platform, locked
+* `FF_INSTANCE_NAME` - provided by the platform, locked
+* `FF_PROJECT_ID` - provided by the platform, locked, depreciated
+* `FF_PROJECT_NAME` - provided by the platform, locked, depreciated
+* `INSTANCE_VAR` - added to the instance, editable
 
-The second one `locked` is set by the template and the value is set to `true` is not editable
-
-The third one `user` is set for the instance, the value can be edited or the variable deleted
 
 <img src="images/project-envvar.png" width="500" />
 

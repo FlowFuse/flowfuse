@@ -49,7 +49,7 @@ describe('Platform Settings', function () {
                 transport: inbox
             }
         })
-        forge.defaultTeamType = await forge.db.models.TeamType.findOne()
+        forge.defaultTeamType = await forge.db.models.TeamType.findOne({ where: { id: 1 } })
 
         // Setup the database with basic artefacts
 

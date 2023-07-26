@@ -113,6 +113,7 @@ export default {
 
                 // Relay stage instances state to the stage
                 stage.state = stageInstance.state
+                stage.flowLastUpdatedSince = stageInstance.flowLastUpdatedSince
 
                 // If any instances inside the stage are deploying, this stage is deploying
                 stage.isDeploying = !!stageInstance?.isDeploying

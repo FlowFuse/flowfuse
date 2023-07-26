@@ -75,6 +75,13 @@ const Permissions = {
     'project-type:delete': { description: 'Delete a ProjectType', role: Roles.Admin },
     'project-type:edit': { description: 'Edit a ProjectType', role: Roles.Admin },
 
+    // Team Types
+    'team-type:create': { description: 'Create a TeamType', role: Roles.Admin },
+    'team-type:list': { description: 'List all TeamTypes' },
+    'team-type:read': { description: 'View a TeamType' },
+    'team-type:delete': { description: 'Delete a TeamType', role: Roles.Admin },
+    'team-type:edit': { description: 'Edit a TeamType', role: Roles.Admin },
+
     'settings:edit': { description: 'Edit platform settings', role: Roles.Admin },
     'license:read': { description: 'View license information', role: Roles.Admin },
     'license:edit': { description: 'Edit license information', role: Roles.Admin },

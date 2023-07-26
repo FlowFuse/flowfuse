@@ -286,7 +286,7 @@ describe('Device API', async function () {
             it('limits how many devices can be added to a team according to TeamType', async function () {
                 // Set TeamType deviceLimit = 2
                 const existingTeamTypeProps = TestObjects.defaultTeamType.properties
-                existingTeamTypeProps.deviceLimit = 2
+                existingTeamTypeProps.devices = { limit: 2 }
                 TestObjects.defaultTeamType.properties = existingTeamTypeProps
                 await TestObjects.defaultTeamType.save()
 
