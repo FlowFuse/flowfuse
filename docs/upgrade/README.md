@@ -14,6 +14,12 @@ for each version you are upgrading across.
 Note that we do not support downgrading FlowForge to previous levels once an upgrade
 has been performed.
 
+### Upgrading to 1.10
+
+Endpoint Rate Limiting is now available to FlowForge. This is disabled by default, but can be enabled by setting the `rate_limits.enabled` config setting to `true`.
+The documentation for this is available [here](../install/configuration.md#rate-limiting-configuration).
+
+
 ### Upgrading to 1.5
 
 The main change in this release was a change in our terminology around the individual
