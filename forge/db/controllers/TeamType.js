@@ -64,7 +64,7 @@ module.exports = {
                     // additional configuration before going live.
                     const starterProperties = {
                         users: { limit: 2 },
-                        devices: { limit: 2 },
+                        devices: { limit: 2, free: 2 },
                         features: { },
                         instances: { }
                     }
