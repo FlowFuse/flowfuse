@@ -69,12 +69,12 @@
                 </div>
                 <FormHeading>Features</FormHeading>
                 <div class="grid gap-3 grid-cols-2">
-                    <FormRow v-model="input.properties.features.projectNodes" type="checkbox" data-form="active">Project Nodes</FormRow>
-                    <FormRow v-model="input.properties.features.teamLibrary" type="checkbox" data-form="active">Team Library</FormRow>
-                    <FormRow v-model="input.properties.features.teamHttpSecurity" type="checkbox" data-form="active">Team-based Endpoint Security</FormRow>
-                    <FormRow v-model="input.properties.features.ha" type="checkbox" data-form="active">High Availability</FormRow>
-                    <FormRow v-model="input.properties.features.fileStorageLimit" data-form="active">Persistent File storage limit (Mb)</FormRow>
-                    <FormRow v-model="input.properties.features.contextLimit" data-form="active">Persistent Context storage limit (Mb)</FormRow>
+                    <FormRow v-model="input.properties.features.projectComms" type="checkbox">Project Nodes</FormRow>
+                    <FormRow v-model="input.properties.features['shared-library']" type="checkbox">Team Library</FormRow>
+                    <FormRow v-model="input.properties.features.teamHttpSecurity" type="checkbox">Team-based Endpoint Security</FormRow>
+                    <FormRow v-model="input.properties.features.ha" type="checkbox">High Availability</FormRow>
+                    <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
+                    <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
                 </div>
             </form>
         </template>
