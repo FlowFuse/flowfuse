@@ -97,6 +97,7 @@
     "devDependencies": {
         "@babel/core": "^7.22.1",
         "@babel/preset-env": "^7.22.4",
+        "@fastify/routes": "^5.1.0",
         "@vitejs/plugin-vue": "^4.2.3",
         "@vitest/coverage-istanbul": "^0.33.0",
         "@vue/test-utils": "^2.3.2",
