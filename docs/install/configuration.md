@@ -138,6 +138,26 @@ Option        | Description
 `telemetry.frontend.posthog.capture_pageview` | FlowForge is designed as to provide custom posthog `$pageview` events that provide more detail on navigation than the default, and suit a single page application better. As such, we recommend setting this to false in order to prevent duplicate `pageleave`/`pageview` events firing. Default: `true`
 
 
+## Rate Limiting configuration
+
+By default, rate limiting is disabled and the platform will not rate limit any requests.
+
+To enable rate limiting, you can set the `rate_limits.enabled` option to `true`. This will enable rate limiting for all routes unless explicitly disabled (see note below).
+By default, all routes will be limited requests to 1000 per 1 minute window for logged in users, and 60 per 1 minute window for anonymous users.
+
+NOTE: Some routes are prohibited from being rate limited, such as the logout and acl routes.
+
+Option        | Description
+--------------|------------
+`rate_limits.enabled` | Enables rate limiting. Default: `false`
+`rate_limits.global` | Enables rate limiting for all routes. Default: `true` (defaults to all routes being rate limited)
+`rate_limits.timeWindow` | The time window in which requests are counted. Default: `60000` (1 minute)
+`rate_limits.max` | The maximum number of requests allowed in the time window. Default: `1000`
+`rate_limits.maxAnonymous` | The maximum number of requests allowed in the time window for anonymous users. Default: not configured (defaults to `rate_limits.max`)
+
+For additional options, see [fastify-rate-limit](https://github.com/fastify/fastify-rate-limit#options) documentation.
+
+
 ## Support configuration
 
 It is possible to add a [HubSpot Support Widget](https://knowledge.hubspot.com/chatflows/create-a-live-chat) into FlowForge. This will appear as a floating chat bubble on the bottom-right corner of the screen. To enable this, you'll need to provide the 
