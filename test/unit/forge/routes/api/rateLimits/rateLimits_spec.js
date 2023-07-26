@@ -324,7 +324,7 @@ describe('Endpoint Rate Limiting', () => {
             })
         })
 
-        describe('Only specific Routes use limits except (global:false)', () => {
+        describe('Only specific Routes use limits (global:false)', () => {
             // These tests are to ensure that the routes are using the rate limits
             // this is achieved by stubbing the rateLimits.getLimits function to return a rate limit
             // and then checking that the keyGenerator function is called
