@@ -232,7 +232,7 @@ module.exports.init = async function (app) {
                                 }
                             }
                         }
-                    } else if (count === 0) {
+                    } else {
                         // This team has no instances of this instance type.
                         // Need to make sure the subscription doesn't have any matching items
                         const instanceItem = stripeSubscription.items.data.find(item => item.plan.product === instanceBillingIds.product)
