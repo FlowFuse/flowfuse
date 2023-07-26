@@ -33,45 +33,46 @@ Owners can remove a member from a team by clicking the dropdown menu next to the
 The role a user has in a team determines what they are able to do. The following
 table summaries what actions are available to the different roles.
 
-| Role                                 | Owner | Member | Viewer |
-|:-------------------------------------|:-----:|:------:|:------:|
-| Manage Team Settings                 | ✓     | -      | -      |
-| View Team Audit Log                  | ✓     | -      | -      |
-| **Applications**                     |       |        |        |
-| • Create Application                 | ✓     | -      | -      |
-| • Delete Application                 | ✓     | -      | -      |
-| • Modify Application Settings        | ✓     | -      | -      |
-| **Instances**                        |       |        |        |
-| • Create Instance                    | ✓     | -      | -      |
-| • Delete Instance                    | ✓     | -      | -      |
-| • Copy Instance                      | ✓     | -      | -      |
-| • View Instance Details              | ✓     | ✓      | ✓      |
-| • Start, Stop, Suspend Instance      | ✓     | -      | -      |
-| • Modify Instance Settings           | ✓     | -      | -      |
-| • Modify Environment Variables       | ✓     | ✓      | -      |
-| **Flows**                            |       |        |        |
-| • Access Flow Editor                 | ✓     | ✓      | ✓      |
-| • Modify Flows                       | ✓     | ✓      | -      |
-| **Snapshots**                        |       |        |        |
-| • View Snapshots                     | ✓     | ✓      | ✓      |
-| • Create Snapshot                    | ✓     | ✓      | -      |
-| • Rollback                           | ✓     | ✓      | -      |
-| • Set as Device Target               | ✓     | ✓      | -      |
-| • Delete Snapshot                    | ✓     | -      | -      |
-| **Devices**                          |       |        |        |
-| • View Devices                       | ✓     | ✓      | ✓      |
-| • Modify Device Settings             | ✓     | -      | -      |
-| • Modify Environment Variables       | ✓     | ✓      | -      |
-| • Assign to/Remove from Instance     | ✓     | -      | -      |
-| • Delete Device                      | ✓     | -      | -      |
-| **Team Members**                     |       |        |        |
-| • Invite User                        | ✓     | -      | -      |
-| • Change Role                        | ✓     | -      | -      |
-| • Remove User from Team              | ✓     | - §1   | - §1   |
-| **Team Library**                     |       |        |        |
-| • Add an item                        | ✓     | ✓      | -      |
-| • Modify an item                     | ✓     | ✓      | -      |
-| • Delete an item                     | ✓     | ✓      | -      |
+| Role                                 | Owner | Member | Viewer | Dashboard Only |
+|:-------------------------------------|:-----:|:------:|:------:|:--------------:|
+| • Manage Team Settings               | ✓     | -      | -      | -              |
+| • View Team Audit Log                | ✓     | -      | -      | -              |
+| **Applications**                     |       |        |        |                |
+| • Create Application                 | ✓     | -      | -      | -              |
+| • Delete Application                 | ✓     | -      | -      | -              |
+| • Modify Application Settings        | ✓     | -      | -      | -              |
+| **Instances**                        |       |        |        |                |
+| • Create Instance                    | ✓     | -      | -      | -              |
+| • Delete Instance                    | ✓     | -      | -      | -              |
+| • Copy Instance                      | ✓     | -      | -      | -              |
+| • View Instance Details              | ✓     | ✓      | ✓      | -              |
+| • Start, Stop, Suspend Instance      | ✓     | -      | -      | -              |
+| • Modify Instance Settings           | ✓     | -      | -      | -              |
+| • Modify Environment Variables       | ✓     | ✓      | -      | -              |
+| • Access Dashboard or HTTP endpoint  | ✓     | ✓      | ✓      | ✓              |
+| **Flows**                            |       |        |        |                |
+| • Access Flow Editor                 | ✓     | ✓      | ✓      | -              |
+| • Modify Flows                       | ✓     | ✓      | -      | -              |
+| **Snapshots**                        |       |        |        |                |
+| • View Snapshots                     | ✓     | ✓      | ✓      | -              |
+| • Create Snapshot                    | ✓     | ✓      | -      | -              |
+| • Rollback                           | ✓     | ✓      | -      | -              |
+| • Set as Device Target               | ✓     | ✓      | -      | -              |
+| • Delete Snapshot                    | ✓     | -      | -      | -              |
+| **Devices**                          |       |        |        |                |
+| • View Devices                       | ✓     | ✓      | ✓      | -              |
+| • Modify Device Settings             | ✓     | -      | -      | -              |
+| • Modify Environment Variables       | ✓     | ✓      | -      | -              |
+| • Assign to/Remove from Instance     | ✓     | -      | -      | -              |
+| • Delete Device                      | ✓     | -      | -      | -              |
+| **Team Members**                     |       |        |        |                |
+| • Invite User                        | ✓     | -      | -      | -              |
+| • Change Role                        | ✓     | -      | -      | -              |
+| • Remove User from Team              | ✓     | - §1   | - §1   | - §1           |
+| **Team Library**                     |       |        |        |                |
+| • Add an item                        | ✓     | ✓      | -      | -              |
+| • Modify an item                     | ✓     | ✓      | -      | -              |
+| • Delete an item                     | ✓     | ✓      | -      | -              |
 
 Notes:
  - **§1** A user in any role can remove themselves from a team

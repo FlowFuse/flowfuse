@@ -34,7 +34,7 @@ import alerts from '../../../services/alerts.js'
 
 export default {
     name: 'InviteMemberDialog',
-    emits: ['invitationSent'],
+    emits: ['invitation-sent'],
     components: {
         FormRow
     },
@@ -94,7 +94,7 @@ export default {
                     }
                 } else {
                     alerts.emit('Invite sent to ' + this.input.userInfo, 'confirmation')
-                    this.$emit('invitationSent')
+                    this.$emit('invitation-sent')
                 }
             } catch (err) {
                 if (err.response?.data) {

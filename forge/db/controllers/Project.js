@@ -113,13 +113,12 @@ module.exports = {
         return result
     },
 
-    exportProject: async function (app, project, components) {
-        components = components || {
-            flows: true,
-            credentials: true,
-            settings: true,
-            envVars: true
-        }
+    exportProject: async function (app, project, components = {
+        flows: true,
+        credentials: true,
+        settings: true,
+        envVars: true
+    }) {
         const projectExport = {}
         if (components.flows) {
             const flows = await app.db.models.StorageFlow.byProject(project.id)
@@ -168,7 +167,7 @@ module.exports = {
         return projectExport
     },
 
-    importProjectSnapshot: async function restoreSnapshot (app, project, snapshot) {
+    importProjectSnapshot: async function restoreSnapshot (app, project, snapshot, { mergeEnvVars } = { mergeEnvVars: false }) {
         const t = await app.db.sequelize.transaction() // start a transaction
         try {
             if (snapshot?.flows?.flows) {
@@ -203,7 +202,7 @@ module.exports = {
                 }
                 const newSettings = app.db.controllers.ProjectTemplate.validateSettings(snapshotSettings, project.ProjectTemplate)
                 const currentProjectSettings = await project.getSetting('settings') || {} // necessary?
-                const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings) // necessary?
+                const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings, { mergeEnvVars })
                 await project.updateSetting('settings', updatedSettings, { transaction: t }) // necessary?
             }
             await t.commit() // all good, commit the transaction
@@ -225,6 +224,18 @@ module.exports = {
         }
         const newHash = crypto.createHash('sha256').update(newKey).digest()
         return encryptCreds(newHash, original)
+    },
+
+    /**
+     * Helper for the above exportCredentials method
+     * @param {*} existingCredentials
+     * @param {*} oldCredentialSecret
+     * @param {*} newCredentialSecret
+     * @returns
+     */
+    reEncryptCredentials (app, existingCredentials, oldCredentialSecret, newCredentialSecret) {
+        const newCredentials = app.db.controllers.Project.exportCredentials(existingCredentials, oldCredentialSecret, newCredentialSecret)
+        return newCredentials
     },
 
     /**

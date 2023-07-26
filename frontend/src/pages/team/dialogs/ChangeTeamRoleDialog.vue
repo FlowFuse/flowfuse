@@ -27,7 +27,7 @@ import alerts from '../../../services/alerts.js'
 
 export default {
     name: 'ChangeTeamRoleDialog',
-    emits: ['roleUpdated'],
+    emits: ['role-updated'],
     data () {
         return {
             ownerCount: 0,
@@ -45,7 +45,7 @@ export default {
                 try {
                     await teamApi.changeTeamMemberRole(this.team.id, this.user.id, this.input.role)
                     this.user.role = this.input.role
-                    this.$emit('roleUpdated', this.user)
+                    this.$emit('role-updated', this.user)
                     alerts.emit("User's role successfully updated", 'confirmation')
                 } catch (err) {
                     console.warn(err)

@@ -28,8 +28,9 @@ to the registered devices when you're happy with what you've created.
 The device agent does not allow local access to the Node-RED editor. This ensures
 the device is running the deployed snapshot without modification.
 
-When running on FlowForge Cloud, or a premium licensed FlowForge instance, a
-device can be placed in Developer Mode that enables remote access to the editor.
+When running on FlowForge Cloud, or a premium licensed FlowForge instance (with the
+[MQTT broker enabled](https://flowforge.com/docs/install/local/#setting-up-mosquitto-(optional))
+access to the editor.
 
 This can then be used to develop the flows directly on the device and a new snapshot
 generated from the device that can be deployed to other devices in the application.
@@ -64,6 +65,6 @@ about working with snapshots.
 * The Web UI requires Device Agent v0.9.0 or later.
 * The device must first have a snapshot applied before editor access is possible.
 * The device will not receive any updates from the platform while in Developer Mode.
-* Disabling Developer Mode will cause the device to check-in with the platform. If the device flows hve changed, it will be reloaded with the current target snapshot assigned to that device, causing any changes made in Developer Mode to be overwritten. Therefore, it is recommended to create a snapshot of the changes before disabling Developer Mode.
+* Disabling Developer Mode will cause the device to check-in with the platform. If the device flows have changed, it will be reloaded with the current target snapshot assigned to that device, causing any changes made in Developer Mode to be overwritten. Therefore, it is recommended to create a snapshot of the changes before disabling Developer Mode.
 * The device must be online and connected to the platform to enable "Editor Access".
 * To minimise server and device resources, it is recommended to disable "Editor Access" when not actively developing flows on a device.

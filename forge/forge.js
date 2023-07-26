@@ -58,10 +58,10 @@ module.exports = async (options = {}) => {
                     return {
                         statusCode: reply.statusCode,
                         request: {
-                            url: reply.request.raw.url,
-                            method: reply.request.method,
-                            remoteAddress: reply.request.socket.remoteAddress,
-                            remotePort: reply.request.socket.remotePort
+                            url: reply.request?.raw?.url,
+                            method: reply.request?.method,
+                            remoteAddress: reply.request?.ip,
+                            remotePort: reply.request?.socket.remotePort
                         }
                     }
                 }

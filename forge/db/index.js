@@ -49,6 +49,11 @@ module.exports = fp(async function (app, _opts, next) {
         dbOptions.username = app.config.db.user
         dbOptions.password = /* app.secrets.dbPassword || */ app.config.db.password
         dbOptions.database = app.config.db.database || 'flowforge'
+        if (app.config.db.ssl) {
+            dbOptions.dialectOptions = {
+                ssl: true
+            }
+        }
     }
 
     dbOptions.logging = !!app.config.db.logging

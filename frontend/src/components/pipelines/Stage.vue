@@ -52,7 +52,7 @@
             </div>
             <div class="ff-pipeline-stage-row">
                 <label>Last Deployed:</label>
-                <span>{{ lastDeployed }} ago</span>
+                <span>{{ stage.flowLastUpdatedSince ? stage.flowLastUpdatedSince : 'Unknown' }}</span>
             </div>
             <div class="ff-pipeline-stage-row">
                 <label>Status:</label>
@@ -70,12 +70,13 @@
 <script>
 import { PencilAltIcon, PlayIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/outline'
 
-import InstancesAPI from '../../api/instances.js'
 import PipelineAPI from '../../api/pipeline.js'
+
 import InstanceStatusBadge from '../../pages/instance/components/InstanceStatusBadge.vue'
+
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
-import elapsedTime from '../../utils/elapsedTime.js'
+
 import SpinnerIcon from '../icons/Spinner.js'
 
 export default {
@@ -112,9 +113,6 @@ export default {
     },
     emits: ['stage-deleted', 'stage-deploy-starting', 'stage-deploy-started'],
     computed: {
-        lastDeployed: function () {
-            return elapsedTime(this.stage.instance.updatedAt, new Date())
-        },
         deploying () {
             return this.stage.isDeploying
         }
@@ -135,34 +133,26 @@ export default {
 
             const msg = {
                 header: `Push to "${target.name}"`,
-                html: `<p>Are you sure you want to push from "${this.stage.name}" to "${target.name}"?</p><p>This will copy over all flows, nodes and credentials from "${this.stage.name}".</p><p>It will also transfer the keys of any newly created Environment Variables that your target instance does not currently have.</p>`
+                html: `
+                    <p>Are you sure you want to push from "${this.stage.name}" to "${target.name}"?</p>
+                    <p>This will copy over all flows, nodes and credentials from "${this.stage.name}".</p>
+                    ${target.deployToDevices ? `<p>And push out the changes to all devices connected to "${target.name}".</p>` : ''}
+                    <p>It will also transfer the keys of any newly created Environment Variables that your target instance does not currently have.</p>`
             }
 
             Dialog.show(msg, async () => {
                 this.$emit('stage-deploy-starting')
 
-                // settings for when we deploy to a new stage
-                this.parts = {
-                    flows: true,
-                    credentials: true,
-                    template: false,
-                    nodes: true,
-                    settings: false,
-                    envVars: 'keys'
+                try {
+                    await PipelineAPI.deployPipelineStage(this.pipeline.id, this.stage.id)
+                } catch (error) {
+                    Alerts.emit(error.message, 'error')
+                    return
                 }
-
-                const source = {
-                    id: this.stage.instance.id,
-                    options: { ...this.parts }
-                }
-
-                await InstancesAPI.updateInstance(target.instance.id, {
-                    sourceProject: source
-                })
 
                 this.$emit('stage-deploy-started')
                 Alerts.emit(
-                    `Deployment from "${this.stage.name}" to "${target.name}" has started.`,
+                    `Deployment from "${this.stage.name}" to "${target.name}"${target.deployToDevices ? ', and all its devices, ' : ''} has started.`,
                     'confirmation'
                 )
             })

@@ -37,7 +37,7 @@ export default {
             if (!this.disableConfirm) {
                 try {
                     await teamApi.removeTeamMember(this.team.id, this.user.id)
-                    this.$emit('userRemoved', this.user)
+                    this.$emit('user-removed', this.user)
                     alerts.emit(`${this.user.username} successfully removed`, 'confirmation')
                 } catch (err) {
                     console.warn(err)
