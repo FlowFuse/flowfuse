@@ -8,6 +8,9 @@
 
 module.exports = async function (app) {
     app.post('/client', {
+        config: {
+            rateLimit: false // never rate limit this route
+        },
         schema: {
             body: {
                 type: 'object',
@@ -32,6 +35,9 @@ module.exports = async function (app) {
     })
 
     app.post('/acl', {
+        config: {
+            rateLimit: false // never rate limit this route
+        },
         schema: {
             body: {
                 type: 'object',
