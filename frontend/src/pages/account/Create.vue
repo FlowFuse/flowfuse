@@ -185,7 +185,7 @@ export default {
                     } else if (/email/.test(err.response.data.error)) {
                         this.errors.email = 'Email unavailable'
                     } else if (err.response.data.statusCode === 429) {
-                        this.errors.general = 'Too many login attempts. Try again later.'
+                        this.errors.general = 'Too many attempts. Try again later.'
                         this.tooManyRequests = true
                         setTimeout(() => {
                             this.tooManyRequests = false
