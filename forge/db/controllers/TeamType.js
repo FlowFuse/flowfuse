@@ -18,6 +18,18 @@ module.exports = {
                     properties.instances[instanceType.hashid] = {
                         active: true
                     }
+                    if (app.billing) {
+                        // Copy over any instance type billing info
+                        if (instanceType.properties?.billingDescription) {
+                            properties.instances[instanceType.hashid].description = instanceType.properties?.billingDescription
+                        }
+                        if (instanceType.properties?.billingPriceId) {
+                            properties.instances[instanceType.hashid].priceId = instanceType.properties?.billingPriceId
+                        }
+                        if (instanceType.properties?.billingProductId) {
+                            properties.instances[instanceType.hashid].productId = instanceType.properties?.billingProductId
+                        }
+                    }
                 })
 
                 if (app.settings.get('user:team:trial-mode')) {
