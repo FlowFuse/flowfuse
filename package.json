@@ -60,6 +60,7 @@
         "@fastify/formbody": "^7.4.0",
         "@fastify/helmet": "^11.0.0",
         "@fastify/passport": "^2.3.0",
+        "@fastify/rate-limit": "^8.0.3",
         "@fastify/static": "^6.10.2",
         "@fastify/swagger": "^8.6.0",
         "@fastify/swagger-ui": "^1.9.0",

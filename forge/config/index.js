@@ -20,6 +20,8 @@ const path = require('path')
 const fp = require('fastify-plugin')
 const YAML = require('yaml')
 
+const rateLimits = require('../routes/rateLimits.js')
+
 const features = require('./features')
 
 // const FastifySecrets = require('fastify-secrets-env')
@@ -118,6 +120,8 @@ module.exports = fp(async function (app, opts, next) {
                 config.logging.http = 'warn'
             }
         }
+
+        config.rate_limits = rateLimits.getLimits(app, config.rate_limits)
 
         config.features = features(app, config)
 
