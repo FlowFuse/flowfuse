@@ -40,9 +40,9 @@ describe('FlowForge - Devices', () => {
 
             cy.wait('@registerDevice')
 
-            // show user the device credentials
+            // show user the device config
             cy.get('.ff-dialog-box').should('be.visible')
-            cy.get('.ff-dialog-header').contains('Device Credentials')
+            cy.get('.ff-dialog-header').contains('Device Configuration')
 
             cy.get('[data-el="devices-browser"] tbody').find('tr').should('have.length', 1)
             cy.get('[data-el="devices-browser"] tbody').find('tr').contains('device1')
