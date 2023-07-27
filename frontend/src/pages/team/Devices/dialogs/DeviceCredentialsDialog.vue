@@ -14,11 +14,17 @@
                 <template v-if="hasCredentials">
                     <p>
                         To connect your device to the platform, use the following
-                        credentials.
+                        credentials. This <code>device.yml</code> file will need to be moved to your device.
+                    </p>
+                    <p class="mt-3 mb-3">
+                        See the
+                        <a
+                            href="https://flowforge.com/docs/device-agent/register/#connect-the-device" target="_blank"
+                            rel="noreferrer"
+                        >Connect Your Device</a> documentation for more information.
                     </p>
                     <p class="font-bold mt-3 mb-6">
-                        Make a note of them as this is the only
-                        time you will see them.
+                        Make a note of these credentials, as this is the only time you will see them.
                     </p>
                     <pre class="overflow-auto text-sm p-4 mt-6 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
                 </template>
