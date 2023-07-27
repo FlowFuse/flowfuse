@@ -249,7 +249,7 @@ const actions = {
             await userApi.login(credentials.username, credentials.password)
             state.dispatch('checkState', state.getters.redirectUrlAfterLogin)
         } catch (err) {
-            if (err.response.status === 401) {
+            if (err.response.status >= 401) {
                 state.commit('loginFailed', err.response.data)
             }
         }

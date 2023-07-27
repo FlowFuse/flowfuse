@@ -18,7 +18,7 @@ Option | Description
 `host` | The address to serve the web ui on. This defaults to `localhost` which means the ui will only be available when browsing from the same server that is running the platform. To make it accessible to other devices on the network, set it to `0.0.0.0`. <br>NOTE: If `host` is changed, please also update `base_url` to match e.g.  `http://[ip-address-of-host]:3000`
 `port` | The TCP port the platform serves its web ui. Default: `3000`
 `base_url` | The url to access the platform. This defaults to `http://localhost:3000` which means a number of internally generated URLs will only work when browsing on the same device as is running the platform. To be able to access the platform remotely, replace `localhost` with the ip address of the device running FlowForge. 
-`domain` | The domain that instance names will be pre-pended to on Docker & Kubernetes platforms to create a hostname to access the instance. A wildcard DNS A record should point be configured to point to the FlowForge entry IP Address.
+`domain` | The domain that instance names will be prepended to on Docker & Kubernetes platforms to create a hostname to access the instance. A wildcard DNS A record should point be configured to point to the FlowForge entry IP Address.
 `support_contact` | a URL or string with contact details for the administrator e.g `mailto:support@example.com` or `https://support.example.com` . Defaults to the email address of the first admin user or `the administrator` if no email address set.
 
 
@@ -137,6 +137,25 @@ Option        | Description
 `telemetry.frontend.posthog.apiurl` | The API URL for PostHog, either 'https://app.posthog.com' or 'https://eu.posthog.com'. Default: `https://app.posthog.com`
 `telemetry.frontend.posthog.apikey` | The API key provided to you from your own PostHog account. Default: `null`
 `telemetry.frontend.posthog.capture_pageview` | FlowForge is designed as to provide custom posthog `$pageview` events that provide more detail on navigation than the default, and suit a single page application better. As such, we recommend setting this to false in order to prevent duplicate `pageleave`/`pageview` events firing. Default: `true`
+
+
+## Rate Limiting configuration
+
+By default, rate limiting is disabled and the platform will not rate limit any requests.
+
+To enable rate limiting, you can set the `rate_limits.enabled` option to `true`. 
+
+When enabled, all routes will be limited to 1000 requests per 1 minute window. These defaults can be adjusted by setting values in the configuration options listed below.
+
+Option        | Description
+--------------|------------
+`rate_limits.enabled` | Enables rate limiting. Default: `false`
+`rate_limits.global` | Enables rate limiting for all routes. Default: `true` (defaults to all routes being rate limited)
+`rate_limits.timeWindow` | The time window in which requests are counted. Default: `60000` (1 minute)
+`rate_limits.max` | The maximum number of requests allowed in the time window. Default: `1000`
+`rate_limits.maxAnonymous` | The maximum number of requests allowed in the time window for anonymous users. Default: not configured (defaults to `rate_limits.max`)
+
+For additional options, see [fastify-rate-limit](https://github.com/fastify/fastify-rate-limit#options) documentation.
 
 
 ## Support configuration

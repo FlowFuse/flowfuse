@@ -60,6 +60,7 @@
         "@fastify/formbody": "^7.4.0",
         "@fastify/helmet": "^11.0.0",
         "@fastify/passport": "^2.3.0",
+        "@fastify/rate-limit": "^8.0.3",
         "@fastify/static": "^6.10.2",
         "@fastify/swagger": "^8.6.0",
         "@fastify/swagger-ui": "^1.9.0",
@@ -96,6 +97,7 @@
     "devDependencies": {
         "@babel/core": "^7.22.1",
         "@babel/preset-env": "^7.22.4",
+        "@fastify/routes": "^5.1.0",
         "@vitejs/plugin-vue": "^4.2.3",
         "@vitest/coverage-istanbul": "^0.33.0",
         "@vue/test-utils": "^2.3.2",

@@ -35,7 +35,15 @@ const SESSION_COOKIE_OPTIONS = {
  * @typedef {import('../../db/controllers/User')} UserController
  */
 
-module.exports = fp(async function (app, opts, done) {
+module.exports = fp(init)
+
+/**
+ * Initialize the auth plugin
+ * @param {import('forge/forge').ForgeApplication} app
+ * @param {Object} opts
+ * @param {Function} done
+ */
+async function init (app, opts, done) {
     await app.register(require('./oauth'), { logLevel: app.config.logging.http })
     await app.register(require('./permissions'))
 
@@ -170,6 +178,9 @@ module.exports = fp(async function (app, opts, done) {
      * @memberof forge.routes.session
      */
     app.post('/account/login', {
+        config: {
+            rateLimit: app.config.rate_limits // rate limit this route regardless of global/per-route mode (if enabled)
+        },
         schema: {
             summary: 'Log in to the platform',
             description: 'Log in to the platform. If SSO is enabled for this user, the response will prompt the user to retry via the SSO login mechanism.',
@@ -226,6 +237,9 @@ module.exports = fp(async function (app, opts, done) {
      * @memberof forge.routes.session
      */
     app.post('/account/logout', {
+        config: {
+            rateLimit: false // never rate limit this route
+        },
         schema: {
             tags: ['Authentication', 'X-HIDDEN']
         }
@@ -272,6 +286,9 @@ module.exports = fp(async function (app, opts, done) {
      * @memberof forge.routes.session
      */
     app.post('/account/register', {
+        config: {
+            rateLimit: app.config.rate_limits // rate limit this route regardless of global/per-route mode (if enabled)
+        },
         schema: {
             tags: ['Authentication', 'X-HIDDEN'],
             body: {
@@ -410,6 +427,9 @@ module.exports = fp(async function (app, opts, done) {
      * Perform email verification
      */
     app.post('/account/verify/:token', {
+        config: {
+            rateLimit: false // never rate limit this route
+        },
         schema: {
             tags: ['Authentication', 'X-HIDDEN']
         }
@@ -493,8 +513,13 @@ module.exports = fp(async function (app, opts, done) {
      * Generate verification email
      */
     app.post('/account/verify', {
-        preHandler: app.verifySession,
-        config: { allowUnverifiedEmail: true },
+        preHandler: function (request, reply, done) {
+            app.verifySession(request, reply).then(() => done()).catch(done)
+        },
+        config: {
+            rateLimit: false, // never rate limit this route
+            allowUnverifiedEmail: true
+        },
         schema: {
             tags: ['Authentication', 'X-HIDDEN']
         }
@@ -573,6 +598,9 @@ module.exports = fp(async function (app, opts, done) {
     })
 
     app.post('/account/forgot_password', {
+        config: {
+            rateLimit: app.config.rate_limits // rate limit this route regardless of global/per-route mode (if enabled)
+        },
         schema: {
             tags: ['Authentication', 'X-HIDDEN'],
             body: {
@@ -617,6 +645,9 @@ module.exports = fp(async function (app, opts, done) {
     })
 
     app.post('/account/reset_password/:token', {
+        config: {
+            rateLimit: app.config.rate_limits // rate limit this route regardless of global/per-route mode (if enabled)
+        },
         schema: {
             tags: ['Authentication', 'X-HIDDEN'],
             body: {
@@ -668,4 +699,4 @@ module.exports = fp(async function (app, opts, done) {
     })
 
     done()
-})
+}

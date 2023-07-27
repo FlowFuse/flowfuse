@@ -79,6 +79,19 @@ module.exports = async (options = {}) => {
         if (server.config.logging?.level) {
             server.log.level = server.config.logging.level
         }
+
+        // Test Only. Permit access to app.routes - for evaluating routes in tests
+        if (options.config?.test?.fastifyRoutes) {
+            // since @fastify/routes is a dev dependency, we only load it when requested in test
+            server.register(require('@fastify/routes')) // eslint-disable-line n/no-unpublished-require
+        }
+
+        // Rate Limits: rate limiting for the server end points
+        if (server.config.rate_limits?.enabled) {
+            // for rate_limits, see [routes/rateLimits.js].getLimits()
+            await server.register(require('@fastify/rate-limit'), server.config.rate_limits)
+        }
+
         // DB : the database connection/models/views/controllers
         await server.register(db)
         // Settings
