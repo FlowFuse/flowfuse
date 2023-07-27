@@ -14,7 +14,7 @@
                 <template v-if="hasCredentials">
                     <p>
                         To connect your device to the platform, use the following
-                        configuration. This <code>device.yml</code> file will need to be moved to your device.
+                        configuration. This will need to be placed on your device.
                     </p>
                     <p class="mt-3 mb-3">
                         See the
