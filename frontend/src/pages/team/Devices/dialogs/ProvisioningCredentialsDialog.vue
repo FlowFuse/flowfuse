@@ -1,13 +1,13 @@
 <template>
-    <ff-dialog ref="dialog" header="Device Provisioning Credentials">
+    <ff-dialog ref="dialog" header="Device Provisioning Configuration">
         <template v-slot:default>
             <form class="space-y-6 mt-2">
                 <p class="text-sm text-gray-500">
                     To auto provision your devices on the platform, use the following
-                    credentials. Make a note of them as this is the only
+                    configuration. Make a note of them as this is the only
                     time you will see them.
                 </p>
-                <pre class="overflow-auto text-sm p-4 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
+                <pre class="overflow-auto text-sm p-4 border rounded bg-gray-800 text-gray-200">{{ configuration }}</pre>
             </form>
         </template>
         <template v-slot:actions>
