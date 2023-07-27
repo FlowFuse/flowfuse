@@ -7,12 +7,12 @@ navOrder: 3
 
 To connect a device to FlowForge, it needs a set of credentials. 
 
-There are two types of credentials to choose from:
+There are two types of configurations to choose from:
 
-* **Device Credentials**: for connecting a single device to the platform
-* **Provisioning Credentials**: for setting up one or more devices to automatically register themselves on the platform
+* **Device Configuration**: for connecting a single device to the platform
+* **Provisioning Configuration**: for setting up one or more devices to automatically register themselves on the platform
 
-### Generating "Device Credentials" 
+### Generating "Device Configuration" 
 _for a single device_
 
 1. Go to your teams's **Devices** page.
@@ -21,7 +21,7 @@ _for a single device_
    The type field can be used to record additional meta information about the device.
 4. Click **Register**
 
-Once the device has been registered, you will be shown the **Device Credentials** 
+Once the device has been registered, you will be shown the **Device Configuration** 
 dialog. This is the only time the platform will show you this information without
 resetting it. Make sure to take a copy or use the **Download** button to save
 the configuration file locally.
@@ -29,7 +29,7 @@ the configuration file locally.
 Repeat these steps for each device you want to connect to the platform.
 
 
-### Generating "Provisioning Credentials" 
+### Generating "Provisioning Configuration" 
 _for automatic registration of one or more devices_
 
 1. Go to your teams's **Settings** page.
@@ -39,28 +39,30 @@ _for automatic registration of one or more devices_
 4. Click **Create**
 
 Once the Provisioning Token has been created, you will be shown the 
-**Device Provisioning Credentials** dialog. This is the only time the 
+**Device Provisioning Configuration** dialog. This is the only time the 
 platform will show you this information. 
 Make sure to take a copy or use the **Download** button to save
 the configuration file locally.
 
 ## Connect the device
 
-### Install the credentials
+### Install the configuration
 
 Before you can connect a device to the platform, the device must have
-a **Device Credentials** file or a **Device Provisioning Credentials** 
+a **Device Configuration** file or a **Device Provisioning Configuration** 
 file present in its working directory. There are two ways to do this:
-1. Copy the credentials file into the device's 
+1. Copy the configuration file into the device's 
 [Working Directory](./install.md#working-directory).
-2. Download the credentials file to the device using its built in Web UI.
+2. Download the configuration file to the device using its built in Web UI.
 NOTE: The Device Agent must be running and the command line flag for the Web UI must be enabled.
 See [Command Line Options](./running.md#device-agent-command-line-options) for more information.
 
 ### Copy method
 
-Place the **Device Credentials** or **Device Provisioning Credentials** file on the device
+Place the **Device Configuration** or **Device Provisioning Configuration** file on the device
 in the [Working Directory](./install.md#working-directory)
+
+By default, the device agent expects the configuration file to be named `device.yml`, if not, you will need to start the device agent with the `-c` [Command Line Option](./running.md#device-agent-command-line-options) and specify the path of the configuration file.
 
 The agent can then be started with the command: [^global-install]
 
@@ -74,17 +76,17 @@ to the platform to check what it should be running.
 ### Download method
 
 If the Device Agent is running with the Web UI enabled, you can download the
-credentials file to the device using the Web UI. This is useful if you don't
-have direct access to the device's file system. Once the credentials file is
-downloaded, the device agent will automatically restart and load the credentials.
+configuration file to the device using the Web UI. This is useful if you don't
+have direct access to the device's file system. Once the configuration file is
+downloaded, the device agent will automatically restart and load the configuration.
 
 #### Additional Information
 
-If you copy or download a **Device Provisioning Credentials** file to the device,
+If you copy or download a **Device Provisioning Configuration** file to the device,
 you will see the device start and perform a 'call-home' where it connects back
 to the platform to auto register itself in the team devices.  If successful,
-the real **Device Credentials** are generated and downloaded to the device. 
-The original **Provisioning Credentials** will be overwritten meaning subsequent 
+the real **Device Configuration** is generated and downloaded to the device. 
+The original **Provisioning Configuration** will be overwritten meaning subsequent 
 runs will not need to perform the auto registration again.
 
 ## Assign the device to a Node-RED instance
@@ -108,20 +110,20 @@ To remove the device from a Node-RED instance:
 The device will stop running the current Node-RED flows. It will then wait
 until it is assigned to another instance.
 
-## Regenerating credentials
+## Regenerating Configurations
 
-To regenerate device credentials:
+To regenerate device configurations:
 
 1. Go to your team's or instance's **Devices** page.
 2. Open the dropdown menu to the right of the device and select the
-   **Regenerate credentials** option.
-3. You will need to confirm this action as the existing credentials will be
-   immediately revoked. If the device tries to use the old credentials it will
+   **Regenerate Configuration** option.
+3. You will need to confirm this action as the existing configuration will be
+   immediately revoked. If the device tries to use the old configuration it will
    fail to connect and will delete its local copy of the snapshot it was
-   running. Click **Regenerate credentials** to continue.
+   running. Click **Regenerate Configuration** to continue.
 
-You will then be shown the **Device Credentials** dialog again with a new set of
-credentials to copy or download.
+You will then be shown the **Device Configuration** dialog again with a new
+configuration to copy or download.
 
 ## Deleting a device
 
