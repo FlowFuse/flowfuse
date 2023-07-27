@@ -24,7 +24,7 @@
                         >Connect Your Device</a> documentation for more information.
                     </p>
                     <p class="font-bold mt-3 mb-6">
-                        Make a note of this configuration, as this is the only time you will see them.
+                        Make a note of this configuration, as this is the only time you will see it.
                     </p>
                     <pre class="overflow-auto text-sm p-4 mt-6 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
                 </template>
