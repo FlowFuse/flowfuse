@@ -407,10 +407,10 @@ export default {
         const projectTypesPromise = instanceTypesApi.getInstanceTypes()
         const templateListPromise = templatesApi.getTemplates()
 
-        this.projectTypes = (await projectTypesPromise).types
+        const projectTypes = (await projectTypesPromise).types
         this.templates = (await templateListPromise).templates.filter(template => template.active)
 
-        let activeProjectTypeCount = this.projectTypes.length
+        let activeProjectTypeCount = projectTypes.length
         if (this.billingEnabled) {
             try {
                 this.subscription = await billingApi.getSubscriptionInfo(this.team.id)
@@ -422,27 +422,70 @@ export default {
                     }
                 }
             }
-            this.projectTypes.forEach(pt => {
-                if (pt.properties?.billingDescription) {
-                    pt.price = pt.properties?.billingDescription?.split('/')[0]
-                    pt.priceInterval = pt.properties?.billingDescription?.split('/')[1]
+            projectTypes.forEach(pt => {
+                // Need to combine the projectType billing info with any overrides
+                // from the current teamType
+                const teamTypeInstanceProperties = this.team.type.properties.instances[pt.id]
+                const existingInstanceCount = this.team.instanceCountByType?.[pt.id] || 0
+
+                pt.price = ''
+                pt.priceInterval = ''
+                pt.currency = ''
+                pt.cost = 0
+                if (teamTypeInstanceProperties) {
+                    if (!teamTypeInstanceProperties.active) {
+                        // This instanceType is disabled for this teamType
+                        pt.disabled = true
+                    } else if (teamTypeInstanceProperties.limit !== null && teamTypeInstanceProperties.limit <= existingInstanceCount) {
+                        // This team has reached the limit of this instance type
+                        pt.disabled = true
+                    }
                 }
-                if (this.team.billing?.trial) {
-                    const isTrialProjectType = pt.id === this.settings['user:team:trial-mode:projectType']
-                    if (!this.team.billing?.active) {
-                        // No active billing - only allow the trial instance type
-                        pt.disabled = !isTrialProjectType
+                if (!pt.disabled) {
+                    let billingDescription
+                    if (teamTypeInstanceProperties) {
+                        // TeamType provides meta data to use - do not fall back to instanceType
+                        if (existingInstanceCount >= (teamTypeInstanceProperties.free || 0)) {
+                            billingDescription = teamTypeInstanceProperties.description
+                        } else {
+                            // This team is still within its free allowance so clear
+                            // the billingDescription
+                        }
+                    } else {
+                        billingDescription = pt.properties?.billingDescription
                     }
-                    if (isTrialProjectType && this.team.billing?.trialProjectAllowed) {
-                        pt.price = 'Free Trial'
-                        pt.priceInterval = pt.properties?.billingDescription
+                    if (billingDescription) {
+                        [pt.price, pt.priceInterval] = billingDescription.split('/')
+                        pt.currency = pt.price.replace(/[\d.]+/, '')
+                        pt.cost = (Number(pt.price.replace(/[^\d.]+/, '')) || 0) * 100
+                    } else {
+                        pt.price = ''
+                        pt.priceInterval = ''
+                        pt.currency = ''
+                        pt.cost = 0
                     }
-                    if (pt.disabled) {
-                        activeProjectTypeCount--
+
+                    if (this.team.billing?.trial) {
+                        if (this.team.type.properties?.trial?.instanceType) {
+                            const isTrialProjectType = pt.id === this.team.type.properties?.trial?.instanceType
+                            if (!this.team.billing?.active) {
+                                // No active billing - only allow the trial instance type
+                                pt.disabled = !isTrialProjectType
+                            }
+                            if (isTrialProjectType && this.team.billing?.trialProjectAllowed) {
+                                pt.price = 'Free Trial'
+                                pt.priceInterval = pt.properties?.billingDescription
+                            }
+                        }
                     }
+                }
+                if (pt.disabled) {
+                    activeProjectTypeCount--
                 }
             })
         }
+
+        this.projectTypes = projectTypes
 
         if (this.projectTypes.length === 0) {
             this.errors.projectType = 'No instance types available. Ask an Administrator to create a new instance type'
@@ -479,10 +522,11 @@ export default {
         //   - team is not a trial team, or:
         //   - team is a trial team and:
         //     - has expired, or:
-        //     - already has a instance created
+        //     - is an instanceType-limited trial and already has a instance created
         if (this.team.billing?.canceled ||
             !this.team.billing?.trial ||
-            (this.team.billing?.trialEnded || this.team.instanceCount > 0)
+            this.team.billing?.trialEnded ||
+            (this.team.type.properties?.trial?.instanceType && this.team.instanceCount > 0)
         ) {
             this.$router.push({
                 path: `/team/${this.team.slug}/billing`

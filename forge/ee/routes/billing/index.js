@@ -277,7 +277,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('team:edit')
     }, async (request, response) => {
         const team = request.team
-        const sub = await app.db.models.Subscription.byTeamId(team.id)
+        const sub = await team.getSubscription()
         if (!sub || !sub.isActive()) {
             return response.code(404).send({ code: 'not_found', error: 'Team does not have a subscription' })
         }
@@ -356,7 +356,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('team:edit')
     }, async (request, response) => {
         const team = request.team
-        const sub = await app.db.models.Subscription.byTeamId(team.id)
+        const sub = await team.getSubscription()
         const portal = await stripe.billingPortal.sessions.create({
             customer: sub.customer,
             return_url: `${app.config.base_url}/team/${team.slug}/overview`

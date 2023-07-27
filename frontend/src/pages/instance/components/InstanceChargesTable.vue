@@ -91,9 +91,9 @@ export default {
 
             return {
                 name: this.projectType.name,
-                currency: this.projectType.properties?.billingDescription?.split('/')[0].replace(/[\d.]+/, ''),
-                cost: (Number(this.projectType.properties?.billingDescription?.split('/')[0].replace(/[^\d.]+/, '')) || 0) * 100,
-                interval: this.projectType.properties?.billingDescription?.split('/')[1]
+                currency: this.projectType.currency,
+                cost: this.projectType.cost,
+                interval: this.projectType.priceInterval
             }
         }
     }

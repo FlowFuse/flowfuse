@@ -29,7 +29,7 @@ module.exports = {
                         include: [
                             {
                                 model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
                             }
                         ]
                     })
@@ -43,7 +43,7 @@ module.exports = {
                     const includes = [
                         {
                             model: M.Team,
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links'],
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId'],
                             where: { id }
                         }
                     ]

@@ -35,7 +35,7 @@ describe('Billing', function () {
                 }
             })
 
-            const defaultTeamType = await app.db.models.TeamType.findOne()
+            const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
             const newTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
 
             const result = await app.billing.createSubscriptionSession(newTeam)
@@ -70,7 +70,7 @@ describe('Billing', function () {
                 }
             })
 
-            const defaultTeamType = await app.db.models.TeamType.findOne()
+            const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
             const newTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
             await newTeam.reload({
                 include: [{ model: app.db.models.TeamType }]
@@ -95,7 +95,7 @@ describe('Billing', function () {
                 }
             })
 
-            const defaultTeamType = await app.db.models.TeamType.findOne()
+            const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
             const newTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
             await app.db.controllers.Subscription.createSubscription(newTeam, 'existing-subscription', 'existing-customer')
             await newTeam.reload({
@@ -124,7 +124,7 @@ describe('Billing', function () {
                 })
 
                 it('sets the trial flag if the user is eligible for a trial', async function () {
-                    const defaultTeamType = await app.db.models.TeamType.findOne()
+                    const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
                     const newTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
                     const user = await app.db.models.User.create({ admin: true, username: 'new', name: 'New User', email: 'new@example.com', email_verified: true, password: 'aaPassword' })
                     await newTeam.addUser(user, { through: { role: Roles.Owner } })
@@ -138,7 +138,7 @@ describe('Billing', function () {
                 })
 
                 it('sets trial flag to false if the user is not eligible for a trial', async function () {
-                    const defaultTeamType = await app.db.models.TeamType.findOne()
+                    const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
                     const secondTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
                     const userAlice = await app.db.models.User.byEmail('alice@example.com')
                     await secondTeam.addUser(userAlice, { through: { role: Roles.Owner } })
@@ -168,7 +168,7 @@ describe('Billing', function () {
             })
 
             it('does not set trial flag even if the user is eligible for a trial', async function () {
-                const defaultTeamType = await app.db.models.TeamType.findOne()
+                const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
                 const newTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
                 const user = await app.db.models.User.create({ admin: true, username: 'new', name: 'New User', email: 'new@example.com', email_verified: true, password: 'aaPassword' })
                 await newTeam.addUser(user, { through: { role: Roles.Owner } })
@@ -195,7 +195,7 @@ describe('Billing', function () {
                     }
                 })
 
-                const defaultTeamType = await app.db.models.TeamType.findOne()
+                const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
                 const newTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
                 const userAlice = await app.db.models.User.byEmail('alice@example.com')
 
@@ -210,15 +210,11 @@ describe('Billing', function () {
     })
 
     describe('addProject', function () {
-        let BILLING_STATES
-
         beforeEach(async function () {
             stripe = setup.setupStripe()
             stripe.subscriptions.create('sub_1234567890') // add existing subscription to mock stripe
 
             app = await setup()
-
-            BILLING_STATES = app.db.models.ProjectSettings.BILLING_STATES
         })
 
         it('adds a project to Stripe subscription', async function () {
@@ -231,192 +227,164 @@ describe('Billing', function () {
             args[1].should.have.property('items')
             args[1].items[0].should.have.property('price', 'price_123')
             args[1].items[0].should.have.property('quantity', 1)
-            args[1].should.have.property('metadata', {
-                [app.project.id]: 'true'
-            })
 
-            // Marks project billed
-            should.equal(await app.billing.getProjectBillingState(app.project), BILLING_STATES.BILLED)
+            // Calling again - ensure it doesn't double the quantity
+            await app.billing.addProject(app.team, app.project)
+            should.equal(stripe.subscriptions.update.calledOnce, true)
         })
 
-        it('adds a project to Stripe subscription with existing invoice item for project type', async function () {
-            // Add an already two existing copies of this project type to Stripe Invoice
-            await stripe.subscriptions.update('sub_1234567890', { items: [{ price: 'price_123', quantity: 2 }] })
-            stripe.subscriptions.update.resetHistory()
-
+        it('adds a second project to Stripe subscription with existing invoice item for project type', async function () {
+            // Add first project
             await app.billing.addProject(app.team, app.project)
+            stripe.subscriptions.update.resetHistory()
+            stripe.subscriptionItems.update.resetHistory()
+
+            const instanceTwo = await app.factory.createInstance(
+                { name: 'project2' },
+                app.application,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+
+            await app.billing.addProject(app.team, instanceTwo)
 
             should.equal(stripe.subscriptionItems.update.calledOnce, true)
+
             const itemsArgs = stripe.subscriptionItems.update.lastCall.args
             itemsArgs[0].should.equal('item-0')
-            itemsArgs[1].should.have.property('quantity', 3)
+            itemsArgs[1].should.have.property('quantity', 2)
             itemsArgs[1].should.have.property('proration_behavior', 'always_invoice')
 
-            should.equal(stripe.subscriptions.update.calledOnce, true)
-
-            const args = stripe.subscriptions.update.lastCall.args
-            args[0].should.equal('sub_1234567890')
-            args[1].should.have.property('metadata', {
-                [app.project.id]: 'true'
-            })
-
-            // Marks project billed
-            should.equal(await app.billing.getProjectBillingState(app.project), BILLING_STATES.BILLED)
+            should.equal(stripe.subscriptions.update.calledOnce, false)
         })
 
-        it('skips adding a project to Stripe if the billing state is already marked as billed', async function () {
-            await app.billing.setProjectBillingState(app.project, BILLING_STATES.BILLED)
+        it('accounts for free allowance', async function () {
+            // Set a free allowance of 1 for this instance type
+            const teamTypeProps = app.defaultTeamType.properties
+            teamTypeProps.instances[app.projectType.hashid] = { active: true, free: 1 }
+            app.defaultTeamType.properties = teamTypeProps
+            await app.defaultTeamType.save()
 
+            await app.team.reload({ include: [app.db.models.TeamType] })
             await app.billing.addProject(app.team, app.project)
-
+            // Should not call stripe
             should.equal(stripe.subscriptions.update.calledOnce, false)
-            should.equal(stripe.subscriptionItems.update.calledOnce, false)
 
-            // Still marked billed
-            should.equal(await app.billing.getProjectBillingState(app.project), BILLING_STATES.BILLED)
+            const instanceTwo = await app.factory.createInstance(
+                { name: 'project2' },
+                app.application,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+
+            await app.billing.addProject(app.team, instanceTwo)
+
+            should.equal(stripe.subscriptions.update.calledOnce, true)
+            const args = stripe.subscriptions.update.lastCall.args
+            args[0].should.equal('sub_1234567890')
+            args[1].should.have.property('items')
+            args[1].items[0].should.have.property('price', 'price_123')
+            args[1].items[0].should.have.property('quantity', 1)
         })
     })
 
     describe('removeProject', function () {
-        let BILLING_STATES
-
         beforeEach(async function () {
             stripe = setup.setupStripe()
             stripe.subscriptions.create('sub_1234567890') // add existing subscription to mock stripe
 
             app = await setup()
-
-            BILLING_STATES = app.db.models.ProjectSettings.BILLING_STATES
+            // Make sure the sub contains a project to begin with
+            await app.billing.addProject(app.team, app.project)
+            stripe.subscriptions.update.resetHistory()
         })
 
         it('removes a project from a Stripe subscription with existing invoice item for project type with quantity > 1', async function () {
-            // Add an already two existing copies of this project type to Stripe Invoice
-            await stripe.subscriptions.update('sub_1234567890', { items: [{ price: 'price_123', quantity: 2 }] })
-            stripe.subscriptions.update.resetHistory()
+            const instanceTwo = await app.factory.createInstance(
+                { name: 'project2' },
+                app.application,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
 
+            await app.billing.addProject(app.team, instanceTwo)
+            stripe.subscriptions.update.resetHistory()
+            stripe.subscriptionItems.update.resetHistory()
+
+            await app.project.destroy()
             await app.billing.removeProject(app.team, app.project)
 
             should.equal(stripe.subscriptionItems.update.calledOnce, true)
             const itemsArgs = stripe.subscriptionItems.update.lastCall.args
             itemsArgs[0].should.equal('item-0')
             itemsArgs[1].should.have.property('quantity', 1)
-            itemsArgs[1].should.have.not.property('proration_behavior')
 
-            should.equal(stripe.subscriptions.update.calledOnce, true)
-
-            const args = stripe.subscriptions.update.lastCall.args
-            args[0].should.equal('sub_1234567890')
-            args[1].should.have.property('metadata', {
-                [app.project.id]: ''
-            })
-
-            // Marks project as no longer invoiced
-            should.equal(await app.billing.getProjectBillingState(app.project), BILLING_STATES.NOT_BILLED)
+            should.equal(stripe.subscriptions.update.calledOnce, false)
         })
 
         it('removes a project from a Stripe subscription with existing invoice item for project type with quantity = 1', async function () {
-            // Add an already existing copy of this project type to Stripe Invoice
-            await stripe.subscriptions.update('sub_1234567890', { items: [{ price: 'price_123', quantity: 1 }] })
-            stripe.subscriptions.update.resetHistory()
+            await app.project.destroy()
+            await app.billing.removeProject(app.team, app.project)
 
+            should.equal(stripe.subscriptionItems.del.calledOnce, true)
+            const itemsArgs = stripe.subscriptionItems.del.lastCall.args
+            itemsArgs[0].should.equal('item-0')
+
+            should.equal(stripe.subscriptions.update.calledOnce, false)
+        })
+
+        it('skips removing a project from Stripe if the quanities already match', async function () {
+            await app.billing.removeProject(app.team, app.project)
+
+            should.equal(stripe.subscriptions.update.calledOnce, false)
+            should.equal(stripe.subscriptionItems.update.calledOnce, false)
+        })
+
+        it('accounts for free allowance', async function () {
+            // Set a free allowance of 1 for this instance type
+            const teamTypeProps = app.defaultTeamType.properties
+            teamTypeProps.instances[app.projectType.hashid] = { active: true, free: 1 }
+            app.defaultTeamType.properties = teamTypeProps
+            await app.defaultTeamType.save()
+
+            await app.team.reload({ include: [app.db.models.TeamType] })
+
+            // Create second
+            const instanceTwo = await app.factory.createInstance(
+                { name: 'project2' },
+                app.application,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+            // Create second
+            await app.factory.createInstance(
+                { name: 'project3' },
+                app.application,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+
+            await app.billing.addProject(app.team, instanceTwo)
+            stripe.subscriptions.update.resetHistory()
+            stripe.subscriptionItems.update.resetHistory()
+
+            await app.project.destroy()
             await app.billing.removeProject(app.team, app.project)
 
             should.equal(stripe.subscriptionItems.update.calledOnce, true)
             const itemsArgs = stripe.subscriptionItems.update.lastCall.args
             itemsArgs[0].should.equal('item-0')
-            itemsArgs[1].should.have.property('quantity', 0)
-            itemsArgs[1].should.have.property('proration_behavior', 'always_invoice')
-
-            should.equal(stripe.subscriptions.update.calledOnce, true)
-            should.equal(stripe.subscriptionItems.update.calledOnce, true)
-
-            const args = stripe.subscriptions.update.lastCall.args
-            args[0].should.equal('sub_1234567890')
-            args[1].should.have.property('metadata', {
-                [app.project.id]: ''
-            })
-
-            // Marks project as no longer invoiced
-            should.equal(await app.billing.getProjectBillingState(app.project), BILLING_STATES.NOT_BILLED)
-        })
-
-        it('skips removing a project from Stripe if the billing state is already marked as not-billed', async function () {
-            await app.billing.setProjectBillingState(app.project, BILLING_STATES.NOT_BILLED)
-
-            await app.billing.removeProject(app.team, app.project)
-
-            should.equal(stripe.subscriptions.update.calledOnce, false)
-            should.equal(stripe.subscriptionItems.update.calledOnce, false)
-
-            // Project state is the same
-            should.equal(await app.billing.getProjectBillingState(app.project), BILLING_STATES.NOT_BILLED)
-        })
-    })
-
-    describe('updateTeamMemberCount', async function () {
-        let updateId, updateData
-        beforeEach(async function () {
-            updateId = null
-            updateData = null
-            setup.setupStripe({
-                subscriptions: {
-                    retrieve: async sub => {
-                        return {
-                            items: {
-                                data: [
-                                    { id: '123', quantity: 1, plan: { product: 'defaultteamprod' } },
-                                    { id: '234', quantity: 27, plan: { product: 'starterteamprod' } }
-                                ]
-                            }
-                        }
-                    }
-                },
-                subscriptionItems: {
-                    update: async (id, update) => {
-                        updateId = id
-                        updateData = update
-                    }
-                }
-            })
-        })
-        it('does not update team subscription quantity when already correct', async function () {
-            // Using `defaultteamprod` which has a quantity of 1 already
-            app = await setup({
-                billing: {
-                    stripe: {
-                        key: 1234,
-                        team_product: 'defaultteamprod',
-                        team_price: 'defaultteamprice'
-                    }
-                }
-            })
-            await app.billing.updateTeamMemberCount(app.team)
-            should.not.exist(updateId)
-            should.not.exist(updateData)
-        })
-        it('updates team subscription quantity when incorrect', async function () {
-            // Using `starterteamprod` which has a quantity of 27
-            app = await setup({
-                billing: {
-                    stripe: {
-                        key: 1234,
-                        team_product: 'defaultteamprod',
-                        team_price: 'defaultteamprice',
-                        teams: {
-                            starter: {
-                                product: 'starterteamprod',
-                                price: 'starterteampprice'
-                            }
-                        }
-                    }
-                }
-            })
-            await app.billing.updateTeamMemberCount(app.team)
-            should.exist(updateId)
-            updateId.should.equal('234')
-            should.exist(updateData)
-            updateData.should.have.property('quantity', 1)
-            updateData.should.have.property('proration_behavior', 'always_invoice')
+            itemsArgs[1].should.have.property('quantity', 1)
         })
     })
 
@@ -572,7 +540,7 @@ describe('Billing', function () {
 
                 const teamType = await app.db.models.TeamType.byName('starter')
                 const properties = teamType.properties
-                properties.deviceFreeAllocation = 2
+                properties.devices = { free: 2 }
                 teamType.properties = properties
                 await teamType.save()
                 await app.team.reload({

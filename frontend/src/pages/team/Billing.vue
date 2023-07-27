@@ -32,12 +32,19 @@
             </div>
         </div>
         <div v-else class="ff-no-data ff-no-data-large">
-            <div v-if="trialMode">
-                You are currently in a free trial. During the trial you can only create one application instance in the team.
-                To unlock other features you will need to configure your billing details.
-            </div>
-            <div v-else>
-                Billing has not yet been configured for this team. Before proceeding further, you must continue to Stripe and complete this.
+            <div class="max-w-lg mx-auto">
+                <div v-if="trialMode">
+                    You are currently in a free trial.
+                    <template v-if="isRestrictedTrial">
+                        During the trial you can only create one application instance in the team. To unlock other features you will need to configure your billing details.
+                    </template>
+                    <template v-else>
+                        During the trial you can make full use of the features available to your team. To keep things running after the trial ends you will need to configure your billing details.
+                    </template>
+                </div>
+                <div v-else>
+                    Billing has not yet been configured for this team. Before proceeding further, you must continue to Stripe and complete this.
+                </div>
             </div>
             <div class="mt-6">
                 <ff-button data-action="setup-payment-details" class="mx-auto mt-3" @click="setupBilling()">
@@ -138,9 +145,14 @@ export default {
         trialMode () {
             return this.team.billing?.trial
         },
+        isRestrictedTrial () {
+            return !!this.team.type?.properties?.trial?.instanceType
+        },
         hasTrialProject () {
             // Infer that if they cannot create a trial project, they must already have one.
-            return this.trialMode && !this.team.billing.trialProjectAllowed
+            return this.trialMode && // !this.team.billing.trialProjectAllowed
+                this.isRestrictedTrial &&
+                this.team.instanceCountByType[this.team.type?.properties?.trial?.instanceType] > 0
         }
     },
     watch: { },

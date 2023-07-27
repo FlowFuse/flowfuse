@@ -13,17 +13,17 @@ Welcome to FlowForge. We hope you enjoy your free trial for your first
 {{{trialDuration}}} days with us.
 
 To get started using FlowForge, log in to your new team, '{{{teamName}}}' 
-and create your first Node-RED Project.
+and create your first Node-RED Application.
 
-You can also invite other users to join your team to collaborate on your projects.
+You can also invite other users to join your team to collaborate on your applications.
 
-Your {{{trialDuration}}} day trial allows you to create a {{{trialProjectTypeName}}} project
+Your {{{trialDuration}}} day trial allows you to create a {{{trialProjectTypeName}}} instance
 for free. Once the trial ends, you will need to add your credit card details to
-keep the project running. But don't worry - we'll remind you when the trial is
+keep it running. But don't worry - we'll remind you when the trial is
 nearing its end.
 
 If you want to do more with your team during the trial, you can add your credit
-card details at any time and create more projects.  Again, we'll email to remind
+card details at any time and create more instances.  Again, we'll email to remind
 you what is happening with the trial.
 
 We hope you enjoy the FlowForge experience.
@@ -39,17 +39,17 @@ Your friendly FlowForge Team
 {{{trialDuration}}} days with us.</p>
 
 <p>To get started using FlowForge, log in to your new team, '{{{teamName}}}' 
-and create your first Node-RED Project.</p>
+and create your first Node-RED Application.</p>
 
-<p>You can also invite other users to join your team to collaborate on your projects.</p>
+<p>You can also invite other users to join your team to collaborate on your applications.</p>
 
-<p>Your {{{trialDuration}}} day trial allows you to create a {{{trialProjectTypeName}}} project
+<p>Your {{{trialDuration}}} day trial allows you to create a {{{trialProjectTypeName}}} instance
 for free. Once the trial ends, you will need to add your credit card details to
-keep the project running. But don't worry - we'll remind you when the trial is
+keep the it running. But don't worry - we'll remind you when the trial is
 nearing its end.</p>
 
 <p>If you want to do more with your team during the trial, you can add your credit
-card details at any time and create more projects.  Again, we'll email to remind
+card details at any time and create more instances.  Again, we'll email to remind
 you what is happening with the trial.</p>
 
 <p>We hope you enjoy the FlowForge experience.</p>

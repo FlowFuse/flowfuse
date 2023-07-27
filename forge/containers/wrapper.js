@@ -1,45 +1,15 @@
 class SubscriptionHandler {
     constructor (app) {
         this._app = app
-        this.BILLING_STATES = app.db.models.ProjectSettings.BILLING_STATES
-    }
-
-    async requireSubscription (team) {
-        const subscription = await this._app.db.models.Subscription.byTeamId(team.id)
-        if (!subscription) {
-            throw new Error('No Subscription for this team')
-        }
-
-        return subscription
-    }
-
-    async requireTrialProjectOrActiveSubscription (project) {
-        const billingState = await this._app.billing.getProjectBillingState(project)
-        if (billingState !== this.BILLING_STATES.TRIAL) {
-            await this.requireActiveSubscription(project.Team)
-        }
-    }
-
-    async requireActiveSubscription (team) {
-        const subscription = await this.requireSubscription(team)
-
-        if (!subscription.isActive()) {
-            throw new Error(`Teams subscription is not active. State is ${subscription.status}`)
-        }
-
-        return subscription
     }
 
     async addProject (project) {
-        const billingState = await this._app.billing.getProjectBillingState(project)
-        if (billingState === this.BILLING_STATES.TRIAL) {
-            // Trial projects can be added to an team for free (no need to add to the subscription)
-            return
-        }
-
-        await this.requireActiveSubscription(project.Team)
+        // This will perform all checks needed to ensure this instance
+        // can be started - throws err if not
+        await project.Team.checkInstanceStartAllowed(project)
 
         try {
+            this._app.log.info(`Adding instance '${project.id}' to team ${project.Team.hashid} subscription'`)
             await this._app.billing.addProject(project.Team, project)
         } catch (err) {
             this._app.log.error(`Problem adding project to subscription: ${err}`)
@@ -55,36 +25,14 @@ class SubscriptionHandler {
      * @param {*} options
      */
     async removeProject (project, { skipBilling = false } = {}) {
-        const billingState = await this._app.billing.getProjectBillingState(project)
-        if (billingState !== this.BILLING_STATES.BILLED && billingState !== this.BILLING_STATES.UNDEFINED) {
-            // Only projects that are currently billed, or are in an unknown state should be removed from the subscription
-            return
-        }
-
-        const subscription = await this.requireSubscription(project.Team)
-        if (subscription.isCanceled()) {
-            // Mark this project state as 'not_billed' so that it will get
-            // added back to any future subscription
-            await this._app.billing.setProjectBillingState(project, this.BILLING_STATES.NOT_BILLED)
-            this._app.log.warn(`Skipped removing project '${project.id}' from subscription for canceled subscription '${subscription.subscription}'`)
-            return
-        }
-
-        if (skipBilling) {
-            if (await this._app.billing.getProjectBillingState(project) === this.BILLING_STATES.UNKNOWN) {
-                this._app.log.info('Billing state of project is unknown, but remove attempt that skips billing made, assuming it is currently billed')
-                await this._app.billing.setProjectBillingState(project, this.BILLING_STATES.BILLED)
+        if (!skipBilling) {
+            this._app.log.info(`Removing instance '${project.id}' from team ${project.Team.hashid} subscription'`)
+            try {
+                await this._app.billing.removeProject(project.Team, project)
+            } catch (err) {
+                this._app.log.error(`Problem removing project from subscription: ${err}`)
+                throw new Error('Problem with removing project from subscription')
             }
-
-            this._app.log.info(`Skipped removing project '${project.id}' from subscription - skip billing flag set'`)
-            return
-        }
-
-        try {
-            await this._app.billing.removeProject(project.Team, project)
-        } catch (err) {
-            this._app.log.error(`Problem removing project from subscription: ${err}`)
-            throw new Error('Problem with removing project from subscription')
         }
     }
 }
@@ -227,9 +175,10 @@ module.exports = {
         return value
     },
     startFlows: async (project, options) => {
-        if (this._isBillingEnabled()) {
-            await this._subscriptionHandler.requireTrialProjectOrActiveSubscription(project)
-        }
+        // This will perform all checks needed to ensure this instance
+        // can be started - throws err if not
+        await project.Team.checkInstanceStartAllowed(project)
+
         if (this._driver.startFlows) {
             await this._driver.startFlows(project, options)
         }
@@ -241,9 +190,10 @@ module.exports = {
         }
     },
     restartFlows: async (project, options) => {
-        if (this._isBillingEnabled()) {
-            await this._subscriptionHandler.requireTrialProjectOrActiveSubscription(project)
-        }
+        // This will perform all checks needed to ensure this instance
+        // can be started - throws err if not
+        await project.Team.checkInstanceStartAllowed(project)
+
         if (this._driver.restartFlows) {
             await this._driver.restartFlows(project, options)
         }

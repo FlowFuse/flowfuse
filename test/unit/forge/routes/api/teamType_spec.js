@@ -2,22 +2,19 @@ const { Op } = require('sequelize')
 const should = require('should') // eslint-disable-line
 const setup = require('../setup')
 
-describe('Project Type API', function () {
+describe('Team Type API', function () {
     let instanceCount = 0
-    const generateName = () => 'test-instance-type-' + (instanceCount++)
+    const generateName = () => 'test-team-type-' + (instanceCount++)
 
     let app
-    const TestObjects = {}
+    const TestObjects = { tokens: {} }
     before(async function () {
         app = await setup()
 
         // Alice create in setup()
         TestObjects.alice = await app.db.models.User.byUsername('alice')
-        TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
-        TestObjects.stack1 = await app.db.models.ProjectStack.byId(app.stack.id)
-        TestObjects.tokens = {}
-        TestObjects.projectType1 = app.projectType
         await login('alice', 'aaPassword')
+        TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
         await login('bob', 'bbPassword')
     })
 
@@ -36,18 +33,29 @@ describe('Project Type API', function () {
         await app.close()
     })
 
-    describe('Create Project Type', async function () {
-        // POST /api/v1/project-types
-        // - Must be admin or team owner/member
-        it('Create a simple project type', async function () {
+    describe('Default Team Type', async function () {
+        it('A default team type exists', async function () {
+            const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
+            should.exist(defaultTeamType)
+
+            defaultTeamType.properties.should.have.property('instances')
+            defaultTeamType.properties.should.have.property('users')
+            defaultTeamType.properties.should.have.property('devices')
+            defaultTeamType.properties.should.have.property('features')
+        })
+    })
+    describe('Create Team Type', async function () {
+        // POST /api/v1/team-types
+        // - Must be admin
+        it('Create a team type', async function () {
             const name = generateName()
             const response = await app.inject({
                 method: 'POST',
-                url: '/api/v1/project-types',
+                url: '/api/v1/team-types',
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
                     name,
-                    description: 'another-project-type',
+                    description: 'another-team-type',
                     active: true,
                     order: 2,
                     properties: {
@@ -59,82 +67,19 @@ describe('Project Type API', function () {
             result.should.have.property('id')
             result.should.have.property('name', name)
             result.should.have.property('active', true)
-            result.should.have.property('description', 'another-project-type')
-            result.should.have.property('instanceCount', 0)
-            result.should.have.property('stackCount', 0)
-            result.should.have.property('properties')
-            result.should.have.property('defaultStack', null)
-            result.properties.should.have.property('foo', 'bar')
-        })
-        it('Ensure project type name is unique', async function () {
-            const response = await app.inject({
-                method: 'POST',
-                url: '/api/v1/project-types',
-                cookies: { sid: TestObjects.tokens.alice },
-                payload: {
-                    name: 'projectType1' // projectType1 created in setup
-                }
-            })
-            response.statusCode.should.equal(400)
-            response.json().should.have.property('error')
-        })
-    })
-
-    describe('Update project type', async function () {
-        async function updateProjectType (id, payload, token = TestObjects.tokens.alice) {
-            return app.inject({
-                method: 'PUT',
-                url: `/api/v1/project-types/${id}`,
-                cookies: { sid: token },
-                payload
-            })
-        }
-        async function denyUpdate (id, payload, token, expectedStatus = 400) {
-            const response = await updateProjectType(id, payload, token)
-            response.statusCode.should.equal(expectedStatus)
-            const result = response.json()
-            result.should.have.property('error')
-            return result
-        }
-        async function allowUpdate (id, payload) {
-            const response = await updateProjectType(id, payload)
-            response.statusCode.should.equal(200)
-            return response.json()
-        }
-
-        it('Prevents updates of project-type.property for in-use types', async function () {
-            await denyUpdate(TestObjects.projectType1.hashid, {
-                properties: { foo: 'not-allowed' }
-            })
-        })
-        it('Allows partial update of in-use types', async function () {
-            const result = await allowUpdate(TestObjects.projectType1.hashid, {
-                name: 'project-type-updated-2',
-                description: 'updated',
-                active: false,
-                order: 7
-            })
-            result.should.have.property('name', 'project-type-updated-2')
-            result.should.have.property('description', 'updated')
-            result.should.have.property('active', false)
-            result.should.have.property('order', 7)
+            result.should.have.property('description', 'another-team-type')
             result.should.have.property('properties')
             result.properties.should.have.property('foo', 'bar')
-
-            await allowUpdate(TestObjects.projectType1.hashid, {
-                name: 'projectType1',
-                active: true
-            })
         })
-
-        it('Allows updates of project-type for unused types', async function () {
+        it('Non-admin cannot create a team type', async function () {
+            const name = generateName()
             const response = await app.inject({
                 method: 'POST',
-                url: '/api/v1/project-types',
-                cookies: { sid: TestObjects.tokens.alice },
+                url: '/api/v1/team-types',
+                cookies: { sid: TestObjects.tokens.bob },
                 payload: {
-                    name: 'project-type-2',
-                    description: 'another-project-type',
+                    name,
+                    description: 'another-team-type',
                     active: true,
                     order: 2,
                     properties: {
@@ -142,9 +87,84 @@ describe('Project Type API', function () {
                     }
                 }
             })
+            response.statusCode.should.equal(403)
+        })
+    })
+
+    describe('Update team type', async function () {
+        async function updateTeamType (id, payload, token = TestObjects.tokens.alice) {
+            return app.inject({
+                method: 'PUT',
+                url: `/api/v1/team-types/${id}`,
+                cookies: { sid: token },
+                payload
+            })
+        }
+        async function denyUpdate (id, payload, token, expectedStatus = 400) {
+            const response = await updateTeamType(id, payload, token)
+            response.statusCode.should.equal(expectedStatus)
+            const result = response.json()
+            result.should.have.property('error')
+            return result
+        }
+        async function allowUpdate (id, payload) {
+            const response = await updateTeamType(id, payload)
+            response.statusCode.should.equal(200)
+            return response.json()
+        }
+
+        // TODO: this test (copied from projectTypes_spec) needs updating to
+        // reflect whatever property-protection is needed for the new teamType
+        // model.
+        it.skip('TODO: Prevents updates of team-type.property for in-use types', async function () {
+            await denyUpdate(app.defaultTeamType.hashid, {
+                properties: { foo: 'not-allowed' }
+            })
+        })
+
+        it('Allows partial update of in-use types', async function () {
+            const result = await allowUpdate(app.defaultTeamType.hashid, {
+                name: 'team-type-updated-2',
+                description: 'updated',
+                active: false,
+                order: 7
+            })
+            result.should.have.property('name', 'team-type-updated-2')
+            result.should.have.property('description', 'updated')
+            result.should.have.property('active', false)
+            result.should.have.property('order', 7)
+            result.should.have.property('properties')
+            result.properties.should.have.property('users')
+            result.properties.should.have.property('instances')
+            result.properties.should.have.property('features')
+            result.properties.should.have.property('devices')
+
+            // Reset back to defaults
+            await allowUpdate(app.defaultTeamType.hashid, {
+                name: 'starter',
+                active: true
+            })
+        })
+
+        it('Allows updates of team-type for unused types', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/team-types',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    name: generateName(),
+                    description: 'another-team-type',
+                    active: true,
+                    order: 2,
+                    properties: {
+                        foo: 'bar'
+                    }
+                }
+            })
+            response.statusCode.should.equal(200)
             const unusedProjectType = response.json()
             const result = await allowUpdate(unusedProjectType.id, {
-                name: 'project-type-updated',
+                name: 'team-type-updated',
                 description: 'updated',
                 active: false,
                 order: 7,
@@ -153,7 +173,7 @@ describe('Project Type API', function () {
                     color: 'blue'
                 }
             })
-            result.should.have.property('name', 'project-type-updated')
+            result.should.have.property('name', 'team-type-updated')
             result.should.have.property('description', 'updated')
             result.should.have.property('active', false)
             result.should.have.property('order', 7)
@@ -162,54 +182,31 @@ describe('Project Type API', function () {
             result.properties.should.have.property('color', 'blue')
         })
 
-        it('Prevents non-admin from editing the project-type', async function () {
+        it('Prevents non-admin from editing the team-type', async function () {
             // Bob (non-admin)
-            await denyUpdate(TestObjects.projectType1.hashid, {
+            await denyUpdate(app.defaultTeamType.hashid, {
                 name: 'not-allowed'
             }, TestObjects.tokens.bob, 403)
         })
-
-        it('Prevents duplicate project-type name', async function () {
-            const response = await app.inject({
-                method: 'POST',
-                url: '/api/v1/project-types',
-                cookies: { sid: TestObjects.tokens.alice },
-                payload: {
-                    name: generateName(),
-                    description: 'another-project-type',
-                    active: true,
-                    order: 2,
-                    properties: {
-                        foo: 'bar'
-                    }
-                }
-            })
-            const unusedProjectType = response.json()
-            const errorResponse = await denyUpdate(unusedProjectType.id, {
-                name: 'projectType1'
-            })
-
-            errorResponse.should.have.property('error', 'name must be unique')
-        })
     })
 
-    describe('Delete project-type', async function () {
-        it('Prevents admin from deleting a used project-type', async function () {
+    describe('Delete team-type', async function () {
+        it('Prevents admin from deleting a used team-type', async function () {
             const response = await app.inject({
                 method: 'DELETE',
-                url: `/api/v1/project-types/${TestObjects.projectType1.hashid}`,
+                url: `/api/v1/team-types/${app.defaultTeamType.hashid}`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(400)
         })
-        it('Allows admin to delete an unused project-type', async function () {
+        it('Allows admin to delete an unused team-type', async function () {
             const response = await app.inject({
                 method: 'POST',
-                url: '/api/v1/project-types',
+                url: '/api/v1/team-types',
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
-                    name: 'project-type-2',
-                    description: 'another-project-type',
+                    name: generateName(),
+                    description: 'another-team-type',
                     active: true,
                     order: 2,
                     properties: {
@@ -217,67 +214,69 @@ describe('Project Type API', function () {
                     }
                 }
             })
-            const unusedProjectType = response.json()
+            const unusedTeamType = response.json()
             const deleteResponse = await app.inject({
                 method: 'DELETE',
-                url: `/api/v1/project-types/${unusedProjectType.id}`,
+                url: `/api/v1/team-types/${unusedTeamType.id}`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
             deleteResponse.statusCode.should.equal(200)
         })
     })
 
-    describe('List project-types', async function () {
+    describe('List team types', async function () {
         beforeEach(async function () {
-            await app.db.models.ProjectType.destroy({ where: { id: { [Op.not]: TestObjects.projectType1.id } } })
-            await app.inject({
+            await app.db.models.TeamType.destroy({ where: { id: { [Op.gt]: 1 } } })
+            const r1 = await app.inject({
                 method: 'POST',
-                url: '/api/v1/project-types',
+                url: '/api/v1/team-types',
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
-                    name: 'pt2',
+                    name: 'tt2',
                     active: false,
                     properties: {}
                 }
             })
-            await app.inject({
+            r1.statusCode.should.equal(200)
+            const r2 = await app.inject({
                 method: 'POST',
-                url: '/api/v1/project-types',
+                url: '/api/v1/team-types',
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
-                    name: 'pt3',
+                    name: 'tt3',
                     active: true,
                     properties: {}
                 }
             })
+            r2.statusCode.should.equal(200)
         })
 
-        it('only lists active project-types by default', async function () {
+        it('only lists active team-types by default', async function () {
             const response = await app.inject({
                 method: 'GET',
-                url: '/api/v1/project-types',
+                url: '/api/v1/team-types',
                 cookies: { sid: TestObjects.tokens.bob }
             })
             const result = response.json()
             result.should.have.property('types')
             result.types.should.have.length(2)
-            result.types[0].should.have.property('name', 'projectType1')
-            result.types[1].should.have.property('name', 'pt3')
+            result.types[0].should.have.property('name', 'starter')
+            result.types[1].should.have.property('name', 'tt3')
         })
 
         it('lists all types if requested', async function () {
             const response = await app.inject({
                 method: 'GET',
-                url: '/api/v1/project-types',
+                url: '/api/v1/team-types',
                 query: { filter: 'all' },
                 cookies: { sid: TestObjects.tokens.bob }
             })
             const result = response.json()
             result.should.have.property('types')
             result.types.should.have.length(3)
-            result.types[0].should.have.property('name', 'projectType1')
-            result.types[1].should.have.property('name', 'pt2')
-            result.types[2].should.have.property('name', 'pt3')
+            result.types[0].should.have.property('name', 'starter')
+            result.types[1].should.have.property('name', 'tt2')
+            result.types[2].should.have.property('name', 'tt3')
         })
     })
 })

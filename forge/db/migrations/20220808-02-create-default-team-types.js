@@ -1,9 +1,5 @@
 /**
  * Add default TeamTypes to table and ensure all teams are set to starter type.
- *
- * This migration is also called whenever FlowForge starts in order to insert
- * the default set of TeamTypes. It only applies them if there are no types found
- * in the table.
  */
 
 module.exports = {
