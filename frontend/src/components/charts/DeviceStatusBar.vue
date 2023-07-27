@@ -15,13 +15,15 @@
         </div>
         <div v-if="visible" class="ff-chart-device-status">
             <div
-                v-for="(bucket, b) in buckets" :key="b"
+                v-for="(bucket, b) in buckets"
+                :key="b" v-ff-tooltip:top="bucket.label"
+                class="capitalize"
                 :class="'ff-chart-bar ff-chart-bar--' + b + ' ' + (((filter?.property === property) && (filter?.bucket && filter?.bucket !== b)) ? 'ghost' : '')"
                 :style="{width: 100 * (bucket.devices.length/devices.length) + '%'}"
                 @click="selected(b, bucket.devices)"
             >
                 <div>{{ bucket.devices.length }}</div>
-                <label>{{ bucket.label }}</label>
+                <label class="truncate overflow-ellipsis">{{ bucket.label }}</label>
             </div>
         </div>
     </div>
