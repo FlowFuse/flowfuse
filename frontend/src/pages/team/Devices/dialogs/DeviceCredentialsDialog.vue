@@ -1,20 +1,20 @@
 <template>
-    <ff-dialog ref="dialog" header="Device Credentials">
+    <ff-dialog ref="dialog" header="Device Configuration">
         <template v-slot:default>
             <form class="text-gray-800">
                 <template v-if="!hasCredentials">
                     <p>
-                        Are you sure you want to regenerate credentials for this device?
+                        Are you sure you want to regenerate configuration for this device?
                     </p>
                     <p class="mt-3 mb-6">
-                        The existing credentials will be reset and the device will not
-                        be able to reconnect until it has been given its new credentials.
+                        The existing configuration will be reset and the device will not
+                        be able to reconnect until it has been given its new configuration.
                     </p>
                 </template>
                 <template v-if="hasCredentials">
                     <p>
                         To connect your device to the platform, use the following
-                        credentials. This <code>device.yml</code> file will need to be moved to your device.
+                        configuration. This <code>device.yml</code> file will need to be moved to your device.
                     </p>
                     <p class="mt-3 mb-3">
                         See the
@@ -24,7 +24,7 @@
                         >Connect Your Device</a> documentation for more information.
                     </p>
                     <p class="font-bold mt-3 mb-6">
-                        Make a note of these credentials, as this is the only time you will see them.
+                        Make a note of this configuration, as this is the only time you will see them.
                     </p>
                     <pre class="overflow-auto text-sm p-4 mt-6 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
                 </template>
@@ -33,7 +33,7 @@
         <template v-slot:actions>
             <template v-if="!hasCredentials">
                 <ff-button kind="secondary" @click="close()">Cancel</ff-button>
-                <ff-button kind="danger" class="ml-4" @click="regenerateCredentials()">Regenerate credentials</ff-button>
+                <ff-button kind="danger" class="ml-4" @click="regenerateCredentials()">Regenerate configuration</ff-button>
             </template>
             <template v-else>
                 <ff-button v-if="clipboardSupported" kind="secondary" @click="copy()">Copy to Clipboard</ff-button>
