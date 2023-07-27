@@ -62,6 +62,8 @@ See [Command Line Options](./running.md#device-agent-command-line-options) for m
 Place the **Device Configuration** or **Device Provisioning Configuration** file on the device
 in the [Working Directory](./install.md#working-directory)
 
+By default, the device agent expects the configuration file to be named `device.yml`, if not, you will need to start the device agent with the `-c` [Command Line Option](./running.md#device-agent-command-line-options) and specify the path of the configuration file.
+
 The agent can then be started with the command: [^global-install]
 
 ```bash
