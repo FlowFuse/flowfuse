@@ -146,8 +146,6 @@ To enable rate limiting, you can set the `rate_limits.enabled` option to `true`.
 
 When enabled, all routes will be limited to 1000 requests per 1 minute window. These defaults can be adjusted by setting values in the configuration options listed below.
 
-NOTE: Some routes are prohibited from being rate limited, such as the logout and acl routes.
-
 Option        | Description
 --------------|------------
 `rate_limits.enabled` | Enables rate limiting. Default: `false`
