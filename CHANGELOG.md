@@ -1,3 +1,8 @@
+#### 1.9.4: Release
+
+ - Handle node-red log messages with undefined payloads (backport #2515) (#2525) @app/github-actions
+ - Added Dashboard Only Role (backport #2513) (#2517) @app/github-actions
+ 
 #### 1.9.3: Release
 
  - Treat disabling an already disabled editor tunnel as a no-op (backport #2510) (#2511) @app/github-actions
