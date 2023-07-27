@@ -4,7 +4,7 @@
             <form class="space-y-6 mt-2">
                 <p class="text-sm text-gray-500">
                     To auto provision your devices on the platform, use the following
-                    configuration. Make a note of them as this is the only
+                    configuration. Make a note of it as this is the only
                     time you will see it.
                 </p>
                 <pre class="overflow-auto text-sm p-4 border rounded bg-gray-800 text-gray-200">{{ configuration }}</pre>
