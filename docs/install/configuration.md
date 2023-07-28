@@ -20,7 +20,7 @@ Option | Description
 `base_url` | The url to access the platform. This defaults to `http://localhost:3000` which means a number of internally generated URLs will only work when browsing on the same device as is running the platform. To be able to access the platform remotely, replace `localhost` with the ip address of the device running FlowForge. 
 `domain` | The domain that instance names will be pre-pended to on Docker & Kubernetes platforms to create a hostname to access the instance. A wildcard DNS A record should point be configured to point to the FlowForge entry IP Address.
 `support_contact` | a URL or string with contact details for the administrator e.g `mailto:support@example.com` or `https://support.example.com` . Defaults to the email address of the first admin user or `the administrator` if no email address set.
-`create_admin` | If set to `true` will create a default admin user on first run, the username/password is written to the logs .Default: `false`
+`create_admin` | If set to `true` will create a default admin user on first run, the username/password is written to the logs. Default: `false`
 
 
 NOTE: Changing the `base_url` and `domain` after Node-RED instances have been created is possible, but the original hostname and domain must remain active in order to access the instances and for an them to be able to access the FlowForge resources.
