@@ -53,6 +53,22 @@ describe('User model', function () {
             }
         })
 
+        it('User email, if set, must be canonically unique', async function () {
+            await app.db.models.User.create({ username: 'duplicateEmail', email: 'iamtheoriginal@gmail.fake', password: '12345678' })
+            try {
+                await app.db.models.User.create({ username: 'duplicateEmail2', email: 'i.am.the.original@gmail.fake', password: '12345678' })
+                return Promise.reject(new Error('Created user with duplicate canonical email'))
+            } catch (err) {
+                /SequelizeUniqueConstraintError/.test(err.toString()).should.be.true()
+            }
+            try {
+                await app.db.models.User.create({ username: 'duplicateEmail2', email: 'IAm.THE.Original@gmail.fake', password: '12345678' })
+                return Promise.reject(new Error('Created user with duplicate case-insensitive canonical email'))
+            } catch (err) {
+                /user_email_lower_unique/.test(err.parent.toString()).should.be.true()
+            }
+        })
+
         it('User email, if set, must be valid email', async function () {
             try {
                 await app.db.models.User.create({ username: 'badEmail', email: 'not-n-email', password: '12345678' })

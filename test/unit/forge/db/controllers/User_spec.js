@@ -148,6 +148,33 @@ describe('User controller', function () {
             await alice.reload()
             alice.email.should.eql(originalEmail) // should be unchanged
         })
+        it('fails if Email Address already in use in canonical form', async function () {
+            // first add an account with gmail dot trick email address
+            const newEmailAddress = 'jerry.can@gmail.fake'
+            const jerry = await app.db.models.User.create({
+                username: 'jerry',
+                email: newEmailAddress,
+                password: 'jerryPassword',
+                password_expired: false
+            })
+            const jerryToken = await userController.generatePendingEmailChangeToken(jerry, newEmailAddress)
+            await userController.applyPendingEmailChange(jerry, jerryToken)
+            await jerry.reload()
+            jerry.email.should.equal(newEmailAddress)
+
+            // now try to change alice's email to the same address but in canonical form
+            const alice = await app.db.models.User.byUsername('alice')
+            const originalEmail = alice.email
+            const newEmailAddress2 = 'jerrycan@gmail.fake'
+            const token = await userController.generatePendingEmailChangeToken(alice, newEmailAddress2)
+            try {
+                await userController.applyPendingEmailChange(alice, token)
+            } catch (error) {
+                error.message.should.equal('Invalid link')
+            }
+            await alice.reload()
+            alice.email.should.eql(originalEmail) // should be unchanged
+        })
         it('fails if Users Email Address has changed since token was issued', async function () {
             const alice = await app.db.models.User.byUsername('alice')
             const token = await userController.generatePendingEmailChangeToken(alice, 'alice3@example.com')

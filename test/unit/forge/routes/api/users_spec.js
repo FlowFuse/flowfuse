@@ -171,6 +171,9 @@ describe('Users API', async function () {
         it.skip('Can not create a new user with duplicate email', async function () {
             // TODO: test audit log has 'users.create-user'  { code: 'invalid_email', error: 'email not available' }
         })
+        it.skip('Can not create a new user with duplicate canonical email', async function () {
+            // TODO: 
+        })
         it.skip('Non admin can not create a new user', async function () {
             // TODO: response should be unauthorised
         })
