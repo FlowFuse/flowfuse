@@ -67,7 +67,8 @@ module.exports = async function (app) {
             project: request.device.Project?.id || null,
             snapshot: request.device.targetSnapshot?.hashid || null,
             settings: request.device.settingsHash || null,
-            mode: request.device.mode || null
+            mode: request.device.mode || null,
+            licensed: app.license.active()
         })
     })
 
