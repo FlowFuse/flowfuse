@@ -11,7 +11,7 @@ const app = require('./environments/standard')
         port: PORT
     })
 
-    flowforge.listen(PORT, function (err, address) {
+    flowforge.listen({ port: PORT }, function (err, address) {
         console.info(`OS Environment running at http://localhost:${PORT}`)
         if (err) {
             console.error(err)

@@ -13,7 +13,7 @@
 
 export default {
     name: 'FFSideNavigation',
-    props: ['mobile-menu-open'],
+    props: ['mobileMenuOpen'],
     emits: ['option-selected']
 }
 </script>

@@ -97,6 +97,16 @@ telemetry:
   enabled: true
 
 #################################################
+# Route Rate Limits                             #
+#################################################
+rate_limits:
+  enabled: false
+  # global: true
+  # timeWindow: '1 minute'
+  # max: 1000
+  # maxAnonymous: 10 # optional
+ 
+#################################################
 # Create Default Admin                          #
 #################################################
 # create_admin: false

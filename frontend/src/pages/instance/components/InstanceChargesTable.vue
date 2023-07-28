@@ -34,8 +34,11 @@
                 <div v-else />
             </template>
             <template v-if="subscription?.customer?.balance">
-                <div data-el="credit-balance-row">
+                <div v-if="subscription.customer.balance < 0" data-el="credit-balance-row">
                     Credit Balance
+                </div>
+                <div v-else data-el="credit-balance-row">
+                    Debit Balance
                 </div>
                 <div
                     data-el="credit-balance-amount"
@@ -43,7 +46,6 @@
                 >
                     {{ formatCurrency(subscription?.customer?.balance) }}
                 </div>
-                <div />
             </template>
         </div>
     </div>
@@ -91,9 +93,9 @@ export default {
 
             return {
                 name: this.projectType.name,
-                currency: this.projectType.properties?.billingDescription?.split('/')[0].replace(/[\d.]+/, ''),
-                cost: (Number(this.projectType.properties?.billingDescription?.split('/')[0].replace(/[^\d.]+/, '')) || 0) * 100,
-                interval: this.projectType.properties?.billingDescription?.split('/')[1]
+                currency: this.projectType.currency,
+                cost: this.projectType.cost,
+                interval: this.projectType.priceInterval
             }
         }
     }

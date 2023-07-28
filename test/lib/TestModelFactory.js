@@ -22,8 +22,28 @@ module.exports = class TestModelFactory {
         return invitation
     }
 
+    async createTeamType (teamTypeProperties) {
+        const defaultTypeProperties = {
+            name: 'unnamed-team-type',
+            description: 'team type description',
+            active: true,
+            order: 1,
+            properties: { instances: {}, devices: {}, users: {}, features: {} }
+        }
+        const typeProperties = {
+            ...defaultTypeProperties,
+            ...teamTypeProperties
+        }
+        typeProperties.properties.instances = typeProperties.properties.instances || {}
+        typeProperties.properties.devices = typeProperties.properties.devices || {}
+        typeProperties.properties.users = typeProperties.properties.users || {}
+        typeProperties.properties.features = typeProperties.properties.features || {}
+        const teamType = await this.forge.db.models.TeamType.create(typeProperties)
+        return teamType
+    }
+
     async createTeam (teamDetails) {
-        const defaultTeamType = await this.forge.db.models.TeamType.findOne()
+        const defaultTeamType = await this.forge.db.models.TeamType.findOne({ where: { name: 'starter' } })
         const defaultTeamDetails = {
             name: 'unnamed-team',
             TeamTypeId: defaultTeamType.id
@@ -33,7 +53,7 @@ module.exports = class TestModelFactory {
             ...teamDetails
         })
 
-        // force the DB to populate the TeamType- otherwise it just contains hte type id and falls
+        // force the DB to populate the TeamType- otherwise it just contains the type id and falls
         team.reload({
             include: ['TeamType']
         })

@@ -25,27 +25,13 @@
                 to join an existing team.
             </template>
         </FormRow>
-
-        <template v-if="features.billing">
-            <FormRow v-if="input['user:team:auto-create']" v-model="input['user:team:trial-mode']" type="checkbox" containerClass="max-w-sm ml-9">
-                Enable trial mode for personal teams
-                <template #description>
-                    This allows the user to access their personal team without setting
-                    up billing first. Whilst in trial mode, the features are limited.
-                </template>
-            </FormRow>
-            <FormRow v-if="input['user:team:trial-mode']" v-model="input['user:team:trial-mode:duration']" type="input" containerClass="max-w-sm ml-16">
-                Duration, in days, for the trial
-            </FormRow>
-            <FormRow v-if="input['user:team:trial-mode']" v-model="input['user:team:trial-mode:projectType']" :options="instanceTypes" containerClass="max-w-sm ml-16">
-                Trial InstanceType
-                <template #description>
-                    Users will only be able to create one of them before being prompted to setup
-                    billing to create anything else.
-                </template>
-            </FormRow>
-        </template>
-
+        <FormRow v-if="input['user:team:auto-create']" v-model="input['user:team:auto-create:teamType']" :options="teamTypes" containerClass="max-w-sm ml-9">
+            Personal Team Type
+            <template #description>
+                The type of team to create for a user when they register.
+                <template v-if="features.billing">Trial mode is configured within the individual TeamTypes.</template>
+            </template>
+        </FormRow>
         <FormRow v-model="input['user:reset-password']" type="checkbox" :error="errors.requiresEmail" :disabled="errors.requiresEmail">
             Allow users to reset their password on the login screen
             <template #description>
@@ -160,6 +146,7 @@ import { mapState } from 'vuex'
 import adminApi from '../../../api/admin.js'
 import instanceTypesApi from '../../../api/instanceTypes.js'
 import settingsApi from '../../../api/settings.js'
+import teamTypesApi from '../../../api/teamTypes.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import Alerts from '../../../services/alerts.js'
@@ -169,15 +156,13 @@ const validSettings = [
     'user:signup',
     'user:reset-password',
     'user:team:auto-create',
+    'user:team:auto-create:teamType',
     'user:tcs-required',
     'user:tcs-url',
     'user:tcs-date',
     'team:create',
     'team:user:invite:external',
     'telemetry:enabled',
-    'user:team:trial-mode',
-    'user:team:trial-mode:duration',
-    'user:team:trial-mode:projectType',
     'branding:account:signUpTopBanner',
     'branding:account:signUpLeftBanner',
     'platform:stats:token'
@@ -197,6 +182,7 @@ export default {
                 termsAndConditions: null
             },
             instanceTypes: [],
+            teamTypes: [],
             platformStatsTokenGenerating: false
         }
     },
@@ -245,6 +231,15 @@ export default {
                 label: pt.name
             }
         })
+        const teamTypes = await teamTypesApi.getTeamTypes()
+        this.teamTypes = teamTypes.types.map(tt => {
+            return {
+                order: tt.order,
+                value: tt.id,
+                label: tt.name
+            }
+        })
+        this.teamTypes.sort((A, B) => { return A.order - B.order })
 
         this.platformStatsTokenEnabled = this.input['platform:stats:token']
         if (!this.platformStatsTokenEnabled) {

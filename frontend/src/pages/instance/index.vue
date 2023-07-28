@@ -234,27 +234,24 @@ export default {
         async startInstance () {
             this.instanceStateMutator.setStateOptimistically('starting')
 
-            const err = await InstanceApi.startInstance(this.instance)
-            if (err) {
+            try {
+                await InstanceApi.startInstance(this.instance)
+                this.instanceStateMutator.setStateAsPendingFromServer()
+            } catch (err) {
                 console.warn('Instance start failed.', err)
                 alerts.emit('Instance start failed.', 'warning')
-
                 this.instanceStateMutator.restoreState()
-            } else {
-                this.instanceStateMutator.setStateAsPendingFromServer()
             }
         },
         async restartInstance () {
             this.instanceStateMutator.setStateOptimistically('restarting')
-
-            const err = await InstanceApi.restartInstance(this.instance)
-            if (err) {
+            try {
+                await InstanceApi.restartInstance(this.instance)
+                this.instanceStateMutator.setStateAsPendingFromServer()
+            } catch (err) {
                 console.warn('Instance restart failed.', err)
                 alerts.emit('Instance restart failed.', 'warning')
-
                 this.instanceStateMutator.restoreState()
-            } else {
-                this.instanceStateMutator.setStateAsPendingFromServer()
             }
         },
         showConfirmDeleteDialog () {

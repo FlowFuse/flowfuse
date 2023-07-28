@@ -1,11 +1,10 @@
 const { Op } = require('sequelize')
 
-const { KEY_BILLING_STATE } = require('../../../db/models/ProjectSettings')
-
 const ONE_DAY = 86400000
 
 module.exports.init = function (app) {
     async function trialTask (app) {
+        app.log.info('Running trial task')
         // Find teams that have expired since we last ran (trialEndsAt != null && < now)
         const expiredSubscriptions = await app.db.models.Subscription.findAll({
             where: { trialEndsAt: { [Op.lt]: Date.now() } },
@@ -14,20 +13,14 @@ module.exports.init = function (app) {
 
         for (const subscription of expiredSubscriptions) {
             if (subscription.isActive()) {
-                // The subscription has been setup on Stripe.
-                // Add all trial projects to billing.
-                const trialProjects = await addTrialProjectsToBilling(subscription.Team)
-                let trialProjectName
-                if (trialProjects.length > 0) {
-                    trialProjectName = trialProjects[0].name
-                }
-                await sendTrialEmail(subscription.Team, 'TrialTeamEnded', {
-                    trialProjectName
-                })
+                app.log.info(`Team ${subscription.Team.hashid} ending trial - billing setup`)
                 // Ensure device count is updated (if device billing enabled)
                 await subscription.Team.reload({ include: [app.db.models.TeamType] })
-                await app.billing.updateTeamDeviceCount(subscription.Team)
+                // The subscription has been setup on Stripe.
+                await app.billing.endTeamTrial(subscription.Team)
+                await sendTrialEmail(subscription.Team, 'TrialTeamEnded')
             } else {
+                app.log.info(`Team ${subscription.Team.hashid} ending trial - suspending instances`)
                 // Stripe not configured - suspend the lot
                 await suspendAllProjects(subscription.Team)
                 await sendTrialEmail(subscription.Team, 'TrialTeamSuspended', {
@@ -96,41 +89,19 @@ module.exports.init = function (app) {
         }
     }
 
-    async function addTrialProjectsToBilling (team) {
-        // Find all trial projects in the team... there should only be one
-        const trialProjects = await app.db.models.ProjectSettings.findAll({
-            where: {
-                key: KEY_BILLING_STATE,
-                value: app.db.models.ProjectSettings.BILLING_STATES.TRIAL
-            },
-            include: {
-                model: app.db.models.Project,
-                where: {
-                    TeamId: team.id
-                }
-            }
-        })
-        for (const project of trialProjects) {
-            if (project.Project.state !== 'suspended') {
-                await app.billing.addProject(team, project.Project)
-            } else {
-                await app.billing.setProjectBillingState(project.Project, app.db.models.ProjectSettings.BILLING_STATES.NOT_BILLED)
-            }
-        }
-        return trialProjects
-    }
-
     async function suspendAllProjects (team) {
         const projects = await team.getProjects()
         for (const project of projects) {
             if (project.state !== 'suspended') {
+                if (!project.Team) {
+                    project.Team = team
+                }
                 // There is some DRY code here with projectActions.js suspend logic.
                 // TODO: consider move to controllers.Project
                 try {
                     app.db.controllers.Project.setInflightState(project, 'suspending')
                     await app.containers.stop(project)
                     app.db.controllers.Project.clearInflightState(project)
-                    await app.billing.setProjectBillingState(project, app.db.models.ProjectSettings.BILLING_STATES.NOT_BILLED)
                     await app.auditLog.Project.project.suspended(null, null, project)
                 } catch (err) {
                     app.db.controllers.Project.clearInflightState(project)

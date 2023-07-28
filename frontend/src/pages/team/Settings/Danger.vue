@@ -5,7 +5,7 @@
             <div class="max-w-sm pr-2">{{deleteDescription}}</div>
             <div class="mt-2">
                 <ff-button kind="danger" data-action="delete-team" :disabled="!deleteActive" @click="showConfirmDeleteDialog()">Delete Team</ff-button>
-                <ConfirmTeamDeleteDialog @deleteTeam="deleteTeam" ref="confirmTeamDeleteDialog"/>
+                <ConfirmTeamDeleteDialog @delete-team="deleteTeam" ref="confirmTeamDeleteDialog"/>
             </div>
         </div>
     </div>

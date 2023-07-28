@@ -1,17 +1,10 @@
-const crypto = require('crypto')
-
 const should = require('should') // eslint-disable-line no-unused-vars
 
+const { addFlowsToProject } = require('../../../../lib/Snapshots')
 const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
-
-function encryptCredentials (key, plain) {
-    const initVector = crypto.randomBytes(16)
-    const cipher = crypto.createCipheriv('aes-256-ctr', key, initVector)
-    return { $: initVector.toString('hex') + cipher.update(JSON.stringify(plain), 'utf8', 'base64') + cipher.final('base64') }
-}
 
 describe('Project Snapshots API', function () {
     let app
@@ -66,49 +59,6 @@ describe('Project Snapshots API', function () {
         await app.close()
     })
 
-    // This is copy/paste from project_spec.js - consider moving out to utils
-    async function addFlowsToProject (id, token, flows, creds, key, settings) {
-        const flowsAddResponse = await app.inject({
-            method: 'POST',
-            url: `/storage/${id}/flows`,
-            payload: flows,
-            headers: {
-                authorization: `Bearer ${token}`
-            }
-        })
-        const hashKey = crypto.createHash('sha256').update(key).digest()
-        const credentialsCreateResponse = await app.inject({
-            method: 'POST',
-            url: `/storage/${id}/credentials`,
-            payload: encryptCredentials(hashKey, creds),
-            headers: {
-                authorization: `Bearer ${token}`
-            }
-        })
-        const storageSettingsResponse = await app.inject({
-            method: 'POST',
-            url: `/storage/${id}/settings`,
-            payload: { _credentialSecret: key },
-            headers: {
-                authorization: `Bearer ${token}`
-            }
-        })
-        const updateProjectSettingsResponse = await app.inject({
-            method: 'PUT',
-            url: `/api/v1/projects/${id}`,
-            payload: {
-                settings
-            },
-            cookies: { sid: TestObjects.tokens.alice }
-        })
-        return {
-            flowsAddResponse,
-            credentialsCreateResponse,
-            storageSettingsResponse,
-            updateProjectSettingsResponse
-        }
-    }
-
     async function createSnapshot (projectId, name, token) {
         return await app.inject({
             method: 'POST',
@@ -162,8 +112,10 @@ describe('Project Snapshots API', function () {
         })
 
         it('Create a project snapshot - capture real state', async function () {
-            await addFlowsToProject(TestObjects.project1.id,
+            await addFlowsToProject(app,
+                TestObjects.project1.id,
                 TestObjects.tokens.project,
+                TestObjects.tokens.alice,
                 [{ id: 'node1' }],
                 { testCreds: 'abc' },
                 'key1',
@@ -203,8 +155,10 @@ describe('Project Snapshots API', function () {
         })
 
         it('Create a project snapshot - externally provided flows/creds/modules real state', async function () {
-            await addFlowsToProject(TestObjects.project1.id,
+            await addFlowsToProject(app,
+                TestObjects.project1.id,
                 TestObjects.tokens.project,
+                TestObjects.tokens.alice,
                 [{ id: 'node1' }],
                 { testCreds: 'abc' },
                 'key1',
@@ -262,8 +216,10 @@ describe('Project Snapshots API', function () {
     describe('Rollback a snapshot', function () {
         it('Rolls back to a different snapshot', async function () {
             // Setup an initial configuration
-            const setupResult = await addFlowsToProject(TestObjects.project1.id,
+            const setupResult = await addFlowsToProject(app,
+                TestObjects.project1.id,
                 TestObjects.tokens.project,
+                TestObjects.tokens.alice,
                 [{ id: 'node1' }],
                 { testCreds: 'abc' },
                 'key1',
@@ -293,8 +249,10 @@ describe('Project Snapshots API', function () {
             const snapshot1 = response.json()
 
             // Change lots of things
-            const changeResult = await addFlowsToProject(TestObjects.project1.id,
+            const changeResult = await addFlowsToProject(app,
+                TestObjects.project1.id,
                 TestObjects.tokens.project,
+                TestObjects.tokens.alice,
                 [{ id: 'node2' }],
                 { testCreds: 'def' },
                 'key1',

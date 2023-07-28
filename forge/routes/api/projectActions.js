@@ -35,11 +35,13 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         try {
             if (request.project.state === 'suspended') {
-                if (app.license.active() && app.billing) {
-                    if (!await app.billing.isProjectStartAllowed(request.project.Team, request.project)) {
-                        reply.code(402).send({ code: 'billing_required', error: 'Team billing not configured' })
-                        return
-                    }
+                try {
+                    // This will perform all checks needed to ensure this instance
+                    // can be unsuspended
+                    await request.project.Team.checkInstanceStartAllowed(request.project)
+                } catch (err) {
+                    reply.code(err.statusCode || 400).send({ code: err.code || 'unexpected_error', error: err.error || err.message })
+                    return
                 }
 
                 // Restart the container

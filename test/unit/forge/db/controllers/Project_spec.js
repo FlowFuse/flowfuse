@@ -1,6 +1,7 @@
 const crypto = require('crypto')
 
 const should = require('should') // eslint-disable-line
+const { encryptCreds, decryptCreds } = require('../../../../lib/credentials')
 const setup = require('../setup')
 // const FF_UTIL = require('flowforge-test-utils')
 // const { Roles } = FF_UTIL.require('forge/lib/roles')
@@ -363,21 +364,6 @@ describe('Project controller', function () {
     })
 
     describe('exportCredentials', function () {
-        function decryptCreds (key, cipher) {
-            let flows = cipher.$
-            const initVector = Buffer.from(flows.substring(0, 32), 'hex')
-            flows = flows.substring(32)
-            const decipher = crypto.createDecipheriv('aes-256-ctr', key, initVector)
-            const decrypted = decipher.update(flows, 'base64', 'utf8') + decipher.final('utf8')
-            return JSON.parse(decrypted)
-        }
-
-        function encryptCreds (key, plain) {
-            const initVector = crypto.randomBytes(16)
-            const cipher = crypto.createCipheriv('aes-256-ctr', key, initVector)
-            return { $: initVector.toString('hex') + cipher.update(JSON.stringify(plain), 'utf8', 'base64') + cipher.final('base64') }
-        }
-
         it('re-encrypts credentials from old to new key', function () {
             const oldKey = 'oldkey'
             const oldHash = crypto.createHash('sha256').update(oldKey).digest()
@@ -447,5 +433,50 @@ describe('Project controller', function () {
                 { id: '2', type: 'tab', label: 'Sheet 2', disabled: false, info: '' }
             ])
         })
+    })
+
+    it('merges env vars with priority to the source if the flag is set', async function () {
+        const instance = await app.db.models.Project.create({
+            name: 'new-project',
+            type: '',
+            url: ''
+        })
+
+        await instance.updateSettings({
+            settings: {
+                // as array
+                env: [
+                    { name: 'REMOVED_KEY', value: 'old-value-1' }, // should not get changed
+                    { name: 'EXISTING_KEY', value: 'old-value-2' } // should not get changed
+                ]
+            }
+        })
+
+        const snapshot = {
+            flows: { flows: [] },
+            settings: {
+                // as object is convered to array when saved to DB
+                env: {
+                    EXISTING_KEY: 'new-value-2', // should do nothing
+                    NEW_KEY: 'new-value-3' // should be added
+                }
+            }
+        }
+
+        await app.db.controllers.Project.importProjectSnapshot(instance, snapshot, { mergeEnvVars: true })
+
+        const instanceSettings = await instance.getSetting('settings')
+
+        instanceSettings.env.length.should.equal(3)
+        instanceSettings.env.map((envVar) => envVar.name).should.match(['REMOVED_KEY', 'EXISTING_KEY', 'NEW_KEY'])
+
+        instanceSettings.env[0].name.should.equal('REMOVED_KEY')
+        instanceSettings.env[0].value.should.equal('old-value-1')
+
+        instanceSettings.env[1].name.should.equal('EXISTING_KEY')
+        instanceSettings.env[1].value.should.equal('old-value-2')
+
+        instanceSettings.env[2].name.should.equal('NEW_KEY')
+        instanceSettings.env[2].value.should.equal('new-value-3')
     })
 })

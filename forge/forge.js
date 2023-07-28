@@ -58,10 +58,10 @@ module.exports = async (options = {}) => {
                     return {
                         statusCode: reply.statusCode,
                         request: {
-                            url: reply.request.raw.url,
-                            method: reply.request.method,
-                            remoteAddress: reply.request.socket.remoteAddress,
-                            remotePort: reply.request.socket.remotePort
+                            url: reply.request?.raw?.url,
+                            method: reply.request?.method,
+                            remoteAddress: reply.request?.ip,
+                            remotePort: reply.request?.socket.remotePort
                         }
                     }
                 }
@@ -79,6 +79,19 @@ module.exports = async (options = {}) => {
         if (server.config.logging?.level) {
             server.log.level = server.config.logging.level
         }
+
+        // Test Only. Permit access to app.routes - for evaluating routes in tests
+        if (options.config?.test?.fastifyRoutes) {
+            // since @fastify/routes is a dev dependency, we only load it when requested in test
+            server.register(require('@fastify/routes')) // eslint-disable-line n/no-unpublished-require
+        }
+
+        // Rate Limits: rate limiting for the server end points
+        if (server.config.rate_limits?.enabled) {
+            // for rate_limits, see [routes/rateLimits.js].getLimits()
+            await server.register(require('@fastify/rate-limit'), server.config.rate_limits)
+        }
+
         // DB : the database connection/models/views/controllers
         await server.register(db)
         // Settings
@@ -130,6 +143,9 @@ module.exports = async (options = {}) => {
 
         // NOTE: This is only likely to do anything after a db upgrade where the settingsHashes are cleared.
         server.db.models.Device.recalculateSettingsHashes(false) // update device.settingsHash if null
+
+        // Ensure The defaultTeamType is in place
+        await server.db.controllers.TeamType.ensureDefaultTypeExists()
 
         return server
     } catch (err) {

@@ -30,7 +30,8 @@ const exceptions = [
     'github.com/flowforge/CloudProject',
     'github.com/flowforge/content',
     'github.com/flowforge/security',
-    'github.com/orgs/flowforge/projects'
+    'github.com/orgs/flowforge/projects',
+    '/support'
 ]
 
 const parseUri = function (uri) {
@@ -210,7 +211,7 @@ async function runReport (dir) {
     console.info(`${GREEN}  VALID:` + `${linkCount - errorCount}`.padStart(20))
     console.info(`${RED} ERRORS:` + `${errorCount}`.padStart(20))
 
-    if (errorCount > 1) {
+    if (errorCount > 0) {
         // ensure process fails for reporting in GH Action
         process.exitCode = 1
     }

@@ -13,7 +13,12 @@
                 </div>
                 <label class="ff-error-inline" data-el="errors-general">{{ errors.general }}</label>
                 <div class="ff-actions">
-                    <ff-button @click="login()" data-action="login">Login</ff-button>
+                    <ff-button @click="login()" data-action="login" :disabled="loggingIn || tooManyRequests">
+                        <span>Login</span>
+                        <span class="w-4">
+                            <SpinnerIcon v-if="loggingIn || tooManyRequests" class="ff-icon ml-3 !w-3.5" />
+                        </span>
+                    </ff-button>
                     <ff-button v-if="settings['user:signup']" kind="tertiary" to="/account/create" data-action="sign-up">Sign Up</ff-button>
                     <ff-button v-if="passwordRequired && settings['user:reset-password']" kind="tertiary" :to="{'name': 'ForgotPassword'}" data-action="forgot-password">Forgot your password?</ff-button>
                 </div>
@@ -31,6 +36,7 @@
 import { mapState } from 'vuex'
 
 import Logo from '../components/Logo.vue'
+import SpinnerIcon from '../components/icons/Spinner.js'
 
 import FFLayoutBox from '../layouts/Box.vue'
 
@@ -40,6 +46,7 @@ export default {
         return {
             loggingIn: false,
             passwordRequired: false,
+            tooManyRequests: false,
             input: {
                 username: '',
                 password: ''
@@ -117,6 +124,15 @@ export default {
                 await this.$nextTick()
                 this.focusUsername()
                 this.errors.general = 'Login failed'
+            } else if (newError.statusCode === 429) {
+                this.loggingIn = false
+                await this.$nextTick()
+                this.focusUsername()
+                this.errors.general = 'Too many login attempts. Try again later.'
+                this.tooManyRequests = true
+                setTimeout(() => {
+                    this.tooManyRequests = false
+                }, 10000)
             } else {
                 this.loggingIn = false
                 await this.$nextTick()
@@ -127,6 +143,7 @@ export default {
     },
     components: {
         Logo,
+        SpinnerIcon,
         'ff-layout-box': FFLayoutBox
     }
 }

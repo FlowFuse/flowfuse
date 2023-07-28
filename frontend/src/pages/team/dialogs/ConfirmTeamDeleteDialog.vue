@@ -42,7 +42,7 @@ export default {
     },
     methods: {
         confirm () {
-            this.$emit('deleteTeam')
+            this.$emit('delete-team')
             alerts.emit('Team successfully deleted', 'confirmation')
         }
     },

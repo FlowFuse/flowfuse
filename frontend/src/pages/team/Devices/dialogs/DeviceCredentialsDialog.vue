@@ -1,30 +1,39 @@
 <template>
-    <ff-dialog ref="dialog" header="Device Credentials">
+    <ff-dialog ref="dialog" header="Device Configuration">
         <template v-slot:default>
-            <form class="space-y-6 mt-2">
+            <form class="text-gray-800">
                 <template v-if="!hasCredentials">
-                    <p class="text-sm text-gray-500">
-                        Are you sure you want to regenerate credentials for this device?
+                    <p>
+                        Are you sure you want to regenerate configuration for this device?
                     </p>
-                    <p class="text-sm text-gray-500">
-                        The existing credentials will be reset and the device will not
-                        be able to reconnect until it has been given its new credentials.
+                    <p class="mt-3 mb-6">
+                        The existing configuration will be reset and the device will not
+                        be able to reconnect until it has been given its new configuration.
                     </p>
                 </template>
                 <template v-if="hasCredentials">
-                    <p class="text-sm text-gray-500">
+                    <p>
                         To connect your device to the platform, use the following
-                        credentials. Make a note of them as this is the only
-                        time you will see them.
+                        configuration. This will need to be placed on your device.
                     </p>
-                    <pre class="overflow-auto text-sm p-4 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
+                    <p class="mt-3 mb-3">
+                        See the
+                        <a
+                            href="https://flowforge.com/docs/device-agent/register/#connect-the-device" target="_blank"
+                            rel="noreferrer"
+                        >Connect Your Device</a> documentation for more information.
+                    </p>
+                    <p class="font-bold mt-3 mb-6">
+                        Make a note of this configuration, as this is the only time you will see it.
+                    </p>
+                    <pre class="overflow-auto text-sm p-4 mt-6 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
                 </template>
             </form>
         </template>
         <template v-slot:actions>
             <template v-if="!hasCredentials">
                 <ff-button kind="secondary" @click="close()">Cancel</ff-button>
-                <ff-button kind="danger" class="ml-4" @click="regenerateCredentials()">Regenerate credentials</ff-button>
+                <ff-button kind="danger" class="ml-4" @click="regenerateCredentials()">Regenerate configuration</ff-button>
             </template>
             <template v-else>
                 <ff-button v-if="clipboardSupported" kind="secondary" @click="copy()">Copy to Clipboard</ff-button>
