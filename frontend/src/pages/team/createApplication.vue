@@ -120,9 +120,11 @@ export default {
             }
 
             try {
-                await this.createProject(projectFields, copyParts)
+                const instance = await this.createProject(projectFields, copyParts)
 
                 await this.$store.dispatch('account/refreshTeam')
+
+                this.$router.push({ name: 'Instance', params: { id: instance.id } })
             } catch (err) {
                 this.projectDetails = projectFields
                 if (err.response?.status === 409) {
@@ -135,10 +137,7 @@ export default {
                 }
 
                 this.loading = false
-                return
             }
-
-            this.$router.push({ name: 'Application', params: { id: this.application.id } })
         },
         createApplication (applicationDetails) {
             const createPayload = { ...applicationDetails, teamId: this.team.id }

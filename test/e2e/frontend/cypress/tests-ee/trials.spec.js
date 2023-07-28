@@ -12,7 +12,7 @@ describe('FlowForge - Trial Users', () => {
         cy.get('[data-el="empty-state"] [data-action="create-application"]').click()
     })
 
-    it('are redirected to their (first) newly created application', () => {
+    it('are redirected to their (first) newly created instance', () => {
         const APPLICATION_NAME = `new-application-${Math.random().toString(36).substring(2, 7)}`
         const INSTANCE_NAME = `new-instance-${Math.random().toString(36).substring(2, 7)}`
 
@@ -37,7 +37,7 @@ describe('FlowForge - Trial Users', () => {
 
         cy.get('[data-action="create-project"]').should('not.be.disabled').click()
 
-        cy.url().should('include', '/instances')
+        cy.url().should('include', '/instance/')
     })
 
     it('cannot create a second instance', () => {

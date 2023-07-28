@@ -55,6 +55,8 @@ describe('FlowForge - Applications', () => {
 
                 cy.contains(APPLICATION_NAME)
                 cy.contains(INSTANCE_NAME)
+
+                cy.url().should('include', '/instance/')
             })
         })
 
