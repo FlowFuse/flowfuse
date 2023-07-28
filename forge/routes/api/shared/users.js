@@ -1,3 +1,4 @@
+const { getCanonicalEmail } = require('../../../db/utils.js')
 const { isEmail } = require('../../../lib/validate')
 
 module.exports = {
@@ -95,6 +96,28 @@ module.exports = {
                 } else {
                     user.email = request.body.email
                 }
+                // check canonical emails for duplicates before attempting to update
+                // NOTE: the model will also assert the canonical email is unique upon save
+                // but we want to check it here so we can return a more specific error
+
+                // TODO: Consider what happens if the user changes their email address
+                // and this user already has a duplicate canonical email (i.e. the field 
+                // is null as per the db upgrade spec)
+                // We cannot just assume because the field is null that this user is permitted to
+                // have a duplicate canonical email :thinking:
+
+                const canonicalEmail = getCanonicalEmail(request.body.email)
+                const existingUserWithCanonicalEmail = await app.db.models.User.findOne({
+                    where: {
+                        canonicalEmail
+                    }
+                })
+                if (existingUserWithCanonicalEmail) {
+                    const err = new Error('Email address already in use')
+                    err.code = 'invalid_email'
+                    throw err
+                }
+                user.canonicalEmail = canonicalEmail
             }
             if (request.body.username) {
                 user.username = request.body.username

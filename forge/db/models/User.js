@@ -4,7 +4,7 @@
  */
 const { DataTypes, Op, fn, col, where } = require('sequelize')
 
-const { hash, generateUserAvatar, buildPaginationSearchClause } = require('../utils')
+const { hash, generateUserAvatar, buildPaginationSearchClause, getCanonicalEmail } = require('../utils')
 
 module.exports = {
     name: 'User',
@@ -40,6 +40,12 @@ module.exports = {
         suspended: {
             type: DataTypes.BOOLEAN,
             defaultValue: false
+        },
+        canonicalEmail: {
+            type: DataTypes.STRING,
+            defaultValue: null,
+            allowNull: true,
+            unique: true
         }
     },
     indexes: [
@@ -66,6 +72,8 @@ module.exports = {
                 if (!user.name) {
                     user.name = user.username
                 }
+                // sync the canonical email
+                user.canonicalEmail = getCanonicalEmail(user.email)
             },
             afterCreate: async (user, options) => {
                 const { users } = await app.license.usage('users')
@@ -83,6 +91,13 @@ module.exports = {
                 if (user.avatar.startsWith(`${process.env.FLOWFORGE_BASE_URL}/avatar/`)) {
                     user.avatar = generateUserAvatar(user.name || user.username)
                 }
+                // sync the canonical email
+                // TODO: Consider what happens if the user changes their email address
+                // and this user already has a duplicate canonical email (i.e. the field 
+                // is null as per the db upgrade spec)
+                // We cannot just assume because the field is null that this user is permitted to
+                // have a duplicate canonical email :thinking:
+                user.canonicalEmail = getCanonicalEmail(user.email)
             },
             beforeDestroy: async (user, opts) => {
                 // determine if this user is an admin whether they are the only admin
