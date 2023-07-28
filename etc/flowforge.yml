@@ -105,3 +105,8 @@ rate_limits:
   # timeWindow: '1 minute'
   # max: 1000
   # maxAnonymous: 10 # optional
+ 
+#################################################
+# Create Default Admin                          #
+#################################################
+# create_admin: false
