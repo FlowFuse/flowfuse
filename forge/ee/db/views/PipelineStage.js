@@ -41,7 +41,7 @@ module.exports = function (app) {
         }
     })
 
-    async function stageList (app, stages) {
+    async function stageList (stages) {
         // Must ensure the stages are listed in the correct order
         const stagesById = {}
         const backReferences = {}
@@ -64,7 +64,7 @@ module.exports = function (app) {
             orderedStages.unshift(pointer)
             pointer = stagesById[backReferences[pointer.id]]
         }
-        return await Promise.all(orderedStages.map(app.db.views.PipelineStage.stage))
+        return await Promise.all(orderedStages.map(stage))
     }
 
     return {
