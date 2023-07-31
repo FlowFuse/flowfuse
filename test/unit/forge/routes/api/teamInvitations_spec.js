@@ -232,6 +232,25 @@ describe('Team Invitations API', function () {
                 app.config.email.transport.getMessageQueue()[0].should.have.property('to', 'alice@jediknights.fake')
                 app.config.email.transport.getMessageQueue()[1].should.have.property('to', 'bobsolo@gmail.co.fake')
             })
+
+            it('deduplicate user invites', async () => {
+                // invite 5 users, 3 of them are duplicates
+                // ensure only 2 emails are sent
+                app.settings.set('team:user:invite:external', true)
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/invitations`,
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: {
+                        user: 'elivs, elvis, Elvis, ELVIS, fred, fred, Fred, FRED'
+                    }
+                })
+                const result = response.json()
+                result.should.have.property('status', 'okay')
+                app.config.email.transport.getMessageQueue().should.have.lengthOf(2)
+                app.config.email.transport.getMessageQueue()[0].should.have.property('to', 'alice@jediknights.fake')
+                app.config.email.transport.getMessageQueue()[1].should.have.property('to', 'bobsolo@gmail.co.fake')
+            })
         })
     })
 
