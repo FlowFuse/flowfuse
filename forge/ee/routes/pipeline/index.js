@@ -224,7 +224,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.pipeline
      */
     app.get('/pipelines/:pipelineId/stages/:stageId', {
-        preHandler: app.needsPermission('pipeline:view')
+        preHandler: app.needsPermission('pipeline:read')
     }, async (request, reply) => {
         const stage = await app.db.models.PipelineStage.byId(request.params.stageId)
         if (!stage) {
