@@ -10,6 +10,7 @@
  * @memberof forge.routes.api
  */
 
+const { getCanonicalEmail } = require('../../db/utils')
 const { TeamRoles, Roles } = require('../../lib/roles')
 
 module.exports = async function (app) {
@@ -89,8 +90,29 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const userDetails = request.body.user.split(',').map(u => u.trim()).filter(Boolean)
-        if (userDetails.length > 5) {
-            reply.code(429).send({ code: 'too_many_invites', error: 'maximum 5 invites at a time' })
+        if (userDetails.length === 0) {
+            const result = {
+                status: 'error',
+                code: 'invitation_failed',
+                error: 'no users specified'
+            }
+            reply.code(400).send(result)
+            await app.auditLog.Team.team.user.invited(request.session.User, result, request.team, null, request.body.role || Roles.Member)
+            return
+        }
+
+        // remove any duplicates from the list including gmail dot trick aliases
+        const userDetailsDeduplicated = userDetails.filter((email, index, self) => self.indexOf(getCanonicalEmail(email)) === index)
+
+        // limit to 5 invites at a time
+        if (userDetailsDeduplicated.length > 5) {
+            const result = {
+                status: 'error',
+                code: 'too_many_invites',
+                error: 'maximum 5 invites at a time'
+            }
+            reply.code(429).send(result)
+            await app.auditLog.Team.team.user.invited(request.session.User, result, request.team, null, request.body.role || Roles.Member)
             return
         }
         const role = request.body.role || Roles.Member
@@ -100,7 +122,7 @@ module.exports = async function (app) {
         }
         let invites = []
         try {
-            invites = await app.db.controllers.Invitation.createInvitations(request.session.User, request.team, userDetails, role)
+            invites = await app.db.controllers.Invitation.createInvitations(request.session.User, request.team, userDetailsDeduplicated, role)
         } catch (err) {
             reply.code(400).send({ code: 'invitation_failed', error: err.message })
             return
