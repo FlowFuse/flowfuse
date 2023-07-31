@@ -433,7 +433,7 @@ module.exports = async function (app) {
      * Set snapshot as target (and restart etc as needed)
      */
     app.put('/pipelines/:pipelineId/stages/:stageId/deploy', {
-        preHandler: app.needsPermission('application:pipelines:update')
+        preHandler: app.needsPermission('pipeline:edit')
     }, async (request, reply) => {
         const user = request.session.User
 
