@@ -14,18 +14,7 @@
                 </FormRow>
                 <template v-if="features.billing">
                     <FormHeading>Billing</FormHeading>
-                    <FormRow v-model="input.properties.billingProductId" :type="editDisabled?'uneditable':''">
-                        Stripe Product Id
-                    </FormRow>
-                    <FormRow v-model="input.properties.billingPriceId" :type="editDisabled?'uneditable':''">
-                        Stripe Price Id
-                    </FormRow>
-                    <FormRow v-model="input.properties.billingDescription" :type="editDisabled?'uneditable':''">
-                        Pricing description
-                        <template #description>
-                            How should the pricing be displayed to the user? eg '$10/month'
-                        </template>
-                    </FormRow>
+                    <p>Billing configuration for the Instance Types must be set within the Team Type configuration</p>
                 </template>
                 <FormRow v-model="input.order">Order
                     <template #description>Set the sort order when listing the types</template>
