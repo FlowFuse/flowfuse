@@ -90,6 +90,8 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const userDetails = request.body.user.split(',').map(u => u.trim()).filter(Boolean)
+
+        // 1st check there are any users to invite
         if (userDetails.length === 0) {
             const result = {
                 status: 'error',
@@ -101,8 +103,18 @@ module.exports = async function (app) {
             return
         }
 
-        // remove any duplicates from the list including gmail dot trick aliases
-        const userDetailsDeduplicated = userDetails.filter((email, index, self) => self.indexOf(getCanonicalEmail(email)) === index)
+        // separate user names from emails, deduplicate both lists then recombine
+
+        // use a regex to determine if the user is an email address
+        const emailsOnly = userDetails.filter(u => u.match(/^[^@]+@[^@]+$/))
+        // use a regex to determine if the user is NOT email address
+        const namesOnly = userDetails.filter(u => !u.match(/^[^@]+@[^@]+$/))
+        // deduplicate the list of emails
+        const emailsOnlyDeduplicated = [...new Set(emailsOnly.map(u => getCanonicalEmail(u)))]
+        // deduplicate the list of names to ensure case-insensitive uniqueness (the final list will be a deduplicated array of original case)
+        const namesOnlyDeduplicated = [...new Set(namesOnly.map(u => u.trim().toLowerCase()))].map(u => namesOnly.find(n => n.trim().toLowerCase() === u))
+        // recombine the deduplicated lists
+        const userDetailsDeduplicated = [...emailsOnlyDeduplicated, ...namesOnlyDeduplicated]
 
         // limit to 5 invites at a time
         if (userDetailsDeduplicated.length > 5) {
