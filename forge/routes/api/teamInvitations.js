@@ -105,16 +105,14 @@ module.exports = async function (app) {
 
         // separate user names from emails, deduplicate both lists then recombine
 
-        // use a regex to determine if the user is an email address
-        const emailsOnly = userDetails.filter(u => u.match(/^[^@]+@[^@]+$/))
         // use a regex to determine if the user is NOT email address
         const namesOnly = userDetails.filter(u => !u.match(/^[^@]+@[^@]+$/))
-        // deduplicate the list of emails
-        const emailsOnlyDeduplicated = [...new Set(emailsOnly.map(u => getCanonicalEmail(u)))]
-        // deduplicate the list of names to ensure case-insensitive uniqueness (the final list will be a deduplicated array of original case)
         const namesOnlyDeduplicated = [...new Set(namesOnly.map(u => u.trim().toLowerCase()))].map(u => namesOnly.find(n => n.trim().toLowerCase() === u))
+        // use a regex to determine if the user is an email address
+        const emailsOnly = userDetails.filter(u => u.match(/^[^@]+@[^@]+$/))
+        const emailsOnlyDeduplicated = [...new Set(emailsOnly.map(u => getCanonicalEmail(u)))]
         // recombine the deduplicated lists
-        const userDetailsDeduplicated = [...emailsOnlyDeduplicated, ...namesOnlyDeduplicated]
+        const userDetailsDeduplicated = [...namesOnlyDeduplicated, ...emailsOnlyDeduplicated]
 
         // limit to 5 invites at a time
         if (userDetailsDeduplicated.length > 5) {
