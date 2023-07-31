@@ -119,7 +119,7 @@ describe('Applications API', async () => {
         const pipelineName = 'My Pipeline'
         ApplicationsAPI.default.createPipeline(applicationId, pipelineName)
         expect(mockPost).toHaveBeenCalledOnce()
-        expect(mockPost).toHaveBeenCalledWith(`/api/v1/applications/${applicationId}/pipelines`, { name: pipelineName })
+        expect(mockPost).toHaveBeenCalledWith('/api/v1/pipelines', { name: pipelineName, applicationId })
     })
 
     test('deletePipeline calls the correct API endpoint', () => {
@@ -127,6 +127,6 @@ describe('Applications API', async () => {
         const pipelineId = 'application-id'
         ApplicationsAPI.default.deletePipeline(applicationId, pipelineId)
         expect(mockDelete).toHaveBeenCalledOnce()
-        expect(mockDelete).toHaveBeenCalledWith(`/api/v1/applications/${applicationId}/pipelines/${pipelineId}`)
+        expect(mockDelete).toHaveBeenCalledWith(`/api/v1/pipelines/${pipelineId}`)
     })
 })

@@ -1,5 +1,14 @@
-module.exports = {
-    async pipeline (app, pipeline) {
+module.exports = function (app) {
+    app.addSchema({
+        $id: 'Pipeline',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            stages: { ref: 'PipelineStageList' }
+        }
+    })
+    async function pipeline (pipeline) {
         if (pipeline) {
             const result = pipeline.toJSON()
             const stages = await app.db.models.PipelineStage.byPipeline(result.id)
@@ -13,12 +22,22 @@ module.exports = {
         } else {
             return null
         }
-    },
-    async pipelineList (app, pipelines) {
-        const list = await Promise.all(pipelines.map(async (pipeline) => {
-            const p = app.db.views.Pipeline.pipeline(pipeline)
-            return p
-        }))
+    }
+
+    app.addSchema({
+        $id: 'PipelineList',
+        type: 'array',
+        items: {
+            ref: 'Pipeline'
+        }
+    })
+    async function pipelineList (pipelines) {
+        const list = await Promise.all(pipelines.map(pipeline))
         return list
+    }
+
+    return {
+        pipeline,
+        pipelineList
     }
 }

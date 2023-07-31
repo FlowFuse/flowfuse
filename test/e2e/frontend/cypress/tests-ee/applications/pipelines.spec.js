@@ -33,7 +33,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
     it('can create pipelines containing stages', () => {
         cy.intercept('GET', '/api/v1/applications/*/pipelines').as('getPipelines')
-        cy.intercept('POST', '/api/v1/applications/*/pipelines').as('createPipeline')
+        cy.intercept('POST', '/api/v1/pipelines').as('createPipeline')
 
         cy.visit(`/application/${application.id}/pipelines`)
         cy.wait('@getPipelines')
@@ -97,7 +97,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
     it('can edit the instance assigned to a stage', () => {
         cy.intercept('GET', '/api/v1/applications/*/pipelines').as('getPipelines')
-        cy.intercept('POST', '/api/v1/applications/*/pipelines').as('createPipeline')
+        cy.intercept('POST', '/api/v1/pipelines').as('createPipeline')
 
         cy.visit(`/application/${application.id}/pipelines`)
         cy.wait('@getPipelines')

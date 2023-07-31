@@ -26,23 +26,30 @@ const modelTypes = [
     'User'
 ]
 
+async function register (app, viewType, viewModule) {
+    module.exports[viewType] = {}
+    if (typeof viewModule === 'function') {
+        // New style:
+        //  - views export a function that is called to get the view functions back
+        //  - allows the views to contain their own schema definitions as well
+        module.exports[viewType] = viewModule(app)
+    } else {
+        // Old style - this will be phased out
+        //  - views export their view functions directly
+        //  - re-export them with an implicit 'app' first argument
+        for (const key in viewModule) {
+            module.exports[viewType][key] = viewModule[key].bind(viewModule, app)
+        }
+    }
+}
+
 async function init (app) {
     modelTypes.forEach(type => {
         const m = require(`./${type}`)
-        module.exports[type] = {}
-        if (typeof m === 'function') {
-            // New style:
-            //  - views export a function that is called to get the view functions back
-            //  - allows the views to contain their own schema definitions as well
-            module.exports[type] = m(app)
-        } else {
-            // Old style - this will be phased out
-            //  - views export their view functions directly
-            //  - re-export them with an implicit 'app' first argument
-            for (const key in m) {
-                module.exports[type][key] = m[key].bind(m, app)
-            }
-        }
+        register(app, type, m)
     })
 }
-module.exports.init = init
+module.exports = {
+    init,
+    register
+}
