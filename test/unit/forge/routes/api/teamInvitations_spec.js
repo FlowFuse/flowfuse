@@ -213,6 +213,25 @@ describe('Team Invitations API', function () {
                 app.config.email.transport.getMessageQueue().should.have.lengthOf(1)
                 app.config.email.transport.getMessageQueue()[0].should.have.property('to', 'dave@example.com')
             })
+
+            it('deduplicate emails and gmail "dot-trick" aliases in list of external invites', async () => {
+                // invite 7 users, 5 of them are duplicates (either through capitalisation or gmail dot-trick)
+                // ensure only 2 emails are sent
+                app.settings.set('team:user:invite:external', true)
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/invitations`,
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: {
+                        user: 'alice@jediknights.fake, Alice@JediKnights.fake, ALICE@JediKnights.Fake, bobsolo@gmail.co.fake, BobSolo@gmail.co.fake, bob.so.lo@gmail.co.fake, Bob.SoLo@Gmail.co.faker'
+                    }
+                })
+                const result = response.json()
+                result.should.have.property('status', 'okay')
+                app.config.email.transport.getMessageQueue().should.have.lengthOf(2)
+                app.config.email.transport.getMessageQueue()[0].should.have.property('to', 'alice@jediknights.fake')
+                app.config.email.transport.getMessageQueue()[1].should.have.property('to', 'bobsolo@gmail.co.fake')
+            })
         })
     })
 
