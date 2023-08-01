@@ -34,7 +34,7 @@ module.exports = {
                         ]
                     })
                 },
-                byTeam: async (teamIdOrHash, { includeInstances = false }) => {
+                byTeam: async (teamIdOrHash, { includeInstances = false } = {}) => {
                     let id = teamIdOrHash
                     if (typeof teamIdOrHash === 'string') {
                         id = M.Team.decodeHashid(teamIdOrHash)
