@@ -9,7 +9,7 @@
         <ExclamationIcon v-if="status === 'suspended'" class="w-4 h-4" />
         <PlayIcon v-if="status === 'running'" class="w-4 h-4" />
         <StopIcon v-if="status === 'stopping' || status === 'suspending'" class="w-4 h-4" />
-        <RefreshIcon v-if="status === 'restarting'" class="w-4 h-4" />
+        <AnimIconRestarting v-if="status === 'restarting'" class="w-4 h-4" />
         <DownloadIcon v-if="status === 'importing'" class="w-4 h-4" />
         <AnimIconStarting v-if="status === 'starting'" class="w-4 h-4" />
         <CloudUploadIcon v-if="status === 'loading'" class="w-4 h-4" />
@@ -21,32 +21,29 @@
 
 <script>
 import {
-    CloudDownloadIcon,
     CloudUploadIcon,
     DownloadIcon,
     ExclamationCircleIcon,
     ExclamationIcon,
     PlayIcon,
-    RefreshIcon,
     StopIcon,
     SupportIcon
 } from '@heroicons/vue/outline'
 
-import { AnimIconInstalling, AnimIconStarting } from './icons-animated/index.js'
+import { AnimIconInstalling, AnimIconRestarting, AnimIconStarting } from './icons-animated/index.js'
 
 export default {
     name: 'StatusBadge',
     components: {
-        CloudDownloadIcon,
         CloudUploadIcon,
         DownloadIcon,
         ExclamationCircleIcon,
         ExclamationIcon,
         PlayIcon,
-        RefreshIcon,
         StopIcon,
         SupportIcon,
         AnimIconInstalling,
+        AnimIconRestarting,
         AnimIconStarting
     },
     props: {
