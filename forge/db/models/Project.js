@@ -303,27 +303,13 @@ module.exports = {
                     return this.findAll({
                         include: {
                             model: M.Team,
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId'],
                             include: [
-                                {
-                                    model: M.Application,
-                                    attributes: ['hashid', 'id', 'name', 'links', 'TeamTypeId']
-                                },
                                 {
                                     model: M.TeamMember,
                                     where: {
                                         UserId: user.id
                                     }
-                                },
-                                {
-                                    model: M.ProjectType,
-                                    attributes: ['hashid', 'id', 'name']
-                                },
-                                {
-                                    model: M.ProjectStack
-                                },
-                                {
-                                    model: M.ProjectTemplate,
-                                    attributes: ['hashid', 'id', 'name', 'links']
                                 }
                             ],
                             required: true
