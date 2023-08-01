@@ -13,7 +13,7 @@
         <DownloadIcon v-if="status === 'importing'" class="w-4 h-4" />
         <AnimIconStarting v-if="status === 'starting'" class="w-4 h-4" />
         <CloudUploadIcon v-if="status === 'loading'" class="w-4 h-4" />
-        <CloudDownloadIcon v-if="status === 'installing'" class="w-4 h-4" />
+        <AnimIconInstalling v-if="status === 'installing'" class="w-3 h-3" />
         <SupportIcon v-if="status === 'safe'" class="w-4 h-4" />
         <span class="ml-1">{{ status }}</span>
     </div>
@@ -32,7 +32,7 @@ import {
     SupportIcon
 } from '@heroicons/vue/outline'
 
-import AnimIconStarting from './icons-animated/Starting.vue'
+import { AnimIconInstalling, AnimIconStarting } from './icons-animated/index.js'
 
 export default {
     name: 'StatusBadge',
@@ -46,6 +46,7 @@ export default {
         RefreshIcon,
         StopIcon,
         SupportIcon,
+        AnimIconInstalling,
         AnimIconStarting
     },
     props: {
