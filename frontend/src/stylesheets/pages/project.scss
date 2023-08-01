@@ -1,5 +1,43 @@
+@import '~@flowforge/forge-ui-components/dist/scss/forge-colors.scss';
+
 .ff-project-overview {
     .ff-accordion--content {
         transition: none;
+    }
+}
+
+.ff-instance-info {
+    margin-bottom: 12px;
+    h1 {
+        > div {
+            display: flex;
+            gap: 6px;
+        }
+        border-bottom: 0;
+        svg {
+            width: 20px;
+        }
+    }
+    table {
+        padding: 9px 12px;
+        background-color: white;
+        border-radius: 0.25rem;
+        border-collapse: separate;
+        border-width: 1px;
+        border-color: $ff-grey-300;
+        td {
+            height: 36px;
+        }
+        tr:not(:last-child) {
+            td {
+                border-bottom: 1px solid $ff-grey-100;
+            }
+        }
+    }
+    .ff-accordion {
+        margin-bottom: 0;
+    }
+    .ff-accordion--content {
+        background-color: white;
     }
 }
