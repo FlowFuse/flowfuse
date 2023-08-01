@@ -27,8 +27,8 @@ export default {
     width: var(--cell-width);
     height: var(--cell-width);
     border-radius: 5px;
-    background-color: $ff-grey-500;
-    color: $ff-grey-500;
+    background-color: currentColor;
+    color: currentColor;
     animation: ff-icon-starting var(--anim-time) infinite linear alternate;
     animation-delay: calc(var(--anim-time) / 2);
 }
@@ -44,8 +44,8 @@ export default {
     width: var(--cell-width);
     height: var(--cell-width);
     border-radius: 5px;
-    background-color: $ff-grey-500;
-    color: $ff-grey-500;
+    background-color: currentColor;
+    color: currentColor;
     animation: ff-icon-starting var(--anim-time) infinite alternate;
     animation-delay: 0s;
 }
@@ -54,15 +54,15 @@ export default {
     width: var(--cell-width);
     height: var(--cell-width);
     border-radius: 5px;
-    background-color: $ff-grey-500;
-    color: $ff-grey-500;
+    background-color: currentColor;
+    color: currentColor;
     animation: ff-icon-starting var(--anim-time) infinite alternate;
     animation-delay: var(--anim-time);
 }
 
 @keyframes ff-icon-starting {
   0% {
-    background-color: $ff-grey-500;
+    background-color: currentColor;
   }
   50%, 100% {
     background-color: rgba($ff-grey-500, 0.2);
