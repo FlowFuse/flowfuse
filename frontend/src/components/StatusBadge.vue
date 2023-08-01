@@ -23,7 +23,6 @@
 import {
     CloudDownloadIcon,
     CloudUploadIcon,
-    DotsCircleHorizontalIcon,
     DownloadIcon,
     ExclamationCircleIcon,
     ExclamationIcon,
@@ -40,7 +39,6 @@ export default {
     components: {
         CloudDownloadIcon,
         CloudUploadIcon,
-        DotsCircleHorizontalIcon,
         DownloadIcon,
         ExclamationCircleIcon,
         ExclamationIcon,
