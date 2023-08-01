@@ -102,9 +102,9 @@ telemetry:
 rate_limits:
   enabled: false
   # global: true
-  # timeWindow: '1 minute'
+  # timeWindow: 60000
   # max: 1000
-  # maxAnonymous: 10 # optional
+  # maxAnonymous: 100 # optional (defaults to value of max if not set)
  
 #################################################
 # Create Default Admin                          #
