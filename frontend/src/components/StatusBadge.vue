@@ -10,7 +10,7 @@
         <PlayIcon v-if="status === 'running'" class="w-4 h-4" />
         <StopIcon v-if="status === 'stopping' || status === 'suspending'" class="w-4 h-4" />
         <AnimIconRestarting v-if="status === 'restarting'" class="w-4 h-4" />
-        <DownloadIcon v-if="status === 'importing'" class="w-4 h-4" />
+        <AnimIconInstalling v-if="status === 'importing'" class="w-4 h-4" />
         <AnimIconStarting v-if="status === 'starting'" class="w-4 h-4" />
         <CloudUploadIcon v-if="status === 'loading'" class="w-4 h-4" />
         <AnimIconInstalling v-if="status === 'installing'" class="w-3 h-3" />
@@ -22,7 +22,6 @@
 <script>
 import {
     CloudUploadIcon,
-    DownloadIcon,
     ExclamationCircleIcon,
     ExclamationIcon,
     PlayIcon,
@@ -36,7 +35,6 @@ export default {
     name: 'StatusBadge',
     components: {
         CloudUploadIcon,
-        DownloadIcon,
         ExclamationCircleIcon,
         ExclamationIcon,
         PlayIcon,
