@@ -205,6 +205,7 @@ describe('Accounts API', async function () {
             userTeams.should.have.property('teams')
             userTeams.teams.should.have.length(1)
         })
+
         it('auto-creates personal team if option set - selected team type', async function () {
             app.settings.set('user:signup', true)
             app.settings.set('user:team:auto-create', true)
@@ -245,6 +246,11 @@ describe('Accounts API', async function () {
             userTeams.teams.should.have.length(1)
             userTeams.teams[0].should.have.property('type')
             userTeams.teams[0].type.should.have.property('id', newTeamType.hashid)
+
+            // cleanup else this becomes the new default and breaks other tests
+            newTeamType.active = false
+            await newTeamType.save()
+            app.settings.set('user:team:auto-create:teamType', null)
         })
 
         describe('auto-creation of application and instances', function () {
@@ -283,18 +289,6 @@ describe('Accounts API', async function () {
                 app.settings.set('user:signup', true)
                 app.settings.set('user:team:auto-create', true)
                 app.settings.set('user:team:auto-create:instanceType', app.projectType.hashid)
-
-                // Allow this project type to be used by the default team type
-                const teamTypeProperties = { instances: {} }
-                teamTypeProperties.instances[app.projectType.hashid] = {
-                    active: true,
-                    limit: 2,
-                    free: 2
-                }
-
-                const defaultTeamType = await app.db.models.TeamType.findOne({ where: { active: true }, order: [['order', 'ASC']] })
-                defaultTeamType.properties = teamTypeProperties
-                await defaultTeamType.save()
 
                 const response = await registerUser({
                     username: 'user4',
@@ -343,7 +337,7 @@ describe('Accounts API', async function () {
                 app.settings.set('user:team:auto-create', true)
                 app.settings.set('user:team:auto-create:instanceType', app.projectType.hashid)
 
-                // Allow this project type to be used by the default team type
+                // Allow this new project type to be used by the new team type
                 const teamTypeProperties = { instances: {} }
                 teamTypeProperties.instances[app.projectType.hashid] = {
                     active: true,
@@ -351,7 +345,7 @@ describe('Accounts API', async function () {
                     free: 2
                 }
                 const newTeamType = await app.db.models.TeamType.create({
-                    name: 'new-starter',
+                    name: 'new-starter-test',
                     properties: teamTypeProperties
                 })
                 app.settings.set('user:team:auto-create:teamType', newTeamType.hashid)
@@ -396,6 +390,11 @@ describe('Accounts API', async function () {
                 instance.safeName.should.match(/teamuser-user5-(\w)+/)
 
                 application.Instances[0].should.equal(instance)
+
+                // cleanup else this becomes the new default and breaks other tests
+                newTeamType.active = false
+                await newTeamType.save()
+                app.settings.set('user:team:auto-create:teamType', null)
             })
         })
 
