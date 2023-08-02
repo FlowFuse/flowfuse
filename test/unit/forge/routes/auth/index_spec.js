@@ -293,7 +293,7 @@ describe('Accounts API', async function () {
                 const response = await registerUser({
                     username: 'user4',
                     password: '12345678',
-                    name: 'user',
+                    name: 'dave',
                     email: 'user4@example.com'
                 })
                 response.statusCode.should.equal(200)
@@ -316,10 +316,10 @@ describe('Accounts API', async function () {
                 applications.length.should.equal(1)
 
                 const application = applications[0]
-                application.name.should.match('Default Application')
+                application.name.should.match('Dave\'s Application')
 
                 application.Instances.length.should.equal(1)
-                application.Instances[0].safeName.should.match(/team-user-user4-(\w)+/)
+                application.Instances[0].safeName.should.match(/team-dave-user4-(\w)+/)
             })
 
             it('handles a custom team type being set, still creating an application & instance if the flag is set', async function () {
@@ -343,7 +343,7 @@ describe('Accounts API', async function () {
                 const response = await registerUser({
                     username: 'user5',
                     password: '12345678',
-                    name: 'user',
+                    name: 'Pez Cuckow',
                     email: 'user5@example.com'
                 })
                 response.statusCode.should.equal(200)
@@ -366,10 +366,10 @@ describe('Accounts API', async function () {
                 applications.length.should.equal(1)
 
                 const application = applications[0]
-                application.name.should.match('Default Application')
+                application.name.should.match('Pez Cuckow\'s Application')
 
                 application.Instances.length.should.equal(1)
-                application.Instances[0].safeName.should.match(/team-user-user5-(\w)+/)
+                application.Instances[0].safeName.should.match(/team-pez-cuckow-user5-(\w)+/)
 
                 // cleanup else this becomes the new default and breaks other tests
                 newTeamType.active = false
