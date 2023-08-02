@@ -282,7 +282,7 @@ describe('Accounts API', async function () {
                 instances.length.should.equal(1)
 
                 const instance = instances[0]
-                instance.safeName.should.match(/teamuser-user3-(\w)+/)
+                instance.safeName.should.match(/team-user-user3-(\w)+/)
             })
 
             it('auto-creates an application & instance if instanceType option is set and there is no application yet', async function () {
@@ -320,7 +320,6 @@ describe('Accounts API', async function () {
 
                 // Validate via application
                 application.Instances.length.should.equal(1)
-                application.Instances[0].safeName.should.match(/teamuser-user4-(\w)+/)
 
                 // Validate directly via user
                 const instances = await app.db.models.Project.byUser(user)
@@ -330,6 +329,7 @@ describe('Accounts API', async function () {
                 instance.safeName.should.match(/teamuser-user4-(\w)+/)
 
                 application.Instances[0].should.equal(instance) // they are the same
+                application.Instances[0].safeName.should.match(/team-user-user4-(\w)+/)
             })
 
             it('handles a custom team type being set, still creating an application & instance if the flag is set', async function () {
@@ -354,7 +354,7 @@ describe('Accounts API', async function () {
                     username: 'user5',
                     password: '12345678',
                     name: 'user',
-                    email: 'user4@example.com'
+                    email: 'user5@example.com'
                 })
                 response.statusCode.should.equal(200)
 
@@ -380,7 +380,6 @@ describe('Accounts API', async function () {
 
                 // Validate via application
                 application.Instances.length.should.equal(1)
-                application.Instances[0].safeName.should.match(/teamuser-user5-(\w)+/)
 
                 // Validate directly via user
                 const instances = await app.db.models.Project.byUser(user)
@@ -390,6 +389,7 @@ describe('Accounts API', async function () {
                 instance.safeName.should.match(/teamuser-user5-(\w)+/)
 
                 application.Instances[0].should.equal(instance)
+                application.Instances[0].safeName.should.match(/team-user-user5-(\w)+/)
 
                 // cleanup else this becomes the new default and breaks other tests
                 newTeamType.active = false

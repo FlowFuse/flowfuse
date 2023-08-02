@@ -539,8 +539,8 @@ async function init (app, opts, done) {
                     await app.auditLog.User.account.verify.autoCreateTeam(request.session?.User || verifiedUser, null, application)
                 }
 
-                const safeTeamName = userTeam.name.replace(/[\W_]/g, '')
-                const safeUserName = verifiedUser.username.replace(/[\W_]/g, '-')
+                const safeTeamName = userTeam.name.toLowerCase().replace(/[\W_]/g, '-')
+                const safeUserName = verifiedUser.username.toLowerCase().replace(/[\W_]/g, '-')
 
                 const instanceProperties = {
                     name: `${safeTeamName}-${safeUserName}-${crypto.randomBytes(4).toString('hex')}`
