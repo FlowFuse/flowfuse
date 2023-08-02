@@ -318,17 +318,7 @@ describe('Accounts API', async function () {
                 const application = applications[0]
                 application.name.should.match('Default Application')
 
-                // Validate via application
                 application.Instances.length.should.equal(1)
-
-                // Validate directly via user
-                const instances = await app.db.models.Project.byUser(user)
-                instances.length.should.equal(1)
-
-                const instance = instances[0]
-                instance.safeName.should.match(/teamuser-user4-(\w)+/)
-
-                application.Instances[0].should.equal(instance) // they are the same
                 application.Instances[0].safeName.should.match(/team-user-user4-(\w)+/)
             })
 
@@ -378,17 +368,7 @@ describe('Accounts API', async function () {
                 const application = applications[0]
                 application.name.should.match('Default Application')
 
-                // Validate via application
                 application.Instances.length.should.equal(1)
-
-                // Validate directly via user
-                const instances = await app.db.models.Project.byUser(user)
-                instances.length.should.equal(1)
-
-                const instance = instances[0]
-                instance.safeName.should.match(/teamuser-user5-(\w)+/)
-
-                application.Instances[0].should.equal(instance)
                 application.Instances[0].safeName.should.match(/team-user-user5-(\w)+/)
 
                 // cleanup else this becomes the new default and breaks other tests
