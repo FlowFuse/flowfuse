@@ -2,7 +2,7 @@
     <ff-loading v-if="loading" message="Saving Settings..."/>
     <div v-else class="space-y-4">
         <FormHeading>Users</FormHeading>
-        <FormRow data-el="enable-signup" v-model="input['user:signup']" type="checkbox" :error="errors.requiresEmail" :disabled="errors.requiresEmail">
+        <FormRow data-el="enable-signup" v-model="input['user:signup']" type="checkbox" :error="errors.requiresEmail" :disabled="!!errors.requiresEmail">
             Allow new users to register on the login screen
             <template #description>
                 If self-registration is not enabled, an Administrator must create users
@@ -25,14 +25,21 @@
                 to join an existing team.
             </template>
         </FormRow>
-        <FormRow v-if="input['user:team:auto-create']" v-model="input['user:team:auto-create:teamType']" :options="teamTypes" containerClass="max-w-sm ml-9">
+        <FormRow v-if="input['user:team:auto-create']" v-model="input['user:team:auto-create:teamType']" :options="teamTypesOptions" containerClass="max-w-sm ml-9">
             Personal Team Type
             <template #description>
                 The type of team to create for a user when they register.
                 <template v-if="features.billing">Trial mode is configured within the individual TeamTypes.</template>
             </template>
         </FormRow>
-        <FormRow v-model="input['user:reset-password']" type="checkbox" :error="errors.requiresEmail" :disabled="errors.requiresEmail">
+        <FormRow v-if="input['user:team:auto-create']" v-model="input['user:team:auto-create:instanceType']" :options="instanceTypeOptionsForSelectedTeamType" :disabled="!input['user:team:auto-create:teamType']" :error="autoCreateInstanceError" containerClass="max-w-sm ml-9">
+            Starter Instance Type
+            <template #description>
+                To optionally create a starter instance when users first register, set the instance type.
+                <template v-if="features.billing">Ensure TeamType is configured to allow this instance type at no charge.</template>
+            </template>
+        </FormRow>
+        <FormRow v-model="input['user:reset-password']" type="checkbox" :error="errors.requiresEmail" :disabled="!!errors.requiresEmail">
             Allow users to reset their password on the login screen
             <template #description>
                 Users will be sent an email with a link back to the platform to reset their password.
@@ -66,7 +73,7 @@
                 <p>Administrators can always create teams.</p>
             </template>
         </FormRow>
-        <FormRow v-model="input['team:user:invite:external']" type="checkbox" :disabled="errors.requiresEmail" :error="errors.requiresEmail">
+        <FormRow v-model="input['team:user:invite:external']" type="checkbox" :disabled="!!errors.requiresEmail" :error="errors.requiresEmail">
             Allow users to invite external users to teams
             <template #description>
                 <p>Users can invite existing users to join a team. If they provide
@@ -136,7 +143,6 @@
         <div class="pt-8">
             <ff-button :disabled="!saveEnabled" @click="saveChanges" data-action="save-settings">Save settings</ff-button>
         </div>
-
     </div>
 </template>
 
@@ -157,6 +163,7 @@ const validSettings = [
     'user:reset-password',
     'user:team:auto-create',
     'user:team:auto-create:teamType',
+    'user:team:auto-create:instanceType',
     'user:tcs-required',
     'user:tcs-url',
     'user:tcs-date',
@@ -181,8 +188,9 @@ export default {
                 requiresEmail: null,
                 termsAndConditions: null
             },
-            instanceTypes: [],
             teamTypes: [],
+            instanceTypes: [],
+            teamTypesOptions: [],
             platformStatsTokenGenerating: false
         }
     },
@@ -215,6 +223,51 @@ export default {
                 })
             }
             return result
+        },
+
+        autoCreateInstanceError () {
+            if (!this.input['user:team:auto-create:teamType']) {
+                return 'Requires Team Type to be set'
+            }
+
+            if (!this.selectedTeamType) {
+                return 'Selected Team Type not found'
+            }
+
+            if (!(this.instanceTypeOptionsForSelectedTeamType?.length)) {
+                return 'No instance types found for selected Team Type'
+            }
+
+            return null
+        },
+        selectedTeamType () {
+            return this.teamTypes.find(tt => tt.id === this.input['user:team:auto-create:teamType'])
+        },
+        instanceTypeOptionsForSelectedTeamType () {
+            if (!this.input['user:team:auto-create:teamType'] || !this.selectedTeamType) {
+                return [{
+                    value: null,
+                    label: 'None'
+                }]
+            }
+
+            const activeInstanceTypesIds = Object.keys(this.selectedTeamType.properties.instances)
+
+            const instanceTypeOptions = this.instanceTypes
+                .filter(instanceType => activeInstanceTypesIds.includes(instanceType.id))
+                .map((instanceType) => {
+                    return {
+                        value: instanceType.id,
+                        label: instanceType.name
+                    }
+                })
+
+            instanceTypeOptions.unshift({
+                value: null,
+                label: 'None'
+            })
+
+            return instanceTypeOptions
         }
     },
     async created () {
@@ -224,22 +277,18 @@ export default {
         validSettings.forEach(s => {
             this.input[s] = this.settings[s]
         })
-        const instanceTypes = await instanceTypesApi.getInstanceTypes()
-        this.instanceTypes = instanceTypes.types.map(pt => {
-            return {
-                value: pt.id,
-                label: pt.name
-            }
-        })
-        const teamTypes = await teamTypesApi.getTeamTypes()
-        this.teamTypes = teamTypes.types.map(tt => {
+
+        this.instanceTypes = (await instanceTypesApi.getInstanceTypes()).types
+
+        this.teamTypes = (await teamTypesApi.getTeamTypes()).types
+        this.teamTypesOptions = this.teamTypes.map(tt => {
             return {
                 order: tt.order,
                 value: tt.id,
                 label: tt.name
             }
         })
-        this.teamTypes.sort((A, B) => { return A.order - B.order })
+        this.teamTypesOptions.sort((A, B) => { return A.order - B.order })
 
         this.platformStatsTokenEnabled = this.input['platform:stats:token']
         if (!this.platformStatsTokenEnabled) {
