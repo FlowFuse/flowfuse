@@ -531,8 +531,10 @@ async function init (app, opts, done) {
                 if (applications.length > 0) {
                     application = applications[0]
                 } else {
+                    const applicationName = `${verifiedUser.name}'s Application`
+
                     application = await app.db.models.Application.create({
-                        name: 'Default Application',
+                        name: applicationName.charAt(0).toUpperCase() + applicationName.slice(1),
                         TeamId: userTeam.id
                     })
 
