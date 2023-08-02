@@ -128,7 +128,7 @@ module.exports = {
                             if (parts.length > 0) {
                                 props = props[k]
                             } else {
-                                return props[k]
+                                return props[k] ?? defaultValue
                             }
                         } else {
                             return defaultValue
