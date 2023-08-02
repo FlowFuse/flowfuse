@@ -157,17 +157,16 @@ export default {
                         }
                     }
                 }
-                if (this.features.billing) {
-                    // Need to ensure we have input.properties.instances entries
-                    // for all known instance types
-                    this.instanceTypes.forEach(instanceType => {
-                        if (!this.input.properties.instances[instanceType.id]) {
-                            this.input.properties.instances[instanceType.id] = {
-                                active: false
-                            }
+
+                // Need to ensure we have input.properties.instances entries
+                // for all known instance types
+                this.instanceTypes.forEach(instanceType => {
+                    if (!this.input.properties.instances[instanceType.id]) {
+                        this.input.properties.instances[instanceType.id] = {
+                            active: false
                         }
-                    })
-                }
+                    }
+                })
 
                 this.errors = {}
                 this.$refs.dialog.show()

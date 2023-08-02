@@ -19,6 +19,21 @@ const Controllers = require('../controllers')
 
 const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA } = require('./ProjectSettings')
 
+const BANNED_NAME_LIST = [
+    'www',
+    'node-red',
+    'nodered',
+    'forge',
+    'support',
+    'help',
+    'accounts',
+    'account',
+    'status',
+    'billing',
+    'mqtt',
+    'broker'
+]
+
 /** @type {FFModel} */
 module.exports = {
     name: 'Project',
@@ -276,6 +291,7 @@ module.exports = {
                 }
             },
             static: {
+                BANNED_NAME_LIST,
                 isNameUsed: async (name) => {
                     const safeName = name?.toLowerCase()
                     const count = await this.count({
@@ -287,27 +303,13 @@ module.exports = {
                     return this.findAll({
                         include: {
                             model: M.Team,
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId'],
                             include: [
-                                {
-                                    model: M.Application,
-                                    attributes: ['hashid', 'id', 'name', 'links', 'TeamTypeId']
-                                },
                                 {
                                     model: M.TeamMember,
                                     where: {
                                         UserId: user.id
                                     }
-                                },
-                                {
-                                    model: M.ProjectType,
-                                    attributes: ['hashid', 'id', 'name']
-                                },
-                                {
-                                    model: M.ProjectStack
-                                },
-                                {
-                                    model: M.ProjectTemplate,
-                                    attributes: ['hashid', 'id', 'name', 'links']
                                 }
                             ],
                             required: true

@@ -15,6 +15,8 @@
  * @namespace session
  * @memberof forge.routes
  */
+const crypto = require('crypto')
+
 const fp = require('fastify-plugin')
 
 // This defines how long the session cookie is valid for. This should match
@@ -500,6 +502,57 @@ async function init (app, opts, done) {
                 // await invite.save()
             }
             await app.auditLog.User.account.verify.verifyToken(request.session?.User || verifiedUser, null)
+
+            // only create a starting instance if the flag is set and this user and their teams have no instances
+            if (app.settings.get('user:team:auto-create:instanceType') &&
+             !((await app.db.models.Project.byUser(verifiedUser)).length)) {
+                const instanceTypeId = app.settings.get('user:team:auto-create:instanceType')
+
+                const instanceType = await app.db.models.ProjectType.byId(instanceTypeId)
+                const instanceStack = await instanceType?.getDefaultStack() || (await instanceType.getProjectStacks())?.[0]
+                const instanceTemplate = await app.db.models.ProjectTemplate.findOne({ where: { active: true } })
+
+                const userTeamMemberships = await app.db.models.Team.forUser(verifiedUser)
+                if (userTeamMemberships.length <= 0) {
+                    console.warn("Flag to auto-create instance is set ('user:team:auto-create:instanceType'), but user has no team, consider setting 'user:team:auto-create'")
+                    return reply.send({ status: 'okay' })
+                } else if (!instanceType) {
+                    throw new Error(`Instance type with id ${instanceTypeId} from 'user:team:auto-create:instanceType' not found`)
+                } else if (!instanceStack) {
+                    throw new Error(`Unable to find a stack for use with instance type ${instanceTypeId} to auto-create user instance`)
+                } else if (!instanceTemplate) {
+                    throw new Error('Unable to find the default instance template from which to auto-create user instance')
+                }
+
+                const userTeam = userTeamMemberships[0].Team
+
+                const applications = await app.db.models.Application.byTeam(userTeam.id)
+                let application
+                if (applications.length > 0) {
+                    application = applications[0]
+                } else {
+                    const applicationName = `${verifiedUser.name}'s Application`
+
+                    application = await app.db.models.Application.create({
+                        name: applicationName.charAt(0).toUpperCase() + applicationName.slice(1),
+                        TeamId: userTeam.id
+                    })
+
+                    await app.auditLog.User.account.verify.autoCreateTeam(request.session?.User || verifiedUser, null, application)
+                }
+
+                const safeTeamName = userTeam.name.toLowerCase().replace(/[\W_]/g, '-')
+                const safeUserName = verifiedUser.username.toLowerCase().replace(/[\W_]/g, '-')
+
+                const instanceProperties = {
+                    name: `${safeTeamName}-${safeUserName}-${crypto.randomBytes(4).toString('hex')}`
+                }
+
+                const instance = await app.db.controllers.Project.create(userTeam, application, verifiedUser, instanceType, instanceStack, instanceTemplate, instanceProperties)
+
+                await app.auditLog.User.account.verify.autoCreateInstance(request.session?.User || verifiedUser, null, instance)
+            }
+
             reply.send({ status: 'okay' })
         } catch (err) {
             app.log.error(`/account/verify/token error - ${err.toString()}`)
