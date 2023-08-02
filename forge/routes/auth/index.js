@@ -553,7 +553,6 @@ async function init (app, opts, done) {
 
             reply.send({ status: 'okay' })
         } catch (err) {
-            console.log(err)
             app.log.error(`/account/verify/token error - ${err.toString()}`)
             const resp = { code: 'unexpected_error', error: err.toString() }
             await app.auditLog.User.account.verify.verifyToken(request.session?.User, resp)

@@ -168,8 +168,6 @@ export default {
                     }
                 })
 
-                debugger
-
                 this.errors = {}
                 this.$refs.dialog.show()
             }
