@@ -1,3 +1,67 @@
+#### 1.10.0: Release
+
+ - Bump eslint-plugin-import from 2.27.5 to 2.28.0 (#2544) @dependabot
+ - Bump babel-loader from 9.1.2 to 9.1.3 (#2546) @dependabot
+ - Auto-create Application/Instance when first joining FlowForge (#2553) @Pezmc
+ - Add animated status icons (#2551) @joepavitt
+ - Cleaner layout for Instance overview (#2550) @joepavitt
+ - Bump pino-pretty from 10.0.0 to 10.2.0 (#2545) @dependabot
+ - Bump @aws-sdk/credential-provider-node from 3.363.0 to 3.379.1 (#2548) @dependabot
+ - Update flowforge.yml to match docs (#2549) @hardillb
+ - Deduplicate email invites (SEC#19) (#2543) @Steve-Mcl
+ - Add schema and views to pipeline routes (#2390) @knolleary
+ - Copy InstanceType billing into default starter team type configuration (#2533) @knolleary
+ - Allow device in developer mode to access team library (#2472) @Steve-Mcl
+ - Generate a default admin user (#2443) @hardillb
+ - Change redirect post application creation to /instance (#2538) @joepavitt
+ - Route rate limits (sec #18) (#2530) @Steve-Mcl
+ - Show tooltip on hover in device bar, and truncate text when not enough space (#2536) @joepavitt
+ - Clarify instructions when presented with device.yml (#2535) @joepavitt
+ - Adds differentiation in messaging between debit/credit amounts (#2539) @joepavitt
+ - Add support for multiple TeamTypes with limits/billing set per type (#2519) @knolleary
+ - Allow Postgres DB connection to enable SSL (#2500) @hardillb
+ - Snapshots in Pipelines (#2399) @Pezmc
+ - Handle node-red log messages with undefined payloads (#2515) @knolleary
+ - Bump @vue/test-utils from 2.4.0 to 2.4.1 (#2524) @dependabot
+ - Bump postcss from 8.4.26 to 8.4.27 (#2523) @dependabot
+ - Bump cypress from 12.15.0 to 12.17.2 (#2522) @dependabot
+ - Bump eslint from 8.43.0 to 8.45.0 (#2521) @dependabot
+ - Bump nodemailer from 6.9.3 to 6.9.4 (#2520) @dependabot
+ - Environment Variables import .env files (#2501) @Steve-Mcl
+ - Lint fix chore (#2461) @hardillb
+ - Added Dashboard Only Role (#2513) @MarianRaphael
+ - Treat disabling an already disabled editor tunnel as a no-op (#2510) @knolleary
+ - Add log messages for device agent connect/disconnect events (#2507) @knolleary
+ - Fix incorrect 'start-failed' notifications (#2505) @knolleary
+ - Make the response log entry contains the real source IP address (#2503) @hardillb
+ - Bump @fastify/helmet from 10.1.1 to 11.0.0 (#2490) @dependabot
+ - Bump vue-router from 4.2.2 to 4.2.4 (#2491) @dependabot
+ - Bump vitest from 0.32.4 to 0.33.0 (#2492) @dependabot
+ - Bump postcss-preset-env from 8.5.1 to 9.0.0 (#2493) @dependabot
+ - Bump postcss from 8.4.24 to 8.4.26 (#2494) @dependabot
+ - Update docker to use volume flag (#2498) @ZJvandeWeg
+ - typo: hve -> have (#2496) @ZJvandeWeg
+ - Improve error handling around Device Agent tunnels (#2488) @knolleary
+ - Add checks for empty values in logging stream (#2479) @hardillb
+ - Tidy spacing & bolden the "make note" messaging (#2433) @joepavitt
+ - Update Device Editor access docs (#2464) @hardillb
+ - Update node version statement in devices docs (#2468) @knolleary
+ - Fix yaml -> yml references in device docs (#2469) @knolleary
+ - Update ui-components & utilise new ff-theme-dark on signup/login (#2425) @joepavitt
+ - Doc Fixes: Remove trailing / on links with # and broken device-agent link (#2466) @joepavitt
+ - Chore: chipping off eslint excludes (#2435) @hardillb
+ - Bump @babel/preset-env from 7.22.6 to 7.22.7 (#2454) @dependabot
+ - Bump @babel/core from 7.22.6 to 7.22.8 (#2453) @dependabot
+ - Bump webpack from 5.88.0 to 5.88.1 (#2451) @dependabot
+ - Bump @fastify/swagger-ui from 1.9.0 to 1.9.2 (#2452) @dependabot
+ - Bump jsonwebtoken from 9.0.0 to 9.0.1 (#2450) @dependabot
+ - Add codecov reporting (#2437) @knolleary
+ - Update custom stack information (#2442) @hardillb
+ - Doc Updates: Device Agent (#2440) @joepavitt
+ - Docs Landing Page Restructure (first pass) (#2438) @joepavitt
+ - Improve instruction & labelling on "Add Device" dialog (#2434) @joepavitt
+ - Bump @aws-sdk/client-ses from 3.359.0 to 3.363.0 (#2388) @dependabot
+
 #### 1.9.0: Release
 
  - Add docs about swagger ui (#2418) @knolleary
