@@ -8,7 +8,11 @@
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
         </Teleport>
         <div class="ff-instance-header">
-            <SectionNavigationHeader :title="device.name" :tabs="navigation">
+            <SectionNavigationHeader :tabs="navigation">
+                <template #breadcrumbs>
+                    <ff-nav-breadcrumb :to="{name: 'TeamDevices', params: {team_slug: team.slug}}">Devices</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb>{{ device.name }}</ff-nav-breadcrumb>
+                </template>
                 <template #status>
                     <DeviceLastSeenBadge class="mr-6" :last-seen-at="device.lastSeenAt" :last-seen-ms="device.lastSeenMs" :last-seen-since="device.lastSeenSince" />
                     <StatusBadge :status="device.status" />
