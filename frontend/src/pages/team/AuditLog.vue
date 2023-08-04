@@ -1,9 +1,21 @@
 <template>
-    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" logType="team" @load-entries="loadEntries">
-        <template #title>
-            <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in this Team." />
+    <ff-page>
+        <template #header>
+            <ff-page-header>
+                <template #breadcrumbs>
+                    <ff-nav-breadcrumb>Audit Log</ff-nav-breadcrumb>
+                </template>
+                <template #context>
+                    Detailed recording of all activity at the team-level.
+                </template>
+            </ff-page-header>
         </template>
-    </AuditLogBrowser>
+        <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" logType="team" @load-entries="loadEntries">
+            <template #title>
+                <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in this Team." />
+            </template>
+        </AuditLogBrowser>
+    </ff-page>
 </template>
 
 <script>

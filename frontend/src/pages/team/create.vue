@@ -8,7 +8,7 @@
             </template>
         </SideNavigation>
     </Teleport>
-    <main>
+    <ff-page>
         <ff-loading v-if="redirecting" message="Redirecting to Stripe..." />
         <ff-loading v-else-if="loading" message="Creating Team..." />
         <div v-else class="max-w-2xl m-auto">
@@ -52,7 +52,7 @@
                 </ff-button>
             </form>
         </div>
-    </main>
+    </ff-page>
 </template>
 
 <script>

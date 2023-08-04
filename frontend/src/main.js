@@ -3,15 +3,16 @@ import { LottieAnimation } from 'lottie-web-vue'
 import { AxiosError } from 'axios'
 import { createApp } from 'vue'
 
+import './ui-components/index.scss'
 import App from './App.vue'
 import Loading from './components/Loading.vue'
+import SectionNavigationHeader from './components/SectionNavigationHeader.vue'
+import PageLayout from './layouts/Page.vue'
 import router from './routes.js'
 import Alerts from './services/alerts.js'
 import store from './store/index.js'
-import './index.css'
-
 import ForgeUIComponents from './ui-components/index.js'
-import './ui-components/index.scss'
+import './index.css'
 
 const app = createApp(App)
     .use(ForgeUIComponents)
@@ -20,6 +21,8 @@ const app = createApp(App)
 
 // Globally available FF Components
 app.component('lottie-animation', LottieAnimation)
+app.component('ff-page', PageLayout)
+app.component('ff-page-header', SectionNavigationHeader)
 app.component('ff-loading', Loading)
 
 app.config.errorHandler = function (err, vm, info) {

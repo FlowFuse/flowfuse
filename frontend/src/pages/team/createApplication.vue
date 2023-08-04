@@ -17,7 +17,7 @@
     <Teleport v-if="mounted" to="#platform-banner">
         <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
     </Teleport>
-    <main>
+    <ff-page>
         <div class="max-w-2xl m-auto">
             <ff-loading
                 v-if="loading"
@@ -36,7 +36,7 @@
                 @on-submit="handleFormSubmit"
             />
         </div>
-    </main>
+    </ff-page>
 </template>
 
 <script>

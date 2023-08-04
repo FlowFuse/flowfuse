@@ -6,9 +6,9 @@
     <main v-else-if="!instance?.id">
         <ff-loading message="Loading Instance..." />
     </main>
-    <main v-else data-el="instances-section" class="ff-with-status-header">
-        <div class="ff-instance-header">
-            <SectionNavigationHeader :tabs="navigation">
+    <ff-page v-else>
+        <template #header>
+            <ff-page-header :tabs="navigation">
                 <template #breadcrumbs>
                     <ff-nav-breadcrumb :to="{name: 'Instances', params: {team_slug: team.slug}}">Instances</ff-nav-breadcrumb>
                     <ff-nav-breadcrumb>{{ instance.name }}</ff-nav-breadcrumb>
@@ -19,7 +19,7 @@
                         <StatusBadge class="ml-2 text-gray-400 hover:text-blue-600" status="high-availability" />
                     </router-link>
                 </template>
-                <template #parent>
+                <template #context>
                     Application:
                     <router-link :to="{name: 'Application', params: {id: instance.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ instance.application.name }}</router-link>
                 </template>
@@ -34,15 +34,15 @@
                         <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
                     </div>
                 </template>
-            </SectionNavigationHeader>
-        </div>
+            </ff-page-header>
+        </template>
         <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="deleteInstance" />
         <Teleport v-if="mounted" to="#platform-banner">
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">You are viewing this instance as an Administrator</div>
             <SubscriptionExpiredBanner :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
         </Teleport>
-        <div class="px-3 py-3 md:px-6 md:py-6">
+        <div>
             <router-view
                 :instance="instance"
                 :is-visiting-admin="isVisitingAdmin"
@@ -53,7 +53,7 @@
         </div>
 
         <InstanceStatusPolling :instance="instance" @instance-updated="instanceUpdated" />
-    </main>
+    </ff-page>
 </template>
 
 <script>
@@ -67,7 +67,6 @@ import SnapshotApi from '../../api/projectSnapshots.js'
 
 import DropdownMenu from '../../components/DropdownMenu.vue'
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
-import SectionNavigationHeader from '../../components/SectionNavigationHeader.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
@@ -91,7 +90,6 @@ export default {
         DropdownMenu,
         InstanceStatusPolling,
         InstanceStatusBadge,
-        SectionNavigationHeader,
         SideNavigationTeamOptions,
         StatusBadge,
         SubscriptionExpiredBanner,
