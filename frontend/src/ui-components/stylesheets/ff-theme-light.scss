@@ -1,0 +1,41 @@
+.ff-bg-light {
+    background-color: $ff-grey-50;
+}
+
+.ff-theme-light {
+
+    color: $ff-grey-800;
+
+    /* Core */
+
+    h1, h2, h3, h4, h5{
+        color: $ff-grey-700;
+    }
+    
+    p {
+        color: $ff-grey-800;
+    }
+
+    .ff-description {
+        color: $ff-grey-500;
+    }
+
+    select {
+        background-color: $ff-grey-50;
+    }
+
+    code {
+        background-color: $ff-grey-100;
+        border-color: $ff-grey-200;
+    }
+
+    /* FlowForge Components */
+
+    .ff-btn {
+        &:disabled {
+            background-color: $ff-white;
+            border-color: $ff-grey-300;
+            color: $ff-grey-300;
+        }
+    }
+}
