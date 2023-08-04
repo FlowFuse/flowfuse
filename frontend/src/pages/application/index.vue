@@ -19,12 +19,11 @@
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
         </Teleport>
         <div class="ff-instance-header">
-            <SectionNavigationHeader :tabs="navigation">
+            <ff-page-header :title="application.name" :tabs="navigation">
                 <template #breadcrumbs>
                     <ff-nav-breadcrumb :to="{name: 'Applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
-                    <ff-nav-breadcrumb>{{ application.name }}</ff-nav-breadcrumb>
                 </template>
-            </SectionNavigationHeader>
+            </ff-page-header>
         </div>
         <div class="px-3 py-3 md:px-6 md:py-6">
             <router-view
