@@ -25,6 +25,7 @@ import {
     ExclamationCircleIcon,
     ExclamationIcon,
     PlayIcon,
+    RefreshIcon,
     StopIcon,
     SupportIcon
 } from '@heroicons/vue/outline'
@@ -39,6 +40,7 @@ export default {
         ExclamationIcon,
         PlayIcon,
         StopIcon,
+        RefreshIcon,
         SupportIcon,
         AnimIconInstalling,
         AnimIconRestarting,

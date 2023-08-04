@@ -1,13 +1,6 @@
 <template>
     <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigationTeamOptions>
-            <template #nested-menu>
-                <div class="ff-nested-title">Instance</div>
-                <router-link v-for="route in navigation" :key="route.label" :to="route.path">
-                    <nav-item :icon="route.icon" :label="route.label" :data-nav="route.tag" />
-                </router-link>
-            </template>
-        </SideNavigationTeamOptions>
+        <SideNavigationTeamOptions />
     </Teleport>
     <ff-loading v-if="loading.deleting" message="Deleting Instance..." />
     <main v-else-if="!instance?.id">
@@ -15,21 +8,20 @@
     </main>
     <main v-else data-el="instances-section" class="ff-with-status-header">
         <div class="ff-instance-header">
-            <InstanceStatusHeader>
-                <template #hero>
-                    <div class="flex-grow items-center inline-flex flex-wrap" data-el="instance-name">
-                        <div class="text-gray-800 text-xl font-bold mr-6">
-                            {{ instance.name }}
-                        </div>
-                        <InstanceStatusBadge :status="instance.meta?.state" :optimisticStateChange="instance.optimisticStateChange" :pendingStateChange="instance.pendingStateChange" />
-                        <router-link v-if="instance.ha?.replicas !== undefined" :to="{name: 'InstanceSettingsHA', params: { id: instance.id }}" @click.stop>
-                            <StatusBadge class="ml-2 text-gray-400 hover:text-blue-600" status="high-availability" />
-                        </router-link>
-                        <div class="w-full text-sm mt-1">
-                            Application:
-                            <router-link :to="{name: 'Application', params: {id: instance.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ instance.application.name }}</router-link>
-                        </div>
-                    </div>
+            <SectionNavigationHeader :tabs="navigation">
+                <template #breadcrumbs>
+                    <ff-nav-breadcrumb :to="{name: 'Instances', params: {team_slug: team.slug}}">Instances</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb>{{ instance.name }}</ff-nav-breadcrumb>
+                </template>
+                <template #status>
+                    <InstanceStatusBadge :status="instance.meta?.state" :optimisticStateChange="instance.optimisticStateChange" :pendingStateChange="instance.pendingStateChange" />
+                    <router-link v-if="instance.ha?.replicas !== undefined" :to="{name: 'InstanceSettingsHA', params: { id: instance.id }}" @click.stop>
+                        <StatusBadge class="ml-2 text-gray-400 hover:text-blue-600" status="high-availability" />
+                    </router-link>
+                </template>
+                <template #parent>
+                    Application:
+                    <router-link :to="{name: 'Application', params: {id: instance.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ instance.application.name }}</router-link>
                 </template>
                 <template #tools>
                     <div class="space-x-2 flex align-center">
@@ -42,7 +34,7 @@
                         <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
                     </div>
                 </template>
-            </InstanceStatusHeader>
+            </SectionNavigationHeader>
         </div>
         <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="deleteInstance" />
         <Teleport v-if="mounted" to="#platform-banner">
@@ -65,7 +57,7 @@
 </template>
 
 <script>
-import { ChevronLeftIcon, ChipIcon, ClockIcon, CogIcon, TemplateIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
+import { ChevronLeftIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
 import { Roles } from '../../../../forge/lib/roles.js'
@@ -74,9 +66,8 @@ import InstanceApi from '../../api/instances.js'
 import SnapshotApi from '../../api/projectSnapshots.js'
 
 import DropdownMenu from '../../components/DropdownMenu.vue'
-import InstanceStatusHeader from '../../components/InstanceStatusHeader.vue'
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
-import NavItem from '../../components/NavItem.vue'
+import SectionNavigationHeader from '../../components/SectionNavigationHeader.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
@@ -99,9 +90,8 @@ export default {
         ConfirmInstanceDeleteDialog,
         DropdownMenu,
         InstanceStatusPolling,
-        NavItem,
         InstanceStatusBadge,
-        InstanceStatusHeader,
+        SectionNavigationHeader,
         SideNavigationTeamOptions,
         StatusBadge,
         SubscriptionExpiredBanner,
@@ -223,12 +213,12 @@ export default {
             this.instanceStateMutator = new InstanceStateMutator(this.instance)
 
             this.navigation = [
-                { label: 'Overview', path: `/instance/${this.instance.id}/overview`, tag: 'instance-overview', icon: TemplateIcon },
-                { label: 'Devices', path: `/instance/${this.instance.id}/devices`, tag: 'instance-remote', icon: ChipIcon },
-                { label: 'Snapshots', path: `/instance/${this.instance.id}/snapshots`, tag: 'instance-snapshots', icon: ClockIcon },
-                { label: 'Audit Log', path: `/instance/${this.instance.id}/audit-log`, tag: 'instance-activity', icon: ViewListIcon },
-                { label: 'Node-RED Logs', path: `/instance/${this.instance.id}/logs`, tag: 'instance-logs', icon: TerminalIcon },
-                { label: 'Settings', path: `/instance/${this.instance.id}/settings`, tag: 'instance-settings', icon: CogIcon }
+                { label: 'Overview', to: `/instance/${this.instance.id}/overview`, isActive: true, tag: 'instance-overview' },
+                { label: 'Devices', to: `/instance/${this.instance.id}/devices`, tag: 'instance-remote' },
+                { label: 'Snapshots', to: `/instance/${this.instance.id}/snapshots`, tag: 'instance-snapshots' },
+                { label: 'Audit Log', to: `/instance/${this.instance.id}/audit-log`, tag: 'instance-activity' },
+                { label: 'Node-RED Logs', to: `/instance/${this.instance.id}/logs`, tag: 'instance-logs' },
+                { label: 'Settings', to: `/instance/${this.instance.id}/settings`, tag: 'instance-settings' }
             ]
         },
         async startInstance () {

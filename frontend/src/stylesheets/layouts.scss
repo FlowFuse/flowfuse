@@ -183,12 +183,10 @@ $nav_height: 60px;
         overflow-y: auto;
     }
     main {
-        margin: 9px;
         padding: 12px;
         background-color: $ff-grey-50;
     }
     main.ff-with-status-header {
-        margin: 9px;
         padding: 0px;
         .ff-instance-header {
             padding: 0px;
@@ -682,7 +680,6 @@ $nav_height: 60px;
     /* Platform */
     .ff-layout--platform--wrapper {
         main {
-            margin: 12px;
             padding: 24px;
         }
     }
@@ -698,11 +695,9 @@ $nav_height: 60px;
     .ff-layout--platform--wrapper {
         grid-template-columns: $sidenav_width 1fr;
         main {
-            margin: 24px;
             padding: 32px;
         }
         main.ff-with-status-header {
-            margin: 24px;
             padding: 0px;
             .ff-instance-header {
                 padding: 0px;
