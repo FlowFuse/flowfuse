@@ -1,10 +1,7 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header :tabs="sideOptions">
-                <template #breadcrumbs>
-                    <ff-nav-breadcrumb>Settings</ff-nav-breadcrumb>
-                </template>
+            <ff-page-header title="Settings" :tabs="sideOptions">
                 <template #context>
                     View and manage the settings of your team.
                 </template>

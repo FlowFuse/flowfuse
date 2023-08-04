@@ -4,10 +4,7 @@
     </div>
     <ff-page>
         <template #header>
-            <ff-page-header>
-                <template #breadcrumbs>
-                    <ff-nav-breadcrumb>Team Billing</ff-nav-breadcrumb>
-                </template>
+            <ff-page-header title="Team Billing">
                 <template #tools>
                     <ff-button v-if="subscription" @click="customerPortal()">
                         <template #icon-right><ExternalLinkIcon /></template>

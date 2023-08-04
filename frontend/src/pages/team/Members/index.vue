@@ -1,10 +1,7 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header :tabs="navigation">
-                <template #breadcrumbs>
-                    <ff-nav-breadcrumb>Members</ff-nav-breadcrumb>
-                </template>
+            <ff-page-header title="Members" :tabs="navigation">
                 <template #context>
                     View and manage the members of your team.
                 </template>

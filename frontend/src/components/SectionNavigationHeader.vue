@@ -4,9 +4,10 @@
             <div class="flex">
                 <div class="w-full flex items-center md:w-auto mr-8 gap-x-2">
                     <slot name="hero">
-                        <div class="flex-grow items-center inline-flex flex-wrap" data-el="device-name">
+                        <div class="flex-grow items-center inline-flex flex-wrap">
                             <div class="flex items-center mr-6">
                                 <slot name="breadcrumbs" />
+                                <ff-nav-breadcrumb data-el="page-name">{{ title }}</ff-nav-breadcrumb>
                                 <InformationCircleIcon v-if="hasInfoDialog" class="ml-3 min-w-[20px] ff-icon text-gray-800 cursor-pointer hover:text-blue-700" @click="openInfoDialog()" />
                             </div>
                             <slot name="status" />

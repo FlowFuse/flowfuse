@@ -2,9 +2,6 @@
     <ff-page>
         <template #header>
             <ff-page-header title="Applications">
-                <template #breadcrumbs>
-                    <ff-nav-breadcrumb>Applications</ff-nav-breadcrumb>
-                </template>
                 <template #context>
                     A list of applications belonging to this Team.
                 </template>

@@ -1,10 +1,7 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header>
-                <template #breadcrumbs>
-                    <ff-nav-breadcrumb>Audit Log</ff-nav-breadcrumb>
-                </template>
+            <ff-page-header title="Audit Log">
                 <template #context>
                     Detailed recording of all activity at the team-level.
                 </template>

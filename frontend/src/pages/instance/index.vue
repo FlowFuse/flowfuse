@@ -8,10 +8,9 @@
     </main>
     <ff-page v-else>
         <template #header>
-            <ff-page-header :tabs="navigation">
+            <ff-page-header :title="instance.name" :tabs="navigation">
                 <template #breadcrumbs>
                     <ff-nav-breadcrumb :to="{name: 'Instances', params: {team_slug: team.slug}}">Instances</ff-nav-breadcrumb>
-                    <ff-nav-breadcrumb>{{ instance.name }}</ff-nav-breadcrumb>
                 </template>
                 <template #status>
                     <InstanceStatusBadge :status="instance.meta?.state" :optimisticStateChange="instance.optimisticStateChange" :pendingStateChange="instance.pendingStateChange" />

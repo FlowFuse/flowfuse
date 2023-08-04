@@ -2,9 +2,6 @@
     <ff-page>
         <template #header>
             <ff-page-header title="Instances">
-                <template #breadcrumbs>
-                    <ff-nav-breadcrumb>Instances</ff-nav-breadcrumb>
-                </template>
                 <template #context>
                     A list of all Node-RED instances belonging to this Team.
                 </template>

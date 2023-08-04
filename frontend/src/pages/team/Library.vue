@@ -2,9 +2,6 @@
     <ff-page>
         <template #header>
             <ff-page-header title="Team Library">
-                <template #breadcrumbs>
-                    <ff-nav-breadcrumb>Team Library</ff-nav-breadcrumb>
-                </template>
                 <template #context>
                     Shared repository to store common flows and nodes.
                 </template>
