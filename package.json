@@ -65,7 +65,6 @@
         "@fastify/swagger": "^8.6.0",
         "@fastify/swagger-ui": "^1.9.0",
         "@fastify/websocket": "^8.1.0",
-        "@flowforge/forge-ui-components": "^0.7.0",
         "@flowforge/localfs": "^1.10.0",
         "@headlessui/vue": "1.7.14",
         "@heroicons/vue": "1.0.6",
