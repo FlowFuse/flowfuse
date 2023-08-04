@@ -1027,6 +1027,7 @@ $countdown_size: 20px;
     flex-direction: row;
     .ff-tab-option {
       margin-right: $ff-unit-md;
+      &.router-link-active,
       &.ff-tab-option--active {
         border-bottom: $ff-unit-xs solid $ff-blue-700;
       }
@@ -1038,11 +1039,13 @@ $countdown_size: 20px;
       border-left-width: $ff-unit-xs;
       border-color: transparent;
       margin-bottom: $ff-unit-md;
+      &.router-link-active,
       &.ff-tab-option--active {
         border-left: $ff-unit-xs solid $ff-blue-700;
       }
     }
   }
+  .router-link-active,
   .ff-tab-option--active {
     color: $ff-blue-600;
   }

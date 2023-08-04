@@ -40,7 +40,7 @@ export default {
     },
     mounted () {
         this.scopedTabs = this.tabs
-        this.selectTab(0)
+        // this.selectTab(0)
     },
     methods: {
         selectTab (i) {
