@@ -54,7 +54,6 @@ import ApplicationApi from '../../api/application.js'
 import InstanceApi from '../../api/instances.js'
 
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
-import SectionNavigationHeader from '../../components/SectionNavigationHeader.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
@@ -77,7 +76,6 @@ export default {
     components: {
         ConfirmApplicationDeleteDialog,
         ConfirmInstanceDeleteDialog,
-        SectionNavigationHeader,
         InstanceStatusPolling,
         SideNavigationTeamOptions,
         SubscriptionExpiredBanner,
