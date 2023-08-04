@@ -19,7 +19,7 @@
             </template>
         </SideNavigation>
     </Teleport>
-    <main>
+    <ff-page>
         <div class="flex items-center mb-8">
             <div class="mr-3"><img :src="user.avatar" class="h-14 v-14 rounded-md"/></div>
             <div class="flex flex-col">
@@ -30,7 +30,7 @@
         <div class="text-sm sm:px-6 mt-4 sm:mt-8">
             <router-view></router-view>
         </div>
-    </main>
+    </ff-page>
 </template>
 
 <script>

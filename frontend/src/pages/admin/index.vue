@@ -19,11 +19,11 @@
             </template>
         </SideNavigation>
     </Teleport>
-    <main>
+    <ff-page>
         <div class="">
             <router-view></router-view>
         </div>
-    </main>
+    </ff-page>
 </template>
 
 <script>
