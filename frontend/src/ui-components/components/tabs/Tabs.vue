@@ -34,8 +34,6 @@ export default {
     watch: {
         tabs: function () {
             this.scopedTabs = this.tabs
-            const index = this.selectedIndex < 0 ? 0 : this.selectedIndex
-            this.selectTab(index)
         }
     },
     mounted () {
