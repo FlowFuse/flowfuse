@@ -1,15 +1,12 @@
 <template>
     <div ref="ff-tabs">
         <ul class="ff-tabs" :class="'ff-tabs--' + orientation">
-            <li v-for="(tab, $index) in tabs" :key="tab.label" class="ff-tab-option transition-fade--color"
+            <li v-for="(tab, $index) in scopedTabs" :key="tab.label" class="ff-tab-option transition-fade--color"
                 :class="{'ff-tab-option--active': tab.isActive}" @click="selectTab($index)"
             >
                 {{ tab.label }}
             </li>
         </ul>
-        <div class="ff-tabs-content">
-            <slot></slot>
-        </div>
     </div>
 </template>
 
@@ -20,21 +17,29 @@ export default {
         orientation: {
             default: '',
             type: String
+        },
+        tabs: {
+            default: () => [],
+            type: Array
         }
     },
     emits: ['tab-selected'],
     data () {
         return {
-            tabs: [],
-            active: -1
+            selectedIndex: -1,
+            scopedTabs: []
         }
     },
-    created () {
-        this.tabs = this.$slots.default().map((vnode) => {
-            return vnode.props
-        })
+    watch: {
+        tabs: function () {
+            this.scopedTabs = this.tabs
+            console.log('tabs changed')
+            const index = this.selectedIndex < 0 ? 0 : this.selectedIndex
+            this.selectTab(index)
+        }
     },
     mounted () {
+        this.scopedTabs = this.tabs
         this.selectTab(0)
     },
     methods: {
@@ -42,7 +47,7 @@ export default {
             this.selectedIndex = i
 
             // loop over all the tabs
-            this.tabs.forEach((tab, index) => {
+            this.scopedTabs?.forEach((tab, index) => {
                 tab.isActive = (index === i)
                 if (tab.isActive) {
                     this.$emit('tab-selected', tab)

@@ -12,7 +12,7 @@ export default {
         }
     },
     render: () => {
-        return null
+        return 'tabs'
     }
 }
 </script>
