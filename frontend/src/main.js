@@ -3,6 +3,8 @@ import { LottieAnimation } from 'lottie-web-vue'
 import { AxiosError } from 'axios'
 import { createApp } from 'vue'
 
+import './ui-components/index.scss'
+
 import App from './App.vue'
 import Loading from './components/Loading.vue'
 import router from './routes.js'
@@ -11,7 +13,6 @@ import store from './store/index.js'
 import './index.css'
 
 import ForgeUIComponents from './ui-components/index.js'
-import './ui-components/index.scss'
 
 const app = createApp(App)
     .use(ForgeUIComponents)
