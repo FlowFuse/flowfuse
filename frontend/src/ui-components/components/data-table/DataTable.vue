@@ -2,7 +2,7 @@
     <div class="ff-data-table">
         <div v-if="showOptions" class="ff-data-table--options">
             <ff-text-input v-if="showSearch" v-model="filterTerm" class="ff-data-table--search"
-                data-form="search" :placeholder="searchPlaceholder"
+                           data-form="search" :placeholder="searchPlaceholder"
             >
                 <template #icon><SearchIcon /></template>
             </ff-text-input>
@@ -17,9 +17,9 @@
                     <slot name="header">
                         <ff-data-table-row>
                             <ff-data-table-cell v-for="(col, $index) in columns" :key="$index"
-                                :class="[sort.key === col.key ? 'sorted' : '', col.sortable ? 'sortable' : ''].concat(col.class)"
-                                :style="col.style"
-                                @click="sortBy(col, $index)"
+                                                :class="[sort.key === col.key ? 'sorted' : '', col.sortable ? 'sortable' : ''].concat(col.class)"
+                                                :style="col.style"
+                                                @click="sortBy(col, $index)"
                             >
                                 <!-- Internal div required to have flex w/sorting icons -->
                                 <div>
@@ -41,7 +41,7 @@
                         </ff-data-table-row>
                         <template v-if="!loading">
                             <ff-data-table-row v-for="(r, $index) in filteredRows" :key="$index" :data="r" :columns="columns"
-                                :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn" @selected="rowClick(r)"
+                                               :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn" @selected="rowClick(r)"
                             >
                                 <template v-if="hasContextMenu" #context-menu="{row}">
                                     <slot name="context-menu" :row="row"></slot>
@@ -67,7 +67,7 @@
 <script>
 
 // icons
-import { SearchIcon, SwitchVerticalIcon, SortAscendingIcon, SortDescendingIcon } from '@heroicons/vue/outline'
+import { SearchIcon, SortAscendingIcon, SortDescendingIcon, SwitchVerticalIcon } from '@heroicons/vue/outline'
 
 function searchObjectProps (object, searchTerm, searchProps = []) {
     const searchPropsMap = searchProps

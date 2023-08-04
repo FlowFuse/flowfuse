@@ -21,6 +21,31 @@
 }
 
 /*
+  FF Breadcrumb
+*/
+
+.ff-nav-breadcrumb {
+  display: flex;
+  align-items: center;
+  a {
+    color: $ff-blue-600;
+    font-weight: bold;
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.ff-nav-breadcrumb--active span {
+  color: $ff-grey-800;
+  font-weight: bold;
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+/*
   FF Button
 */
 
@@ -990,6 +1015,7 @@ $countdown_size: 20px;
 */
 .ff-tabs {
   display: flex;
+  color: $ff-grey-800;
   .ff-tab-option {
     padding: $ff-unit-md;
     &:hover {
@@ -1016,6 +1042,9 @@ $countdown_size: 20px;
         border-left: $ff-unit-xs solid $ff-blue-700;
       }
     }
+  }
+  .ff-tab-option--active {
+    color: $ff-blue-600;
   }
 }
 

@@ -1,11 +1,12 @@
 <template>
-    <div ref="ff-tabs">
+    <div>
         <ul class="ff-tabs" :class="'ff-tabs--' + orientation">
-            <li v-for="(tab, $index) in scopedTabs" :key="tab.label" class="ff-tab-option transition-fade--color"
-                :class="{'ff-tab-option--active': tab.isActive}" @click="selectTab($index)"
+            <router-link
+                v-for="(tab, $index) in scopedTabs" :key="tab.label" class="ff-tab-option transition-fade--color"
+                :class="{'ff-tab-option--active': tab.isActive}" :to="tab.to" :data-nav="tab.tag" @click="selectTab($index)"
             >
                 {{ tab.label }}
-            </li>
+            </router-link>
         </ul>
     </div>
 </template>
@@ -15,7 +16,7 @@ export default {
     name: 'ff-tabs',
     props: {
         orientation: {
-            default: '',
+            default: 'horizontal',
             type: String
         },
         tabs: {
@@ -33,7 +34,6 @@ export default {
     watch: {
         tabs: function () {
             this.scopedTabs = this.tabs
-            console.log('tabs changed')
             const index = this.selectedIndex < 0 ? 0 : this.selectedIndex
             this.selectTab(index)
         }
@@ -51,6 +51,9 @@ export default {
                 tab.isActive = (index === i)
                 if (tab.isActive) {
                     this.$emit('tab-selected', tab)
+                    if (tab.to) {
+                        this.$router.push(tab.to)
+                    }
                 }
             })
         }

@@ -1,3 +1,4 @@
+import FFNavBreadcrumb from './components/Breadcrumb.vue'
 import FFButton from './components/Button.vue'
 import FFCheck from './components/Check.vue'
 import FFDialogBox from './components/DialogBox.vue'
@@ -36,6 +37,7 @@ import FFTabs from './components/tabs/Tabs.vue'
 export default {
     FFButton,
     FFKebabMenu,
+    FFNavBreadcrumb,
     FFDialogBox,
     FFHelpTooltip,
     FFListItem,
