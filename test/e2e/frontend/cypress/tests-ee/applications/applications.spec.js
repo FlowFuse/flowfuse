@@ -27,6 +27,8 @@ describe('FlowForge - Applications - With Billing', () => {
             cy.wait('@loadStacks')
             cy.get('[data-el="charges-table"]').should('exist')
 
+            cy.get('[data-el="credit-balance-banner"]').should('not.exist')
+
             cy.get('[data-el="selected-instance-type-name"]').contains('type1')
             cy.get('[data-el="selected-instance-type-cost"]').contains('$15.00')
             cy.get('[data-el="selected-instance-type-interval"]').contains('/mo')
