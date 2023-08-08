@@ -71,17 +71,28 @@
                 "commonjs": false
             },
             "parserOptions": {
+                "ecmaVersion": 2022,
                 "sourceType": "module"
             },
             "rules": {
                 // plugin:vue
-                "vue/html-indent": ["error", 4],
-                "vue/singleline-html-element-content-newline": "off",
+                "vue/html-indent": ["warn", 4],
+                
+                // plugin:vue - style rules 
                 "vue/max-attributes-per-line": "off",
                 "vue/attribute-hyphenation": "off",
+                "vue/singleline-html-element-content-newline": "off",
 
                 // plugin:promise
                 "promise/always-return": "off" // common Vue.js pattern
+            }
+        },
+
+        // UI components use kebab-case
+        {
+            "files": "frontend/src/ui-components/**",
+            "rules": {
+                "vue/component-definition-name-casing": ["error", "kebab-case"],
             }
         },
 
