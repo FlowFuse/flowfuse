@@ -29,7 +29,6 @@ import FFToggleSwitch from './components/form/ToggleSwitch.vue'
 // Notifications
 
 // Tabs
-import FFTab from './components/tabs/Tab.vue'
 import FFTabs from './components/tabs/Tabs.vue'
 
 // Utilities
@@ -62,6 +61,5 @@ export default {
     FFNotificationPill,
     FFNotificationToast,
     // Tabs
-    FFTabs,
-    FFTab
+    FFTabs
 }

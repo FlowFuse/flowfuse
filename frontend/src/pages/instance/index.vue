@@ -210,7 +210,7 @@ export default {
             this.instanceStateMutator = new InstanceStateMutator(this.instance)
 
             this.navigation = [
-                { label: 'Overview', to: `/instance/${this.instance.id}/overview`, isActive: true, tag: 'instance-overview' },
+                { label: 'Overview', to: `/instance/${this.instance.id}/overview`, tag: 'instance-overview' },
                 { label: 'Devices', to: `/instance/${this.instance.id}/devices`, tag: 'instance-remote' },
                 { label: 'Snapshots', to: `/instance/${this.instance.id}/snapshots`, tag: 'instance-snapshots' },
                 { label: 'Audit Log', to: `/instance/${this.instance.id}/audit-log`, tag: 'instance-activity' },
