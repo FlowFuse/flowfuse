@@ -1,0 +1,1125 @@
+/*
+  ff-core contains styling on the custom, ff components
+*/
+
+.ff-icon {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+}
+
+.ff-icon-sm {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+}
+
+.ff-icon-lg {
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+}
+
+/*
+  FF Button
+*/
+
+// nested element
+.ff-btn--icon,
+.ff-btn--icon svg {
+  width: 20px;
+  height: 20px;
+}
+.ff-btn--icon-left {
+  margin-left: -$ff-unit-xs;
+  margin-right: $ff-unit-sm;
+}
+.ff-btn--icon-right {
+  margin-left: $ff-unit-sm;
+  margin-right: -$ff-unit-xs;
+}
+
+.ff-btn {
+  border-radius: $ff-unit-sm;
+  display: flex;
+  align-items: center;
+  font-size: $ff-funit-sm;
+  line-height: 20px;
+  height: 32px;
+  position: relative;
+  
+  justify-content: center;
+  font-weight: bold;
+  height: auto;
+  padding: $ff-unit-sm 16px;
+  border: 0;
+
+  &.ff-btn-icon {
+    padding: $ff-unit-sm $ff-unit-md;
+  }
+
+  &.ff-btn-small {
+    padding: $ff-unit-xs $ff-unit-sm;
+    font-size: $ff-funit-xs;
+    line-height: 16px;
+    height: 24px;
+  }
+  
+  &.ff-btn-fwidth {
+    justify-content: center;
+  }
+
+  &:hover {
+    cursor: pointer;
+  }
+
+  &--primary {
+    background-color: $ff-color--action;
+    border: 1px solid $ff-color--action;
+    color: $ff-grey-50;
+    &:hover {
+      background-color: $ff-color--highlight;
+    }
+  }
+  &--secondary {
+    background-color: $ff-white;
+    color: $ff-color--action;
+    border: 1px solid $ff-color--action;
+    &:hover {
+      background-color: $ff-color--highlight;
+      border-color: $ff-color--highlight;
+      color: $ff-white;
+    }
+  }
+  &--tertiary {
+    color: $ff-color--action;
+    &:hover {
+      background-color: $ff-color--highlight;
+      color: $ff-white;
+    }
+  }
+  &--danger {
+    color: $ff-white;
+    background-color: $ff-color--danger;
+    border: 1px solid $ff-color--danger;
+    &:hover {
+      background-color: $ff-color--danger--dark;
+      color: $ff-white;
+    }
+  }
+
+  &.ff-btn-small {
+    .ff-btn--icon,
+    .ff-btn--icon svg {
+      width: 16px;
+      height: 16px;
+    }
+    .ff-btn--icon-left {
+      margin-right: $ff-unit-xs;
+    }
+    .ff-btn--icon-right {
+      margin-left: $ff-unit-xs;
+    }
+  }
+
+  &.ff-btn-fwidth {
+    .ff-btn--icon {
+      position: absolute;
+    }
+    .ff-btn--icon-left {
+      left: 0;
+      padding-left: $ff-unit-lg;
+    }
+    .ff-btn--icon-left {
+      right: 0;
+      padding-right: $ff-unit-lg;
+    }
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    border-color: $ff-grey-200;
+    color: $ff-grey-400;
+    background-color: $ff-grey-200;
+  }
+}
+
+/*
+  FF Kebab Menu
+*/
+
+.ff-kebab-menu {
+  position: relative;
+  >svg {
+    width: 20px;
+    cursor: pointer;
+    &:hover {
+      fill: $ff-blue-600;
+    }
+  }
+  &.active {
+    >svg {
+      fill: $ff-blue-600;
+    }
+  }
+}
+
+.ff-kebab-options {
+  color: $ff-grey-800;
+  position: absolute;
+  top: 24px;
+  border: 1px solid $ff-grey-300;
+  z-index: 10;
+  box-shadow: 0px 6px 9px 0px #00000038;
+  li {
+    min-width: 150px;
+    white-space: nowrap;
+    &.ff-list-item--danger {
+      color: $ff-red-500;
+    }
+  }
+  &--left {
+    left: 0;
+  }
+  &--right {
+    right: calc(100% - 24px);
+  }
+}
+
+/*
+  FF List Item
+*/
+li.ff-list-item {
+  padding: 12px 48px 12px 12px;
+  background-color: white;
+  &:hover {
+    cursor: pointer;
+    background-color: $ff-grey-200;
+  }
+  &.disabled, :disabled {
+    pointer-events: none;
+    label {
+      opacity: 0.5;
+    }
+  }
+}
+
+/*
+  FF Input
+*/
+
+.ff-input {
+  &.ff-text-input {
+    border: 1px solid $ff-grey-300;
+    border-radius: $ff-unit-sm;
+    height: 32px;
+    width: 100%;
+    display: flex;
+    gap: 0px;
+    align-items: center;
+    background-color: $ff-white;
+    border-color: $ff-grey-300;
+    svg {
+      width: 20px;
+      height: 20px;
+      margin-left: $ff-unit-sm;
+    }
+    input {
+      flex-grow: 1;
+      padding: $ff-unit-sm $ff-unit-md;
+      border-radius: $ff-unit-sm;
+      background: none;
+      height: 100%;
+      border-width: 0;
+      min-width: 0;
+      &[disabled] {
+        background-color: $ff-grey-50;
+      }
+      &:focus-visible {
+        border: none;
+        outline: none;
+      }
+    }
+    &:focus-within {
+      border-color: $ff-blue-600;
+      border-width: 2px;
+      outline: none;
+      svg {
+        margin-left: $ff-unit-sm - 1px;
+      }
+    }
+  }
+}
+
+.ff-input--error {
+  &.ff-text-input {
+    border-color: $ff-red-500;
+    border-width: 2px;
+    outline: none;
+  }
+}
+
+.ff-dropdown {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  &[disabled="true"] {
+    cursor: not-allowed;
+    background-color: $ff-grey-50;
+    color: $ff-grey-400;
+  }
+  .ff-dropdown-selected {
+    background-color: white;
+    border: 1px solid $ff-grey-300;
+    border-radius: $ff-unit-sm;
+    padding: $ff-unit-sm $ff-unit-md;
+    height: 32px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    z-index: 2;
+
+    > .ff-dropdown-selected-item {
+      flex-shrink: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    > .ff-dropdown-icon {
+      flex-shrink: 0;
+    }
+  }
+  .ff-dropdown-options {
+    position: absolute;
+    top: 100%;
+    display: none;
+    max-height: 14rem;
+    overflow-y: auto;
+    box-shadow: 0px 6px 9px 0px #00000038;
+    .ff-dropdown-option {
+      padding: $ff-unit-sm $ff-unit-md;
+      background-color: $ff-grey-50;
+      border-bottom: 1px solid $ff-grey-200;
+      cursor: pointer;
+      &:hover {
+        background-color: $ff-grey-200;
+      }
+    }
+    &.ff-dropdown-options--full-width {
+      width: 100%;
+      border-width: 0 1px 1px 1px;
+    }
+    &.ff-dropdown-options--fit {
+      border-width: 1px;
+      min-width: none;
+      .ff-dropdown-option {
+        padding-right: $ff-unit-xl;
+      }
+    }
+    &.ff-dropdown-options--align-left {
+      left: 0;
+    }
+    &.ff-dropdown-options--align-right {
+      right: 0;
+    }
+  }
+  &.ff-dropdown--open {
+    .ff-dropdown-selected {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+    .ff-dropdown-options {
+      display: block;
+      z-index: 2;
+    }
+  }
+}
+
+.ff-checkbox,
+.ff-radio-btn {
+  position: relative;
+  padding-left: 25px;
+  display: flex;
+  cursor: pointer;
+  input[type=checkbox], input[type=radio] {
+    display: none;
+  }
+  label {
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  /* Create a custom checkbox */
+  .checkbox {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 16px;
+    width: 16px;
+    border-radius: 4px;
+    background-color: transparent;
+    border: 1px solid;
+    border-color: $ff-grey-400;    
+  }
+  &:hover:not([disabled=true]) {
+    .checkbox {
+      background-color: $ff-grey-200;
+    }
+  }
+  &:hover:not([disabled=true]) {
+    .checkbox[checked=true] {
+      background-color: $ff-grey-500;
+    }
+  }
+  &[disabled=true] {
+    cursor: not-allowed;
+    label, p {
+      color: $ff-grey-400;
+    }
+  }
+  &[disabled=true] * {
+    pointer-events: none;
+  }
+  .checkbox {
+    &[checked=true] {
+      background-color: $ff-grey-600;
+      border-color: $ff-grey-700;
+    }
+    &[checked=true]:after {
+      display: block;
+    }
+  }
+}
+
+.ff-checkbox {
+  .checkbox:after {
+    content: "";
+    display: none;
+    position: absolute;
+    left: 4.5px;
+    top: 1px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+  }
+}
+
+/**
+ *  FF Toggle Switch
+ */
+
+.ff-toggle-switch {
+    --ff-toggle-width: 54px;
+    --ff-toggle-translate: 20px;
+    position: relative;
+    display: inline-block;
+    width: var(--ff-toggle-width);
+    height: 34px;
+    cursor: pointer;
+    input {
+      display: none;
+    }
+    &.checked .ff-toggle-switch-slider {
+      background-color: $ff-blue-900;
+    }
+    &.checked .ff-toggle-switch-slider .ff-toggle-switch-button{
+      -webkit-transform: translateX(var(--ff-toggle-translate));
+      -ms-transform: translateX(var(--ff-toggle-translate));
+      transform: translateX(var(--ff-toggle-translate));
+    }
+    &[disabled=true] {
+      cursor: not-allowed;
+      .ff-toggle-switch-slider {
+        pointer-events: none;
+        background-color: $ff-grey-200;
+      }
+      .ff-toggle-switch-button {
+        background-color: $ff-grey-50;
+      }
+      svg {
+        color: $ff-grey-300;
+      }
+    }
+}
+
+.ff-toggle-switch-slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: $ff-grey-400;
+    border-radius: 34px;
+    -webkit-transition: 0.4s;
+    transition: 0.4s;
+    svg {
+      padding: 3px;
+      width: 100%;
+      height: 100%;
+    }
+    &:hover {
+      background-color: $ff-indigo-700 !important;
+    }
+}
+
+.ff-toggle-switch-button {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    border-radius: 50%;
+    -webkit-transition: 0.4s;
+    transition: 0.4s;
+}
+
+/**
+ *  FF Radio Group
+ */
+
+.ff-radio-group {
+  .ff-radio-group-label {
+    display: block;
+  }
+  .ff-radio-group-options {
+    display: block;
+    margin-top: 1rem;
+  }
+  .ff-radio-group--horizontal {
+    display: flex;
+    .ff-radio-btn {
+      margin-right: $ff-funit-lg;
+    }
+  }
+  .ff-radio-group--vertical {
+    .ff-radio-btn {
+      display: block;
+      margin-bottom: $ff-funit-md;
+    }
+  }
+  .ff-radio-group--grid {
+    display: grid;
+    .ff-radio-btn {
+      display: block;
+      margin-bottom: $ff-funit-md;
+    }
+  }
+}
+
+.ff-radio-btn {
+  .checkbox {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 16px;
+    width: 16px;
+    border-radius: 4px;
+    background-color: transparent;
+    border: 1px solid $ff-grey-400;
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e")    
+  }
+}
+
+.ff-tile-selection {
+  display: flex;
+  flex-wrap: wrap;
+  .ff-tile-selection-option {
+    display: flex;
+    flex-direction: column;
+    background-color: $ff-white;
+    font-size: 0.875rem;
+    border: 2px solid $ff-grey-300;
+    border-radius: $ff-unit-sm;
+    padding: 12px $ff-unit-lg;
+    margin-right: $ff-unit-md;
+    margin-bottom: $ff-unit-sm;
+    width: 275px;
+    ul {
+      list-style: disc;
+      margin-top: 3px;
+      padding-left: 18px;
+      li {
+        line-height: 1.5rem;
+      }
+    }
+    &:last-child {
+      margin-right: 0;
+    }
+    &--header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      h2 {
+        font-size: 14px;
+      }
+      > h2 {
+        display: flex;
+        align-items: center;
+        gap: $ff-unit-md;
+        padding-right: $ff-unit-xl;
+        margin: 0;
+        svg {
+          width: 20px;
+          height: 20px;
+          fill: $ff-grey-300;
+          &.ff-tile-selection-option--edit {
+            cursor: pointer;
+            fill: $ff-blue-800;
+            &:hover {
+              fill: $ff-indigo-600;
+            }
+          }
+        }
+      }
+    }
+    &--price {
+      text-align: center;
+      h2 {
+        margin: 0;
+        line-height: 1rem;
+      }
+      label {
+        font-size: $ff-funit-sm;
+      }
+    }
+    &--description {
+      flex-grow: 1;
+      margin-top: $ff-unit-sm;
+      padding-top: $ff-unit-sm;
+      border-top: 1px solid $ff-grey-300;
+    }
+    &--meta {
+      margin-top: $ff-unit-md;
+      padding-top: $ff-unit-md;
+      border-top: 1px solid $ff-grey-300;
+      >div {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        margin-bottom: $ff-unit-sm;
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+    &:not(.editable):hover {
+      cursor: pointer;
+      border: 2px solid $ff-blue-700;
+    }
+    &.active {
+      border: 2px solid $ff-blue-700;
+      svg {
+        fill: $ff-blue-700;
+      }
+    }
+    &.disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+  }
+}
+
+/*
+  FF Data Table 
+*/
+.ff-data-table {
+  width: 100%;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  &--options {
+    margin-bottom: 6px;
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+  }
+  &--search.ff-text-input {
+    flex-grow: 1;
+    width: auto;
+    height: 34px;
+    border-radius: 6px;
+  }
+  &--actions {
+    display: flex;
+    gap: 6px;
+  }
+  &--data {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    .ff-data-table--cell {
+      .ff-icon {
+        margin: -1px 0;
+      }
+      .ff-icon-lg {
+        margin: -3px 0;
+      }
+      &:first-child {
+        padding-left: 16px;
+      }
+      &:last-child {
+        padding-right: 16px;
+      }
+    }
+    thead {
+      .ff-data-table--row .ff-data-table--cell {
+        &:first-child {
+          border-top-left-radius: 6px;
+        }
+        &:last-child {
+          border-top-right-radius: 6px;
+        }
+      }
+      .ff-data-table--cell {
+        padding: 9px 12px;
+        background-color: $ff-grey-100;
+        font-weight: 600;
+        transition: 0.3s background-color, 0.3s color;
+        -webkit-transition: 0.3s background-color, 0.3s color;
+        &.sortable {
+          >div {
+            display: flex;
+            justify-content: space-between;
+            gap: $ff-unit-md;
+          }
+          .ff-icon {
+            opacity: 0.2;
+          }
+          &:hover {
+            background-color: $ff-grey-200;
+            cursor: pointer;
+            .ff-icon {
+              opacity: 0.5;
+            }
+          }
+        }
+        &.sorted {
+          background-color: $ff-grey-200;
+          .ff-icon.icon-sorted {
+            opacity: 1;
+          }
+        }
+      }
+    }
+    tbody {
+      .ff-data-table--row:last-child {
+        .ff-data-table--cell {
+          border-bottom-width: 1px;
+          border-top-color: $ff-grey-200;
+          &:first-child {
+            border-bottom-left-radius: 6px;
+          }
+          &:last-child {
+            border-bottom-right-radius: 6px;
+          }
+        }
+      }
+      .ff-data-table--cell {
+        padding: 12px 12px;
+        background-color: white;
+        &.highlight {
+          background-color: $ff-grey-50;
+        }
+        &.status-message {
+          text-align: center;
+          color: $ff-grey-400;
+        }
+      }
+      .selectable:hover .ff-data-table--cell {
+        cursor: pointer;
+        color: $ff-blue-600;
+        background-color: $ff-grey-50;
+      }
+    }
+  }
+  &--row {
+    td {
+      border-width: 1px 0px 0px;
+      border-style: solid;
+      border-color: $ff-grey-300;
+      &:first-child {
+        border-left-width: 1px;
+      }
+      &:last-child {
+        border-right-width: 1px;
+      }
+    }
+  }
+}
+
+.ff-loadmore {
+  width: 100%;
+  text-align: center;
+  span {
+    display: inline-block;
+    margin: auto;
+    color: $ff-blue-500;
+    background-color: white;
+    padding: $ff-unit-xs $ff-unit-md 4px;
+    border: 1px solid $ff-grey-300;
+    border-top: 0;
+    border-radius: 0 0 6px 6px;
+    &:hover {
+      cursor: pointer;
+      color: $ff-blue-700;
+    }
+  }
+}
+
+/*
+  FF Dialog Box
+*/
+.ff-dialog-container {
+  position: fixed;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-y: auto;
+  background-color: rgba($ff-grey-800, 0.3);
+  &--open {
+    display: flex;
+  }
+  &--closed {
+    display: none;
+  }
+}
+
+.ff-dialog-box {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 42rem;
+  margin: 90px auto;
+  display: flex;
+  flex-direction: column;
+  background-color: $ff-white;
+  .ff-dialog {
+    &-header {
+      height: 48px;
+      line-height: 48px;
+      background-color: $ff-grey-800;
+      border-bottom: 2px solid $ff-red-400;
+      padding: 0 $ff-unit-lg;
+      color: $ff-white;
+      font-weight: 600;
+    }
+    &-content {
+      padding: $ff-funit-lg;
+      overflow-y: visible;
+    }
+    &-actions {
+      display: flex;
+      justify-content: flex-end;
+      padding: $ff-unit-md $ff-unit-lg $ff-unit-lg $ff-unit-lg;
+      .ff-btn {
+        margin-left: $ff-funit-md;
+      }
+    }
+  }
+}
+
+/*
+  Help Tooltip
+*/
+
+.ff-help-tooltip {
+  &:hover {
+    path {
+      fill: $ff-blue-800;
+    }
+  }
+}
+
+/*
+  Notifications
+*/
+
+.ff-notification-pill {
+  background-color: $ff-red-600;
+  color: $ff-white;
+  padding: $ff-unit-xs $ff-unit-md;
+  font-weight: 600;
+  border-radius: $ff-unit-sm;
+  font-size: $ff-funit-sm;
+}
+
+.ff-notification-toast {
+  position: relative;
+  background-color: $ff-white;
+  border: 1px solid $ff-grey-400;
+  padding: $ff-unit-md $ff-unit-md $ff-unit-md $ff-unit-lg;
+  box-shadow: -$ff-unit-sm $ff-unit-sm $ff-unit-sm #0000008c;
+  border-radius: 0 $ff-unit-sm $ff-unit-sm 0;
+  max-width: 475px;
+
+  &--bar {
+    height: 100%;
+    width: $ff-unit-md;
+    background-color: black;
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  &--info {
+    border-color: $ff-grey-400;
+    .ff-notification-toast--bar {
+      background-color: $ff-grey-400;
+    }
+  }
+  &--warning {
+    border-color: $ff-red-400;
+    .ff-notification-toast--bar {
+      background-color: $ff-red-400;
+    }
+  }
+  &--confirmation {
+    border-color: $ff-green-400;
+    .ff-notification-toast--bar {
+      background-color: $ff-green-400;
+    }
+  }
+
+  &--message {
+    display: grid;
+    grid-template-columns: 1fr 20px;
+    gap: $ff-unit-lg;
+    >div {
+      padding-top: 2px;
+    }
+  }
+
+  &--close {
+    cursor: pointer;
+    position: relative;
+    svg {
+      position: relative;
+      z-index: 2;
+      padding: 4px;
+    }
+    .countdown-wrapper {
+      z-index: 1;
+    }
+    &:hover {
+      color: $ff-indigo-600;
+    }
+  }
+
+  &--actions {
+    margin-top: $ff-unit-md;
+    // margin-right: $ff-unit-xl;
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+/* Countdown Pie */
+$countdown_size: 20px;
+
+.countdown-wrapper {
+  width: $countdown_size;
+  height: $countdown_size;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: white;
+}
+
+.countdown-pie {
+  width: 50%;
+  height: 100%;
+  position: absolute;
+  background: $ff-white;
+  border: 2px solid $ff-grey-300;
+}
+
+.countdown-spinner {
+  transform-origin: 100% 50%;
+  border-radius: ($countdown_size*0.5) 0 0 ($countdown_size*0.5);
+  z-index: 200;
+  border-right: none;
+}
+
+.countdown-filler {
+  border-radius: 0 ($countdown_size*0.5) ($countdown_size*0.5) 0;
+  z-index: 100;
+  border-left: none;
+  left: 50%;
+  opacity: 0;
+}
+
+.countdown-mask {
+  width: 50%;
+  height: 100%;
+  position: absolute;
+  z-index: 300;
+  opacity: 1;
+  background: inherit;
+}
+
+@keyframes rota {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fill {
+  0%        { opacity: 0; }
+  50%, 100% { opacity: 1; }
+}
+
+@keyframes mask {
+  0%        { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+
+/*
+  FF Tabs
+*/
+.ff-tabs {
+  display: flex;
+  .ff-tab-option {
+    padding: $ff-unit-md;
+    &:hover {
+      color: $ff-blue-700;
+      cursor: pointer;
+    }
+  }
+  &.ff-tabs--horizontal {
+    flex-direction: row;
+    .ff-tab-option {
+      margin-right: $ff-unit-md;
+      &.ff-tab-option--active {
+        border-bottom: $ff-unit-xs solid $ff-blue-700;
+      }
+    }
+  }
+  &.ff-tabs--vertical {
+    flex-direction: column;
+    .ff-tab-option {
+      border-left-width: $ff-unit-xs;
+      border-color: transparent;
+      margin-bottom: $ff-unit-md;
+      &.ff-tab-option--active {
+        border-left: $ff-unit-xs solid $ff-blue-700;
+      }
+    }
+  }
+}
+
+/*
+  FF Tooltip
+*/
+.ff-tooltip {
+  position: absolute;
+  z-index: 100;
+  font-weight: normal; // prevent parent overriding if embedded in hX
+  white-space: nowrap;
+  background-color: black;
+  color: white;
+  padding: 3px 12px;
+  border-radius: 3px;
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.3s opacity;
+  -webkit-transition: 0.3s opacity;
+  &.ff-tooltip-right {
+    top: -3px;
+    left: calc(100% + 9px);
+    &::after {
+      content: " ";
+      position: absolute;
+      top: 50%;
+      right: 100%; /* To the left of the tooltip */
+      margin-top: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: transparent black transparent transparent;
+    }
+  }
+  &.ff-tooltip-left {
+    top: -3px;
+    right: calc(100% + 9px);
+    &::after {
+      content: " ";
+      position: absolute;
+      top: 50%;
+      left: 100%; /* To the right of the tooltip */
+      margin-top: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: transparent transparent transparent black;
+    }
+  }
+  &.ff-tooltip-top {
+    bottom: calc(100% + 9px);
+    left: 50%;
+    transform: translateX(-50%);
+    &::after {
+      content: " ";
+      position: absolute;
+      top: 100%; /* At the bottom of the tooltip */
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: black transparent transparent transparent;
+    }
+  }
+  &.ff-tooltip-bottom {
+    top: calc(100% + 9px);
+    left: 50%;
+    transform: translateX(-50%);
+    &::after {
+      content: " ";
+      position: absolute;
+      bottom: 100%;  /* At the top of the tooltip */
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: transparent transparent black transparent;
+    }
+  }
+}
+.ff-tooltip-container {
+  position: relative;
+  vertical-align: bottom;
+  &:hover .ff-tooltip {
+    opacity: 1;
+  }
+}
+
+.ff-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  color: $ff-grey-500;
+  circle {
+    stroke: transparent;
+  }
+  animation: spin 1s ease-in-out infinite;
+  -webkit-animation: spin 1s ease-in-out infinite;
+  @keyframes spin {
+    to {
+      -webkit-transform: rotate(360deg);
+    }
+  }
+  @-webkit-keyframes spin {
+    to {
+      -webkit-transform: rotate(360deg);
+    }
+  }
+}
