@@ -1,0 +1,230 @@
+{
+    "name": "Form Elements",
+    "id": "inputs",
+    "components": [{
+        "name": "ff-text-input",
+        "examples": [{
+            "code": "<ff-text-input v-model=\"myVar\" placeholder=\"Insert something here...\" />"
+        }, {
+            "code": "<ff-text-input type=\"password\" v-model=\"myPassword\" placeholder=\"Password goes here...\" />"
+        }, {
+            "code": "<ff-text-input type=\"email\" v-model=\"myEmail\" />"
+        }, {
+            "code": "<ff-text-input type=\"email\" v-model=\"myEmail\">\n\t<template v-slot:icon><SearchIcon/></template>\n</ff-text-input>"
+        }, {
+            "code": "<ff-text-input type=\"email\" v-model=\"myEmail\" :error=\"'This is the error.'\"></ff-text-input>"
+        }],
+        "props": [{
+            "key": "disabled",
+            "default": "false",
+            "description": "Whether or not the input field can be modified."
+        }, {
+            "key": "placeholder",
+            "default": "null",
+            "description": "Informative text to assist the user with the information required in this input field."
+        }, {
+            "key": "type",
+            "default": "'button'",
+            "description": "Any standard HTML button 'type'"
+        }, {
+            "key": "error",
+            "default": "false",
+            "description": "Anything other than null/undefined will result in the error state being visualised. Error message can be displayed manually with a <label class=\"ff-error-inline\">"
+        }],
+        "methods": [{
+            "name": "focus",
+            "description": "Focuses on the element"
+        },{
+            "name": "blur",
+            "description": "Removes focus from the element"
+        }],
+        "slots": [{
+            "name": "icon",
+            "description": "Pass in an icon to this slot to render it on hte left-side of the input field"
+        }]
+    }, {
+        "name": "ff-dropdown",
+        "examples": [{
+            "code": "<ff-dropdown v-model=\"mVar\">\n\t<ff-dropdown-option label=\"Option 1\" value=\"1\"></ff-dropdown-option>\n\t<ff-dropdown-option label=\"Option 2\" value=\"2\"></ff-dropdown-option>\n\t<ff-dropdown-option label=\"Option 3\" value=\"3\"></ff-dropdown-option>\n</ff-dropdown>"
+        }, {
+            "code": "<ff-dropdown v-model=\"mVar\" placeholder=\"Dropdown Button\" dropdown-style=\"button\">\n\t<template v-slot:button>\n\t\t<ff-button>\n\t\t\tButton\n\t\t\t<template v-slot:icon-right>\n\t\t\t\t<ChevronDownIcon />\n\t\t\t</template>\n\t\t</ff-button>\n\t</template>\n\t<template v-slot:default>\n\t\t<ff-dropdown-option label=\"Option 1\" value=\"1\"></ff-dropdown-option>\n\t\t<ff-dropdown-option label=\"Option 2\" value=\"2\"></ff-dropdown-option>\n\t\t<ff-dropdown-option label=\"Option 3\" value=\"3\"></ff-dropdown-option>\n\t</template>\n</ff-dropdown>"
+        }, {
+            "code": "<ff-dropdown v-model=\"mVar\" placeholder=\"Dropdown Button Right\" dropdown-style=\"button\" options-align=\"right\">\n\t<template v-slot:button>\n\t\t<ff-button>\n\t\t\tButton\n\t\t\t<template v-slot:icon-right>\n\t\t\t\t<ChevronDownIcon />\n\t\t\t</template>\n\t\t</ff-button>\n\t</template>\n\t<template v-slot:default>\n\t\t<ff-dropdown-option label=\"Option 1\" value=\"1\"></ff-dropdown-option>\n\t\t<ff-dropdown-option label=\"Option 2\" value=\"2\"></ff-dropdown-option>\n\t\t<ff-dropdown-option label=\"Option 3\" value=\"3\"></ff-dropdown-option>\n\t</template>\n</ff-dropdown>"
+        }, {
+            "code": "<ff-dropdown v-model=\"mVar\" :disabled=\"true\">\n\t<ff-dropdown-option label=\"Option 1\" value=\"1\"></ff-dropdown-option>\n\t<ff-dropdown-option label=\"Option 2\" value=\"2\"></ff-dropdown-option>\n\t<ff-dropdown-option label=\"Option 3\" value=\"3\"></ff-dropdown-option>\n</ff-dropdown>"
+        }],
+        "props": [{
+            "key": "placeholder",
+            "default": "Please Select",
+            "description": "Informative text to assist the user with the information required in this input field."
+        }, {
+            "key": "dropdown-style",
+            "default": "select",
+            "description": "(optional) 'select' or 'button'"
+        }, {
+            "key": "options-align",
+            "default": "left",
+            "description": "(optional) 'left' or 'right'"
+        }, {
+            "key": "disabled",
+            "default": "false",
+            "description": "(optional) Whether or not he dropdown should render in a disabled state - preventing user interaction"
+        }],
+        "methods": [{
+            "name": "focus",
+            "description": "Focuses on the element"
+        },{
+            "name": "blur",
+            "description": "Removes focus from the element"
+        }]
+    }, {
+        "name": "ff-checkbox",
+        "examples": [{
+            "code": "<ff-checkbox label=\"My Checkbox\" v-model=\"myVar\"></ff-checkbox>"
+        }, { 
+            "code": "<ff-checkbox label=\"My Checkbox\" v-model=\"myVar\"><b>My <u>Custom</u> Label</b></ff-checkbox>"
+        }],
+        "props": [{
+            "key": "label",
+            "default": "null",
+            "description": "Label for the checkbox."
+        }, {
+            "key": "disabled",
+            "default": "false",
+            "description": "Whether or not the checkbox can be toggled."
+        }],
+        "methods": [{
+            "name": "focus",
+            "description": "Focuses on the element"
+        },{
+            "name": "blur",
+            "description": "Removes focus from the element"
+        }]
+    }, {
+        "name": "ff-radio-group",
+        "examples": [{
+            "code": "<ff-radio-group v-model=\"myVar\" :options=\"[{label: 'Option 1', value: 1, checked: false}, {label: 'Option 2', value: 2}]\"></ff-radio-group>"
+        }, {
+            "code": "<ff-radio-group label=\"We can also provide a label here\" v-model=\"myVar\" orientation=\"grid\" :columns=\"3\" :options=\"[{label: 'Option 1', value: 1, checked: false}, {label: 'Option 2', value: 2}, {label: 'Option 3', value: 3, checked: false}, {label: 'Option 4', value: 4}]\"></ff-radio-group>"
+        },  {
+            "code": "<ff-radio-group label=\"We can also provide a label here\" v-model=\"myVar\" orientation=\"vertical\" :options=\"[{label: 'Option 1', value: 1, checked: false, description: 'This is a description of this particular option'}, {label: 'Option 2', value: 2, description: 'Another description'}]\"></ff-radio-group>"
+        }, {
+            "code": "<ff-radio-group label=\"We can also provide a label here\" v-model=\"myVar\" orientation=\"vertical\" :options=\"[{label: 'Option 1', value: 1, checked: false, description: 'This is a description of this particular option'}, {label: 'Disabled Options', disabled: true, value: 2, description: 'Another description'}]\"></ff-radio-group>"
+        }],
+        "props": [{
+            "key": "options",
+            "default": "null",
+            "description": "An array of objects, each with a 'label' and 'value' key that define the options available in the radio group."
+        }, {
+            "key": "label",
+            "default": "''",
+            "description": "(optional) Use this to provide guidance/instructions for what the radio buttons are being used for."
+        }, {
+            "key": "orientation",
+            "default": "horizontal",
+            "description": "(optional) The direction that the radio group renders, can also be 'vertical' or 'grid'"
+        }, {
+            "key": "columns",
+            "default": "2",
+            "description": "(optional) With 'orientation: grid', this is used to define the number of columns in the display grid."
+        }],
+        "methods": [{
+            "name": "focus",
+            "description": "Focuses on the first radio button"
+        },{
+            "name": "blur",
+            "description": "Removes focus from the element"
+        }]
+    }, {
+        "name": "ff-tile-selection",
+        "description": "This requires a pairing of components. The container, `ff-tile-selection`, and the options, `ff-tile-selection-options`. The following properties are available to the options.",
+        "examples": [{
+            "code": "<ff-tile-selection v-model=\"myVar\">\n\t<ff-tile-selection-option value=\"1\" label=\"Option 1\"\n\t\t:description=\"'Markdown supported in the description, consectetur adipiscing elit ut aliquam'\"\n\t\tprice=\"$15.00\" price-interval=\"/month\"/>\n\t<ff-tile-selection-option value=\"2\" label=\"Option 2\"\n\t\t:description=\"'\\n * So we can offer bullet point lists\\n*\n\t\t\tThat help summarise the selection option'\"\n\t\tprice=\"$50.00\" price-interval=\"/month\"/>\n</ff-tile-selection>"
+        }, {
+            "code": "<ff-tile-selection v-model=\"myVar\">\n\t<ff-tile-selection-option value=\"1\" label=\"Option 1\"\n\t\t:description=\"'Markdown supported in the description,\n\t\t\tconsectetur adipiscing elit ut aliquam'\"/>\n\t<ff-tile-selection-option value=\"2\" label=\"Option 2\"\n\t\t:description=\"'\\n * So we can offer bullet point lists\\n*\n\t\t\tThat help summarise the selection option'\"/>\n</ff-tile-selection>"
+        }, {
+            "code": "<ff-tile-selection v-model=\"myVar\">\n\t<ff-tile-selection-option :editable=\"true\" value=\"1\" label=\"Option 1\"\n\t\t:description=\"'Markdown supported in the description,\n\t\t\tconsectetur adipiscing elit ut aliquam'\"\n\t\tprice=\"$15.00\" price-interval=\"/month\" :meta=\"[{key: 'a', value: 1}, {key: 'b', value: 2}]\"/>\n\t<ff-tile-selection-option :editable=\"true\" value=\"2\" label=\"Option 2\"\n\t\t:description=\"'\\n * So we can offer bullet point lists\\n*\n\t\t\tThat help summarise the selection option'\"\n\t\tprice=\"$50.00\" price-interval=\"/month\" :meta=\"[{key: 'c', value: 3}, {key: 'd', value: 4}]\"/>\n</ff-tile-selection>"
+        }, {
+            "code": "<ff-tile-selection v-model=\"myVar\">\n\t<ff-tile-selection-option value=\"1\" label=\"Option 1\"\n\t\t:description=\"'Markdown supported in the description'\"\n\t\tprice=\"$15.00\" price-interval=\"/month\"/>\n\t<ff-tile-selection-option :disabled=\"true\" value=\"2\" label=\"Option 2\"\n\t\t:description=\"'The second option is disabled.'\" price=\"$50.00\" price-interval=\"/month\"/>\n\t<ff-tile-selection-option value=\"3\" label=\"Option 3\"\n\t\t:description=\"'The third option.'\" price=\"$50.00\" price-interval=\"/month\"/>\n</ff-tile-selection>"
+        }],
+        "emits": [{
+            "event": "edit",
+            "example": null,
+            "description": "Sent when the 'edit' button is clicked. Requires 'editable=true'."
+        }],
+        "props": [{
+            "key": "value",
+            "default": "null",
+            "description": "The value bound to v-model and emitted when selected"
+        }, {
+            "key": "editable",
+            "default": "false",
+            "description": "When true, shows an 'edit' icon in place of a 'selection' tick toggle. On clicking the 'edit' icon, an event is emitted."
+        }, {
+            "key": "disabled",
+            "default": "true",
+            "description": "Binds to selectable, and adds faded CSS appearance."
+        }, {
+            "key": "label",
+            "default": "''",
+            "description": "The primary title of the option"
+        }, {
+            "key": "description",
+            "default": "''",
+            "description": "Content, that can be formatted as Markdown, to be rendered as the main description in the tile"
+        }, {
+            "key": "price",
+            "default": "null",
+            "description": "(optional) Price to display in the top-right. This is just the currency and numerical value, e.g. $15.00"
+        }, {
+            "key": "price-interval",
+            "default": "null",
+            "description": "The frequency of the pricing charges, e.g. /month"
+        }, {
+            "key": "meta",
+            "default": "null",
+            "description": "An array of objects. Each object will be shown as a key/value pair in a table."
+        }],
+        "methods": [{
+            "name": "focus",
+            "description": "Focuses on the first time selection"
+        },{
+            "name": "blur",
+            "description": "Removes focus from all tile selections"
+        }]
+    }, {
+        "name": "ff-toggle-switch",
+        "description": "This requires a pairing of components. The container, `ff-tile-selection`, and the options, `ff-tile-selection-options`. The following properties are available to the options.",
+        "examples": [{
+            "code": "<ff-toggle-switch v-model=\"myVar\"></ff-toggle-switch>"
+        }, {
+            "code": "<ff-toggle-switch v-model=\"myVar\"><CodeIcon /></ff-toggle-switch>"
+        }, {
+            "code": "<ff-toggle-switch v-model=\"myVar\" disabled=\"true\"><CodeIcon /></ff-toggle-switch>"
+        }, {
+            "code": "<ff-toggle-switch v-model=\"myVar\" mode=\"async\" :loading=\"loading\" @click=\"onSwitchClick\"><CodeIcon /></ff-toggle-switch>"
+        }],
+        "emits": [{
+            "event": "click",
+            "example": null,
+            "description": "This event is emitted when the toggle switch is clicked and running in 'async' mode. State management for the switch value must then be controlled by the parent."
+        }],
+        "props": [{
+            "key": "mode",
+            "default": "sync",
+            "description": "sync | async. When in 'sync' mode (default), the switch will automatically update the value of v-model. When in 'async' mode, the switch will instead emit an '@click' event for the parent to handle the state management."
+        }, {
+            "key": "disabled",
+            "default": "false",
+            "description": "Whether or not the switch can be toggled."
+        }, {
+            "key": "loading",
+            "default": "false",
+            "description": "Displays a loading spinner inside the button of the switch."
+        }],
+        "slots": [{
+            "name": "default",
+            "description": "Pass in an icon to this slot to render it within the button of the switch."
+        }]
+    }]
+}

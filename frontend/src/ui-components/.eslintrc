@@ -1,0 +1,42 @@
+{
+    "root": true,
+    "env": {
+        "browser": true,
+        "commonjs": true,
+        "es2021": true,
+        "mocha": true
+    },
+    "extends": [
+        "standard",
+        "plugin:vue/vue3-essential"
+    ],
+    "parserOptions": {
+        "ecmaVersion": 12
+    },
+    "rules": {
+        "indent": ["error", 4]
+    },
+    "overrides": [{
+        "files": "src/**",
+        "extends": [
+            "plugin:vue/vue3-recommended"
+        ],
+        "rules": {
+            // plugin:vue
+            "vue/html-indent": ["warn", 4, { "alignAttributesVertically": false }],
+            "vue/component-definition-name-casing": ["error", "kebab-case"],
+
+            // plugin:vue - style rules 
+            "vue/html-self-closing": "off",
+            "vue/max-attributes-per-line": "off",
+            "vue/singleline-html-element-content-newline": "off",
+            "vue/first-attribute-linebreak": "off",
+        }
+    },
+    {
+        "files": "tests/**",
+        "env": {
+            "jest": true
+        }
+    }]
+}
