@@ -9,7 +9,7 @@
 import { QuestionMarkCircleIcon } from '@heroicons/vue/solid'
 
 export default {
-    name: 'FfHelp',
+    name: 'ff-help',
     components: {
         QuestionMarkCircleIcon
     },

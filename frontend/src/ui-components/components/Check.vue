@@ -9,7 +9,7 @@
 import { CheckIcon } from '@heroicons/vue/outline'
 
 export default {
-    name: 'FfCheck',
+    name: 'ff-check',
     components: {
         CheckIcon
     },

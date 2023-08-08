@@ -9,7 +9,7 @@
 
 <script>
 export default {
-    name: 'FfRadioButton',
+    name: 'ff-radio-button',
     props: {
         label: {
             required: true,

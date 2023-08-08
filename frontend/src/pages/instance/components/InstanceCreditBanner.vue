@@ -1,6 +1,6 @@
 <template>
     <div
-        v-if="subscription?.customer?.balance && subscription?.customer?.balance < 0"
+        v-if="subscription?.customer?.balance < 0"
         class="w-full text-sm text-blue-600 italic"
         data-el="credit-balance-banner"
     >
@@ -8,7 +8,7 @@
         You have a credit balance of {{ formatCurrency(-1 * subscription.customer.balance) }} that will be applied to this instance
     </div>
     <div
-        v-else
+        v-else-if="subscription?.customer?.balance > 0"
         class="w-full text-sm text-blue-600 italic"
         data-el="credit-balance-banner"
     >

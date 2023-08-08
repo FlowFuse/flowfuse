@@ -5,7 +5,7 @@
 
 <script>
 export default {
-    name: 'FfMarkdownViewer',
+    name: 'ff-markdown-viewer',
     props: {
         content: {
             required: true,

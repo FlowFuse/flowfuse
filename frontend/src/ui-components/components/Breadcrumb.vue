@@ -18,7 +18,7 @@
 
 import { ChevronRightIcon } from '@heroicons/vue/solid'
 export default {
-    name: 'FfNavBreadcrumb',
+    name: 'ff-nav-breadcrumb',
     components: {
         ChevronRightIcon
     },

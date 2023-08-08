@@ -23,7 +23,7 @@
 
 <script>
 export default {
-    name: 'FfDataTableRow',
+    name: 'ff-data-table-row',
     props: {
         columns: {
             type: Array,

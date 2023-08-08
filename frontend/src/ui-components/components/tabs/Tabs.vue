@@ -13,7 +13,7 @@
 
 <script>
 export default {
-    name: 'FfTabs',
+    name: 'ff-tabs',
     props: {
         orientation: {
             default: 'horizontal',
@@ -38,7 +38,6 @@ export default {
     },
     mounted () {
         this.scopedTabs = this.tabs
-        // this.selectTab(0)
     },
     methods: {
         selectTab (i) {

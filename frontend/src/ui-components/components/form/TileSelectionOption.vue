@@ -29,7 +29,7 @@
 import { CheckCircleIcon, PencilAltIcon } from '@heroicons/vue/solid'
 
 export default {
-    name: 'FfTileSelectionOption',
+    name: 'ff-tile-selection-option',
     components: {
         CheckCircleIcon,
         PencilAltIcon

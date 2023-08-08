@@ -3,7 +3,7 @@
         <div class="ff-dialog-box">
             <div class="ff-dialog-header">{{ header }}</div>
             <div ref="content" class="ff-dialog-content">
-                <slot />
+                <slot></slot>
             </div>
             <div class="ff-dialog-actions">
                 <slot name="actions">
@@ -17,7 +17,7 @@
 
 <script>
 export default {
-    name: 'FfDialog',
+    name: 'ff-dialog',
     props: {
         header: {
             type: String,

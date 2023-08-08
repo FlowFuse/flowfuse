@@ -12,7 +12,7 @@
 
 <script>
 export default {
-    name: 'FfToggleSwitch',
+    name: 'ff-toggle-switch',
     props: {
         disabled: {
             default: false,

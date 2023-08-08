@@ -24,7 +24,7 @@
 import { ChevronDownIcon } from '@heroicons/vue/solid'
 
 export default {
-    name: 'FfDropdown',
+    name: 'ff-dropdown',
     components: {
         ChevronDownIcon
     },

@@ -7,6 +7,6 @@
 
 <script>
 export default {
-    name: 'FfSpinner'
+    name: 'ff-spinner'
 }
 </script>

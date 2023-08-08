@@ -1,9 +1,9 @@
-import ForgeUIComponents from '@flowforge/forge-ui-components'
 import { createApp } from 'vue'
 
-import '@flowforge/forge-ui-components/dist/forge-ui-components.css'
+import './ui-components/index.scss'
 
 import App from './SetupApp.vue'
+import ForgeUIComponents from './ui-components/index.js'
 import './index.css'
 
 createApp(App)

@@ -3,8 +3,8 @@
 @tailwind components;
 @tailwind utilities;
 
-@import '~@flowforge/forge-ui-components/dist/scss/forge-colors.scss';
-@import '~@flowforge/forge-ui-components/dist/scss/forge-variables.scss';
+@import '../ui-components/stylesheets/ff-colors.scss';
+@import '../ui-components/stylesheets/ff-utility.scss';
 
 $sidenav_width: 275px;
 $transition_time: .15s;

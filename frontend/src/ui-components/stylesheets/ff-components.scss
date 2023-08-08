@@ -322,6 +322,15 @@ li.ff-list-item {
     max-height: 14rem;
     overflow-y: auto;
     box-shadow: 0px 6px 9px 0px #00000038;
+    .ff-dropdown-option {
+      padding: $ff-unit-sm $ff-unit-md;
+      background-color: $ff-grey-50;
+      border-bottom: 1px solid $ff-grey-200;
+      cursor: pointer;
+      &:hover {
+        background-color: $ff-grey-200;
+      }
+    }
     &.ff-dropdown-options--full-width {
       width: 100%;
       border-width: 0 1px 1px 1px;
@@ -338,15 +347,6 @@ li.ff-list-item {
     }
     &.ff-dropdown-options--align-right {
       right: 0;
-    }
-  }
-  .ff-dropdown-option {
-    padding: $ff-unit-sm $ff-unit-md;
-    background-color: $ff-grey-50;
-    border-bottom: 1px solid $ff-grey-200;
-    cursor: pointer;
-    &:hover {
-      background-color: $ff-grey-200;
     }
   }
   &.ff-dropdown--open {

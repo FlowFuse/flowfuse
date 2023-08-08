@@ -42,12 +42,20 @@
                             <ff-data-table-cell class="status-message" :colspan="messageColSpan">{{ loadingMessage }}</ff-data-table-cell>
                         </ff-data-table-row>
                         <template v-if="!loading">
+<<<<<<< HEAD
                             <ff-data-table-row
                                 v-for="(r, $index) in filteredRows" :key="$index" :data="r" :columns="columns"
                                 :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn" @selected="rowClick(r)"
                             >
                                 <template v-if="hasContextMenu" #context-menu="{row}">
                                     <slot name="context-menu" :row="row" />
+=======
+                            <ff-data-table-row v-for="(r, $index) in filteredRows" :key="$index" :data="r" :columns="columns"
+                                               :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn" @selected="rowClick(r)"
+                            >
+                                <template v-if="hasContextMenu" #context-menu="{row}">
+                                    <slot name="context-menu" :row="row"></slot>
+>>>>>>> origin/main
                                 </template>
                             </ff-data-table-row>
                         </template>
@@ -118,7 +126,11 @@ function searchObjectProps (object, searchTerm, searchProps = []) {
 }
 
 export default {
+<<<<<<< HEAD
     name: 'FfDataTable',
+=======
+    name: 'ff-data-table',
+>>>>>>> origin/main
     components: {
         SearchIcon,
         SwitchVerticalIcon,

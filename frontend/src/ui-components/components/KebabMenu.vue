@@ -5,11 +5,10 @@
         <DotsVerticalIcon v-if="!open" @click.stop="openOptions()" />
         <DotsVerticalIcon v-if="open" @click.stop="closeOptions()" />
         <template v-if="open">
-            <ul
-                v-click-outside="closeOptions" class="ff-kebab-options"
+            <ul v-click-outside="closeOptions" class="ff-kebab-options"
                 :class="'ff-kebab-options--' + menuAlign"
             >
-                <slot />
+                <slot></slot>
             </ul>
         </template>
     </div>
@@ -20,7 +19,7 @@
 import { DotsVerticalIcon } from '@heroicons/vue/solid'
 
 export default {
-    name: 'FfKebabMenu',
+    name: 'ff-kebab-menu',
     components: {
         DotsVerticalIcon
     },

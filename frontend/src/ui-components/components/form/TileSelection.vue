@@ -1,13 +1,21 @@
 <template>
     <div ref="options" class="ff-tile-selection">
+<<<<<<< HEAD
         <slot name="default" />
+=======
+        <slot name="default"></slot>
+>>>>>>> origin/main
     </div>
 </template>
 
 <script>
 
 export default {
+<<<<<<< HEAD
     name: 'FfTileSelection',
+=======
+    name: 'ff-tile-selection',
+>>>>>>> origin/main
     props: {
         modelValue: {
             default: null,

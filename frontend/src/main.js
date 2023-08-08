@@ -4,6 +4,7 @@ import { AxiosError } from 'axios'
 import { createApp } from 'vue'
 
 import './ui-components/index.scss'
+
 import App from './App.vue'
 import Loading from './components/Loading.vue'
 import SectionNavigationHeader from './components/SectionNavigationHeader.vue'

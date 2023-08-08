@@ -4,7 +4,7 @@
 
 <script>
 export default {
-    name: 'FfNotificationPill',
+    name: 'ff-notification-pill',
     props: {
         count: {
             default: null,

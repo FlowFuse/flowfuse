@@ -16,7 +16,7 @@
 
 <script>
 export default {
-    name: 'FfRadioGroup',
+    name: 'ff-radio-group',
     props: {
         modelValue: {
             default: null,

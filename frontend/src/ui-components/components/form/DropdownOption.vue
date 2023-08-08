@@ -6,7 +6,7 @@
 
 <script>
 export default {
-    name: 'FfDropdownOption',
+    name: 'ff-dropdown-option',
     props: {
         value: {
             default: null,

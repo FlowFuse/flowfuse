@@ -35,7 +35,7 @@ import FFTabs from './components/tabs/Tabs.vue'
 // Utilities
 
 export default {
-    'ff-button': FFButton,
+    FFButton,
     FFKebabMenu,
     FFNavBreadcrumb,
     FFDialogBox,

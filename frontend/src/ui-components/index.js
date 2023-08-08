@@ -1,6 +1,4 @@
-/* eslint-disable import/namespace */
 /* eslint-disable no-prototype-builtins */
-
 // third-party
 import { marked } from 'marked'
 

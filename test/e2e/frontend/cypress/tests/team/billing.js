@@ -30,6 +30,24 @@ describe('FlowForge - Team Billing', () => {
                 cy.wait('@getTeamBilling')
 
                 cy.get('[data-el="credit-balance-banner"]').should('exist').contains('$43.21')
+                cy.get('[data-el="credit-balance-banner"]').should('exist').contains('credit')
+            })
+        })
+
+        it('is visible when the team has debt', () => {
+            cy.applyBillingCreditToTeam(-4321)
+            cy.login('alice', 'aaPassword')
+            cy.home()
+
+            cy.request('GET', 'api/v1/teams').then((response) => {
+                const team = response.body.teams[0]
+
+                cy.visit(`/team/${team.slug}/billing`)
+                cy.wait('@getTeamBySlug')
+                cy.wait('@getTeamBilling')
+
+                cy.get('[data-el="credit-balance-banner"]').should('exist').contains('$43.21')
+                cy.get('[data-el="credit-balance-banner"]').should('exist').contains('owe')
             })
         })
     })

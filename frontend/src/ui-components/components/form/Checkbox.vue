@@ -10,7 +10,7 @@
 
 <script>
 export default {
-    name: 'FfCheckbox',
+    name: 'ff-checkbox',
     props: {
         label: {
             default: null,
