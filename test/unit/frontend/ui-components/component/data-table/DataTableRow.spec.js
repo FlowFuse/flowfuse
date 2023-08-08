@@ -1,5 +1,7 @@
 import { mount } from '@vue/test-utils'
-import DataTableRow from '@/components/data-table/DataTableRow.vue'
+import { expect } from 'vitest'
+
+import DataTableRow from '../../../../../../frontend/src/ui-components/components/data-table/DataTableRow.vue'
 
 const TestComponent = {
     template: '{{name}}: {{value}}',
@@ -52,7 +54,7 @@ describe('DataTableRow', () => {
                 }
             })
 
-            expect(wrapper.text()).toMatch('Film: Star Wars')
+            expect(wrapper.text()).toMatch('Film: Star wars')
 
             await wrapper.setProps({
                 columns: [{

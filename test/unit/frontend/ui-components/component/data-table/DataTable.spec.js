@@ -1,11 +1,12 @@
 import { mount } from '@vue/test-utils'
-import DataTable from '@/components/data-table/DataTable.vue'
+import { expect } from 'vitest'
 
-import FfDataTableRow from '@/components/data-table/DataTableRow.vue'
-import FfDataTableCell from '@/components/data-table/DataTableCell.vue'
-import FfKebabMenu from '@/components/KebabMenu.vue'
-import FfTextInput from '@/components/form/TextInput.vue'
-import FfCheck from '@/components/Check.vue'
+import FfCheck from '../../../../../../frontend/src/ui-components/components/Check.vue'
+import FfKebabMenu from '../../../../../../frontend/src/ui-components/components/KebabMenu.vue'
+import DataTable from '../../../../../../frontend/src/ui-components/components/data-table/DataTable.vue'
+import FfDataTableCell from '../../../../../../frontend/src/ui-components/components/data-table/DataTableCell.vue'
+import FfDataTableRow from '../../../../../../frontend/src/ui-components/components/data-table/DataTableRow.vue'
+import FfTextInput from '../../../../../../frontend/src/ui-components/components/form/TextInput.vue'
 
 describe('Data-Table > DataTable', () => {
     it('supports searching rows by values', async () => {

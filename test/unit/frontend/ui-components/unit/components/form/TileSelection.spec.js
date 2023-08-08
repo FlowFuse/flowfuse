@@ -1,7 +1,8 @@
 import { mount } from '@vue/test-utils'
+import { expect, vi } from 'vitest'
 
-import TileSelection from '@/components/form/TileSelection.vue'
-import TileSelectionOption from '@/components/form/TileSelectionOption.vue'
+import TileSelection from '../../../../../../../frontend/src/ui-components/components/form/TileSelection.vue'
+import TileSelectionOption from '../../../../../../../frontend/src/ui-components/components/form/TileSelectionOption.vue'
 
 describe('Form > TileSelection', () => {
     it('should have no children by default', async () => {
@@ -20,7 +21,7 @@ describe('Form > TileSelection', () => {
         expect(parent.vm.children.length).toBe(0)
     })
     it('should track registered children', async () => {
-        const mockCheckState = jest.spyOn(TileSelection.methods, 'checkState')
+        const mockCheckState = vi.spyOn(TileSelection.methods, 'checkState')
         const parent = mount(TileSelection, {
             props: {
                 modelValue: null

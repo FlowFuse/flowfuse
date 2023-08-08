@@ -1,5 +1,7 @@
 import { mount } from '@vue/test-utils'
-import ListItem from '@/components/ListItem.vue'
+import { expect } from 'vitest'
+
+import ListItem from '../../../../../../frontend/src/ui-components/components/ListItem.vue'
 
 describe('ListItem', () => {
     it('renders the passed label', async () => {

@@ -1,4 +1,6 @@
-import DataTable from '@/components/data-table/DataTable.vue'
+import { expect } from 'vitest'
+
+import DataTable from '../../../../../../../frontend/src/ui-components/components/data-table/DataTable.vue'
 
 describe('Data-Table > DataTable', () => {
     describe('#filterRows', () => {
