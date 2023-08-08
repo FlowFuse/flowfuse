@@ -40,8 +40,8 @@ export default {
         ExclamationIcon,
         PlayIcon,
         StopIcon,
-        RefreshIcon,
         SupportIcon,
+        RefreshIcon,
         AnimIconInstalling,
         AnimIconRestarting,
         AnimIconStarting

@@ -12,8 +12,9 @@ import PageLayout from './layouts/Page.vue'
 import router from './routes.js'
 import Alerts from './services/alerts.js'
 import store from './store/index.js'
-import ForgeUIComponents from './ui-components/index.js'
 import './index.css'
+
+import ForgeUIComponents from './ui-components/index.js'
 
 const app = createApp(App)
     .use(ForgeUIComponents)
