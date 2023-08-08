@@ -42,7 +42,6 @@ export default {
         StopIcon,
         RefreshIcon,
         SupportIcon,
-        RefreshIcon,
         AnimIconInstalling,
         AnimIconRestarting,
         AnimIconStarting

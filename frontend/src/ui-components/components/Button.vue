@@ -16,7 +16,6 @@
 <script>
 export default {
     name: 'ff-button',
-    name: 'ff-button',
     props: {
         type: {
             default: 'button', // "button" or "submit"
