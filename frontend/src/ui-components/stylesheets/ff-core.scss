@@ -1,0 +1,60 @@
+/*
+  ff-core contains styling on the fundamental HTML elements
+*/
+
+* {
+    box-sizing: border-box;
+}
+
+.transition-fade--color {
+    --time: 0.3s;
+    transition: var(--time) color, var(--time) background-color, var(--time) fill, var(--time) stroke, var(--time) border-color;
+    -webkit-transition: var(--time) color, var(--time) background-color, var(--time) fill, var(--time) stroke, var(--time) border-color;
+}
+
+html {
+    font-family: ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+    font-size: 14px;
+    line-height: 1.25rem;
+}
+
+body {
+    margin: 0;
+    color: $ff-grey-800;
+}
+
+h1 {
+    font-weight: bold;
+    font-size: $ff-funit-xl;
+    line-height: 1.45 * $ff-funit-xl;
+    margin-bottom: $ff-unit-lg;
+}
+
+h2 {
+    font-weight: bold;
+    font-size: $ff-funit-lg;
+    line-height: 1.45 * $ff-funit-lg;
+    margin-bottom: $ff-unit-sm;
+}
+
+h3 {
+    font-size: $ff-funit-md;
+    line-height: 1.45 * $ff-funit-md;
+    margin-bottom: $ff-unit-sm;
+    font-weight: bold;
+}
+
+code {
+    border-radius: $ff-unit-sm;
+    border: 1px solid $ff-grey-200;
+    padding: $ff-unit-md;
+}
+
+p code {
+    padding: 0 $ff-unit-xs;
+}
+
+.ff-description {
+    font-size: $ff-funit-sm;
+    color: $ff-grey-400;
+}

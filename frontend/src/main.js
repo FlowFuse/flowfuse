@@ -1,10 +1,9 @@
 import { LottieAnimation } from 'lottie-web-vue'
 
-import ForgeUIComponents from '@flowforge/forge-ui-components'
 import { AxiosError } from 'axios'
 import { createApp } from 'vue'
 
-import '@flowforge/forge-ui-components/dist/forge-ui-components.css'
+import './ui-components/index.scss'
 
 import App from './App.vue'
 import Loading from './components/Loading.vue'
@@ -12,6 +11,8 @@ import router from './routes.js'
 import Alerts from './services/alerts.js'
 import store from './store/index.js'
 import './index.css'
+
+import ForgeUIComponents from './ui-components/index.js'
 
 const app = createApp(App)
     .use(ForgeUIComponents)

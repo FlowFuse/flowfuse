@@ -11,7 +11,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import '~@flowforge/forge-ui-components/dist/scss/forge-colors.scss';
+@import '../../ui-components/stylesheets/ff-colors.scss';
 
 .ff-icon-anim {
     display: flex;
