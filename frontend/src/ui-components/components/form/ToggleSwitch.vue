@@ -50,10 +50,8 @@ export default {
             this.$refs.input?.blur()
         },
         toggle () {
-            console.log('toggling')
             if (!this.disabled) {
                 if (this.mode === 'sync') {
-                    console.log('switch model')
                     this.model = !this.model
                 } else if (this.mode === 'async') {
                     this.$emit('click')
