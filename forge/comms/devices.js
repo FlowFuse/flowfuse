@@ -83,9 +83,17 @@ class DeviceCommsHandler {
                     // The Project is incorrect
                     sendUpdateCommand = true
                 }
-                if (Object.hasOwn(payload, 'snapshot') && payload.snapshot !== (device.targetSnapshot?.hashid || null)) {
-                    // The Snapshot is incorrect
-                    sendUpdateCommand = true
+                if (Object.hasOwn(payload, 'snapshot')) {
+                    // load the full snapshot (as specified by the device) from the db so we can check the snapshots
+                    // `ProjectId` is "something" (not orphaned) and matches the device's project
+                    const targetSnapshot = (await this.app.db.models.ProjectSnapshot.byId(payload.snapshot))
+                    if (payload.snapshot !== (targetSnapshot?.hashid || null)) {
+                        // The Snapshot is incorrect
+                        sendUpdateCommand = true
+                    } else if (targetSnapshot && payload.project !== (targetSnapshot?.ProjectId || null)) {
+                        // The project the device is reporting it belongs to does not match the target Snapshot parent project
+                        sendUpdateCommand = true
+                    }
                 }
                 if (Object.hasOwn(payload, 'settings') && payload.settings !== (device.settingsHash || null)) {
                     // The Settings are incorrect
