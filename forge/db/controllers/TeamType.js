@@ -108,5 +108,21 @@ module.exports = {
                 }
             }
         }
+    },
+    /**
+     * Called by the setup wizard, ensures the default InstanceType is enabled
+     * for the default TeamType
+     * @param {InstanceType} instanceType the instanceType to enable
+     */
+    enableInstanceTypeForDefaultType: async function (app, instanceType) {
+        const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
+        if (defaultTeamType) {
+            const props = defaultTeamType.properties
+            props.instances[instanceType.hashid] = {
+                active: true
+            }
+            defaultTeamType.properties = props
+            await defaultTeamType.save()
+        }
     }
 }
