@@ -81,6 +81,7 @@ module.exports = {
                     stack: err.stack
                 }
                 this._app.log.error(errorDetail.error)
+                this._app.log.error(errorDetail.stack)
                 await this._app.auditLog.Project.project.startFailed(0 /* system */, errorDetail, project)
 
                 // Update the project state to suspended
