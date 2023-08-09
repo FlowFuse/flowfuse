@@ -101,7 +101,7 @@ class DeviceCommsHandler {
                 }
 
                 if (sendUpdateCommand) {
-                    this.app.db.controllers.Device.sendDeviceUpdateCommand(device)
+                    await this.app.db.controllers.Device.sendDeviceUpdateCommand(device)
                 }
             } catch (err) {
                 // Not a JSON payload - ignore
