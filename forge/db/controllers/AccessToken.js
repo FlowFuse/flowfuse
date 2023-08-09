@@ -155,6 +155,52 @@ module.exports = {
         await app.settings.set('platform:stats:token', false)
     },
 
+    createPersonalAccessToken: async function (app, user, scope, expiresAt, name) {
+        const userId = typeof user === 'number' ? user : user.id
+        const token = generateToken(32, 'ffpat')
+        await app.db.models.AccessToken.create({
+            token,
+            scope,
+            expiresAt,
+            ownerId: '' + userId,
+            ownerType: 'user'
+        })
+        return token
+    },
+    updatePersonalAccessToken: async function (app, user, tokenId, scope, expiresAt) {
+        const userId = typeof user === 'number' ? user : user.id
+        const token = await app.db.models.AccessToken.byId(tokenId)
+        if (token) {
+            if (token.ownerType === 'user' && token.ownerId === '' + userId) {
+                token.scope = scope
+                if (expiresAt) {
+                    token.expiresAt = expiresAt
+                }
+                await token.save()
+            } else {
+                //should throw error
+            }
+        } else {
+            //should throw unknown token error
+        }
+        return token
+    },
+    removePersonalAccessToken: async function (app, user, tokenId) {
+        const userId = typeof user === 'number' ? user : user.id
+        let token = await app.db.models.AccessToken.byId(tokenId)
+        if (token) {
+            if (token.ownerType === 'user' && token.ownerId === '' + userId) {
+                await token.destroy()
+            } else {
+                //should throw error
+            }
+        } else {
+            //should throw error
+        }
+        token = null
+        return token
+    },
+
     refreshToken: async function (app, refreshToken) {
         const existingToken = await app.db.models.AccessToken.byRefreshToken(refreshToken)
         if (existingToken) {

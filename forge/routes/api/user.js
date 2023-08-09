@@ -189,4 +189,125 @@ module.exports = async function (app) {
             reply.code(400).send(resp)
         }
     })
+
+    /**
+     * Get Personal Access Tokens
+     * /api/v1/user/pat
+     */
+    app.get('/pat', {
+        schema: {
+            summary: 'list users Personal Access Tokens',
+            response: {
+                200: { type: 'array'},
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        try {
+            const tokens = await app.db.models.AccessToken.getPersonalAccessTokens(request.session.User)
+            reply.send(tokens)
+        } catch (err) {
+            const resp = { code: 'unexpected_error', error: err.toString() }
+            reply.code(400).send(resp)
+        }
+    })
+
+    /**
+     * Create Personal Access Token
+     * /api/v1/user/pat
+     */
+    app.post('/pat', {
+        schema: {
+            summary: 'create user Personal Access Token',
+            body: {
+                type: 'object',
+                properties: {
+                    scope: { type: 'string'},
+                    expiresAt: { type: 'number' },
+                    name: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    id: { type: 'number' },
+                    name: { type: 'string' },
+                    token: { type: 'string' },
+                    expiresAt: {type: 'number'}
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        try {
+            const body = request.body
+            const token = await app.db.controllers.AccessToken.createPersonalAccessToken(app, request.session.User, body.scope, body.expiresAt, body.name)
+            // await app.auditLog.User.pat.created(request.session.User, null, updates)
+            reply.send({
+                id: token.id,
+                name: token.name,
+                token: token.token,
+                expiresAt: token.expiresAt
+            })
+        } catch (err) {
+            const resp = { code: 'unexpected_error', error: err.toString() }
+            reply.code(400).send(resp)
+        }
+    })
+
+    /**
+     * Delete Personal Access Token
+     * /api/v1/user/pat/:id
+     */
+    app.delete('/pat/:id',{
+        schema: {
+            summary: 'delete user Personal Access Token',
+            params: {
+                id: { type: 'number' }
+            },
+            respone: {
+                201: {},
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        try {
+            await app.db.controllers.AccessToken.removePersonalAccessToken(app, request.session.User, request.params.id)
+            // await app.auditLog.User.pat.deleted(request.session.User, null, updates)
+            reply.code(201).send()
+        } catch (err) {
+            const resp = { code: 'unexpected_error', error: err.toString() }
+            reply.code(400).send(resp)
+        }
+    })
+
+    /**
+     * Update Personal Access Token
+     * /api/v1/user/pat/:id
+     */
+    app.put('/pat/:id', {
+        schema: {
+            summary: 'update users Personal Access Token',
+            params: {
+                id: { type: 'number' }
+            },
+            body: {
+                scope: { type: 'string' },
+                expiresAt: {type: 'number' }
+            },
+            response: {
+                200: {},
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+
+    })
 }

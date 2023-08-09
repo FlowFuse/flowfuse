@@ -158,6 +158,35 @@ const requestPasswordReset = async (email) => {
 const resetPassword = async (token, password) => {
     return client.post(`/account/reset_password/${token}`, password).then(res => res.data)
 }
+
+/**
+ * Get a User's Personal Access Tokens
+ * See [routes/api/user.js](../../../forge/routes/api/user.js)
+ */
+const getPersonalAccessTokens = async () => {
+    return client.get('/api/v1/user/pat').then(res => res.data)
+}
+
+/**
+ * Create new User Personal Access Token
+ * See [routes/api/user.js](../../../forge/routes/api/user.js)
+ * @param {string} name
+ * @param {string} scope
+ * @param {number} expiresAt
+ */
+const createPersonalAccessToken = async (name, scope, expiresAt) => {
+    return client.post('/api/v1/user/pat', {name, scope, expiresAt}).then(res => res.data)
+}
+
+/**
+ * Delete User Personal Access Token
+ * See [routes/api/user.js](../../../forge/routes/api/user.js)
+ * @param {string} id
+ */
+const deletePersonalAccessToken = async (id) => {
+    return client.delete('/api/v1/user/pat' + id).then(res => {})
+}
+
 export default {
     registerUser,
     getUser,
@@ -174,5 +203,8 @@ export default {
     requestPasswordReset,
     resetPassword,
     verifyPendingEmailChangeToken,
-    triggerPendingEmailChangeVerification
+    triggerPendingEmailChangeVerification,
+    getPersonalAccessTokens,
+    createPersonalAccessToken,
+    deletePersonalAccessToken
 }
