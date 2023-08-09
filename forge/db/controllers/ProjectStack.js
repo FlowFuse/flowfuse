@@ -14,8 +14,6 @@ module.exports = {
             },
             defaults: {
                 label,
-                order: 1,
-                description: '',
                 properties
             }
         })
