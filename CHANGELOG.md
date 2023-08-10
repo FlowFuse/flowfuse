@@ -1,3 +1,8 @@
+#### 1.10.1: Release
+
+ - Ensure Default InstanceType is enabled for Default TeamType in clean install (backport #2573) (#2577) @app/github-actions
+ - Add basic Team Type docs (backport #2574) (#2578) @app/github-actions
+
 #### 1.10.0: Release
 
  - Bump eslint-plugin-import from 2.27.5 to 2.28.0 (#2544) @dependabot
