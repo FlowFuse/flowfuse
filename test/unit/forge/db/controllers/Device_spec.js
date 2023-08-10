@@ -4,7 +4,7 @@ const snapshotServices = require('../../../../../forge/services/snapshots.js')
 const TestModelFactory = require('../../../../lib/TestModelFactory.js')
 const setup = require('../setup')
 
-describe.only('Device controller', function () {
+describe('Device controller', function () {
     let app
     /** @type {TestModelFactory} */ let factory
     const TestObjects = {}
