@@ -19,6 +19,12 @@ has been performed.
 Endpoint Rate Limiting is now available to FlowForge. This is disabled by default, but can be enabled by setting the `rate_limits.enabled` config setting to `true`.
 The documentation for this is available [here](../install/configuration.md#rate-limiting-configuration).
 
+The [TeamType concept](../user/concepts.md#team-type) was expanded in this release.
+It is used to control what Instance Types are available for different teams, as
+well as any additional limits that should be applied. When creating new Instance
+Types, they must now be [manually enabled](../admin/README.md#managing-instance-types)
+for the Team Types on the platform.
+
 
 ### Upgrading to 1.5
 
