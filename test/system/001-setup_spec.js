@@ -378,5 +378,26 @@ describe('First run setup', function () {
             response.statusCode.should.equal(302)
             response.headers.location.should.equal('/')
         })
+
+        it('should have created default objects', async function () {
+            const defaultProjectTypeList = await forge.db.models.ProjectType.findAll()
+            defaultProjectTypeList.should.have.length(1)
+            const defaultProjectType = defaultProjectTypeList[0]
+
+            const defaultTeamTypeList = await forge.db.models.TeamType.findAll()
+            defaultTeamTypeList.should.have.length(1)
+
+            const defaultTeamType = defaultTeamTypeList[0]
+
+            defaultTeamType.properties.should.have.property('instances')
+            defaultTeamType.properties.instances.should.have.property(defaultProjectType.hashid)
+            defaultTeamType.properties.instances[defaultProjectType.hashid].should.have.property('active', true)
+
+            const defaultTemplateList = await forge.db.models.ProjectTemplate.findAll()
+            defaultTemplateList.should.have.length(1)
+
+            const defaultStackList = await forge.db.models.ProjectStack.findAll()
+            defaultStackList.should.have.length(1)
+        })
     })
 })

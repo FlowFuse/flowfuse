@@ -78,12 +78,19 @@ module.exports = async function (app) {
                 }
             })
             const projectType = await app.db.controllers.ProjectType.createDefaultProjectType()
-            app.log.info('[SETUP] Created default ProjectType')
+            app.log.info('[SETUP] Created default InstanceType')
+
+            await app.db.controllers.TeamType.enableInstanceTypeForDefaultType(projectType)
+            app.log.info('[SETUP] Enabled default InstanceType for default TeamType')
+
             await app.db.controllers.ProjectTemplate.createDefaultTemplate(adminUser)
-            app.log.info('[SETUP] Created default ProjectTemplate')
+            app.log.info('[SETUP] Created default Template')
+
             await app.db.controllers.ProjectStack.createDefaultProjectStack(projectType)
-            app.log.info('[SETUP] Created default ProjectStack')
+            app.log.info('[SETUP] Created default Stack')
+
             await app.settings.set('setup:initialised', true)
+
             app.log.info('****************************************************')
             app.log.info('* FlowForge setup is complete. You can login at:   *')
             app.log.info(`*   ${app.config.base_url.padEnd(47, ' ')}*`)

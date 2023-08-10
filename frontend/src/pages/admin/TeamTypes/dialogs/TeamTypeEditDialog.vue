@@ -45,7 +45,7 @@
                     <FormRow v-model="input.properties.users.limit"># Limit</FormRow>
                 </div>
                 <div v-for="(instanceType, index) in instanceTypes" :key="index">
-                    <FormHeading>Instances: {{ instanceType.name }}</FormHeading>
+                    <FormHeading>Instance Type: {{ instanceType.name }}</FormHeading>
                     <FormRow v-model="input.properties.instances[instanceType.id].active" type="checkbox" class="mb-4">Available</FormRow>
                     <div v-if="input.properties.instances[instanceType.id].active" class="grid gap-3 grid-cols-4 pl-4">
                         <div class="grid gap-3 grid-cols-2">
@@ -54,7 +54,7 @@
                         </div>
                         <FormRow v-if="features.billing" v-model="input.properties.instances[instanceType.id].productId" :type="editDisabled?'uneditable':''">Product Id</FormRow>
                         <FormRow v-if="features.billing" v-model="input.properties.instances[instanceType.id].priceId" :type="editDisabled?'uneditable':''">Price Id</FormRow>
-                        <FormRow v-model="input.properties.instances[instanceType.id].description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
+                        <FormRow v-if="features.billing" v-model="input.properties.instances[instanceType.id].description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
                     </div>
                 </div>
                 <FormHeading>Devices</FormHeading>
@@ -67,7 +67,8 @@
                     <FormRow v-if="features.billing" v-model="input.properties.devices.priceId" :type="editDisabled?'uneditable':''">Price Id</FormRow>
                     <FormRow v-if="features.billing" v-model="input.properties.devices.description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
                 </div>
-                <FormHeading>Features</FormHeading>
+
+                <!-- <FormHeading>Features</FormHeading>
                 <div class="grid gap-3 grid-cols-2">
                     <FormRow v-model="input.properties.features.projectComms" type="checkbox">Project Nodes</FormRow>
                     <FormRow v-model="input.properties.features['shared-library']" type="checkbox">Team Library</FormRow>
@@ -75,7 +76,7 @@
                     <FormRow v-model="input.properties.features.ha" type="checkbox">High Availability</FormRow>
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
-                </div>
+                </div> -->
             </form>
         </template>
         <template #actions>
