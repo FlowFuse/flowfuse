@@ -4,7 +4,7 @@ const snapshotServices = require('../../../../../forge/services/snapshots.js')
 const TestModelFactory = require('../../../../lib/TestModelFactory.js')
 const setup = require('../setup')
 
-describe('Device controller', function () {
+describe.only('Device controller', function () {
     let app
     /** @type {TestModelFactory} */ let factory
     const TestObjects = {}
@@ -137,94 +137,95 @@ describe('Device controller', function () {
             should(env).be.an.Array().and.have.a.lengthOf(1)
             env.should.containEql({ name: 'normal-env-var', value: 'f' })
         })
-        describe('sendDeviceUpdateCommand', function () {
-            afterEach(async function () {
-                sinon.restore()
+    })
+
+    describe('sendDeviceUpdateCommand', function () {
+        afterEach(async function () {
+            sinon.restore()
+        })
+        it('sends update command to device', async function () {
+            const snapshot = await snapshotServices.createSnapshot(app, TestObjects.project, TestObjects.alice, {
+                name: 'snapshot 1',
+                description: 'snapshot 1 description',
+                setAsTarget: true
             })
-            it('sends update command to device', async function () {
-                const snapshot = await snapshotServices.createSnapshot(app, TestObjects.project, TestObjects.alice, {
-                    name: 'snapshot 1',
-                    description: 'snapshot 1 description',
-                    setAsTarget: true
-                })
-                await TestObjects.project.reload()
+            await TestObjects.project.reload()
 
-                const device1 = await factory.createDevice({ name: 'device1', type: 'type1' }, TestObjects.team, TestObjects.project)
+            const device1 = await factory.createDevice({ name: 'device1', type: 'type1' }, TestObjects.team, TestObjects.project)
 
-                // set the snapshot as the target snapshot on the project
-                await device1.setTargetSnapshot(snapshot)
+            // set the snapshot as the target snapshot on the project
+            await device1.setTargetSnapshot(snapshot)
 
-                // stub app.comms.devices.sendCommand so we can see what it was called with
-                /** @type {DeviceCommsHandler} */
-                const commsHandler = app.comms.devices
-                sinon.stub(commsHandler, 'sendCommand').resolves()
+            // stub app.comms.devices.sendCommand so we can see what it was called with
+            /** @type {DeviceCommsHandler} */
+            const commsHandler = app.comms.devices
+            sinon.stub(commsHandler, 'sendCommand').resolves()
 
-                // load the full device model & use it in a call to sendDeviceUpdateCommand
-                const device = await app.db.models.Device.byId(device1.id)
-                await app.db.controllers.Device.sendDeviceUpdateCommand(device)
+            // load the full device model & use it in a call to sendDeviceUpdateCommand
+            const device = await app.db.models.Device.byId(device1.id)
+            await app.db.controllers.Device.sendDeviceUpdateCommand(device)
 
-                // ensure sendCommand was called
-                should(commsHandler.sendCommand.calledOnce).be.true('sendCommand was not called')
-                // get the args used to call sendCommand
-                const args = commsHandler.sendCommand.getCall(0).args
-                // check the args are as expected: Team.hashid, device.hashid, 'update', payload
-                should(args[0]).eql(TestObjects.team.hashid)
-                should(args[1]).eql(device.hashid)
-                should(args[2]).eql('update')
-                should(args[3]).be.an.Object()
-                args[3].should.have.a.property('project', TestObjects.project.id)
-                args[3].should.have.a.property('snapshot', snapshot.hashid)
-                args[3].should.have.a.property('mode', 'autonomous')
-                args[3].should.have.a.property('settings')
-                args[3].should.have.a.property('licensed')
+            // ensure sendCommand was called
+            should(commsHandler.sendCommand.calledOnce).be.true('sendCommand was not called')
+            // get the args used to call sendCommand
+            const args = commsHandler.sendCommand.getCall(0).args
+            // check the args are as expected: Team.hashid, device.hashid, 'update', payload
+            should(args[0]).eql(TestObjects.team.hashid)
+            should(args[1]).eql(device.hashid)
+            should(args[2]).eql('update')
+            should(args[3]).be.an.Object()
+            args[3].should.have.a.property('project', TestObjects.project.id)
+            args[3].should.have.a.property('snapshot', snapshot.hashid)
+            args[3].should.have.a.property('mode', 'autonomous')
+            args[3].should.have.a.property('settings')
+            args[3].should.have.a.property('licensed')
+        })
+        it('does not send orphaned snapshot in update command to device', async function () {
+            // create a new project with snapshot, assign to device, delete project to orphan the snapshot
+            const instance2 = await factory.createInstance(
+                { name: 'project2' },
+                TestObjects.application,
+                TestObjects.stack,
+                TestObjects.template,
+                TestObjects.projectType,
+                { start: false }
+            )
+
+            const snapshot = await snapshotServices.createSnapshot(app, instance2, TestObjects.alice, {
+                name: 'instance 2 snapshot 1',
+                description: 'snapshot 1 on instance 2',
+                setAsTarget: true
             })
-            it('does not send orphaned snapshot in update command to device', async function () {
-                // create a new project with snapshot, assign to device, delete project to orphan the snapshot
-                const instance2 = await factory.createInstance(
-                    { name: 'project2' },
-                    TestObjects.application,
-                    TestObjects.stack,
-                    TestObjects.template,
-                    TestObjects.projectType,
-                    { start: false }
-                )
+            await instance2.reload()
 
-                const snapshot = await snapshotServices.createSnapshot(app, instance2, TestObjects.alice, {
-                    name: 'instance 2 snapshot 1',
-                    description: 'snapshot 1 on instance 2',
-                    setAsTarget: true
-                })
-                await instance2.reload()
+            const device1 = await factory.createDevice({ name: 'device1', type: 'type1' }, TestObjects.team, instance2)
 
-                const device1 = await factory.createDevice({ name: 'device1', type: 'type1' }, TestObjects.team, instance2)
+            // set the snapshot as the target snapshot on the project
+            await device1.setTargetSnapshot(snapshot)
 
-                // set the snapshot as the target snapshot on the project
-                await device1.setTargetSnapshot(snapshot)
+            // delete the project to orphan the snapshot
+            await instance2.destroy()
 
-                // delete the project to orphan the snapshot
-                await instance2.destroy()
+            // stub app.comms.devices.sendCommand so we can see what it was called with
+            /** @type {DeviceCommsHandler} */
+            const commsHandler = app.comms.devices
+            sinon.stub(commsHandler, 'sendCommand').resolves()
 
-                // stub app.comms.devices.sendCommand so we can see what it was called with
-                /** @type {DeviceCommsHandler} */
-                const commsHandler = app.comms.devices
-                sinon.stub(commsHandler, 'sendCommand').resolves()
+            // load the full device model & use it in a call to sendDeviceUpdateCommand
+            const device = await app.db.models.Device.byId(device1.id)
+            await app.db.controllers.Device.sendDeviceUpdateCommand(device)
 
-                // load the full device model & use it in a call to sendDeviceUpdateCommand
-                const device = await app.db.models.Device.byId(device1.id)
-                await app.db.controllers.Device.sendDeviceUpdateCommand(device)
-
-                // ensure sendCommand was called
-                should(commsHandler.sendCommand.calledOnce).be.true('sendCommand was not called')
-                // get the args used to call sendCommand
-                const args = commsHandler.sendCommand.getCall(0).args
-                // check the args are as expected: Team.hashid, device.hashid, 'update', payload
-                should(args[0]).eql(TestObjects.team.hashid)
-                should(args[1]).eql(device.hashid)
-                should(args[2]).eql('update')
-                should(args[3]).be.an.Object()
-                args[3].should.have.a.property('project', null)
-                args[3].should.have.a.property('snapshot', null)
-            })
+            // ensure sendCommand was called
+            should(commsHandler.sendCommand.calledOnce).be.true('sendCommand was not called')
+            // get the args used to call sendCommand
+            const args = commsHandler.sendCommand.getCall(0).args
+            // check the args are as expected: Team.hashid, device.hashid, 'update', payload
+            should(args[0]).eql(TestObjects.team.hashid)
+            should(args[1]).eql(device.hashid)
+            should(args[2]).eql('update')
+            should(args[3]).be.an.Object()
+            args[3].should.have.a.property('project', null)
+            args[3].should.have.a.property('snapshot', null)
         })
     })
 })
