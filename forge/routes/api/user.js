@@ -244,7 +244,9 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         try {
             const body = request.body
-            const token = await app.db.controllers.AccessToken.createPersonalAccessToken(app, request.session.User, body.scope, body.expiresAt, body.name)
+            console.log(body)
+            console.log(body.scope, typeof body.scope)
+            const token = await app.db.controllers.AccessToken.createPersonalAccessToken(request.session.User, body.scope, body.expiresAt, body.name)
             // await app.auditLog.User.pat.created(request.session.User, null, updates)
             reply.send({
                 id: token.id,
@@ -253,6 +255,7 @@ module.exports = async function (app) {
                 expiresAt: token.expiresAt
             })
         } catch (err) {
+            console.log(err)
             const resp = { code: 'unexpected_error', error: err.toString() }
             reply.code(400).send(resp)
         }
@@ -277,7 +280,7 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         try {
-            await app.db.controllers.AccessToken.removePersonalAccessToken(app, request.session.User, request.params.id)
+            await app.db.controllers.AccessToken.removePersonalAccessToken(request.session.User, request.params.id)
             // await app.auditLog.User.pat.deleted(request.session.User, null, updates)
             reply.code(201).send()
         } catch (err) {

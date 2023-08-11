@@ -102,7 +102,7 @@ module.exports = {
                         where: {
                             ownerType: 'user',
                             ownerId: '' + user.id,
-                            token: { [Op.startsWith]: 'ffpat_' }
+                            name: { [Op.ne]: null }
                         },
                         order: [['id', 'ASC']],
                         attributes: ['id', 'name', 'scope', 'expiresAt']

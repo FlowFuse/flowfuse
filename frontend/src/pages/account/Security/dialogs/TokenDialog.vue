@@ -12,9 +12,10 @@
 
                     </ff-checkbox>
                 </div>
-                <FormRow v-model="input.expiresAt" type="date">
+                <FormRow v-model="input.expiresAt" type="date" :disabled="input.never">
                     Expires
-                    <template v-slot:description>Expires</template>
+                    <!-- <template v-slot:description>Expires</template> -->
+                    <ff-checkbox label="never" v-model="input.never"></ff-checkbox>
                 </FormRow>
             </form>
         </template>
@@ -25,6 +26,7 @@
 import settings from '../../../../api/settings'
 
 import FormRow from '../../../../components/FormRow.vue'
+import userApi from '../../../../api/user'
 
 export default {
     name: 'TokenDialog',
@@ -37,9 +39,11 @@ export default {
             token: null,
             scopes: [],
             input: {
+                id: null,
                 name: '',
                 scope: {},
-                expiresAt: null
+                expiresAt: null,
+                never: true
             },
             edit: false
         }
@@ -61,8 +65,18 @@ export default {
             const temp = await settings.getSettings()
             this.scopes = Object.keys(temp['platform:auth:permissions'])
         },
-        confirm() {
-            console.log(this.input)
+        confirm: async function () {
+            const array = Object.keys(this.input.scope).map( k => k)
+            const request = {
+                name: this.input.name,
+                scope: array.join(',')
+            }
+            if (!this.input.never) {
+                request.expiresAt = Date.parse(this.input.expiresAt)
+            }
+            console.log(request)
+            const token = await userApi.createPersonalAccessToken(request.name, request.scope, request.expiresAt)
+            console.log(token)
         }
     },
     setup () {
@@ -70,18 +84,28 @@ export default {
             showCreate () {
                 this.$refs.dialog.show()
                 this.token = null
-                this.input = { name: '', scope: {
-                    'user:read': true
-                }, expiresAt: null }
+                this.input = { 
+                    id: null,
+                    name: '', 
+                    scope: {
+                        'user:read': true
+                    }, 
+                    expiresAt: null,
+                    never: true
+                }
                 this.edit = false
             },
             showEdit (row) {
                 this.$refs.dialog.show()
                 this.token = row
                 this.input = {
+                    id: row.id,
                     name: row.name,
                     scope: row.scope.split(','),
-                    expiresAt: 0
+                    expiresAt: row.expiresAt
+                }
+                if (row.expiresAt === null) {
+                    this.input.never = true
                 }
                 this.edit = true
             }

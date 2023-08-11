@@ -158,7 +158,9 @@ module.exports = {
     createPersonalAccessToken: async function (app, user, scope, expiresAt, name) {
         const userId = typeof user === 'number' ? user : user.id
         const token = generateToken(32, 'ffpat')
+        console.log(scope, scope)
         await app.db.models.AccessToken.create({
+            name,
             token,
             scope,
             expiresAt,
