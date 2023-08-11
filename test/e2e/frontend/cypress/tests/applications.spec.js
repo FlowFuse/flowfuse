@@ -177,7 +177,7 @@ describe('FlowForge - Applications', () => {
                 })
 
                 // Name updated on application page
-                cy.get('[data-el="application-name"]').contains(UPDATED_APPLICATION_NAME)
+                cy.get('[data-el="page-name"]').contains(UPDATED_APPLICATION_NAME)
 
                 cy.get('[data-nav="team-applications"]').click()
 

@@ -3,7 +3,7 @@
         <!-- <input v-model="model" type="checkbox" :value="modelValue" /> -->
         <div class="ff-toggle-switch-slider" @click="toggle">
             <div class="ff-toggle-switch-button">
-                <slot v-if="!loading"></slot>
+                <slot v-if="!loading" />
                 <ff-spinner v-else />
             </div>
         </div>

@@ -2,7 +2,7 @@
     <Teleport v-if="canAccessTeam && mounted" to="#platform-sidenav">
         <SideNavigationTeamOptions />
     </Teleport>
-    <main>
+    <div>
         <template v-if="pendingTeamChange">
             <Loading />
         </template>
@@ -29,7 +29,7 @@
                 </template>
             </EmptyState>
         </div>
-    </main>
+    </div>
 </template>
 
 <script>

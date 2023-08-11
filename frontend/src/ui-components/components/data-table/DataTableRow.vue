@@ -3,7 +3,7 @@
         <slot>
             <ff-data-table-cell v-for="(col, $column) in columns" :key="col.label" :class="col.class" :style="col.style" :highlight="highlightCell === $column" @click="$emit('selected', data)">
                 <template v-if="col.component">
-                    <component :is="col.component.is" v-bind="{...col.component.extraProps ?? {}, ...getCellData(data, col)}"></component>
+                    <component :is="col.component.is" v-bind="{...col.component.extraProps ?? {}, ...getCellData(data, col)}" />
                 </template>
                 <template v-else-if="!isBool(lookupProperty(data, col.key))">
                     {{ lookupProperty(data, col.key) }}
@@ -15,7 +15,7 @@
         </slot>
         <ff-data-table-cell v-if="hasContextMenu" style="width: 50px" @click="$refs.kebab.openOptions()">
             <ff-kebab-menu ref="kebab" menu-align="right">
-                <slot name="context-menu" :row="data" message="hello world"></slot>
+                <slot name="context-menu" :row="data" message="hello world" />
             </ff-kebab-menu>
         </ff-data-table-cell>
     </tr>

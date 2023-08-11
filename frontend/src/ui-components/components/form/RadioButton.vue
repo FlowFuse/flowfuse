@@ -1,7 +1,7 @@
 <template>
     <label class="ff-radio-btn" :disabled="disabled" @click="select(value)">
-        <input type="radio" :value="value" />
-        <span ref="input" class="checkbox" :checked="checked" tabindex="0" @keydown.space.prevent="select(value)"></span>
+        <input type="radio" :value="value">
+        <span ref="input" class="checkbox" :checked="checked" tabindex="0" @keydown.space.prevent="select(value)" />
         <label>{{ label }}</label>
         <p v-if="description && !hideDescription" class="ff-description">{{ description }}</p>
     </label>

@@ -14,7 +14,7 @@
             </template>
         </SideNavigation>
     </Teleport>
-    <main>
+    <ff-page>
         <div class="max-w-2xl m-auto">
             <ff-loading
                 v-if="loading"
@@ -36,7 +36,7 @@
                 @on-submit="handleFormSubmit"
             />
         </div>
-    </main>
+    </ff-page>
 </template>
 
 <script>

@@ -12,7 +12,7 @@
             </div>
         </div>
         <div v-if="description" class="ff-tile-selection-option--description">
-            <ff-markdown-viewer :content="description"></ff-markdown-viewer>
+            <ff-markdown-viewer :content="description" />
         </div>
         <div v-if="meta" class="ff-tile-selection-option--meta">
             <div v-for="(row, $index) in meta" :key="$index">

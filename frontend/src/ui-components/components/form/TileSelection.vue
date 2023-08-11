@@ -1,6 +1,6 @@
 <template>
     <div ref="options" class="ff-tile-selection">
-        <slot name="default"></slot>
+        <slot name="default" />
     </div>
 </template>
 

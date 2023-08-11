@@ -1,6 +1,6 @@
 <template>
     <div class="ff-input ff-text-input" :class="{'ff-input--error': error}">
-        <slot name="icon"></slot>
+        <slot name="icon" />
         <input
             ref="input"
             :type="type"

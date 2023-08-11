@@ -1,13 +1,14 @@
 <template>
     <div class="ff-data-table">
         <div v-if="showOptions" class="ff-data-table--options">
-            <ff-text-input v-if="showSearch" v-model="filterTerm" class="ff-data-table--search"
-                           data-form="search" :placeholder="searchPlaceholder"
+            <ff-text-input
+                v-if="showSearch" v-model="filterTerm" class="ff-data-table--search"
+                data-form="search" :placeholder="searchPlaceholder"
             >
                 <template #icon><SearchIcon /></template>
             </ff-text-input>
             <div v-if="$slots.actions" class="ff-data-table--actions">
-                <slot name="actions"></slot>
+                <slot name="actions" />
             </div>
         </div>
         <table class="ff-data-table--data">
@@ -16,10 +17,11 @@
                     <!-- HEADERS -->
                     <slot name="header">
                         <ff-data-table-row>
-                            <ff-data-table-cell v-for="(col, $index) in columns" :key="$index"
-                                                :class="[sort.key === col.key ? 'sorted' : '', col.sortable ? 'sortable' : ''].concat(col.class)"
-                                                :style="col.style"
-                                                @click="sortBy(col, $index)"
+                            <ff-data-table-cell
+                                v-for="(col, $index) in columns" :key="$index"
+                                :class="[sort.key === col.key ? 'sorted' : '', col.sortable ? 'sortable' : ''].concat(col.class)"
+                                :style="col.style"
+                                @click="sortBy(col, $index)"
                             >
                                 <!-- Internal div required to have flex w/sorting icons -->
                                 <div>
@@ -29,7 +31,8 @@
                                     <SortDescendingIcon v-if="col.sortable && col.key === sort.key && sort.order === 'desc'" class="ff-icon ff-icon-sm icon-sorted" />
                                 </div>
                             </ff-data-table-cell>
-                            <ff-data-table-cell v-if="hasContextMenu"></ff-data-table-cell>
+
+                            <ff-data-table-cell v-if="hasContextMenu" />
                         </ff-data-table-row>
                     </slot>
                 </thead>
@@ -40,11 +43,12 @@
                             <ff-data-table-cell class="status-message" :colspan="messageColSpan">{{ loadingMessage }}</ff-data-table-cell>
                         </ff-data-table-row>
                         <template v-if="!loading">
-                            <ff-data-table-row v-for="(r, $index) in filteredRows" :key="$index" :data="r" :columns="columns"
-                                               :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn" @selected="rowClick(r)"
+                            <ff-data-table-row
+                                v-for="(r, $index) in filteredRows" :key="$index" :data="r" :columns="columns"
+                                :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn" @selected="rowClick(r)"
                             >
                                 <template v-if="hasContextMenu" #context-menu="{row}">
-                                    <slot name="context-menu" :row="row"></slot>
+                                    <slot name="context-menu" :row="row" />
                                 </template>
                             </ff-data-table-row>
                         </template>

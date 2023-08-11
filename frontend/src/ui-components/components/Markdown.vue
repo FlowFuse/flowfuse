@@ -1,6 +1,6 @@
 <template>
     <!-- eslint-disable-next-line vue/no-v-html -->
-    <div v-html="markdownToHtml"></div>
+    <div v-html="markdownToHtml" />
 </template>
 
 <script>

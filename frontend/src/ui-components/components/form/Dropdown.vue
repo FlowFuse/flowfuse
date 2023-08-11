@@ -14,7 +14,7 @@
         </ff-button>
         <div v-show="isOpen">
             <div ref="options" v-click-outside="close" class="ff-dropdown-options" :class="{'ff-dropdown-options--full-width': dropdownStyle === 'select', 'ff-dropdown-options--fit': dropdownStyle === 'button', 'ff-dropdown-options--align-left': optionsAlign === 'left', 'ff-dropdown-options--align-right': optionsAlign === 'right'}">
-                <slot></slot>
+                <slot />
             </div>
         </div>
     </div>
