@@ -1,15 +1,25 @@
-module.exports = {
-    async stage (app, stage) {
+module.exports = function (app) {
+    app.addSchema({
+        $id: 'PipelineStage',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            instances: { type: 'array', items: { ref: 'InstanceSummaryList' } },
+            NextStageId: { type: 'string' }
+        }
+    })
+
+    async function stage (stage) {
         const result = stage.toJSON()
         const filtered = {
             id: result.hashid,
-            name: result.name
+            name: result.name,
+            deployToDevices: result.deployToDevices
         }
 
         if (stage.Instances?.length > 0) {
-            // TODO: this should be an instanceSummaryList - back that doesn't
-            // exist in 1.8, so minimising the changes for this backport.
-            filtered.instances = await app.db.views.Project.instancesList(stage.Instances)
+            filtered.instances = await app.db.views.Project.instancesSummaryList(stage.Instances)
         }
 
         if (stage.NextStageId) {
@@ -21,8 +31,17 @@ module.exports = {
         }
 
         return filtered
-    },
-    async stageList (app, stages) {
+    }
+
+    app.addSchema({
+        $id: 'PipelineStageList',
+        type: 'array',
+        items: {
+            ref: 'PipelineStage'
+        }
+    })
+
+    async function stageList (stages) {
         // Must ensure the stages are listed in the correct order
         const stagesById = {}
         const backReferences = {}
@@ -45,6 +64,11 @@ module.exports = {
             orderedStages.unshift(pointer)
             pointer = stagesById[backReferences[pointer.id]]
         }
-        return await Promise.all(orderedStages.map(app.db.views.PipelineStage.stage))
+        return await Promise.all(orderedStages.map(stage))
+    }
+
+    return {
+        stage,
+        stageList
     }
 }

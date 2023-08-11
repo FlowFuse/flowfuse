@@ -2,6 +2,7 @@ const should = require('should')
 const sinon = require('sinon')
 const { v4: uuidv4 } = require('uuid')
 
+const { addFlowsToProject } = require('../../../../../lib/Snapshots.js')
 const TestModelFactory = require('../../../../../lib/TestModelFactory.js')
 
 const setup = require('../../setup')
@@ -27,17 +28,13 @@ describe('Pipelines API', function () {
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
-    beforeEach(async function () {
+    before(async function () {
         app = await setup()
         sandbox.stub(app.log, 'info')
         sandbox.stub(app.log, 'warn')
         sandbox.stub(app.log, 'error')
 
         const factory = new TestModelFactory(app)
-
-        TestObjects.pipeline = await factory.createPipeline({ name: 'new-pipeline' }, app.application)
-
-        TestObjects.stageOne = await factory.createPipelineStage({ name: 'stage-one', instanceId: app.instance.id }, TestObjects.pipeline)
 
         TestObjects.factory = factory
 
@@ -58,14 +55,34 @@ describe('Pipelines API', function () {
         TestObjects.template = app.template
         TestObjects.projectType = app.projectType
 
+        const userPez = await TestObjects.factory.createUser({
+            admin: false,
+            username: 'pez',
+            name: 'Pez Cuckow',
+            email: 'pez@example.com',
+            password: 'ppPassword'
+        })
+
+        const team1 = await TestObjects.factory.createTeam({ name: 'PTeam' })
+        await team1.addUser(userPez, { through: { role: Roles.Owner } })
+
+        await login('pez', 'ppPassword')
+
         await login('alice', 'aaPassword')
     })
 
-    afterEach(async function () {
+    after(async function () {
         await app.close()
         sandbox.restore()
     })
-
+    beforeEach(async function () {
+        TestObjects.pipeline = await app.factory.createPipeline({ name: 'new-pipeline' }, app.application)
+        TestObjects.stageOne = await app.factory.createPipelineStage({ name: 'stage-one', instanceId: app.instance.id }, TestObjects.pipeline)
+    })
+    afterEach(async function () {
+        await app.db.models.PipelineStage.destroy({ where: {} })
+        await app.db.models.Pipeline.destroy({ where: {} })
+    })
     describe('Create Pipeline Stage', function () {
         it('Should create a new pipeline stage', async function () {
             const pipelineId = TestObjects.pipeline.hashid
@@ -100,7 +117,7 @@ describe('Pipelines API', function () {
                     payload: {
                         name: 'stage-two',
                         instanceId: TestObjects.instanceTwo.id,
-                        source: TestObjects.stageOne.id
+                        source: TestObjects.stageOne.hashid
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -446,8 +463,9 @@ describe('Pipelines API', function () {
 
                 const response = await app.inject({
                     method: 'POST',
-                    url: `/api/v1/applications/${applicationId}/pipelines`,
+                    url: '/api/v1/pipelines',
                     payload: {
+                        applicationId,
                         name: pipelineName
                     },
                     cookies: { sid: TestObjects.tokens.alice }
@@ -469,8 +487,10 @@ describe('Pipelines API', function () {
 
                 const response = await app.inject({
                     method: 'POST',
-                    url: `/api/v1/applications/${applicationId}/pipelines`,
-                    payload: {},
+                    url: '/api/v1/pipelines',
+                    payload: {
+                        applicationId
+                    },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
 
@@ -487,9 +507,10 @@ describe('Pipelines API', function () {
 
                 const response = await app.inject({
                     method: 'POST',
-                    url: `/api/v1/applications/${applicationId}/pipelines`,
+                    url: '/api/v1/pipelines',
                     payload: {
-                        name: ' '
+                        name: ' ',
+                        applicationId
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -510,9 +531,10 @@ describe('Pipelines API', function () {
 
                 const response = await app.inject({
                     method: 'POST',
-                    url: `/api/v1/applications/${applicationId}/pipelines`,
+                    url: '/api/v1/pipelines',
                     payload: {
-                        name: pipelineName
+                        name: pipelineName,
+                        applicationId
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -530,9 +552,10 @@ describe('Pipelines API', function () {
 
                 const response = await app.inject({
                     method: 'POST',
-                    url: `/api/v1/applications/${applicationId}/pipelines`,
+                    url: '/api/v1/pipelines',
                     payload: {
-                        name: pipelineName
+                        name: pipelineName,
+                        applicationId
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -547,27 +570,15 @@ describe('Pipelines API', function () {
 
         describe('For an application owned by another team', function () {
             it('Should fail validation', async function () {
-                const userPez = await TestObjects.factory.createUser({
-                    admin: false,
-                    username: 'pez',
-                    name: 'Pez Cuckow',
-                    email: 'pez@example.com',
-                    password: 'ppPassword'
-                })
-
-                const team1 = await TestObjects.factory.createTeam({ name: 'PTeam' })
-                await team1.addUser(userPez, { through: { role: Roles.Owner } })
-
-                await login('pez', 'ppPassword')
-
                 const pipelineName = 'new-pipeline'
                 const applicationId = TestObjects.application.hashid // we are logged in as pez, but this is owned by alice
 
                 const response = await app.inject({
                     method: 'POST',
-                    url: `/api/v1/applications/${applicationId}/pipelines`,
+                    url: '/api/v1/pipelines',
                     payload: {
-                        name: pipelineName
+                        name: pipelineName,
+                        applicationId
                     },
                     cookies: { sid: TestObjects.tokens.pez }
                 })
@@ -587,9 +598,10 @@ describe('Pipelines API', function () {
 
                 const response = await app.inject({
                     method: 'POST',
-                    url: `/api/v1/applications/${applicationId}/pipelines`,
+                    url: '/api/v1/pipelines',
                     payload: {
-                        name: pipelineName
+                        name: pipelineName,
+                        applicationId
                     }
                 })
 
@@ -611,7 +623,7 @@ describe('Pipelines API', function () {
 
                 const response = await app.inject({
                     method: 'DELETE',
-                    url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines/${pipeline.hashid}`,
+                    url: `/api/v1/pipelines/${pipeline.hashid}`,
                     cookies: { sid: TestObjects.tokens.alice }
                 })
 
@@ -638,7 +650,7 @@ describe('Pipelines API', function () {
 
                 const response = await app.inject({
                     method: 'DELETE',
-                    url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines/${pipeline.hashid}`,
+                    url: `/api/v1/pipelines/${pipeline.hashid}`,
                     cookies: { sid: TestObjects.tokens.alice }
                 })
 
@@ -663,7 +675,7 @@ describe('Pipelines API', function () {
             it('Should fail gracefully', async function () {
                 const response = await app.inject({
                     method: 'DELETE',
-                    url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines/`,
+                    url: '/api/v1/pipelines/',
                     cookies: { sid: TestObjects.tokens.alice }
                 })
 
@@ -677,7 +689,7 @@ describe('Pipelines API', function () {
             it('Should fail gracefully', async function () {
                 const response = await app.inject({
                     method: 'DELETE',
-                    url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines/doesnotexist`,
+                    url: '/api/v1/pipelines/doesnotexist',
                     cookies: { sid: TestObjects.tokens.alice }
                 })
 
@@ -689,22 +701,9 @@ describe('Pipelines API', function () {
 
         describe('For an pipeline that is owned by another team', function () {
             it('Should fail validation', async function () {
-                const userPez = await TestObjects.factory.createUser({
-                    admin: false,
-                    username: 'pez',
-                    name: 'Pez Cuckow',
-                    email: 'pez@example.com',
-                    password: 'ppPassword'
-                })
-
-                const team1 = await TestObjects.factory.createTeam({ name: 'PTeam' })
-                await team1.addUser(userPez, { through: { role: Roles.Owner } })
-
-                await login('pez', 'ppPassword')
-
                 const response = await app.inject({
                     method: 'DELETE',
-                    url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines/${TestObjects.pipeline.hashid}`,
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}`,
                     cookies: { sid: TestObjects.tokens.pez }
                 })
 
@@ -728,7 +727,7 @@ describe('Pipelines API', function () {
             it('Should update the name of the pipeline', async function () {
                 const response = await app.inject({
                     method: 'PUT',
-                    url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines/${TestObjects.pipeline.hashid}`,
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}`,
                     payload: {
                         pipeline: { name: 'new-name' }
                     },
@@ -749,7 +748,7 @@ describe('Pipelines API', function () {
             it('Unset - Should fail gracefully', async function () {
                 const response = await app.inject({
                     method: 'PUT',
-                    url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines/${TestObjects.pipeline.hashid}`,
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}`,
                     payload: {
                         pipeline: {}
                     },
@@ -765,7 +764,7 @@ describe('Pipelines API', function () {
             it('Blank - Should fail gracefully', async function () {
                 const response = await app.inject({
                     method: 'PUT',
-                    url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines/${TestObjects.pipeline.hashid}`,
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}`,
                     payload: {
                         pipeline: {
                             name: ''
@@ -783,7 +782,7 @@ describe('Pipelines API', function () {
             it('String of spaces - Should fail gracefully', async function () {
                 const response = await app.inject({
                     method: 'PUT',
-                    url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines/${TestObjects.pipeline.hashid}`,
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}`,
                     payload: {
                         pipeline: {
                             name: '    '
@@ -801,22 +800,9 @@ describe('Pipelines API', function () {
 
         describe('Owned by another team', function () {
             it('Should fail validation', async function () {
-                const userPez = await TestObjects.factory.createUser({
-                    admin: false,
-                    username: 'pez',
-                    name: 'Pez Cuckow',
-                    email: 'pez@example.com',
-                    password: 'ppPassword'
-                })
-
-                const team1 = await TestObjects.factory.createTeam({ name: 'PTeam' })
-                await team1.addUser(userPez, { through: { role: Roles.Owner } })
-
-                await login('pez', 'ppPassword')
-
                 const response = await app.inject({
                     method: 'PUT',
-                    url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines/${TestObjects.pipeline.hashid}`,
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}`,
                     payload: {
                         name: 'haxor'
                     },
@@ -827,6 +813,152 @@ describe('Pipelines API', function () {
                 body.should.have.property('code', 'not_found')
                 response.statusCode.should.equal(404)
             })
+        })
+    })
+
+    describe('Deploy Pipeline Stage', function () {
+        describe('With valid input', function () {
+            beforeEach(async function () {
+                TestObjects.tokens.instanceOne = (await TestObjects.instanceOne.refreshAuthTokens()).token
+                TestObjects.tokens.instanceTwo = (await TestObjects.instanceTwo.refreshAuthTokens()).token
+            })
+
+            it('Creates a snapshot of the pipeline stage, and copies to the next stage', async function () {
+                // Setup an initial configuration
+                const setupResult = await addFlowsToProject(app,
+                    TestObjects.instanceOne.id,
+                    TestObjects.tokens.instanceOne,
+                    TestObjects.tokens.alice,
+                    [{ id: 'node1' }], // flows
+                    { testCreds: 'abc' }, // credentials
+                    'key1', // key
+                    // settings
+                    {
+                        httpAdminRoot: '/test-red',
+                        dashboardUI: '/test-dash',
+                        palette: {
+                            modules: [
+                                { name: 'module1', version: '1.0.0' }
+                            ]
+                        },
+                        env: [
+                            { name: 'one', value: 'a' },
+                            { name: 'two', value: 'b' }
+                        ]
+                    }
+                )
+
+                // ensure setup was successful before generating a snapshot & performing rollback
+                setupResult.flowsAddResponse.statusCode.should.equal(200)
+                setupResult.credentialsCreateResponse.statusCode.should.equal(200)
+                setupResult.storageSettingsResponse.statusCode.should.equal(200)
+                setupResult.updateProjectSettingsResponse.statusCode.should.equal(200)
+
+                // 1 -> 2
+                TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageOne.hashid}/deploy`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const body = await response.json()
+                body.should.have.property('status', 'importing')
+
+                async function isDeployComplete () {
+                    const instanceStatusResponse = (await app.inject({
+                        method: 'GET',
+                        url: `/api/v1/projects/${TestObjects.instanceTwo.id}`,
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })).json()
+
+                    return !instanceStatusResponse.isDeploying
+                }
+
+                await new Promise((resolve, reject) => {
+                    const refreshIntervalId = setInterval(async () => {
+                        if (await isDeployComplete()) {
+                            clearInterval(refreshIntervalId)
+                            resolve()
+                        }
+                    }, 250)
+                })
+
+                // Now actually check things worked
+                // Snapshot created in stage 1 and set as target
+                // Snapshot created in stage 2, flows created, and set as target
+
+                // Get the snapshot for instance 2 post deploy
+                const snapshots = (await app.db.models.ProjectSnapshot.forProject(TestObjects.instanceTwo.id)).snapshots
+                snapshots.should.have.lengthOf(1)
+
+                const targetSnapshot = await app.db.models.ProjectSnapshot.byId(snapshots[0].id)
+
+                targetSnapshot.flows.should.have.property('flows')
+                targetSnapshot.flows.flows.should.have.lengthOf(1)
+                targetSnapshot.flows.flows[0].should.have.property('id', 'node1')
+                targetSnapshot.flows.should.have.property('credentials')
+                targetSnapshot.flows.credentials.should.have.property('$')
+                targetSnapshot.settings.should.have.property('settings')
+                targetSnapshot.settings.settings.should.have.property('httpAdminRoot', '/test-red')
+                targetSnapshot.settings.settings.should.have.property('dashboardUI', '/test-dash')
+                targetSnapshot.settings.should.have.property('env')
+                targetSnapshot.settings.env.should.have.property('one', 'a')
+                targetSnapshot.settings.env.should.have.property('two', 'b')
+                targetSnapshot.settings.should.have.property('modules')
+            })
+        })
+
+        describe('With invalid source stages', function () {
+            it('Should fail gracefully when not set', async function () {
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages//deploy`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const body = await response.json()
+
+                body.should.have.property('code', 'not_found')
+                response.statusCode.should.equal(404)
+            })
+
+            it('Should fail gracefully when not found', async function () {
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/invalid/deploy`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const body = await response.json()
+
+                body.should.have.property('code', 'not_found')
+                response.statusCode.should.equal(404)
+            })
+
+            it('Should fail gracefully if the stage is not part of the pipeline', async function () {
+                TestObjects.pipeline2 = await TestObjects.factory.createPipeline({ name: 'new-pipeline-2' }, TestObjects.application)
+                TestObjects.pl2StageOne = await TestObjects.factory.createPipelineStage({ name: 'pl2-stage-one', instanceId: TestObjects.instanceOne.id }, TestObjects.pipeline2)
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.pl2StageOne.hashid}/deploy`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const body = await response.json()
+
+                body.should.have.property('code', 'invalid_stage')
+                response.statusCode.should.equal(400)
+            })
+
+            it('Should fail gracefully if the stage has no instances')
+            it('Should fail gracefully if the stage has more than one instance')
+        })
+
+        describe('With instances that are on different teams', function () {
+            it('Should fail gracefully')
         })
     })
 })

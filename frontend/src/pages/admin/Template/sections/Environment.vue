@@ -3,116 +3,141 @@
         <FormHeading>
             <div class="flex">
                 <div class="mr-4">Environment Variables</div>
-                <div class="flex justify-center"><ChangeIndicator :value="editable.changed.env"></ChangeIndicator></div>
+                <div class="flex justify-center"><ChangeIndicator :value="editable.changed.env" /></div>
             </div>
         </FormHeading>
-        <table class="w-full max-w-4xl table-fixed text-sm rounded overflow-hidden">
-            <thead>
-                <tr class="font-medium">
-                    <td class="border bg-gray-100 p-2 w-auto">Name</td>
-                    <td class="border bg-gray-100 p-2 w-auto">Value</td>
-                    <td class="border bg-gray-100 p-2 w-16"></td>
-                    <td class="p-2 w-32" v-if="editTemplate"></td>
-                </tr>
-            </thead>
-            <tbody class="bg-white">
-                <tr v-for="(item, itemIdx) in editable.settings.env" :key="item.index">
-                    <td class="px-4 py-4 border w-auto align-top">
-                        <FormRow
-                            class="font-mono"
-                            :inputClass="item.deprecated ? 'text-yellow-700 italic' : ''"
-                            v-model="item.name"
-                            :error="item.error"
-                            :disabled="item.encrypted"
-                            value-empty-text=""
-                            :type="(!readOnly && (editTemplate || item.policy === undefined))?'text':'uneditable'"></FormRow>
-                        <!-- <ff-text-input  v-model="item.name" :disabled="item.encrypted"  /> -->
-                    </td>
-                    <td class="px-4 py-4 border w-auto align-top" :class="{'align-middle':item.encrypted}">
-                        <div class="w-full" v-if="!item.encrypted">
+        <div class="min-w-min">
+            <!-- NOTE:  `:columns:[,,,]` is necessary to instruct the empty row to apply a col-span of 4 -->
+            <ff-data-table
+                v-model:search="search"
+                class="w-full max-w-5xl text-sm"
+                :show-search="true"
+                search-placeholder="Search environment variables..."
+                :columns="[,,,]"
+                :noDataMessage="noDataMessage"
+            >
+                <template #actions>
+                    <input id="fileUpload" ref="fileUpload" type="file" accept=".env, text/plain, *" class="hidden" hidden>
+                    <ff-button kind="secondary" @click="importEnv">
+                        <template #icon><DocumentDownloadIcon /></template>
+                        <span class="hidden sm:flex pl-1">Import .env</span>
+                    </ff-button>
+                    <ff-button kind="primary" accesskey="a" @click="addVarHandler">
+                        <template #icon><PlusSmIcon /></template>
+                        <span class="hidden sm:flex pl-1">Add variable</span>
+                    </ff-button>
+                </template>
+                <template #header>
+                    <ff-data-table-row class="font-medium">
+                        <td class="ff-data-table--cell max-w-sm">Name</td>
+                        <td class="ff-data-table--cell">Value</td>
+                        <td class="ff-data-table--cell bg-gray-100 p-2 w-16" />
+                        <td v-if="editTemplate" class="ff-data-table--cell p-2 w-32" />
+                    </ff-data-table-row>
+                </template>
+                <template #rows>
+                    <ff-data-table-row v-for="(item, itemIdx) in filteredRows" :key="item.index">
+                        <td class="ff-data-table--cell !pl-1 !pr-0 !py-1 border min-w-max max-w-sm align-top">
                             <FormRow
+                                v-model="item.name"
                                 class="font-mono"
-                                :inputClass="item.deprecated ? 'text-yellow-700 italic' : ''"
-                                v-model="item.value"
+                                containerClass="w-full"
+                                :inputClass="item.deprecated ? 'w-full text-yellow-700 italic' : 'w-full'"
+                                :error="item.error"
+                                :disabled="item.encrypted"
                                 value-empty-text=""
-                                :type="(!readOnly && (editTemplate || item.policy === undefined || item.policy))?'text':'uneditable'"></FormRow>
-                        </div>
-                        <div v-else class="pt-1 text-gray-400"><LockClosedIcon class="inline w-4" /> encrypted</div>
-                    </td>
-                    <td class="border w-16 align-middle">
-                        <div v-if="(!readOnly && (editTemplate|| item.policy === undefined))" class="flex justify-center ">
-                            <ff-button kind="tertiary" @click="removeEnv(itemIdx)" size="small">
-                                <template v-slot:icon>
-                                    <TrashIcon />
-                                </template>
-                            </ff-button>
-                        </div>
-                        <div
-                            v-else-if="(item.deprecated === true)"
-                            class="flex justify-center "
-                            v-ff-tooltip:left="'This setting has been deprecated'">
-                            <ExclamationIcon class="inline text-yellow-700 w-4" />
-                        </div>
-                        <div v-else-if="(item.platform === true)" class="flex justify-center ">
-                            <LockClosedIcon class="inline w-4" />
-                        </div>
-                    </td>
-                    <td v-if="!readOnly && editTemplate" class="px-4 py-4 align-middle">
-                        <LockSetting :editTemplate="editTemplate" v-model="item.policy"></LockSetting>
-                    </td>
-                </tr>
-                <tr v-if="editable.settings.env?.length === 0">
-                    <td class="px-4 py-4 border w-auto align-top text-center text-gray-400" colspan="3">
-                        No Environment Variables Defined
-                    </td>
-                </tr>
-                <!-- Empty row to differentiate between the existing env vars, and the input form row-->
-                <tr v-if="!readOnly">
-                    <td :colspan="editTemplate?4:3" class="p-4 bg-gray-50"></td>
-                </tr>
-                <tr v-if="!readOnly" class="">
-                    <td class="px-4 pt-4 border w-auto align-top">
-                        <FormRow class="font-mono" v-model="input.name" :error="input.error" placeholder="Name"></FormRow>
-                    </td>
-                    <td class="px-4 pt-4 pb-3 border w-auto align-top space-y-3">
-                        <FormRow class="font-mono" v-model="input.value" placeholder="Value"></FormRow>
-                        <!-- <FormRow id="encrypt-env-var" v-model="input.encrypt" type="checkbox"> <span class="text-gray-500"><LockClosedIcon class="inline w-4" /> encrypt</span></FormRow> -->
-                    </td>
-                    <td class="border w-16">
-                        <div class="flex align-center justify-center">
-                            <ff-button kind="primary" @click="addEnv()" :disabled="!addEnabled" size="small">
-                                <template v-slot:icon>
-                                    <PlusSmIcon />
-                                </template>
-                            </ff-button>
-                        </div>
-                    </td>
-                    <td class="p-2" v-if="editTemplate"></td>
-                </tr>
-            </tbody>
-        </table>
+                                :type="(!readOnly && (editTemplate || item.policy === undefined))?'text':'uneditable'"
+                            />
+                        </td>
+                        <td class="ff-data-table--cell !p-1 border w-3/5 align-top" :class="{'align-middle':item.encrypted}">
+                            <div v-if="!item.encrypted" class="w-full">
+                                <FormRow
+                                    v-model="item.value"
+                                    class="font-mono"
+                                    containerClass="w-full"
+                                    :inputClass="item.deprecated ? 'text-yellow-700 italic' : ''"
+                                    value-empty-text=""
+                                    :type="(!readOnly && (editTemplate || item.policy === undefined || item.policy))?'text':'uneditable'"
+                                />
+                            </div>
+                            <div v-else class="pt-1 text-gray-400"><LockClosedIcon class="inline w-4" /> encrypted</div>
+                        </td>
+                        <td class="ff-data-table--cell !p-1 border w-16 align-top">
+                            <div v-if="(!readOnly && (editTemplate|| item.policy === undefined))" class="flex justify-center mt-1">
+                                <ff-button kind="tertiary" size="small" @click="removeEnv(itemIdx)">
+                                    <template #icon>
+                                        <TrashIcon />
+                                    </template>
+                                </ff-button>
+                            </div>
+                            <div
+                                v-else-if="(item.deprecated === true)"
+                                v-ff-tooltip:left="'This setting has been deprecated'"
+                                class="flex justify-center mt-1"
+                            >
+                                <ExclamationIcon class="inline text-yellow-700 w-4" />
+                            </div>
+                            <div v-else-if="(item.platform === true)" class="flex justify-center mt-2">
+                                <LockClosedIcon class="inline w-4" />
+                            </div>
+                        </td>
+                        <td v-if="!readOnly && editTemplate" class="ff-data-table--cell !p-1 align-top">
+                            <LockSetting v-model="item.policy" :editTemplate="editTemplate" />
+                        </td>
+                    </ff-data-table-row>
+                </template>
+            </ff-data-table>
+        </div>
     </form>
-
 </template>
 
 <script>
 
-import { ExclamationIcon, LockClosedIcon, PlusSmIcon, TrashIcon } from '@heroicons/vue/outline'
+import { DocumentDownloadIcon, ExclamationIcon, LockClosedIcon, PlusSmIcon, TrashIcon } from '@heroicons/vue/outline'
 
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
+import Alerts from '../../../../services/alerts.js'
 import ChangeIndicator from '../components/ChangeIndicator.vue'
 import LockSetting from '../components/LockSetting.vue'
+import { parseDotEnv } from '../utils.js'
 
 export default {
     name: 'TemplateEnvironmentEditor',
-    props: ['editTemplate', 'modelValue', 'readOnly'],
+    components: {
+        FormRow,
+        FormHeading,
+        LockSetting,
+        ChangeIndicator,
+        DocumentDownloadIcon,
+        TrashIcon,
+        PlusSmIcon,
+        LockClosedIcon,
+        ExclamationIcon
+    },
+    props: {
+        editTemplate: {
+            type: Boolean,
+            default: false
+        },
+        modelValue: {
+            type: Object,
+            default: () => ({ settings: { env: [] } })
+        },
+        readOnly: {
+            type: Boolean,
+            default: false
+        }
+    },
     emits: ['update:modelValue'],
     data () {
         return {
             addedCount: 0,
             input: {},
-            envVarNames: {}
+            envVarLookup: {},
+            originalEnvVars: null,
+            search: '',
+            pauseEnvWatch: false
         }
     },
     computed: {
@@ -120,86 +145,168 @@ export default {
             get () { return this.modelValue },
             set (localValue) { this.$emit('update:modelValue', localValue) }
         },
-        addEnabled () {
-            return this.input.name && this.input.value !== undefined && !this.input.error
+        filteredRows: function () {
+            if (this.search === '') {
+                return this.editable.settings.env
+            }
+            const search = this.search.toLowerCase()
+            return this.editable.settings.env.filter(row => {
+                return row.name.toLowerCase().includes(search) || row.value.toLowerCase().includes(search)
+            })
+        },
+        noDataMessage: function () {
+            return this.search === '' ? 'No environment variables' : 'Not found! Try a different search term.'
         }
     },
     watch: {
-        'input.name' () {
-            if (/ /.test(this.input.name)) {
-                this.input.error = 'Invalid name'
-            } else if (this.input.name.startsWith('FF_')) {
-                this.input.error = 'Reserved name'
-            } else if (this.envVarNames[this.input.name] !== undefined) {
-                this.input.error = 'Duplicate name'
-            } else {
-                this.input.error = ''
-            }
-        },
         'editable' () {
-            if (this.editable) {
-                this.editable.settings.env.forEach(field => {
-                    this.envVarNames[field.name] = field
-                })
-            }
+            this.updateLookup()
         },
         'editable.settings.env': {
             deep: true,
             handler (v) {
-                this.envVarNames = {}
-                v.forEach((field, i) => {
-                    if (this.envVarNames[field.name] === undefined) {
-                        this.envVarNames[field.name] = i
-                    }
-                    if (field.policy === undefined && (field.platform === true || field.deprecated === true)) {
-                        field.policy = false
-                    }
-                    if (field.policy === undefined && this.envVarNames[field.name] !== i) {
-                        field.error = 'Field has duplicate name'
-                    } else if (/ /.test(field.name)) {
-                        field.error = 'Invalid name'
-                    } else {
-                        field.error = ''
-                    }
+                // only validate if the env data has changed (ignore the error
+                // field as that is updated in the validate method & would cause
+                // an infinite loop)
+                const _v = v.map(row => {
+                    const { error, ...rest } = row
+                    return rest
                 })
+                const _oldV = (this.originalEnvVars || []).map(row => {
+                    const { error, ...rest } = row
+                    return rest
+                })
+                if (JSON.stringify(_v) === JSON.stringify(_oldV)) {
+                    return // no changes to validate
+                }
+                this.validate()
             }
-        }
-    },
-    methods: {
-        addEnv () {
-            const field = {
-                index: 'add-' + this.addedCount++,
-                name: this.input.name,
-                value: this.input.value,
-                encrypted: this.input.encrypt,
-                policy: this.editTemplate ? false : undefined
-            }
-            this.envVarNames[field.name] = this.editable.settings.env.length
-            this.editable.settings.env.push(field)
-            this.input.name = ''
-            this.input.encrypt = false
-            this.input.value = ''
-        },
-        removeEnv (index) {
-            const field = this.editable.settings.env[index]
-            delete this.envVarNames[field.name]
-            this.editable.settings.env.splice(index, 1)
         }
     },
     mounted () {
-        this.editable.settings.env.forEach(field => {
-            this.envVarNames[field.name] = field
-        })
+        this.updateLookup()
+        this.validate()
     },
-    components: {
-        FormRow,
-        FormHeading,
-        LockSetting,
-        ChangeIndicator,
-        TrashIcon,
-        PlusSmIcon,
-        LockClosedIcon,
-        ExclamationIcon
+    methods: {
+        validate () {
+            const envVars = this.editable?.settings?.env || []
+            this.updateLookup()
+            const counts = {}
+
+            // if this.originalEnvVars = null, then this is the first time here
+            // so we need to make a copy of the original env vars for later comparison
+            if (this.originalEnvVars === null) {
+                this.originalEnvVars = JSON.parse(JSON.stringify(this.editable?.settings?.env || [])) // make a copy for later comparison
+            }
+
+            // first scan: sanitise the policy field & index, clear errors, count up duplicate names
+            envVars.forEach((field, i) => {
+                if (field.policy === undefined && (field.platform === true || field.deprecated === true)) {
+                    field.policy = false
+                }
+                if (typeof field.index === 'undefined' || (typeof field.index === 'number' && field.index !== i)) {
+                    field.index = i
+                }
+                counts[field.name] = (counts[field.name] || 0) + 1 // count the number of times each name appears
+                field.error = '' // clear any error
+            })
+
+            // second scan: check for errors & flag them
+            envVars.forEach((field, i) => {
+                const newRow = typeof field.index === 'string' && field.index.startsWith('add-')
+                if (field.name === '' || / /.test(field.name)) {
+                    field.error = 'Invalid name' // if name is empty  are empty - or - name contains spaces
+                } else if (newRow && field.name.startsWith('FF_')) {
+                    field.error = 'Reserved name'
+                } else if (counts[field.name] > 1) {
+                    field.error = 'Duplicate name'
+                }
+            })
+
+            // lastly, update originalEnvVars
+            this.originalEnvVars = JSON.parse(JSON.stringify(this.editable?.settings?.env || [])) // for later comparison
+        },
+        updateLookup () {
+            this.envVarLookup = {}
+            if (this.editable?.settings?.env) {
+                this.editable.settings.env.forEach((field, i) => {
+                    this.envVarLookup[field.name] = i
+                })
+            }
+        },
+        addVarHandler () {
+            this.addEnv('NEW', '', false, true)
+        },
+        addEnv (key, value, encrypt = false, focusNewRow = false) {
+            const field = {
+                index: 'add-' + this.addedCount++,
+                name: key || '',
+                value: value || '',
+                encrypted: encrypt,
+                policy: this.editTemplate ? false : undefined
+            }
+            this.envVarLookup[field.name] = this.editable.settings.env.length
+            this.editable.settings.env.push(field)
+            // focus the new row?
+            if (focusNewRow) {
+                this.$nextTick(() => {
+                    const row = this.$el.querySelector('tr:last-child input')
+                    if (row) {
+                        row.focus()
+                        // select the text in the input
+                        row.select()
+                    }
+                })
+            }
+        },
+        updateEnv (currentName, newName, value, encrypt = false) {
+            const fieldIdx = this.envVarLookup[currentName]
+            const field = this.editable.settings.env[fieldIdx]
+            if (field) {
+                delete this.envVarLookup[currentName]
+                field.name = newName
+                field.value = value
+                field.encrypted = encrypt
+                this.envVarLookup[newName] = fieldIdx
+            }
+        },
+        removeEnv (index) {
+            const field = this.editable.settings.env[index]
+            delete this.envVarLookup[field.name]
+            this.editable.settings.env.splice(index, 1)
+        },
+        importEnv () {
+            this.updateLookup()
+            const fileUpload = this.$refs.fileUpload
+            fileUpload.onchange = () => {
+                const file = fileUpload.files[0]
+                const reader = new FileReader()
+                reader.onload = () => {
+                    try {
+                        const env = parseDotEnv(reader.result)
+                        Object.keys(env).forEach(key => {
+                            if (key.startsWith('FF_')) {
+                                return // skip reserved names
+                            }
+                            if (typeof this.envVarLookup[key] !== 'undefined') {
+                                const existing = this.editable.settings.env[this.envVarLookup[key]]
+                                if (existing.policy === false || existing.platform === true) {
+                                    return // env var is a policy locked setting or a platform var
+                                }
+                                this.updateEnv(existing.name, key, env[key]) // update existing
+                            } else {
+                                this.addEnv(key, env[key], false) // new env var
+                            }
+                        })
+                    } catch (e) {
+                        Alerts.emit('Failed to import .env file')
+                    }
+                }
+                reader.readAsText(file)
+                fileUpload.value = ''
+            }
+            fileUpload.click()
+        }
     }
 }
 </script>

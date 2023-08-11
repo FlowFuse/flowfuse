@@ -46,6 +46,9 @@ following settings are available:
     create the Team (if that option is enabled), or be invited to an existing
     Team.
 
+    When enabled, a choice of what type of team should be created for the user
+    is shown.
+
  - **Allow users to reset their password on the login screen** (default: `false)
 
    With this option enabled, a 'forgot your password' link is shown on the login
@@ -93,6 +96,13 @@ With the 0.1.0 release, the Teams page just lists the teams on the platform.
 
 Further team management options will come in later releases.
 
+### Managing Team Types
+
+The Team Types page can be used to manage the Team Types on the platform.
+
+They determine what features of the platform are available to teams of a given type,
+including what Instance Types are available and any limits that should be applied.
+
 ### Managing Instance Types
 
 The Instance Types page can be used to manage the Instance Types on the platform.
@@ -104,6 +114,10 @@ associated with it.
 The Instance Types page shows what types are current active, how many stacks
 each type has assigned to it, and how many instances have been created of that
 type.
+
+Whenever a new Instance Type is created, it will need to be manually enabled for
+the individual [Team Types](#managing-team-types) before they will be available
+for teams to use.
 
 ### Managing Stacks
 

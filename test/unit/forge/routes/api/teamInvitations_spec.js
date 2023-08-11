@@ -175,12 +175,36 @@ describe('Team Invitations API', function () {
             result.should.have.property('error')
         })
 
+        it('deduplicate user invites', async () => {
+            // invite 4 users, 3 of them are duplicates in various forms
+            // ensure only 1 email is sent
+            app.config.email.transport.empty()
+            app.settings.set('team:user:invite:external', true)
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/invitations`,
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    user: 'chris, chris, Chris, CHRIS'
+                }
+            })
+            const result = response.json()
+            result.should.have.property('status', 'okay')
+            app.config.email.transport.getMessageQueue().should.have.lengthOf(1)
+        })
+
         describe('external users', async function () {
+            beforeEach(function () {
+                app.settings.set('team:user:invite:external', true)
+                app.config.email.transport.empty()
+            })
+
             after(function () {
                 app.settings.set('team:user:invite:external', false)
             })
 
-            it('team owner cannot invite external user if disabled', async () => {
+            it('team owner cannot invite external user if external invitations are disabled', async () => {
+                app.settings.set('team:user:invite:external', false)
                 // Alice cannot invite dave@example.com to ATeam
                 const response = await app.inject({
                     method: 'POST',
@@ -199,7 +223,6 @@ describe('Team Invitations API', function () {
             })
 
             it('team owner can invite external user if disabled', async () => {
-                app.settings.set('team:user:invite:external', true)
                 const response = await app.inject({
                     method: 'POST',
                     url: `/api/v1/teams/${TestObjects.ATeam.hashid}/invitations`,
@@ -212,6 +235,25 @@ describe('Team Invitations API', function () {
                 result.should.have.property('status', 'okay')
                 app.config.email.transport.getMessageQueue().should.have.lengthOf(1)
                 app.config.email.transport.getMessageQueue()[0].should.have.property('to', 'dave@example.com')
+            })
+
+            it('deduplicate emails and gmail "dot-trick" aliases in list of external invites', async () => {
+                // invite 7 users, 5 of them are duplicates (either through capitalisation or gmail dot-trick)
+                // ensure only 2 emails are sent
+                app.settings.set('team:user:invite:external', true)
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/invitations`,
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: {
+                        user: 'alice@jediknights.fake, Alice@JediKnights.fake, ALICE@JediKnights.Fake, bobsolo@gmail.co.fake, BobSolo@gmail.co.fake, bob.so.lo@gmail.co.fake, Bob.SoLo@Gmail.co.fake'
+                    }
+                })
+                const result = response.json()
+                result.should.have.property('status', 'okay')
+                app.config.email.transport.getMessageQueue().should.have.lengthOf(2)
+                app.config.email.transport.getMessageQueue()[0].should.have.property('to', 'alice@jediknights.fake')
+                app.config.email.transport.getMessageQueue()[1].should.have.property('to', 'bobsolo@gmail.co.fake')
             })
         })
     })

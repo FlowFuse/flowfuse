@@ -7,7 +7,6 @@ const setup = require('../../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
-const { KEY_BILLING_STATE } = FF_UTIL.require('forge/db/models/ProjectSettings')
 const { STOP_DELAY } = FF_UTIL.require('forge/containers/stub/index.js')
 const trialTask = FF_UTIL.require('forge/ee/lib/billing/trialTask')
 
@@ -51,6 +50,18 @@ describe('Billing - Trial Housekeeper Task', function () {
         TestObjects.template1 = app.template
         TestObjects.stack1 = app.stack
 
+        // app.settings.set('user:team:trial-mode', true)
+        // app.settings.set('user:team:trial-mode:duration', 5)
+        // app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
+        const teamTypeProps = app.defaultTeamType.properties
+        teamTypeProps.trial = {
+            active: true,
+            duration: 5,
+            instanceType: app.projectType.hashid
+        }
+        app.defaultTeamType.properties = teamTypeProps
+        await app.defaultTeamType.save()
+
         await login('alice', 'aaPassword')
 
         sandbox.stub(app.log, 'info')
@@ -59,10 +70,6 @@ describe('Billing - Trial Housekeeper Task', function () {
     })
 
     it('suspends projects if the team trial has ended', async function () {
-        app.settings.set('user:team:trial-mode', true)
-        app.settings.set('user:team:trial-mode:duration', 5)
-        app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
-
         // TestObjects.ATeam - has billing setup, should not get touched
 
         // Create trial team without billing setup
@@ -86,11 +93,12 @@ describe('Billing - Trial Housekeeper Task', function () {
             },
             cookies: { sid: TestObjects.tokens.alice }
         })
+
         response.statusCode.should.equal(200)
         const projectDetails = response.json()
         const project = await app.db.models.Project.byId(projectDetails.id)
         project.state.should.equal('running')
-        ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.TRIAL)
+        // ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.TRIAL)
 
         // Expire the trial
         trialSub.trialEndsAt = new Date(Date.now() - 1000)
@@ -101,7 +109,7 @@ describe('Billing - Trial Housekeeper Task', function () {
 
         await project.reload()
         project.state.should.equal('suspended')
-        ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.NOT_BILLED)
+        // ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.NOT_BILLED)
 
         await trialSub.reload()
         should.not.exist(trialSub.trialEndsAt)
@@ -114,10 +122,6 @@ describe('Billing - Trial Housekeeper Task', function () {
     })
 
     it('adds trial projects to billing the team trial has ended', async function () {
-        app.settings.set('user:team:trial-mode', true)
-        app.settings.set('user:team:trial-mode:duration', 5)
-        app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
-
         // TestObjects.ATeam - has billing setup, should not get touched
 
         // Create trial team without billing setup
@@ -145,7 +149,7 @@ describe('Billing - Trial Housekeeper Task', function () {
         const projectDetails = response.json()
         const project = await app.db.models.Project.byId(projectDetails.id)
         project.state.should.equal('running')
-        ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.TRIAL)
+        // ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.TRIAL)
         stripe.subscriptions.update.callCount.should.equal(0)
         stripe.subscriptionItems.update.callCount.should.equal(0)
 
@@ -167,10 +171,8 @@ describe('Billing - Trial Housekeeper Task', function () {
             cookies: { sid: TestObjects.tokens.alice }
         })
         response2.statusCode.should.equal(200)
-        const projectDetails2 = response2.json()
         stripe.subscriptions.update.callCount.should.equal(1)
         stripe.subscriptionItems.update.callCount.should.equal(0)
-        stripe._.data.sub_1234567890.metadata.should.have.property(projectDetails2.id, 'true')
         stripe._.data.sub_1234567890.items.data[0].should.have.property('quantity', 1)
 
         // Expire the trial
@@ -180,11 +182,9 @@ describe('Billing - Trial Housekeeper Task', function () {
         // Run the task
         await task(app)
 
-        ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.BILLED)
-        stripe.subscriptions.update.callCount.should.equal(2)
+        // ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.BILLED)
+        stripe.subscriptions.update.callCount.should.equal(1)
         stripe.subscriptionItems.update.callCount.should.equal(1)
-        stripe._.data.sub_1234567890.metadata.should.have.property(project.id, 'true')
-        stripe._.data.sub_1234567890.metadata.should.have.property(projectDetails2.id, 'true')
         stripe._.data.sub_1234567890.items.data[0].should.have.property('quantity', 2)
 
         await trialSub.reload()
@@ -197,10 +197,6 @@ describe('Billing - Trial Housekeeper Task', function () {
     })
 
     it('does not add a suspended trial project to billing when team trial has ended', async function () {
-        app.settings.set('user:team:trial-mode', true)
-        app.settings.set('user:team:trial-mode:duration', 5)
-        app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
-
         // TestObjects.ATeam - has billing setup, should not get touched
 
         // Create trial team without billing setup
@@ -240,7 +236,7 @@ describe('Billing - Trial Housekeeper Task', function () {
         // Verify the project is suspended and the billing state is still 'trial'
         const project = await app.db.models.Project.byId(projectDetails.id)
         project.state.should.equal('suspended')
-        ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.TRIAL)
+        // ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.TRIAL)
         stripe.subscriptions.update.callCount.should.equal(0)
         stripe.subscriptionItems.update.callCount.should.equal(0)
 
@@ -257,15 +253,12 @@ describe('Billing - Trial Housekeeper Task', function () {
 
         // Verify the trial project has not been added to billing
         // and its billing state has been moved to not_billed
-        ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.NOT_BILLED)
+        // ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.NOT_BILLED)
         stripe.subscriptions.update.callCount.should.equal(0)
         stripe.subscriptionItems.update.callCount.should.equal(0)
     })
 
     it('sends trial reminder emails at appropriate intervals', async function () {
-        app.settings.set('user:team:trial-mode', true)
-        app.settings.set('user:team:trial-mode:duration', 5)
-        app.settings.set('user:team:trial-mode:projectType', TestObjects.projectType1.hashid)
         const DAY_MS = 86400000
         // TestObjects.ATeam - has billing setup, should not get touched
 

@@ -11,6 +11,27 @@ const inflightProjectState = { }
 
 const inflightDeploys = new Set()
 
+class ControllerError extends Error {
+    /**
+     * ControllerError
+     * @param {string} code
+     * @param {string} message
+     * @param {number} statusCode
+     */
+    constructor (code, message, statusCode = null, options = null) {
+        super(message, options)
+
+        this.name = 'ControllerError'
+
+        this.code = code
+        this.error = message
+
+        if (statusCode) {
+            this.statusCode = statusCode
+        }
+    }
+}
+
 module.exports = {
     /**
      * Get the in-flight state of a project
@@ -113,13 +134,12 @@ module.exports = {
         return result
     },
 
-    exportProject: async function (app, project, components) {
-        components = components || {
-            flows: true,
-            credentials: true,
-            settings: true,
-            envVars: true
-        }
+    exportProject: async function (app, project, components = {
+        flows: true,
+        credentials: true,
+        settings: true,
+        envVars: true
+    }) {
         const projectExport = {}
         if (components.flows) {
             const flows = await app.db.models.StorageFlow.byProject(project.id)
@@ -168,7 +188,7 @@ module.exports = {
         return projectExport
     },
 
-    importProjectSnapshot: async function restoreSnapshot (app, project, snapshot) {
+    importProjectSnapshot: async function restoreSnapshot (app, project, snapshot, { mergeEnvVars } = { mergeEnvVars: false }) {
         const t = await app.db.sequelize.transaction() // start a transaction
         try {
             if (snapshot?.flows?.flows) {
@@ -203,7 +223,7 @@ module.exports = {
                 }
                 const newSettings = app.db.controllers.ProjectTemplate.validateSettings(snapshotSettings, project.ProjectTemplate)
                 const currentProjectSettings = await project.getSetting('settings') || {} // necessary?
-                const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings) // necessary?
+                const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings, { mergeEnvVars })
                 await project.updateSetting('settings', updatedSettings, { transaction: t }) // necessary?
             }
             await t.commit() // all good, commit the transaction
@@ -225,6 +245,18 @@ module.exports = {
         }
         const newHash = crypto.createHash('sha256').update(newKey).digest()
         return encryptCreds(newHash, original)
+    },
+
+    /**
+     * Helper for the above exportCredentials method
+     * @param {*} existingCredentials
+     * @param {*} oldCredentialSecret
+     * @param {*} newCredentialSecret
+     * @returns
+     */
+    reEncryptCredentials (app, existingCredentials, oldCredentialSecret, newCredentialSecret) {
+        const newCredentials = app.db.controllers.Project.exportCredentials(existingCredentials, oldCredentialSecret, newCredentialSecret)
+        return newCredentials
     },
 
     /**
@@ -259,6 +291,221 @@ module.exports = {
     },
 
     /**
+     *
+     * @param {*} app
+     * @param {Team} team
+     * @param {Application} application
+     * @param {User} user
+     * @param {ProjectType} type
+     * @param {ProjectStack} stack
+     * @param {ProjectTemplate} template
+     * @param {{name: string, ha: {}, sourceProject: Project, sourceProjectOptions: {}}} properties Props of the project to create
+     * @returns
+     */
+    create: async function (
+        app,
+        team,
+        application,
+        user,
+        type,
+        stack,
+        template,
+        {
+            name = '',
+            ha = null,
+            sourceProject = null,
+            sourceProjectOptions = {}
+        } = {}
+    ) {
+        if (!user) {
+            throw new ControllerError('invalid_user', 'Invalid user')
+        }
+
+        if (!team) {
+            throw new ControllerError('invalid_team', 'Invalid team')
+        }
+
+        if (!application) {
+            throw new ControllerError('invalid_application', 'Invalid application')
+        }
+
+        if (!type) {
+            throw new ControllerError('invalid_project_type', 'Invalid project type')
+        }
+
+        // This will perform all checks needed to ensure this instance type can be created for this team.
+        // Throws an exception if not allowed
+        await team.checkInstanceTypeCreateAllowed(type)
+
+        if (sourceProject) {
+            if (sourceProject.Team.id !== team.id) {
+                throw new ControllerError('invalid_source_project', 'Source Project Not in Same Team', 403)
+            } else if (sourceProject && sourceProject.Application.id !== application.id) {
+                throw new ControllerError('invalid_source_project', 'Source Project Not in Same Application', 403)
+            }
+        }
+
+        if (!stack || stack.ProjectTypeId !== type.id) {
+            throw new ControllerError('invalid_stack', 'Invalid stack')
+        }
+
+        if (!template) {
+            throw new ControllerError('invalid_template', 'Invalid template')
+        }
+
+        name = name.trim()
+        const safeName = name?.toLowerCase()
+        if (app.db.models.Project.BANNED_NAME_LIST.includes(safeName)) {
+            throw new ControllerError('invalid_project_name', 'name not allowed', 409)
+        }
+
+        if (/^[a-zA-Z][a-zA-Z0-9-]*$/.test(safeName) === false) {
+            throw new ControllerError('invalid_project_name', 'name not allowed', 409)
+        }
+
+        if (await app.db.models.Project.isNameUsed(safeName)) {
+            throw new ControllerError('invalid_project_name', 'name in use', 409)
+        }
+
+        if (app.license.active() && app.ha) {
+            if (ha && !await app.ha.isHAAllowed(team, type, ha)) {
+                throw new ControllerError('invalid_ha', 'Invalid HA configuration')
+            }
+        }
+
+        let instance
+        try {
+            instance = await app.db.models.Project.create({
+                name,
+                ApplicationId: application.id,
+                type: '',
+                url: ''
+            })
+        } catch (err) {
+            throw new ControllerError('unexpected_error', err.message, null, { cause: err })
+        }
+
+        await team.addProject(instance)
+        await instance.setProjectStack(stack)
+        await instance.setProjectTemplate(template)
+        await instance.setProjectType(type)
+
+        if (app.license.active() && app.ha && ha) {
+            await instance.updateHASettings(ha)
+        }
+
+        await instance.reload({
+            include: [
+                { model: app.db.models.Team },
+                { model: app.db.models.ProjectType },
+                { model: app.db.models.ProjectStack },
+                { model: app.db.models.ProjectTemplate },
+                { model: app.db.models.ProjectSettings }
+            ]
+        })
+
+        if (sourceProject) {
+            await app.db.controllers.Project.importFromInstance(instance, sourceProject, sourceProjectOptions)
+        } else {
+            const newProjectSettings = { header: { title: instance.name } }
+            // Copy the palette modules from the template (if any)
+            // This is an instance creation time only operation to avoid the complexities of
+            // merging the palette modules from the template with the instance palette modules.
+            if (template.settings.palette?.modules?.length > 0) {
+                newProjectSettings.palette = { modules: [...template.settings.palette.modules] }
+            }
+            await instance.updateSetting(KEY_SETTINGS, newProjectSettings)
+            await instance.updateSetting('credentialSecret', app.db.models.Project.generateCredentialSecret())
+        }
+
+        await app.containers.start(instance)
+        await app.auditLog.Project.project.created(user, null, team, instance)
+
+        if (sourceProject) {
+            await app.auditLog.Team.project.duplicated(user, null, team, sourceProject, instance)
+        } else {
+            await app.auditLog.Team.project.created(user, null, team, instance)
+        }
+
+        return instance
+    },
+
+    /**
+     * This method imports from an existing instance, whereas importProject imports from a representation of an instance
+     * Long term, these two method should be combined.
+     *
+     * @param {*} app
+     * @param {Project} targetInstance
+     * @param {Project} sourceInstance
+     * @param {{flows: boolean, credentials: boolean, envVars: boolean}} options
+     */
+    importFromInstance: async function (app, targetInstance, sourceInstance, options = {}) {
+        // need to copy values over
+        const settingsString = (await app.db.models.StorageSettings.byProject(sourceInstance.id))?.settings ?? '{}'
+        const newSettings = {
+            users: {}
+        }
+        const sourceSettings = JSON.parse(settingsString)
+        if (settingsString) {
+            newSettings.nodes = sourceSettings.nodes
+        }
+        const newCredentialSecret = app.db.models.Project.generateCredentialSecret()
+        if (options.flows) {
+            const sourceFlows = await app.db.models.StorageFlow.byProject(sourceInstance.id)
+            if (sourceFlows) {
+                const newFlow = await app.db.models.StorageFlow.create({
+                    flow: sourceFlows.flow,
+                    ProjectId: targetInstance.id
+                })
+                await newFlow.save()
+            }
+
+            if (options.credentials) {
+                // To copy over the credentials, we have to:
+                //  - get the existing credentials + credentialSecret
+                //  - generate a new credentialSecret for the new project
+                //    (this is normally left to NR to do itself)
+                //  - re-encrypt the credentials using the new key
+                const origCredentialsModel = await app.db.models.StorageCredentials.byProject(sourceInstance.id)
+                if (origCredentialsModel) {
+                    const origCredentials = JSON.parse(origCredentialsModel.credentials) // .credentials is stored as text in the DB
+                    const origCredentialSecret = await sourceInstance.getSetting('credentialSecret') || sourceSettings._credentialSecret // Legacy
+                    const newCredentials = await app.db.controllers.Project.reEncryptCredentials(origCredentials, origCredentialSecret, newCredentialSecret)
+                    await app.db.models.StorageCredentials.create({
+                        credentials: JSON.stringify(newCredentials),
+                        ProjectId: targetInstance.id
+                    })
+                }
+            }
+        }
+        await targetInstance.updateSetting('credentialSecret', newCredentialSecret)
+        const settings = await app.db.models.StorageSettings.create({
+            settings: JSON.stringify(newSettings),
+            ProjectId: targetInstance.id
+        })
+        await settings.save()
+
+        const sourceProjectSettings = await sourceInstance.getSetting(KEY_SETTINGS) || { env: [] }
+        const sourceProjectEnvVars = sourceProjectSettings.env || []
+        const newProjectSettings = { ...sourceProjectSettings }
+        newProjectSettings.env = []
+
+        if (options.envVars) {
+            sourceProjectEnvVars.forEach(envVar => {
+                newProjectSettings.env.push({
+                    name: envVar.name,
+                    value: options.envVars === 'keys' ? '' : envVar.value
+                })
+            })
+        }
+        newProjectSettings.header = { title: targetInstance.name }
+        await targetInstance.updateSetting(KEY_SETTINGS, newProjectSettings)
+
+        return targetInstance
+    },
+
+    /**
+     * Imports settings, flows and credentials from a project export object
      *
      * @param {*} app
      * @param {*} project

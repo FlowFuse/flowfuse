@@ -51,6 +51,7 @@ module.exports = async function (app) {
      */
     app.put('/', {
         preHandler: app.needsPermission('device:editor'),
+        config: { rateLimit: false }, // never rate limit this route
         schema: {
             params: {
                 type: 'object',
@@ -76,7 +77,8 @@ module.exports = async function (app) {
 
         const currentState = tunnelManager.getTunnelStatus(deviceId)
         if (currentState.enabled === mode) {
-            reply.code(400).send({ code: 'invalid_request', error: 'Device Editor already ' + (mode ? 'enabled' : 'disabled') })
+            const tunnelStatus = tunnelManager.getTunnelStatus(request.device.hashid) || { enabled: false }
+            reply.send(tunnelStatus)
             return
         }
 
@@ -123,7 +125,8 @@ module.exports = async function (app) {
      * @memberof module:forge/routes/api/device
      */
     app.get('/', {
-        preHandler: app.needsPermission('device:editor')
+        preHandler: app.needsPermission('device:editor'),
+        config: { rateLimit: false } // never rate limit this route
     }, async (request, reply) => {
         /** @type {DeviceTunnelManager} */
         const tunnelManager = app.comms.devices.tunnelManager
@@ -137,7 +140,10 @@ module.exports = async function (app) {
      * @name /api/v1/devices/:deviceId/editor/token
      */
     app.get('/token', {
-        config: { allowAnonymous: true }
+        config: {
+            allowAnonymous: true,
+            rateLimit: false // never rate limit this route
+        }
     }, async (request, reply) => {
         const tunnelManager = getTunnelManager()
         if (tunnelManager.verifyToken(request.params.deviceId, request.headers['x-access-token'])) {
@@ -153,7 +159,10 @@ module.exports = async function (app) {
      * @name /api/v1/devices/:deviceId/editor/comms/:access_token
      */
     app.get('/comms/:access_token', {
-        config: { allowAnonymous: true },
+        config: {
+            allowAnonymous: true,
+            rateLimit: false // never rate limit this route
+        },
         websocket: true
     }, (connection, request) => {
         // * Enable Device Editor (Step 9) - (device:WS->forge) websocket connect request from device
@@ -186,7 +195,10 @@ module.exports = async function (app) {
         // Set 'allowAnonymous' as we don't want to return the standard API
         // response object. Instead, we will use the preHandler to detect
         // there's no session user and redirect to the device overview
-        config: { allowAnonymous: true },
+        config: {
+            allowAnonymous: true,
+            rateLimit: false // never rate limit this route
+        },
         preHandler: async (request, reply) => {
             if (!request.teamMembership) {
                 // Failed authentication. Redirect to the device overview page
@@ -235,7 +247,10 @@ module.exports = async function (app) {
     app.route({
         method: ['POST', 'DELETE', 'PUT', 'HEAD', 'OPTIONS'],
         url: '/proxy/*',
-        config: { allowAnonymous: true },
+        config: {
+            allowAnonymous: true,
+            rateLimit: false // never rate limit this route
+        },
         preHandler: async (request, reply) => {
             if (!request.teamMembership) {
                 // Failed authentication. Redirect to the device overview page

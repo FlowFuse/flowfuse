@@ -18,7 +18,7 @@ module.exports = async function (config = {}) {
     const userBob = await forge.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
     /* const userChris = */ await forge.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', password: 'ccPassword' })
 
-    const defaultTeamType = await forge.db.models.TeamType.findOne()
+    const defaultTeamType = await forge.db.models.TeamType.findOne({ where: { id: 1 } })
 
     const team1 = await forge.db.models.Team.create({ name: 'ATeam', TeamTypeId: defaultTeamType.id })
     const team2 = await forge.db.models.Team.create({ name: 'BTeam', TeamTypeId: defaultTeamType.id })

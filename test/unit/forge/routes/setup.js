@@ -1,7 +1,6 @@
 const TestModelFactory = require('../../../lib/TestModelFactory')
 
 const FF_UTIL = require('flowforge-test-utils')
-const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 module.exports = async function (config = {}) {
     const forge = await FF_UTIL.setupApp(config)
@@ -18,7 +17,7 @@ module.exports = async function (config = {}) {
     })
 
     const team1 = await factory.createTeam({ name: 'ATeam' })
-    await team1.addUser(userAlice, { through: { role: Roles.Owner } })
+    await team1.addUser(userAlice, { through: { role: factory.Roles.Roles.Owner } })
 
     const template = await factory.createProjectTemplate({
         name: 'template1',
@@ -60,7 +59,17 @@ module.exports = async function (config = {}) {
 
     forge.factory = factory
 
-    forge.defaultTeamType = await forge.db.models.TeamType.findOne()
+    forge.adminUser = userAlice
+
+    forge.defaultTeamType = await forge.db.models.TeamType.findOne({ where: { id: 1 } })
+    // Need to give the default TeamType permission to use projectType instances
+    const defaultTeamTypeProperties = forge.defaultTeamType.properties
+    defaultTeamTypeProperties.instances = {
+        [projectType.hashid]: { active: true }
+    }
+    forge.defaultTeamType.properties = defaultTeamTypeProperties
+    await forge.defaultTeamType.save()
+
     forge.team = team1
     forge.stack = stack
     forge.template = template

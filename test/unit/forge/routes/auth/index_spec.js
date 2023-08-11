@@ -1,4 +1,5 @@
 const should = require('should') // eslint-disable-line
+
 const setup = require('../setup')
 
 describe('Accounts API', async function () {
@@ -171,7 +172,7 @@ describe('Accounts API', async function () {
             // TODO: check user audit logs - expect 'account.xxx-yyy' { status: 'okay', ... }
         })
 
-        it('auto-creates personal team if option set', async function () {
+        it('auto-creates personal team if option set - default team type', async function () {
             app.settings.set('user:signup', true)
             app.settings.set('user:team:auto-create', true)
 
@@ -205,6 +206,178 @@ describe('Accounts API', async function () {
             userTeams.teams.should.have.length(1)
         })
 
+        it('auto-creates personal team if option set - selected team type', async function () {
+            app.settings.set('user:signup', true)
+            app.settings.set('user:team:auto-create', true)
+
+            const newTeamType = await app.db.models.TeamType.create({
+                name: 'new-starter',
+                properties: {}
+            })
+            app.settings.set('user:team:auto-create:teamType', newTeamType.hashid)
+
+            const response = await registerUser({
+                username: 'user2',
+                password: '12345678',
+                name: 'user',
+                email: 'user2@example.com'
+            })
+            response.statusCode.should.equal(200)
+
+            // Team is only created once they verify their email.
+            const user = await app.db.models.User.findOne({ where: { username: 'user2' } })
+            const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
+            await app.inject({
+                method: 'POST',
+                url: `/account/verify/${verificationToken}`,
+                payload: {},
+                cookies: { sid: TestObjects.tokens.user2 }
+            })
+            await login('user2', '12345678')
+
+            const userTeamsResponse = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user/teams',
+                cookies: { sid: TestObjects.tokens.user2 }
+            })
+
+            const userTeams = userTeamsResponse.json()
+            userTeams.should.have.property('teams')
+            userTeams.teams.should.have.length(1)
+            userTeams.teams[0].should.have.property('type')
+            userTeams.teams[0].type.should.have.property('id', newTeamType.hashid)
+
+            // cleanup else this becomes the new default and breaks other tests
+            newTeamType.active = false
+            await newTeamType.save()
+            app.settings.set('user:team:auto-create:teamType', null)
+        })
+
+        describe('auto-creation of application and instances', function () {
+            it('auto-creates an instance if instanceType option is set', async function () {
+                app.settings.set('user:signup', true)
+                app.settings.set('user:team:auto-create', true)
+                app.settings.set('user:team:auto-create:instanceType', app.projectType.hashid)
+
+                const response = await registerUser({
+                    username: 'user3',
+                    password: '12345678',
+                    name: 'user',
+                    email: 'user3@example.com'
+                })
+                response.statusCode.should.equal(200)
+
+                // Process only runs after email verification
+                const user = await app.db.models.User.findOne({ where: { username: 'user3' } })
+                const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
+                const verifyResponse = await app.inject({
+                    method: 'POST',
+                    url: `/account/verify/${verificationToken}`,
+                    payload: {},
+                    cookies: { sid: TestObjects.tokens.user3 }
+                })
+                verifyResponse.statusCode.should.equal(200)
+
+                const instances = await app.db.models.Project.byUser(user)
+                instances.length.should.equal(1)
+
+                const instance = instances[0]
+                instance.safeName.should.match(/team-user-user3-(\w)+/)
+            })
+
+            it('auto-creates an application & instance if instanceType option is set and there is no application yet', async function () {
+                app.settings.set('user:signup', true)
+                app.settings.set('user:team:auto-create', true)
+                app.settings.set('user:team:auto-create:instanceType', app.projectType.hashid)
+
+                const response = await registerUser({
+                    username: 'user4',
+                    password: '12345678',
+                    name: 'dave',
+                    email: 'user4@example.com'
+                })
+                response.statusCode.should.equal(200)
+
+                // Process only runs after email verification
+                const user = await app.db.models.User.findOne({ where: { username: 'user4' } })
+                const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
+                const verifyResponse = await app.inject({
+                    method: 'POST',
+                    url: `/account/verify/${verificationToken}`,
+                    payload: {},
+                    cookies: { sid: TestObjects.tokens.user4 }
+                })
+                verifyResponse.statusCode.should.equal(200)
+
+                const teams = await app.db.models.Team.forUser(user)
+                const userTeam = teams[0].Team
+
+                const applications = await app.db.models.Application.byTeam(userTeam.id, { includeInstances: true })
+                applications.length.should.equal(1)
+
+                const application = applications[0]
+                application.name.should.match('Dave\'s Application')
+
+                application.Instances.length.should.equal(1)
+                application.Instances[0].safeName.should.match(/team-dave-user4-(\w)+/)
+            })
+
+            it('handles a custom team type being set, still creating an application & instance if the flag is set', async function () {
+                app.settings.set('user:signup', true)
+                app.settings.set('user:team:auto-create', true)
+                app.settings.set('user:team:auto-create:instanceType', app.projectType.hashid)
+
+                // Allow this new project type to be used by the new team type
+                const teamTypeProperties = { instances: {} }
+                teamTypeProperties.instances[app.projectType.hashid] = {
+                    active: true,
+                    limit: 2,
+                    free: 2
+                }
+                const newTeamType = await app.db.models.TeamType.create({
+                    name: 'new-starter-test',
+                    properties: teamTypeProperties
+                })
+                app.settings.set('user:team:auto-create:teamType', newTeamType.hashid)
+
+                const response = await registerUser({
+                    username: 'user5',
+                    password: '12345678',
+                    name: 'Pez Cuckow',
+                    email: 'user5@example.com'
+                })
+                response.statusCode.should.equal(200)
+
+                // Process only runs after email verification
+                const user = await app.db.models.User.findOne({ where: { username: 'user5' } })
+                const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
+                const verifyResponse = await app.inject({
+                    method: 'POST',
+                    url: `/account/verify/${verificationToken}`,
+                    payload: {},
+                    cookies: { sid: TestObjects.tokens.user4 }
+                })
+                verifyResponse.statusCode.should.equal(200)
+
+                const teams = await app.db.models.Team.forUser(user)
+                const userTeam = teams[0].Team
+
+                const applications = await app.db.models.Application.byTeam(userTeam.id, { includeInstances: true })
+                applications.length.should.equal(1)
+
+                const application = applications[0]
+                application.name.should.match('Pez Cuckow\'s Application')
+
+                application.Instances.length.should.equal(1)
+                application.Instances[0].safeName.should.match(/team-pez-cuckow-user5-(\w)+/)
+
+                // cleanup else this becomes the new default and breaks other tests
+                newTeamType.active = false
+                await newTeamType.save()
+                app.settings.set('user:team:auto-create:teamType', null)
+            })
+        })
+
         describe('licensed instances', function () {
             before(async function () {
                 // close the default app
@@ -223,9 +396,16 @@ describe('Accounts API', async function () {
                 app = await setup({ license, billing: { stripe: {} } })
                 app.settings.set('user:signup', true)
                 app.settings.set('user:team:auto-create', true)
-                app.settings.set('user:team:trial-mode', true)
-                app.settings.set('user:team:trial-mode:duration', TEST_TRIAL_DURATION)
-                app.settings.set('user:team:trial-mode:projectType', app.projectType.id)
+
+                // Set trial mode options against the default team type
+                const teamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
+                const props = teamType.properties
+                props.trial = {
+                    active: true,
+                    duration: TEST_TRIAL_DURATION
+                }
+                teamType.properties = props
+                await teamType.save()
 
                 const response = await registerUser({
                     username: 'user',

@@ -65,6 +65,55 @@ const buildPaginationSearchClause = (params, whereClause = {}, columns = [], fil
     return whereClause
 }
 
+/**
+ * Get canonical email from an email address.
+ * In this implementation, the canonical form of an email is the
+ * address with the following processing applied:
+ * * lower case it
+ * * trim it
+ * * return null if email is null or empty
+ * * remove dots for everything before the @ sign (gmail/googlemail only)
+ * * return sanitised local + @ + domain
+ * KNOWN LIMITATIONS:
+ * * This function does not attempt understand the aliasing rules of each provider
+ * * This function does not attempt to remove tags from the local-part
+ * * This function does not attempt to remove sub-domain tags
+ * @param {String} email Email address to get canonical email from
+ * @param {Object} options Options
+ * @param {Array<String>} options.removeDotsForDomains List of domains for which dots should be removed from the local-part
+ * @returns {String} Canonical email
+ */
+function getCanonicalEmail (email, options = { removeDotsForDomains: ['gmail.', 'googlemail.'] }) {
+    // Aliasing is supported by most of the big email providers and implemented in various ways
+    //      For example:
+    //          Gmail allows dots to be added anywhere in the local-part (it ignores dots in the local-part)
+    //          Yahoo supports a "base name" and a "keyword" (basename-keyword@yahoo.com) - upto 500 aliases
+    //          Yandex.Mail permits "-".  for example, if username includes a period (e.g. alice.the.girl), you automatically receive an alias like alice-the-girl in addition to domain aliases.
+    //      This function will not attempt understand the aliasing rules of each provider
+    // Sub-addressing (also known as the + trick) is now supported by the most of the big email providers
+    //      https://en.wikipedia.org/wiki/Comparison_of_webmail_providers#Features
+    //      <local-part>?<tag>@<domain>
+    //      some providers use the + sign, some use the - sign
+    //      This function will not attempt to remove tags from the local-part
+    // Sub-domain addressing is less popular (skiff, FastMail, and ProtonMail) but is still a thing.
+    //      This function will not attempt to remove tags from the sub-domain
+
+    if (!email || typeof email !== 'string' || email.trim().length === 0) {
+        return null
+    }
+    email = (email + '').trim().toLocaleLowerCase()
+    email = (email + '').toLowerCase().trim()
+    const [local, domain] = email.split('@')
+    if (domain && options.removeDotsForDomains.length >= 0) {
+        for (const domainToCheck of options.removeDotsForDomains) {
+            if (domain.startsWith(domainToCheck)) {
+                return `${local.replace(/\./g, '')}@${domain}` // gmail ignores dots in the local part so we remove them to make the email canonical
+            }
+        }
+    }
+    return `${local}@${domain}`
+}
+
 module.exports = {
     init: _app => { app = _app },
     generateToken: (length, prefix) => (prefix ? prefix + '_' : '') + base64URLEncode(crypto.randomBytes(length || 32)),
@@ -92,5 +141,6 @@ module.exports = {
         }
         return hashids[type]
     },
-    buildPaginationSearchClause
+    buildPaginationSearchClause,
+    getCanonicalEmail
 }

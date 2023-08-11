@@ -95,3 +95,18 @@ email:
 #################################################
 telemetry:
   enabled: true
+
+#################################################
+# Route Rate Limits                             #
+#################################################
+rate_limits:
+  enabled: false
+  # global: true
+  # timeWindow: 60000
+  # max: 1000
+  # maxAnonymous: 100 # optional (defaults to value of max if not set)
+ 
+#################################################
+# Create Default Admin                          #
+#################################################
+# create_admin: false

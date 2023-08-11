@@ -35,12 +35,13 @@ sudo npm install -g @flowforge/flowforge-device-agent
 npm install -g @flowforge/flowforge-device-agent
 ```
 
+### Docker
 
 Or you can chose to run the Docker container. When you do, you'll need to mount
 the `device.yml` obtained when [Registering the device](./register.md):
 
 ```bash
-docker run --mount /path/to/device.yml:/opt/flowforge-device/device.yml -p 1880:1880 flowforge/device-agent:latest
+docker run --mount type=bind,src=/path/to/device.yml,target=/opt/flowforge-device/device.yml -p 1880:1880 flowforge/device-agent:latest
 ```
 
 Or you can chose to run the Docker-Compose via a docker-compose.yml file. When you do, you'll need to mount

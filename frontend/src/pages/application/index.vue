@@ -1,13 +1,6 @@
 <template>
     <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigationTeamOptions>
-            <template #nested-menu>
-                <div class="ff-nested-title">Application</div>
-                <router-link v-for="route in navigation" :key="route.label" :to="route.path">
-                    <nav-item :icon="route.icon" :label="route.label" :data-nav="route.tag" :featureUnavailable="route.featureUnavailable" />
-                </router-link>
-            </template>
-        </SideNavigationTeamOptions>
+        <SideNavigationTeamOptions />
     </Teleport>
 
     <ff-loading v-if="loading.deleting" message="Deleting Application..." />
@@ -26,16 +19,11 @@
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
         </Teleport>
         <div class="ff-instance-header">
-            <InstanceStatusHeader>
-                <template #hero>
-                    <div class="flex-grow space-x-6 items-center inline-flex" data-el="application-name">
-                        <div class="text-gray-800 text-xl font-bold">
-                            <div class="text-sm font-medium text-gray-500">Application:</div>
-                            {{ application.name }}
-                        </div>
-                    </div>
+            <ff-page-header :title="application.name" :tabs="navigation">
+                <template #breadcrumbs>
+                    <ff-nav-breadcrumb :to="{name: 'Applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
                 </template>
-            </InstanceStatusHeader>
+            </ff-page-header>
         </div>
         <div class="px-3 py-3 md:px-6 md:py-6">
             <router-view
@@ -65,9 +53,7 @@ import { Roles } from '../../../../forge/lib/roles.js'
 import ApplicationApi from '../../api/application.js'
 import InstanceApi from '../../api/instances.js'
 
-import InstanceStatusHeader from '../../components/InstanceStatusHeader.vue'
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
-import NavItem from '../../components/NavItem.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
@@ -90,9 +76,7 @@ export default {
     components: {
         ConfirmApplicationDeleteDialog,
         ConfirmInstanceDeleteDialog,
-        InstanceStatusHeader,
         InstanceStatusPolling,
-        NavItem,
         SideNavigationTeamOptions,
         SubscriptionExpiredBanner,
         TeamTrialBanner
@@ -119,17 +103,17 @@ export default {
         },
         navigation () {
             const routes = [
-                { label: 'Node-RED Instances', path: `/application/${this.application.id}/instances`, tag: 'application-overview', icon: ProjectsIcon },
+                { label: 'Node-RED Instances', to: `/application/${this.application.id}/instances`, tag: 'application-overview', icon: ProjectsIcon },
                 {
                     label: 'DevOps Pipelines',
-                    path: `/application/${this.application.id}/pipelines`,
+                    to: `/application/${this.application.id}/pipelines`,
                     tag: 'application-pipelines',
                     icon: PipelinesIcon,
                     featureUnavailable: !this.features?.['devops-pipelines']
                 },
-                { label: 'Node-RED Logs', path: `/application/${this.application.id}/logs`, tag: 'application-logs', icon: TerminalIcon },
-                { label: 'Audit Log', path: `/application/${this.application.id}/activity`, tag: 'application-activity', icon: ViewListIcon },
-                { label: 'Settings', path: `/application/${this.application.id}/settings`, tag: 'application-settings', icon: CogIcon }
+                { label: 'Node-RED Logs', to: `/application/${this.application.id}/logs`, tag: 'application-logs', icon: TerminalIcon },
+                { label: 'Audit Log', to: `/application/${this.application.id}/activity`, tag: 'application-activity', icon: ViewListIcon },
+                { label: 'Settings', to: `/application/${this.application.id}/settings`, tag: 'application-settings', icon: CogIcon }
             ]
 
             return routes
@@ -230,30 +214,28 @@ export default {
         async instanceStart (instance) {
             const mutator = new InstanceStateMutator(instance)
             mutator.setStateOptimistically('starting')
-
-            const err = await InstanceApi.startInstance(instance)
-            if (err) {
+            try {
+                await InstanceApi.startInstance(instance)
+                mutator.setStateAsPendingFromServer()
+            } catch (err) {
                 console.warn('Instance start failed.', err)
                 alerts.emit('Instance start failed.', 'warning')
 
                 mutator.restoreState()
-            } else {
-                mutator.setStateAsPendingFromServer()
             }
         },
 
         async instanceRestart (instance) {
             const mutator = new InstanceStateMutator(instance)
             mutator.setStateOptimistically('restarting')
-
-            const err = await InstanceApi.restartInstance(instance)
-            if (err) {
+            try {
+                await InstanceApi.restartInstance(instance)
+                mutator.setStateAsPendingFromServer()
+            } catch (err) {
                 console.warn('Instance restart failed.', err)
                 alerts.emit('Instance restart failed.', 'warning')
 
                 mutator.restoreState()
-            } else {
-                mutator.setStateAsPendingFromServer()
             }
         },
 

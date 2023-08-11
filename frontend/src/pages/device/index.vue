@@ -1,13 +1,6 @@
 <template>
     <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigationTeamOptions>
-            <template #nested-menu>
-                <div class="ff-nested-title">Device</div>
-                <router-link v-for="route in navigation" :key="route.label" :to="route.path" :data-nav="route.tag">
-                    <nav-item :icon="route.icon" :label="route.label" />
-                </router-link>
-            </template>
-        </SideNavigationTeamOptions>
+        <SideNavigationTeamOptions />
     </Teleport>
     <main class="ff-with-status-header">
         <Teleport v-if="mounted" to="#platform-banner">
@@ -15,22 +8,21 @@
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
         </Teleport>
         <div class="ff-instance-header">
-            <InstanceStatusHeader>
-                <template #hero>
-                    <div class="flex-grow items-center inline-flex flex-wrap" data-el="device-name">
-                        <div class="text-gray-800 text-xl font-bold mr-6">
-                            {{ device.name }}
-                        </div>
-                        <DeviceLastSeenBadge class="mr-6" :last-seen-at="device.lastSeenAt" :last-seen-ms="device.lastSeenMs" :last-seen-since="device.lastSeenSince" />
-                        <StatusBadge :status="device.status" />
-                        <div class="w-full text-sm mt-1">
-                            <div v-if="device?.instance">
-                                Instance:
-                                <router-link :to="{name: 'Instance', params: {id: device.instance.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.instance.name }}</router-link>
-                            </div>
-                            <span v-else class="text-gray-400 italic">Device Not Assigned to an Instance</span>
-                        </div>
+            <SectionNavigationHeader :tabs="navigation">
+                <template #breadcrumbs>
+                    <ff-nav-breadcrumb :to="{name: 'TeamDevices', params: {team_slug: team.slug}}">Devices</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb>{{ device.name }}</ff-nav-breadcrumb>
+                </template>
+                <template #status>
+                    <DeviceLastSeenBadge class="mr-6" :last-seen-at="device.lastSeenAt" :last-seen-ms="device.lastSeenMs" :last-seen-since="device.lastSeenSince" />
+                    <StatusBadge :status="device.status" />
+                </template>
+                <template #parent>
+                    <div v-if="device?.instance">
+                        Instance:
+                        <router-link :to="{name: 'Instance', params: {id: device.instance.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.instance.name }}</router-link>
                     </div>
+                    <span v-else class="text-gray-400 italic">Device Not Assigned to an Instance</span>
                 </template>
                 <template v-if="isDevModeAvailable" #tools>
                     <div class="space-x-2 flex align-center">
@@ -54,7 +46,7 @@
                         </ff-button>
                     </div>
                 </template>
-            </InstanceStatusHeader>
+            </SectionNavigationHeader>
         </div>
         <div class="text-sm sm:px-6 mt-4 sm:mt-8">
             <Teleport v-if="mounted && isVisitingAdmin" to="#platform-banner">
@@ -71,14 +63,13 @@
 <script>
 
 import { BeakerIcon, ExternalLinkIcon } from '@heroicons/vue/outline'
-import { ChipIcon, CogIcon, TerminalIcon } from '@heroicons/vue/solid'
+import { TerminalIcon } from '@heroicons/vue/solid'
 import semver from 'semver'
 import { mapState } from 'vuex'
 
 import { Roles } from '../../../../forge/lib/roles.js'
 import deviceApi from '../../api/devices.js'
-import InstanceStatusHeader from '../../components/InstanceStatusHeader.vue'
-import NavItem from '../../components/NavItem.vue'
+import SectionNavigationHeader from '../../components/SectionNavigationHeader.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
@@ -94,9 +85,8 @@ export default {
         BeakerIcon,
         ExternalLinkIcon,
         DeviceLastSeenBadge,
-        InstanceStatusHeader,
+        SectionNavigationHeader,
         ModeChoiceDialog,
-        NavItem,
         SideNavigationTeamOptions,
         StatusBadge,
         SubscriptionExpiredBanner,
@@ -105,9 +95,9 @@ export default {
     mixins: [permissionsMixin],
     data: function () {
         const navigation = [
-            { label: 'Overview', path: `/device/${this.$route.params.id}/overview`, tag: 'device-overview', icon: ChipIcon },
+            { label: 'Overview', to: `/device/${this.$route.params.id}/overview`, tag: 'device-overview' },
             // { label: 'Device Logs', path: `/device/${this.$route.params.id}/logs`, tag: 'device-logs', icon: TerminalIcon },
-            { label: 'Settings', path: `/device/${this.$route.params.id}/settings`, tag: 'device-settings', icon: CogIcon }
+            { label: 'Settings', to: `/device/${this.$route.params.id}/settings`, tag: 'device-settings' }
         ]
 
         return {

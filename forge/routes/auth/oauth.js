@@ -41,6 +41,9 @@ module.exports = async function (app) {
     })
 
     app.get('/account/authorize', {
+        config: {
+            rateLimit: false // never rate limit this route
+        },
         schema: {
             tags: ['Authentication', 'X-HIDDEN'],
             querystring: {
@@ -223,6 +226,9 @@ module.exports = async function (app) {
     })
 
     app.post('/account/token', {
+        config: {
+            rateLimit: false // never rate limit this route
+        },
         schema: {
             tags: ['Authentication', 'X-HIDDEN'],
             body: {

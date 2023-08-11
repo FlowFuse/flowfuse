@@ -1,0 +1,269 @@
+.ff-bg-dark {
+    background-color: $ff-grey-800;
+}
+
+.ff-theme-dark {
+    color: $ff-grey-50;
+    
+    /* Core */
+
+    table {
+        td, th {
+            border-color: $ff-grey-500;
+        }
+    }
+
+    select {
+        background-color: $ff-grey-800;
+    }
+
+    code {
+        background-color: $ff-grey-900;
+        border-color: $ff-grey-700;
+    }
+
+    .ff-description {
+        color: $ff-grey-400;
+    }
+
+    /* FlowForge Components */
+
+    /**
+    * Buttons
+    */
+    .ff-btn {
+        &--tertiary {
+            color: $ff-white;
+            &:hover {
+                // background-color: $ff-color--secondary--highlight;
+                color: $ff-white;
+            }
+        }
+        &:disabled {
+            background-color: $ff-grey-700;
+            border-color: $ff-grey-500;
+            color: $ff-grey-500;
+        }
+    }
+
+    /**
+    *  Text Input
+    */
+
+    .ff-input.ff-text-input {
+        background-color: $ff-grey-700;
+        border-color: $ff-grey-900;
+        &:focus {
+          border-color: $ff-white;
+        }
+    }
+
+    /**
+    *  Dropdowns
+    */
+
+    .ff-dropdown {
+        &[disabled="true"] {
+            background-color: $ff-grey-700;
+            color: $ff-grey-500;
+        }
+        .ff-dropdown-selected {
+            background-color: $ff-grey-700;
+            border-color: $ff-grey-500;
+        }
+        .ff-dropdown-options {
+            border-color: $ff-grey-700;
+        }
+        .ff-dropdown-option {
+            background-color: $ff-grey-700;
+            border-color: $ff-grey-800;
+            &:hover {
+                background-color: $ff-grey-800;
+            }
+        }
+    }
+
+    /**
+    *  Checkboxes
+    */
+
+    .ff-checkbox {
+        .checkbox[checked=true] {
+            background-color: transparent;
+            border-color: $ff-grey-500;
+        }
+        &:hover:not([disabled=true]) {
+            .checkbox {
+                background-color: $ff-grey-600;
+            }
+        }
+        &:hover:not([disabled=true]) {
+            .checkbox[checked=true] {
+                background-color: $ff-grey-800;
+                border-color: $ff-grey-600;
+            }
+        }
+    }
+
+    /**
+    *  FF Toggle Switch
+    */
+    .ff-toggle-switch {
+        svg {
+          color: $ff-grey-800;
+        }
+        input:checked + .ff-toggle-switch-slider {
+          background-color: $ff-blue-600;
+        }
+        &[disabled=true] {
+          .ff-toggle-switch-slider {
+            background-color: $ff-grey-700;
+          }
+          .ff-toggle-switch-button {
+            background-color: $ff-grey-800;
+          }
+          svg {
+            color: $ff-grey-500;
+          }
+        }
+    }
+
+    .ff-toggle-switch-slider {
+        background-color: $ff-grey-600;
+        &:hover {
+          background-color: $ff-indigo-500 !important;
+        }
+    }
+
+    .ff-toggle-switch-button {
+        background-color: $ff-white;
+    }
+
+    /**
+    *  Radio Group
+    */
+
+    .ff-radio-btn {
+      .checkbox {
+        border: 1px solid $ff-grey-600;
+        background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%231F2937' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='4'/%3e%3c/svg%3e")    
+      }
+    }
+    
+    .ff-radio-btn {
+        .checkbox {
+            &[checked=true] {
+                background-color: $ff-white;
+                border-color: $ff-grey-700;
+            }
+            &[checked=true]:after {
+                display: block;
+            }
+        }
+        &:hover:not([disabled=true]) {
+            .checkbox {
+                background-color: $ff-grey-600;
+            }
+        }
+        &:hover:not([disabled=true]) {
+            .checkbox[checked=true] {
+                background-color: $ff-white;
+            }
+        }
+    }
+
+    /**
+    *  Toast Notification
+    */
+
+    .ff-notification-toast {
+        color: $ff-grey-800;
+    }
+
+    /**
+    *  Selection Tile
+    */
+
+    .ff-tile-selection {
+        .ff-tile-selection-option--header > h2 svg {
+            fill: $ff-grey-500;
+            &.ff-tile-selection-option--edit:hover {
+                fill: $ff-blue-300;
+            }
+        }
+        .ff-tile-selection-option {
+            background-color: $ff-grey-700;
+            border-color: $ff-grey-800;
+            &.active svg {
+                fill: $ff-blue-300;
+            }
+            &:hover {
+                background-color: $ff-grey-800;
+            }
+            &:not(.editable):hover {
+                border-color: $ff-blue-300;
+            }
+            &[selected=true] {
+                background-color: $ff-grey-800;
+                border-color: $ff-grey-800;
+            }
+        }
+    }
+
+    /**
+    *  Data Table
+    */
+    .ff-data-table {
+        &--data {
+          .ff-data-table--cell {
+          }
+          thead {
+            .ff-data-table--cell {
+              background-color: $ff-grey-900;
+              &.sortable {
+                &:hover {
+                  background-color: $ff-grey-800;
+                }
+              }
+              &.sorted {
+                background-color: $ff-grey-900;
+              }
+            }
+          }
+          tbody {
+            .ff-data-table--row:last-child {
+              .ff-data-table--cell {
+                border-top-color: $ff-grey-600;
+              }
+            }
+            .ff-data-table--cell {
+              background-color: $ff-grey-700;
+              &.highlight {
+                background-color: $ff-grey-800;
+              }
+            }
+            .selectable:hover .ff-data-table--cell {
+              color: $ff-blue-300;
+              background-color: $ff-grey-600;
+            }
+          }
+        }
+        &--row {
+          td {
+            border-color: $ff-grey-600;
+          }
+        }
+      }
+      
+      .ff-loadmore {
+        span {
+          color: $ff-white;
+          background-color: $ff-grey-900;
+          border: 1px solid $ff-grey-600;
+          &:hover {
+            color: $ff-blue-300;
+            background-color: $ff-grey-600;
+          }
+        }
+      }
+}

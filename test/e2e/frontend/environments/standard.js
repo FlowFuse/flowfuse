@@ -43,12 +43,6 @@ module.exports = async function (settings = {}, config = {}) {
     const factory = new TestModelFactory(forge)
 
     const projectType = await factory.createProjectType({ name: 'type1' })
-    // configure trial mode
-    if (settings.trialMode) {
-        forge.settings.set('user:team:trial-mode', true)
-        forge.settings.set('user:team:trial-mode:duration', 5)
-        forge.settings.set('user:team:trial-mode:projectType', projectType.hashid)
-    }
 
     // Create users
     // full platform & team1 admin
@@ -73,6 +67,32 @@ module.exports = async function (settings = {}, config = {}) {
     await factory.createProjectTemplate({ name: 'template2' }, userAlice)
     const spareProjectType = await factory.createProjectType({ name: 'type2' })
     await factory.createStack({ name: 'stack1-for-type2' }, spareProjectType)
+
+    // Ensure projectTypes are allowed to be used by the default team type
+    const teamType = await forge.db.models.TeamType.findOne({ where: { id: 1 } })
+    const teamTypeProperties = { ...teamType.properties }
+    teamTypeProperties.instances = {
+        [projectType.hashid]: { active: true },
+        [spareProjectType.hashid]: { active: true }
+    }
+    if (config.billing) {
+        teamTypeProperties.instances[projectType.hashid].priceId = 'starterteampprice'
+        teamTypeProperties.instances[projectType.hashid].productId = 'starterteamprod'
+        teamTypeProperties.instances[projectType.hashid].description = '$15/month'
+        teamTypeProperties.instances[spareProjectType.hashid].priceId = 'price2'
+        teamTypeProperties.instances[spareProjectType.hashid].productId = 'product2'
+        teamTypeProperties.instances[spareProjectType.hashid].description = '$10/month'
+    }
+    // configure trial mode
+    if (settings.trialMode) {
+        teamTypeProperties.trial = {
+            active: true,
+            duration: 5,
+            instanceType: projectType.hashid
+        }
+    }
+    teamType.properties = teamTypeProperties
+    await teamType.save()
 
     /// Team 1
     const team1 = await factory.createTeam({ name: 'ATeam' })

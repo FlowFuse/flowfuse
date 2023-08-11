@@ -198,13 +198,8 @@ module.exports = async function (app) {
             team = teamMembership.get('Team')
         }
 
-        await team.reload({
-            include: [
-                { model: app.db.models.TeamType }
-            ]
-        })
-        const teamDeviceLimit = team.TeamType.getProperty('deviceLimit')
-        if (typeof teamDeviceLimit === 'number') {
+        const teamDeviceLimit = await team.getDeviceLimit()
+        if (teamDeviceLimit > -1) {
             const currentDeviceCount = await team.deviceCount()
             if (currentDeviceCount >= teamDeviceLimit) {
                 reply.code(400).send({ code: 'device_limit_reached', error: 'Team device limit reached' })
@@ -410,7 +405,7 @@ module.exports = async function (app) {
 
         const updatedDevice = await app.db.models.Device.byId(device.id)
         if (sendDeviceUpdate) {
-            app.db.controllers.Device.sendDeviceUpdateCommand(updatedDevice)
+            await app.db.controllers.Device.sendDeviceUpdateCommand(updatedDevice)
         }
         reply.send(app.db.views.Device.device(updatedDevice))
     })
@@ -477,7 +472,7 @@ module.exports = async function (app) {
             }
             await request.device.updateSettings(bodySettingsEnvOnly)
         }
-        app.db.controllers.Device.sendDeviceUpdateCommand(request.device)
+        await app.db.controllers.Device.sendDeviceUpdateCommand(request.device)
         reply.send({ status: 'okay' })
     })
 
@@ -573,7 +568,7 @@ module.exports = async function (app) {
         request.device.mode = request.body.mode
         await request.device.save()
         // send update to device for immediate effect
-        app.db.controllers.Device.sendDeviceUpdateCommand(request.device)
+        await app.db.controllers.Device.sendDeviceUpdateCommand(request.device)
         // Audit log the change
         if (request.device.mode === 'developer') {
             await app.auditLog.Team.team.device.developerMode.enabled(request.session.User, null, request.device.Team, request.device)

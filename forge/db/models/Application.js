@@ -29,12 +29,12 @@ module.exports = {
                         include: [
                             {
                                 model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
                             }
                         ]
                     })
                 },
-                byTeam: async (teamIdOrHash, { includeInstances = false }) => {
+                byTeam: async (teamIdOrHash, { includeInstances = false } = {}) => {
                     let id = teamIdOrHash
                     if (typeof teamIdOrHash === 'string') {
                         id = M.Team.decodeHashid(teamIdOrHash)
@@ -43,7 +43,7 @@ module.exports = {
                     const includes = [
                         {
                             model: M.Team,
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links'],
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId'],
                             where: { id }
                         }
                     ]

@@ -197,7 +197,7 @@ export default {
                     this.instanceStatusMap = new Map(
                         instances.map((obj) => {
                             const previousStatus = this.instanceStatusMap.get(obj.id)
-                            return [obj.id, { ...previousStatus, ...obj.meta }]
+                            return [obj.id, { ...previousStatus, ...obj.meta, flowLastUpdatedSince: obj.flowLastUpdatedSince }]
                         })
                     )
                 })

@@ -24,6 +24,12 @@ module.exports = {
                 async autoCreateTeam (actionedBy, error, team) {
                     await log('account.verify.auto-create-team', actionedBy, generateBody({ error, team }))
                 },
+                async autoCreateApplication (actionedBy, error, application) {
+                    await log('account.verify.auto-create-application', actionedBy, generateBody({ error, application }))
+                },
+                async autoCreateInstance (actionedBy, error, instance) {
+                    await log('account.verify.auto-create-instance', actionedBy, generateBody({ error, instance }))
+                },
                 async requestToken (actionedBy, error) {
                     await log('account.verify.request-token', actionedBy, generateBody({ error }))
                 },

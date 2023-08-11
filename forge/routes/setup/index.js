@@ -6,10 +6,16 @@
  * @namespace setup
  * @memberof forge.routes
  */
+const crypto = require('crypto')
 const fs = require('fs/promises')
 const path = require('path')
 
 const setupApp = path.join(__dirname, '../../../frontend/dist-setup/setup.html')
+
+const generatePassword = () => {
+    const charList = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz~!@-#$'
+    return Array.from(crypto.randomFillSync(new Uint32Array(8))).map(x => charList[x % charList.length]).join('')
+}
 
 module.exports = async function (app) {
     let cachedSetupFile
@@ -19,6 +25,25 @@ module.exports = async function (app) {
             reply.redirect('/')
             return
         }
+
+        if (app.config.create_admin) {
+            if (await app.db.models.User.count() === 0) {
+                const password = generatePassword()
+                await app.db.models.User.create({
+                    username: 'ff-admin',
+                    name: 'Default Admin',
+                    email: 'admin@example.com',
+                    email_verified: true,
+                    password,
+                    admin: true,
+                    password_expired: true
+                })
+                app.log.info('[SETUP] Created default Admin User')
+                app.log.info('[SETUP] username: ff-admin')
+                app.log.info(`[SETUP] password: ${password}`)
+            }
+        }
+
         const csrfToken = await reply.generateCsrf()
         if (!cachedSetupFile) {
             cachedSetupFile = await fs.readFile(setupApp, 'utf-8')
@@ -53,12 +78,19 @@ module.exports = async function (app) {
                 }
             })
             const projectType = await app.db.controllers.ProjectType.createDefaultProjectType()
-            app.log.info('[SETUP] Created default ProjectType')
+            app.log.info('[SETUP] Created default InstanceType')
+
+            await app.db.controllers.TeamType.enableInstanceTypeForDefaultType(projectType)
+            app.log.info('[SETUP] Enabled default InstanceType for default TeamType')
+
             await app.db.controllers.ProjectTemplate.createDefaultTemplate(adminUser)
-            app.log.info('[SETUP] Created default ProjectTemplate')
+            app.log.info('[SETUP] Created default Template')
+
             await app.db.controllers.ProjectStack.createDefaultProjectStack(projectType)
-            app.log.info('[SETUP] Created default ProjectStack')
+            app.log.info('[SETUP] Created default Stack')
+
             await app.settings.set('setup:initialised', true)
+
             app.log.info('****************************************************')
             app.log.info('* FlowForge setup is complete. You can login at:   *')
             app.log.info(`*   ${app.config.base_url.padEnd(47, ' ')}*`)

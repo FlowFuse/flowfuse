@@ -10,6 +10,7 @@
  * @memberof forge.routes.api
  */
 
+const { getCanonicalEmail } = require('../../db/utils')
 const { TeamRoles, Roles } = require('../../lib/roles')
 
 module.exports = async function (app) {
@@ -89,8 +90,39 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const userDetails = request.body.user.split(',').map(u => u.trim()).filter(Boolean)
-        if (userDetails.length > 5) {
-            reply.code(429).send({ code: 'too_many_invites', error: 'maximum 5 invites at a time' })
+
+        // 1st check there are any users to invite
+        if (userDetails.length === 0) {
+            const result = {
+                status: 'error',
+                code: 'invitation_failed',
+                error: 'no users specified'
+            }
+            reply.code(400).send(result)
+            await app.auditLog.Team.team.user.invited(request.session.User, result, request.team, null, request.body.role || Roles.Member)
+            return
+        }
+
+        // separate user names from emails, deduplicate both lists then recombine
+
+        // use a regex to determine if the user is NOT email address
+        const namesOnly = userDetails.filter(u => !u.match(/^[^@]+@[^@]+$/))
+        const namesOnlyDeduplicated = [...new Set(namesOnly.map(u => u.trim().toLowerCase()))].map(u => namesOnly.find(n => n.trim().toLowerCase() === u))
+        // use a regex to determine if the user is an email address
+        const emailsOnly = userDetails.filter(u => u.match(/^[^@]+@[^@]+$/))
+        const emailsOnlyDeduplicated = [...new Set(emailsOnly.map(u => getCanonicalEmail(u)))]
+        // recombine the deduplicated lists
+        const userDetailsDeduplicated = [...namesOnlyDeduplicated, ...emailsOnlyDeduplicated]
+
+        // limit to 5 invites at a time
+        if (userDetailsDeduplicated.length > 5) {
+            const result = {
+                status: 'error',
+                code: 'too_many_invites',
+                error: 'maximum 5 invites at a time'
+            }
+            reply.code(429).send(result)
+            await app.auditLog.Team.team.user.invited(request.session.User, result, request.team, null, request.body.role || Roles.Member)
             return
         }
         const role = request.body.role || Roles.Member
@@ -100,7 +132,7 @@ module.exports = async function (app) {
         }
         let invites = []
         try {
-            invites = await app.db.controllers.Invitation.createInvitations(request.session.User, request.team, userDetails, role)
+            invites = await app.db.controllers.Invitation.createInvitations(request.session.User, request.team, userDetailsDeduplicated, role)
         } catch (err) {
             reply.code(400).send({ code: 'invitation_failed', error: err.message })
             return

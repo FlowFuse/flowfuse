@@ -77,7 +77,7 @@
                     />
                     <ff-list-item
                         kind="danger"
-                        label="Regenerate Credentials"
+                        label="Regenerate Configuration"
                         @click="deviceAction('updateCredentials', row.id)"
                     />
                     <ff-list-item

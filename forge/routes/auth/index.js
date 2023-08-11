@@ -15,6 +15,8 @@
  * @namespace session
  * @memberof forge.routes
  */
+const crypto = require('crypto')
+
 const fp = require('fastify-plugin')
 
 // This defines how long the session cookie is valid for. This should match
@@ -35,7 +37,15 @@ const SESSION_COOKIE_OPTIONS = {
  * @typedef {import('../../db/controllers/User')} UserController
  */
 
-module.exports = fp(async function (app, opts, done) {
+module.exports = fp(init)
+
+/**
+ * Initialize the auth plugin
+ * @param {import('forge/forge').ForgeApplication} app
+ * @param {Object} opts
+ * @param {Function} done
+ */
+async function init (app, opts, done) {
     await app.register(require('./oauth'), { logLevel: app.config.logging.http })
     await app.register(require('./permissions'))
 
@@ -170,6 +180,9 @@ module.exports = fp(async function (app, opts, done) {
      * @memberof forge.routes.session
      */
     app.post('/account/login', {
+        config: {
+            rateLimit: app.config.rate_limits // rate limit this route regardless of global/per-route mode (if enabled)
+        },
         schema: {
             summary: 'Log in to the platform',
             description: 'Log in to the platform. If SSO is enabled for this user, the response will prompt the user to retry via the SSO login mechanism.',
@@ -226,6 +239,9 @@ module.exports = fp(async function (app, opts, done) {
      * @memberof forge.routes.session
      */
     app.post('/account/logout', {
+        config: {
+            rateLimit: false // never rate limit this route
+        },
         schema: {
             tags: ['Authentication', 'X-HIDDEN']
         }
@@ -272,6 +288,9 @@ module.exports = fp(async function (app, opts, done) {
      * @memberof forge.routes.session
      */
     app.post('/account/register', {
+        config: {
+            rateLimit: app.config.rate_limits // rate limit this route regardless of global/per-route mode (if enabled)
+        },
         schema: {
             tags: ['Authentication', 'X-HIDDEN'],
             body: {
@@ -410,6 +429,9 @@ module.exports = fp(async function (app, opts, done) {
      * Perform email verification
      */
     app.post('/account/verify/:token', {
+        config: {
+            rateLimit: false // never rate limit this route
+        },
         schema: {
             tags: ['Authentication', 'X-HIDDEN']
         }
@@ -442,16 +464,26 @@ module.exports = fp(async function (app, opts, done) {
 
             // only create a personal team if no other teams exist
             if (app.settings.get('user:team:auto-create') && !((await app.db.models.Team.forUser(verifiedUser)).length)) {
+                let teamTypeId = app.settings.get('user:team:auto-create:teamType')
+
+                if (!teamTypeId) {
+                    // No team type set - pick the 'first' one based on 'order'
+                    const teamTypes = await app.db.models.TeamType.findAll({ where: { active: true }, order: [['order', 'ASC']], limit: 1 })
+                    teamTypeId = teamTypes[0].id
+                } else {
+                    teamTypeId = app.db.models.TeamType.decodeHashid(teamTypeId)
+                }
                 const teamProperties = {
                     name: `Team ${verifiedUser.name}`,
                     slug: verifiedUser.username,
-                    TeamTypeId: (await app.db.models.TeamType.byName('starter')).id
+                    TeamTypeId: teamTypeId
                 }
                 const team = await app.db.controllers.Team.createTeamForUser(teamProperties, verifiedUser)
                 await app.auditLog.Platform.platform.team.created(request.session?.User || verifiedUser, null, team)
                 await app.auditLog.User.account.verify.autoCreateTeam(request.session?.User || verifiedUser, null, team)
 
-                if (app.license.active() && app.billing && app.settings.get('user:team:trial-mode')) {
+                if (app.license.active() && app.billing) {
+                    // This checks to see if the team should be in trial mode
                     await app.billing.setupTrialTeamSubscription(team, verifiedUser)
                 }
             }
@@ -470,6 +502,57 @@ module.exports = fp(async function (app, opts, done) {
                 // await invite.save()
             }
             await app.auditLog.User.account.verify.verifyToken(request.session?.User || verifiedUser, null)
+
+            // only create a starting instance if the flag is set and this user and their teams have no instances
+            if (app.settings.get('user:team:auto-create:instanceType') &&
+             !((await app.db.models.Project.byUser(verifiedUser)).length)) {
+                const instanceTypeId = app.settings.get('user:team:auto-create:instanceType')
+
+                const instanceType = await app.db.models.ProjectType.byId(instanceTypeId)
+                const instanceStack = await instanceType?.getDefaultStack() || (await instanceType.getProjectStacks())?.[0]
+                const instanceTemplate = await app.db.models.ProjectTemplate.findOne({ where: { active: true } })
+
+                const userTeamMemberships = await app.db.models.Team.forUser(verifiedUser)
+                if (userTeamMemberships.length <= 0) {
+                    console.warn("Flag to auto-create instance is set ('user:team:auto-create:instanceType'), but user has no team, consider setting 'user:team:auto-create'")
+                    return reply.send({ status: 'okay' })
+                } else if (!instanceType) {
+                    throw new Error(`Instance type with id ${instanceTypeId} from 'user:team:auto-create:instanceType' not found`)
+                } else if (!instanceStack) {
+                    throw new Error(`Unable to find a stack for use with instance type ${instanceTypeId} to auto-create user instance`)
+                } else if (!instanceTemplate) {
+                    throw new Error('Unable to find the default instance template from which to auto-create user instance')
+                }
+
+                const userTeam = userTeamMemberships[0].Team
+
+                const applications = await app.db.models.Application.byTeam(userTeam.id)
+                let application
+                if (applications.length > 0) {
+                    application = applications[0]
+                } else {
+                    const applicationName = `${verifiedUser.name}'s Application`
+
+                    application = await app.db.models.Application.create({
+                        name: applicationName.charAt(0).toUpperCase() + applicationName.slice(1),
+                        TeamId: userTeam.id
+                    })
+
+                    await app.auditLog.User.account.verify.autoCreateTeam(request.session?.User || verifiedUser, null, application)
+                }
+
+                const safeTeamName = userTeam.name.toLowerCase().replace(/[\W_]/g, '-')
+                const safeUserName = verifiedUser.username.toLowerCase().replace(/[\W_]/g, '-')
+
+                const instanceProperties = {
+                    name: `${safeTeamName}-${safeUserName}-${crypto.randomBytes(4).toString('hex')}`
+                }
+
+                const instance = await app.db.controllers.Project.create(userTeam, application, verifiedUser, instanceType, instanceStack, instanceTemplate, instanceProperties)
+
+                await app.auditLog.User.account.verify.autoCreateInstance(request.session?.User || verifiedUser, null, instance)
+            }
+
             reply.send({ status: 'okay' })
         } catch (err) {
             app.log.error(`/account/verify/token error - ${err.toString()}`)
@@ -483,8 +566,13 @@ module.exports = fp(async function (app, opts, done) {
      * Generate verification email
      */
     app.post('/account/verify', {
-        preHandler: app.verifySession,
-        config: { allowUnverifiedEmail: true },
+        preHandler: function (request, reply, done) {
+            app.verifySession(request, reply).then(() => done()).catch(done)
+        },
+        config: {
+            rateLimit: false, // never rate limit this route
+            allowUnverifiedEmail: true
+        },
         schema: {
             tags: ['Authentication', 'X-HIDDEN']
         }
@@ -563,6 +651,9 @@ module.exports = fp(async function (app, opts, done) {
     })
 
     app.post('/account/forgot_password', {
+        config: {
+            rateLimit: app.config.rate_limits // rate limit this route regardless of global/per-route mode (if enabled)
+        },
         schema: {
             tags: ['Authentication', 'X-HIDDEN'],
             body: {
@@ -607,6 +698,9 @@ module.exports = fp(async function (app, opts, done) {
     })
 
     app.post('/account/reset_password/:token', {
+        config: {
+            rateLimit: app.config.rate_limits // rate limit this route regardless of global/per-route mode (if enabled)
+        },
         schema: {
             tags: ['Authentication', 'X-HIDDEN'],
             body: {
@@ -658,4 +752,4 @@ module.exports = fp(async function (app, opts, done) {
     })
 
     done()
-})
+}

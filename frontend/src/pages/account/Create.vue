@@ -34,7 +34,12 @@
             </div>
             <label v-if="errors.general" class="pt-3 ff-error-inline">{{ errors.general }}</label>
             <div class="ff-actions pt-2">
-                <ff-button :disabled="!formValid" @click="registerUser()" data-action="sign-up">Sign Up</ff-button>
+                <ff-button :disabled="!formValid || busy || tooManyRequests" @click="registerUser()" data-action="sign-up">
+                    <span>Sign Up</span>
+                    <span class="w-4">
+                        <SpinnerIcon v-if="busy || tooManyRequests" class="ff-icon ml-3 !w-3.5" />
+                    </span>
+                </ff-button>
                 <p class="flex text-gray-400 font-light mt-6 gap-2 w-full justify-center">
                     Already registered? <a href="/" data-action="login">Log in here</a>
                 </p>
@@ -57,15 +62,20 @@ import { mapState } from 'vuex'
 
 import userApi from '../../api/user.js'
 
+import SpinnerIcon from '../../components/icons/Spinner.js'
 import FFLayoutBox from '../../layouts/Box.vue'
 
 export default {
     name: 'AccountCreate',
     components: {
-        'ff-layout-box': FFLayoutBox
+        'ff-layout-box': FFLayoutBox,
+        SpinnerIcon
     },
     data () {
         return {
+            busy: false,
+            tooManyRequests: false,
+            createDisabled: false,
             teams: [],
             emailSent: false,
             ssoCreated: false,
@@ -151,14 +161,18 @@ export default {
                 this.input.code = this.$route.query.code
             }
             const opts = { ...this.input, name: this.input.name || this.input.username }
+            this.busy = true // show spinner
+            this.errors.general = '' // clear any previous errors
             userApi.registerUser(opts).then(result => {
                 if (result.sso_enabled) {
                     this.ssoCreated = true
                 } else {
                     this.emailSent = true
                 }
+                this.busy = false
             }).catch(err => {
                 console.error(err.response.data)
+                this.busy = false
                 if (err.response.data) {
                     if (/username/.test(err.response.data.error)) {
                         this.errors.username = 'Username unavailable'
@@ -170,9 +184,15 @@ export default {
                         this.errors.email = err.response.data.error
                     } else if (/email/.test(err.response.data.error)) {
                         this.errors.email = 'Email unavailable'
-                    }
-                    if (err.response.data.error === 'user registration not enabled') {
+                    } else if (err.response.data.statusCode === 429) {
+                        this.errors.general = 'Too many attempts. Try again later.'
+                        this.tooManyRequests = true
+                        setTimeout(() => {
+                            this.tooManyRequests = false
+                        }, 10000)
+                    } else if (err.response.data.error === 'user registration not enabled') {
                         // TODO Where to show this error?
+                        this.errors.general = 'User registration is not enabled'
                     }
                 }
             })

@@ -36,7 +36,7 @@
             <a v-if="!loadingInactive" @click.stop="loadInactiveItems" class="forge-button-inline" data-action="load-more-inactive">Load more...</a>
         </div>
     </div>
-    <AdminStackEditDialog @stackCreated="stackCreated" @stackUpdated="stackUpdated" ref="adminStackEditDialog"/>
+    <AdminStackEditDialog @stack-created="stackCreated" @stack-updated="stackUpdated" ref="adminStackEditDialog"/>
 </template>
 
 <script>

@@ -199,8 +199,10 @@ module.exports = {
    * @param {*} app the forge app
    * @param {*} existingSettings the existing project settings
    * @param {*} settings the new settings to merge in
+   * @param {*} options options for the merge
+   * @param {boolean} options.mergeEnvVars if true, merge the env vars (new keys added, existing keys untouched, removed keys untouched)
    */
-    mergeSettings: function (app, existingSettings, settings) {
+    mergeSettings: function (app, existingSettings, settings, { mergeEnvVars = false } = {}) {
         // Quick deep clone that is safe as we know settings are JSON-safe
         const result = JSON.parse(JSON.stringify(existingSettings))
         templateFields.forEach((name) => {
@@ -214,7 +216,25 @@ module.exports = {
             result.httpNodeAuth.pass = ''
         }
         if (settings.env) {
-            result.env = settings.env
+            if (mergeEnvVars) {
+                // As objects for stable merge
+                const existingEnvVars = Object.fromEntries((existingSettings.env || []).map(envVar => [envVar.name, envVar.value]))
+                const newEnvVars = Object.fromEntries((settings.env || []).map(envVar => [envVar.name, envVar.value]))
+
+                // copy new over old, then old over the merge (to keep the order), existing have precedence over new
+                const mergedEnvVars = { ...existingEnvVars, ...newEnvVars, ...existingEnvVars }
+
+                // Convert back to an array
+                result.env = []
+                Object.entries(mergedEnvVars).forEach(entry => {
+                    const [name, value] = entry
+                    result.env.push({
+                        name, value
+                    })
+                })
+            } else {
+                result.env = settings.env
+            }
         }
         return result
     },

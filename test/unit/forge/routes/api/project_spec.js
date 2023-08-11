@@ -4,26 +4,14 @@ const sleep = require('util').promisify(setTimeout)
 const should = require('should') // eslint-disable-line
 const sinon = require('sinon')
 
+const { addFlowsToProject } = require('../../../../lib/Snapshots')
+const { decryptCreds } = require('../../../../lib/credentials')
 const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 const { KEY_HOSTNAME } = FF_UTIL.require('forge/db/models/ProjectSettings')
 const { START_DELAY, STOP_DELAY } = FF_UTIL.require('forge/containers/stub/index.js')
-
-function encryptCredentials (key, plain) {
-    const initVector = crypto.randomBytes(16)
-    const cipher = crypto.createCipheriv('aes-256-ctr', key, initVector)
-    return { $: initVector.toString('hex') + cipher.update(JSON.stringify(plain), 'utf8', 'base64') + cipher.final('base64') }
-}
-function decryptCredentials (key, cipher) {
-    let flows = cipher.$
-    const initVector = Buffer.from(flows.substring(0, 32), 'hex')
-    flows = flows.substring(32)
-    const decipher = crypto.createDecipheriv('aes-256-ctr', key, initVector)
-    const decrypted = decipher.update(flows, 'base64', 'utf8') + decipher.final('utf8')
-    return JSON.parse(decrypted)
-}
 
 describe('Project API', function () {
     let app
@@ -100,41 +88,6 @@ describe('Project API', function () {
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
-    async function addFlowsToProject (id, token, flows, creds, key, settings) {
-        await app.inject({
-            method: 'POST',
-            url: `/storage/${id}/flows`,
-            payload: flows,
-            headers: {
-                authorization: `Bearer ${token}`
-            }
-        })
-        const hashKey = crypto.createHash('sha256').update(key).digest()
-        await app.inject({
-            method: 'POST',
-            url: `/storage/${id}/credentials`,
-            payload: encryptCredentials(hashKey, creds),
-            headers: {
-                authorization: `Bearer ${token}`
-            }
-        })
-        await app.inject({
-            method: 'POST',
-            url: `/storage/${id}/settings`,
-            payload: { _credentialSecret: key },
-            headers: {
-                authorization: `Bearer ${token}`
-            }
-        })
-        await app.inject({
-            method: 'PUT',
-            url: `/api/v1/projects/${id}`,
-            payload: {
-                settings
-            },
-            cookies: { sid: TestObjects.tokens.alice }
-        })
-    }
     async function createInstance (start = false) {
         return app.factory.createInstance(
             { name: generateProjectName() },
@@ -511,8 +464,10 @@ describe('Project API', function () {
         describe('Copy project', function () {
             it('Create a project cloned from existing one - include everything', async function () {
                 // Setup some flows/credentials
-                await addFlowsToProject(TestObjects.project1.id,
+                await addFlowsToProject(app,
+                    TestObjects.project1.id,
                     TestObjects.tokens.project,
+                    TestObjects.tokens.alice,
                     [{ id: 'node1' }],
                     { testCreds: 'abc' },
                     'key1',
@@ -563,7 +518,7 @@ describe('Project API', function () {
                 const srcCredKey = await TestObjects.project1.getSetting('credentialSecret')
                 newCredKey.should.not.eql(srcCredKey)
                 const newKey = crypto.createHash('sha256').update(newCredKey).digest()
-                const decrypted = decryptCredentials(newKey, newCreds)
+                const decrypted = decryptCreds(newKey, newCreds)
                 decrypted.should.have.property('testCreds', 'abc')
 
                 const runtimeSettings = (await app.inject({
@@ -587,8 +542,10 @@ describe('Project API', function () {
 
             it('Create a project cloned from existing one - env-var keys only', async function () {
                 // Setup some flows/credentials
-                await addFlowsToProject(TestObjects.project1.id,
+                await addFlowsToProject(app,
+                    TestObjects.project1.id,
                     TestObjects.tokens.project,
+                    TestObjects.tokens.alice,
                     [{ id: 'node1' }],
                     { testCreds: 'abc' },
                     'key1',
@@ -644,8 +601,10 @@ describe('Project API', function () {
 
             it('Create a project cloned from existing one - no env-vars', async function () {
                 // Setup some flows/credentials
-                await addFlowsToProject(TestObjects.project1.id,
+                await addFlowsToProject(app,
+                    TestObjects.project1.id,
                     TestObjects.tokens.project,
+                    TestObjects.tokens.alice,
                     [{ id: 'node1' }],
                     { testCreds: 'abc' },
                     'key1',
@@ -701,8 +660,10 @@ describe('Project API', function () {
 
             it('Create a project cloned from existing one - no credentials', async function () {
                 // Setup some flows/credentials
-                await addFlowsToProject(TestObjects.project1.id,
+                await addFlowsToProject(app,
+                    TestObjects.project1.id,
                     TestObjects.tokens.project,
+                    TestObjects.tokens.alice,
                     [{ id: 'node1' }],
                     { testCreds: 'abc' },
                     'key1',
@@ -747,8 +708,10 @@ describe('Project API', function () {
 
             it('Create a project cloned from existing one - no flows/creds', async function () {
                 // Setup some flows/credentials
-                await addFlowsToProject(TestObjects.project1.id,
+                await addFlowsToProject(app,
+                    TestObjects.project1.id,
                     TestObjects.tokens.project,
+                    TestObjects.tokens.alice,
                     [{ id: 'node1' }],
                     { testCreds: 'abc' },
                     'key1',
@@ -1200,8 +1163,10 @@ describe('Project API', function () {
         describe('Change project stack', function () {
             it('Updates the stack - suspending and restoring the project along the way', async function () {
                 // Setup some flows/credentials
-                await addFlowsToProject(TestObjects.project1.id,
+                await addFlowsToProject(app,
+                    TestObjects.project1.id,
                     TestObjects.tokens.project,
+                    TestObjects.tokens.alice,
                     [{ id: 'node1' }],
                     { testCreds: 'abc' },
                     'key1',
@@ -1263,8 +1228,10 @@ describe('Project API', function () {
                     const project = await createInstance()
 
                     // Setup some flows/credentials
-                    await addFlowsToProject(project.id,
+                    await addFlowsToProject(app,
+                        project.id,
                         TestObjects.tokens.project,
+                        TestObjects.tokens.alice,
                         [{ id: 'node1' }],
                         { testCreds: 'abc' },
                         'key1',
@@ -1327,8 +1294,10 @@ describe('Project API', function () {
         describe('Change project name', function () {
             it('Updates the name', async function () {
                 // Setup some flows/credentials
-                await addFlowsToProject(TestObjects.project1.id,
+                await addFlowsToProject(app,
+                    TestObjects.project1.id,
                     TestObjects.tokens.project,
+                    TestObjects.tokens.alice,
                     [{ id: 'node1' }],
                     { testCreds: 'abc' },
                     'key1',
@@ -1364,8 +1333,10 @@ describe('Project API', function () {
 
         it('Change 1 project setting', async function () {
             // Setup some flows/credentials
-            await addFlowsToProject(TestObjects.project1.id,
+            await addFlowsToProject(app,
+                TestObjects.project1.id,
                 TestObjects.tokens.project,
+                TestObjects.tokens.alice,
                 [{ id: 'node1' }],
                 { testCreds: 'abc' },
                 'key1',
@@ -1416,8 +1387,10 @@ describe('Project API', function () {
 
         it('Change project env vars - owner', async function () {
             // Setup some flows/credentials
-            await addFlowsToProject(TestObjects.project1.id,
+            await addFlowsToProject(app,
+                TestObjects.project1.id,
                 TestObjects.tokens.project,
+                TestObjects.tokens.alice,
                 [{ id: 'node1' }],
                 { testCreds: 'abc' },
                 'key1',
@@ -1456,8 +1429,10 @@ describe('Project API', function () {
         })
         it('Change project env vars - member', async function () {
             // Setup some flows/credentials
-            await addFlowsToProject(TestObjects.project1.id,
+            await addFlowsToProject(app,
+                TestObjects.project1.id,
                 TestObjects.tokens.project,
+                TestObjects.tokens.alice,
                 [{ id: 'node1' }],
                 { testCreds: 'abc' },
                 'key1',
@@ -1573,8 +1548,10 @@ describe('Project API', function () {
 
         it('Export to another project - includes everything ', async function () {
             // Setup some flows/credentials
-            await addFlowsToProject(TestObjects.project1.id,
+            await addFlowsToProject(app,
+                TestObjects.project1.id,
                 TestObjects.tokens.project,
+                TestObjects.tokens.alice,
                 [{ id: 'node1' }],
                 { testCreds: 'abc' },
                 'key1',
@@ -1648,7 +1625,7 @@ describe('Project API', function () {
             should(credSecret).be.type('string', 'credentialSecret should be an auto generated string')
             should(credSecret.length).be.Number().eql(64, 'credentialSecret should be a string of 64 characters')
             const newKey = crypto.createHash('sha256').update(credSecret).digest()
-            const decrypted = decryptCredentials(newKey, newCreds)
+            const decrypted = decryptCreds(newKey, newCreds)
             decrypted.should.have.property('testCreds', 'abc')
 
             const runtimeSettings = (await app.inject({
@@ -1671,8 +1648,10 @@ describe('Project API', function () {
 
         it('Export to another project - env-var keys only', async function () {
             // Setup some flows/credentials
-            await addFlowsToProject(TestObjects.project1.id,
+            await addFlowsToProject(app,
+                TestObjects.project1.id,
                 TestObjects.tokens.project,
+                TestObjects.tokens.alice,
                 [{ id: 'node1' }],
                 { testCreds: 'abc' },
                 'key1',
@@ -1738,8 +1717,10 @@ describe('Project API', function () {
 
         it('Export to another project - no env-vars', async function () {
             // Setup some flows/credentials
-            await addFlowsToProject(TestObjects.project1.id,
+            await addFlowsToProject(app,
+                TestObjects.project1.id,
                 TestObjects.tokens.project,
+                TestObjects.tokens.alice,
                 [{ id: 'node1' }],
                 { testCreds: 'abc' },
                 'key1',
@@ -1809,8 +1790,10 @@ describe('Project API', function () {
 
         it('Export to another project - no credentials', async function () {
             // Setup some flows/credentials
-            await addFlowsToProject(TestObjects.project1.id,
+            await addFlowsToProject(app,
+                TestObjects.project1.id,
                 TestObjects.tokens.project,
+                TestObjects.tokens.alice,
                 [{ id: 'node1' }],
                 { testCreds: 'abc' },
                 'key1',
@@ -1854,8 +1837,10 @@ describe('Project API', function () {
         })
         it('Export to another project - no flows/creds', async function () {
             // Setup some flows/credentials
-            await addFlowsToProject(TestObjects.project1.id,
+            await addFlowsToProject(app,
+                TestObjects.project1.id,
                 TestObjects.tokens.project,
+                TestObjects.tokens.alice,
                 [{ id: 'node1' }],
                 { testCreds: 'abc' },
                 'key1',
@@ -2279,8 +2264,8 @@ describe('Project API', function () {
             const savedCreds = await app.db.models.StorageCredentials.byProject(app.project.id)
             const inputKey = crypto.createHash('sha256').update(credsSecret).digest()
             const savedKey = crypto.createHash('sha256').update(await app.project.getCredentialSecret()).digest()
-            const plainInputCreds = decryptCredentials(inputKey, credentials)
-            const plainSavedCreds = decryptCredentials(savedKey, JSON.parse(savedCreds.credentials))
+            const plainInputCreds = decryptCreds(inputKey, credentials)
+            const plainSavedCreds = decryptCreds(savedKey, JSON.parse(savedCreds.credentials))
             JSON.stringify(plainSavedCreds).should.eqls(JSON.stringify(plainInputCreds))
         })
 
@@ -2305,8 +2290,8 @@ describe('Project API', function () {
             savedFlow.flow.should.eqls(JSON.stringify(flows))
             const inputKey = crypto.createHash('sha256').update(credsSecret).digest()
             const savedKey = crypto.createHash('sha256').update(await app.project.getCredentialSecret()).digest()
-            const plainInputCreds = decryptCredentials(inputKey, credentials)
-            const plainSavedCreds = decryptCredentials(savedKey, JSON.parse(savedCreds.credentials))
+            const plainInputCreds = decryptCreds(inputKey, credentials)
+            const plainSavedCreds = decryptCreds(savedKey, JSON.parse(savedCreds.credentials))
             JSON.stringify(plainSavedCreds).should.eqls(JSON.stringify(plainInputCreds))
         })
         it('Import Credentials with bad secret', async function () {

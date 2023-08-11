@@ -25,7 +25,7 @@ describe('Audit Log > Project', async function () {
 
         ACTIONED_BY = await app.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
 
-        const defaultTeamType = await app.db.models.TeamType.findOne()
+        const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
         TEAM = await app.db.models.Team.create({ name: 'ATeam', TeamTypeId: defaultTeamType.id })
 
         PROJECT = await app.db.models.Project.create({ name: 'project1', type: '', url: '' })

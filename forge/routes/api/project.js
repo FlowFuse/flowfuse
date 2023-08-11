@@ -1,5 +1,3 @@
-const crypto = require('crypto')
-
 const { KEY_HOSTNAME, KEY_SETTINGS } = require('../../db/models/ProjectSettings')
 const { Roles } = require('../../lib/roles')
 
@@ -25,21 +23,6 @@ const ProjectSnapshots = require('./projectSnapshots')
  * @namespace project
  * @memberof forge.routes.api
  */
-
-const bannedNameList = [
-    'www',
-    'node-red',
-    'nodered',
-    'forge',
-    'support',
-    'help',
-    'accounts',
-    'account',
-    'status',
-    'billing',
-    'mqtt',
-    'broker'
-]
 
 module.exports = async function (app) {
     app.addHook('preHandler', async (request, reply) => {
@@ -169,193 +152,46 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const team = await request.teamMembership.getTeam()
+        const application = request.application
 
         const projectType = await app.db.models.ProjectType.byId(request.body.projectType)
-        if (!projectType) {
-            reply.code(400).send({ code: 'invalid_project_type', error: 'Invalid project type' })
-            return
-        }
+        const projectStack = await app.db.models.ProjectStack.byId(request.body.stack)
+        const projectTemplate = await app.db.models.ProjectTemplate.byId(request.body.template)
 
-        if (app.license.active() && app.billing) {
-            if (!await app.billing.isProjectCreateAllowed(team, projectType)) {
-                reply.code(402).send({ code: 'billing_required', error: 'Team billing not configured' })
-                return
-            }
-        }
-
+        // Read in any source to copy from
         let sourceProject
-        if (request.body.sourceProject && request.body.sourceProject.id) {
+        if (request.body.sourceProject?.id) {
             sourceProject = await app.db.models.Project.byId(request.body.sourceProject.id)
             if (!sourceProject) {
                 reply.code(400).send({ code: 'invalid_source_project', error: 'Source Project Not Found' })
                 return
-            } else if (sourceProject.Team.id !== team.id) {
-                reply.code(403).send({ code: 'invalid_source_project', error: 'Source Project Not in Same Team' })
-                return
-            } else if (sourceProject.Application.id !== request.application.id) {
-                reply.code(403).send({ code: 'invalid_source_project', error: 'Source Project Not in Same Application' })
-                return
             }
         }
 
-        const stack = await app.db.models.ProjectStack.byId(request.body.stack)
-
-        if (!stack || stack.ProjectTypeId !== projectType.id) {
-            reply.code(400).send({ code: 'invalid_stack', error: 'Invalid stack' })
-            return
-        }
-
-        const template = await app.db.models.ProjectTemplate.byId(request.body.template)
-
-        if (!template) {
-            reply.code(400).send({ code: 'invalid_template', error: 'Invalid template' })
-            return
-        }
-
-        const name = request.body.name?.trim()
-        const safeName = name?.toLowerCase()
-        if (bannedNameList.includes(safeName)) {
-            reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name not allowed' })
-            return
-        }
-
-        if (/^[a-zA-Z][a-zA-Z0-9-]*$/.test(safeName) === false) {
-            reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name not allowed' })
-            return
-        }
-
-        if (await app.db.models.Project.isNameUsed(safeName)) {
-            reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name in use' })
-            return
-        }
-
-        if (app.license.active() && app.ha) {
-            if (request.body.ha && !await app.ha.isHAAllowed(team, projectType, request.body.ha)) {
-                reply.code(400).send({ code: 'invalid_ha', error: 'Invalid HA configuration' })
-                return
-            }
-        }
-
+        // Create the real project (performs validation)
         let project
         try {
-            project = await app.db.models.Project.create({
-                name,
-                ApplicationId: request.application.id,
-                type: '',
-                url: ''
-            })
+            project = await app.db.controllers.Project.create(
+                team,
+                application,
+                request.session.User,
+                projectType,
+                projectStack,
+                projectTemplate,
+                {
+                    name: request.body.name,
+                    ha: request.body.ha,
+                    sourceProject,
+                    sourceProjectOptions: request.body.sourceProject?.options
+                }
+            )
         } catch (err) {
-            console.error(err)
-
-            reply.status(400).type('application/json').send({ code: 'unexpected_error', error: err.message })
-            return
-        }
-
-        await team.addProject(project)
-        await project.setProjectStack(stack)
-        await project.setProjectTemplate(template)
-        await project.setProjectType(projectType)
-
-        if (app.license.active() && app.ha && request.body.ha) {
-            await project.updateHASettings(request.body.ha)
-        }
-
-        await project.reload({
-            include: [
-                { model: app.db.models.Team },
-                { model: app.db.models.ProjectType },
-                { model: app.db.models.ProjectStack },
-                { model: app.db.models.ProjectTemplate },
-                { model: app.db.models.ProjectSettings }
-            ]
-        })
-        if (app.license.active() && app.billing) {
-            await app.billing.initialiseProjectBillingState(team, project)
-        }
-
-        if (sourceProject) {
-            // need to copy values over
-            const settingsString = (await app.db.models.StorageSettings.byProject(sourceProject.id))?.settings ?? '{}'
-            const newSettings = {
-                users: {}
-            }
-            const sourceSettings = JSON.parse(settingsString)
-            if (settingsString) {
-                newSettings.nodes = sourceSettings.nodes
-            }
-            const options = request.body.sourceProject.options
-            const newCredentialSecret = generateCredentialSecret()
-            if (options.flows) {
-                const sourceFlows = await app.db.models.StorageFlow.byProject(sourceProject.id)
-                if (sourceFlows) {
-                    const newFlow = await app.db.models.StorageFlow.create({
-                        flow: sourceFlows.flow,
-                        ProjectId: project.id
-                    })
-                    await newFlow.save()
-                }
-
-                if (options.credentials) {
-                    // To copy over the credentials, we have to:
-                    //  - get the existing credentials + credentialSecret
-                    //  - generate a new credentialSecret for the new project
-                    //    (this is normally left to NR to do itself)
-                    //  - re-encrypt the credentials using the new key
-                    const origCredentials = await app.db.models.StorageCredentials.byProject(sourceProject.id)
-                    if (origCredentials) {
-                        // There are existing credentials to copy
-                        const srcCredentials = JSON.parse(origCredentials.credentials)
-                        const srcCredentialSecret = await sourceProject.getSetting('credentialSecret') || sourceSettings._credentialSecret
-                        const newCredentials = app.db.controllers.Project.exportCredentials(srcCredentials, srcCredentialSecret, newCredentialSecret)
-                        const credentials = await app.db.models.StorageCredentials.create({
-                            credentials: JSON.stringify(newCredentials),
-                            ProjectId: project.id
-                        })
-                        await credentials.save()
-                    }
-                }
-            }
-            await project.updateSetting('credentialSecret', newCredentialSecret)
-            const settings = await app.db.models.StorageSettings.create({
-                settings: JSON.stringify(newSettings),
-                ProjectId: project.id
-            })
-            await settings.save()
-
-            const sourceProjectSettings = await sourceProject.getSetting(KEY_SETTINGS) || { env: [] }
-            const sourceProjectEnvVars = sourceProjectSettings.env || []
-            const newProjectSettings = { ...sourceProjectSettings }
-            newProjectSettings.env = []
-
-            if (options.envVars) {
-                sourceProjectEnvVars.forEach(envVar => {
-                    newProjectSettings.env.push({
-                        name: envVar.name,
-                        value: options.envVars === 'keys' ? '' : envVar.value
-                    })
+            return reply
+                .code(err.statusCode || 400)
+                .send({
+                    code: err.code || 'unexpected_error',
+                    error: err.error || err.message
                 })
-            }
-            newProjectSettings.header = { title: name }
-            await project.updateSetting(KEY_SETTINGS, newProjectSettings)
-        } else {
-            const newProjectSettings = { header: { title: name } }
-            // Copy the palette modules from the template (if any)
-            // This is an instance creation time only operation to avoid the complexities of
-            // merging the palette modules from the template with the instance palette modules.
-            if (template.settings.palette?.modules?.length > 0) {
-                newProjectSettings.palette = { modules: [...template.settings.palette.modules] }
-            }
-            await project.updateSetting(KEY_SETTINGS, newProjectSettings)
-            await project.updateSetting('credentialSecret', generateCredentialSecret())
-        }
-
-        await app.containers.start(project)
-        await app.auditLog.Project.project.created(request.session.User, null, team, project)
-
-        if (sourceProject) {
-            await app.auditLog.Team.project.duplicated(request.session.User, null, team, sourceProject, project)
-        } else {
-            await app.auditLog.Team.project.created(request.session.User, null, team, project)
         }
 
         const projectViewPromise = app.db.views.Project.project(project)
@@ -515,7 +351,7 @@ module.exports = async function (app) {
         const reqSafeName = reqName?.toLowerCase()
         const projectName = request.project.name?.trim()
         if (reqName && projectName !== reqName) {
-            if (bannedNameList.includes(reqSafeName)) {
+            if (app.db.models.Project.BANNED_NAME_LIST.includes(reqSafeName)) {
                 reply.status(409).type('application/json').send({ code: 'invalid_project_name', error: 'name not allowed' })
                 return
             }
@@ -828,7 +664,7 @@ module.exports = async function (app) {
                 if (origCredentials) {
                     let trgCredentialSecret = await targetProject.getSetting('credentialSecret')
                     if (trgCredentialSecret == null) {
-                        trgCredentialSecret = targetSettings?._credentialSecret || generateCredentialSecret()
+                        trgCredentialSecret = targetSettings?._credentialSecret || app.db.models.Project.generateCredentialSecret()
                         targetProject.updateSetting('credentialSecret', trgCredentialSecret)
                         delete targetSettings._credentialSecret
                     }
@@ -1171,10 +1007,6 @@ module.exports = async function (app) {
         }))
         const mergedKV = Object.assign({}, incomingKV, existingKV)
         return Object.entries(mergedKV).filter(e => !!e[0]).map(([k, v]) => { return { name: k, value: v } })
-    }
-
-    function generateCredentialSecret () {
-        return crypto.randomBytes(32).toString('hex')
     }
 
     // app.get('/:instanceId/ha', {

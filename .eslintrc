@@ -71,17 +71,30 @@
                 "commonjs": false
             },
             "parserOptions": {
+                "ecmaVersion": 2022,
                 "sourceType": "module"
             },
             "rules": {
                 // plugin:vue
-                "vue/html-indent": ["error", 4],
-                "vue/singleline-html-element-content-newline": "off",
+                "vue/html-indent": ["warn", 4],
+                
+                // plugin:vue - style rules 
                 "vue/max-attributes-per-line": "off",
                 "vue/attribute-hyphenation": "off",
+                "vue/singleline-html-element-content-newline": "off",
 
                 // plugin:promise
                 "promise/always-return": "off" // common Vue.js pattern
+            }
+        },
+
+        // UI components use kebab-case
+        {
+            "files": "frontend/src/ui-components/**",
+            "rules": {
+                "vue/component-definition-name-casing": ["error", "kebab-case"],
+                "vue/first-attribute-linebreak": "off",
+                "vue/html-self-closing": "off",
             }
         },
 
@@ -190,7 +203,6 @@
                 "frontend/src/pages/admin/Teams.vue",
                 "frontend/src/pages/admin/Template/components/LockSetting.vue",
                 "frontend/src/pages/admin/Template/sections/Editor.vue",
-                "frontend/src/pages/admin/Template/sections/Environment.vue",
                 "frontend/src/pages/admin/Template/sections/Security.vue",
                 "frontend/src/pages/admin/Templates/index.vue",
                 "frontend/src/pages/admin/Users/createUser.vue",
@@ -267,7 +279,6 @@
                 "frontend/src/pages/account/Create.vue",
                 "frontend/src/pages/admin/InstanceTypes/index.vue",
                 "frontend/src/pages/admin/Stacks/index.vue",
-                "frontend/src/pages/admin/Template/sections/Environment.vue",
                 "frontend/src/pages/team/create.vue",
                 "frontend/src/pages/team/Devices/dialogs/CreateProvisioningTokenDialog.vue"
             ]
@@ -362,7 +373,6 @@
                 "frontend/src/pages/admin/Template/components/ChangeIndicator.vue",
                 "frontend/src/pages/admin/Template/components/LockSetting.vue",
                 "frontend/src/pages/admin/Template/sections/Editor.vue",
-                "frontend/src/pages/admin/Template/sections/Environment.vue",
                 "frontend/src/pages/admin/Template/sections/Security.vue",
                 "frontend/src/pages/admin/Template/Settings.vue",
                 "frontend/src/pages/admin/Users/createUser.vue",
@@ -403,7 +413,6 @@
                 "frontend/src/pages/admin/Stacks/dialogs/AdminStackEditDialog.vue",
                 "frontend/src/pages/admin/Stacks/index.vue",
                 "frontend/src/pages/admin/Template/sections/Editor.vue",
-                "frontend/src/pages/admin/Template/sections/Environment.vue",
                 "frontend/src/pages/admin/Template/Settings.vue",
                 "frontend/src/pages/admin/Users/createUser.vue",
                 "frontend/src/pages/admin/Users/dialogs/AdminUserEditDialog.vue",
@@ -487,7 +496,6 @@
                 "frontend/src/pages/admin/Template/components/ChangeIndicator.vue",
                 "frontend/src/pages/admin/Template/components/LockSetting.vue",
                 "frontend/src/pages/admin/Template/sections/Editor.vue",
-                "frontend/src/pages/admin/Template/sections/Environment.vue",
                 "frontend/src/pages/admin/Template/sections/Security.vue",
                 "frontend/src/pages/admin/Template/Settings.vue",
                 "frontend/src/pages/admin/Templates/index.vue",
@@ -537,16 +545,6 @@
         },
         {
             "rules": {
-                "vue/prop-name-casing": "off"
-            },
-            "files": [
-                "frontend/src/components/PageHeader.vue",
-                "frontend/src/components/SideNavigation.vue",
-                "frontend/src/components/SideNavigationTeamOptions.vue"
-            ]
-        },
-        {
-            "rules": {
                 "vue/require-explicit-emits": "off"
             },
             "files": [
@@ -586,7 +584,6 @@
                 "frontend/src/pages/admin/Template/components/ChangeIndicator.vue",
                 "frontend/src/pages/admin/Template/components/LockSetting.vue",
                 "frontend/src/pages/admin/Template/sections/Editor.vue",
-                "frontend/src/pages/admin/Template/sections/Environment.vue",
                 "frontend/src/pages/admin/Template/sections/Security.vue",
                 "frontend/src/pages/admin/Template/Settings.vue",
                 "frontend/src/pages/application/components/ExportProjectComponents.vue",
@@ -627,17 +624,6 @@
         },
         {
             "rules": {
-                "vue/v-on-event-hyphenation": "off"
-            },
-            "files": [
-                "frontend/src/pages/admin/InstanceTypes/index.vue",
-                "frontend/src/pages/admin/Stacks/index.vue",
-                "frontend/src/pages/admin/Users/General.vue",
-                "frontend/src/pages/admin/Users/UserDetails.vue"
-            ]
-        },
-        {
-            "rules": {
                 "vue/v-slot-style": "off"
             },
             "files": [
@@ -656,7 +642,6 @@
                 "frontend/src/pages/admin/Settings/SSO/index.vue",
                 "frontend/src/pages/admin/Stacks/dialogs/AdminStackEditDialog.vue",
                 "frontend/src/pages/admin/Stacks/index.vue",
-                "frontend/src/pages/admin/Template/sections/Environment.vue",
                 "frontend/src/pages/admin/Templates/index.vue",
                 "frontend/src/pages/admin/Users/createUser.vue",
                 "frontend/src/pages/admin/Users/dialogs/AdminUserEditDialog.vue",

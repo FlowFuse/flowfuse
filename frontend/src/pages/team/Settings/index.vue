@@ -1,35 +1,39 @@
 <template>
-    <div class="flex flex-col sm:flex-row">
-        <SectionSideMenu :options="sideOptions" />
-        <div class="flex-grow pt-4">
-            <router-view :team="team" :teamMembership="teamMembership"></router-view>
+    <ff-page>
+        <template #header>
+            <ff-page-header title="Settings" :tabs="sideOptions">
+                <template #context>
+                    View and manage the settings of your team.
+                </template>
+            </ff-page-header>
+        </template>
+        <div class="flex flex-col sm:flex-row">
+            <div class="flex-grow pt-4">
+                <router-view :team="team" :teamMembership="teamMembership"></router-view>
+            </div>
         </div>
-    </div>
+    </ff-page>
 </template>
 
 <script>
 import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
 
-import SectionSideMenu from '../../../components/SectionSideMenu.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
 
 export default {
     name: 'TeamSettings',
     props: ['team', 'teamMembership'],
     mixins: [permissionsMixin],
-    components: {
-        SectionSideMenu
-    },
     computed: {
         ...mapState('account', ['features'])
     },
     data: function () {
         return {
             sideOptions: [
-                { name: 'General', path: './general' },
-                { name: 'Devices', path: './devices' },
-                { name: 'Danger', path: './danger' }
+                { label: 'General', to: './general' },
+                { label: 'Devices', to: './devices' },
+                { label: 'Danger', to: './danger' }
             ]
         }
     },

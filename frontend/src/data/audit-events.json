@@ -58,6 +58,7 @@
         "project.snapshot.rollback": "Instance Rolled Back",
         "project.snapshot.deleted": "Instance Snapshot Deleted",
         "project.snapshot.device-target-set": "Device Target Set",
+        "project.snapshot.imported": "Snapshot Imported",
         "project.snapshot.deviceTarget": "Device Target Set",
         "auth.login": "User Logged In",
         "auth.logout": "User Logged Out",

@@ -28,6 +28,13 @@ The users in a team can have different roles that determine what they are
 
 In FlowForge Cloud, each team has its own billing plan, managed via Stripe.
 
+#### Team Type
+
+The platform can be configured to provide different types of team. These can be used
+to apply limits on what teams of a given type can do. For example, a particular
+team type may be restricted to certain types of [Node-RED Instance](#instance),
+or how many members the team can have.
+
 ### Application
 
 **Introduced in FlowForge 1.5**

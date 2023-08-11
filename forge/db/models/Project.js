@@ -11,11 +11,28 @@
  * @typedef {{name: string, schema: ModelAttributes, model: Model, indexes?: ModelIndexesOptions[], scopes?: ModelScopeOptions, options?: InitOptions}} FFModel
  */
 
+const crypto = require('crypto')
+
 const { DataTypes, Op } = require('sequelize')
 
 const Controllers = require('../controllers')
 
 const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA } = require('./ProjectSettings')
+
+const BANNED_NAME_LIST = [
+    'www',
+    'node-red',
+    'nodered',
+    'forge',
+    'support',
+    'help',
+    'accounts',
+    'account',
+    'status',
+    'billing',
+    'mqtt',
+    'broker'
+]
 
 /** @type {FFModel} */
 module.exports = {
@@ -274,6 +291,7 @@ module.exports = {
                 }
             },
             static: {
+                BANNED_NAME_LIST,
                 isNameUsed: async (name) => {
                     const safeName = name?.toLowerCase()
                     const count = await this.count({
@@ -285,27 +303,13 @@ module.exports = {
                     return this.findAll({
                         include: {
                             model: M.Team,
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId'],
                             include: [
-                                {
-                                    model: M.Application,
-                                    attributes: ['hashid', 'id', 'name', 'links']
-                                },
                                 {
                                     model: M.TeamMember,
                                     where: {
                                         UserId: user.id
                                     }
-                                },
-                                {
-                                    model: M.ProjectType,
-                                    attributes: ['hashid', 'id', 'name']
-                                },
-                                {
-                                    model: M.ProjectStack
-                                },
-                                {
-                                    model: M.ProjectTemplate,
-                                    attributes: ['hashid', 'id', 'name', 'links']
                                 }
                             ],
                             required: true
@@ -318,7 +322,7 @@ module.exports = {
                         include: [
                             {
                                 model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
                             },
                             {
                                 model: M.Application,
@@ -356,7 +360,7 @@ module.exports = {
                     const include = [
                         {
                             model: M.Team,
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
                         },
                         {
                             model: M.Application,
@@ -399,7 +403,7 @@ module.exports = {
                             {
                                 model: M.Team,
                                 where: { id: teamId },
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
                             },
                             {
                                 model: M.Application,
@@ -429,6 +433,10 @@ module.exports = {
                     if (project) {
                         return project.TeamId
                     }
+                },
+
+                generateCredentialSecret () {
+                    return crypto.randomBytes(32).toString('hex')
                 }
             }
         }
