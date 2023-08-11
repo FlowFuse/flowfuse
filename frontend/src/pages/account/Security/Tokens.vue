@@ -11,8 +11,8 @@
                 </ff-button>
         </template>
         <template v-slot:context-menu="{row}">
-		<ff-list-item label="Edit" @click.stop="editToken(row)"/>
-		<ff-list-item label="Delete" @click.stop="deleteToken(row)"/>
+		<ff-list-item label="Edit" @click="editToken(row)"/>
+		<ff-list-item label="Delete" @click="deleteToken(row)"/>
 	</template>
     </ff-data-table>
     <TokenDialog ref="tokenDialog"/>
@@ -55,8 +55,9 @@ export default ({
         editToken (row) {
             this.$refs.tokenDialog.showEdit(row)
         },
-        deleteToken (row) {
-            console.log(row)
+        deleteToken: async function (row) {
+            await userApi.deletePersonalAccessToken(row.id)
+            this.fetchData()
         }
     },
     components: {

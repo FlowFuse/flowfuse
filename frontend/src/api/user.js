@@ -184,7 +184,7 @@ const createPersonalAccessToken = async (name, scope, expiresAt) => {
  * @param {string} id
  */
 const deletePersonalAccessToken = async (id) => {
-    return client.delete('/api/v1/user/pat' + id).then(res => {})
+    return client.delete('/api/v1/user/pat/' + id).then(res => {})
 }
 
 export default {
