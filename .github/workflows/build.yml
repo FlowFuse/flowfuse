@@ -36,13 +36,10 @@ jobs:
     - name: Build the forge
       run: npm run build
     - name: Run forge unit tests
-      if: false
       run: npm run cover:unit:forge
     - name: Run forge system tests
-      if: false
       run: npm run cover:system
     - name: Upload coverage reports to Codecov
-      if: false
       uses: codecov/codecov-action@v3
       with:
         token: ${{ secrets.CODECOV_TOKEN }}

@@ -16,13 +16,7 @@ on:
       - 'package.json'
 
 jobs:
-  speed-run:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Temporary step to speed up the workflow
-        run: echo "This is a temporary step to speed up the workflow"
   cypress-run:
-    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
