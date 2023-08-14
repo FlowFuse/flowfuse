@@ -9,47 +9,42 @@ on:
       localfs_ref:
         description: 'localfs package ref'
         required: false
+  workflow_run:
+    workflows: 
+      - "Backend Tests"
+      - "Backend Tests - postgres"
+      - "UI Tests"
+    branches: 
+      - main
+    types: 
+      - completed
   schedule:
     - cron: '0 23 * * *'
-  push:
-    branches:
-      - 'feat-*' 
+  # push:
+  #   branches:
+  #     - main
+  # pull_request:
+  #   branches:
+  #     - main 
 
 jobs:
   publish:
+      uses: 'flowforge/github-actions-workflows/.github/workflows/publish_node_package.yml@main'
+      with:
+        package_name: flowforge
+        build_package: true
+        publish_package: true
+        package_dependencies: |
+          @flowforge/localfs
+          @flowforge/forge-ui-components
+
+  trigger_container_image_build:
+    if: false
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Set nigthly release
-        # if: ${{ github.event_name == 'schedule' }}
-        run: echo "release_name=nightly" >> $GITHUB_ENV
-
-      - name: "Set dependecies versions"
-        run: |
-          npm version prerelease --preid `git rev-parse --short HEAD`-`date +%Y%m%d` --no-git-tag-version
-          cat package.json | jq '.dependencies["@flowforge/localfs"] = "${{ env.release_name }}" | .dependencies["@flowforge/forge-ui-components"] = "${{ env.release_name }}"' > package.json-patched
-          mv package.json-patched package.json
-
-      - name: "Build flowforge package"
-        run: |
-          echo '//npm.pkg.github.com/:_authToken="${{ secrets.GITHUB_TOKEN }}"' > ~/.npmrc
-          npm install --@flowforge:registry=https://npm.pkg.github.com
-          npm run build
-          rm ~/.npmrc
-
-      - name: "Publish flowforge package"
-        uses: JS-DevTools/npm-publish@v2
-        with:
-          tag: ${{ env.release_name }}
-          package: ./package.json
-          registry: https://npm.pkg.github.com
-          token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Generate a token
         id: generate_token
         uses: tibdex/github-app-token@v1
