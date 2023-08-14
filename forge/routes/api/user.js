@@ -198,7 +198,7 @@ module.exports = async function (app) {
         schema: {
             summary: 'list users Personal Access Tokens',
             response: {
-                200: { type: 'array'},
+                200: { type: 'array' },
                 '4xx': {
                     $ref: 'APIError'
                 }
@@ -224,7 +224,7 @@ module.exports = async function (app) {
             body: {
                 type: 'object',
                 properties: {
-                    scope: { type: 'string'},
+                    scope: { type: 'string' },
                     expiresAt: { type: 'number' },
                     name: { type: 'string' }
                 }
@@ -233,7 +233,7 @@ module.exports = async function (app) {
                 200: {
                     id: { type: 'number' },
                     name: { type: 'string' },
-                    token: { type: 'string' },
+                    token: { type: 'string' }
                     // expiresAt: {type: 'number'}
                 },
                 '4xx': {
@@ -244,8 +244,6 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         try {
             const body = request.body
-            console.log(body)
-            console.log(body.scope, typeof body.scope)
             const token = await app.db.controllers.AccessToken.createPersonalAccessToken(request.session.User, body.scope, body.expiresAt, body.name)
             // await app.auditLog.User.pat.created(request.session.User, null, updates)
             reply.send({
@@ -255,7 +253,6 @@ module.exports = async function (app) {
                 expiresAt: token.expiresAt
             })
         } catch (err) {
-            console.log(err)
             const resp = { code: 'unexpected_error', error: err.toString() }
             reply.code(400).send(resp)
         }
@@ -265,13 +262,13 @@ module.exports = async function (app) {
      * Delete Personal Access Token
      * /api/v1/user/pat/:id
      */
-    app.delete('/pat/:id',{
+    app.delete('/pat/:id', {
         schema: {
             summary: 'delete user Personal Access Token',
             params: {
                 id: { type: 'number' }
             },
-            respone: {
+            response: {
                 201: {},
                 '4xx': {
                     $ref: 'APIError'
@@ -301,7 +298,7 @@ module.exports = async function (app) {
             },
             body: {
                 scope: { type: 'string' },
-                expiresAt: {type: 'number' }
+                expiresAt: { type: 'number' }
             },
             response: {
                 200: {},

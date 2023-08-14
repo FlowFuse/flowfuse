@@ -1,4 +1,4 @@
-const { Permissions} = require('../../lib/permissions')
+const { Permissions } = require('../../lib/permissions')
 module.exports = async function (app) {
     app.get('/', {
         config: { allowAnonymous: true, allowUnverifiedEmail: true },

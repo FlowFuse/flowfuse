@@ -8,9 +8,9 @@ import AccountCreate from './Create.vue'
 import ForgotPassword from './ForgotPassword.vue'
 import PasswordReset from './PasswordReset.vue'
 import AccountSecurityChangePassword from './Security/ChangePassword.vue'
+import PersonalAccessTokens from './Security/Tokens.vue'
 import AccountSecurity from './Security.vue'
 import AccountSettings from './Settings.vue'
-import PersonalAccessTokens from './Security/Tokens.vue'
 // import AccountSecuritySessions from "@/pages/account/Security/Sessions.vue"
 import AccountTeamInvitations from './Teams/Invitations.vue'
 import AccountTeamTeams from './Teams/Teams.vue'
@@ -76,7 +76,7 @@ export default [
                 redirect: '/account/security/password',
                 children: [
                     { path: 'password', component: AccountSecurityChangePassword },
-                    { path: 'tokens', component: PersonalAccessTokens}
+                    { path: 'tokens', component: PersonalAccessTokens }
                 // { path: 'sessions', component: AccountSecuritySessions }
                 ]
             }

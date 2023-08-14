@@ -175,7 +175,7 @@ const getPersonalAccessTokens = async () => {
  * @param {number} expiresAt
  */
 const createPersonalAccessToken = async (name, scope, expiresAt) => {
-    return client.post('/api/v1/user/pat', {name, scope, expiresAt}).then(res => res.data)
+    return client.post('/api/v1/user/pat', { name, scope, expiresAt }).then(res => res.data)
 }
 
 /**
