@@ -1,0 +1,58 @@
+name: Publish
+on:
+  workflow_dispatch:
+    inputs:
+      localfs_release_name:
+        description: 'localfs package version'
+        required: false
+        default: 'nightly'
+      localfs_ref:
+        description: 'localfs package ref'
+        required: false
+  workflow_run:
+    workflows: 
+      - 'Backend Tests'
+      - 'Backend Tests - postgres'
+      - 'UI Tests'
+    branches: 
+      - main
+    types: 
+      - completed
+  schedule:
+    - cron: '0 23 * * *'
+
+jobs:
+  publish:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: 'flowforge/github-actions-workflows/.github/workflows/publish_node_package.yml@main'
+    with:
+      package_name: flowforge
+      build_package: true
+      publish_package: true
+      package_dependencies: |
+        @flowforge/localfs
+        @flowforge/forge-ui-components
+
+  trigger_container_image_build:
+    if: false
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Generate a token
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.GH_BOT_APP_ID }}
+          private_key: ${{ secrets.GH_BOT_APP_KEY }}
+
+      - name: Trigger flowforge-container rebuild
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: flowforge-container.yml
+          repo: flowforge/helm
+          ref: feat-flowforge-container-poc
+          token: ${{ steps.generate_token.outputs.token }}
+          inputs: '{"flowforge_ref": "${{ github.ref }}", "flowforge_release_name": "${{ env.release_name }}"}'
