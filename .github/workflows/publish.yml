@@ -11,9 +11,9 @@ on:
         required: false
   workflow_run:
     workflows: 
-      - "Backend Tests"
-      - "Backend Tests - postgres"
-      - "UI Tests"
+      - 'Backend Tests'
+      - 'Backend Tests - postgres'
+      - 'UI Tests'
     branches: 
       - main
       - 'feat-*'
