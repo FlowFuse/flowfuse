@@ -66,17 +66,20 @@ export default {
             this.scopes = Object.keys(temp['platform:auth:permissions'])
         },
         confirm: async function () {
-            const array = Object.keys(this.input.scope).map( k => k)
-            const request = {
-                name: this.input.name,
-                scope: array.join(',')
+            if (!this.edit) {
+                const array = Object.keys(this.input.scope).map( k => k)
+                const request = {
+                    name: this.input.name,
+                    scope: array.join(',')
+                }
+                if (!this.input.never) {
+                    request.expiresAt = Date.parse(this.input.expiresAt)
+                }
+                const token = await userApi.createPersonalAccessToken(request.name, request.scope, request.expiresAt)
+                this.$emit('token-created', token)
+            } else {
+                this.$emit('token-updated')
             }
-            if (!this.input.never) {
-                request.expiresAt = Date.parse(this.input.expiresAt)
-            }
-            console.log(request)
-            const token = await userApi.createPersonalAccessToken(request.name, request.scope, request.expiresAt)
-            console.log(token)
         }
     },
     setup () {

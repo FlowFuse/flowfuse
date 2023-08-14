@@ -15,13 +15,16 @@
 		<ff-list-item label="Delete" @click="deleteToken(row)"/>
 	</template>
     </ff-data-table>
-    <TokenDialog ref="tokenDialog"/>
+    <TokenDialog ref="tokenDialog" @token-created="newTokenDone" @token-updated="fetchData"/>
+    <TokenCreated ref="tokenCreated"/>
 </template>
 
 <script>
 import userApi from '../../../api/user.js'
 
+import TokenCreated from './dialogs/TokenCreated.vue' 
 import TokenDialog from './dialogs/TokenDialog.vue'
+
 
 export default ({
     name: 'PersonalAccessTokens',
@@ -52,6 +55,11 @@ export default ({
         newToken () {
             this.$refs.tokenDialog.showCreate()
         },
+        newTokenDone (token) {
+            console.log('ben')
+            this.$refs.tokenCreated.showToken(token)
+            this.fetchData()
+        },
         editToken (row) {
             this.$refs.tokenDialog.showEdit(row)
         },
@@ -61,7 +69,8 @@ export default ({
         }
     },
     components: {
-        TokenDialog
+        TokenDialog,
+        TokenCreated
     }
 })
 </script>
