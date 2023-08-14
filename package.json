@@ -1,7 +1,7 @@
 {
     "name": "@flowforge/flowforge",
     "version": "1.10.0",
-    "description": "Description change",
+    "description": "An open source low-code development platform",
     "homepage": "https://flowforge.com",
     "bugs": {
         "url": "https://github.com/flowforge/flowforge/issues"
