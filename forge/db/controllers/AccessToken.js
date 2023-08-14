@@ -159,7 +159,7 @@ module.exports = {
         const userId = typeof user === 'number' ? user : user.id
         const token = generateToken(32, 'ffpat')
         console.log(scope, scope)
-        await app.db.models.AccessToken.create({
+        const tok = await app.db.models.AccessToken.create({
             name,
             token,
             scope,
@@ -167,7 +167,12 @@ module.exports = {
             ownerId: '' + userId,
             ownerType: 'user'
         })
-        return token
+        return {
+            id: tok.id,
+            name,
+            token,
+            expiresAt
+        }
     },
     updatePersonalAccessToken: async function (app, user, tokenId, scope, expiresAt) {
         const userId = typeof user === 'number' ? user : user.id
