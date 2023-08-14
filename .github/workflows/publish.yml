@@ -16,6 +16,7 @@ on:
       - "UI Tests"
     branches: 
       - main
+      - 'feat-*'
     types: 
       - completed
   schedule:
@@ -29,17 +30,19 @@ on:
 
 jobs:
   publish:
-      uses: 'flowforge/github-actions-workflows/.github/workflows/publish_node_package.yml@main'
-      with:
-        package_name: flowforge
-        build_package: true
-        publish_package: true
-        package_dependencies: |
-          @flowforge/localfs
-          @flowforge/forge-ui-components
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: 'flowforge/github-actions-workflows/.github/workflows/publish_node_package.yml@main'
+    with:
+      package_name: flowforge
+      build_package: true
+      publish_package: true
+      package_dependencies: |
+        @flowforge/localfs
+        @flowforge/forge-ui-components
 
   trigger_container_image_build:
     if: false
+    needs: publish
     runs-on: ubuntu-latest
     permissions:
       contents: read
