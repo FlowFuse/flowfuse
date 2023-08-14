@@ -158,7 +158,6 @@ module.exports = {
     createPersonalAccessToken: async function (app, user, scope, expiresAt, name) {
         const userId = typeof user === 'number' ? user : user.id
         const token = generateToken(32, 'ffpat')
-        console.log(scope, scope)
         const tok = await app.db.models.AccessToken.create({
             name,
             token,
@@ -185,10 +184,10 @@ module.exports = {
                 }
                 await token.save()
             } else {
-                //should throw error
+                // should throw error
             }
         } else {
-            //should throw unknown token error
+            // should throw unknown token error
         }
         return token
     },
@@ -199,10 +198,10 @@ module.exports = {
             if (token.ownerType === 'user' && token.ownerId === '' + userId) {
                 await token.destroy()
             } else {
-                //should throw error
+                // should throw error
             }
         } else {
-            //should throw error
+            // should throw error
         }
         token = null
         return token

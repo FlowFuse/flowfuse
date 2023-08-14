@@ -11,7 +11,7 @@
 import SectionSideMenu from '../../components/SectionSideMenu.vue'
 const sideNavigation = [
     { name: 'Password', path: '/account/security/password' },
-    { name: 'Tokens', path: '/account/security/tokens'}
+    { name: 'Tokens', path: '/account/security/tokens' }
     // { name: "Sessions", path: "/account/security/sessions" }
 ]
 
