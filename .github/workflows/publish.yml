@@ -14,8 +14,6 @@ on:
       - 'Backend Tests'
       - 'Backend Tests - postgres'
       - 'UI Tests'
-    branches: 
-      - main
     types: 
       - completed
   schedule:
