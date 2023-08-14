@@ -16,21 +16,17 @@ on:
       - 'UI Tests'
     branches: 
       - main
-      - 'feat-*'
     types: 
       - completed
   schedule:
     - cron: '0 23 * * *'
-  # push:
-  #   branches:
-  #     - main
-  # pull_request:
-  #   branches:
-  #     - main 
+  pull_request:
+    branches: 
+      - main
 
 jobs:
   publish:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    # if: ${{ github.event.workflow_run.conclusion == 'success' }}
     uses: 'flowforge/github-actions-workflows/.github/workflows/publish_node_package.yml@main'
     with:
       package_name: flowforge
