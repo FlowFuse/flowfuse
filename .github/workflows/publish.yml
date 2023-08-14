@@ -23,7 +23,9 @@ on:
 
 jobs:
   publish:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: |
+      ( github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main' ) ||
+      github.event_name == 'schedule'
     uses: 'flowforge/github-actions-workflows/.github/workflows/publish_node_package.yml@main'
     with:
       package_name: flowforge
