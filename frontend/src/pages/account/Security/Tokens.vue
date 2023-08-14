@@ -48,11 +48,7 @@ export default ({
     methods: {
         fetchData: async function () {
             this.loading = true
-            try {
-                this.tokens = await userApi.getPersonalAccessTokens()
-            } catch (err) {
-                // console.log(err)
-            }
+            this.tokens = await userApi.getPersonalAccessTokens()
             this.loading = false
         },
         newToken () {
