@@ -233,8 +233,8 @@ module.exports = async function (app) {
                 200: {
                     id: { type: 'number' },
                     name: { type: 'string' },
-                    token: { type: 'string' }
-                    // expiresAt: {type: 'number'}
+                    token: { type: 'string' },
+                    expiresAt: {type: 'number'}
                 },
                 '4xx': {
                     $ref: 'APIError'

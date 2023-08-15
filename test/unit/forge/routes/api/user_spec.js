@@ -644,4 +644,63 @@ describe('User API', async function () {
             response.statusCode.should.equal(200)
         })
     })
+
+    describe.only('User PAT', async function () {
+        it('Create a PAT', async function () {
+            await login('alice', 'aaPassword')
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/pat',
+                cookies: {sid : TestObjects.tokens.alice},
+                payload: {
+                    name: 'Test Token',
+                    scope: '[project:create]'
+                }
+            })
+            response.statusCode.should.equal(200)
+            const json = response.json()
+            json.should.have.property('id', 1)
+            json.should.have.property('name', 'Test Token')
+        })
+        it('Create a PAT with expiry', async function () {
+            await login('alice', 'aaPassword')
+            const tomorrow = Date.now() + (24 * 60 * 60 * 10000)
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/pat',
+                cookies: {sid : TestObjects.tokens.alice},
+                payload: {
+                    name: 'Test Token Expiry',
+                    scope: '[project:create]',
+                    expiresAt: tomorrow
+                }
+            })
+            response.statusCode.should.equal(200)
+            const json = response.json()
+            json.should.have.property('id', 2)
+            json.should.have.property('name', 'Test Token Expiry')
+            const tomorrowDate = new Date(tomorrow).toISOString()
+            json.should.have.property('expiresAt', tomorrow)
+        })
+        it('Get Existing Tokens', async function () {
+            await login('alice', 'aaPassword')
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user/pat',
+                cookies: {sid : TestObjects.tokens.alice},
+            })
+            response.statusCode.should.equal(200)
+            const json = response.json()
+            json.should.be.Array().length(2)
+        })
+        it('Delete Token', async function () {
+            await login('alice', 'aaPassword')
+            const response = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/user/pat/1',
+                cookies: {sid : TestObjects.tokens.alice},
+            })
+            response.statusCode.should.equal(201)
+        })
+    })
 })
