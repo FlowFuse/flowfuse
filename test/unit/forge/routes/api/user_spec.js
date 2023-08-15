@@ -690,7 +690,7 @@ describe('User API', async function () {
             const json = response.json()
             json.should.be.Array().length(2)
         })
-        it('Delete Token', async function () {
+        it('Delete a Token', async function () {
             await login('alice', 'aaPassword')
             const response = await app.inject({
                 method: 'DELETE',
@@ -698,6 +698,20 @@ describe('User API', async function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(201)
+        })
+        it('Update a Token', async function () {
+            await login('alice', 'aaPassword')
+            const tomorrow = Date.now() + (48 * 60 * 60 * 10000)
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/pat/2',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    scope: '[project:create]',
+                    expiresAt: tomorrow
+                }
+            })
+            response.statusCode.should.equal(200)
         })
     })
 })
