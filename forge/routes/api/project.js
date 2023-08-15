@@ -782,7 +782,7 @@ module.exports = async function (app) {
         }
         const teamType = await request.project.Team.getTeamType()
         settings.features = {
-            'shared-library': app.config.features.enabled('shared-library') && teamType.getFeatureProperty('shared-library', false)
+            'shared-library': app.config.features.enabled('shared-library') && teamType.getFeatureProperty('shared-library', true)
         }
         reply.send(settings)
     })
