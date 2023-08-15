@@ -25,7 +25,7 @@ import userApi from '../../../api/user.js'
 import TokenCreated from './dialogs/TokenCreated.vue'
 import TokenDialog from './dialogs/TokenDialog.vue'
 
-export default ({
+export default {
     name: 'PersonalAccessTokens',
     components: {
         TokenDialog,
@@ -66,5 +66,5 @@ export default ({
             this.fetchData()
         }
     }
-})
+}
 </script>
