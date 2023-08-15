@@ -699,6 +699,15 @@ describe('User API', async function () {
             })
             response.statusCode.should.equal(201)
         })
+        it('Delete a missing Token', async function () {
+            await login('alice', 'aaPassword')
+            const response = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/user/pat/1',
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(400)
+        })
         it('Update a Token', async function () {
             await login('alice', 'aaPassword')
             const tomorrow = Date.now() + (48 * 60 * 60 * 10000)
