@@ -260,7 +260,6 @@ module.exports = async function (app) {
                 expiresAt: token.expiresAt
             })
         } catch (err) {
-            console.log(err)
             const resp = { code: 'unexpected_error', error: err.toString() }
             reply.code(400).send(resp)
         }
@@ -291,7 +290,6 @@ module.exports = async function (app) {
             await app.auditLog.User.user.pat.deleted(request.session.User, null, updates)
             reply.code(201).send()
         } catch (err) {
-            console.log(err)
             const resp = { code: 'unexpected_error', error: err.toString() }
             reply.code(400).send(resp)
         }
