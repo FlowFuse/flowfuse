@@ -7,6 +7,7 @@ const createApplication = (options) => {
     return client.post('/api/v1/applications', options).then(res => {
         const props = {
             'application-name': options.name,
+            'application-description': options.description,
             'created-at': res.data.createdAt
         }
         product.capture('$ff-application-created', props, {
