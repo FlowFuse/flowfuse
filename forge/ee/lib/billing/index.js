@@ -337,7 +337,7 @@ module.exports.init = async function (app) {
                         Date.now() + teamTrialDuration * ONE_DAY
                     )
                     if (teamTrialInstanceTypeId) {
-                        const trialProjectType = await app.db.models.ProjectType.byId(teamTrialInstanceTypeId)
+                        await app.db.models.ProjectType.byId(teamTrialInstanceTypeId)
                     }
                 }
             }
