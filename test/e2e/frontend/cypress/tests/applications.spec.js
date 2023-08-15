@@ -10,7 +10,9 @@ describe('FlowForge - Applications', () => {
 
     describe('can be created', () => {
         it('without error', () => {
-            const APPLICATION_NAME = `new-application-${Math.random().toString(36).substring(2, 7)}`
+            const ID = Math.random().toString(36).substring(2, 7)
+            const APPLICATION_NAME = `new-application-${ID}`
+            const APPLICATION_DESCRIPTION = `new-description${ID}`
             const INSTANCE_NAME = `new-instance-${Math.random().toString(36).substring(2, 7)}`
 
             cy.request('GET', 'api/v1/teams').then((response) => {
@@ -25,6 +27,8 @@ describe('FlowForge - Applications', () => {
 
                 cy.get('[data-form="application-name"] input').clear()
                 cy.get('[data-form="application-name"] input').type(APPLICATION_NAME)
+                cy.get('[data-form="application-description"] input').clear()
+                cy.get('[data-form="application-description"] input').type(APPLICATION_DESCRIPTION)
 
                 // Pre-fills name
                 cy.get('[data-form="project-name"] input').should(($input) => {
@@ -54,6 +58,7 @@ describe('FlowForge - Applications', () => {
                 cy.wait('@createInstance')
 
                 cy.contains(APPLICATION_NAME)
+                cy.contains(APPLICATION_DESCRIPTION)
                 cy.contains(INSTANCE_NAME)
 
                 cy.url().should('include', '/instance/')
@@ -140,8 +145,12 @@ describe('FlowForge - Applications', () => {
     })
 
     it('can be updated', () => {
-        const START_APPLICATION_NAME = `new-application-${Math.random().toString(36).substring(2, 7)}`
-        const UPDATED_APPLICATION_NAME = `updated-application-${Math.random().toString(36).substring(2, 7)}`
+        const START_ID = Math.random().toString(36).substring(2, 7)
+        const START_APPLICATION_NAME = `new-application-${START_ID}`
+        const START_APPLICATION_DESCRIPTION = `new-description${START_ID}`
+        const UPDATED_ID = Math.random().toString(36).substring(2, 7)
+        const UPDATED_APPLICATION_NAME = `updated-application-${UPDATED_ID}`
+        const UPDATED_APPLICATION_DESCRIPTION = `updated-description${UPDATED_ID}`
 
         let team
         cy.request('GET', 'api/v1/teams')
@@ -149,6 +158,7 @@ describe('FlowForge - Applications', () => {
                 team = response.body.teams[0]
                 return cy.request('POST', '/api/v1/applications', {
                     name: START_APPLICATION_NAME,
+                    description: START_APPLICATION_DESCRIPTION,
                     teamId: team.id
                 })
             })
@@ -172,12 +182,15 @@ describe('FlowForge - Applications', () => {
 
                     cy.get('[data-form="application-name"] input[type="text"]').clear()
                     cy.get('[data-form="application-name"] input[type="text"]').type(UPDATED_APPLICATION_NAME)
+                    cy.get('[data-form="application-description"] input[type="text"]').clear()
+                    cy.get('[data-form="application-description"] input[type="text"]').type(UPDATED_APPLICATION_DESCRIPTION)
 
                     cy.get('[data-form="submit"]').click()
                 })
 
                 // Name updated on application page
                 cy.get('[data-el="page-name"]').contains(UPDATED_APPLICATION_NAME)
+                cy.get('[data-el="page-description"]').contains(UPDATED_APPLICATION_DESCRIPTION)
 
                 cy.get('[data-nav="team-applications"]').click()
 
@@ -186,6 +199,7 @@ describe('FlowForge - Applications', () => {
 
                 cy.contains(UPDATED_APPLICATION_NAME).should('exist')
                 cy.contains(START_APPLICATION_NAME).should('not.exist')
+                cy.contains(START_APPLICATION_DESCRIPTION).should('not.exist')
             })
     })
 
