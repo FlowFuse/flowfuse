@@ -12,7 +12,7 @@ describe('FlowForge - Applications', () => {
         it('without error', () => {
             const ID = Math.random().toString(36).substring(2, 7)
             const APPLICATION_NAME = `new-application-${ID}`
-            const APPLICATION_DESCRIPTION = `new-description${ID}`
+            const APPLICATION_DESCRIPTION = `new-description-${ID}`
             const INSTANCE_NAME = `new-instance-${Math.random().toString(36).substring(2, 7)}`
 
             cy.request('GET', 'api/v1/teams').then((response) => {
@@ -58,10 +58,15 @@ describe('FlowForge - Applications', () => {
                 cy.wait('@createInstance')
 
                 cy.contains(APPLICATION_NAME)
-                cy.contains(APPLICATION_DESCRIPTION)
                 cy.contains(INSTANCE_NAME)
 
                 cy.url().should('include', '/instance/')
+
+                // now navigate to the Applications view and check the description is present alongside the application name
+                cy.visit(`/team/${team.slug}/applications`)
+                // div.ff-application-list--app should have the app name and description
+                cy.get('div.ff-application-list--app').contains(APPLICATION_NAME)
+                cy.get('div.ff-application-list--app').contains(APPLICATION_DESCRIPTION)
             })
         })
 
@@ -147,10 +152,10 @@ describe('FlowForge - Applications', () => {
     it('can be updated', () => {
         const START_ID = Math.random().toString(36).substring(2, 7)
         const START_APPLICATION_NAME = `new-application-${START_ID}`
-        const START_APPLICATION_DESCRIPTION = `new-description${START_ID}`
+        const START_APPLICATION_DESCRIPTION = `new-description-${START_ID}`
         const UPDATED_ID = Math.random().toString(36).substring(2, 7)
         const UPDATED_APPLICATION_NAME = `updated-application-${UPDATED_ID}`
-        const UPDATED_APPLICATION_DESCRIPTION = `updated-description${UPDATED_ID}`
+        const UPDATED_APPLICATION_DESCRIPTION = `updated-description-${UPDATED_ID}`
 
         let team
         cy.request('GET', 'api/v1/teams')
@@ -190,7 +195,6 @@ describe('FlowForge - Applications', () => {
 
                 // Name updated on application page
                 cy.get('[data-el="page-name"]').contains(UPDATED_APPLICATION_NAME)
-                cy.get('[data-el="page-description"]').contains(UPDATED_APPLICATION_DESCRIPTION)
 
                 cy.get('[data-nav="team-applications"]').click()
 
@@ -200,6 +204,12 @@ describe('FlowForge - Applications', () => {
                 cy.contains(UPDATED_APPLICATION_NAME).should('exist')
                 cy.contains(START_APPLICATION_NAME).should('not.exist')
                 cy.contains(START_APPLICATION_DESCRIPTION).should('not.exist')
+
+                // now navigate to the Applications view and check the UPDATED description is present alongside the application name
+                cy.visit(`/team/${team.slug}/applications`)
+                // div.ff-application-list--app should have the app name and description
+                cy.get('div.ff-application-list--app').contains(UPDATED_APPLICATION_NAME)
+                cy.get('div.ff-application-list--app').contains(UPDATED_APPLICATION_DESCRIPTION)
             })
     })
 
