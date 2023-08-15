@@ -50,7 +50,7 @@ With the 1.5 release, each Application has a single Node-RED instance. With the
 
 DevOps Pipelines allow you to manage staged development environments. Pushing
 from your Development instances to Production once you have stable, and well tested,
-flows. You can find out how to implemnt DevOps Pipelines [here](./devops-pipelines.md)
+flows. You can find out how to implement DevOps Pipelines [here](./devops-pipelines.md)
 
 ### Instance
 
