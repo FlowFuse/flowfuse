@@ -18,14 +18,10 @@ module.exports.init = function (app) {
                 await subscription.Team.reload({ include: [app.db.models.TeamType] })
                 // The subscription has been setup on Stripe.
                 await app.billing.endTeamTrial(subscription.Team)
-                await sendTrialEmail(subscription.Team, 'TrialTeamEnded')
             } else {
                 app.log.info(`Team ${subscription.Team.hashid} ending trial - suspending instances`)
                 // Stripe not configured - suspend the lot
                 await suspendAllProjects(subscription.Team)
-                await sendTrialEmail(subscription.Team, 'TrialTeamSuspended', {
-                    teamSettingsURL: `${app.config.base_url}/team/${subscription.Team.slug}/billing`
-                })
             }
 
             // We have dealt with this team
@@ -59,12 +55,7 @@ module.exports.init = function (app) {
         for (const subscription of pendingEmailSubscriptions) {
             const endingInDurationDays = Math.ceil((subscription.trialEndsAt - Date.now()) / ONE_DAY)
             const endingInDuration = endingInDurationDays + ' day' + ((endingInDurationDays !== 1) ? 's' : '')
-            const billingUrl = `${app.config.base_url}/team/${subscription.Team.slug}/billing`
-            await sendTrialEmail(subscription.Team, 'TrialTeamReminder', {
-                endingInDuration,
-                billingSetup: subscription.isActive(),
-                billingUrl
-            })
+            const billingUrl = `${app.config.base_url}/team/${subscription.Team.slug}/billing` 
             if (subscription.trialStatus === app.db.models.Subscription.TRIAL_STATUS.CREATED) {
                 subscription.trialStatus = app.db.models.Subscription.TRIAL_STATUS.WEEK_EMAIL_SENT
             } else {

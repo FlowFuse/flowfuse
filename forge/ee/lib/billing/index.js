@@ -338,16 +338,6 @@ module.exports.init = async function (app) {
                     )
                     if (teamTrialInstanceTypeId) {
                         const trialProjectType = await app.db.models.ProjectType.byId(teamTrialInstanceTypeId)
-                        await app.postoffice.send(
-                            user,
-                            'TrialTeamCreated',
-                            {
-                                username: user.name,
-                                teamName: team.name,
-                                trialDuration: teamTrialDuration,
-                                trialProjectTypeName: trialProjectType.name
-                            }
-                        )
                     }
                 }
             }
