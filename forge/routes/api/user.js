@@ -322,7 +322,7 @@ module.exports = async function (app) {
             const oldToken = await app.db.models.AccessToken.byId(request.params.id)
             const body = request.body
             const newToken = await app.db.controllers.AccessToken.updatePersonalAccessToken(request.session.User, request.params.id, body.scope, body.expiresAt)
-            updates.pushDifference(oldToken, newToken)
+            updates.pushDifferences(oldToken, newToken)
             await app.auditLog.User.user.pat.updated(request.session.User, null, updates)
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
