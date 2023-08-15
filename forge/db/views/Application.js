@@ -5,6 +5,7 @@ module.exports = function (app) {
         properties: {
             id: { type: 'string' },
             name: { type: 'string' },
+            description: { type: 'string' },
             createdAt: { type: 'string' },
             updatedAt: { type: 'string' },
             links: { $ref: 'LinksMeta' },
@@ -17,6 +18,7 @@ module.exports = function (app) {
             const filtered = {
                 id: raw.hashid,
                 name: raw.name,
+                description: raw.description,
                 createdAt: raw.createdAt,
                 updatedAt: raw.updatedAt,
                 links: raw.links
@@ -38,6 +40,7 @@ module.exports = function (app) {
         properties: {
             id: { type: 'string' },
             name: { type: 'string' },
+            description: { type: 'string' },
             links: { $ref: 'LinksMeta' }
         },
         additionalProperties: true
@@ -52,6 +55,7 @@ module.exports = function (app) {
         return {
             id: application.hashid,
             name: application.name,
+            description: application.description,
             links: application.links
         }
     }
