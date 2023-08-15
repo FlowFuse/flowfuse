@@ -1,6 +1,7 @@
 <template>
     <div data-el="empty-state">
         <FeatureUnavailable v-if="featureUnavailable" />
+        <FeatureUnavailableToTeam v-if="featureUnavailableToTeam" />
         <div
             class="ff-empty-state" :class="{'ff-empty-state-feature-unavailable': featureUnavailable}"
         >
@@ -25,14 +26,20 @@
 
 <script>
 import FeatureUnavailable from './banners/FeatureUnavailable.vue'
+import FeatureUnavailableToTeam from './banners/FeatureUnavailableToTeam.vue'
 
 export default {
     name: 'EmptyState',
     components: {
-        FeatureUnavailable
+        FeatureUnavailable,
+        FeatureUnavailableToTeam
     },
     props: {
         featureUnavailable: {
+            type: Boolean,
+            default: false
+        },
+        featureUnavailableToTeam: {
             type: Boolean,
             default: false
         }

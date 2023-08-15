@@ -68,15 +68,15 @@
                     <FormRow v-if="features.billing" v-model="input.properties.devices.description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
                 </div>
 
-                <!-- <FormHeading>Features</FormHeading>
+                <FormHeading>Features</FormHeading>
                 <div class="grid gap-3 grid-cols-2">
-                    <FormRow v-model="input.properties.features.projectComms" type="checkbox">Project Nodes</FormRow>
                     <FormRow v-model="input.properties.features['shared-library']" type="checkbox">Team Library</FormRow>
+                    <!-- <FormRow v-model="input.properties.features.projectComms" type="checkbox">Project Nodes</FormRow>
                     <FormRow v-model="input.properties.features.teamHttpSecurity" type="checkbox">Team-based Endpoint Security</FormRow>
                     <FormRow v-model="input.properties.features.ha" type="checkbox">High Availability</FormRow>
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
-                    <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
-                </div> -->
+                    <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow> -->
+                </div>
             </form>
         </template>
         <template #actions>
