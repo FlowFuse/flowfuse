@@ -420,5 +420,22 @@ describe('Library Storage API', function () {
             result.should.have.property('code', 'not_found')
             ;(await app.db.models.StorageSharedLibrary.count()).should.equal(4)
         })
+
+        it('Prevents Library access for team type with feature disabled', async function () {
+            // Create a teamType without shared-library access
+            const teamType = await app.factory.createTeamType({
+                name: 'no-shared-library-type',
+                properties: {
+                    features: { 'shared-library': false }
+                }
+            })
+            const team = await app.factory.createTeam({ name: 'team3', TeamTypeId: teamType.id })
+
+            const project = await app.db.models.Project.create({ name: generateName('project'), type: '', url: '' })
+            await team.addProject(project)
+            const tokens = await project.refreshAuthTokens()
+            await shouldRejectGet(`/storage/library/${team.hashid}/`, tokens.token)
+            await shouldRejectPost(`/storage/library/${team.hashid}/foo`, tokens.token)
+        })
     })
 })
