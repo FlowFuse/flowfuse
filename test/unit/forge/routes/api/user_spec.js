@@ -645,7 +645,7 @@ describe('User API', async function () {
         })
     })
 
-    describe.only('User PAT', async function () {
+    describe('User PAT', async function () {
         it('Create a PAT', async function () {
             await login('alice', 'aaPassword')
             const response = await app.inject({
