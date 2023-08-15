@@ -49,6 +49,7 @@ module.exports = async function (app) {
                 required: ['name', 'teamId'],
                 properties: {
                     name: { type: 'string' },
+                    description: { type: 'string' },
                     teamId: { type: 'string' }
                 }
             },
@@ -78,6 +79,7 @@ module.exports = async function (app) {
         try {
             application = await app.db.models.Application.create({
                 name,
+                description: request.body.description,
                 TeamId: team.id
             })
         } catch (err) {
@@ -140,7 +142,8 @@ module.exports = async function (app) {
             body: {
                 type: 'object',
                 properties: {
-                    name: { type: 'string' }
+                    name: { type: 'string' },
+                    description: { type: 'string' }
                 }
             },
             response: {
@@ -160,8 +163,17 @@ module.exports = async function (app) {
 
         try {
             const reqName = request.body.name?.trim()
-            updates.push('name', request.application.name, reqName)
+            const reqDescription = request.body.description?.trim()
+            const currentName = request.application.name
+            const currentDescription = request.application.description
+            if (reqName !== currentName) {
+                updates.push('name', request.application.name, reqName)
+            }
             request.application.name = reqName
+            if (reqDescription !== currentDescription) {
+                updates.push('description', request.application.description, reqDescription)
+            }
+            request.application.description = reqDescription
 
             await request.application.save()
         } catch (error) {
@@ -264,7 +276,7 @@ module.exports = async function (app) {
                 // This request is from a project token. Filter the list to return
                 // the minimal information needed
                 result = result.map(e => {
-                    return { id: e.id, name: e.name }
+                    return { id: e.id, name: e.name, description: e.description }
                 })
             }
             reply.send({
