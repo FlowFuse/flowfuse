@@ -101,7 +101,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('project:snapshot:delete'),
         schema: {
             summary: 'Delete a snapshot',
-            tags: ['Teams'],
+            tags: ['Snapshots'],
             params: {
                 type: 'object',
                 properties: {
