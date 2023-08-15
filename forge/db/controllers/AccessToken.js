@@ -186,7 +186,6 @@ module.exports = {
             } else {
                 // should throw error
                 throw new Error('Not Authorized')
-                
             }
         } else {
             // should throw unknown token error
