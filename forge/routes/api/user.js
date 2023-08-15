@@ -242,10 +242,17 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
+        const updates = new app.auditLog.formatters.UpdatesCollection()
         try {
             const body = request.body
             const token = await app.db.controllers.AccessToken.createPersonalAccessToken(request.session.User, body.scope, body.expiresAt, body.name)
-            // await app.auditLog.User.pat.created(request.session.User, null, updates)
+            updates.push('id', token.id)
+            updates.push('name', token.name)
+            updates.push('scope', body.scope)
+            if (token.expiresAt) {
+                updates.push('expiresAt', token.expiresAt)
+            }
+            await app.auditLog.User.user.pat.created(request.session.User, null, updates)
             reply.send({
                 id: token.id,
                 name: token.name,
@@ -253,6 +260,7 @@ module.exports = async function (app) {
                 expiresAt: token.expiresAt
             })
         } catch (err) {
+            console.log(err)
             const resp = { code: 'unexpected_error', error: err.toString() }
             reply.code(400).send(resp)
         }
@@ -277,10 +285,13 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         try {
+            const updates = new app.auditLog.formatters.UpdatesCollection()
             await app.db.controllers.AccessToken.removePersonalAccessToken(request.session.User, request.params.id)
-            // await app.auditLog.User.pat.deleted(request.session.User, null, updates)
+            updates.push('id', request.params.id)
+            await app.auditLog.User.user.pat.deleted(request.session.User, null, updates)
             reply.code(201).send()
         } catch (err) {
+            console.log(err)
             const resp = { code: 'unexpected_error', error: err.toString() }
             reply.code(400).send(resp)
         }
@@ -308,6 +319,16 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-
+        const updates = new app.auditLog.formatters.UpdatesCollection()
+        try {
+            const oldToken = await app.db.models.AccessToken.byId(request.params.id)
+            const body = request.body
+            const newToken = await app.db.controllers.AccessToken.updatePersonalAccessToken(request.session.User, request.params.id, body.scope, body.expiresAt)
+            updates.pushDifference(oldToken, newToken)
+            await app.auditLog.User.user.pat.updated(request.session.User, null, updates)
+        } catch (err) {
+            const resp = { code: 'unexpected_error', error: err.toString() }
+            reply.code(400).send(resp)
+        }
     })
 }

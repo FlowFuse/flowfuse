@@ -76,8 +76,8 @@ module.exports = {
                 async created (actionedBy, error, updates) {
                     await log('user.pat.created', actionedBy, generateBody({ error, updates }))
                 },
-                async deleted (actionedBy, error) {
-                    await log('user.pat.deleted', actionedBy, generateBody({ error }))
+                async deleted (actionedBy, error, updates) {
+                    await log('user.pat.deleted', actionedBy, generateBody({ error, updates }))
                 },
                 async updated (actionedBy, error, updates) {
                     await log('user.pat.updated', actionedBy, generateBody({ error, updates }))

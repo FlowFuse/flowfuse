@@ -185,9 +185,12 @@ module.exports = {
                 await token.save()
             } else {
                 // should throw error
+                throw new Error('Not Authorized')
+                
             }
         } else {
             // should throw unknown token error
+            throw new Error('Not Found')
         }
         return token
     },
@@ -199,9 +202,11 @@ module.exports = {
                 await token.destroy()
             } else {
                 // should throw error
+                throw new Error('Not Authorized')
             }
         } else {
             // should throw error
+            throw new Error('Not Found')
         }
         token = null
         return token
