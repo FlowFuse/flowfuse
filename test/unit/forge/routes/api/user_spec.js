@@ -651,7 +651,7 @@ describe('User API', async function () {
             const response = await app.inject({
                 method: 'POST',
                 url: '/api/v1/user/pat',
-                cookies: {sid : TestObjects.tokens.alice},
+                cookies: { sid: TestObjects.tokens.alice },
                 payload: {
                     name: 'Test Token',
                     scope: '[project:create]'
@@ -668,7 +668,7 @@ describe('User API', async function () {
             const response = await app.inject({
                 method: 'POST',
                 url: '/api/v1/user/pat',
-                cookies: {sid : TestObjects.tokens.alice},
+                cookies: { sid: TestObjects.tokens.alice },
                 payload: {
                     name: 'Test Token Expiry',
                     scope: '[project:create]',
@@ -679,7 +679,6 @@ describe('User API', async function () {
             const json = response.json()
             json.should.have.property('id', 2)
             json.should.have.property('name', 'Test Token Expiry')
-            const tomorrowDate = new Date(tomorrow).toISOString()
             json.should.have.property('expiresAt', tomorrow)
         })
         it('Get Existing Tokens', async function () {
@@ -687,7 +686,7 @@ describe('User API', async function () {
             const response = await app.inject({
                 method: 'GET',
                 url: '/api/v1/user/pat',
-                cookies: {sid : TestObjects.tokens.alice},
+                cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
             const json = response.json()
@@ -698,7 +697,7 @@ describe('User API', async function () {
             const response = await app.inject({
                 method: 'DELETE',
                 url: '/api/v1/user/pat/1',
-                cookies: {sid : TestObjects.tokens.alice},
+                cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(201)
         })
