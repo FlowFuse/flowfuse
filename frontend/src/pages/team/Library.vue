@@ -124,7 +124,8 @@ export default {
     computed: {
         ...mapState('account', ['features']),
         featureEnabledForTeam () {
-            return this.team.type.properties.features?.['shared-library']
+            const flag = this.team.type.properties.features?.['shared-library']
+            return flag === undefined || flag
         },
         featureEnabledForPlatform () {
             return this.features['shared-library']
