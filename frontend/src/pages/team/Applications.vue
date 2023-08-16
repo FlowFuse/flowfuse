@@ -34,9 +34,10 @@
             <template v-else-if="!loading && applications.size > 0">
                 <ul class="ff-applications-list">
                     <li v-for="application in Array.from(applications.values())" :key="application.id">
-                        <div class="ff-application-list--app" data-action="view-application" @click="openApplication(application)">
-                            <span class="flex justify-center"><TemplateIcon class="ff-icon text-gray-600" />{{ application.name }}</span>
-                            <label class="italic text-gray-400 text-sm">
+                        <div class="ff-application-list--app gap-x-4 flex items-center !justify-start" data-action="view-application" @click="openApplication(application)">
+                            <span class="flex flex-shrink-0 flex-grow-0 whitespace-nowrap"><TemplateIcon class="ff-icon text-gray-600" />{{ application.name }}</span>
+                            <span class="!inline-block !flex-shrink !flex-grow italic text-gray-500 dark:text-gray-400 truncate"> {{ application.description }} </span>
+                            <label class="!inline-block italic text-gray-400 text-sm whitespace-nowrap flex-shrink-0 flex-grow-0">
                                 {{ application.instances.size }} Instance{{ application.instances.size === 1 ? '' : 's' }}
                             </label>
                         </div>

@@ -41,9 +41,8 @@ or how many members the team can have.
 
 To organise your Node-RED instances, they are grouped with Applications.
 
-With the 1.5 release, each Application has a single Node-RED instance. But later
-releases will introduce the ability to have multiple Node-RED instances within
-the application.
+With the 1.5 release, each Application has a single Node-RED instance. With the 
+1.6 release, an application can have multiple Node-RED instances.
 
 #### DevOps Pipeline
 
@@ -51,13 +50,13 @@ the application.
 
 DevOps Pipelines allow you to manage staged development environments. Pushing
 from your Development instances to Production once you have stable, and well tested,
-flows. You can find out how to implemnt DevOps Pipelines [here](./devops-pipelines.md)
+flows. You can find out how to implement DevOps Pipelines [here](./devops-pipelines.md)
 
 ### Instance
 
 **This was called a Project before FlowForge 1.5**
 
-Within your Application you can have one or more (coming soon) Instances of Node-RED.
+Within your Application you can have one or more Instances of Node-RED.
 
 The Instance is a customised version of Node-RED that includes various FlowForge
 plugins to integrate it with the platform.

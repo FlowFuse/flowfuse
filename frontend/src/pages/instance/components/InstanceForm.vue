@@ -35,6 +35,7 @@
                     Application
                 </template>
             </FormRow>
+            <div class="italic text-gray-500 pl-1 pt-0.5 text-sm .max-w-sm truncate">{{ selectedApplication?.description || '' }}</div>
         </div>
         <!-- No Existing Applications, or we are creating a new one -->
         <div v-else-if="creatingApplication">
@@ -47,6 +48,17 @@
             >
                 <template #default>
                     Application Name
+                </template>
+            </FormRow>
+            <FormRow
+                v-model="input.applicationDescription"
+                :error="errors.applicationDescription || submitErrors?.applicationDescription"
+                :disabled="!creatingNew || applicationFieldsLocked"
+                placeholder="My Application Description"
+                data-form="application-description"
+            >
+                <template #default>
+                    Application Description
                 </template>
             </FormRow>
         </div>
@@ -314,6 +326,7 @@ export default {
             subscription: null,
             input: {
                 applicationName,
+                applicationDescription: '',
                 applicationId,
 
                 // Only read name from existing project, never source
@@ -343,6 +356,14 @@ export default {
         ...mapState('account', ['settings']),
         creatingApplication () {
             return (this.applicationSelection && !this.applications.length) || (this.creatingNew && this.applicationFieldsVisible)
+        },
+        selectedApplication () {
+            if (this.applications?.length) {
+                return this.applications.find((a) => {
+                    return a.value === this.input.applicationId
+                })
+            }
+            return {}
         },
         creatingNew () {
             return !this.instance?.id
