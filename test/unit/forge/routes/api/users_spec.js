@@ -332,7 +332,7 @@ describe('Users API', async function () {
                 const result = response.json()
                 result.should.have.property('error')
             })
-            it.only('admin can modify sso_enabled user email', async function () {
+            it('admin can modify sso_enabled user email', async function () {
                 const harry = await app.db.models.User.create({ username: 'harry', name: 'Harry Palpatine', email: 'harry@example.com', email_verified: true, password: 'hhPassword', sso_enabled: true })
                 const response = await app.inject({
                     method: 'PUT',
