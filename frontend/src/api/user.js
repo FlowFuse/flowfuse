@@ -187,6 +187,13 @@ const deletePersonalAccessToken = async (id) => {
     return client.delete('/api/v1/user/pat/' + id).then(res => {})
 }
 
+/**
+ * Update User Personal Token
+ */
+const updatePersonalAccessToken = async (id, scope, expiresAt) => {
+    return client.put('/api/v1/user/pat/'+ id, { scope, expiresAt })
+}
+
 export default {
     registerUser,
     getUser,
@@ -206,5 +213,6 @@ export default {
     triggerPendingEmailChangeVerification,
     getPersonalAccessTokens,
     createPersonalAccessToken,
-    deletePersonalAccessToken
+    deletePersonalAccessToken,
+    updatePersonalAccessToken
 }

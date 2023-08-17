@@ -179,7 +179,9 @@ module.exports = {
         if (token) {
             if (token.ownerType === 'user' && token.ownerId === '' + userId) {
                 token.scope = scope
-                if (expiresAt) {
+                if (expiresAt === undefined) {
+                    token.expiresAt = null
+                } else {
                     token.expiresAt = expiresAt
                 }
                 await token.save()

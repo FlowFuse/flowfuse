@@ -6,10 +6,6 @@
                     Name
                     <template v-slot:description>Token name</template>
                 </FormRow>
-                Scopes
-                <div class="grid grid-cols-2 gap-2">
-                    <ff-checkbox v-for="scope in scopes" :key="scope" v-model="input.scope[scope]" :label="scope" />
-                </div>
                 <FormRow v-model="input.expiresAt" type="date" :disabled="input.never">
                     Expires
                     <!-- <template v-slot:description>Expires</template> -->
@@ -40,27 +36,29 @@ export default {
                 this.input = {
                     id: null,
                     name: '',
-                    scope: {
-                        'user:read': true
-                    },
                     expiresAt: null,
                     never: true
                 }
                 this.edit = false
             },
             showEdit (row) {
-                this.$refs.dialog.show()
                 this.token = row
+                try {
                 this.input = {
                     id: row.id,
-                    name: row.name,
-                    scope: row.scope.split(','),
-                    expiresAt: row.expiresAt
+                    name: row.name
                 }
                 if (row.expiresAt === null) {
                     this.input.never = true
+                } else {
+                    this.input.never = false
+                    this.input.expiresAt = row.expiresAt.split('T')[0] // `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`
                 }
                 this.edit = true
+                } catch (err) {
+                    console.error(err)
+                }
+                this.$refs.dialog.show()
             }
         }
     },
@@ -97,17 +95,40 @@ export default {
         },
         confirm: async function () {
             if (!this.edit) {
-                const array = Object.keys(this.input.scope).map(k => k)
+                let array = []
+                if (this.input.scope) {
+                    array = Object.keys(this.input.scope).map(k => k)
+                }
                 const request = {
                     name: this.input.name,
                     scope: array.join(',')
                 }
                 if (!this.input.never) {
                     request.expiresAt = Date.parse(this.input.expiresAt)
-                }
+                } 
                 const token = await userApi.createPersonalAccessToken(request.name, request.scope, request.expiresAt)
                 this.$emit('token-created', token)
             } else {
+                
+                let array = []
+                if (this.input.scope) {
+                    array = Object.keys(this.input.scope)?.map(k => k)
+                }
+                const request = {
+                    id: this.input.id,
+                    scope: array.join(',')
+                }
+                if (!this.input.never) {
+                    request.expiresAt = Date.parse(this.input.expiresAt)
+                } else {
+                    request.expiresAt = undefined
+                }
+
+                try {
+                    await userApi.updatePersonalAccessToken(request.id, request.scope, request.expiresAt)
+                } catch (err) {
+                    console.error(err)
+                }
                 this.$emit('token-updated')
             }
         }
