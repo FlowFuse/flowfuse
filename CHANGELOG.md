@@ -1,3 +1,11 @@
+#### 1.10.2: Release
+
+ - Allow admin to edit sso user email in the UI (backport #2607) (#2608) @app/github-actions
+ - Allow admin to change sso_enabled users email (backport #2605) (#2606) @app/github-actions
+ - Fix device running or reporting old snapshot id/name (backport #2575) (#2580) @app/github-actions
+ - Add application description to header of application summary box (backport #2596) (#2602) @app/github-actions
+ - Move Delete Snapshot to proper part of api docs (backport #2595) (#2597) @app/github-actions
+
 #### 1.10.1: Release
 
  - Ensure Default InstanceType is enabled for Default TeamType in clean install (backport #2573) (#2577) @app/github-actions
