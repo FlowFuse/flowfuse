@@ -395,6 +395,14 @@ module.exports = async function (app) {
                 }
             }
             const newSettings = app.db.controllers.ProjectTemplate.validateSettings(bodySettings, request.project.ProjectTemplate)
+            if (newSettings.httpNodeAuth?.type === 'flowforge-user') {
+                const teamType = await request.project.Team.getTeamType()
+                if (teamType.properties.features?.teamHttpSecurity === false) {
+                    reply.code(400).send({ code: 'invalid_request', error: 'FlowForge User Authentication not available for this team type' })
+                    return
+                }
+            }
+
             // Merge the settings into the existing values
             const currentProjectSettings = await request.project.getSetting(KEY_SETTINGS) || {}
             const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings)
