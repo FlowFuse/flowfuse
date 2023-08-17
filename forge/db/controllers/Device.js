@@ -31,11 +31,20 @@ module.exports = {
      * so that the device can determine what/if it needs to update
      * @param {forge.db.models.Device} device The device to send an "update" command to
      */
-    sendDeviceUpdateCommand: function (app, device) {
+    sendDeviceUpdateCommand: async function (app, device) {
         if (app.comms) {
+            let snapshotId = device.targetSnapshot?.hashid || null
+            if (snapshotId) {
+                // device.targetSnapshot is a limited  view so we need to load the it from the db
+                // check it has an associated project and that it matches the device's project
+                const targetSnapshot = (await app.db.models.ProjectSnapshot.byId(snapshotId))
+                if (!targetSnapshot || !targetSnapshot.ProjectId || targetSnapshot.ProjectId !== device.ProjectId) {
+                    snapshotId = null // target snapshot is not associated with this project (possibly orphaned), set it to null
+                }
+            }
             const payload = {
                 project: device.Project?.id || null,
-                snapshot: device.targetSnapshot?.hashid || null,
+                snapshot: snapshotId,
                 settings: device.settingsHash || null,
                 mode: device.mode,
                 licensed: app.license.active()
