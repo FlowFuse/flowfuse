@@ -4,7 +4,7 @@
             <form class="space-y-6" @submit.prevent>
                 <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
                 <FormRow v-model="input.name" :placeholder="input.username">Name</FormRow>
-                <FormRow v-model="input.email" :error="errors.email" :disabled="user.sso_enabled">
+                <FormRow v-model="input.email" :error="errors.email">
                     Email
                     <template v-slot:description v-if="user.sso_enabled">
                         <div>SSO is enabled for this user.</div>
