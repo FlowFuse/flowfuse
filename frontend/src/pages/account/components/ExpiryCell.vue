@@ -6,16 +6,12 @@
 <script>
 export default {
     name: 'ExpiryCell',
-    props: [ 'expiresAt' ],
+    props: ['expiresAt'],
     computed: {
         expires: function () {
             if (this.expiresAt) {
-                try {
-                    const d = new Date(Date.parse(this.expiresAt))
-                    return d.toLocaleDateString()
-                } catch (err) {
-                    console.error(err)
-                }
+                const d = new Date(Date.parse(this.expiresAt))
+                return d.toLocaleDateString()
             } else {
                 return 'Never'
             }

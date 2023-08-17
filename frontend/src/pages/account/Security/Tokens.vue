@@ -3,13 +3,14 @@
     <ff-data-table
         data-el=""
         :rows="tokens" :columns="columns" :show-search="true" search-placeholder="Search Tokens..."
-        :rows-selectable="true" :show-load-more="false" >
+        :rows-selectable="true" :show-load-more="false"
+    >
         <template #actions>
             <ff-button @click="newToken()">
                 New Token
             </ff-button>
         </template>
-        <template v-slot:context-menu="{row}">
+        <template #context-menu="{row}">
             <ff-list-item label="Edit" @click="editToken(row)" />
             <ff-list-item label="Delete" @click="deleteToken(row)" />
         </template>
@@ -20,16 +21,17 @@
 
 <script>
 import { markRaw } from 'vue'
+
 import userApi from '../../../api/user.js'
+
+import ExpiryCell from '../components/ExpiryCell.vue'
 
 import TokenCreated from './dialogs/TokenCreated.vue'
 import TokenDialog from './dialogs/TokenDialog.vue'
-import ExpiryCell  from '../components/ExpiryCell.vue'
 
 export default {
     name: 'PersonalAccessTokens',
     components: {
-        ExpiryCell,
         TokenDialog,
         TokenCreated
     },
@@ -40,8 +42,8 @@ export default {
             columns: [
                 { label: 'Name', key: 'name', sortable: true },
                 // { label: 'Scope', key: 'scope' },
-                { 
-                    label: 'Expires', 
+                {
+                    label: 'Expires',
                     key: 'expiresAt',
                     component: {
                         is: markRaw(ExpiryCell)

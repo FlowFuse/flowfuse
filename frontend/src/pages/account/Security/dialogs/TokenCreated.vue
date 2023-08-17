@@ -1,10 +1,10 @@
 <template>
     <ff-dialog ref="dialog">
-        <template v-slot:default>
+        <template #default>
             <p>Your token is <code>{{ token.token }}</code></p>
             <p>This is the only time it will be shown, so please ensure you make a note</p>
         </template>
-        <template v-slot:actions>
+        <template #actions>
             <ff-button v-if="!!clipboardSupported" kind="secondary" @click="copy()">Copy to Clipboard</ff-button>
             <ff-button class="ml-4" @click="close()">Done</ff-button>
         </template>

@@ -1,10 +1,10 @@
 <template>
     <ff-dialog ref="dialog" :confirm-label="token ? 'Save' : 'Create'" @confirm="confirm()">
-        <template v-slot:default>
+        <template #default>
             <form @submit.prevent>
                 <FormRow v-model="input.name" :disabled="edit">
                     Name
-                    <template v-slot:description>Token name</template>
+                    <template #description>Token name</template>
                 </FormRow>
                 <FormRow v-model="input.expiresAt" type="date" :disabled="input.never">
                     Expires
@@ -43,7 +43,6 @@ export default {
             },
             showEdit (row) {
                 this.token = row
-                try {
                 this.input = {
                     id: row.id,
                     name: row.name
@@ -55,9 +54,6 @@ export default {
                     this.input.expiresAt = row.expiresAt.split('T')[0] // `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`
                 }
                 this.edit = true
-                } catch (err) {
-                    console.error(err)
-                }
                 this.$refs.dialog.show()
             }
         }
@@ -105,11 +101,10 @@ export default {
                 }
                 if (!this.input.never) {
                     request.expiresAt = Date.parse(this.input.expiresAt)
-                } 
+                }
                 const token = await userApi.createPersonalAccessToken(request.name, request.scope, request.expiresAt)
                 this.$emit('token-created', token)
             } else {
-                
                 let array = []
                 if (this.input.scope) {
                     array = Object.keys(this.input.scope)?.map(k => k)
