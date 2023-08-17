@@ -207,7 +207,6 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         try {
             const tokens = await app.db.models.AccessToken.getPersonalAccessTokens(request.session.User)
-            console.log(tokens)
             reply.send(tokens)
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }

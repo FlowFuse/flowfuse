@@ -191,7 +191,7 @@ const deletePersonalAccessToken = async (id) => {
  * Update User Personal Token
  */
 const updatePersonalAccessToken = async (id, scope, expiresAt) => {
-    return client.put('/api/v1/user/pat/'+ id, { scope, expiresAt })
+    return client.put('/api/v1/user/pat/' + id, { scope, expiresAt })
 }
 
 export default {
