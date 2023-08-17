@@ -207,6 +207,7 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         try {
             const tokens = await app.db.models.AccessToken.getPersonalAccessTokens(request.session.User)
+            console.log(tokens)
             reply.send(tokens)
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
@@ -324,6 +325,7 @@ module.exports = async function (app) {
             const newToken = await app.db.controllers.AccessToken.updatePersonalAccessToken(request.session.User, request.params.id, body.scope, body.expiresAt)
             updates.pushDifferences(oldToken, newToken)
             await app.auditLog.User.user.pat.updated(request.session.User, null, updates)
+            reply.send(newToken)
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
             reply.code(400).send(resp)

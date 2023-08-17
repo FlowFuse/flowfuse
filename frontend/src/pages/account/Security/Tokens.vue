@@ -3,8 +3,7 @@
     <ff-data-table
         data-el=""
         :rows="tokens" :columns="columns" :show-search="true" search-placeholder="Search Tokens..."
-        :rows-selectable="true" :show-load-more="false"
-    >
+        :rows-selectable="true" :show-load-more="false" >
         <template #actions>
             <ff-button @click="newToken()">
                 New Token
@@ -20,14 +19,17 @@
 </template>
 
 <script>
+import { markRaw } from 'vue'
 import userApi from '../../../api/user.js'
 
 import TokenCreated from './dialogs/TokenCreated.vue'
 import TokenDialog from './dialogs/TokenDialog.vue'
+import ExpiryCell  from '../components/ExpiryCell.vue'
 
 export default {
     name: 'PersonalAccessTokens',
     components: {
+        ExpiryCell,
         TokenDialog,
         TokenCreated
     },
@@ -37,8 +39,14 @@ export default {
             tokens: [],
             columns: [
                 { label: 'Name', key: 'name', sortable: true },
-                { label: 'Scope', key: 'scope' },
-                { label: 'Expires', key: 'expiresAt' }
+                // { label: 'Scope', key: 'scope' },
+                { 
+                    label: 'Expires', 
+                    key: 'expiresAt',
+                    component: {
+                        is: markRaw(ExpiryCell)
+                    }
+                }
             ]
         }
     },
