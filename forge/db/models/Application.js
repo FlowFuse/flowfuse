@@ -9,7 +9,8 @@ const { KEY_SETTINGS, KEY_HA } = require('./ProjectSettings')
 module.exports = {
     name: 'Application',
     schema: {
-        name: { type: DataTypes.STRING, allowNull: false }
+        name: { type: DataTypes.STRING, allowNull: false },
+        description: { type: DataTypes.STRING, defaultValue: '' }
     },
     associations: function (M) {
         this.hasMany(M.Project)
