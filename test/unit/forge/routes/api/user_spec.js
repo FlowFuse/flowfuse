@@ -26,12 +26,13 @@ describe('User API', async function () {
         await app.db.models.User.destroy({ where: {} })
 
         // alice : admin, team owner
-        // bob: (sso_enabled)
+        // bob: admin, (sso_enabled)
         // chris : (unverified_email)
         // dave : (password_expired)
         // elvis: (no teams)
         // frank: (B team owner)
         // grace: (B team member only)
+        // harry: not-admin, sso_enabled
 
         // ATeam ( alice  (owner), bob (owner), chris, dave)
         // BTeam ( bob (owner), chris, dave)
@@ -55,6 +56,7 @@ describe('User API', async function () {
         TestObjects.elvis = await app.db.models.User.create({ username: 'elvis', name: 'Elvis Dooku', email: 'elvis@example.com', email_verified: true, password: 'eePassword' })
         TestObjects.frank = await app.db.models.User.create({ username: 'frank', name: 'Frank Stein', email: 'frank@example.com', email_verified: true, password: 'ffPassword' })
         TestObjects.grace = await app.db.models.User.create({ username: 'grace', name: 'Grace Hut', email: 'grace@example.com', email_verified: true, password: 'ggPassword' })
+        TestObjects.harry = await app.db.models.User.create({ username: 'harry', name: 'Harry Palpatine', email: 'harry@example.com', email_verified: true, password: 'hhPassword', sso_enabled: true })
 
         // Alice set as ATeam owner in setup()
         await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
@@ -181,11 +183,11 @@ describe('User API', async function () {
                 result2.should.have.property('sso_enabled', true)
             })
             it('sso_enabled user cannot change email', async function () {
-                await login('bob', 'bbPassword')
+                await login('harry', 'hhPassword')
                 const response = await app.inject({
                     method: 'PUT',
                     url: '/api/v1/user',
-                    cookies: { sid: TestObjects.tokens.bob },
+                    cookies: { sid: TestObjects.tokens.harry },
                     payload: {
                         email: 'new-email@example.com' // user setting
                     }
@@ -193,7 +195,7 @@ describe('User API', async function () {
                 response.statusCode.should.equal(400)
                 const result = response.json()
                 result.should.have.property('code', 'invalid_request')
-                result.error.should.match(/Cannot change password/)
+                result.error.should.match(/Cannot change email/)
             })
         })
 
