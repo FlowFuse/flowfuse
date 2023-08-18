@@ -1,13 +1,13 @@
 <template>
-    <ff-dialog ref="dialog" :confirm-label="token ? 'Save' : 'Create'" :disablePrimary="allowConfirm" @confirm="confirm()">
+    <ff-dialog ref="dialog" data-el="add-token-dialog" :confirm-label="token ? 'Save' : 'Create'" :disablePrimary="allowConfirm" @confirm="confirm()">
         <template #default>
             <form class="space-y-4" @submit.prevent>
-                <FormRow v-model="input.name" :disabled="edit">
+                <FormRow v-model="input.name" data-form="token-name" :disabled="edit">
                     Name
                     <template #description>Token name</template>
                 </FormRow>
-                <ff-checkbox v-model="input.expires" label="Add Expiry Date" />
-                <FormRow v-model="input.expiresAt" type="date" :disabled="!input.expires">
+                <ff-checkbox v-model="input.expires" data-form="expiry-toggle" label="Add Expiry Date" />
+                <FormRow v-model="input.expiresAt" data-form="token-expiry" type="date" :disabled="!input.expires">
                     Expires
                     <!-- <template v-slot:description>Expires</template> -->
                 </FormRow>
@@ -67,7 +67,7 @@ export default {
                 name: '',
                 scope: {},
                 expiresAt: null,
-                never: true
+                expires: true
             },
             edit: false
         }
@@ -84,8 +84,8 @@ export default {
             if (!this.input.name) {
                 return true
             }
-            if (this.input.never) {
-                return false
+            if (!this.input.expires) {
+                return true
             } else {
                 if (this.input.expiresAt) {
                     return false
@@ -112,7 +112,7 @@ export default {
                     name: this.input.name,
                     scope: array.join(',')
                 }
-                if (!this.input.never) {
+                if (this.input.expires) {
                     request.expiresAt = Date.parse(this.input.expiresAt)
                 }
                 const token = await userApi.createPersonalAccessToken(request.name, request.scope, request.expiresAt)
@@ -126,7 +126,7 @@ export default {
                     id: this.input.id,
                     scope: array.join(',')
                 }
-                if (!this.input.never) {
+                if (this.input.expires) {
                     request.expiresAt = Date.parse(this.input.expiresAt)
                 } else {
                     request.expiresAt = undefined
