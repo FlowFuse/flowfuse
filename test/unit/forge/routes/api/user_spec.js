@@ -654,7 +654,7 @@ describe('User API', async function () {
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
                     name: 'Test Token',
-                    scope: '[project:create]'
+                    scope: ''
                 }
             })
             response.statusCode.should.equal(200)
@@ -671,7 +671,7 @@ describe('User API', async function () {
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
                     name: 'Test Token Expiry',
-                    scope: '[project:create]',
+                    scope: '',
                     expiresAt: tomorrow
                 }
             })
@@ -712,17 +712,43 @@ describe('User API', async function () {
         })
         it('Update a Token', async function () {
             await login('alice', 'aaPassword')
-            const tomorrow = Date.now() + (48 * 60 * 60 * 10000)
+            const dayAfterTomorrow = Date.now() + (48 * 60 * 60 * 10000)
             const response = await app.inject({
                 method: 'PUT',
                 url: '/api/v1/user/pat/2',
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
-                    scope: '[project:create]',
-                    expiresAt: tomorrow
+                    scope: '',
+                    expiresAt: dayAfterTomorrow
                 }
             })
             response.statusCode.should.equal(200)
+        })
+        it('Use a token', async function () {
+            await login('alice', 'aaPassword')
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/pat',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    name: 'Test Token',
+                    scope: ''
+                }
+            })
+            response.statusCode.should.equal(200)
+            const json = response.json()
+            const token = json.token
+
+            const response2 = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}`,
+                headers: {
+                    authorization: `Bearer ${token}`
+                }
+            })
+            response2.statusCode.should.equal(200)
+            const team = response2.json()
+            team.name.should.equal('BTeam')
         })
     })
 })
