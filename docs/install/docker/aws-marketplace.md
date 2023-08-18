@@ -4,6 +4,10 @@ navTitle: Docker from AWS Market Place
 
 # Installing FlowFuse from AWS Market Place
 
+We have packaged the Docker Compose build of FlowFuse as a AWS EC2 AMI. It can be found on the AWS Market Place [here](https://aws.amazon.com/marketplace/pp/prodview-3ycrknfg67rug).
+
+This will allow you to quickly spin up an AWS EC2 Machine with everything pre-installed.
+
 ## Prerequisites
 
 ### DNS
