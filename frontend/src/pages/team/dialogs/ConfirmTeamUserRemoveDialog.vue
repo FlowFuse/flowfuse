@@ -4,12 +4,14 @@
             <form class="space-y-6" @submit.prevent>
                 <div class="mt-2 space-y-2">
                     <template v-if="ownerCount < 2 && user.role === 'owner'">
-                        <p class="text-sm text-gray-500">You cannot remove <span class="font-bold">{{user.username}}</span> as
-                            they are the only owner of the team.</p>
+                        <p class="text-sm text-gray-500">
+                            You cannot remove <span class="font-bold">{{ user.username }}</span> as
+                            they are the only owner of the team.
+                        </p>
                     </template>
                     <template v-else>
                         <p class="text-sm text-gray-500">
-                            Are you sure you want to remove <span class="font-bold">{{user.username}}</span> from the team <span class="font-bold">{{team.name}}</span>?
+                            Are you sure you want to remove <span class="font-bold">{{ user.username }}</span> from the team <span class="font-bold">{{ team.name }}</span>?
                         </p>
                     </template>
                 </div>

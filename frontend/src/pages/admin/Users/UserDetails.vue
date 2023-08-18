@@ -5,7 +5,7 @@
                 <router-link class="ff-link font-bold" :to="{path: '/admin/users'}">Users</router-link>
                 <!-- <nav-item :icon="icons.breadcrumbSeparator" label="sss"></nav-item> -->
                 <ChevronRightIcon class="ff-icon" />
-                <span>{{user.username}}</span>
+                <span>{{ user.username }}</span>
             </div>
         </div>
         <div>
@@ -29,7 +29,7 @@
                 <tr class="border-b">
                     <td class="w-1/4 font-medium py-2">Email</td>
                     <td class="flex">
-                        {{user.email}}
+                        {{ user.email }}
                         <div class="ml-3 space-x-1">
                             <span v-if="user.sso_enabled" class="forge-badge forge-status-safe">sso-enabled</span>
                             <span v-else-if="user.email_verified" class="forge-badge forge-status-running">verified</span>
@@ -39,7 +39,7 @@
                 </tr>
                 <tr class="border-b">
                     <td class="w-1/4 font-medium py-2">Registered At</td>
-                    <td class="py-1">{{user.createdAt}}</td>
+                    <td class="py-1">{{ user.createdAt }}</td>
                 </tr>
             </table>
         </div>

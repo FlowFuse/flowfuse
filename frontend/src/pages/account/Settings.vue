@@ -34,7 +34,6 @@
             <ff-button class="warning" kind="danger" @click="deleteAccount">Delete Account</ff-button>
         </div>
     </div>
-
 </template>
 
 <script>

@@ -20,17 +20,20 @@
             <nav-item
                 v-for="option in options" :key="option.label"
                 :label="option.label" :icon="option.icon" :notifications="option.notifications"
-                @click="mobileUserOptionsOpen = false; option.onclick(option.onclickparams)"></nav-item>
+                @click="mobileUserOptionsOpen = false; option.onclick(option.onclickparams)"
+            ></nav-item>
         </div>
         <!-- Mobile: Team Selection -->
         <div class="ff-navigation ff-navigation-right" :class="{'open': mobileTeamSelectionOpen}" data-action="team-selection">
             <nav-item
                 v-for="team in teams" :key="team.name"
                 :label="team.name" :avatar="team.avatar"
-                @click="mobileTeamSelectionOpen = false; $router.push({name: 'Team', params: {team_slug: team.slug}})"></nav-item>
+                @click="mobileTeamSelectionOpen = false; $router.push({name: 'Team', params: {team_slug: team.slug}})"
+            ></nav-item>
             <nav-item
                 label="Create New Team" :icon="plusIcon"
-                @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"></nav-item>
+                @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"
+            ></nav-item>
         </div>
         <div class="hidden lg:flex">
             <ff-team-selection data-action="team-selection" />

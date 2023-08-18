@@ -110,7 +110,6 @@
                 </FormRow>
             </div>
             <LockSetting class="flex justify-end flex-col" :editTemplate="editTemplate" v-model="editable.policy.modules_denyList" :changed="editable.changed.policy.modules_denyList"></LockSetting>
-
         </div>
     </form>
 </template>
