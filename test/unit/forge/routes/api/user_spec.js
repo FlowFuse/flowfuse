@@ -648,7 +648,7 @@ describe('User API', async function () {
             await login('alice', 'aaPassword')
             const response = await app.inject({
                 method: 'POST',
-                url: '/api/v1/user/pat',
+                url: '/api/v1/user/tokens',
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
                     name: 'Test Token',
@@ -665,7 +665,7 @@ describe('User API', async function () {
             const tomorrow = Date.now() + (24 * 60 * 60 * 10000)
             const response = await app.inject({
                 method: 'POST',
-                url: '/api/v1/user/pat',
+                url: '/api/v1/user/tokens',
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
                     name: 'Test Token Expiry',
@@ -683,7 +683,7 @@ describe('User API', async function () {
             await login('alice', 'aaPassword')
             const response = await app.inject({
                 method: 'GET',
-                url: '/api/v1/user/pat',
+                url: '/api/v1/user/tokens',
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
@@ -694,7 +694,7 @@ describe('User API', async function () {
             await login('alice', 'aaPassword')
             const response = await app.inject({
                 method: 'DELETE',
-                url: '/api/v1/user/pat/1',
+                url: '/api/v1/user/tokens/1',
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(201)
@@ -703,7 +703,7 @@ describe('User API', async function () {
             await login('alice', 'aaPassword')
             const response = await app.inject({
                 method: 'DELETE',
-                url: '/api/v1/user/pat/1',
+                url: '/api/v1/user/tokens/1',
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(400)
@@ -713,7 +713,7 @@ describe('User API', async function () {
             const dayAfterTomorrow = Date.now() + (48 * 60 * 60 * 10000)
             const response = await app.inject({
                 method: 'PUT',
-                url: '/api/v1/user/pat/2',
+                url: '/api/v1/user/tokens/2',
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
                     scope: '',
@@ -726,7 +726,7 @@ describe('User API', async function () {
             await login('alice', 'aaPassword')
             const response = await app.inject({
                 method: 'POST',
-                url: '/api/v1/user/pat',
+                url: '/api/v1/user/tokens',
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
                     name: 'Test Token',
