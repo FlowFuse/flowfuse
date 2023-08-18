@@ -1,15 +1,15 @@
 <template>
-    <ff-dialog ref="dialog" :confirm-label="token ? 'Save' : 'Create'" @confirm="confirm()" :disablePrimary="allowConfirm">
+    <ff-dialog ref="dialog" :confirm-label="token ? 'Save' : 'Create'" :disablePrimary="allowConfirm" @confirm="confirm()">
         <template #default>
-            <form @submit.prevent>
+            <form class="space-y-4" @submit.prevent>
                 <FormRow v-model="input.name" :disabled="edit">
                     Name
                     <template #description>Token name</template>
                 </FormRow>
-                <FormRow v-model="input.expiresAt" type="date" :disabled="input.never">
+                <ff-checkbox v-model="input.expires" label="Add Expiry Date" />
+                <FormRow v-model="input.expiresAt" type="date" :disabled="!input.expires">
                     Expires
                     <!-- <template v-slot:description>Expires</template> -->
-                    <ff-checkbox v-model="input.never" label="never" />
                 </FormRow>
             </form>
         </template>
@@ -37,7 +37,7 @@ export default {
                     id: null,
                     name: '',
                     expiresAt: null,
-                    never: true
+                    expires: false
                 }
                 this.edit = false
             },
@@ -48,9 +48,9 @@ export default {
                     name: row.name
                 }
                 if (row.expiresAt === null) {
-                    this.input.never = true
+                    this.input.expires = false
                 } else {
-                    this.input.never = false
+                    this.input.expires = true
                     this.input.expiresAt = row.expiresAt.split('T')[0] // `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`
                 }
                 this.edit = true
