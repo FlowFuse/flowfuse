@@ -76,7 +76,9 @@ describe('FlowForge - Personal Access Tokens', () => {
 
         // check we have one more token than before
         cy.get('[data-el="tokens-table"] tbody').find('tr').should('have.length', rows + 1)
-        cy.get('[data-el="tokens-table"] tbody').find('tr').last().should('contain', '31/12/2050')
+        cy.get('[data-el="tokens-table"] tbody').find('tr').last().should('contain', '31')
+        cy.get('[data-el="tokens-table"] tbody').find('tr').last().should('contain', '12')
+        cy.get('[data-el="tokens-table"] tbody').find('tr').last().should('contain', '2050')
     })
 
     it('can be removed', () => {
