@@ -164,7 +164,7 @@ const resetPassword = async (token, password) => {
  * See [routes/api/user.js](../../../forge/routes/api/user.js)
  */
 const getPersonalAccessTokens = async () => {
-    return client.get('/api/v1/user/pat').then(res => res.data)
+    return client.get('/api/v1/user/tokens').then(res => res.data)
 }
 
 /**
@@ -175,7 +175,7 @@ const getPersonalAccessTokens = async () => {
  * @param {number} expiresAt
  */
 const createPersonalAccessToken = async (name, scope, expiresAt) => {
-    return client.post('/api/v1/user/pat', { name, scope, expiresAt }).then(res => res.data)
+    return client.post('/api/v1/user/tokens', { name, scope, expiresAt }).then(res => res.data)
 }
 
 /**
@@ -184,14 +184,14 @@ const createPersonalAccessToken = async (name, scope, expiresAt) => {
  * @param {string} id
  */
 const deletePersonalAccessToken = async (id) => {
-    return client.delete('/api/v1/user/pat/' + id).then(res => {})
+    return client.delete('/api/v1/user/tokens/' + id).then(res => {})
 }
 
 /**
  * Update User Personal Token
  */
 const updatePersonalAccessToken = async (id, scope, expiresAt) => {
-    return client.put('/api/v1/user/pat/' + id, { scope, expiresAt })
+    return client.put('/api/v1/user/tokens/' + id, { scope, expiresAt })
 }
 
 export default {

@@ -1,4 +1,3 @@
-const { Permissions } = require('../../lib/permissions')
 module.exports = async function (app) {
     app.get('/', {
         config: { allowAnonymous: true, allowUnverifiedEmail: true },
@@ -76,7 +75,6 @@ module.exports = async function (app) {
                     }
                 })
                 response['platform:stats:token'] = app.settings.get('platform:stats:token')
-                response['platform:auth:permissions'] = Permissions
             }
             reply.send(response)
         } else {

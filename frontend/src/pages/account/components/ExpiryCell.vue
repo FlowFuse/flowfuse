@@ -6,7 +6,12 @@
 <script>
 export default {
     name: 'ExpiryCell',
-    props: ['expiresAt'],
+    props: {
+        expiresAt: {
+            type: String,
+            default: null
+        }
+    },
     computed: {
         expires: function () {
             if (this.expiresAt) {

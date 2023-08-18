@@ -194,7 +194,7 @@ module.exports = async function (app) {
      * Get Personal Access Tokens
      * /api/v1/user/pat
      */
-    app.get('/pat', {
+    app.get('/tokens', {
         schema: {
             summary: 'list users Personal Access Tokens',
             response: {
@@ -218,7 +218,7 @@ module.exports = async function (app) {
      * Create Personal Access Token
      * /api/v1/user/pat
      */
-    app.post('/pat', {
+    app.post('/tokens', {
         schema: {
             summary: 'create user Personal Access Token',
             body: {
@@ -267,9 +267,9 @@ module.exports = async function (app) {
 
     /**
      * Delete Personal Access Token
-     * /api/v1/user/pat/:id
+     * /api/v1/user/tokens/:id
      */
-    app.delete('/pat/:id', {
+    app.delete('/tokens/:id', {
         schema: {
             summary: 'delete user Personal Access Token',
             params: {
@@ -297,9 +297,9 @@ module.exports = async function (app) {
 
     /**
      * Update Personal Access Token
-     * /api/v1/user/pat/:id
+     * /api/v1/user/tokens/:id
      */
-    app.put('/pat/:id', {
+    app.put('/tokens/:id', {
         schema: {
             summary: 'update users Personal Access Token',
             params: {

@@ -17,7 +17,6 @@
 </template>
 
 <script>
-import settings from '../../../../api/settings.js'
 import userApi from '../../../../api/user.js'
 
 import FormRow from '../../../../components/FormRow.vue'
@@ -94,14 +93,7 @@ export default {
             return true
         }
     },
-    mounted () {
-        this.getScopes()
-    },
     methods: {
-        getScopes: async function () {
-            const temp = await settings.getSettings()
-            this.scopes = Object.keys(temp['platform:auth:permissions'])
-        },
         confirm: async function () {
             if (!this.edit) {
                 let array = []
