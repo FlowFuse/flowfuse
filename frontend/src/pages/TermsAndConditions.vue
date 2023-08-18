@@ -2,7 +2,7 @@
     <ff-layout-box>
         <form class="px-4 sm:px-6 lg:px-8 mt-8 space-y-6" @submit.prevent>
             <p>
-                Welcome {{user.name}}, the <a target="_blank" :href="settings['user:tcs-url']">FlowForge Terms &amp; Conditions</a> have been updated.
+                Welcome {{ user.name }}, the <a target="_blank" :href="settings['user:tcs-url']">FlowForge Terms &amp; Conditions</a> have been updated.
             </p>
             <p>
                 Please review the changes before you continue.

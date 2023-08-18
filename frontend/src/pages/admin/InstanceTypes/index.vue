@@ -11,11 +11,14 @@
             </template>
         </SectionTopMenu>
         <ff-tile-selection data-el="active-types">
-            <ff-tile-selection-option v-for="(instanceType, index) in activeInstanceTypes" :key="index"
-                                      :editable="true" @edit="showEditInstanceTypeDialog(instanceType)" :price="instanceType.properties?.billingDescription?.split('/')[0]"
-                                      :price-interval="instanceType.properties?.billingDescription?.split('/')[1]"
-                                      :label="instanceType.name" :description="instanceType.description"
-                                      :meta="[{key: 'ID', value: instanceType.id}, {key: 'Instance Count', value: instanceType.instanceCount}, {key: 'Stack Count', value: instanceType.stackCount}]"/>
+            <ff-tile-selection-option
+                v-for="(instanceType, index) in activeInstanceTypes" :key="index"
+                :editable="true" @edit="showEditInstanceTypeDialog(instanceType)"
+                :price="instanceType.properties?.billingDescription?.split('/')[0]"
+                :price-interval="instanceType.properties?.billingDescription?.split('/')[1]"
+                :label="instanceType.name" :description="instanceType.description"
+                :meta="[{key: 'ID', value: instanceType.id}, {key: 'Instance Count', value: instanceType.instanceCount}, {key: 'Stack Count', value: instanceType.stackCount}]"
+            />
         </ff-tile-selection>
         <div v-if="nextCursor">
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
@@ -31,8 +34,12 @@
             <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
         </div>
     </div>
-    <InstanceTypeEditDialog ref="adminInstanceTypeEditDialog" @instance-type-created="instanceTypeCreated"
-                            @instance-type-updated="instanceTypeUpdated" @show-delete-dialog="showConfirmInstanceTypeDeleteDialog"/>
+    <InstanceTypeEditDialog
+        ref="adminInstanceTypeEditDialog"
+        @instance-type-created="instanceTypeCreated"
+        @instance-type-updated="instanceTypeUpdated"
+        @show-delete-dialog="showConfirmInstanceTypeDeleteDialog"
+    />
 </template>
 
 <script>

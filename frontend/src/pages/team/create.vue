@@ -18,20 +18,24 @@
                 <!-- TeamType Type -->
                 <div class="flex flex-wrap gap-1 items-stretch">
                     <ff-tile-selection v-model="input.teamTypeId" >
-                        <ff-tile-selection-option v-for="(teamType, index) in teamTypes" :key="index"
-                                                  :label="teamType.name" :description="teamType.description"
-                                                  :price="billingEnabled ? teamType.billingPrice : ''"
-                                                  :price-interval="billingEnabled ? teamType.billingInterval : ''"
-                                                  :value="teamType.id"/>
+                        <ff-tile-selection-option
+                            v-for="(teamType, index) in teamTypes" :key="index"
+                            :label="teamType.name" :description="teamType.description"
+                            :price="billingEnabled ? teamType.billingPrice : ''"
+                            :price-interval="billingEnabled ? teamType.billingInterval : ''"
+                            :value="teamType.id"
+                        />
                     </ff-tile-selection>
                 </div>
-                <FormRow v-model="input.name" id="team" :error="errors.name">Team Name
+                <FormRow v-model="input.name" id="team" :error="errors.name">
+                    Team Name
                     <template v-slot:description>
                         eg. 'Development'
                     </template>
                 </FormRow>
 
-                <FormRow v-model="input.slug" id="team" :error="input.slugError" :placeholder="input.defaultSlug">URL Slug
+                <FormRow v-model="input.slug" id="team" :error="input.slugError" :placeholder="input.defaultSlug">
+                    URL Slug
                     <template v-slot:description>
                         Use the default slug based on the team name or set your own.<br/>
                         <pre>/team/&lt;slug&gt;</pre>

@@ -1,5 +1,4 @@
 <template>
-
     <div class="space-y-6">
         <ff-data-table
             :columns="columns"

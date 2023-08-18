@@ -5,7 +5,6 @@
             <ff-list-item data-action="member-remove-from-team" label="Leave Team" kind="danger" @click="removeUserDialog(row)" />
         </template>
     </ff-data-table>
-
 </template>
 
 <script>
