@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" data-el="add-token-dialog" :confirm-label="token ? 'Save' : 'Create'" :disablePrimary="disableConfirm" @confirm="confirm()">
+    <ff-dialog ref="dialog" data-el="add-token-dialog" header="Add Token" :confirm-label="token ? 'Save' : 'Create'" :disablePrimary="disableConfirm" @confirm="confirm()">
         <template #default>
             <form class="space-y-4" @submit.prevent>
                 <FormRow v-model="input.name" data-form="token-name" :disabled="edit">

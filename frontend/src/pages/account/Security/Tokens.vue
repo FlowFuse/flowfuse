@@ -1,18 +1,18 @@
 <template>
     <ff-loading v-if="loading" message="Personal Access Tokens" />
     <ff-data-table
-        data-el=""
+        data-el="tokens-table"
         :rows="tokens" :columns="columns" :show-search="true" search-placeholder="Search Tokens..."
         :rows-selectable="true" :show-load-more="false"
     >
         <template #actions>
-            <ff-button @click="newToken()">
+            <ff-button data-action="new-token" @click="newToken()">
                 New Token
             </ff-button>
         </template>
         <template #context-menu="{row}">
-            <ff-list-item label="Edit" @click="editToken(row)" />
-            <ff-list-item label="Delete" @click="deleteToken(row)" />
+            <ff-list-item data-action="edit-token" label="Edit" @click="editToken(row)" />
+            <ff-list-item data-action="delete-token" label="Delete" @click="deleteToken(row)" />
         </template>
     </ff-data-table>
     <TokenDialog ref="tokenDialog" @token-created="newTokenDone" @token-updated="fetchData" />

@@ -1,12 +1,12 @@
 <template>
-    <ff-dialog ref="dialog">
+    <ff-dialog ref="dialog" data-el="add-token-confirmation" header="Token Created">
         <template #default>
             <p>Your token is <code>{{ token.token }}</code></p>
             <p>This is the only time it will be shown, so please ensure you make a note</p>
         </template>
         <template #actions>
-            <ff-button v-if="!!clipboardSupported" kind="secondary" @click="copy()">Copy to Clipboard</ff-button>
-            <ff-button class="ml-4" @click="close()">Done</ff-button>
+            <ff-button v-if="!!clipboardSupported" data-action="token-confirmation-copy" kind="secondary" @click="copy()">Copy to Clipboard</ff-button>
+            <ff-button data-action="token-confirmation-done" class="ml-4" @click="close()">Done</ff-button>
         </template>
     </ff-dialog>
 </template>
