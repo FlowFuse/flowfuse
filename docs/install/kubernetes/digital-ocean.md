@@ -2,7 +2,7 @@
 navTitle: Digital Ocean Kubernetes Installation
 ---
 
-# Installing FlowForge on a Digital Ocean Kubernetes cluster
+# Installing FlowFuse on a Digital Ocean Kubernetes cluster
 
 ## Prerequisites
 
@@ -18,7 +18,7 @@ for an account [here](https://cloud.digitalocean.com/registrations/new)
 
 ### DNS
 
-You will need a domain that FlowForge will run on and access to configure
+You will need a domain that FlowFuse will run on and access to configure
 a wildcard entry for that domain in it's root DNS server.
 
 In this guide I will use `example.com` as the domain, remember to substitute your domain.
@@ -68,9 +68,9 @@ kubectl --kubeconfig=./k8s-flowforge-kubeconfig.yaml \
 You will need to update the entry in your DNS server to point 
 `*.example.com` to the IP address listed under `EXTERNAL-IP`
 
-## Install FlowForge
+## Install FlowFuse
 
-Then setup the FlowForge Helm repository
+Then setup the FlowFuse Helm repository
 
 ```bash
 helm repo add flowforge https://flowforge.github.io/helm
@@ -78,7 +78,7 @@ helm repo update
 ```
 
 Now create a `customizations.yml` file. This is how we configure the 
-FlowForge instance.
+FlowFuse instance.
 
 The following is the bare minimum to get started:
 
@@ -93,7 +93,7 @@ forge:
     enabled: true
 ```
 
-Then we use this to install FlowForge
+Then we use this to install FlowFuse
 
 ```bash
 helm upgrade --install --kubeconfig ./k8s-flowforge-kubeconfig.yml \
@@ -101,5 +101,5 @@ helm upgrade --install --kubeconfig ./k8s-flowforge-kubeconfig.yml \
   --wait
 ```
 
-Once complete you should be able to sign into the FlowForge setup wizard 
+Once complete you should be able to sign into the FlowFuse setup wizard 
 at `http://forge.example.com`

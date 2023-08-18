@@ -4,7 +4,7 @@ navTitle: State Flows
 
 # Workflows
 
-A collection of sequence diagrams for key parts of the FlowForge platform
+A collection of sequence diagrams for key parts of the FlowFuse platform
 
  - [Login](../workflows/login.md)
  - [User Sign Up](../workflows/signup.md)

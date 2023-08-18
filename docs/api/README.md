@@ -1,15 +1,15 @@
 ---
 navGroup: Overview
-navTitle: FlowForge API
+navTitle: FlowFuse API
 ---
 
-# FlowForge Platform API
+# FlowFuse Platform API
 
 The platform provides a REST API that makes it possible to create integrations and
 custom workflows.
 
 The API comes with an OpenAPI 3.0 Specification that can be viewed [here](https://app.flowforge.com/api/),
-or on any FlowForge instance on the path `/api/`.
+or on any FlowFuse instance on the path `/api/`.
 
 ### Accessing the API
 

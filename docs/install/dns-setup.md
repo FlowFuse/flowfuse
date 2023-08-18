@@ -4,9 +4,9 @@ navTitle: DNS Setup
 
 # DNS Setup
 
-When running FlowForge on Docker or Kubernetes you will need to be able to setup an entry in a DNS server.
+When running FlowFuse on Docker or Kubernetes you will need to be able to setup an entry in a DNS server.
 
-This is because FlowForge uses hostname based routing to know which Node-RED instance you want to access.
+This is because FlowFuse uses hostname based routing to know which Node-RED instance you want to access.
 
 By default the instance name is used in combination with a supplied domain. In this document we will use `example.com` as the domain. (It doesn't need to be a "whole" domain, it could also be a sub domain of one you already own. e.g. `ff.example.com`).
 
@@ -25,7 +25,7 @@ This can be either:
 
 ### AWS ALB Ingress
 
-When using AWS ALB (Application Load Balancer) as an Ingress Controller for FlowForge deployed into an EKS cluster then you would create a wildcard CNAME entry pointing to the hostname of the ALB
+When using AWS ALB (Application Load Balancer) as an Ingress Controller for FlowFuse deployed into an EKS cluster then you would create a wildcard CNAME entry pointing to the hostname of the ALB
 
 ### Digital Ocean 
 
@@ -137,7 +137,7 @@ sudo killall -HUP mDNSResponder
 
 ### Pi Hole
 
-Pi Hole is a package that bundles dnsmasq as an image to run on a Raspberry Pi (or in Docker container e.g. on your NAS). Its main use is to block advertisements embedded in web pages. But since in its normal configuration it is already handling all the local DNS traffic, making us work with FlowForge is possible and means you do not need to change any settings on your development/test machine.
+Pi Hole is a package that bundles dnsmasq as an image to run on a Raspberry Pi (or in Docker container e.g. on your NAS). Its main use is to block advertisements embedded in web pages. But since in its normal configuration it is already handling all the local DNS traffic, making us work with FlowFuse is possible and means you do not need to change any settings on your development/test machine.
 
 Create the following file in `/etc/dnsmasq.d` called `02-flowforge.conf`
 
@@ -159,7 +159,7 @@ If running Pi Hole in Docker then you will need to create the file on the host a
 
 If you really can't run dnsmasq then there is a possible alternative.
 
-A really useful service called sslip.io allows you to test FlowForge even when you cannot use dnsmasq. You can read more about [sslip.io on their web site](https://sslip.io).
+A really useful service called sslip.io allows you to test FlowFuse even when you cannot use dnsmasq. You can read more about [sslip.io on their web site](https://sslip.io).
 
 You will need to set the `domain` entry in the `flowforge.yml` configuration file to the following pattern `172.17.0.1.sslip.io`. Don't forget to replace the IP address with the correct one for your configuration.
 

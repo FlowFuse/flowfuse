@@ -1,10 +1,10 @@
 ---
-navTitle: Install FlowForge on Kubernetes
+navTitle: Install FlowFuse on Kubernetes
 ---
 
 # Kubernetes Install
 
-This version of the FlowForge platform is intended for running in the Kubernetes (sometimes referred to as K8s)
+This version of the FlowFuse platform is intended for running in the Kubernetes (sometimes referred to as K8s)
 Container management system. Typically suited for large on premise deployments or deployment in Cloud infrastructure.
 
 ## Prerequisites
@@ -15,7 +15,7 @@ To manage a Kubernetes cluster you will need a copy of the `kubectl` utility. In
 how to install it can be found [here](https://kubernetes.io/docs/tasks/tools/).
 ### Helm
 
-FlowForge uses a Helm Chart to manage deployment. Installation can be done
+FlowFuse uses a Helm Chart to manage deployment. Installation can be done
 through the instructions on [their website](https://helm.sh).
 
 ### Kubernetes
@@ -30,10 +30,10 @@ You will need a Kubernetes environment. The deployment has currently been tested
 
  By default the Helm chart assumes that the Kubernetes cluster has at least 2 nodes:
 
- - One used to run the FlowForge management infrastructure
+ - One used to run the FlowFuse management infrastructure
  - One or more used to run the Node-RED Project instances
 
-You can run a small scale Proof-of-Concept on a single node cluster, details of how to do this can be found in the [Configure FlowForge](#configure-flowforge) section below. 
+You can run a small scale Proof-of-Concept on a single node cluster, details of how to do this can be found in the [Configure FlowFuse](#configure-flowforge) section below. 
 
 ### PostgreSQL Database
 
@@ -64,7 +64,7 @@ For example if you want projects to be access able as `[project-name].example.co
 you will need to ensure that `*.example.com` is mapped to the IP address used by 
 your Kubernetes clusters's Ingress controller.
 
-By default the FlowForge application will be mapped to `forge.example.com` assuming
+By default the FlowFuse application will be mapped to `forge.example.com` assuming
 that you set the domain to `example.com`.
 
 Notes on how to setup DNS can be found [here](../dns-setup.md).
@@ -76,7 +76,7 @@ Some features require the ability to send email to users. This can be currently 
 - SMTP server
 - AWS SES
 
-## Installing FlowForge
+## Installing FlowFuse
 
 ### Download
 
@@ -85,7 +85,7 @@ helm repo add flowforge https://flowforge.github.io/helm
 helm repo update
 ```
 
-### Configure FlowForge
+### Configure FlowFuse
 
 All the initial configuration is handled by the Helm chart. This is done by creating a `customization.yml` file in the `helm` directory that will be passed to the helm along with the chart.
 
@@ -176,12 +176,12 @@ For more information, follow [this guide](../first-run.md).
 Once you have finished setting up the admin user there are some Kubernetes specific items to consider.
 
 
-### Using FlowForge File Storage
+### Using FlowFuse File Storage
 
-FlowForge projects running in Kubernetes do not have direct access to a persistent
+FlowFuse projects running in Kubernetes do not have direct access to a persistent
 file system to store files or use for storing context data.
 
-FlowForge includes a File Storage service that can be enabled to provide persistent
+FlowFuse includes a File Storage service that can be enabled to provide persistent
 storage.
 
 #### Disabling the default File nodes
@@ -199,7 +199,7 @@ Full details on configuring the file storage service are available [here](../fil
 
 #### Enabling the File Storage service
 
-To enable the FlowForge File Storage component add the following to the `customization.yml` file:
+To enable the FlowFuse File Storage component add the following to the `customization.yml` file:
 
 ```yaml
 forge:
