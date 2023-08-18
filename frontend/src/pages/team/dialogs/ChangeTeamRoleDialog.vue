@@ -75,7 +75,7 @@ export default {
             }, {
                 label: 'Dashboard Only',
                 value: Roles.Dashboard,
-                description: 'Dashboard users can only access the dashboards or HTTP endpoints created by the Node-RED instances when FlowForge authentication is enabled'
+                description: 'Dashboard users can only access the dashboards or HTTP endpoints created by the Node-RED instances when FlowFuse authentication is enabled'
             }],
             show (team, user, ownerCount) {
                 this.$refs.dialog.show()

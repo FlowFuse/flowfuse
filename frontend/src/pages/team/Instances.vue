@@ -11,11 +11,11 @@
                 <template #helptext>
                     <p>
                         This is a list of all Node-RED instances belonging to this team running
-                        in this FlowForge.
+                        in this FlowFuse.
                     </p>
                     <p>
                         Each Instance is a customised version of Node-RED that includes various
-                        FlowForge plugins to integrate it with the platform.
+                        FlowFuse plugins to integrate it with the platform.
                     </p>
                     <p>
                         A number of the standard Node-RED settings are exposed for customisation,
@@ -53,7 +53,7 @@
                     <template #header>Get Started with your First Node-RED Instance</template>
                     <template #message>
                         <p>
-                            Instances are managed in FlowForge via <router-link
+                            Instances are managed in FlowFuse via <router-link
                                 class="ff-link"
                                 :to="{name:'Applications', params: {team_slug: team.slug}}"
                             >

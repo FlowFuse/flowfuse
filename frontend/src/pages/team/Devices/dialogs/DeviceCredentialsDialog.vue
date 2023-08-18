@@ -19,7 +19,7 @@
                     <p class="mt-3 mb-3">
                         See the
                         <a
-                            href="https://flowforge.com/docs/device-agent/register/#connect-the-device" target="_blank"
+                            href="https://flowfuse.com/docs/device-agent/register/#connect-the-device" target="_blank"
                             rel="noreferrer"
                         >Connect Your Device</a> documentation for more information.
                     </p>

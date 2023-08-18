@@ -24,12 +24,12 @@
                 <span class="ff-error-inline">{{ errors.password }}</span>
             </div>
             <div class="pt-3" v-if="askJoinReason">
-                <ff-radio-group label="What brings you to FlowForge?" v-model="input.join_reason" orientation="grid"
+                <ff-radio-group label="What brings you to FlowFuse?" v-model="input.join_reason" orientation="grid"
                                 data-form="signup-join-reason" :options="reasons" />
             </div>
             <div class="pt-3" v-if="settings['user:tcs-required']">
                 <ff-checkbox v-model="input.tcs_accepted" data-form="signup-accept-tcs">
-                    I accept the <a target="_blank" :href="settings['user:tcs-url']">FlowForge Terms &amp; Conditions.</a>
+                    I accept the <a target="_blank" :href="settings['user:tcs-url']">FlowFuse Terms &amp; Conditions.</a>
                 </ff-checkbox>
             </div>
             <label v-if="errors.general" class="pt-3 ff-error-inline">{{ errors.general }}</label>
