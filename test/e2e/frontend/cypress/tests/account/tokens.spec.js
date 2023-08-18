@@ -1,6 +1,6 @@
 describe('FlowForge - Personal Access Tokens', () => {
     beforeEach(() => {
-        cy.intercept('GET', '/api/*/user/pat').as('getPersonalAccessToken')
+        cy.intercept('GET', '/api/*/user/tokens').as('getPersonalAccessToken')
 
         cy.login('alice', 'aaPassword')
         cy.home()
@@ -30,7 +30,7 @@ describe('FlowForge - Personal Access Tokens', () => {
         // count how many tokens we already have
         const rows = Cypress.$('[data-el="tokens-table"] tbody').find('tr.ff-data-table--row.selectable').length
 
-        cy.intercept('POST', '/api/*/user/pat').as('addPersonalAccessToken')
+        cy.intercept('POST', '/api/*/user/tokens').as('addPersonalAccessToken')
 
         cy.get('[data-action="new-token"]').click()
 
@@ -56,7 +56,7 @@ describe('FlowForge - Personal Access Tokens', () => {
         // count how many tokens we already have
         const rows = Cypress.$('[data-el="tokens-table"] tbody').find('tr.ff-data-table--row.selectable').length
 
-        cy.intercept('POST', '/api/*/user/pat').as('addPersonalAccessToken')
+        cy.intercept('POST', '/api/*/user/tokens').as('addPersonalAccessToken')
 
         cy.get('[data-action="new-token"]').click()
 
@@ -85,7 +85,7 @@ describe('FlowForge - Personal Access Tokens', () => {
         // count how many tokens we already have
         const rows = Cypress.$('[data-el="tokens-table"] tbody').find('tr.ff-data-table--row.selectable').length
 
-        cy.intercept('DELETE', '/api/*/user/pat/*').as('removePersonalAccessToken')
+        cy.intercept('DELETE', '/api/*/user/tokens/*').as('removePersonalAccessToken')
 
         // open kebab menu
         cy.get('[data-el="tokens-table"] tbody').find('tr').last().find('td').last().click()
