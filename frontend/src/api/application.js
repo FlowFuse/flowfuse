@@ -1,5 +1,6 @@
 import product from '../services/product.js'
 import daysSince from '../utils/daysSince.js'
+import elapsedTime from '../utils/elapsedTime.js'
 import paginateUrl from '../utils/paginateUrl.js'
 
 import client from './client.js'
@@ -90,6 +91,7 @@ const getApplicationDevices = async (applicationId, cursor, limit) => {
     res.data.devices = res.data.devices.map((item) => {
         item.createdSince = daysSince(item.createdAt)
         item.updatedSince = daysSince(item.updatedAt)
+        item.lastSeenSince = item.lastSeenAt ? elapsedTime(0, item.lastSeenMs) + ' ago' : ''
         return item
     })
 
