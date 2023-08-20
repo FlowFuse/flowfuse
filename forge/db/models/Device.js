@@ -335,6 +335,20 @@ module.exports = {
                         return device.ProjectId
                     }
                 },
+                getDeviceApplicationId: async (id) => {
+                    if (typeof id === 'string') {
+                        id = M.Device.decodeHashid(id)
+                    }
+                    const device = await this.findOne({
+                        where: { id },
+                        attributes: [
+                            'ApplicationId'
+                        ]
+                    })
+                    if (device && device.ApplicationId) {
+                        return M.Application.encodeHashid(device.ApplicationId)
+                    }
+                },
                 /**
                  * Recalculate the `settingsHash` for all devices
                  * @param {boolean} [all=false] If `false` (or omitted), only devices where `settingsHash` == `null` will be recalculated. If `true`, all devices are updated.
