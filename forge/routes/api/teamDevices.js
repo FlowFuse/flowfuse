@@ -71,7 +71,7 @@ module.exports = async function (app) {
         const where = {
             TeamId: request.team.id
         }
-        const devices = await app.db.models.Device.getAll(paginationOptions, where, { includeApplication: true })
+        const devices = await app.db.models.Device.getAll(paginationOptions, where, { includeInstanceApplication: true })
         devices.devices = devices.devices.map(d => app.db.views.Device.device(d))
         reply.send(devices)
     })

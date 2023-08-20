@@ -277,6 +277,46 @@ module.exports = async function (app) {
     })
 
     /**
+     * Get a list of devices owned by this application
+     * @name /api/v1/application/:id/devices
+     * @static
+     * @memberof forge.routes.api.application
+     */
+    app.get('/:applicationId/devices', {
+        preHandler: app.needsPermission('team:device:list'),
+        schema: {
+            summary: 'Get a list of all devices in an application',
+            tags: ['Application Devices'],
+            query: { $ref: 'PaginationParams' },
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        devices: { type: 'array', items: { $ref: 'Device' } }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const data = (await app.db.models.Device.byApplication(request.application.hashid, { includeSettings: true })) || []
+        reply.send({
+            count: data.length,
+            devices: data.map(d => app.db.views.Device.device(d))
+        })
+    })
+
+    /**
      * List Application instances statuses
      * @name /api/v1/application/:id/instances/status
      * @memberof forge.routes.api.application
