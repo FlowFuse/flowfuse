@@ -42,6 +42,18 @@ module.exports = function (app) {
             const assignedProject = await app.db.models.Device.getDeviceProjectId(ids[2])
             return assignedProject && assignedProject === requestParts[2]
         },
+        checkDeviceAssignedToApplication: async function (requestParts, ids) {
+            // requestParts = [ _ , <teamid>, <applicationid> ]
+            // ids = [ 'device', <teamid>, <deviceid> ]
+
+            // Do the simple team id check
+            if (requestParts[1] !== ids[1]) {
+                return false
+            }
+            // Get the application this device is assigned to and check it matches
+            const assignedApplication = await app.db.models.Device.getDeviceApplicationId(ids[2])
+            return assignedApplication && assignedApplication === requestParts[2]
+        },
         checkDeviceCanAccessProject: async function (requestParts, ids) {
             // requestParts = [ _ , <teamid>, <projectid> ]
             // ids = [ 'device', <teamid>, <deviceid> ]
@@ -91,7 +103,10 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/command$/ },
                 // Send commands to all project-assigned devices
                 // - ff/v1/+/p/+/command
-                { topic: /^ff\/v1\/[^/]+\/p\/[^/]+\/command$/ }
+                { topic: /^ff\/v1\/[^/]+\/p\/[^/]+\/command$/ },
+                // Send commands to all application-assigned devices
+                // - ff/v1/+/p/+/command
+                { topic: /^ff\/v1\/[^/]+\/a\/[^/]+\/command$/ }
             ]
         },
         project: {
@@ -111,9 +126,12 @@ module.exports = function (app) {
                 // Receive commands from the platform
                 // - ff/v1/<team>/d/<device>/command
                 { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/command$/, verify: 'checkTeamAndObjectIds' },
-                // Receive commands from the platform - broadcast
+                // Device when owned by a project, receive commands from the platform - broadcast
                 // - ff/v1/<team>/p/<project>/command
-                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/command$/, verify: 'checkDeviceAssignedToProject' }
+                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/command$/, verify: 'checkDeviceAssignedToProject' },
+                //  Device when owned by an application, receive commands from the platform - broadcast
+                // - ff/v1/<team>/a/<application>/command
+                { topic: /^ff\/v1\/([^/]+)\/a\/([^/]+)\/command$/, verify: 'checkDeviceAssignedToApplication' }
             ],
             pub: [
                 // Send status, logs and command responses to the platform
