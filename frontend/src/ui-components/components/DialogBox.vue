@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-dialog-container" :class="'ff-dialog-container--' + (open ? 'open' : 'closed')">
+    <div ref="container" class="ff-dialog-container" :class="'ff-dialog-container--' + (open ? 'open' : 'closed')">
         <div class="ff-dialog-box">
             <div class="ff-dialog-header">{{ header }}</div>
             <div ref="content" class="ff-dialog-content">
@@ -48,7 +48,7 @@ export default {
     },
     watch: {
         open: function () {
-            this.$refs.content.scrollTop = 0
+            this.$refs.container.scrollTop = 0
         }
     },
     methods: {
