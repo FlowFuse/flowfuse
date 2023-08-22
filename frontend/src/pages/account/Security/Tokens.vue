@@ -3,7 +3,7 @@
     <ff-data-table
         data-el="tokens-table"
         :rows="tokens" :columns="columns" :show-search="true" search-placeholder="Search Tokens..."
-        :rows-selectable="true" :show-load-more="false"
+        :show-load-more="false"
     >
         <template #actions>
             <ff-button data-action="new-token" @click="newToken()">
