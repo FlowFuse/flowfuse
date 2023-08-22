@@ -4,16 +4,24 @@ on:
   push:
     branches: [ main ]
     paths:
+      - 'forge/**'
+      - 'test/unit/**'
+      - 'test/system/**'
       - 'frontend/**'
       - 'test/e2e/frontend/**'
       - 'test/unit/frontend/**'
       - 'package.json'
+      - '.eslintrc'
   pull_request:
     paths:
+      - 'forge/**'
+      - 'test/unit/**'
+      - 'test/system/**'
       - 'frontend/**'
       - 'test/e2e/frontend/**'
       - 'test/unit/frontend/**'
       - 'package.json'
+      - '.eslintrc'
 
 jobs:
   cypress-run:
