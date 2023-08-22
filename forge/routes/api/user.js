@@ -304,7 +304,8 @@ module.exports = async function (app) {
      */
     app.put('/tokens/:id', {
         schema: {
-            summary: 'update users Personal Access Token',
+            summary: 'Update users Personal Access Token',
+            tags: ['Tokens'],
             params: {
                 id: { type: 'number' }
             },
