@@ -221,7 +221,8 @@ module.exports = async function (app) {
      */
     app.post('/tokens', {
         schema: {
-            summary: 'create user Personal Access Token',
+            summary: 'Create user Personal Access Token',
+            tags: ['Tokens'],
             body: {
                 type: 'object',
                 properties: {
