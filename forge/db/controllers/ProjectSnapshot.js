@@ -96,13 +96,10 @@ module.exports = {
      * If not given, credentials of the current project will be re-encrypted, with credentialSecret.
      */
     exportSnapshot: async function (app, project, snapshot, options) {
-
         let snapshotObj = snapshot.get()
-
         if (!options.credentialSecret) {
             return null
         }
-
         const user = await snapshot.getUser()
         if (user) {
             snapshotObj.user = app.db.views.User.userSummary(user)
@@ -110,16 +107,13 @@ module.exports = {
             snapshotObj = newSnapshotObj
             snapshotObj.id = snapshotObj.hashid
         }
-
         const serviceEnv = ['FF_INSTANCE_ID', 'FF_INSTANCE_NAME', 'FF_PROJECT_ID', 'FF_PROJECT_NAME']
         serviceEnv.forEach((key) => {
             delete snapshotObj.settings.env[key]
         })
-
         const result = {
             ...snapshotObj
         }
-
         const projectSecret = await project.getCredentialSecret()
         const credentials = options.credentials ? options.credentials : result.flows.credentials
 

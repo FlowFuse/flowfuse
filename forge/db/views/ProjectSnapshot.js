@@ -65,7 +65,7 @@ module.exports = function (app) {
             createdAt: { type: 'string' },
             updatedAt: { type: 'string' },
             user: { $ref: 'UserSummary' },
-            userWhoExported: { $ref: 'UserSummary' },
+            exportedBy: { $ref: 'UserSummary' },
             modules: { type: 'object', additionalProperties: true },
             flows: { type: 'object', additionalProperties: true },
             settings: { type: 'object', additionalProperties: true }

@@ -8,12 +8,6 @@ const setup = require('../setup')
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 
-function encryptCredentials (key, plain) {
-    const initVector = crypto.randomBytes(16)
-    const cipher = crypto.createCipheriv('aes-256-ctr', key, initVector)
-    return { $: initVector.toString('hex') + cipher.update(JSON.stringify(plain), 'utf8', 'base64') + cipher.final('base64') }
-}
-
 function decryptCredentials (key, cipher) {
     let flows = cipher.$
     const initVector = Buffer.from(flows.substring(0, 32), 'hex')
@@ -299,11 +293,11 @@ describe('Project Snapshots API', function () {
         })
     })
 
-    describe('Export a snapshot', function() {
+    describe('Export a snapshot', function () {
         const projectCredentialsSecretA = 'keyA'
         const projectCredentialsSecretB = 'keyB'
 
-        it('Non-member cannot export project snapshot', async function () {
+        it('Non-team member cannot export project snapshot', async function () {
             // Chris (non-member) cannot export ("create" permission at the moment) in ATeam
             const response = await exportSnapshot(TestObjects.project1.id,
                 'test-project-snapshot-03',
@@ -313,14 +307,14 @@ describe('Project Snapshots API', function () {
             // 404 as a non member should not know the resource exists
             response.statusCode.should.equal(404)
         })
-        it('Non-Team admin cannot export project snapshot', async function () {
+        it('Non-Team owner cannot export project snapshot', async function () {
             // Bob (regular member) cannot export ("create" permission at the moment) in ATeam
             const response = await exportSnapshot(TestObjects.project1.id,
                 'test-project-snapshot-03',
                 projectCredentialsSecretB,
                 TestObjects.tokens.bob)
 
-            // 404 as a non member should not know the resource exists
+            // 404 as a non-owner should not know the resource exists
             response.statusCode.should.equal(404)
         })
 

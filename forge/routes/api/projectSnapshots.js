@@ -196,9 +196,9 @@ module.exports = async function (app) {
      * /api/v1/projects/:instanceId/snapshots/:snapshotId/export
      */
     app.post('/:snapshotId/export', {
-        preHandler: app.needsPermission('project:snapshot:create'),
+        preHandler: app.needsPermission('project:snapshot:export'),
         schema: {
-            summary: "Export snapshot of instance A re-encrypted to be used in project B according to 'credentialSecret'",
+            summary: "Export an instance snapshot using the provided credentialSecret",
             tags: ['Snapshots'],
             params: {
                 type: 'object',
@@ -234,7 +234,7 @@ module.exports = async function (app) {
         )
         if (snapShot) {
             await app.auditLog.Project.project.snapshot.exported(request.session.User, null, request.project, snapShot)
-            snapShot.userWhoExported = request.session.User
+            snapShot.exportedBy = request.session.User
             reply.send(snapShot)
         } else {
             reply.send({})
