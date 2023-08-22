@@ -78,13 +78,13 @@
                     <ff-list-item
                         v-if="!row.instance && !row.application && displayingTeam"
                         label="Add to Instance"
-                        data-action="device-assign"
+                        data-action="device-assign-to-instance"
                         @click="deviceAction('assignToProject', row.id)"
                     />
                     <ff-list-item
                         v-else-if="row.instance && displayingTeam"
                         label="Remove from Application Instance"
-                        data-action="device-remove"
+                        data-action="device-remove-from-instance"
                         @click="deviceAction('removeFromProject', row.id)"
                     />
                     <ff-list-item
@@ -297,7 +297,8 @@ export default {
             creatingDevice: false,
             deletingDevice: false,
             nextCursor: null,
-            devices: new Map()
+            devices: new Map(),
+            firstRequest: true
         }
     },
     computed: {
@@ -465,7 +466,7 @@ export default {
             try {
                 this.$timer.stop('pollTimer')
                 if (this.hasLoadedModel) {
-                    await this.fetchData(null, true) // TODO: For now, this only polls the first page...
+                    await this.fetchData(null, !this.firstRequest) // TODO: For now, this only polls the first page...
                 }
             } finally {
                 this.$timer.start('pollTimer')
@@ -511,6 +512,7 @@ export default {
             this.applyFilter(this.filter)
 
             this.loading = false
+            this.firstRequest = false
         },
 
         deviceAction (action, deviceId) {

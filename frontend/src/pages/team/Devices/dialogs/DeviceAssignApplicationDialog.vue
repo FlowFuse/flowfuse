@@ -4,7 +4,7 @@
         header="Add Device to Application"
         class="ff-dialog-fixed-height"
         confirm-label="Add"
-        data-el="assign-device-dialog"
+        data-el="assign-device-to-application-dialog"
         @confirm="assignDeviceToApplication()"
     >
         <template #default>
