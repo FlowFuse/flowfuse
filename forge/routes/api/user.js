@@ -196,7 +196,8 @@ module.exports = async function (app) {
      */
     app.get('/tokens', {
         schema: {
-            summary: 'list users Personal Access Tokens',
+            summary: 'List users Personal Access Tokens',
+            tags: ['Tokens'],
             response: {
                 200: { type: 'array' },
                 '4xx': {
