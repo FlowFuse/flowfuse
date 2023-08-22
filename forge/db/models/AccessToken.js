@@ -1,4 +1,4 @@
-const { DataTypes } = require('sequelize')
+const { DataTypes, Op } = require('sequelize')
 
 const { uppercaseFirst, sha256 } = require('../utils')
 
@@ -44,7 +44,8 @@ module.exports = {
                     this.setDataValue('refreshToken', sha256(value))
                 }
             }
-        }
+        },
+        name: { type: DataTypes.STRING }
     },
     associations: function (M) {
         this.belongsTo(M.Team, { foreignKey: 'ownerId', constraints: false })
@@ -95,6 +96,18 @@ module.exports = {
                         count: tokens.length,
                         tokens
                     }
+                },
+                getPersonalAccessTokens: async (user) => {
+                    const tokens = this.findAll({
+                        where: {
+                            ownerType: 'user',
+                            ownerId: '' + user.id,
+                            name: { [Op.ne]: null }
+                        },
+                        order: [['id', 'ASC']],
+                        attributes: ['id', 'name', 'scope', 'expiresAt']
+                    })
+                    return tokens
                 }
             },
             instance: {
