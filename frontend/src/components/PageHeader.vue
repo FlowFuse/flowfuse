@@ -39,14 +39,14 @@
             <ff-team-selection data-action="team-selection" />
             <!-- Desktop: User Options -->
             <ff-dropdown v-if="user" class="ff-navigation ff-user-options" options-align="right" data-action="user-options" data-cy="user-options">
-                <template v-slot:placeholder>
+                <template #placeholder>
                     <div class="ff-user">
                         <img :src="user.avatar" class="ff-avatar"/>
                         <ff-notification-pill v-if="notifications.total > 0" data-el="notification-pill" class="ml-3" :count="notifications.total"/>
                         <!-- <label>{{ user.name }}</label> -->
                     </div>
                 </template>
-                <template v-slot:default>
+                <template #default>
                     <ff-dropdown-option v-for="option in options" :key="option.label" @click="option.onclick(option.onclickparams)">
                         <nav-item :label="option.label" :icon="option.icon" :notifications="option.notifications" :data-nav="option.tag"></nav-item>
                     </ff-dropdown-option>

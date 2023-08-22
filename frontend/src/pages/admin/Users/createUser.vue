@@ -1,7 +1,7 @@
 <template>
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigation>
-            <template v-slot:back>
+            <template #back>
                 <router-link :to="{name: 'AdminUsersGeneral'}">
                     <nav-item :icon="icons.chevronLeft" label="Back to Users"></nav-item>
                 </router-link>
@@ -21,7 +21,7 @@
                 <FormHeading>Team options</FormHeading>
                 <FormRow id="createDefaultTeam" v-model="input.createDefaultTeam" type="checkbox">
                     Create personal team
-                    <template v-slot:description>A user needs to be in a team to create projects</template>
+                    <template #description>A user needs to be in a team to create projects</template>
                 </FormRow>
                 <!-- <FormRow v-model="input.addToTeam">Add to existing team</FormRow> -->
                 <ff-button :disabled="!formValid" @click="createUser()">

@@ -1,6 +1,6 @@
 <template>
     <ff-dialog ref="dialog" :header="dialogTitle" :confirm-label="stack ? 'Save' : 'Create'" @confirm="confirm()" :disable-primary="!formValid || loading">
-        <template v-slot:default>
+        <template #default>
             <ff-loading v-if="loading" message="Creating Stack..."/>
             <form v-else class="space-y-6" @submit.prevent>
                 <div v-if="input.replaces">
@@ -10,17 +10,17 @@
                 </div>
                 <FormRow v-model="input.name" :error="errors.name" :disabled="editDisabled">
                     Name
-                    <template v-slot:description>An internal name for the stack. This must be unique and can only contain a-z 0-9 - _ / @ .</template>
+                    <template #description>An internal name for the stack. This must be unique and can only contain a-z 0-9 - _ / @ .</template>
                 </FormRow>
                 <FormRow v-model="input.label" :error="errors.label">
                     Label
-                    <template v-slot:description>This is how the stack is shown to users.</template>
+                    <template #description>This is how the stack is shown to users.</template>
                 </FormRow>
                 <FormRow v-model="input.active" type="checkbox">Active</FormRow>
                 <template v-if="!editDisabled">
                     <FormRow :options="instanceTypes" :disabled="editTypeDisabled" :error="errors.projectType" v-model="input.projectType" id="projectType">
                         Instance Type
-                        <template v-slot:description>
+                        <template #description>
                             <div v-if="editTypeDisabled">Stacks cannot be moved to a different instance type</div>
                             <div v-else-if="stack && !stack.projectType">You can assign this stack to an instance type as a one-time action. Once assigned you cannot move it.</div>
                         </template>

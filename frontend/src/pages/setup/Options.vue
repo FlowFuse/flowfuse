@@ -3,7 +3,7 @@
         <FormHeading>3. Options</FormHeading>
         <FormRow v-model="input.telemetry" type="checkbox">
             Enable collection of anonymous statistics
-            <template v-slot:description>
+            <template #description>
                 <p>
                     We collect anonymous statistics about how FlowForge is used.
                     This allows us to improve how it works and make a better product.

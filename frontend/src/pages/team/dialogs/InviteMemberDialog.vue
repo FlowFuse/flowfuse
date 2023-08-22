@@ -1,6 +1,6 @@
 <template>
     <ff-dialog ref="dialog" header="Invite Team Member" confirm-label="Invite" @confirm="confirm()" :disable-primary="disableConfirm">
-        <template v-slot:default>
+        <template #default>
             <form class="space-y-2" @submit.prevent>
                 <template v-if="!responseErrors">
                     <p v-if="!exceedsUserLimit">Invite a user to join the team by username<span v-if="externalEnabled"> or email</span>.</p>

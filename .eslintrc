@@ -536,49 +536,6 @@
                 "frontend/src/pages/team/Settings/index.vue",
                 "frontend/src/pages/team/Settings/Permissions.vue"
             ]
-        },
-        {
-            "rules": {
-                "vue/v-slot-style": "off"
-            },
-            "files": [
-                "frontend/src/components/audit-log/AuditLog.vue",
-                "frontend/src/components/PageHeader.vue",
-                "frontend/src/components/SectionTopMenu.vue",
-                "frontend/src/components/TeamSelection.vue",
-                "frontend/src/pages/account/Create.vue",
-                "frontend/src/pages/account/index.vue",
-                "frontend/src/pages/account/Teams/Invitations.vue",
-                "frontend/src/pages/account/Teams/Teams.vue",
-                "frontend/src/pages/admin/index.vue",
-                "frontend/src/pages/admin/InstanceTypes/dialogs/InstanceTypeEditDialog.vue",
-                "frontend/src/pages/admin/InstanceTypes/index.vue",
-                "frontend/src/pages/admin/Settings/SSO/createEditProvider.vue",
-                "frontend/src/pages/admin/Settings/SSO/index.vue",
-                "frontend/src/pages/admin/Stacks/dialogs/AdminStackEditDialog.vue",
-                "frontend/src/pages/admin/Stacks/index.vue",
-                "frontend/src/pages/admin/Templates/index.vue",
-                "frontend/src/pages/admin/Users/createUser.vue",
-                "frontend/src/pages/admin/Users/dialogs/AdminUserEditDialog.vue",
-                "frontend/src/pages/admin/Users/General.vue",
-                "frontend/src/pages/admin/Users/Invitations.vue",
-                "frontend/src/pages/device/Settings/dialogs/ConfirmDeviceDeleteDialog.vue",
-                "frontend/src/pages/setup/CreateAdminUser.vue",
-                "frontend/src/pages/setup/Options.vue",
-                "frontend/src/pages/team/create.vue",
-                "frontend/src/pages/team/Devices/dialogs/CreateProvisioningTokenDialog.vue",
-                "frontend/src/pages/team/Devices/dialogs/DeviceCredentialsDialog.vue",
-                "frontend/src/pages/team/Devices/dialogs/ProvisioningCredentialsDialog.vue",
-                "frontend/src/pages/team/dialogs/ChangeTeamRoleDialog.vue",
-                "frontend/src/pages/team/dialogs/ConfirmTeamDeleteDialog.vue",
-                "frontend/src/pages/team/dialogs/ConfirmTeamUserRemoveDialog.vue",
-                "frontend/src/pages/team/dialogs/InviteMemberDialog.vue",
-                "frontend/src/pages/team/Members/General.vue",
-                "frontend/src/pages/team/Members/Invitations.vue",
-                "frontend/src/pages/team/Overview.vue",
-                "frontend/src/pages/team/Settings/Devices.vue",
-                "frontend/src/pages/team/Settings/Permissions.vue"
-            ]
         }
     ]
 }

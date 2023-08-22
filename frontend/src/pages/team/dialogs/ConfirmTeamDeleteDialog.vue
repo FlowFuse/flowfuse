@@ -1,6 +1,6 @@
 <template>
     <ff-dialog ref="dialog" data-el="delete-team-dialog" header="Delete Team" kind="danger" confirm-label="Delete" @confirm="confirm()" :disable-primary="!formValid">
-        <template v-slot:default>
+        <template #default>
             <form class="space-y-6" v-if="team" @submit.prevent>
                 <div class="space-y-6">
                     <p>

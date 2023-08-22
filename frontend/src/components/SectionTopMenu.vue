@@ -23,13 +23,13 @@
         </ul>
     </div>
     <ff-dialog v-if="hasInfoDialog" ref="help-dialog" class="ff-dialog-box--info" :header="helpHeader || 'FlowForge Info'">
-        <template v-slot:default>
+        <template #default>
             <div class="flex gap-8">
                 <slot name="pictogram"><img src="../images/pictograms/node_catalog_red.png"/></slot>
                 <div><slot name="helptext"></slot></div>
             </div>
         </template>
-        <template v-slot:actions>
+        <template #actions>
             <ff-button @click="$refs['help-dialog'].close()">Close</ff-button>
         </template>
     </ff-dialog>
