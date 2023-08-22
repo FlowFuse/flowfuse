@@ -14,6 +14,11 @@ describe('Device API', async function () {
 
     const TestObjects = {}
 
+    /**
+     * Create a device
+     * @param {Object} options - Options for creating a device
+     * @returns {Promise<Object>} - The device object
+     */
     async function createDevice (options) {
         const response = await app.inject({
             method: 'POST',
@@ -25,7 +30,30 @@ describe('Device API', async function () {
             },
             cookies: { sid: options.as }
         })
-        return response.json()
+        let device = response.json()
+
+        if (options.application) {
+            const response2 = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/devices/${device.id}`,
+                body: {
+                    application: options.application
+                },
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            device = response2.json()
+        } else if (options.instance) {
+            const response2 = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/devices/${device.id}`,
+                body: {
+                    instance: options.instance
+                },
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            device = response2.json()
+        }
+        return device
     }
 
     async function setupApp (license) {
@@ -68,7 +96,7 @@ describe('Device API', async function () {
         }
 
         TestObjects.defaultTeamType = app.defaultTeamType
-
+        TestObjects.Application1 = app.application
         TestObjects.tokens = {}
         await login('alice', 'aaPassword')
         await login('bob', 'bbPassword')
@@ -423,6 +451,7 @@ describe('Device API', async function () {
             result.should.have.property('activeSnapshot')
             result.team.should.have.property('id', TestObjects.ATeam.hashid)
             result.should.not.have.property('instance')
+            result.should.not.have.property('application')
         })
 
         // GET /api/v1/devices/:deviceId
@@ -498,9 +527,26 @@ describe('Device API', async function () {
                     cookies: { sid: TestObjects.tokens.bob }
                 })
                 const result = response.json()
+                result.should.have.property('ownerType', 'instance')
                 result.should.have.property('instance')
+                result.should.not.have.property('application')
                 result.should.have.property('targetSnapshot', null)
                 result.instance.should.have.property('id', TestObjects.deviceProject.id)
+            })
+            it('can assign to an application - default starter snapshot', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: {
+                        application: TestObjects.Application1.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                const result = response.json()
+                result.should.have.property('ownerType', 'application')
+                result.should.have.property('application').and.be.an.Object()
+                result.application.should.have.property('id', TestObjects.Application1.hashid)
             })
             it('can assign to a project - with active snapshot', async function () {
                 // Create a project
@@ -552,6 +598,33 @@ describe('Device API', async function () {
                 // Check the targetSnapshot has been cleared
                 result2.should.have.property('targetSnapshot', null)
             })
+            it('can unassign from an application', async function () {
+                const device = await createDevice({ name: 'Ad1b', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: {
+                        application: TestObjects.Application1.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                const result = response.json()
+                result.should.have.property('ownerType').and.equal('application')
+                result.should.have.property('application')
+                result.application.should.have.property('id', TestObjects.Application1.hashid)
+
+                const response2 = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: {
+                        application: null
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                const result2 = response2.json()
+                result2.should.have.property('ownerType').and.not.equal('application')
+                result2.should.not.have.property('application')
+            })
 
             it('non-owner cannot assign to a project', async function () {
                 // Chris (member) cannot assign to project
@@ -580,6 +653,20 @@ describe('Device API', async function () {
                     url: `/api/v1/devices/${device.id}`,
                     body: {
                         instance: TestObjects.deviceProject.id
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(400)
+            })
+            it('cannot assign to an application in a different team', async function () {
+                // Device (ATeam) cannot be assign to Application in (BTeam)
+                const device = await createDevice({ name: 'Ad1c', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                TestObjects.Application2 = await app.factory.createApplication({ name: 'application-2' }, TestObjects.BTeam)
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: {
+                        application: TestObjects.Application2.hashid
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -1052,6 +1139,32 @@ describe('Device API', async function () {
 
             const teamCList = await listDevices({ team: TestObjects.CTeam.hashid, as: TestObjects.tokens.chris })
             teamCList.should.have.property('count', 0)
+        })
+    })
+    describe('Get list of a application devices', async function () {
+        async function listDevices (options) {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/applications/${options.application}/devices`,
+                cookies: { sid: options.as }
+            })
+            return response.json()
+        }
+        it('lists devices in an application', async function () {
+            // GET /api/v1/applications/:applicationId/devices
+            TestObjects.Application2 = await app.factory.createApplication({ name: 'application-2' }, TestObjects.BTeam)
+
+            await createDevice({ name: 'Ad1', type: '', application: TestObjects.Application1.hashid, team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            await createDevice({ name: 'Ad2', type: '', application: TestObjects.Application1.hashid, team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            await createDevice({ name: 'Ad3', type: '', application: TestObjects.Application1.hashid, team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            await createDevice({ name: 'Bd1', type: '', application: TestObjects.Application2.hashid, team: TestObjects.BTeam.hashid, as: TestObjects.tokens.bob })
+            await createDevice({ name: 'Bd2', type: '', application: TestObjects.Application2.hashid, team: TestObjects.BTeam.hashid, as: TestObjects.tokens.bob })
+
+            const app1List = await listDevices({ application: TestObjects.Application1.hashid, as: TestObjects.tokens.alice })
+            app1List.should.have.property('count', 3)
+
+            const app2List = await listDevices({ application: TestObjects.Application2.hashid, as: TestObjects.tokens.bob })
+            app2List.should.have.property('count', 2)
         })
     })
 })
