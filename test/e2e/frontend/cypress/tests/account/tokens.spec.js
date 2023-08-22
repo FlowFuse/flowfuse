@@ -28,7 +28,7 @@ describe('FlowForge - Personal Access Tokens', () => {
     it('can be added without an expiry', () => {
         const TOKEN_NAME = 'Token 1'
         // count how many tokens we already have
-        const rows = Cypress.$('[data-el="tokens-table"] tbody').find('tr.ff-data-table--row.selectable').length
+        const rows = Cypress.$('[data-el="tokens-table"] tbody').find('tr.ff-data-table--row').length
 
         cy.intercept('POST', '/api/*/user/tokens').as('addPersonalAccessToken')
 
@@ -54,7 +54,7 @@ describe('FlowForge - Personal Access Tokens', () => {
 
     it('can be added with an expiry date', () => {
         // count how many tokens we already have
-        const rows = Cypress.$('[data-el="tokens-table"] tbody').find('tr.ff-data-table--row.selectable').length
+        const rows = Cypress.$('[data-el="tokens-table"] tbody').find('tr.ff-data-table--row').length
 
         cy.intercept('POST', '/api/*/user/tokens').as('addPersonalAccessToken')
 
@@ -83,7 +83,7 @@ describe('FlowForge - Personal Access Tokens', () => {
 
     it('can be removed', () => {
         // count how many tokens we already have
-        const rows = Cypress.$('[data-el="tokens-table"] tbody').find('tr.ff-data-table--row.selectable').length
+        const rows = Cypress.$('[data-el="tokens-table"] tbody').find('tr.ff-data-table--row').length
 
         cy.intercept('DELETE', '/api/*/user/tokens/*').as('removePersonalAccessToken')
 
