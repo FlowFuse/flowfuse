@@ -3,8 +3,7 @@
         <template #default>
             <form class="space-y-4" @submit.prevent>
                 <FormRow v-model="input.name" data-form="token-name" :disabled="edit">
-                    Name
-                    <template #description>Token name</template>
+                    Token name
                 </FormRow>
                 <ff-checkbox v-model="input.expires" data-form="expiry-toggle" label="Add Expiry Date" />
                 <FormRow v-model="input.expiresAt" data-form="token-expiry" type="date" :disabled="!input.expires">
