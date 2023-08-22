@@ -87,14 +87,16 @@ module.exports = {
         const result = []
         let snapshotId
         let snapshotName
-        if (device.ownerType === 'project') {
-            snapshotId = device.targetSnapshot?.hashid || ''
-            snapshotName = device.targetSnapshot?.name || ''
-        } else if (device.ownerType === 'application') {
+
+        if (device.ownerType === 'application') {
             snapshotId = '0' // '0' is temporary value to indicate that the device should start in application mode with starter flows
             snapshotName = 'None'
             result.push(makeVar('FF_APPLICATION_ID', device.Application?.hashid || ''))
             result.push(makeVar('FF_APPLICATION_NAME', device.Application?.name || ''))
+        } else {
+            // assume older device / part of an instance (i.e. NOT at application level)
+            snapshotId = device.targetSnapshot?.hashid || ''
+            snapshotName = device.targetSnapshot?.name || ''
         }
         result.push(makeVar('FF_DEVICE_ID', device.hashid || ''))
         result.push(makeVar('FF_DEVICE_NAME', device.name || ''))
