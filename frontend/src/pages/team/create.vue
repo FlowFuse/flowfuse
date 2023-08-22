@@ -1,7 +1,7 @@
 <template>
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigation v-if="team">
-            <template v-slot:back>
+            <template #back>
                 <router-link :to="{name: 'Home'}">
                     <nav-item :icon="icons.chevronLeft" label="Back to Dashboard"></nav-item>
                 </router-link>
@@ -29,14 +29,14 @@
                 </div>
                 <FormRow v-model="input.name" id="team" :error="errors.name">
                     Team Name
-                    <template v-slot:description>
+                    <template #description>
                         eg. 'Development'
                     </template>
                 </FormRow>
 
                 <FormRow v-model="input.slug" id="team" :error="input.slugError" :placeholder="input.defaultSlug">
                     URL Slug
-                    <template v-slot:description>
+                    <template #description>
                         Use the default slug based on the team name or set your own.<br/>
                         <pre>/team/&lt;slug&gt;</pre>
                     </template>
@@ -47,7 +47,7 @@
                         <p>To create the team we need to setup payment details via Stripe, our secure payment provider.</p>
                     </div>
                     <ff-button :disabled="!formValid" @click="createTeam()">
-                        <template v-slot:icon-right><ExternalLinkIcon /></template>
+                        <template #icon-right><ExternalLinkIcon /></template>
                         Create team and setup payment details
                     </ff-button>
                 </template>

@@ -4,20 +4,20 @@
         <template v-if="!state.adminUser">
             <FormRow v-model="input.username" :error="errors.username">
                 Username
-                <template v-slot:description>Unique, short, no spaces. Cannot be 'admin' or 'root'</template>
+                <template #description>Unique, short, no spaces. Cannot be 'admin' or 'root'</template>
             </FormRow>
             <FormRow v-model="input.name" :placeholder="input.username">
                 Full Name
             </FormRow>
             <FormRow v-model="input.email" :error="errors.email">
                 Email
-                <template v-if="!state.email" v-slot:description>
+                <template v-if="!state.email" #description>
                     <div class="text-red-400">Email has not be configured. This will limit available features, such as inviting users to the platform. Check the documentation for how to configure email before running this setup.</div>
                 </template>
             </FormRow>
             <FormRow type="password" :error="errors.password" v-model="input.password" id="password" :onBlur="checkPassword" >
                 Password
-                <template v-slot:description>At least 8 characters</template>
+                <template #description>At least 8 characters</template>
             </FormRow>
             <FormRow type="password" :error="errors.password_confirm" v-model="input.password_confirm" id="password_confirm">Confirm Password</FormRow>
             <ff-button :disabled="!formValid" @click="createUser()" class="mt-6">

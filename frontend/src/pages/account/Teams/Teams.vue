@@ -1,7 +1,7 @@
 <template>
     <div class="text-right mb-4" v-if="settings['team:create']"><CreateTeamButton /></div>
     <ff-data-table :columns="columns" :rows="teams">
-        <template v-slot:context-menu="{row}">
+        <template #context-menu="{row}">
             <ff-list-item data-action="member-remove-from-team" label="Leave Team" kind="danger" @click="removeUserDialog(row)" />
         </template>
     </ff-data-table>

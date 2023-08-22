@@ -1,9 +1,9 @@
 <template>
     <div class="space-y-6">
         <SectionTopMenu hero="Instance Types">
-            <template v-slot:tools>
+            <template #tools>
                 <ff-button @click="showCreateInstanceTypeDialog" data-action="create-type">
-                    <template v-slot:icon-right>
+                    <template #icon-right>
                         <PlusSmIcon />
                     </template>
                     Create instance type
@@ -25,7 +25,7 @@
         </div>
         <SectionTopMenu hero="Inactive Types"></SectionTopMenu>
         <ff-data-table :columns="columns" :rows="inactiveInstanceTypes" data-el="inactive-types">
-            <template v-slot:context-menu="{row}">
+            <template #context-menu="{row}">
                 <ff-list-item label="Edit Instance Type" @click="instanceTypeAction('edit', row.id)"/>
                 <ff-list-item label="Delete Instance Type" kind="danger" @click="instanceTypeAction('delete', row.id)"/>
             </template>

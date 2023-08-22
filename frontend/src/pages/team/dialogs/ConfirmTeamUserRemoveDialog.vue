@@ -1,6 +1,6 @@
 <template>
     <ff-dialog ref="dialog" header="Remove User" kind="danger" confirm-label="Remove" @confirm="confirm()" :disable-primary="disableConfirm">
-        <template v-slot:default v-if="user">
+        <template #default v-if="user">
             <form class="space-y-6" @submit.prevent>
                 <div class="mt-2 space-y-2">
                     <template v-if="ownerCount < 2 && user.role === 'owner'">

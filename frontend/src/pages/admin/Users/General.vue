@@ -13,15 +13,15 @@
             no-data-message="No Users Found"
             :rows-selectable="true" @row-selected="showUser"
         >
-            <template v-slot:actions>
+            <template #actions>
                 <ff-button to="./create">
-                    <template v-slot:icon-left>
+                    <template #icon-left>
                         <UserAddIcon />
                     </template>
                     Create New User
                 </ff-button>
             </template>
-            <template v-slot:context-menu="{row}">
+            <template #context-menu="{row}">
                 <ff-list-item label="Edit User" @click.stop="showEditUserDialog(row)"></ff-list-item>
             </template>
         </ff-data-table>

@@ -6,7 +6,7 @@
         @confirm="confirm()"
         :disable-primary="!formValid"
     >
-        <template v-slot:default>
+        <template #default>
             <p>This will generate a <code>device.yml</code> to move to your device, that will auto register with this team.</p>
             <form class="space-y-6 mt-2 mb-2">
                 <FormRow data-form="token-name" v-model="input.name" :error="errors.name" :disabled="editMode">Token Name</FormRow>

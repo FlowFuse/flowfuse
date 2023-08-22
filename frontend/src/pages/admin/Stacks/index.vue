@@ -11,15 +11,15 @@
             search-placeholder="Search by Stack Name..."
             no-data-message="No Active Stacks Found"
         >
-            <template v-slot:actions>
+            <template #actions>
                 <ff-button @click="showCreateStackDialog">
-                    <template v-slot:icon-right>
+                    <template #icon-right>
                         <PlusSmIcon />
                     </template>
                     Create stack
                 </ff-button>
             </template>
-            <template v-slot:context-menu="{row}">
+            <template #context-menu="{row}">
                 <ff-list-item label="Create New Version" @click="stackAction('createNewVersion', row.id)"/>
                 <ff-list-item label="Edit Properties" @click="stackAction('editProperties', row.id)"/>
                 <ff-list-item label="Delete Stack" kind="danger" @click="stackAction('delete', row.id)"/>
@@ -39,7 +39,7 @@
             search-placeholder="Search by Stack Name..."
             no-data-message="No Inactive Stacks Found"
         >
-            <template v-slot:context-menu="{row}">
+            <template #context-menu="{row}">
                 <ff-list-item label="Create New Version" @click="stackAction('createNewVersion', row.id)"/>
                 <ff-list-item label="Edit Properties" @click="stackAction('editProperties', row.id)"/>
                 <ff-list-item label="Delete Stack" kind="danger" @click="stackAction('delete', row.id)"/>

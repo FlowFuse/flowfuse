@@ -1,18 +1,18 @@
 <template>
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigation>
-            <template v-slot:options>
+            <template #options>
                 <li class="ff-navigation-divider">Admin Settings</li>
                 <router-link v-for="route in navigation" :key="route.label" :to="route.path">
                     <nav-item :icon="route.icon" :label="route.name" :data-nav="route.tag"></nav-item>
                 </router-link>
             </template>
-            <template v-slot:back v-if="team">
+            <template #back v-if="team">
                 <router-link :to="{name: 'Team', params: {team_slug: team.slug}}">
                     <nav-item :icon="icons.chevronLeft" label="Back to Dashboard" data-nav="team-overview"></nav-item>
                 </router-link>
             </template>
-            <template v-slot:back v-else>
+            <template #back v-else>
                 <router-link :to="{name: 'CreateTeam'}">
                     <nav-item :icon="icons.chevronLeft" label="Back to Create Team" data-nav="create-team"></nav-item>
                 </router-link>

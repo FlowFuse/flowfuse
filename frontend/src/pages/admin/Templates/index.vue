@@ -1,9 +1,9 @@
 <template>
     <div class="space-y-6">
         <SectionTopMenu hero="Templates">
-            <template v-slot:tools>
+            <template #tools>
                 <ff-button :to="{ name: 'Admin Template', params: { id: 'create' } }">
-                    <template v-slot:icon-right>
+                    <template #icon-right>
                         <PlusSmIcon />
                     </template>
                     Create template
@@ -22,7 +22,7 @@
             :rows-selectable="true"
             @row-selected="editTemplate"
         >
-            <template v-slot:context-menu="{row}">
+            <template #context-menu="{row}">
                 <ff-list-item label="Edit Template" @click.stop="editTemplate(row)"/>
                 <ff-list-item label="Delete Template" kind="danger" @click.stop="showDeleteDialog(row)"/>
             </template>
