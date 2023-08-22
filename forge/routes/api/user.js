@@ -273,7 +273,8 @@ module.exports = async function (app) {
      */
     app.delete('/tokens/:id', {
         schema: {
-            summary: 'delete user Personal Access Token',
+            summary: 'Delete user Personal Access Token',
+            tags: ['Tokens'],
             params: {
                 id: { type: 'number' }
             },
