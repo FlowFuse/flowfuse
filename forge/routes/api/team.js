@@ -526,31 +526,62 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
+        let updates
+        let auditLogFunc = app.auditLog.Team.team.settings.updated
         try {
-            const updates = new app.auditLog.formatters.UpdatesCollection()
-            if (request.body.name) {
-                updates.push('name', request.team.name, request.body.name)
-                request.team.name = request.body.name
-            }
-            if (request.body.slug) {
-                if (request.body.slug === 'create') {
-                    reply.code(400).send({ code: 'invalid_slug', error: 'slug not available' })
+            if (request.body.type) {
+                auditLogFunc = app.auditLog.Team.team.type.changed
+                if (Object.keys(request.body).length > 1) {
+                    reply.code(400).send({ code: 'invalid_request', error: 'Cannot modify other properties whilst changing type' })
                     return
                 }
-                updates.push('slug', request.team.slug, request.body.slug)
-                request.team.slug = request.body.slug
+                if (request.body.type !== request.team.TeamType.hashid) {
+                    const targetTeamType = await app.db.models.TeamType.byId(request.body.type)
+                    if (!targetTeamType) {
+                        reply.code(400).send({ code: 'invalid_team_type', error: 'Invalid team type' })
+                        return
+                    }
+                    updates = {
+                        old: { id: request.team.TeamType.hashid, name: request.team.TeamType.name },
+                        new: { id: targetTeamType.hashid, name: targetTeamType.name }
+                    }
+                    // Two stage process to update team type
+                    // - first we check its allowed.
+                    await request.team.checkTeamTypeUpdateAllowed(targetTeamType)
+                    // - then we apply it
+                    await request.team.updateTeamType(targetTeamType)
+                } else {
+                    reply.send(app.db.views.Team.team(request.team))
+                    return
+                }
+            } else {
+                updates = new app.auditLog.formatters.UpdatesCollection()
+                if (request.body.name) {
+                    updates.push('name', request.team.name, request.body.name)
+                    request.team.name = request.body.name
+                }
+                if (request.body.slug) {
+                    if (request.body.slug === 'create') {
+                        reply.code(400).send({ code: 'invalid_slug', error: 'slug not available' })
+                        return
+                    }
+                    updates.push('slug', request.team.slug, request.body.slug)
+                    request.team.slug = request.body.slug
+                }
+                await request.team.save()
             }
-            await request.team.save()
-            app.auditLog.Team.team.settings.updated(request.session.User, null, request.team, updates)
+            auditLogFunc(request.session.User, null, request.team, updates)
             reply.send(app.db.views.Team.team(request.team))
         } catch (err) {
-            let responseMessage
-            if (err.errors) {
-                responseMessage = err.errors.map(err => err.message).join(',')
-            } else {
-                responseMessage = err.toString()
+            auditLogFunc(request.session.User, err, request.team, updates)
+            const response = {
+                code: err.code || 'unexpected_error',
+                error: err.toString()
             }
-            reply.code(400).send({ code: 'unexpected_error', error: responseMessage })
+            if (err.errors) {
+                response.errors = err.errors
+            }
+            reply.code(400).send(response)
         }
     })
 
