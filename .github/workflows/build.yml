@@ -11,6 +11,7 @@ on:
       - 'test/e2e/frontend/**'
       - 'test/unit/frontend/**'
       - 'package.json'
+      - 'package-lock.json'
       - '.eslintrc'
   pull_request:
     paths:
