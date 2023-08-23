@@ -9,6 +9,10 @@ on:
       localfs_ref:
         description: 'localfs package ref'
         required: false
+      forge_ui_components_release_name:
+        description: 'forge-ui-components package version'
+        required: false
+        default: 'nightly'
   workflow_run:
     workflows: 
       - 'Backend Tests'
