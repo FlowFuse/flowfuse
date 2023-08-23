@@ -64,6 +64,7 @@ table summaries what actions are available to the different roles.
 | • Modify Device Settings             | ✓     | -      | -      | -              |
 | • Modify Environment Variables       | ✓     | ✓      | -      | -              |
 | • Assign to/Remove from Instance     | ✓     | -      | -      | -              |
+| • Assign to/Remove from Application  | ✓     | -      | -      | -              |
 | • Delete Device                      | ✓     | -      | -      | -              |
 | **Team Members**                     |       |        |        |                |
 | • Invite User                        | ✓     | -      | -      | -              |
