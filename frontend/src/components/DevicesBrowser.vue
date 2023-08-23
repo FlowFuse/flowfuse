@@ -70,7 +70,7 @@
                         @click="deviceAction('assignToApplication', row.id)"
                     />
                     <ff-list-item
-                        v-else-if="row.application && displayingTeam"
+                        v-else-if="row.application && (displayingTeam || displayingApplication)"
                         label="Remove from Application"
                         data-action="device-remove-from-application"
                         @click="deviceAction('removeFromApplication', row.id)"
@@ -82,8 +82,8 @@
                         @click="deviceAction('assignToProject', row.id)"
                     />
                     <ff-list-item
-                        v-else-if="row.instance && displayingTeam"
-                        label="Remove from Application Instance"
+                        v-else-if="row.instance && (displayingTeam || displayingInstance)"
+                        label="Remove from Instance"
                         data-action="device-remove-from-instance"
                         @click="deviceAction('removeFromProject', row.id)"
                     />
