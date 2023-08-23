@@ -1,5 +1,4 @@
 name: Publish
-
 on:
   workflow_dispatch:
     inputs:
@@ -23,17 +22,14 @@ on:
       - main
     types: 
       - completed
-  pull_request:
-    branches:
-      - main
   schedule:
     - cron: '0 23 * * *'
 
 jobs:
   publish:
-    # if: |
-    #   ( github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main' ) ||
-    #   github.event_name == 'schedule'
+    if: |
+      ( github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main' ) ||
+      github.event_name == 'schedule'
     uses: 'flowforge/github-actions-workflows/.github/workflows/publish_node_package.yml@main'
     with:
       package_name: flowforge
