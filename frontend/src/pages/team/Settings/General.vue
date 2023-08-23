@@ -12,7 +12,10 @@
         <FormRow v-model="input.teamType" type="uneditable">
             <template #default>Type</template>
             <template #description>
-                <div v-if="editing">You cannot currently change the type of team</div>
+                <template v-if="editing">
+                    Click <router-link :to="{name: 'TeamChangeType'}">here</router-link> to change the team type
+                </template>
+                <!-- <ff-button v-if="editing" size="small" :to="{name: 'TeamChangeType'}">Change</ff-button> -->
             </template>
         </FormRow>
         <FormRow v-model="input.slug" :type="editing ? 'text' : 'uneditable'" :error="errors.slug" id="teamSlug">
