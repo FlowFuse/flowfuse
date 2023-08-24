@@ -29,8 +29,7 @@ Currently, all routes require a valid token to be included in the request.
 The tokens are passed using the `Authorization` header as a `Bearer` token.
 
 
-e.g. the following will get a list of all teams the user who owns the 
-token is a member of
+For example, the following will get a list of the token owner's teams:
 
 ```
 curl -H "Authorization: Bearer ffpat_d4vZlLhCN8muyFUi6UsquLj47H2aTDkDpvxBUf5Ea-0" http://app.flowforge.com/api/v1/user/teams
