@@ -33,7 +33,7 @@ You will need a Kubernetes environment. The deployment has currently been tested
  - One used to run the FlowFuse management infrastructure
  - One or more used to run the Node-RED Project instances
 
-You can run a small scale Proof-of-Concept on a single node cluster, details of how to do this can be found in the [Configure FlowFuse](#configure-flowforge) section below. 
+You can run a small scale Proof-of-Concept on a single node cluster, details of how to do this can be found in the [Configure FlowFuse](#configure-flowfuse) section below. 
 
 ### PostgreSQL Database
 
