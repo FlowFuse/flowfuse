@@ -71,10 +71,10 @@
                 <FormHeading>Features</FormHeading>
                 <div class="grid gap-3 grid-cols-2">
                     <FormRow v-model="input.properties.features['shared-library']" type="checkbox">Team Library</FormRow>
-                    <!-- <FormRow v-model="input.properties.features.projectComms" type="checkbox">Project Nodes</FormRow>
-                    <FormRow v-model="input.properties.features.teamHttpSecurity" type="checkbox">Team-based Endpoint Security</FormRow>
+                    <FormRow v-model="input.properties.features.projectComms" type="checkbox">Project Nodes</FormRow>
                     <FormRow v-model="input.properties.features.ha" type="checkbox">High Availability</FormRow>
-                    <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
+                    <FormRow v-model="input.properties.features.teamHttpSecurity" type="checkbox">Team-based Endpoint Security</FormRow>
+                    <!--<FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow> -->
                 </div>
             </form>
@@ -142,6 +142,17 @@ export default {
                         this.input.properties.trial.instanceType = '_'
                     }
                     this.input.order = '' + (teamType.order || 0)
+
+                    // Apply default feature values if undefined
+                    if (this.input.properties.features['shared-library'] === undefined) {
+                        this.input.properties.features['shared-library'] = true
+                    }
+                    if (this.input.properties.features.projectComms === undefined) {
+                        this.input.properties.features.projectComms = true
+                    }
+                    if (this.input.properties.features.ha === undefined) {
+                        this.input.properties.features.ha = true
+                    }
                 } else {
                     this.editDisabled = false
                     this.input = {

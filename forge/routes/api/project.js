@@ -395,6 +395,14 @@ module.exports = async function (app) {
                 }
             }
             const newSettings = app.db.controllers.ProjectTemplate.validateSettings(bodySettings, request.project.ProjectTemplate)
+            if (newSettings.httpNodeAuth?.type === 'flowforge-user') {
+                const teamType = await request.project.Team.getTeamType()
+                if (teamType.properties.features?.teamHttpSecurity === false) {
+                    reply.code(400).send({ code: 'invalid_request', error: 'FlowForge User Authentication not available for this team type' })
+                    return
+                }
+            }
+
             // Merge the settings into the existing values
             const currentProjectSettings = await request.project.getSetting(KEY_SETTINGS) || {}
             const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings)
@@ -774,15 +782,17 @@ module.exports = async function (app) {
             delete settings.settings.env
         }
 
-        if (app.config.features.enabled('ha')) {
+        const teamType = await request.project.Team.getTeamType()
+
+        if (app.config.features.enabled('ha') && teamType.getFeatureProperty('ha', true)) {
             const ha = await request.project.getHASettings()
             if (ha && ha.replicas > 1) {
                 settings.ha = ha
             }
         }
-        const teamType = await request.project.Team.getTeamType()
         settings.features = {
-            'shared-library': app.config.features.enabled('shared-library') && teamType.getFeatureProperty('shared-library', true)
+            'shared-library': app.config.features.enabled('shared-library') && teamType.getFeatureProperty('shared-library', true),
+            projectComms: app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true)
         }
         reply.send(settings)
     })

@@ -5,7 +5,7 @@
     >
         <SparklesIcon class="ff-icon mr-2" style="stroke-width: 1px;" />
         <div>
-            This feature is not available for your current Team. Please <a class="ff-link" href="#" target="_blank" rel="noopener noreferrer">upgrade</a> your Team in order to use it.
+            {{ featureName }} is not available for your current Team. Please <a class="ff-link" href="#" target="_blank" rel="noopener noreferrer">upgrade</a> your Team in order to use it.
         </div>
         <SparklesIcon class="ff-icon ml-2" style="stroke-width: 1px;" />
     </div>
@@ -18,6 +18,12 @@ export default {
     name: 'FeatureUnavailableToTeam',
     components: {
         SparklesIcon
+    },
+    props: {
+        featureName: {
+            type: String,
+            default: 'This feature'
+        }
     }
 }
 </script>

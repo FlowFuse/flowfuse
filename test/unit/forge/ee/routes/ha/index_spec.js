@@ -6,15 +6,18 @@ const setup = require('../../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { START_DELAY, STOP_DELAY } = FF_UTIL.require('forge/containers/stub/index.js')
+const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 describe('HA Instance API', function () {
     let app
     const TestObjects = { tokens: {} }
 
     before(async function () {
-        app = await setup({ billing: null })
+        setup.setupStripe()
+        app = await setup()
         await login('alice', 'aaPassword')
 
+        // Create a new instance
         const response = await app.inject({
             method: 'POST',
             url: '/api/v1/projects',
@@ -167,5 +170,63 @@ describe('HA Instance API', function () {
 
         TestObjects.project.state.should.equal('running')
         should(app.db.controllers.Project.getInflightState(TestObjects.project)).equal(undefined)
+    })
+
+    describe('ha feature flag', async function () {
+        let newInstance
+        before(async function () {
+            // Create a teamType without shared-library access
+            const teamType = await app.factory.createTeamType({
+                name: 'no-ha-type',
+                properties: {
+                    instances: {
+                        [app.projectType.hashid]: { active: true }
+                    },
+                    features: { ha: false }
+                }
+            })
+            const team = await app.factory.createTeam({ name: 'no-ha-team', TeamTypeId: teamType.id })
+            await app.factory.createSubscription(team)
+
+            await team.addUser(app.user, { through: { role: Roles.Owner } })
+            const application = await app.factory.createApplication({ name: 'application-2' }, team)
+
+            // Create a new instance
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/projects',
+                payload: {
+                    name: 'test-ha-project-2',
+                    applicationId: application.hashid,
+                    projectType: app.projectType.hashid,
+                    template: app.template.hashid,
+                    stack: app.stack.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            newInstance = await app.db.models.Project.byId(JSON.parse(response.body).id)
+            // Ensure the project is started
+            await sleep(START_DELAY)
+        })
+
+        it('cannot get ha settings if feature flag disabled for team', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${newInstance.hashid}/ha`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(404)
+        })
+        it('cannot set ha settings if feature flag disabled for team', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/projects/${newInstance.id}/ha`,
+                payload: {
+                    replicas: 2
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(404)
+        })
     })
 })

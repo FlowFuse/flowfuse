@@ -2,7 +2,7 @@ const { KEY_HA } = require('../../../db/models/ProjectSettings')
 
 module.exports.init = function (app) {
     if (app.config.driver.type === 'kubernetes' || app.config.driver.type === 'stub') {
-        // Register ha flag as a private flag - no requirement to expose it in public settings
+        // Register ha feature flag
         app.config.features.register('ha', true)
 
         /**
@@ -16,6 +16,10 @@ module.exports.init = function (app) {
             // For initial beta release, we will support 1-2 replicas.
             // 1 replica is equivalent to no HA
             // In the future this will need to take into account the team type
+            const teamType = await team.getTeamType()
+            if (!teamType.getFeatureProperty('ha', true)) {
+                return false
+            }
             return (haConfig.replicas > 0 && haConfig.replicas < 3)
         }
 

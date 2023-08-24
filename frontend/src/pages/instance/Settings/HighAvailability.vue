@@ -1,6 +1,7 @@
 <template>
     <ff-loading v-if="updating" message="Updating Instance..." />
     <template v-else>
+        <FeatureUnavailableToTeam v-if="!haFeatureAvailable" />
         <FormHeading>High Availability</FormHeading>
         <FormRow>
             <template #description>
@@ -29,20 +30,22 @@
             <template #input>&nbsp;</template>
         </FormRow>
         <template v-if="!isHA">
-            <ff-button kind="secondary" data-nav="enable-ha" @click="enableHA()">Enable HA mode</ff-button>
+            <ff-button :disabled="!haFeatureAvailable" kind="secondary" data-nav="enable-ha" @click="enableHA()">Enable HA mode</ff-button>
         </template>
         <template v-else>
-            <ff-button kind="secondary" data-nav="disable-ha" @click="disableHA()">Disable HA mode</ff-button>
+            <ff-button :disabled="!haFeatureAvailable" kind="secondary" data-nav="disable-ha" @click="disableHA()">Disable HA mode</ff-button>
         </template>
     </template>
 </template>
 
 <script>
+import { mapState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
 
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
+import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -50,7 +53,8 @@ export default {
     name: 'InstanceSettingsStages',
     components: {
         FormHeading,
-        FormRow
+        FormRow,
+        FeatureUnavailableToTeam
     },
     inheritAttrs: false,
     props: {
@@ -66,8 +70,13 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['team', 'features']),
         isHA () {
             return this.instance?.ha?.replicas !== undefined
+        },
+        haFeatureAvailable () {
+            const flag = this.team.type.properties.features?.ha
+            return flag === undefined || flag
         }
     },
     methods: {
