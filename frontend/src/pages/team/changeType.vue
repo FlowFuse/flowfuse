@@ -21,6 +21,7 @@
                     <ff-tile-selection v-model="input.teamTypeId">
                         <ff-tile-selection-option
                             v-for="(teamType, index) in teamTypes" :key="index"
+                            :disabled="team.type.id === teamType.id"
                             :label="teamType.name" :description="teamType.description"
                             :price="billingEnabled ? teamType.billingPrice : ''"
                             :price-interval="billingEnabled ? teamType.billingInterval : ''"
@@ -30,7 +31,10 @@
                 </div>
                 <template v-if="billingEnabled">
                     <div class="mb-8 text-sm text-gray-500 space-y-2">
-                        <p>Changing the team type will modify your subscription</p>
+                        <template v-if="trialMode">
+                            <p><ExclamationCircleIcon class="ff-icon mr-1" /> Updating the team type will bring your free trial to an end</p>
+                        </template>
+                        <p>Your billing subscription will be updated to reflect the new costs</p>
                     </div>
                 </template>
                 <ff-button :disabled="!formValid" @click="updateTeam()">
@@ -42,7 +46,7 @@
 </template>
 
 <script>
-import { ChevronLeftIcon } from '@heroicons/vue/solid'
+import { ChevronLeftIcon, ExclamationCircleIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
 import teamApi from '../../api/team.js'
@@ -58,7 +62,8 @@ export default {
     components: {
         FormHeading,
         SideNavigation,
-        NavItem
+        NavItem,
+        ExclamationCircleIcon
     },
     data () {
         return {
@@ -82,6 +87,9 @@ export default {
         },
         billingEnabled () {
             return this.features.billing
+        },
+        trialMode () {
+            return this.team.billing?.trial
         }
     },
     watch: {
@@ -104,7 +112,8 @@ export default {
         })
         this.input.teamTypeId = this.team.type.id
     },
-    mounted () {
+    async mounted () {
+        await this.checkBilling()
         this.mounted = true
     },
     methods: {
@@ -123,6 +132,14 @@ export default {
             }).finally(() => {
                 this.loading = false
             })
+        },
+        checkBilling: async function () {
+            // Team Billing
+            if (this.features.billing && !this.team.billing?.active) {
+                this.$router.push({
+                    path: `/team/${this.team.slug}/billing`
+                })
+            }
         }
     }
 }
