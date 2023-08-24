@@ -222,7 +222,7 @@ module.exports = {
                         ]
                     })
                 },
-                getAll: async (pagination = {}, where = {}, { includeApplication = false } = {}) => {
+                getAll: async (pagination = {}, where = {}, { includeApplication = false, statusOnly = false } = {}) => {
                     // Pagination
                     const limit = parseInt(pagination.limit) || 1000
                     if (pagination.cursor) {
@@ -283,7 +283,7 @@ module.exports = {
                     const [rows, count] = await Promise.all([
                         this.findAll({
                             where: buildPaginationSearchClause(pagination, where, ['Device.name', 'Device.type']),
-                            include: includes,
+                            include: statusOnly ? [] : includes,
                             order: [['id', 'ASC']],
                             limit
                         }),
