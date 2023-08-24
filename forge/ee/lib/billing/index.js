@@ -150,7 +150,7 @@ module.exports.init = async function (app) {
                 // be removed and replaced with the billable team product
                 const existingTrialItem = stripeSubscription.items.data.find(item => item.plan.product === billingIds.trialProduct)
                 if (existingTrialItem) {
-                    app.log.info(`Updating team ${team.hashid} subscription: removing trial item`)
+                    app.log.info(`Updating team ${team.hashid} subscription: adding team item`)
                     await stripe.subscriptions.update(subscription.subscription, {
                         proration_behavior: 'always_invoice',
                         items: [{
@@ -158,7 +158,7 @@ module.exports.init = async function (app) {
                             quantity: 1
                         }]
                     })
-                    app.log.info(`Updating team ${team.hashid} subscription: adding team item`)
+                    app.log.info(`Updating team ${team.hashid} subscription: removing trial item`)
                     await stripe.subscriptionItems.del(existingTrialItem.id, { proration_behavior: 'always_invoice' })
                 }
             }
@@ -364,6 +364,75 @@ module.exports.init = async function (app) {
                 // than the underlying id. This will allow us to change the associated
                 // promo for this code rather than tying to exactly one.
                 return app.db.controllers.UserBillingCode.setUserCode(user, code)
+            }
+        },
+
+        /**
+         * This updates the team subscription on stripe as part of updating the
+         * team type.
+         *
+         * It requires the team to have an active subscription - ie billing must
+         * have been configured before a team can change its type.
+         *
+         * If the team has setup its subscription but is still in trial mode,
+         * the trial is ended first.
+         *
+         * This code will remove all existing items from the stripe subscription,
+         * then add back the new team plan item.
+         *
+         * It does *not* restore the device/instance billing items. They are added
+         * back by a later stage of the process in ee/lib/billing/Team.js#updateTeamType
+         */
+        updateTeamType: async (team, targetTeamType) => {
+            const subscription = await team.getSubscription()
+            // The team must have billing setup with an active subscription before
+            // it can change its type
+            if (subscription && subscription.isActive()) {
+                if (subscription.isTrial()) {
+                    // If in trial mode, the trial is first ended - you cannot
+                    // carry a trial over to a new team type
+
+                    app.log.info(`Team ${subscription.Team.hashid} ending trial - changing team type`)
+                    // The following logic around ending a trial also sits in trialTask.js.
+                    // There may be a cleaner refactoring to avoid the duplication, but
+                    // that is for another day
+                    await app.billing.endTeamTrial(team)
+                    subscription.trialEndsAt = null
+                    subscription.trialStatus = app.db.models.Subscription.TRIAL_STATUS.ENDED
+                    await subscription.save()
+                }
+
+                // Get the stripe view of the subscription
+                const stripeSubscription = await stripe.subscriptions.retrieve(subscription.subscription)
+
+                // Get the team billing ids for the new team type
+                const targetTeamBillingIds = await targetTeamType.getTeamBillingIds()
+
+                try {
+                    // Add the new team plan item
+                    app.log.info(`Updating team ${team.hashid} subscription: adding team plan ${targetTeamBillingIds.price}`)
+                    await stripe.subscriptions.update(subscription.subscription, {
+                        proration_behavior: 'always_invoice',
+                        items: [{
+                            price: targetTeamBillingIds.price,
+                            quantity: 1
+                        }]
+                    })
+
+                    // Remove all pre-existing items. They will get added back
+                    // later with the new billing ids
+                    for (const item of stripeSubscription.items.data) {
+                        app.log.info(`Updating team ${team.hashid} subscription: removing item ${item.price.id}`)
+                        await stripe.subscriptionItems.del(item.id, { proration_behavior: 'always_invoice' })
+                    }
+                } catch (err) {
+                    app.log.warn(`Problem updating team ${team.hashid} subscription: ${err.message}`)
+                    throw err
+                }
+            } else {
+                const err = new Error('Team subscription not active')
+                err.code = 'billing_required'
+                throw err
             }
         }
     }

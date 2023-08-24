@@ -425,6 +425,12 @@ module.exports = {
                     //     console.log(`instance[${instanceType}] ${currentInstanceCountsByType[instanceType]} / ${targetInstanceLimits[instanceType]}`)
                     // }
                 },
+                /**
+                 * Update the team type.
+                 *
+                 * When running with EE, this function is replaced via ee/lib/billing/Team.js
+                 * to add additional checks related to billing
+                 */
                 updateTeamType: async function (teamType) {
                     await this.setTeamType(teamType)
                     await this.save()
