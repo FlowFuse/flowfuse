@@ -98,6 +98,10 @@ async function init (app, opts, done) {
                             reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
                             return
                         }
+                        if (accessToken.name) {
+                            // Temp hack to give token full user scope
+                            delete request.session.scope
+                        }
                     }
                     return
                 }

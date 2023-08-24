@@ -9,7 +9,7 @@
             </router-link>
             <router-link v-if="invitationCount>0" data-nav="team-invites" to="/account/teams/invitations" class="forge-button-secondary p-4 sm:h-36 inline-flex sm:flex-col items-center sm:justify-center gap-4">
                 <InboxInIcon class="w-10" />
-                You have {{ invitationCount }} team {{ $filters.pluralize(invitationCount,"invitation")}}
+                You have {{ invitationCount }} team {{ $filters.pluralize(invitationCount,"invitation") }}
             </router-link>
         </div>
     </form>

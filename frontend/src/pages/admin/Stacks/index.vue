@@ -1,19 +1,25 @@
 <template>
     <div class="space-y-6">
-        <FormHeading>Active Stacks
-        </FormHeading>
+        <FormHeading>Active Stacks</FormHeading>
         <ff-loading v-if="loadingActive" message="Loading Stacks..." />
-        <ff-data-table v-if="!loadingActive" data-el="active-stacks" :columns="activeColumns" :rows="activeStacks"
-                       :show-search="true" search-placeholder="Search by Stack Name..." no-data-message="No Active Stacks Found">
-            <template v-slot:actions>
+        <ff-data-table
+            v-if="!loadingActive"
+            data-el="active-stacks"
+            :columns="activeColumns"
+            :rows="activeStacks"
+            :show-search="true"
+            search-placeholder="Search by Stack Name..."
+            no-data-message="No Active Stacks Found"
+        >
+            <template #actions>
                 <ff-button @click="showCreateStackDialog">
-                    <template v-slot:icon-right>
+                    <template #icon-right>
                         <PlusSmIcon />
                     </template>
                     Create stack
                 </ff-button>
             </template>
-            <template v-slot:context-menu="{row}">
+            <template #context-menu="{row}">
                 <ff-list-item label="Create New Version" @click="stackAction('createNewVersion', row.id)"/>
                 <ff-list-item label="Edit Properties" @click="stackAction('editProperties', row.id)"/>
                 <ff-list-item label="Delete Stack" kind="danger" @click="stackAction('delete', row.id)"/>
@@ -24,9 +30,16 @@
         </div>
         <FormHeading>Inactive Stacks</FormHeading>
         <ff-loading v-if="loadingInactive" message="Loading Stacks..." />
-        <ff-data-table v-if="!loadingInactive" data-el="inactive-stacks" :columns="inactiveColumns" :rows="inactiveStacks"
-                       :show-search="true" search-placeholder="Search by Stack Name..." no-data-message="No Inactive Stacks Found">
-            <template v-slot:context-menu="{row}">
+        <ff-data-table
+            v-if="!loadingInactive"
+            data-el="inactive-stacks"
+            :columns="inactiveColumns"
+            :rows="inactiveStacks"
+            :show-search="true"
+            search-placeholder="Search by Stack Name..."
+            no-data-message="No Inactive Stacks Found"
+        >
+            <template #context-menu="{row}">
                 <ff-list-item label="Create New Version" @click="stackAction('createNewVersion', row.id)"/>
                 <ff-list-item label="Edit Properties" @click="stackAction('editProperties', row.id)"/>
                 <ff-list-item label="Delete Stack" kind="danger" @click="stackAction('delete', row.id)"/>
