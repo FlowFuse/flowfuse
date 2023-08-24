@@ -105,7 +105,7 @@ module.exports = function (app) {
                 // - ff/v1/+/p/+/command
                 { topic: /^ff\/v1\/[^/]+\/p\/[^/]+\/command$/ },
                 // Send commands to all application-assigned devices
-                // - ff/v1/+/p/+/command
+                // - ff/v1/+/a/+/command
                 { topic: /^ff\/v1\/[^/]+\/a\/[^/]+\/command$/ }
             ]
         },
