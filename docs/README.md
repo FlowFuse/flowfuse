@@ -53,5 +53,5 @@ Node-RED application development and delivery.
 ## Support
 
 - [Troubleshooting](./user/#debugging-and-fixing-node-red-issues)
-- [Community Support](https://community.flowforge.com/)
+- [Community Support](https://community.flowfuse.com/)
 - [FlowFuse Cloud Support](./cloud/#support)
