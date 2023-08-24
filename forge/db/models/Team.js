@@ -370,7 +370,7 @@ module.exports = {
                     // - Instance Type counts
                     const errors = []
 
-                    const currentMemberCount = this.get('memberCount')
+                    const currentMemberCount = await this.memberCount()
                     const targetMemberLimit = teamType.getProperty('users.limit', -1)
                     if (targetMemberLimit !== -1 && targetMemberLimit < currentMemberCount) {
                         errors.push({
