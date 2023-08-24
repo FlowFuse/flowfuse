@@ -40,25 +40,7 @@ module.exports = function (app) {
      */
     app.db.models.Team.prototype.getTeamBillingIds = async function () {
         await this.ensureTeamTypeExists()
-        // Billing ids can come from the following sources, in order of precedence
-        //  - TeamType properties
-        //  - flowforge.yml - teamType specific config
-        //  - flowforge.yml - default config
-        const defaults = {
-            price: app.config.billing?.stripe?.teams?.[this.TeamType.name]?.price || app.config.billing?.stripe?.team_price,
-            product: app.config.billing?.stripe?.teams?.[this.TeamType.name]?.product || app.config.billing?.stripe?.team_product
-        }
-        const result = {
-            price: this.TeamType.getProperty('billing.priceId', defaults.price),
-            product: this.TeamType.getProperty('billing.productId', defaults.product)
-        }
-        const trialProduct = this.TeamType.getProperty('trial.productId')
-        const trialPrice = this.TeamType.getProperty('trial.priceId')
-        if (trialProduct && trialPrice) {
-            result.trialProduct = trialProduct
-            result.trialPrice = trialPrice
-        }
-        return result
+        return this.TeamType.getTeamBillingIds()
     }
 
     /**
@@ -67,18 +49,7 @@ module.exports = function (app) {
      */
     app.db.models.Team.prototype.getDeviceBillingIds = async function () {
         await this.ensureTeamTypeExists()
-
-        // Billing ids can come from the following sources, in order of precedence
-        //  - TeamType properties
-        //  - flowforge.yml - default config
-        const defaults = {
-            price: app.config.billing?.stripe?.device_price,
-            product: app.config.billing?.stripe?.device_product
-        }
-        return {
-            price: this.TeamType.getProperty('devices.priceId', defaults.price),
-            product: this.TeamType.getProperty('devices.productId', defaults.product)
-        }
+        return this.TeamType.getDeviceBillingIds()
     }
 
     /**
@@ -88,18 +59,7 @@ module.exports = function (app) {
      */
     app.db.models.Team.prototype.getInstanceBillingIds = async function (instanceType) {
         await this.ensureTeamTypeExists()
-        // Billing ids can come from the following sources, in order of precedence
-        //  - TeamType properties
-        //  - InstanceType properties
-        //  - flowforge.yml - default config
-        const defaults = {
-            price: instanceType.properties.billingPriceId || app.config.billing?.stripe?.project_price,
-            product: instanceType.properties.billingProductId || app.config.billing?.stripe?.project_product
-        }
-        return {
-            price: this.TeamType.getInstanceTypeProperty(instanceType, 'priceId', defaults.price),
-            product: this.TeamType.getInstanceTypeProperty(instanceType, 'productId', defaults.product)
-        }
+        return this.TeamType.getInstanceBillingIds(instanceType)
     }
 
     /**
@@ -205,5 +165,14 @@ module.exports = function (app) {
         err.code = 'billing_required'
         err.error = 'Team billing not configured'
         throw err
+    }
+
+    app.db.models.Team.prototype._updateTeamType = app.db.models.Team.prototype.updateTeamType
+    app.db.models.Team.prototype.updateTeamType = async function (teamType) {
+        await app.billing.updateTeamType(this, teamType)
+        await this._updateTeamType(teamType)
+        // Resync the device count
+        await app.billing.updateTeamDeviceCount(this)
+        await app.billing.updateTeamInstanceCount(this)
     }
 }

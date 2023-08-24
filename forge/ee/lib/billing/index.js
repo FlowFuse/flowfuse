@@ -22,6 +22,7 @@ module.exports.init = async function (app) {
 
     // Augment the Team model with billing functions
     require('./Team')(app)
+    require('./TeamType')(app)
 
     /**
      * Convert a user-friendly promo code to its api id, if valid.
