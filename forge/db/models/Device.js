@@ -4,7 +4,7 @@
  */
 const crypto = require('crypto')
 
-const { DataTypes } = require('sequelize')
+const { DataTypes, Op } = require('sequelize')
 
 const Controllers = require('../controllers')
 const { buildPaginationSearchClause } = require('../utils')
@@ -223,11 +223,42 @@ module.exports = {
                     })
                 },
                 getAll: async (pagination = {}, where = {}, { includeApplication = false } = {}) => {
+                    // Pagination
                     const limit = parseInt(pagination.limit) || 1000
                     if (pagination.cursor) {
                         pagination.cursor = M.Device.decodeHashid(pagination.cursor)
                     }
 
+                    // Filtering
+                    if (where.state === 'offline') {
+                        where.state = '' // empty string is the offline state
+                    }
+                    if (where.lastseen) {
+                        // Last seen string must be mapped to a filter on lastSeenAt
+                        const lastseen = where.lastseen
+                        delete where.lastseen
+
+                        // Needs to be kept in sync with frontend (frontend/src/services/device-status.js)
+                        // Thresholds are currently running <1.5, safe <3, error >3
+                        // To-do: Move this logic entirely server side rather than calculating it in the frontend
+                        if (lastseen === 'never') {
+                            where.lastSeenAt = null
+                        } else if (lastseen === 'running') {
+                            where.lastSeenAt = {}
+                            where.lastSeenAt[Op.gt] = new Date(Date.now() - (1.5 * 60 * 1000))
+                        } else if (lastseen === 'safe') {
+                            where.lastSeenAt = {}
+                            where.lastSeenAt[Op.lte] = new Date(Date.now() - (1.5 * 60 * 1000))
+                            where.lastSeenAt[Op.gt] = new Date(Date.now() - (3 * 60 * 1000))
+                        } else if (lastseen === 'error') {
+                            where.lastSeenAt = {}
+                            where.lastSeenAt[Op.lte] = new Date(Date.now() - (3 * 60 * 1000))
+                        } else {
+                            console.warn('Unknown lastseen filter, silently ignoring', lastseen)
+                        }
+                    }
+
+                    // Extra models to include
                     const projectInclude = {
                         model: M.Project,
                         attributes: ['id', 'name', 'links']
