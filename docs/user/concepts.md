@@ -1,5 +1,6 @@
 ---
 navTitle: FlowFuse Concepts
+navOrder: 2
 ---
 
 # FlowFuse Concepts

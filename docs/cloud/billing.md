@@ -1,5 +1,5 @@
 ---
-navTitle: FlowFuse Cloud Billing
+navTitle: Billing
 ---
 
 # Billing

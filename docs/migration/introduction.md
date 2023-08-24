@@ -1,5 +1,6 @@
 ---
-navTitle: Migrating a Node-RED project to FlowFuse 
+navOrder: 1
+navTitle: Introduction
 ---
 
 # Migrating a Node-RED application to FlowFuse 
