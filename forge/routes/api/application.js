@@ -286,7 +286,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('team:device:list'),
         schema: {
             summary: 'Get a list of all devices in an application',
-            tags: ['Application Devices'],
+            tags: ['Applications'],
             query: { $ref: 'PaginationParams' },
             params: {
                 type: 'object',
