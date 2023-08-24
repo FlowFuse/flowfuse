@@ -80,8 +80,23 @@ module.exports = async function (app) {
         const where = {
             TeamId: request.team.id
         }
-        const devices = await app.db.models.Device.getAll(paginationOptions, where, { includeApplication: true })
-        devices.devices = devices.devices.map(d => app.db.views.Device.device(d))
+
+        if (request.query.filter) {
+            // Takes a comma separated list of key:value pairs
+            const filters = Object.fromEntries(request.query.filter.split(',').map((filterString) => filterString.split(':')))
+
+            if (filters.status) {
+                where.state = filters.status
+            }
+
+            if (filters.lastseen) {
+                where.lastseen = filters.lastseen
+            }
+        }
+
+        console.log('Searching for devices with where: ', where)
+
+        const devices = await app.db.models.Device.getAll(paginationOptions, where, { includeApplication: true, statusOnly: true })
         devices.devices = devices.devices.map(d => app.db.views.Device.device(d, { statusOnly }))
         reply.send(devices)
     })
