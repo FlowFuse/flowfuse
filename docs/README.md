@@ -27,7 +27,7 @@ Node-RED application development and delivery.
  - [FlowFuse Cloud](./cloud/) - find out how we've configured FlowFuse for FlowFuse Cloud.
  - [Network Connections](./cloud/#network-connections) - Details what connections can and cannot be established to Node-RED instances running in FlowFuse Cloud.
  - [Single Sign On](./cloud/#single-sign-on) - FlowFuse supports configuring SAML-based Single Sign-On for particular email domains. Contact us to configure for your team.
- - [Billing](./cloud/billing) - find out how we've configured FlowFuse for FlowFuse Cloud.
+ - [Billing](./cloud/billing.md) - find out how we've configured FlowFuse for FlowFuse Cloud.
 
 ## FlowFuse Self-Hosted
 

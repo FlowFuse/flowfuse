@@ -1,6 +1,5 @@
 ---
 navGroup: Support
-navOrder: 2
 navTitle: Debugging Node-RED issues
 ---
 

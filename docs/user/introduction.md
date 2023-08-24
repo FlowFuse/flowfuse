@@ -33,7 +33,7 @@ For more details on these and other core concepts, you can learn about them [her
  - [Project Link Nodes](projectnodes.md) - Custom nodes for sending messages between Node-RED instances and devices.
  - [Instance Settings](instance-settings.md) - Settings available for Node-RED instances.
  - [Shared Team Library](shared-library.md) - Share flows easily between different Node-RED instances in your team.
- - [Node-RED Tools Plugin](node-red-tools.md) - A plugin for Node-RED that lets you work with your flows outside of FlowForge.
+ - [Node-RED Tools Plugin](/docs/migration/node-red-tools.md) - A plugin for Node-RED that lets you work with your flows outside of FlowForge.
  - [High Availability mode](high-availability.md) - Run multiple copies of your instance for scaling and availability.
 
 ## Working with Teams

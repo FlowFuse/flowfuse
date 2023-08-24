@@ -14,7 +14,7 @@ the platform.
 
 <a href="https://marketplace.digitalocean.com/apps/flowforge"><img src="https://upload.wikimedia.org/wikipedia/commons/f/ff/DigitalOcean_logo.svg"  width="150" height="75"></a>
 
-See also the [Digital Ocean Step by Step Manual](./docker/digital-ocean)
+See also the [Digital Ocean Step by Step Manual](./docker/digital-ocean.md)
 
 <br>
 <a href="https://aws.amazon.com/marketplace/pp/prodview-3ycrknfg67rug?sr=0-1&ref_=beagle&applicationId=AWSMPContessa"><img src="https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg"  width="150" height="75"></a>
