@@ -5,7 +5,7 @@
                 <template v-if="unsupportedVersion">
                     <p>
                         Developer Mode requires Device Agent v0.8.0 or later.
-                        Please ensure this device has checked in at least once and that it is running the latest version of Device Agent.
+                        Please ensure the Device Agent is up to date and connected to the platform.
                     </p>
                 </template>
                 <template v-else-if="!developerMode">
