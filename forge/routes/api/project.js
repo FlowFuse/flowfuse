@@ -774,13 +774,14 @@ module.exports = async function (app) {
             delete settings.settings.env
         }
 
-        if (app.config.features.enabled('ha')) {
+        const teamType = await request.project.Team.getTeamType()
+
+        if (app.config.features.enabled('ha') && teamType.getFeatureProperty('ha', true)) {
             const ha = await request.project.getHASettings()
             if (ha && ha.replicas > 1) {
                 settings.ha = ha
             }
         }
-        const teamType = await request.project.Team.getTeamType()
         settings.features = {
             'shared-library': app.config.features.enabled('shared-library') && teamType.getFeatureProperty('shared-library', true),
             projectComms: app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true)
