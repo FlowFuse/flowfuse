@@ -4,7 +4,7 @@
             <FormHeading>Change Team Type</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="flex-grow">
-                    <div class="max-w-sm pr-2">{{ deleteDescription }}</div>
+                    <div class="max-w-sm pr-2">Change to a different team type</div>
                 </div>
                 <div class="min-w-fit flex-shrink-0">
                     <ff-button data-action="change-team-type" :to="{name: 'TeamChangeType'}">Change Team Type</ff-button>
