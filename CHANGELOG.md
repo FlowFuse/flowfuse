@@ -1,3 +1,10 @@
+#### 1.10.3: Release
+
+ - Add docs about Personal Access Tokens (backport #2641) (#2642) @app/github-actions
+ - Updating a license (backport #2639) (#2640) @app/github-actions
+ - Personal access tokens (backport #2584) (#2631) @app/github-actions
+ - Aws market place docs (backport #2618) (#2622) @app/github-actions
+
 #### 1.10.2: Release
 
  - Allow admin to edit sso user email in the UI (backport #2607) (#2608) @app/github-actions
