@@ -644,4 +644,111 @@ describe('User API', async function () {
             response.statusCode.should.equal(200)
         })
     })
+
+    describe('User PAT', async function () {
+        it('Create a PAT', async function () {
+            await login('alice', 'aaPassword')
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    name: 'Test Token',
+                    scope: ''
+                }
+            })
+            response.statusCode.should.equal(200)
+            const json = response.json()
+            json.should.have.property('id', 1)
+            json.should.have.property('name', 'Test Token')
+        })
+        it('Create a PAT with expiry', async function () {
+            await login('alice', 'aaPassword')
+            const tomorrow = Date.now() + (24 * 60 * 60 * 10000)
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    name: 'Test Token Expiry',
+                    scope: '',
+                    expiresAt: tomorrow
+                }
+            })
+            response.statusCode.should.equal(200)
+            const json = response.json()
+            json.should.have.property('id', 2)
+            json.should.have.property('name', 'Test Token Expiry')
+            json.should.have.property('expiresAt', tomorrow)
+        })
+        it('Get Existing Tokens', async function () {
+            await login('alice', 'aaPassword')
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const json = response.json()
+            json.should.be.Array().length(2)
+        })
+        it('Delete a Token', async function () {
+            await login('alice', 'aaPassword')
+            const response = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/user/tokens/1',
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(201)
+        })
+        it('Delete a missing Token', async function () {
+            await login('alice', 'aaPassword')
+            const response = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/user/tokens/1',
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(400)
+        })
+        it('Update a Token', async function () {
+            await login('alice', 'aaPassword')
+            const dayAfterTomorrow = Date.now() + (48 * 60 * 60 * 10000)
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/tokens/2',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    scope: '',
+                    expiresAt: dayAfterTomorrow
+                }
+            })
+            response.statusCode.should.equal(200)
+        })
+        it('Use a token', async function () {
+            await login('alice', 'aaPassword')
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    name: 'Test Token',
+                    scope: ''
+                }
+            })
+            response.statusCode.should.equal(200)
+            const json = response.json()
+            const token = json.token
+
+            const response2 = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}`,
+                headers: {
+                    authorization: `Bearer ${token}`
+                }
+            })
+            response2.statusCode.should.equal(200)
+            const team = response2.json()
+            team.name.should.equal('BTeam')
+        })
+    })
 })

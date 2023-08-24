@@ -1,7 +1,7 @@
 name: Test Documentation Links
 on:
   push:
-    branches: [ main ]
+    branches: [ main, maintenance ]
   pull_request:
 jobs:
   test:

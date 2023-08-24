@@ -14,39 +14,24 @@ or on any FlowFuse instance on the path `/api/`.
 
 ### Accessing the API
 
-Currently, all routes require a valid session cookie to be included in the request.
+To make use of the API you will need a valid Access Token. Tokens can be generated 
+for a user under the Security section of the User Settings page.
 
-A [future roadmap item](https://github.com/flowforge/flowforge/issues/14) will
-introduce personal access tokens that will make it easier to access the API.
+![Tokens Settings Page](images/tokens.png)
 
-To get a session cookie, the `/account/login` endpoint can be used. The following
-command will create a file `cookies.txt` containing the session cookie that can
-be used for subsequent requests.
+Tokens can be set to have a limited life or unlimited and can be revoked
+by deleting the token from the list. Tokens with an expiry date will be deleted once they reach that date.
 
-```
-curl -X POST -H 'Content-type: application/json' \
-     -d '{"username": "USER", "password": "PASSWORD"}' \
-     -c cookies.txt \
-     http://localhost:3000/account/login
-```
+Be aware that the token value will only be displayed once, at creation time,
+there is no way to recover the token after this point.
 
-Note that if SSO is enabled for this user, this request will fail. The user
-will have to login via a browser and extract the cookie value from the browser.
+Currently, all routes require a valid token to be included in the request.
+
+The tokens are passed using the `Authorization` header as a `Bearer` token.
 
 
-To get the profile of the current logged in user, using the saved cookie file:
+For example, the following will get a list of the token owner's teams:
 
 ```
-curl -b cookies.txt \
-     -X 'GET' http://localhost:3000/api/v1/user/
+curl -H "Authorization: Bearer ffpat_d4vZlLhCN8muyFUi6UsquLj47H2aTDkDpvxBUf5Ea-0" http://app.flowforge.com/api/v1/user/teams
 ```
-
-Alternatively:
-
-```
-curl -X 'GET' 'http://localhost:3000/api/v1/user/' \
-     -H 'Cookie: sid=<SESSION_TOKEN>'
-```
-
-
-

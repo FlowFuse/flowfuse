@@ -3,13 +3,13 @@
     <form v-else class="mb-8">
         <div class="text-right"></div>
         <ff-data-table data-el="members-table" :columns="userColumns" :rows="users" :show-search="true" search-placeholder="Search Team Members..." :search-fields="['name', 'username', 'role']">
-            <template v-if="hasPermission('team:user:invite')" v-slot:actions>
+            <template v-if="hasPermission('team:user:invite')" #actions>
                 <ff-button data-action="member-invite-button" kind="primary" @click="inviteMember">
-                    <template v-slot:icon-left><PlusSmIcon class="w-4" /></template>
+                    <template #icon-left><PlusSmIcon class="w-4" /></template>
                     Invite Member
                 </ff-button>
             </template>
-            <template v-if="canEditUser" v-slot:context-menu="{row}">
+            <template v-if="canEditUser" #context-menu="{row}">
                 <ff-list-item v-if="hasPermission('team:user:change-role')" data-action="member-change-role" label="Change Role" @click="changeRoleDialog(row)" />
                 <ff-list-item v-if="hasPermission('team:user:remove')" data-action="member-remove-from-team" label="Remove From Team" kind="danger" @click="removeUserDialog(row)" />
             </template>

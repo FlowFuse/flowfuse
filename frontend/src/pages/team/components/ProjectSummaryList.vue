@@ -6,7 +6,7 @@
                     <div class="flex-grow">
                         <div class="flex items-center mt-2">
                             <TemplateIcon class="w-6 h-6 mr-4" />
-                            <div class="text-base text-gray-800">{{application.name}}</div>
+                            <div class="text-base text-gray-800">{{ application.name }}</div>
                         </div>
                         <div class="flex space-x-2 mt-4">
                             <i>To-do: No status or updated at for applications.</i>

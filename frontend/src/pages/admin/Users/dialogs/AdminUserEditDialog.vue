@@ -1,40 +1,43 @@
 <template>
     <ff-dialog ref="dialog" header="Edit User" confirm-label="Save" @confirm="confirm()" :closeOnConfirm="false" :disable-primary="disableSave">
-        <template v-slot:default>
+        <template #default>
             <form class="space-y-6" @submit.prevent>
                 <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
                 <FormRow v-model="input.name" :placeholder="input.username">Name</FormRow>
                 <FormRow v-model="input.email" :error="errors.email">
                     Email
-                    <template v-slot:description v-if="user.sso_enabled">
+                    <template #description v-if="user.sso_enabled">
                         <div>SSO is enabled for this user.</div>
                     </template>
                 </FormRow>
-                <FormRow id="email_verified" wrapperClass="flex justify-between items-center" :disabled="email_verifiedLocked" v-model="input.email_verified" type="checkbox">Verified
-                    <template v-slot:append>
+                <FormRow id="email_verified" wrapperClass="flex justify-between items-center" :disabled="email_verifiedLocked" v-model="input.email_verified" type="checkbox">
+                    Verified
+                    <template #append>
                         <ff-button v-if="email_verifiedLocked" kind="danger" size="small" @click="unlockEmailVerify()">
                             Unlock
-                            <template v-slot:icon>
+                            <template #icon>
                                 <LockClosedIcon />
                             </template>
                         </ff-button>
                     </template>
                 </FormRow>
-                <FormRow id="admin" :error="errors.admin" wrapperClass="flex justify-between items-center" :disabled="adminLocked" v-model="input.admin" type="checkbox">Administrator
-                    <template v-slot:append>
+                <FormRow id="admin" :error="errors.admin" wrapperClass="flex justify-between items-center" :disabled="adminLocked" v-model="input.admin" type="checkbox">
+                    Administrator
+                    <template #append>
                         <ff-button v-if="adminLocked" kind="danger" size="small" @click="unlockAdmin()">
                             Unlock
-                            <template v-slot:icon>
+                            <template #icon>
                                 <LockClosedIcon />
                             </template>
                         </ff-button>
                     </template>
                 </FormRow>
-                <FormRow id="user_suspended" wrapperClass="flex justify-between items-center" :disabled="user_suspendedLocked" v-model="input.user_suspended" type="checkbox">Suspended
-                    <template v-slot:append>
+                <FormRow id="user_suspended" wrapperClass="flex justify-between items-center" :disabled="user_suspendedLocked" v-model="input.user_suspended" type="checkbox">
+                    Suspended
+                    <template #append>
                         <ff-button v-if="user_suspendedLocked" kind="danger" size="small" @click="unlockSuspended()">
                             Unlock
-                            <template v-slot:icon>
+                            <template #icon>
                                 <LockClosedIcon />
                             </template>
                         </ff-button>
@@ -47,7 +50,7 @@
                             <ff-button :disabled="expirePassLocked" :kind="expirePassLocked?'secondary':'danger'" @click="expirePassword">Expire password</ff-button>
                             <ff-button v-if="expirePassLocked" kind="danger" size="small" @click="unlockExpirePassword()">
                                 Unlock
-                                <template v-slot:icon>
+                                <template #icon>
                                     <LockClosedIcon />
                                 </template>
                             </ff-button>
@@ -60,7 +63,7 @@
                             <ff-button :disabled="deleteLocked" :kind="deleteLocked?'secondary':'danger'" @click="deleteUser">Delete user</ff-button>
                             <ff-button v-if="deleteLocked" kind="danger" size="small" @click="unlockDelete()">
                                 Unlock
-                                <template v-slot:icon>
+                                <template #icon>
                                     <LockClosedIcon />
                                 </template>
                             </ff-button>
