@@ -1,3 +1,47 @@
+#### 1.10.4: Release
+
+ - Restore forge logo for maintenance release
+ - Change from `path` - to - `to` for menu item (#2645) @Steve-Mcl
+ - Add docs about Personal Access Tokens (#2641) @hardillb
+ - Ensure tests run on maintenance branch (#2635) @knolleary
+ - Updating a license (#2639) @ZJvandeWeg
+ - Bump tough-cookie and @cypress/request (#2603) @app/dependabot
+ - Revert "Bump eslint-plugin-cypress from 2.13.3 to 2.14.0" (#2636) @knolleary
+ - Run tests if package-lock changes (#2633) @Pezmc
+ - Enable flowforge container build dispatch in the node package build pipeline (#2632) @ppawlowski
+ - Bump eslint-plugin-vue from 9.15.1 to 9.17.0 (#2585) @app/dependabot
+ - Bump eslint from 8.46.0 to 8.47.0 (#2586) @app/dependabot
+ - Bump eslint-plugin-cypress from 2.13.3 to 2.14.0 (#2589) @app/dependabot
+ - Bump @node-saml/node-saml from 4.0.4 to 4.0.5 (#2625) @app/dependabot
+ - Ensure dialog is scrolled to top when opened (#2623) @knolleary
+ - Personal access tokens (#2584) @hardillb
+ - Run both backend and frontend tests for every PR to improve codecov report (#2628) @knolleary
+ - Update v-slot syntax and remove lint exception (#2627) @knolleary
+ - Bump postcss from 8.4.27 to 8.4.28 (#2624) @app/dependabot
+ - Aws market place docs (#2618) @hardillb
+ - Remove some linting exceptions related to whitespace (#2615) @knolleary
+ - Update logo file (#2614) @Yndira-FlowForge
+ - Allow admin to edit sso user email in the UI (#2607) @knolleary
+ - Allow admin to change sso_enabled users email (#2605) @knolleary
+ - Bump fastify-plugin from 4.5.0 to 4.5.1 (#2588) @app/dependabot
+ - Bump handlebars from 4.7.7 to 4.7.8 (#2587) @app/dependabot
+ - Add application description to header of application summary box (#2596) @Steve-Mcl
+ - Move Delete Snapshot to proper part of api docs (#2595) @knolleary
+ - FIX: Publish package when on `main` branch and on schedule (#2590) @ppawlowski
+ - Introduce publish pipeline (#2489) @ppawlowski
+ - Fix device running or reporting old snapshot id/name (#2575) @Steve-Mcl
+ - Re-Work FF Navigation (#2560) @joepavitt
+ - Remove ui-components from package-lock (#2576) @knolleary
+ - Add basic Team Type docs (#2574) @knolleary
+ - Ensure Default InstanceType is enabled for Default TeamType in clean install (#2573) @knolleary
+ - Merge forge-ui-components directly into flowforge repo (#2570) @Pezmc
+ - Hide instance credit/debit banner when value is zero (#2568) @Pezmc
+ - Bump vitest from 0.33.0 to 0.34.1 (#2563) @app/dependabot
+ - Bump @babel/preset-env from 7.22.7 to 7.22.9 (#2564) @app/dependabot
+ - Bump @fastify/websocket from 8.1.0 to 8.2.0 (#2565) @app/dependabot
+ - Bump cypress from 12.17.2 to 12.17.3 (#2566) @app/dependabot
+ - Bump eslint from 8.45.0 to 8.46.0 (#2567) @app/dependabot
+
 #### 1.10.0: Release
 
  - Bump eslint-plugin-import from 2.27.5 to 2.28.0 (#2544) @dependabot
