@@ -1,10 +1,11 @@
 <template>
     <ff-dialog ref="dialog" :header="dialogTitle">
-        <template v-slot:default>
+        <template #default>
             <form class="space-y-6 mt-2" @submit.prevent>
                 <FormRow v-model="input.name" :error="errors.name" data-form="name">Name</FormRow>
                 <FormRow v-model="input.active" type="checkbox" data-form="active">Active</FormRow>
-                <FormRow v-model="input.description" :error="errors.description" data-form="description">Description
+                <FormRow v-model="input.description" :error="errors.description" data-form="description">
+                    Description
                     <template #description>Use markdown for formatting</template>
                     <template #input><textarea class="w-full" rows="6" v-model="input.description"></textarea></template>
                 </FormRow>
@@ -16,12 +17,13 @@
                     <FormHeading>Billing</FormHeading>
                     <p>Billing configuration for the Instance Types must be set within the Team Type configuration</p>
                 </template>
-                <FormRow v-model="input.order">Order
+                <FormRow v-model="input.order">
+                    Order
                     <template #description>Set the sort order when listing the types</template>
                 </FormRow>
             </form>
         </template>
-        <template v-slot:actions>
+        <template #actions>
             <div class="w-full grow flex justify-between">
                 <div>
                     <ff-button v-if="instanceType" kind="danger" style="margin: 0;" @click="$emit('show-delete-dialog', instanceType); $refs.dialog.close()">Delete Instance Type</ff-button>

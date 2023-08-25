@@ -1,11 +1,13 @@
 <template>
     <ff-dialog ref="dialog" header="Change Role" confirm-label="Change" @confirm="confirm()" :disable-primary="ownerCount < 2 && isOwner">
-        <template v-slot:default v-if="user">
+        <template #default v-if="user">
             <form class="space-y-6" @submit.prevent>
                 <div class="space-y-2">
                     <template v-if="ownerCount < 2 && isOwner">
-                        <p class="text-sm text-gray-500">You cannot change the role for <span class="font-bold">{{ user.username }}</span> as
-                            they are the only owner of the team.</p>
+                        <p class="text-sm text-gray-500">
+                            You cannot change the role for <span class="font-bold">{{ user.username }}</span> as
+                            they are the only owner of the team.
+                        </p>
                     </template>
                     <template v-else>
                         <p class="text-sm text-gray-500 mb-6">

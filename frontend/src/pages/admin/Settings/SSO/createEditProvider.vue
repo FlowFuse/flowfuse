@@ -1,7 +1,7 @@
 <template>
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigation>
-            <template v-slot:back>
+            <template #back>
                 <router-link :to="{name: 'AdminSettingsSSO'}">
                     <nav-item :icon="icons.chevronLeft" label="Back to SSO"></nav-item>
                 </router-link>
@@ -19,7 +19,7 @@
                 </FormRow>
                 <FormRow v-model="input.domainFilter" :error="errors.domainFilter" placeholder="@example.com">
                     Email Domain
-                    <template v-slot:description>The email domain this provider should be used for.</template>
+                    <template #description>The email domain this provider should be used for.</template>
                 </FormRow>
                 <ff-button v-if="isCreate" :disabled="!formValid" @click="createProvider()">
                     Create configuration
@@ -29,15 +29,15 @@
                     <FormRow v-model="provider.entityID" type="uneditable">Entity ID / Issuer</FormRow>
                     <FormRow v-model="input.options.entryPoint">
                         Identity Provider Single Sign-On URL
-                        <template v-slot:description>Supplied by your Identity Provider</template>
+                        <template #description>Supplied by your Identity Provider</template>
                     </FormRow>
                     <FormRow v-model="input.options.idpIssuer">
                         Identity Provider Issuer ID / URL
-                        <template v-slot:description>Supplied by your Identity Provider</template>
+                        <template #description>Supplied by your Identity Provider</template>
                     </FormRow>
                     <FormRow v-model="input.options.cert">
                         X.509 Certificate Public Key
-                        <template v-slot:description>Supplied by your Identity Provider</template>
+                        <template #description>Supplied by your Identity Provider</template>
                         <template #input><textarea class="font-mono w-full" placeholder="---BEGIN CERTIFICATE---&#10;loremipsumdolorsitamet&#10;consecteturadipiscinge&#10;---END CERTIFICATE---&#10;" rows="6" v-model="input.options.cert"></textarea></template>
                     </FormRow>
                     <FormRow v-model="input.active" type="checkbox">Active</FormRow>

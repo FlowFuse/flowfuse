@@ -1,8 +1,8 @@
 ---
-navTitle: Upgrading to Premium
+navTitle: Installing a license
 ---
 
-## Upgrading to Premium
+## Upgrading to Premium and Enterprise from Starter
 
 For self-managed FlowFuse installations without a license you can unlock more
 features with a premium license. As an admin a license can be uploaded to
