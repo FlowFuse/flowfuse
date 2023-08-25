@@ -114,7 +114,7 @@ A snapshot is a point-in-time backup of a Node-RED instance. It captures the flo
 and runtime settings.
 
 Snapshots can be created (and deleted) on the FlowFuse dashboard, or using the
-[FlowFuse Node-RED Tools plugin](./node-red-tools.md).
+[FlowFuse Node-RED Tools plugin](/docs/migration/node-red-tools.md).
 
 The dashboard also allows you to roll an instance back to a previous snapshot.
 
