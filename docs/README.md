@@ -11,10 +11,10 @@ Node-RED application development and delivery.
 
 ## FlowFuse Manuals
 
- - [User Manual](./user/) - Documentation on how to use FlowFuse.
- - [Administrator Manual](./admin/) - How to administer the platform
+ - [User Manual](./user/introduction.md) - Documentation on how to use FlowFuse.
+ - [Administrator Manual](./admin/introduction.md) - How to administer the platform
  - [API Documentation](./api/)
- - [Node-RED Migration](./migration/) - How to migrate your Node-RED standalone to FlowFuse?
+ - [Node-RED Migration](./migration/introduction.md) - How to migrate your Node-RED standalone to FlowFuse?
 
 ## Device Agent
 
@@ -31,20 +31,20 @@ Node-RED application development and delivery.
 
 ## FlowFuse Self-Hosted
 
-- [Installing FlowFuse](./install/) - how to install the platform
+- [Installing FlowFuse](./install/introduction.md) - how to install the platform
 - [Upgrade your FlowFuse Instance](./upgrade/README.md)
 - [Upgrading to Premium](./upgrade/) - how to upgrade the platform
 - [From Open Source to Premium](./upgrade/open-source-to-premium.md)
 
 ## How to get support?
 
-- [Troubleshooting](./user/#debugging-and-fixing-node-red-issues)
+- [Troubleshooting](/docs/debugging/README.md)
 - [Community Support](https://community.flowforge.com/)
-- [FlowFuse Cloud Support](./cloud/#support)
+- [FlowFuse Cloud Support](/docs/premium-support.md)
 
  ## Contributing to FlowFuse
- - [Useful Information](./contribute/#contributing-to-flowforge) - Learn the foundational concepts of how FlowFuse is built & structured. 
- - [Development Setup](./contribute/#development-setup) - Configure your local development environment to contribute to FlowFuse.
- - [Testing](./contribute/#testing) - Understand our testing philosophy at FlowFuse.
+ - [Useful Information](./contribute/introduction.md#contributing-to-flowforge) - Learn the foundational concepts of how FlowFuse is built & structured. 
+ - [Development Setup](./contribute/introduction.md#development-setup) - Configure your local development environment to contribute to FlowFuse.
+ - [Testing](./contribute/introduction.md#testing) - Understand our testing philosophy at FlowFuse.
 
  
