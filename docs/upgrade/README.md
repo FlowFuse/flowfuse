@@ -1,22 +1,22 @@
 ---
-navGroup: Running FlowForge
-navTitle: Upgrading FlowForge
+navGroup: Running FlowFuse
+navTitle: Upgrading FlowFuse
 ---
 
-# Upgrading FlowForge
+# Upgrading FlowFuse
 
-If you are upgrading an existing FlowForge installation, this page will list any
+If you are upgrading an existing FlowFuse installation, this page will list any
 particular requirements needed to upgrade to a given level.
 
 If you are upgrading across multiple versions, make sure you check the requirements
 for each version you are upgrading across.
 
-Note that we do not support downgrading FlowForge to previous levels once an upgrade
+Note that we do not support downgrading FlowFuse to previous levels once an upgrade
 has been performed.
 
 ### Upgrading to 1.10
 
-Endpoint Rate Limiting is now available to FlowForge. This is disabled by default, but can be enabled by setting the `rate_limits.enabled` config setting to `true`.
+Endpoint Rate Limiting is now available to FlowFuse. This is disabled by default, but can be enabled by setting the `rate_limits.enabled` config setting to `true`.
 The documentation for this is available [here](../install/configuration.md#rate-limiting-configuration).
 
 The [TeamType concept](../user/concepts.md#team-type) was expanded in this release.

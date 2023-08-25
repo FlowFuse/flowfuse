@@ -1,10 +1,10 @@
 ---
-navTitle: FlowForge Project Nodes
+navTitle: FlowFuse Project Nodes
 ---
 
-# FlowForge Project Nodes
+# FlowFuse Project Nodes
 
-Node-RED instances running within FlowForge include a set of nodes that make it
+Node-RED instances running within FlowFuse include a set of nodes that make it
 very quick and easy to securely send and receive messages between different
 instances in a team.
 

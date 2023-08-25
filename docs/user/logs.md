@@ -4,7 +4,7 @@ navTitle: Logging
 
 # Logs
 
-FlowForge presents log information in several different places depending on what you are interested in.
+FlowFuse presents log information in several different places depending on what you are interested in.
 
 ## Node-RED Logs
 

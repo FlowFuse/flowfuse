@@ -1,5 +1,5 @@
 ---
-navTitle: FlowForge Cloud Billing
+navTitle: FlowFuse Cloud Billing
 ---
 
 # Billing
@@ -40,4 +40,4 @@ Stripe will retry the payment several times over a number of days. If the card r
 
 ## Cancelling your subscription
 
-If you want to cancel your subscription with FlowForge Cloud you will need to remove all Node-RED instances and then delete all teams from your account. If you have outstanding credit you can request a refund via a [support ticket](https://flowforge.com/contact-us/).
+If you want to cancel your subscription with FlowFuse Cloud you will need to remove all Node-RED instances and then delete all teams from your account. If you have outstanding credit you can request a refund via a [support ticket](https://flowfuse.com/contact-us/).

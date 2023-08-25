@@ -4,11 +4,11 @@ navTitle: Monitoring
 
 # Platform Monitoring
 
-FlowForge provides an API end-point that can be used to monitor statistical
+FlowFuse provides an API end-point that can be used to monitor statistical
 information about the platform.
 
 The end-point is accessible to any logged-in Admin user at the url (replace `example.com`
-with the domain of your FlowForge instance)
+with the domain of your FlowFuse instance)
 
  - `https://example.com/api/v1/admin/stats`
 

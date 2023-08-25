@@ -4,7 +4,7 @@ navTitle: Telemetry
 
 # Usage Telemetry
 
-The platform shares anonymous usage information with us at FlowForge. This helps
+The platform shares anonymous usage information with us at FlowFuse. This helps
 us understand how the platform is being used, what areas need improvement
 and how we should prioritise future work.
 
@@ -76,9 +76,9 @@ The following pieces of information are included in the telemetry sent back to u
 
 Property | Description
 ----|-----
-`instanceId` | A unique identifier for the FlowForge instance.
+`instanceId` | A unique identifier for the FlowFuse instance.
 `os` | Information about the operating system
-`env` | Node.js and FlowForge versions
+`env` | Node.js and FlowFuse versions
 `platform.counts` | A snapshot of the number of users, teams, projects (instances), etc, in use on the platform.
 `platform.config.driver` | Which backend driver is being used
 `platform.config.broker.enabled` | A flag indicating whether the the internal comms broker is enabled
@@ -103,7 +103,7 @@ The data is sent via an HTTP Post to `https://ping.flowforge.com`.
 
 ## Frontend Telemetry
 
-The FlowForge UI can be configured to track usage to help understand how users are navigating the pages.
+The FlowFuse UI can be configured to track usage to help understand how users are navigating the pages.
 
 It supports integration with two different services:
 
@@ -117,7 +117,7 @@ Option        | Description
 --------------|------------
 `telemetry.enabled` | Enables the anonymous usage telemetry of the platform. Default: `true`
 `telemetry.frontend.posthog.apikey` | The API key provided to you from your own PostHog account. Default: `null`
-`telemetry.frontend.posthog.capture_pageview` | FlowForge is designed as to provide custom posthog `$pageview` events that provide more detail on navigation than the default, and suit a single page application better. As such, we recommend setting this to false in order to prevent duplicate `pageleave`/`pageview` events firing. Default: `true`
+`telemetry.frontend.posthog.capture_pageview` | FlowFuse is designed as to provide custom posthog `$pageview` events that provide more detail on navigation than the default, and suit a single page application better. As such, we recommend setting this to false in order to prevent duplicate `pageleave`/`pageview` events firing. Default: `true`
 
 
 ```yaml

@@ -13,13 +13,13 @@ For container based deployment models, this covers three things:
  - `cpu` - a value between 1 and 100 that is the % of a CPU core the container should be allowed to consume.
  - `container` - this is the fully qualified name of the container to use. The default container built when following the install instructions is named `flowforge/node-red:latest`
 
-FlowForge supports Node-RED 2.2.x and later.
+FlowFuse supports Node-RED 2.2.x and later.
 
 ## Creating Containers
 
 There is an example `Dockerfile` and `package.json` in the [node-red-container](https://github.com/flowforge/docker-compose/tree/main/node-red-container) 
 directory of the [docker-compose](https://github.com/flowforge/docker-compose) project. This will start with `nodered/node-red:latest` 
-as it's base and then add the required FlowForge components.
+as it's base and then add the required FlowFuse components.
 
 Builds of this container for amd64, arm64 and armv7 are built for every release and published to Docker hub as [flowforge/node-red](https://hub.docker.com/r/flowforge/node-red). These can be used as a base to build custom stacks.
 

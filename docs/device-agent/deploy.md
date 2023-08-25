@@ -8,8 +8,8 @@ navOrder: 5
 Before you're able to deploy your flows to your device,
 you will have needed to have completed these steps:
 
-1. [Install the Device Agent on the Device](./install.md) - installs Node-RED and other requirements in order to communicate with FlowForge.
-2. [Register the Device with FlowForge](./register.md) - this step will have provided you with a `device.yml` file to move to your Device.
+1. [Install the Device Agent on the Device](./install.md) - installs Node-RED and other requirements in order to communicate with FlowFuse.
+2. [Register the Device with FlowFuse](./register.md) - this step will have provided you with a `device.yml` file to move to your Device.
 3. [Run the Device Agent](./running.md) - starts the Device Agent on the Device.
 
 ## Deploying a Node-RED instance to the device
@@ -20,7 +20,7 @@ To deploy a Node-RED instance to the device:
 backup of the Node-RED flows and configuration.
 2. [Mark that snapshot](../user/snapshots.md#setting-a-device-target-snapshot) as the **Device Target** snapshot.
 
-This model allows you to develop your flows in FlowForge and only push it out
+This model allows you to develop your flows in FlowFuse and only push it out
 to the registered devices when you're happy with what you've created.
 
 ## Editing the Node-RED flows on a device
@@ -28,7 +28,7 @@ to the registered devices when you're happy with what you've created.
 The device agent does not allow local access to the Node-RED editor. This ensures
 the device is running the deployed snapshot without modification.
 
-When running on FlowForge Cloud, or a premium licensed FlowForge instance (with the
+When running on FlowFuse Cloud, or a premium licensed FlowFuse instance (with the
 [MQTT broker enabled](https://flowforge.com/docs/install/local/#setting-up-mosquitto-(optional))
 access to the editor.
 

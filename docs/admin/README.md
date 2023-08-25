@@ -1,23 +1,23 @@
 ---
-navGroup: Running FlowForge
-navTitle: Administering FlowForge
+navGroup: Running FlowFuse
+navTitle: Administering FlowFuse
 ---
-# Administering FlowForge
+# Administering FlowFuse
 
 ## Getting started
 
- - [Understanding the FlowForge Architecture](../contribute/architecture.md)
+ - [Understanding the FlowFuse Architecture](../contribute/architecture.md)
  - [Install/Upgrade](../install) - requirements, deployment models, installation methods and upgrading
  - [`flowforge.yml` configuration](../install/configuration.md) - base platform configuration, done before you run.
  - [First Run Setup](../install/first-run.md) - create your admin user
- - [FlowForge Concepts](../user/concepts.md)
+ - [FlowFuse Concepts](../user/concepts.md)
  - [Usage Telemetry](/docs/admin/telemetry.md)
  - [Single-Sign On](/docs/admin/sso/README.md)
  - [Licensing](/docs/admin/licensing.md)
  - [User management](/docs/admin/user_management.md)
  - [Platform Monitoring](/docs/admin/monitoring.md)
 
-## Administering FlowForge
+## Administering FlowFuse
 
 ### Accessing the Admin Settings
 
@@ -151,7 +151,7 @@ applied the next time the instance is restarted.
 
 #### Disallow using nodes
 
-On FlowForge Cloud, but recommended on self-managed installs on Docker and Kubernetes,
+On FlowFuse Cloud, but recommended on self-managed installs on Docker and Kubernetes,
 where certain nodes will not work so are excluded from being used by the template.
 
 When adding `31-tcpin.js,32-udp.js,10-file.js,23-watch.js,90-exec.js` to the `Exlude node by
