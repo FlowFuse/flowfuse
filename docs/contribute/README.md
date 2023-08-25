@@ -75,7 +75,7 @@ flowforge-dev-env
     └── forge-ui-components
 ```
 
-More details on using the FlowForge Development Environment are available in its
+More details on using the FlowFuse Development Environment are available in its
 [documentation](https://github.com/flowforge/flowforge-dev-env).
 
 ### FlowFuse Code Structure
