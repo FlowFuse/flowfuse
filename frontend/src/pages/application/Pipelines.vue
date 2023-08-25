@@ -1,7 +1,7 @@
 <template>
     <SectionTopMenu
         hero="DevOps Pipelines"
-        help-header="FlowForge - DevOps Pipelines"
+        help-header="FlowFuse - DevOps Pipelines"
         info="Configure automated deployments between your Instances"
     >
         <template #helptext>

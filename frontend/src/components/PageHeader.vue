@@ -114,7 +114,7 @@ export default {
                 icon: QuestionMarkCircleIcon,
                 tag: 'documentation',
                 onclick: this.to,
-                onclickparams: { url: 'https://flowforge.com/docs/' }
+                onclickparams: { url: 'https://flowfuse.com/docs/' }
             }, {
                 label: 'Sign Out',
                 icon: LogoutIcon,

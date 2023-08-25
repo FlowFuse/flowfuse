@@ -133,7 +133,7 @@
     <!-- Account Scoped Events -->
     <template v-else-if="entry.event === 'account.register'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.user">'{{ entry.body.user?.username }}' has registered on FlowForge.</span>
+        <span v-if="!error && entry.body?.user">'{{ entry.body.user?.username }}' has registered on FlowFuse.</span>
         <span v-else-if="!error">User data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'account.login' || entry.event === 'auth.login'">

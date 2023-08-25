@@ -7,7 +7,7 @@
             <template v-if="license">
                 <table data-el="license-details">
                     <tr v-if="license.dev"><td class="font-medium p-2 pr-4 align-top" colspan="2"></td></tr>
-                    <tr><td class="font-medium p-2 pr-4 align-top">Type</td><td class="p-2"><span v-if="!license.dev">FlowForge Enterprise Edition</span><span v-else class="font-bold">FlowForge Development Only</span></td></tr>
+                    <tr><td class="font-medium p-2 pr-4 align-top">Type</td><td class="p-2"><span v-if="!license.dev">FlowFuse Enterprise Edition</span><span v-else class="font-bold">FlowForge Development Only</span></td></tr>
                     <tr><td class="font-medium p-2 pr-4 align-top">License ID</td><td class="p-2">{{ license.id }}</td></tr>
                     <tr><td class="font-medium p-2 pr-4 align-top">Organisation</td><td class="p-2">{{ license.organisation }}</td></tr>
                     <tr><td class="font-medium p-2 pr-4 align-top">Tier</td><td class="p-2">{{ license.tier }}</td></tr>
@@ -17,7 +17,7 @@
             </template>
             <template v-else>
                 <table>
-                    <tr><td class="font-medium p-2 pr-4 align-top">Type</td><td class="p-2">FlowForge Community Edition</td></tr>
+                    <tr><td class="font-medium p-2 pr-4 align-top">Type</td><td class="p-2">FlowFuse Community Edition</td></tr>
                 </table>
             </template>
             <div class="space-x-4 whitespace-nowrap">

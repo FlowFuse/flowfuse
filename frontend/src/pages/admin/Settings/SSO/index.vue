@@ -65,7 +65,7 @@ export default {
             Dialog.show({
                 header: 'Delete SAML Provider',
                 kind: 'danger',
-                text: 'Are you sure you want to delete this SAML Provider configuration? Any users with a matching email domain will no longer be able to login using SSO and will have to reset their FlowForge password to continue.',
+                text: 'Are you sure you want to delete this SAML Provider configuration? Any users with a matching email domain will no longer be able to login using SSO and will have to reset their FlowFuse password to continue.',
                 confirmLabel: 'Delete'
             }, async () => {
                 ssoApi.deleteProvider(provider.id)

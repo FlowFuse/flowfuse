@@ -1,11 +1,11 @@
 <template>
     <div>
-        <SectionTopMenu hero="Node-RED Instances" help-header="Node-RED Instances - Running in FlowForge" info="Instances of Node-RED belonging to this application.">
+        <SectionTopMenu hero="Node-RED Instances" help-header="Node-RED Instances - Running in FlowFuse" info="Instances of Node-RED belonging to this application.">
             <template #pictogram>
                 <img src="../../images/pictograms/edge_red.png">
             </template>
             <template #helptext>
-                <p>This is a list of Node-RED instances in this Application, hosted on the same domain as FlowForge.</p>
+                <p>This is a list of Node-RED instances in this Application, hosted on the same domain as FlowFuse.</p>
                 <p>It will always run the latest flow deployed in Node-RED and use the latest credentials and runtime settings defined in the Projects settings.</p>
                 <p>To edit an Application's flow, open the editor of the Instance.</p>
             </template>
@@ -67,7 +67,7 @@
                 <template #header>Add your Application's First Instance</template>
                 <template #message>
                     <p>
-                        Applications in FlowForge are used to manage groups of Node-RED Instances.
+                        Applications in FlowFuse are used to manage groups of Node-RED Instances.
                     </p>
                 </template>
                 <template #actions>
@@ -80,7 +80,7 @@
                 </template>
                 <template #note>
                     <p>
-                        The FlowForge team also have more planned for Applications, including
+                        The FlowFuse team also have more planned for Applications, including
                         <a class="ff-link" href="https://github.com/flowforge/flowforge/issues/1734" target="_blank">
                             shared settings across Instances</a>.
                     </p>
