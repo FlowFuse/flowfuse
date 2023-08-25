@@ -3,7 +3,7 @@
         <FormHeading>Application Creation</FormHeading>
         <FormRow v-model="input.teamName" id="teamName" type="checkbox">
             Limit application creation
-            <template v-slot:description>
+            <template #description>
             </template>
         </FormRow>
     </form>

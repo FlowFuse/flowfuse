@@ -1,6 +1,6 @@
 <template>
     <ff-dialog ref="dialog" header="Device Configuration">
-        <template v-slot:default>
+        <template #default>
             <form class="text-gray-800">
                 <template v-if="!hasCredentials">
                     <p>
@@ -30,14 +30,14 @@
                 </template>
             </form>
         </template>
-        <template v-slot:actions>
+        <template #actions>
             <template v-if="!hasCredentials">
                 <ff-button kind="secondary" @click="close()">Cancel</ff-button>
                 <ff-button kind="danger" class="ml-4" @click="regenerateCredentials()">Regenerate configuration</ff-button>
             </template>
             <template v-else>
                 <ff-button v-if="clipboardSupported" kind="secondary" @click="copy()">Copy to Clipboard</ff-button>
-                <ff-button kind="secondary" @click="downloadCredentials()"><template v-slot:icon-left><DocumentDownloadIcon /></template>Download device-{{ device.id }}.yml</ff-button>
+                <ff-button kind="secondary" @click="downloadCredentials()"><template #icon-left><DocumentDownloadIcon /></template>Download device-{{ device.id }}.yml</ff-button>
                 <ff-button class="ml-4" @click="close()">Done</ff-button>
             </template>
         </template>

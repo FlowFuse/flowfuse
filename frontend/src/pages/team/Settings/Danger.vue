@@ -2,7 +2,7 @@
     <div class="space-y-6">
         <FormHeading class="text-red-700">Delete Team</FormHeading>
         <div>
-            <div class="max-w-sm pr-2">{{deleteDescription}}</div>
+            <div class="max-w-sm pr-2">{{ deleteDescription }}</div>
             <div class="mt-2">
                 <ff-button kind="danger" data-action="delete-team" :disabled="!deleteActive" @click="showConfirmDeleteDialog()">Delete Team</ff-button>
                 <ConfirmTeamDeleteDialog @delete-team="deleteTeam" ref="confirmTeamDeleteDialog"/>

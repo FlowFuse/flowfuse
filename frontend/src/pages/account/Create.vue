@@ -2,13 +2,16 @@
 
 <template>
     <ff-layout-box class="ff-signup">
-        <template v-slot:splash-content v-if="splash">
+        <template #splash-content v-if="splash">
             <div v-html="splash" data-el="splash"></div>
         </template>
         <form v-if="!emailSent && !ssoCreated" class="max-w-md m-auto">
-            <p v-if="settings['branding:account:signUpTopBanner']" data-el="banner-text"
-               class="text-center -mt-6 pb-4 text-gray-400"
-               v-html="settings['branding:account:signUpTopBanner']"></p>
+            <p
+                v-if="settings['branding:account:signUpTopBanner']"
+                data-el="banner-text"
+                class="text-center -mt-6 pb-4 text-gray-400"
+                v-html="settings['branding:account:signUpTopBanner']"
+            ></p>
             <div>
                 <label>Username</label>
                 <ff-text-input ref="signup-username" data-form="signup-username" label="username" :error="errors.username" v-model="input.username" />
@@ -24,8 +27,13 @@
                 <span class="ff-error-inline">{{ errors.password }}</span>
             </div>
             <div class="pt-3" v-if="askJoinReason">
-                <ff-radio-group label="What brings you to FlowFuse?" v-model="input.join_reason" orientation="grid"
-                                data-form="signup-join-reason" :options="reasons" />
+                <ff-radio-group
+                    label="What brings you to FlowFuse?"
+                    v-model="input.join_reason"
+                    orientation="grid"
+                    data-form="signup-join-reason"
+                    :options="reasons"
+                />
             </div>
             <div class="pt-3" v-if="settings['user:tcs-required']">
                 <ff-checkbox v-model="input.tcs_accepted" data-form="signup-accept-tcs">
