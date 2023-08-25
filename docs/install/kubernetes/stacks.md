@@ -33,24 +33,22 @@ COPY package.json /data
 ...
 ```
 
-To add nodes to the default image you can add them to the `package.json` file 
+To add nodes to the default image you can extend the supplied container.
+The following Dockerfile will install the node-red-dashboard
 
-```json
-{
-    "name": "node-red-project",
-    "description": "A Node-RED Project",
-    "version": "0.1.9",
-    "private": true,
-    "dependencies":{
-        "node-red-dashboard": "^3.1.6"
-    }
-}
+```docker
+FROM flowforge/node-red
+
+WORKDIR /usr/src/node-red
+RUN npm install node-red-dashboard
+
+WORKDIR /usr/src/flowforge-nr-launcher
 ```
 
 To build the container run the following:
 
 ```shell
-docker build node-red-container -t [your.container.registry]/flowforge/node-red-dashboard:3.0.2
+docker build node-red-container/Dockerfile-dashboard -t [your.container.registry]/flowforge/node-red-dashboard:3.0.2
 docker push [your.container.registry]/flowforge/node-red-dashboard:3.0.2
 ```
 
