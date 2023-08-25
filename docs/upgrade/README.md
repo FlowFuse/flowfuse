@@ -1,5 +1,5 @@
 ---
-navGroup: Running FlowFuse
+navGroup: FlowFuse Self-Hosted
 navTitle: Upgrading FlowFuse
 ---
 
