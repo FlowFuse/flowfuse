@@ -1,5 +1,5 @@
 ---
-navGroup: FlowFuse Manuals
+navGroup: FlowFuse User Manuals
 navOrder: 2
 navTitle: FlowFuse API
 ---

@@ -9,10 +9,9 @@ remote deployments, support for DevOps delivery pipelines, and the ability to
 host Node-RED applications on FlowFuse. FlowFuse is the DevOps platform for
 Node-RED application development and delivery.
 
-## FlowFuse Manuals
+## FlowFuse User Manuals
 
  - [User Manual](./user/introduction.md) - Documentation on how to use FlowFuse.
- - [Administrator Manual](./admin/introduction.md) - How to administer the platform
  - [API Documentation](./api/)
  - [Node-RED Migration](./migration/introduction.md) - How to migrate your Node-RED standalone to FlowFuse?
 
@@ -35,6 +34,7 @@ Node-RED application development and delivery.
 - [Upgrade your FlowFuse Instance](./upgrade/README.md)
 - [Upgrading to Premium](./upgrade/) - how to upgrade the platform
 - [From Open Source to Premium](./upgrade/open-source-to-premium.md)
+- [Administrator Manual](./admin/introduction.md) - How to administer the platform
 
 ## How to get support?
 
