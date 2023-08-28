@@ -1,6 +1,6 @@
 ---
-navGroup: FlowFuse Manuals
-navOrder: 2
+navGroup: FlowFuse Self-Hosted
+navOrder: 3
 navTitle: Administering FlowFuse
 redirect: /docs/admin/introduction
 ---

@@ -1,6 +1,6 @@
 ---
 navGroup: FlowFuse Manuals
-navOrder: 3
+navOrder: 2
 navTitle: FlowFuse API
 ---
 
