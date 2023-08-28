@@ -68,7 +68,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const statusOnly = request.query.statusOnly
+        const statusOnly = !!request.query.statusOnly
 
         const paginationOptions = app.getPaginationOptions(request)
         if (statusOnly) {
@@ -94,7 +94,7 @@ module.exports = async function (app) {
 
         console.log('Searching for devices with where: ', where)
 
-        const devices = await app.db.models.Device.getAll(paginationOptions, where, { includeApplication: true, statusOnly: true })
+        const devices = await app.db.models.Device.getAll(paginationOptions, where, sort, { includeApplication: true, statusOnly })
         devices.devices = devices.devices.map(d => app.db.views.Device.device(d, { statusOnly }))
         reply.send(devices)
     })
