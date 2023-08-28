@@ -25,7 +25,7 @@
                 :rows="devicesWithStatuses"
                 :show-search="true"
                 search-placeholder="Search Devices"
-                :show-load-more="!!nextCursor"
+                :show-load-more="moreThanOnePage"
                 @load-more="loadMoreDevices"
                 @update:search="updateSearch"
             >
@@ -280,7 +280,10 @@ export default {
             // Server side
             filter: null,
             nextCursor: null,
-            checkInterval: null
+            checkInterval: null,
+
+            unsearchedHasMoreThanOnePage: true,
+            unfilteredHasMoreThanOnePage: true
         }
     },
     computed: {
@@ -339,8 +342,19 @@ export default {
 
             return columns
         },
+        filteredDevices () {
+            const devicesToDisplay = new Set(this.filter?.devices)
+
+            return Array.from(this.devices.values()).filter((device) => {
+                if (!this.filter) {
+                    return true
+                }
+
+                return devicesToDisplay.has(device.id)
+            })
+        },
         devicesWithStatuses () {
-            return Array.from(this.devices.values()).map(device => {
+            return this.filteredDevices.map(device => {
                 const status = this.allDeviceStatuses.get(device.id)
                 if (status) {
                     return {
@@ -362,6 +376,9 @@ export default {
                 (this.displayingInstance && !!this.instance?.id) ||
                 (this.displayingTeam && !!this.team?.id)
             )
+        },
+        moreThanOnePage () {
+            return !!this.nextCursor
         }
     },
     watch: {
@@ -385,16 +402,24 @@ export default {
         applyFilter (filter) {
             this.filter = filter
 
-            this.loadDevices(true)
+            if (this.unfilteredHasMoreThanOnePage) {
+                this.doFilterServerSide()
+            }
         },
 
         updateSearch (searchTerm) {
             this.searchTerm = searchTerm
 
-            this.doSearch()
+            if (this.unsearchedHasMoreThanOnePage) {
+                this.doSearchServerSide()
+            }
         },
 
-        doSearch: debounce(function () {
+        doFilterServerSide () {
+            this.loadDevices(true)
+        },
+
+        doSearchServerSide: debounce(function () {
             this.loadDevices(true)
         }, 150),
 
@@ -534,6 +559,7 @@ export default {
                 }
             }
 
+            // Actually fetch the data
             const data = await this.fetchData(nextCursor, null, extraParams)
 
             if (resetPage) {
@@ -544,7 +570,16 @@ export default {
                 this.devices.set(device.id, device)
             })
 
+            // Pagination
             this.nextCursor = data.meta.next_cursor
+
+            if (!extraParams.query) {
+                this.unsearchedHasMoreThanOnePage = this.moreThanOnePage
+            }
+
+            if (!extraParams.filter) {
+                this.unfilteredHasMoreThanOnePage = this.moreThanOnePage
+            }
 
             this.loadingDevices = false
         },
