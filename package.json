@@ -55,7 +55,7 @@
     "dependencies": {
         "@aws-sdk/client-ses": "^3.352.0",
         "@aws-sdk/credential-provider-node": "^3.352.0",
-        "@fastify/cookie": "^8.3.0",
+        "@fastify/cookie": "^9.0.4",
         "@fastify/csrf-protection": "^6.3.0",
         "@fastify/formbody": "^7.4.0",
         "@fastify/helmet": "^11.0.0",
