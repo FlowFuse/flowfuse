@@ -1,5 +1,6 @@
 ---
 navTitle: FlowFuse Concepts
+navOrder: 2
 ---
 
 # FlowFuse Concepts
@@ -51,6 +52,10 @@ With the 1.5 release, each Application has a single Node-RED instance. With the
 DevOps Pipelines allow you to manage staged development environments. Pushing
 from your Development instances to Production once you have stable, and well tested,
 flows. You can find out how to implement DevOps Pipelines [here](./devops-pipelines.md)
+
+### What is the difference between an Instance and a Device?
+
+At FlowFuse, we make a distinction between `Instances` and `Devices` in our terminology, even though both refer to Node-RED environments. The key difference lies in where these environments run. An Instance runs within the FlowFuse infrastructure, benefiting from our platform's seamless integration and management capabilities. In contrast, a Device refers to a Node-RED environment managed by FlowFuse but running on a different infrastructure—be it a PLC, Gateway, local PC, or even a server in a different network.
 
 ### Instance
 
