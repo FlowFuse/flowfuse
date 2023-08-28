@@ -181,10 +181,6 @@ export default {
                 key: '',
                 order: 'desc'
             },
-            pagination: {
-                active: -1,
-                max: -1
-            },
             orders: ['desc', 'asc']
         }
     },

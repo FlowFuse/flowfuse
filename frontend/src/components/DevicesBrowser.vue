@@ -4,7 +4,7 @@
         data-el="devices-section"
     >
         <ff-loading
-            v-if="loading"
+            v-if="loadingStatuses || loadingDevices"
             message="Loading Devices..."
         />
         <ff-loading
@@ -16,17 +16,18 @@
             message="Deleting Device..."
         />
         <template v-else>
-            <DevicesStatusBar v-if="devices.size > 0" data-el="devicestatus-lastseen" label="Last Seen" :devices="Array.from(devices.values())" property="lastseen" :filter="filter" @filter-selected="applyFilter" />
-            <DevicesStatusBar v-if="devices.size > 0" data-el="devicestatus-status" label="Last Known Status" :devices="Array.from(devices.values())" property="status" :filter="filter" @filter-selected="applyFilter" />
+            <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-lastseen" label="Last Seen" :devices="Array.from(allDeviceStatuses.values())" property="lastseen" :filter="filter" @filter-selected="applyFilter" />
+            <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-status" label="Last Known Status" :devices="Array.from(allDeviceStatuses.values())" property="status" :filter="filter" @filter-selected="applyFilter" />
             <ff-data-table
-                v-if="devices.size > 0"
+                v-if="allDeviceStatuses.size > 0"
                 data-el="devices-browser"
                 :columns="columns"
-                :rows="filteredDevices"
+                :rows="devicesWithStatuses"
                 :show-search="true"
                 search-placeholder="Search Devices"
                 :show-load-more="!!nextCursor"
                 @load-more="loadMore"
+                @update:search="updateSearch"
             >
                 <template #actions>
                     <ff-button
@@ -264,12 +265,19 @@ export default {
     emits: ['instance-updated'],
     data () {
         return {
-            loading: true,
-            filter: null,
+            // Page state
+            loadingStatuses: true,
+            loadingDevices: true,
             creatingDevice: false,
             deletingDevice: false,
+
+            // Devices lists
+            allDeviceStatuses: new Map(), // every device known
+            devices: new Map(), // devices currently available to be displayed
+
+            // Server side
+            filter: null,
             nextCursor: null,
-            devices: new Map(),
             checkInterval: null
         }
     },
@@ -329,16 +337,17 @@ export default {
 
             return columns
         },
-        filteredDevices () {
-            let filteredDevices = []
-            if (!this.filter) {
-                filteredDevices = Array.from(this.devices.values())
-            } else {
-                this.filter.devices.forEach((deviceId) => {
-                    filteredDevices.push(this.devices.get(deviceId))
-                })
-            }
-            return filteredDevices
+        devicesWithStatuses () {
+            return Array.from(this.devices.values()).map(device => {
+                const status = this.allDeviceStatuses.get(device.id)
+                if (status) {
+                    return {
+                        ...device,
+                        ...status
+                    }
+                }
+                return device
+            })
         },
         displayingInstance () {
             return this.instance !== null
@@ -354,12 +363,12 @@ export default {
         }
     },
     watch: {
-        instance: 'refreshData',
-        application: 'refreshData',
-        team: 'refreshData'
+        instance: 'fullReloadOfData',
+        application: 'fullReloadOfData',
+        team: 'fullReloadOfData'
     },
     mounted () {
-        this.pollForData()
+        this.fullReloadOfData()
     },
     unmounted () {
         clearInterval(this.checkInterval)
@@ -370,14 +379,21 @@ export default {
          *  - devices: an array of device ids
          *  - property: which filter row is being applied, e.g. status or lastseen
          *  - bucket: which value of this property are we filtering on from the buckets in the status bar
-         *
-         * We store these in order to apply the filter of devices to the table, and handle
-         * the situation where we switch between filters, property/bucket are checked against local
-         * values inside the StatusBar
-        */
+         */
         applyFilter (filter) {
+            console.log('applyFilter', filter)
             this.filter = filter
+
+            this.loadDevices(true)
         },
+
+        updateSearch (searchTerm) {
+            console.log('updateSearch', searchTerm)
+            this.searchTerm = searchTerm
+
+            this.loadDevices(true)
+        },
+
         showCreateDeviceDialog () {
             this.$refs.teamDeviceCreateDialog.show(null, this.instance, this.application)
         },
@@ -400,13 +416,15 @@ export default {
                 setTimeout(() => {
                     this.$refs.deviceCredentialsDialog.show(device)
                 }, 500)
-                this.devices.set(device.id, device)
+                this.loadedDevices.set(device.id, device)
+                this.allDevices.set(device.id, device)
                 this.applyFilter()
             }
         },
 
         deviceUpdated (device) {
-            this.devices.set(device.id, device)
+            this.allDevices.set(device.id, device)
+            this.loadedDevices.set(device.id, device)
         },
 
         async assignDevice (device, instanceId) {
@@ -423,54 +441,108 @@ export default {
             this.devices.set(device.id, device)
         },
 
-        async pollForData () {
+        // Device loading
+        fullReloadOfData () {
+            this.loadDevices(true)
+            this.pollForDeviceStatuses(true)
+        },
+
+        async loadDevices (reset) {
+            if (this.hasLoadedModel) {
+                await this.fetchDevices(reset)
+            }
+        },
+
+        async loadMoreDevices () {
+            await this.fetchDevices()
+        },
+
+        async pollForDeviceStatuses (reset) {
+            if (this.checkInterval) {
+                clearTimeout(this.checkInterval)
+            }
+
             try {
                 if (this.hasLoadedModel) {
-                    const firstRequest = !this.checkInterval
-                    await this.fetchData(null, !firstRequest) // to-do: For now, this only polls the first page...
+                    await this.fetchAllDeviceStatuses(reset)
                 }
             } finally {
-                this.checkInterval = setTimeout(this.pollForData, 10000)
+                this.checkInterval = setTimeout(this.pollForDeviceStatuses, 10000)
             }
         },
 
-        async refreshData () {
-            this.nextCursor = null
-            this.loadMore()
-        },
-
-        async loadMore () {
-            if (this.hasLoadedModel) {
-                await this.fetchData(this.nextCursor)
-            }
-        },
-
-        async fetchData (nextCursor = null, polled = false) {
-            let data
+        // Actual fetching methods
+        async fetchData (nextCursor = null, limit = null, extraParams = { statusOnly: false }) {
+            const query = null // handled via extraParams
             if (this.displayingInstance) {
-                data = await instanceApi.getInstanceDevices(this.instance.id, nextCursor)
-            } else if (this.displayingTeam) {
-                data = await teamApi.getTeamDevices(this.team.id, nextCursor)
-            } else {
-                return console.warn('Trying to fetch data without a loaded model.')
+                return await instanceApi.getInstanceDevices(this.instance.id, nextCursor, limit, query, extraParams)
             }
 
-            // Polling never resets the devices list
-            if (!nextCursor && !polled) {
+            if (this.displayingTeam) {
+                return await teamApi.getTeamDevices(this.team.id, nextCursor, limit, query, extraParams)
+            }
+
+            console.warn('Trying to fetch data without a loaded model.')
+
+            return null
+        },
+
+        async fetchAllDeviceStatuses (reset = false) {
+            const data = await this.fetchData(null, null, { statusOnly: true })
+
+            if (reset) {
+                this.allDeviceStatuses = new Map()
+            }
+
+            if (data.meta.next_cursor || data.devices.length < data.count) {
+                console.warn('Device Status API should not be paginating')
+            }
+
+            data.devices.forEach(device => {
+                this.allDeviceStatuses.set(device.id, device)
+            })
+
+            this.loadingStatuses = false
+        },
+
+        async fetchDevices (resetPage = false) {
+            if (resetPage) {
+                this.nextCursor = null
+            }
+
+            /// Params to send to the server
+            const nextCursor = this.nextCursor
+            const extraParams = {}
+
+            // Specific filtering
+            if (this.filter?.property && this.filter?.bucket) {
+                extraParams.filter = `${this.filter.property}:${this.filter.bucket}`
+            }
+
+            // Search and sort
+            if (this.searchTerm) {
+                extraParams.query = this.searchTerm
+            }
+            if (this.sort) {
+                extraParams.sort = this.sort
+                if (this.dir) {
+                    extraParams.dir = this.dir
+                }
+            }
+
+            const data = await this.fetchData(nextCursor, null, extraParams)
+
+            if (resetPage) {
                 this.devices = new Map()
             }
+
+            console.log(data)
+
             data.devices.forEach(device => {
                 this.devices.set(device.id, device)
             })
 
-            // TODO: Polling only loads the first page
-            if (!polled) {
-                this.nextCursor = data.meta.next_cursor
-            }
-
-            this.applyFilter(this.filter)
-
-            this.loading = false
+            this.loadingDevices = false
         },
 
         deviceAction (action, deviceId) {

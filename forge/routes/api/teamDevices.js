@@ -68,13 +68,11 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const options = {}
-
         const statusOnly = request.query.statusOnly
 
-        const paginationOptions = app.getPaginationOptions(request, options)
+        const paginationOptions = app.getPaginationOptions(request)
         if (statusOnly) {
-            delete options.limit
+            delete paginationOptions.limit
         }
 
         const where = {
