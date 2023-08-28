@@ -26,7 +26,7 @@
                 :show-search="true"
                 search-placeholder="Search Devices"
                 :show-load-more="!!nextCursor"
-                @load-more="loadMore"
+                @load-more="loadMoreDevices"
                 @update:search="updateSearch"
             >
                 <template #actions>
@@ -227,6 +227,8 @@ import TeamDeviceCreateDialog from '../pages/team/Devices/dialogs/TeamDeviceCrea
 import Alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 
+import { debounce } from '../utils/eventHandling.js'
+
 import EmptyState from './EmptyState.vue'
 import DevicesStatusBar from './charts/DeviceStatusBar.vue'
 
@@ -381,18 +383,20 @@ export default {
          *  - bucket: which value of this property are we filtering on from the buckets in the status bar
          */
         applyFilter (filter) {
-            console.log('applyFilter', filter)
             this.filter = filter
 
             this.loadDevices(true)
         },
 
         updateSearch (searchTerm) {
-            console.log('updateSearch', searchTerm)
             this.searchTerm = searchTerm
 
-            this.loadDevices(true)
+            this.doSearch()
         },
+
+        doSearch: debounce(function () {
+            this.loadDevices(true)
+        }, 150),
 
         showCreateDeviceDialog () {
             this.$refs.teamDeviceCreateDialog.show(null, this.instance, this.application)
@@ -536,11 +540,11 @@ export default {
                 this.devices = new Map()
             }
 
-            console.log(data)
-
             data.devices.forEach(device => {
                 this.devices.set(device.id, device)
             })
+
+            this.nextCursor = data.meta.next_cursor
 
             this.loadingDevices = false
         },

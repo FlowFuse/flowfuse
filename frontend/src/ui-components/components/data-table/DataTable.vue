@@ -193,8 +193,11 @@ export default {
                 return this.search
             },
             set (value) {
+                const valueChanged = value !== this.internalSearch
                 this.internalSearch = value
-                this.$emit('update:search', value)
+                if (valueChanged) {
+                    this.$emit('update:search', value)
+                }
             }
         },
         hasContextMenu: function () {
