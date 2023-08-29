@@ -6,7 +6,7 @@
 // - billingUrl
 
 module.exports = {
-    subject: 'Your FlowForge trial ends soon',
+    subject: 'Your FlowFuse trial ends soon',
     text:
 `Hello {{{username}}},
 
@@ -31,7 +31,7 @@ You can mange your team's billing here: {{billingUrl}}
 
 Cheers!
 
-Your friendly FlowForge Team
+Your friendly FlowFuse Team
 `,
     html:
 `<p>Hello {{{username}}},</p>
@@ -58,6 +58,6 @@ will only get charged once the trial ends.</p>
 
 <p>Cheers!</p>
 
-<p>Your friendly FlowForge Team</p>
+<p>Your friendly FlowFuse Team</p>
 `
 }

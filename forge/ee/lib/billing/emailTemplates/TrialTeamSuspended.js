@@ -5,11 +5,11 @@
 // - teamSettingsURL
 
 module.exports = {
-    subject: 'Your FlowForge trial has ended',
+    subject: 'Your FlowFuse trial has ended',
     text:
 `Hello {{{username}}},
 
-Your FlowForge trial has now ended. We hope you've enjoyed your time with us.
+Your FlowFuse trial has now ended. We hope you've enjoyed your time with us.
 
 As we do not have any billing information for your team, we have suspended
 your instances.
@@ -20,12 +20,12 @@ If you want to restart them you can setup billing on your Team Settings page:
 
 Cheers!
 
-Your friendly FlowForge Team
+Your friendly FlowFuse Team
 `,
     html:
 `<p>Hello {{{username}}},</p>
 
-<p>Your FlowForge trial has now ended. We hope you've enjoyed your time with us.</p>
+<p>Your FlowFuse trial has now ended. We hope you've enjoyed your time with us.</p>
 
 <p>As we do not have any billing information for your team, we have suspended
 your instances.</p>
@@ -34,7 +34,7 @@ your instances.</p>
 
 <p>Cheers!</p>
 
-<p>Your friendly FlowForge Team</p>
+<p>Your friendly FlowFuse Team</p>
 
 `
 }
