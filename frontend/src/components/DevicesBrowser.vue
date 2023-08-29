@@ -16,6 +16,7 @@
             message="Deleting Device..."
         />
         <template v-else>
+            <FeatureUnavailableToTeam v-if="teamDeviceLimitReached" fullMessage="You have reached the device limit for this team." />
             <DevicesStatusBar v-if="devices.size > 0" data-el="devicestatus-lastseen" label="Last Seen" :devices="Array.from(devices.values())" property="lastseen" :filter="filter" @filter-selected="applyFilter" />
             <DevicesStatusBar v-if="devices.size > 0" data-el="devicestatus-status" label="Last Known Status" :devices="Array.from(devices.values())" property="status" :filter="filter" @filter-selected="applyFilter" />
             <ff-data-table
@@ -47,6 +48,7 @@
                         class="font-normal"
                         data-action="register-device"
                         kind="primary"
+                        :disabled="teamDeviceLimitReached"
                         @click="showCreateDeviceDialog"
                     >
                         <template #icon-left>
@@ -249,6 +251,7 @@ import Alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 
 import EmptyState from './EmptyState.vue'
+import FeatureUnavailableToTeam from './banners/FeatureUnavailableToTeam.vue'
 import DevicesStatusBar from './charts/DeviceStatusBar.vue'
 
 const POLL_TIME = 10000
@@ -260,6 +263,7 @@ export default {
         DeviceAssignApplicationDialog,
         DeviceAssignInstanceDialog,
         DeviceCredentialsDialog,
+        FeatureUnavailableToTeam,
         PlusSmIcon,
         SnapshotAssignDialog,
         TeamDeviceCreateDialog,
@@ -369,6 +373,14 @@ export default {
                 (this.displayingApplication && !!this.application?.id) ||
                 (this.displayingTeam && !!this.team?.id)
             )
+        },
+        teamDeviceLimitReached () {
+            const teamTypeDeviceProperties = this.team.type.properties.devices
+            if (teamTypeDeviceProperties.limit !== undefined) {
+                // TODO: check the current device count.
+            }
+
+            return true
         }
     },
     watch: {
