@@ -1,5 +1,5 @@
 <template>
-    <FeatureUnavailableToTeam v-if="teamInstanceLimitReached" fullMessage="You have reached the instance limit for this team."/>
+    <FeatureUnavailableToTeam v-if="teamInstanceLimitReached" fullMessage="You have reached the instance limit for this team." />
     <form
         class="space-y-6"
         @submit.prevent="$emit('on-submit', input, copyParts)"
