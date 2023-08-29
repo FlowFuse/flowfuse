@@ -4,19 +4,21 @@
         <template v-if="type==='checkbox'">
             <div class="flex" :class="(wrapperClass ? wrapperClass : 'items-center')">
                 <div>
-                    <ff-checkbox :id="inputId"
-                                 ref="input"
-                                 type="checkbox"
-                                 :class="inputClass"
-                                 v-model="localModelValue"
-                                 :disabled="disabled"
-                                 data-el="form-row-title">
+                    <ff-checkbox
+                        :id="inputId"
+                        ref="input"
+                        type="checkbox"
+                        :class="inputClass"
+                        v-model="localModelValue"
+                        :disabled="disabled"
+                        data-el="form-row-title"
+                    >
                         <slot></slot>
                     </ff-checkbox>
                 </div>
                 <div v-if="hasAppend" :class="(appendClass ? appendClass : 'inline ml-2')"><slot name="append"></slot></div>
             </div>
-            <div v-if="error" data-el="form-row-error" class="ml-8 text-red-400 inline text-xs">{{error}}</div>
+            <div v-if="error" data-el="form-row-error" class="ml-8 text-red-400 inline text-xs">{{ error }}</div>
             <div v-if="hasDescription" data-el="form-row-description" class="ff-description pl-8 mt-1"><slot name="description"></slot></div>
         </template>
         <!-- Single Line File Selection -->
@@ -24,22 +26,23 @@
             <label data-el="form-row-title" v-if="hasTitle" :for="inputId" class="text-sm font-medium text-gray-800"><slot></slot></label>
             <div class="flex" :class="(wrapperClass ? wrapperClass : 'items-center')">
                 <div class="ff-input ff-text-input">
-                    <input :id="inputId"
-                           type="file"
-                           :class="inputClass"
-                           :accept="accept"
-                           :name="name"
-                           :placeholder="placeholder"
-                           :disabled="disabled"
-                           @change="$emit('update:modelValue', { obj: $event.target, val: $event.target.value})"
+                    <input
+                        :id="inputId"
+                        type="file"
+                        :class="inputClass"
+                        :accept="accept"
+                        :name="name"
+                        :placeholder="placeholder"
+                        :disabled="disabled"
+                        @change="$emit('update:modelValue', { obj: $event.target, val: $event.target.value})"
                     >
                 </div>
             </div>
-            <div v-if="error" data-el="form-row-error" class="ml-9 text-red-400 inline text-xs">{{error}}</div>
+            <div v-if="error" data-el="form-row-error" class="ml-9 text-red-400 inline text-xs">{{ error }}</div>
             <div v-if="hasDescription" data-el="form-row-description" class="mt-1 ff-description mb-2 ml-9 space-y-1"><slot name="description"></slot></div>
         </template>
         <template v-else>
-            <label data-el="form-row-title" v-if="hasTitle" :for="inputId" :class="(disabled ? 'text-gray-400' : 'text-gray-800')" class="block text-sm font-medium mb-1"><slot></slot></label>
+            <label data-el="form-row-title" v-if="hasTitle" :for="inputId" :class="(disabled ? 'text-gray-300' : 'text-gray-800')" class="block text-sm font-medium mb-1"><slot></slot></label>
             <div v-if="hasDescription" data-el="form-row-description" class="ff-description mb-2 space-y-1"><slot name="description"></slot></div>
             <div :class="(wrapperClass ? wrapperClass : 'flex flex-col sm:flex-row relative')">
                 <!-- Dropdown -->
@@ -56,7 +59,7 @@
                 </template>
                 <!-- Static/Uneditable -->
                 <template v-else-if="type==='uneditable'">
-                    <div data-el="form-row-uneditable" class="w-full uneditable" :class="inputClass + (disabled ? ' text-gray-400' : ' text-gray-800')">{{ modelValue || (valueEmptyText == null ? 'No Value' : valueEmptyText ) }}</div>
+                    <div data-el="form-row-uneditable" class="w-full uneditable" :class="inputClass + (disabled ? ' text-gray-300' : ' text-gray-800')">{{ modelValue || (valueEmptyText == null ? 'No Value' : valueEmptyText ) }}</div>
                 </template>
                 <template v-else>
                     <!-- Text Input -->
@@ -67,13 +70,14 @@
                         :disabled="disabled"
                         :type="type"
                         @enter="$emit('enter')"
-                        @blur="$emit('blur')" />
+                        @blur="$emit('blur')"
+                    />
                 </template>
                 <template v-if="hasAppend">
                     <div data-el="form-row-append" :class="appendClass ? appendClass : 'block sm:inline sm:absolute sm:left-full sm:ml-4 mt-2 sm:mt-0'"><slot name="append"></slot></div>
                 </template>
             </div>
-            <div v-if="error" data-el="form-row-error" class="ml-4 text-red-400 text-xs">{{error}}</div>
+            <div v-if="error" data-el="form-row-error" class="ml-4 text-red-400 text-xs">{{ error }}</div>
         </template>
     </div>
 </template>

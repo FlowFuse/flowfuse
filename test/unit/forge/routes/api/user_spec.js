@@ -26,12 +26,13 @@ describe('User API', async function () {
         await app.db.models.User.destroy({ where: {} })
 
         // alice : admin, team owner
-        // bob: (sso_enabled)
+        // bob: admin, (sso_enabled)
         // chris : (unverified_email)
         // dave : (password_expired)
         // elvis: (no teams)
         // frank: (B team owner)
         // grace: (B team member only)
+        // harry: not-admin, sso_enabled
 
         // ATeam ( alice  (owner), bob (owner), chris, dave)
         // BTeam ( bob (owner), chris, dave)
@@ -55,6 +56,7 @@ describe('User API', async function () {
         TestObjects.elvis = await app.db.models.User.create({ username: 'elvis', name: 'Elvis Dooku', email: 'elvis@example.com', email_verified: true, password: 'eePassword' })
         TestObjects.frank = await app.db.models.User.create({ username: 'frank', name: 'Frank Stein', email: 'frank@example.com', email_verified: true, password: 'ffPassword' })
         TestObjects.grace = await app.db.models.User.create({ username: 'grace', name: 'Grace Hut', email: 'grace@example.com', email_verified: true, password: 'ggPassword' })
+        TestObjects.harry = await app.db.models.User.create({ username: 'harry', name: 'Harry Palpatine', email: 'harry@example.com', email_verified: true, password: 'hhPassword', sso_enabled: true })
 
         // Alice set as ATeam owner in setup()
         await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
@@ -181,11 +183,11 @@ describe('User API', async function () {
                 result2.should.have.property('sso_enabled', true)
             })
             it('sso_enabled user cannot change email', async function () {
-                await login('bob', 'bbPassword')
+                await login('harry', 'hhPassword')
                 const response = await app.inject({
                     method: 'PUT',
                     url: '/api/v1/user',
-                    cookies: { sid: TestObjects.tokens.bob },
+                    cookies: { sid: TestObjects.tokens.harry },
                     payload: {
                         email: 'new-email@example.com' // user setting
                     }
@@ -193,7 +195,7 @@ describe('User API', async function () {
                 response.statusCode.should.equal(400)
                 const result = response.json()
                 result.should.have.property('code', 'invalid_request')
-                result.error.should.match(/Cannot change password/)
+                result.error.should.match(/Cannot change email/)
             })
         })
 
@@ -640,6 +642,113 @@ describe('User API', async function () {
                 cookies: { sid: TestObjects.tokens.grace }
             })
             response.statusCode.should.equal(200)
+        })
+    })
+
+    describe('User PAT', async function () {
+        it('Create a PAT', async function () {
+            await login('alice', 'aaPassword')
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    name: 'Test Token',
+                    scope: ''
+                }
+            })
+            response.statusCode.should.equal(200)
+            const json = response.json()
+            json.should.have.property('id', 1)
+            json.should.have.property('name', 'Test Token')
+        })
+        it('Create a PAT with expiry', async function () {
+            await login('alice', 'aaPassword')
+            const tomorrow = Date.now() + (24 * 60 * 60 * 10000)
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    name: 'Test Token Expiry',
+                    scope: '',
+                    expiresAt: tomorrow
+                }
+            })
+            response.statusCode.should.equal(200)
+            const json = response.json()
+            json.should.have.property('id', 2)
+            json.should.have.property('name', 'Test Token Expiry')
+            json.should.have.property('expiresAt', tomorrow)
+        })
+        it('Get Existing Tokens', async function () {
+            await login('alice', 'aaPassword')
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const json = response.json()
+            json.should.be.Array().length(2)
+        })
+        it('Delete a Token', async function () {
+            await login('alice', 'aaPassword')
+            const response = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/user/tokens/1',
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(201)
+        })
+        it('Delete a missing Token', async function () {
+            await login('alice', 'aaPassword')
+            const response = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/user/tokens/1',
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(400)
+        })
+        it('Update a Token', async function () {
+            await login('alice', 'aaPassword')
+            const dayAfterTomorrow = Date.now() + (48 * 60 * 60 * 10000)
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/tokens/2',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    scope: '',
+                    expiresAt: dayAfterTomorrow
+                }
+            })
+            response.statusCode.should.equal(200)
+        })
+        it('Use a token', async function () {
+            await login('alice', 'aaPassword')
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    name: 'Test Token',
+                    scope: ''
+                }
+            })
+            response.statusCode.should.equal(200)
+            const json = response.json()
+            const token = json.token
+
+            const response2 = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}`,
+                headers: {
+                    authorization: `Bearer ${token}`
+                }
+            })
+            response2.statusCode.should.equal(200)
+            const team = response2.json()
+            team.name.should.equal('BTeam')
         })
     })
 })

@@ -57,7 +57,7 @@ operations on the database.
 
 ## Applying migrations
 
-Migrations are applied automatically on start of the FlowForge application. Down
+Migrations are applied automatically on start of the FlowFuse application. Down
 migrations are not yet supported.
 
 ## Considerations when writing migrations

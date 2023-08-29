@@ -2,17 +2,17 @@
 navTitle: Node-RED Tools plugin
 ---
 
-# FlowForge Node-RED Tools plugin
+# FlowFuse Node-RED Tools plugin
 
 The Node-RED Tools Plugin is a module you can install into any Node-RED instance
-running outside of FlowForge, that gives you the ability to work on your flows
+running outside of FlowFuse, that gives you the ability to work on your flows
 locally.
 
 The current version of the plugin allows you to create a new Instance Snapshot
-using the flows you have locally and push them into an instance on FlowForge.
+using the flows you have locally and push them into an instance on FlowFuse.
 
 This can make it easier to develop hardware-specific flows locally, that can then
-be pushed out to your devices through FlowForge.
+be pushed out to your devices through FlowFuse.
 
 ## Install
 
@@ -31,26 +31,26 @@ full path to the `User directory`.
 ## Usage
 
 This initial version of the plugin allows you to create a snapshot of your locally
-developed flows and push them into one of your instances running inside FlowForge.
+developed flows and push them into one of your instances running inside FlowFuse.
 
-### Connecting to FlowForge
+### Connecting to FlowFuse
 
-Before you can do anything, you need to connect the plugin to a FlowForge platform.
+Before you can do anything, you need to connect the plugin to a FlowFuse platform.
 
-1. In the Node-RED editor, open the FlowForge Tools sidebar and click on the cog
+1. In the Node-RED editor, open the FlowFuse Tools sidebar and click on the cog
    icon to open the settings panel.
 
-2. Enter the url of your FlowForge platform. For example, if you have signed-up
-   to [FlowForge Cloud](https://app.flowforge.com/) then use the URL `https://app.flowforge.com`.
+2. Enter the url of your FlowFuse platform. For example, if you have signed-up
+   to [FlowFuse Cloud](https://app.flowforge.com/) then use the URL `https://app.flowforge.com`.
 
-3. Click connect. This will open another window where you can log in to FlowForge
+3. Click connect. This will open another window where you can log in to FlowFuse
    and give permission for the plugin to connect to your account.
 
 4. Once connected, close the settings panel.
 
 ### Working with Snapshots
 
-The FlowForge Tools sidebar allows you to browse the teams you are a member of
+The FlowFuse Tools sidebar allows you to browse the teams you are a member of
 and their instances.
 
 When you select an instance, the sidebar lists its snapshots.
@@ -64,13 +64,13 @@ You can then create a new snapshot using the flows you have running locally.
 2. In the dialog, enter a name for the snapshot and an optional description.
 
 3. The dialog lists the modules your flows are using, along with the version number.
-   This information is included in the snapshot when sent back to the FlowForge instance.
-   Check the notes below on how this is handled within FlowForge.
+   This information is included in the snapshot when sent back to the FlowFuse instance.
+   Check the notes below on how this is handled within FlowFuse.
 
 4. Click 'Create Snapshot'
 
-At this point, a new snapshot will be created in FlowForge. You can then switch
-to the FlowForge platform and from the Snapshot view either select the rollback
+At this point, a new snapshot will be created in FlowFuse. You can then switch
+to the FlowFuse platform and from the Snapshot view either select the rollback
 option to deploy that snapshot, or set it as the Device Target to deploy it to your
 devices.
 

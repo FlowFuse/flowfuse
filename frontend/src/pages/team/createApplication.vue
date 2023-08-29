@@ -100,8 +100,8 @@ export default {
         async handleFormSubmit (formData, copyParts) {
             this.loading = true
 
-            const { applicationName, ...projectFields } = formData
-            const applicationFields = { name: applicationName }
+            const { applicationName, applicationDescription, ...projectFields } = formData
+            const applicationFields = { name: applicationName, description: applicationDescription }
 
             try {
                 if (!this.applicationCreated) {

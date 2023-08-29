@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-dialog-container" :class="'ff-dialog-container--' + (open ? 'open' : 'closed')">
+    <div ref="container" class="ff-dialog-container" :class="'ff-dialog-container--' + (open ? 'open' : 'closed')">
         <div class="ff-dialog-box">
             <div class="ff-dialog-header">{{ header }}</div>
             <div ref="content" class="ff-dialog-content">
@@ -7,8 +7,8 @@
             </div>
             <div class="ff-dialog-actions">
                 <slot name="actions">
-                    <ff-button kind="secondary" @click="cancel()">Cancel</ff-button>
-                    <ff-button :kind="kind" :disabled="disablePrimary" @click="confirm()">{{ confirmLabel }}</ff-button>
+                    <ff-button kind="secondary" data-action="dialog-cancel" @click="cancel()">Cancel</ff-button>
+                    <ff-button :kind="kind" data-action="dialog-confirm" :disabled="disablePrimary" @click="confirm()">{{ confirmLabel }}</ff-button>
                 </slot>
             </div>
         </div>
@@ -48,7 +48,7 @@ export default {
     },
     watch: {
         open: function () {
-            this.$refs.content.scrollTop = 0
+            this.$refs.container.scrollTop = 0
         }
     },
     methods: {

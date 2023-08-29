@@ -97,15 +97,15 @@
                         <template #header>Connect your First Device</template>
                         <template #message>
                             <p>
-                                Devices in FlowForge allow you to manage Node-RED instances
+                                Devices in FlowFuse allow you to manage Node-RED instances
                                 running on remote hardware.
                             </p>
                             <p>
                                 A Device runs the <a
-                                    class="ff-link" href="https://flowforge.com/docs/user/devices"
+                                    class="ff-link" href="https://flowfuse.com/docs/user/devices"
                                     target="_blank"
-                                >FlowForge Device Agent</a>, and can be used to deploy and debug
-                                instances anywhere, from here, in FlowForge.
+                                >FlowFuse Device Agent</a>, and can be used to deploy and debug
+                                instances anywhere, from here, in FlowFuse.
                             </p>
                         </template>
                         <template #actions>
@@ -178,7 +178,7 @@
             </p>
             <p class="my-4">
                 Further info on Devices can be found
-                <a href="https://flowforge.com/docs/user/devices/" target="_blank">here</a>.
+                <a href="https://flowfuse.com/docs/user/devices/" target="_blank">here</a>.
             </p>
         </template>
     </TeamDeviceCreateDialog>

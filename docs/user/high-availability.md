@@ -9,10 +9,10 @@ with incoming work distributed between them.
 
 The following requirements apply:
 
- - FlowForge 1.8+ running with an EE license and the kubernetes driver
- - FlowForge Cloud
+ - FlowForge/FlowFuse 1.8+ running with an EE license and the kubernetes driver
+ - FlowFuse Cloud
 
-Within FlowForge Cloud it is currently free to use for all teams, but will
+Within FlowFuse Cloud it is currently free to use for all teams, but will
 become a chargeable feature in a future release.
 
 ## Restrictions
@@ -23,7 +23,7 @@ become a chargeable feature in a future release.
  - Flows cannot be directly modified in an HA Instance; the editor is disabled.
    A [DevOps Pipeline](./devops-pipelines.md) should be created to deploy new flows to the instance.
  - Any internal state of the flows is not shared between the HA copies.
- - The [FlowForge Persistent Context](./persistent-context.md) is not synchronised
+ - The [FlowFuse Persistent Context](./persistent-context.md) is not synchronised
    between the HA copies
  - The logs view show combined logs of all copies. An identifier indicates which replica the log message originates from. You have the possibility to filter the messages.
 
@@ -69,7 +69,7 @@ with the results, use the pipeline to push the changes over to the HA instance.
 
 ## Building HA-ready flows
 
-Whilst FlowForge can help run multiple copies of your flows, and provide the
+Whilst FlowFuse can help run multiple copies of your flows, and provide the
 necessary load balancing between those copies, it still requires the flows to
 have been created with HA in mind.
 
@@ -89,7 +89,7 @@ every message.
 When state is required, it needs to be stored somewhere that all instances can
 access it - for example an external database service.
 
-FlowForge provides a [persistent context](./persistent-context.md) option - however
+FlowFuse provides a [persistent context](./persistent-context.md) option - however
 this includes a local caching layer that means it doesn't fully synchronize between
 the instances in real time. This is something we'll be working on for a future iteration
 of the feature, as it will require some changes in Node-RED to unlock its full potential.

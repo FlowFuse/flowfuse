@@ -25,7 +25,7 @@ The install script has been tested against the following operating systems:
 
 ### Node.js
 
-FlowForge requires ***Node.js v16***.
+FlowFuse requires ***Node.js v16***.
 
 #### Linux
 
@@ -51,9 +51,9 @@ You will also need to install the appropriate build tools.
     xcode-select --install
     ```
 
-## Installing FlowForge
+## Installing FlowFuse
 
-1. Create a directory to be the base of your FlowForge install. For example: `/opt/flowforge` or `c:\flowforge`
+1. Create a directory to be the base of your FlowFuse install. For example: `/opt/flowforge` or `c:\flowforge`
 
    For Linux/MacOS:
     ```bash
@@ -108,22 +108,22 @@ You will also need to install the appropriate build tools.
 
 ### Installing as a service (optional)
 
-On Linux, the installer will ask if you want to run FlowForge as a service.
+On Linux, the installer will ask if you want to run FlowFuse as a service.
 This will mean it starts automatically whenever you restart your device.
 
 If you select this option, it will ask if you want to run the service as the
 current user, or create a new `flowforge` user. If you choose to create the
-user, it will also change the ownership of the FlowForge directory to that user.
+user, it will also change the ownership of the FlowFuse directory to that user.
 
-## Configuring FlowForge
+## Configuring FlowFuse
 
-The default FlowForge configuration is provided in the file `flowforge.yml`
+The default FlowFuse configuration is provided in the file `flowforge.yml`
 * Linux/MacOS: `/opt/flowforge/etc/flowforge.yml`
 * Windows: `c:\flowforge\etc\flowforge.yml`
 
-The default configuration file already contains everything you need to get started with FlowForge.
+The default configuration file already contains everything you need to get started with FlowFuse.
 
-It will allow you to access FlowForge and the Node-RED instances you create, from the same server running the platform. 
+It will allow you to access FlowFuse and the Node-RED instances you create, from the same server running the platform. 
 If you want to allow access from other devices on the network, you must edit the configuration file and 
 change the `host` setting to `0.0.0.0` and change `base_url` to contain the IP address of the server.
 
@@ -131,7 +131,7 @@ NOTE: We do not support changing the `host` and `base_url` values once you have 
 For more information on all of the options available, see the [configuration guide](../configuration.md).
 
 
-## Running FlowForge
+## Running FlowFuse
 
 To run it manually, you can use:
 
@@ -154,7 +154,7 @@ Or to run as a service:
     ```
 ## First Run Setup
 
-Once FlowForge is started, you will be ready to perform the first run setup.
+Once FlowFuse is started, you will be ready to perform the first run setup.
 
 Follow [this guide](../first-run.md) to continue.
 
@@ -166,9 +166,9 @@ provide real-time messaging between devices and the platform.
 This is currently an *optional* component - the platform will work without the
 broker, but some features will not be available.
 
-We do **not** support sharing a broker with other non-FlowForge applications. If you
+We do **not** support sharing a broker with other non-FlowFuse applications. If you
 already have mosquitto installed and running, you will need to run a second instance
-dedicated to FlowForge.
+dedicated to FlowFuse.
 
 You can either follow the manual install steps, which involve building the authentication
 plugin from scratch, or make use of the [Docker install](#docker-install).
@@ -239,7 +239,7 @@ you can use a pre-built docker image that provides everything needed.
 To upgrade to the latest release you can follow these steps. Replace `x.y.z` with the
 version you are upgrading to.
 
- 1. Stop FlowForge `sudo service flowforge stop` [^2]
+ 1. Stop FlowFuse `sudo service flowforge stop` [^2]
  2. Change into the `app` directory
     * `cd /opt/flowforge/app` (Linux/MacOS)
     * `cd c:\flowforge\app` (Windows)
@@ -247,9 +247,9 @@ version you are upgrading to.
     * `sudo -u flowforge npm install @flowforge/flowforge@x.y.z` (Linux/MacOS) [^3]
     * `npm install @flowforge/flowforge@x.y.z` (Windows)
  4. Check the release notes for any additional steps needed to upgrade the particular version
- 5. Restart FlowForge `sudo service flowforge start` [^2]
+ 5. Restart FlowFuse `sudo service flowforge start` [^2]
  
 If you are running as your normal user you can drop the `sudo -u flowforge` and just run `npm install @flowforge/flowforge@x.y.z`
 
-[^2]: Assumes you are running Flowforge as a Linux service.
-[^3]: Assumes you are running Flowforge as the `flowforge` user as created by the installer
+[^2]: Assumes you are running FlowFuse as a Linux service.
+[^3]: Assumes you are running FlowFuse as the `flowforge` user as created by the installer

@@ -5,7 +5,7 @@ navOrder: 3
 
 # Register your Device
 
-To connect a device to FlowForge, it needs a set of credentials. 
+To connect a device to FlowFuse, it needs a set of credentials. 
 
 There are two types of configurations to choose from:
 
@@ -190,5 +190,5 @@ httpStatic:
 If you have problems with the device agent the first thing to do is to enable the verbose logging mode.
 
 To do this add a `-v` to the command line. This will present a lot more information about what the agent is doing.
-It will show that is has connected to the FlowForge instance and every time it checks in, it will also log all the 
-local HTTP requests made when accessing the Node-RED Editor via the FlowForge application.
+It will show that is has connected to the FlowFuse instance and every time it checks in, it will also log all the 
+local HTTP requests made when accessing the Node-RED Editor via the FlowFuse application.

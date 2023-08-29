@@ -1,12 +1,12 @@
 ---
 navGroup: Overview
-navTitle: Contributing to FlowForge
+navTitle: Contributing to FlowFuse
 ---
-## Contributing to FlowForge
+## Contributing to FlowFuse
 
-This guide will help you get setup to contribute to the FlowForge project.
+This guide will help you get setup to contribute to the FlowFuse project.
 
-The core of the FlowForge platform is available under the Apache-2.0 license and
+The core of the FlowFuse platform is available under the Apache-2.0 license and
 we welcome contributions from the community.
 
 ### Software Requirements
@@ -23,21 +23,21 @@ This guide assumes you have a working development environment including:
 
 ### Project Repositories
 
-There are a number of repositories under the [FlowForge GitHub organisation](https://github.com/flowforge)
+There are a number of repositories under the [FlowFuse GitHub organisation](https://github.com/flowforge)
 that make up the platform.
 
 Repository    | Description
 --------------|---------------------
-[flowforge](https://github.com/flowforge/flowforge) | This is the core of the platform.
+[FlowFuse](https://github.com/flowforge/flowforge) | This is the core of the platform.
 [forge-ui-components](https://github.com/flowforge/forge-ui-components) | Common UI components used in the forge platform.
 [installer](https://github.com/flowforge/installer) | The installer for the platform
 [flowforge-driver-localfs](https://github.com/flowforge/flowforge-driver-localfs) | The LocalFS driver. This deploys projects to the local system.
 [flowforge-driver-docker](https://github.com/flowforge/flowforge-driver-docker) | The Docker driver. This deploys projects as containers in a Docker-managed environment.
 [flowforge-driver-k8s](https://github.com/flowforge/flowforge-driver-k8s) | The Kubernetes driver. This deploys projects as containers in a Kubernetes-managed environment.
-[flowforge-nr-launcher](https://github.com/flowforge/flowforge-nr-launcher) | The launcher application used to start and monitor an individual instance of Node-RED in the FlowForge platform.
-[flowforge-nr-audit-logger](https://github.com/flowforge/flowforge-nr-audit-logger) | A Node-RED logging plugin that captures audit log events and sends them back to the FlowForge platform.
-[flowforge-nr-auth](https://github.com/flowforge/flowforge-nr-auth) | A Node-RED authentication plugin that controls access to a Node-RED instance based on FlowForge access controls.
-[flowforge-nr-storage](https://github.com/flowforge/flowforge-nr-storage) | A Node-RED storage plugin that stores Node-RED state in the FlowForge platform
+[flowforge-nr-launcher](https://github.com/flowforge/flowforge-nr-launcher) | The launcher application used to start and monitor an individual instance of Node-RED in the FlowFuse platform.
+[flowforge-nr-audit-logger](https://github.com/flowforge/flowforge-nr-audit-logger) | A Node-RED logging plugin that captures audit log events and sends them back to the FlowFuse platform.
+[flowforge-nr-auth](https://github.com/flowforge/flowforge-nr-auth) | A Node-RED authentication plugin that controls access to a Node-RED instance based on FlowFuse access controls.
+[flowforge-nr-storage](https://github.com/flowforge/flowforge-nr-storage) | A Node-RED storage plugin that stores Node-RED state in the FlowFuse platform
 [flowforge-nr-theme](https://github.com/flowforge/flowforge-nr-theme) | A custom Node-RED theme
 
 ### Setting Up A Development Environment
@@ -46,7 +46,7 @@ With the project split across multiple repositories, setting up a development
 environment manually takes quite a lot of steps to ensure everything is checked
 out and configured properly.
 
-To make it easier, you can use the [FlowForge Development Environment](https://github.com/flowforge/flowforge-dev-env) project to get set up.
+To make it easier, you can use the [FlowFuse Development Environment](https://github.com/flowforge/flowforge-dev-env) project to get set up.
 
 The following steps will get your development environment setup in no time:
 
@@ -75,10 +75,10 @@ flowforge-dev-env
     └── forge-ui-components
 ```
 
-More details on using the FlowForge Development Environment are available in its
+More details on using the FlowFuse Development Environment are available in its
 [documentation](https://github.com/flowforge/flowforge-dev-env).
 
-### FlowForge Code Structure
+### FlowFuse Code Structure
 
 The `flowforge/flowforge` repository is the core of the platform and where you'll 
 likely want to begin.
@@ -116,8 +116,8 @@ likely want to begin.
 ## Development Setup
 
 1. [Create a Stack](#create-a-stack)
-1. [Running FlowForge](#running-flowforge)
-1. [Configuring FlowForge](#configuring-flowforge)
+1. [Running FlowFuse](#running-flowfuse)
+1. [Configuring FlowFuse](#configuring-flowfuse)
 1. [Mocking email](#mocking-email)
 1. [Testing](#testing)
 1. [VSCode Tips](#vscode-tips)
@@ -135,7 +135,7 @@ npm run install-stack --vers=3.0.2
 
 Where `3.0.2` is the version of Node-RED you want to use in the stack.
 
-### Running FlowForge
+### Running FlowFuse
 
 A number of `npm` tasks are defined in the `package.json` file of this repository.
 To get started from the `flowforge` directory use:
@@ -146,7 +146,7 @@ npm run serve
 
 This does a couple things in parallel:
 
- - Starts the core FlowForge application and watches the source code for any
+ - Starts the core FlowFuse application and watches the source code for any
    changes - triggering a restart if needed.
  - Builds the frontend application using WebPack and watches for any changes - triggering a rebuild as needed.
 
@@ -154,11 +154,11 @@ This does a couple things in parallel:
 When running like this, the `NODE_ENV` environment variable gets set to `development`.
 
 
-*Note*: if you have not used the [FlowForge Development Environment](#setting-up-a-development-environment), then you will need to run `npm run build`
+*Note*: if you have not used the [FlowFuse Development Environment](#setting-up-a-development-environment), then you will need to run `npm run build`
 to build the platform before you can use `npm run serve`.
 
 
-### Configuring FlowForge
+### Configuring FlowFuse
 
 When running in development mode, the core app will use `etc/flowforge.yml` for its configuration.
 As you may want to have local configuration that you don't want to commit back to git,
@@ -221,7 +221,7 @@ with billing enabled on the same account, you will see their events arrive.
 
 #### Free Trials
 
-Free trials are implemented as a Stripe Credit that is applied when a FlowForge user
+Free trials are implemented as a Stripe Credit that is applied when a FlowFuse user
 creates their first team and completed billing sign up.
 
 To enable trials, set the `billing.stripe.new_customer_free_credit` value to a credit amount in cents.

@@ -1,8 +1,8 @@
 ---
-navTitle: FlowForge File Storage
+navTitle: FlowFuse File Storage
 ---
 
-# FlowForge File Storage
+# FlowFuse File Storage
 
 When running in container-based environments, such as Docker or Kubernetes,
 the Node-RED instances do not have access to a persistent filesystem.
@@ -10,7 +10,7 @@ the Node-RED instances do not have access to a persistent filesystem.
 This means any files written to the container will be lost if the instance is
 restarted.
 
-The FlowForge platform includes a File Storage service that can be used to provide
+The FlowFuse platform includes a File Storage service that can be used to provide
 persistent storage to Node-RED in two different ways:
 
   - A set of custom File nodes that behave the same way as the standard Node-RED
@@ -31,7 +31,7 @@ The File Storage server has its own configuration file: `etc/flowforge-storage.y
    You must also set `forge.fileStore.enabled` to `true` to tell Helm to deploy the service.
 
 There are three parts to the configuration:
- - [Platform Configuration](#platform-configuration) - how to access the main FlowForge platform application
+ - [Platform Configuration](#platform-configuration) - how to access the main FlowFuse platform application
  - [File Storage configuration](#file-storage-configuration) - what storage to use for the File nodes
  - [Persistent Context configuration](#persistent-context-configuration) - what storage to use for Persistent Context
 
@@ -41,7 +41,7 @@ Option        | Description
 --------------|------------
 `host` | Where to listen for incoming connections. Default: `0.0.0.0`. 
 `port` | The port to listen on. Default: `3001`
-`base_url` | The url to access the FlowForge platform on. This defaults to `http://localhost:3000`
+`base_url` | The url to access the FlowFuse platform on. This defaults to `http://localhost:3000`
 
 
 ### File Storage configuration
@@ -106,17 +106,17 @@ driver:
     region: us-east-1
 ```
 
-#### Enabling the FlowForge File Nodes
+#### Enabling the FlowFuse File Nodes
 
-The FlowForge File nodes have been written to be direct replacements
+The FlowFuse File nodes have been written to be direct replacements
 for the Node-RED core file-in and file-out nodes. This means that only 
 one version of these nodes can be active in Node-RED at a time.
 
-The FlowForge File nodes will automatically disable themselves if the 
+The FlowFuse File nodes will automatically disable themselves if the 
 core nodes are present. This means to enable the nodes you need to 
 exclude the code nodes.
 
-This can be done in the FlowForge Template.
+This can be done in the FlowFuse Template.
 
 <img src="../images/file-node-template.png" width=500 />
 
@@ -126,7 +126,7 @@ Adding `10-file.js` to the list of "Excluded nodes by filename" section will ens
 
 The Context Storage configuration determines where Node-RED Context data is stored.
 
-This feature is only available when running with a FlowForge Premium license.
+This feature is only available when running with a FlowFuse Premium license.
 
 Due to the different access patterns for context data, this requires a separate
 storage configuration to the File store. It can use either an SQLite or PostgreSQL
@@ -180,8 +180,8 @@ context:
     password: password
 ```
 
-## Working with FlowForge Devices
+## Working with FlowFuse Devices
 
-The FlowForge Device Agent does *not* use the File Storage service. Any flows
+The FlowFuse Device Agent does *not* use the File Storage service. Any flows
 using the file nodes or persistent context that are deployed to a Device will use
 the local filesystem directly.

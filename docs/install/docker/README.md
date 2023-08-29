@@ -4,7 +4,7 @@ navTitle: Docker install
 
 # Docker Install
 
-This version of the FlowForge platform is intended for running in the Docker Container management system. Typically suited for small/medium on premise deployments.
+This version of the FlowFuse platform is intended for running in the Docker Container management system. Typically suited for small/medium on premise deployments.
 
 ## Prerequisites
 
@@ -14,18 +14,18 @@ The following instructions assume you are running Docker on a Linux or MacOS hos
 
 #### Digital Ocean
 
-If you are using the Digital Ocean Docker Droplet to host FlowForge you will need to ensure that port 80 & 443 are opened in the UFW firewall before starting.
+If you are using the Digital Ocean Docker Droplet to host FlowFuse you will need to ensure that port 80 & 443 are opened in the UFW firewall before starting.
 
 ```bash
 sudo ufw apply http
 sudo ufw apply https
 ```
 
-We have a 1-Click Digital Ocean Droplet that will install and configure FlowForge for you. Details can be found [here](./digital-ocean.md)
+We have a 1-Click Digital Ocean Droplet that will install and configure FlowFuse for you. Details can be found [here](./digital-ocean.md)
 
 ### Docker Compose
 
-FlowForge uses Docker Compose to install and manage the required components. Instructions on how to install Docker Compose on your system can be found here:
+FlowFuse uses Docker Compose to install and manage the required components. Instructions on how to install Docker Compose on your system can be found here:
 
 [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/)
 
@@ -36,13 +36,13 @@ The orchestration uses an instance of Nginx to route requests to each Node-RED i
 
 To make this work you will need to configure a DNS server to map a wildcard domain entry to the IP address of the host running Docker. e.g `*.example.com`.
 
-The FlowForge Application will be hosted on `http://forge.example.com`
+The FlowFuse Application will be hosted on `http://forge.example.com`
 
 **Note** When testing locally you can add entries for each Node-RED instance to your `/etc/hosts` file but you must use the external IP address of the host machine, not the loopback address (`127.0.0.1`).
 
 Notes on how to setup DNS can be found [here](../dns-setup.md).
 
-## Installing FlowForge
+## Installing FlowFuse
 
 ### Download
 
@@ -57,7 +57,7 @@ tar zxf v1.x.y.tar.gz
 cd docker-compose-1.x.y
 ```
 
-### Configuring FlowForge
+### Configuring FlowFuse
 
 Configuration details are stored in the `etc/flowforge.yml` and the `docker-compose.yml` files.
 
@@ -147,7 +147,7 @@ environment:
 You will also need to update the `etc/flowforge.yml` file to change the `broker.public_url` entry from starting with `ws://` to `wss://`.
 
 
-## Running FlowForge
+## Running FlowFuse
 
 We need to manually download the `flowforge/node-red` container that will be used for the default stack.
 
@@ -157,7 +157,7 @@ This is done with this command:
 docker pull flowforge/node-red
 ```
 
-Once that completes we can start FlowForge:
+Once that completes we can start FlowFuse:
 
 Using the docker compose plugin
 ```bash
@@ -181,12 +181,12 @@ For more information, follow [this guide](../first-run.md).
 Once you have finished setting up the admin user there are some Docker specific items to consider.
 
 
-### Using FlowForge File Storage
+### Using FlowFuse File Storage
 
 Node-RED instances running in Docker do not have direct access to a persistent
 file system to store files or use for storing context data.
 
-FlowForge includes a File Storage service that can be enabled to provide persistent
+FlowFuse includes a File Storage service that can be enabled to provide persistent
 storage.
 
 #### Disabling the default File nodes
@@ -204,7 +204,7 @@ Full details on configuring the file storage service are available [here](../fil
 
 #### Enabling the File Storage service
 
-To enable the FlowForge File Storage component add the following to the `etc/flowforge.yml` file:
+To enable the FlowFuse File Storage component add the following to the `etc/flowforge.yml` file:
 
 ```yaml
 fileStore:

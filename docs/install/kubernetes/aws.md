@@ -4,7 +4,7 @@ navTitle: AWS EKS Installation
 
 # AWS EKS Specific details
 
-This document includes details of installing FlowForge on AWS EKS.
+This document includes details of installing FlowFuse on AWS EKS.
 
 The following assumptions have been made in the examples:
 
@@ -54,7 +54,7 @@ apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:
-  name: flowforge
+  name: FlowFuse
   region: eu-west-1
 
 nodeGroups:
@@ -228,7 +228,7 @@ Create IAM Policy to allow sending emails (example: https://docs.aws.amazon.com/
 ## Use AWS RDS PostgreSQL instance
 
 The following script creates a AWS RDS PostgreSQL instance, it also
-sets up some network access rules so only the FlowForge app can access
+sets up some network access rules so only the FlowFuse app can access
 it from inside the cluster (and not the Node-RED instances).
 
 Please read it carefully before running it to ensure you understand it.

@@ -16,7 +16,6 @@
         </FormRow>
         <TemplateSettingsEditor v-model="editableTemplate" :editTemplate="editTemplate" />
     </form>
-
 </template>
 
 <script>

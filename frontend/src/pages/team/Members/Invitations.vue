@@ -4,7 +4,7 @@
         <form v-else class="space-y-6">
             <div class="text-right"></div>
             <ff-data-table data-el="invites-table" :columns="inviteColumns" :rows="invitations">
-                <template v-slot:context-menu="{row}">
+                <template #context-menu="{row}">
                     <ff-list-item data-action="remove-invite" label="Remove Invite" kind="danger" @click="removeInvite(row)" />
                 </template>
             </ff-data-table>

@@ -1,18 +1,18 @@
 ---
 navGroup: Overview
-navTitle: FlowForge Cloud
+navTitle: FlowFuse Cloud
 ---
 
-# FlowForge Cloud
+# FlowFuse Cloud
 
-FlowForge Cloud is a hosted service allowing users to sign-up and start creating Node-RED instances without having to install and manage their own instance of FlowForge.
+FlowFuse Cloud is a hosted service allowing users to sign-up and start creating Node-RED instances without having to install and manage their own instance of FlowFuse.
 The [Concepts](../user/concepts.md) remain the same, but we run the platform for you.
 
 ## 30-day Free Trial
 
-When users sign-up to FlowForge Cloud then get a 30-day free trial of the platform.
+When users sign-up to FlowFuse Cloud then get a 30-day free trial of the platform.
 During that trial they are able to create one Small Node-RED Instance. This is a great
-way to start using FlowForge and discover a lot of the value it provides.
+way to start using FlowFuse and discover a lot of the value it provides.
 
 Users can setup their billing details at any time during the trial - for example
 if they want to create additional Node-RED instances. Those instances will get charged for,
@@ -37,19 +37,19 @@ See the [Billing](./billing.md) page for more detailed answers about billing.
 ## Support
 
 Premium customers can get support by [filing a ticket](/support). We offer
-support for the FlowForge application and your account, any issues relating to
+support for the FlowFuse application and your account, any issues relating to
 Node-RED such as your flows or a 3rd party node should be raised in the
-[community forum](https://community.flowforge.com).
+[community forum](https://community.FlowFuse.com).
 
 ### Requesting a new verification email
 
-When a user signs up for FlowForge Cloud an email will be send to verify it.
-If this email doesn't get delivered one can be resend by signing in to FlowForge
+When a user signs up for FlowFuse Cloud an email will be send to verify it.
+If this email doesn't get delivered one can be resend by signing in to FlowFuse
 and click the button to resend it.
 
-## Node-RED on FlowForge Cloud
+## Node-RED on FlowFuse Cloud
 
-FlowForge currently offers Node-RED 2.2 and 3.0 to customers. When creating a
+FlowFuse currently offers Node-RED 2.2 and 3.0 to customers. When creating a
 new instance a [Stack](../user/concepts.md#stack) is chosen, which later
 can be [upgraded to a later version](../user/changestack.md).
 
@@ -57,7 +57,7 @@ Each Node-RED can install custom modules as advertised in the [Flow Library](htt
 
 ## Use of the File System
 
-FlowForge Cloud provides support for using the standard File nodes in flows with
+FlowFuse Cloud provides support for using the standard File nodes in flows with
 some limits. The standard filesystem is not persisted between Node-RED restarts,
 so a custom set of nodes are used to store the files in persistent storage.
 
@@ -72,7 +72,7 @@ unpredictable results if the data is not persisted between restarts.
 Node-RED Context can be used to store small pieces of application state within the
 runtime. By default this is stored in memory only.
 
-FlowForge Cloud provides an optional context store that can be used to persist
+FlowFuse Cloud provides an optional context store that can be used to persist
 the data.
 
 Persistent context has a quota limit set at `1MB` per instance.
@@ -81,7 +81,7 @@ Persistent context has a quota limit set at `1MB` per instance.
 
 ### HTTP(S) & Websockets
 
-Node-RED expose an HTTPS interface on port 443 with each instance having its own hostname (example.flowforge.cloud). Plain HTTP requests to port 80 will receive a redirect to HTTPS on port 443.
+Node-RED expose an HTTPS interface on port 443 with each instance having its own hostname (example.FlowFuse.cloud). Plain HTTP requests to port 80 will receive a redirect to HTTPS on port 443.
 You MUST connect using the hostname not the IP address to reach your Node-RED instance.
 Websocket connections over SSL (wss:) are also supported.
 
@@ -92,19 +92,19 @@ When a request exceeds this limit, the whole request is rejected with a `413 Pay
 
 The default TCP and UDP nodes have been removed from the Node-RED palette. This is
 because it is not possible to route these sorts of connections to the container running
-Node-RED inside the FlowForge Cloud platform.
+Node-RED inside the FlowFuse Cloud platform.
 
 ### MQTT
 
 MQTT Connections to an external broker using the standard MQTT nodes will work fine as the connection is initiated by Node-RED.
 
-FlowForge does not provide an MQTT broker for general use by Node-RED instances. However the
+FlowFuse does not provide an MQTT broker for general use by Node-RED instances. However the
 Project Nodes can be used to easily pass messages between Node-RED instances running in the
 platform.
 
 ### IP Addresses
 
-Outbound connections from FlowForge will always come from the IP address `63.33.85.112`. 
+Outbound connections from FlowFuse will always come from the IP address `63.33.85.112`. 
 
 This can make access to a remote database or corporate network possible where those systems are protected by IP address filtering firewalls. 
 
@@ -112,10 +112,10 @@ All incoming connections MUST use the hostname and not IP address.
 
 ## Single-Sign On
 
-FlowForge supports configuring SAML-based Single Sign-On for particular email domains.
+FlowFuse supports configuring SAML-based Single Sign-On for particular email domains.
 
-This can be configured on request for FlowForge Cloud by submitted a support request
-via our [Contact Us](https://flowforge.com/contact-us/) page.
+This can be configured on request for FlowFuse Cloud by submitted a support request
+via our [Contact Us](https://flowfuse.com/contact-us/) page.
 
 You must have the ability to configure an SAML endpoint on your Identity Provider,
 and have authority to configure SSO for your email domain.

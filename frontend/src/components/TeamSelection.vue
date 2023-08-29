@@ -1,6 +1,6 @@
 <template>
     <ff-dropdown v-if="team" class="ff-team-selection">
-        <template v-slot:placeholder>
+        <template #placeholder>
             <div class="flex grow items-center">
                 <img :src="team.avatar" class="ff-avatar"/>
                 <div class="ff-team-selection-name">
@@ -9,7 +9,7 @@
                 </div>
             </div>
         </template>
-        <template v-slot:default>
+        <template #default>
             <ul class="ff-dropdown-option-list">
                 <ff-dropdown-option>
                     <nav-item v-for="t in teams" :key="t.id" :label="t.name" :avatar="t?.avatar" @click="selectTeam(t)" data-action="switch-team"></nav-item>

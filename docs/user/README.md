@@ -1,16 +1,16 @@
 ---
 navGroup: Overview
-navTitle: Using FlowForge
+navTitle: Using FlowFuse
 ---
 
-# Using FlowForge
+# Using FlowFuse
 
-This guide will help you learn how to use the FlowForge platform to quickly create
+This guide will help you learn how to use the FlowFuse platform to quickly create
 new Node-RED applications.
 
 ## Concepts
 
-Within FlowForge, users are members of _Teams_. Each team can create _Applications_
+Within FlowFuse, users are members of _Teams_. Each team can create _Applications_
 that are collections of one or more _Node-RED instances_. Each instance is created
 from a _Template_ to provide its default settings and runs on a _Stack_ that determines
 the Node-RED version, memory and CPU usage.
@@ -29,7 +29,7 @@ For more details on these and other core concepts, you can learn about them [her
  - [Snapshots](snapshots.md) - Create point-in-time backups of your Node-RED instances.
  - [Environment Variables](envvar.md) - How to manage Environment Variables in your Node-RED instances.
  - [Change Project Stack](changestack.md) - How to change an instance stack, for example to upgrade Node-RED.
- - [Logs](logs.md) - The Logs available in the FlowForge application.
+ - [Logs](logs.md) - The Logs available in the FlowFuse application.
  - [Project Link Nodes](projectnodes.md) - Custom nodes for sending messages between Node-RED instances and devices.
  - [Instance Settings](instance-settings.md) - Settings available for Node-RED instances.
  - [Shared Team Library](shared-library.md) - Share flows easily between different Node-RED instances in your team.
@@ -43,14 +43,14 @@ For more details on these and other core concepts, you can learn about them [her
 
 ## Working with Devices
 
-FlowForge supports deploying projects to remote _Devices_. They run a software agent
+FlowFuse supports deploying projects to remote _Devices_. They run a software agent
 that connects back to the platform to receive updates.
 
  - [Working with Devices](../device-agent/introduction.md)
 
 ## Working with Files and Context
 
-FlowForge supports reading and writing persistent files and persistent context.
+FlowFuse supports reading and writing persistent files and persistent context.
 
  - [Working with Files](filenodes.md)
  - [Working with Context](persistent-context.md)

@@ -71,8 +71,8 @@ module.exports = {
             }
             if (request.body.email && user.email !== request.body.email) {
                 // SSO cannot change email address
-                if (user.sso_enabled) {
-                    const err = new Error('Cannot change password for sso-enabled user')
+                if (user.sso_enabled && !isAdmin) {
+                    const err = new Error('Cannot change email for sso-enabled user')
                     err.code = 'invalid_request'
                     throw err
                 }
@@ -94,6 +94,11 @@ module.exports = {
                     pendingEmailChange = true
                 } else {
                     user.email = request.body.email
+                    if (user.sso_enabled && isAdmin) {
+                        // Clear the sso flag on the user as they might not be sso_enabled
+                        // for this new email
+                        user.sso_enabled = false
+                    }
                 }
             }
             if (request.body.username) {

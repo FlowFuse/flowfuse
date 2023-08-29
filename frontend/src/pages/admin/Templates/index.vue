@@ -1,9 +1,9 @@
 <template>
     <div class="space-y-6">
         <SectionTopMenu hero="Templates">
-            <template v-slot:tools>
+            <template #tools>
                 <ff-button :to="{ name: 'Admin Template', params: { id: 'create' } }">
-                    <template v-slot:icon-right>
+                    <template #icon-right>
                         <PlusSmIcon />
                     </template>
                     Create template
@@ -11,12 +11,18 @@
             </template>
         </SectionTopMenu>
         <ff-loading v-if="loading" message="Loading Templates..." />
-        <ff-data-table v-if="!loading" :columns="columns" data-el="templates"
-                       :rows="templates" :show-search="true" search-placeholder="Search Templates..."
-                       :search-fields="['name', 'description', 'owner_username', 'owner_id']"
-                       :rows-selectable="true" @row-selected="editTemplate"
+        <ff-data-table
+            v-if="!loading"
+            :columns="columns"
+            data-el="templates"
+            :rows="templates"
+            :show-search="true"
+            search-placeholder="Search Templates..."
+            :search-fields="['name', 'description', 'owner_username', 'owner_id']"
+            :rows-selectable="true"
+            @row-selected="editTemplate"
         >
-            <template v-slot:context-menu="{row}">
+            <template #context-menu="{row}">
                 <ff-list-item label="Edit Template" @click.stop="editTemplate(row)"/>
                 <ff-list-item label="Delete Template" kind="danger" @click.stop="showDeleteDialog(row)"/>
             </template>
