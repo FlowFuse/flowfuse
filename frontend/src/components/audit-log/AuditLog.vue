@@ -4,10 +4,10 @@
         No Activity Found
     </div>
     <ff-accordion v-for="(logEntries, date, $index) in logEntriesByDate" :key="date" :label="date" :set-open="$index < 3" data-el="accordion" :disabled="disableAccordion">
-        <template v-slot:meta>
+        <template #meta>
             <span>{{ logEntries.length }} Event{{ logEntries.length === 1 ? '' : 's' }}</span>
         </template>
-        <template v-slot:content>
+        <template #content>
             <div v-for="entry in logEntries" :key="entry.id">
                 <AuditEntry :entry="entry"></AuditEntry>
             </div>

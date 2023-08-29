@@ -1,10 +1,10 @@
 ---
-navTitle: Configuring FlowForge
+navTitle: Configuring FlowFuse
 ---
 
-# Configuring FlowForge
+# Configuring FlowFuse
 
-The base configuration of the FlowForge platform is provided in the file
+The base configuration of the FlowFuse platform is provided in the file
 `/opt/flowforge/etc/flowforge.yml`. This assumes the default install location
 of `/opt/flowforge`.
 
@@ -17,13 +17,13 @@ Option | Description
 -------|------------
 `host` | The address to serve the web ui on. This defaults to `localhost` which means the ui will only be available when browsing from the same server that is running the platform. To make it accessible to other devices on the network, set it to `0.0.0.0`. <br>NOTE: If `host` is changed, please also update `base_url` to match e.g.  `http://[ip-address-of-host]:3000`
 `port` | The TCP port the platform serves its web ui. Default: `3000`
-`base_url` | The url to access the platform. This defaults to `http://localhost:3000` which means a number of internally generated URLs will only work when browsing on the same device as is running the platform. To be able to access the platform remotely, replace `localhost` with the ip address of the device running FlowForge. 
-`domain` | The domain that instance names will be prepended to on Docker & Kubernetes platforms to create a hostname to access the instance. A wildcard DNS A record should point be configured to point to the FlowForge entry IP Address.
+`base_url` | The url to access the platform. This defaults to `http://localhost:3000` which means a number of internally generated URLs will only work when browsing on the same device as is running the platform. To be able to access the platform remotely, replace `localhost` with the ip address of the device running FlowFuse. 
+`domain` | The domain that instance names will be prepended to on Docker & Kubernetes platforms to create a hostname to access the instance. A wildcard DNS A record should point be configured to point to the FlowFuse entry IP Address.
 `support_contact` | a URL or string with contact details for the administrator e.g `mailto:support@example.com` or `https://support.example.com` . Defaults to the email address of the first admin user or `the administrator` if no email address set.
 `create_admin` | If set to `true` will create a default admin user on first run, the username/password is written to the logs. Default: `false`
 
 
-NOTE: Changing the `base_url` and `domain` after Node-RED instances have been created is possible, but the original hostname and domain must remain active in order to access the instances and for an them to be able to access the FlowForge resources.
+NOTE: Changing the `base_url` and `domain` after Node-RED instances have been created is possible, but the original hostname and domain must remain active in order to access the instances and for an them to be able to access the FlowFuse resources.
 
 An example workflow would be:
 
@@ -38,7 +38,7 @@ An example workflow would be:
 
 ## Database configuration
 
-FlowForge supports `sqlite` and `postgres` databases.
+FlowFuse supports `sqlite` and `postgres` databases.
 
 Option       | Description
 -------------|------------
@@ -125,7 +125,7 @@ By default, the platform will send anonymous usage information back to us at Flo
 This can be disabled via the Admin Settings in the UI, or turned off in the configuration file with the `telemetry.enabled` option.
 **IMPORTANT: Licensed installations cannot disable telemetry**
 
-Additionally, you can configure your own instance of FlowForge to report back to you on how users are using your instance of FlowForge. FlowForge supports integration with two different services:
+Additionally, you can configure your own instance of FlowFuse to report back to you on how users are using your instance of FlowFuse. FlowFuse supports integration with two different services:
 
 - [PostHog](https://posthog.com/) _(recommended)_: You will require your own API key to pass into the `yml`, which will begin the logging of user interactions.
 - [Plausible](https://plausible.io/): _(deprecated since 0.9 and will be removed in the future)_: You can setup your own account, and pass the relevant domain to the `yml` in the telemetry configuration
@@ -137,7 +137,7 @@ Option        | Description
 `telemetry.enabled` | Enables the anonymous usage telemetry of the platform. Default: `true`
 `telemetry.frontend.posthog.apiurl` | The API URL for PostHog, either 'https://app.posthog.com' or 'https://eu.posthog.com'. Default: `https://app.posthog.com`
 `telemetry.frontend.posthog.apikey` | The API key provided to you from your own PostHog account. Default: `null`
-`telemetry.frontend.posthog.capture_pageview` | FlowForge is designed as to provide custom posthog `$pageview` events that provide more detail on navigation than the default, and suit a single page application better. As such, we recommend setting this to false in order to prevent duplicate `pageleave`/`pageview` events firing. Default: `true`
+`telemetry.frontend.posthog.capture_pageview` | FlowFuse is designed as to provide custom posthog `$pageview` events that provide more detail on navigation than the default, and suit a single page application better. As such, we recommend setting this to false in order to prevent duplicate `pageleave`/`pageview` events firing. Default: `true`
 
 
 ## Rate Limiting configuration
@@ -161,7 +161,7 @@ For additional options, see [fastify-rate-limit](https://github.com/fastify/fast
 
 ## Support configuration
 
-It is possible to add a [HubSpot Support Widget](https://knowledge.hubspot.com/chatflows/create-a-live-chat) into FlowForge. This will appear as a floating chat bubble on the bottom-right corner of the screen. To enable this, you'll need to provide the 
+It is possible to add a [HubSpot Support Widget](https://knowledge.hubspot.com/chatflows/create-a-live-chat) into FlowFuse. This will appear as a floating chat bubble on the bottom-right corner of the screen. To enable this, you'll need to provide the 
 
 Option        | Description
 --------------|------------
@@ -195,7 +195,7 @@ Setting `logging.http` to `info` will log every HTTP request and response detail
 
 ## File storage
 
-FlowForge includes a service that can be used by Node-RED instances to read and write files
+FlowFuse includes a service that can be used by Node-RED instances to read and write files
 in their flows as well as providing persistent storage for flow context information.
 
 Details of configuring the File Storage service are available [here](./file-storage/README.md).
@@ -205,4 +205,4 @@ can access the File server.
 
 Option        | Description
 --------------|------------
-`fileStore.url`  | The URL of the FlowForge File Server to use. Default: not set
+`fileStore.url`  | The URL of the FlowFuse File Server to use. Default: not set

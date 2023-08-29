@@ -8,15 +8,15 @@
         @row-selected="providerSelected"
         :show-search="true"
     >
-        <template v-slot:actions>
+        <template #actions>
             <ff-button :to="{ name: 'AdminSettingsSSOEdit', params: { id: 'create' } }">
-                <template v-slot:icon-right>
+                <template #icon-right>
                     <PlusSmIcon />
                 </template>
                 Create SSO SAML Configuration
             </ff-button>
         </template>
-        <template v-slot:context-menu="{row}">
+        <template #context-menu="{row}">
             <ff-list-item label="Edit Properties" @click.stop="providerSelected(row)"/>
             <ff-list-item label="Delete SAML Configuration" kind="danger" @click.stop="deleteProvider(row)"/>
         </template>
@@ -65,7 +65,7 @@ export default {
             Dialog.show({
                 header: 'Delete SAML Provider',
                 kind: 'danger',
-                text: 'Are you sure you want to delete this SAML Provider configuration? Any users with a matching email domain will no longer be able to login using SSO and will have to reset their FlowForge password to continue.',
+                text: 'Are you sure you want to delete this SAML Provider configuration? Any users with a matching email domain will no longer be able to login using SSO and will have to reset their FlowFuse password to continue.',
                 confirmLabel: 'Delete'
             }, async () => {
                 ssoApi.deleteProvider(provider.id)

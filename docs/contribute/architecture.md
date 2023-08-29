@@ -1,10 +1,10 @@
 ---
-navTitle: FlowForge Architecture
+navTitle: FlowFuse Architecture
 ---
 
-# FlowForge Architecture
+# FlowFuse Architecture
 
-A FlowForge install is made up of 2 main components
+A FlowFuse install is made up of 2 main components
 
  - The Management Application
  - The Node-RED instances
@@ -20,7 +20,7 @@ These can be deployed in one of 2 ways
    ![Container Architecture](./images/ff-containers.png)
 
 
-## FlowForge Management Application
+## FlowFuse Management Application
 
 This provides the interface for managing the objects in the platform. It also
 provides a collection of APIs to support the Node-RED instances once started.
@@ -30,11 +30,11 @@ Node-RED instances and keeps track of what should be running and restarts if nee
 
 ### Container Drivers
 
-Node-RED instances are started by the FlowForge Management Application via one of the following Container Drivers. Documentation for the Container Driver API will be available in the [API](../api/README.md) section.
+Node-RED instances are started by the FlowFuse Management Application via one of the following Container Drivers. Documentation for the Container Driver API will be available in the [API](../api/README.md) section.
 
 #### Localfs
 
-This driver runs Node-RED as separate processes on the same machine as the FlowForge Management Application. Each instance gets its own `userDir` and a dedicated TCP/IP port to listen to.
+This driver runs Node-RED as separate processes on the same machine as the FlowFuse Management Application. Each instance gets its own `userDir` and a dedicated TCP/IP port to listen to.
 
 State is stored in a local SQLite database
 
@@ -63,20 +63,20 @@ The driver uses the [dockerode](https://www.npmjs.com/package/dockerode) to inte
 
 The driver will add the required Environment variables to each Node-RED container to work with the [jwilder/nginx-proxy](https://hub.docker.com/r/jwilder/nginx-proxy) NGINX proxy.
 
-## FlowForge Instances
+## FlowFuse Instances
 
-A FlowForge Node-RED Instance is made up of 2 processes
+A FlowFuse Node-RED Instance is made up of 2 processes
 
-- The FlowForge Launcher
+- The FlowFuse Launcher
 - A Node-RED instance
 
 ![Project Architecture](./images/ff-project-arch.png)
 
-### FlowForge Launcher
+### FlowFuse Launcher
 
 This is a small application that handles downloading the Instance specific settings, building a `settings.js` from those settings and then starting the Node-RED instance.
 
-The launcher presents a HTTP API (it defaults to the Node-RED port + 1000) that allows the FlowForge Management Application to start/stop/restart the Node-RED instance as well as query it's current state and retrieve the console logs.
+The launcher presents a HTTP API (it defaults to the Node-RED port + 1000) that allows the FlowFuse Management Application to start/stop/restart the Node-RED instance as well as query it's current state and retrieve the console logs.
 
 The launcher can be found [here](https://github.com/flowforge/flowforge-nr-launcher)
 
@@ -84,17 +84,17 @@ Within the launcher are some custom plugins that are loaded by Node-RED:
 
 #### nr-storage
 
-This plugin is used to save flows, settings, sessions and library entries back to the FlowForge Management Application.
+This plugin is used to save flows, settings, sessions and library entries back to the FlowFuse Management Application.
 
 #### nr-auth
 
-This plugin is used to authenticate users trying to access the Node-RED Editor, it refers back to the FlowForge Management Application to ensure only members of the team that owns the instance can log in.
+This plugin is used to authenticate users trying to access the Node-RED Editor, it refers back to the FlowFuse Management Application to ensure only members of the team that owns the instance can log in.
 
 This plugin uses the Node-RED [Authentication API](https://nodered.org/docs/user-guide/runtime/securing-node-red#custom-user-authentication)
 
 #### nr-audit-logger
 
-This plugin sends Node-RED Audit events (e.g. user log in and flow deployment events) back to the to the FlowForge Management Application to allow a reliable audit of what actions have taken place in the instance.
+This plugin sends Node-RED Audit events (e.g. user log in and flow deployment events) back to the to the FlowFuse Management Application to allow a reliable audit of what actions have taken place in the instance.
 
 This plugin uses the Node-RED [Logging API](https://nodered.org/docs/user-guide/runtime/logging)
 

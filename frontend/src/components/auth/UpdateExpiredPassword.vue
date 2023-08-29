@@ -8,7 +8,7 @@
             Change Password
         </ff-button>
         <ff-button kind="tertiary" @click="logout">Log out</ff-button>
-        <div v-if="errors.password_change" class="ml-4 text-red-400 font-medium inline text-sm">{{errors.password_change}}</div>
+        <div v-if="errors.password_change" class="ml-4 text-red-400 font-medium inline text-sm">{{ errors.password_change }}</div>
     </form>
 </template>
 

@@ -12,10 +12,13 @@
                 <FormRow id="projectName" ref="appName" v-model="input.projectName" data-form="application-name" :type="editing ? 'text' : 'uneditable'">
                     Name
                 </FormRow>
+                <FormRow id="projectDescription" ref="appDescription" v-model="input.projectDescription" data-form="application-description" :type="editing ? 'text' : 'uneditable'">
+                    Description
+                </FormRow>
             </div>
             <div class="space-x-4 whitespace-nowrap">
                 <template v-if="!editing">
-                    <ff-button kind="primary" data-action="application-edit" @click="editName">Edit Application Name</ff-button>
+                    <ff-button kind="primary" data-action="application-edit" @click="editName">Edit</ff-button>
                 </template>
                 <template v-else>
                     <div class="flex gap-x-3">
@@ -78,6 +81,7 @@ export default {
             }],
             input: {
                 projectName: this.application.name,
+                projectDescription: this.application.description,
                 projectId: this.application.id,
                 application: this.application
             },
@@ -121,11 +125,13 @@ export default {
             this.editing = false
             // reset the field if changed
             this.input.projectName = this.application.name
+            this.input.projectDescription = this.application.description
         },
         saveApplication () {
             ApplicationAPI.updateApplication(
                 this.application.id,
-                this.input.projectName
+                this.input.projectName,
+                this.input.projectDescription
             )
                 .then(() => {
                     this.$emit('application-updated')

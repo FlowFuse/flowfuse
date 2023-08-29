@@ -9,7 +9,7 @@
                     Applications
                 </template>
                 <template #helptext>
-                    <p>This is a list of all Applications hosted on the same domain as FlowForge.</p>
+                    <p>This is a list of all Applications hosted on the same domain as FlowFuse.</p>
                     <p>Each Application can host multiple Node-RED instances.</p>
                     <p>Click an application header to go to the overview of that application.</p>
                     <p>Click an instance within an application to go to the Instances overview.</p>
@@ -34,9 +34,10 @@
             <template v-else-if="!loading && applications.size > 0">
                 <ul class="ff-applications-list">
                     <li v-for="application in Array.from(applications.values())" :key="application.id">
-                        <div class="ff-application-list--app" data-action="view-application" @click="openApplication(application)">
-                            <span class="flex justify-center"><TemplateIcon class="ff-icon text-gray-600" />{{ application.name }}</span>
-                            <label class="italic text-gray-400 text-sm">
+                        <div class="ff-application-list--app gap-x-4 flex items-center !justify-start" data-action="view-application" @click="openApplication(application)">
+                            <span class="flex flex-shrink-0 flex-grow-0 whitespace-nowrap"><TemplateIcon class="ff-icon text-gray-600" />{{ application.name }}</span>
+                            <span class="!inline-block !flex-shrink !flex-grow italic text-gray-500 dark:text-gray-400 truncate"> {{ application.description }} </span>
+                            <label class="!inline-block italic text-gray-400 text-sm whitespace-nowrap flex-shrink-0 flex-grow-0">
                                 {{ application.instances.size }} Instance{{ application.instances.size === 1 ? '' : 's' }}
                             </label>
                         </div>
@@ -83,10 +84,10 @@
                     </template>
                     <template #header>Get Started with your First Application</template>
                     <template #message>
-                        <p>Applications in FlowForge are used to manage groups of Node-RED Instances</p>
+                        <p>Applications in FlowFuse are used to manage groups of Node-RED Instances</p>
                         <p>
                             Instances within Applications can be connected as
-                            <a class="ff-link" href="https://flowforge.com/docs/user/staged-deployments" target="_blank">Staged Deployments.</a>
+                            <a class="ff-link" href="https://flowfuse.com/docs/user/staged-deployments" target="_blank">Staged Deployments.</a>
                         </p>
                     </template>
                     <template #actions>
@@ -104,7 +105,7 @@
                     </template>
                     <template #note>
                         <p>
-                            The FlowForge team also have more planned for Applications, including
+                            The FlowFuse team also have more planned for Applications, including
                             <a class="ff-link" href="https://github.com/flowforge/flowforge/issues/1734" target="_blank">
                                 shared settings across Instances</a>.
                         </p>
@@ -157,7 +158,7 @@ export default {
         if ('billing_session' in this.$route.query) {
             this.$nextTick(() => {
                 // allow the Alerts servcie to have subscription by wrapping in nextTick
-                Alerts.emit('Thanks for signing up to FlowForge!', 'confirmation')
+                Alerts.emit('Thanks for signing up to FlowFuse!', 'confirmation')
             })
         }
     },

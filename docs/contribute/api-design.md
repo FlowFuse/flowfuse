@@ -2,7 +2,7 @@
 navTitle: API Design
 ---
 
-# HTTP API of the FlowForge platform
+# HTTP API of the FlowFuse platform
 
 ## API documentation
 

@@ -1,11 +1,13 @@
 <template>
     <ff-dialog ref="dialog" header="Change Role" confirm-label="Change" @confirm="confirm()" :disable-primary="ownerCount < 2 && isOwner">
-        <template v-slot:default v-if="user">
+        <template #default v-if="user">
             <form class="space-y-6" @submit.prevent>
                 <div class="space-y-2">
                     <template v-if="ownerCount < 2 && isOwner">
-                        <p class="text-sm text-gray-500">You cannot change the role for <span class="font-bold">{{ user.username }}</span> as
-                            they are the only owner of the team.</p>
+                        <p class="text-sm text-gray-500">
+                            You cannot change the role for <span class="font-bold">{{ user.username }}</span> as
+                            they are the only owner of the team.
+                        </p>
                     </template>
                     <template v-else>
                         <p class="text-sm text-gray-500 mb-6">
@@ -75,7 +77,7 @@ export default {
             }, {
                 label: 'Dashboard Only',
                 value: Roles.Dashboard,
-                description: 'Dashboard users can only access the dashboards or HTTP endpoints created by the Node-RED instances when FlowForge authentication is enabled'
+                description: 'Dashboard users can only access the dashboards or HTTP endpoints created by the Node-RED instances when FlowFuse authentication is enabled'
             }],
             show (team, user, ownerCount) {
                 this.$refs.dialog.show()

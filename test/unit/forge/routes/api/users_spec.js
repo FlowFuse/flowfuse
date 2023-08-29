@@ -26,6 +26,7 @@ describe('Users API', async function () {
         // elvis <-- this user doesn't have email_verified
 
         // fred <-- this user only gets created in the 'delete' tests. Do not add elsewhere
+        // harry sso_enabled <-- added in the sso test - do not add elsewhere
 
         // ATeam ( alice  (owner), bob (owner), chris)
         // BTeam ( bob (owner), chris, dave)
@@ -330,6 +331,25 @@ describe('Users API', async function () {
                 response.statusCode.should.equal(401)
                 const result = response.json()
                 result.should.have.property('error')
+            })
+            it('admin can modify sso_enabled user email', async function () {
+                const harry = await app.db.models.User.create({ username: 'harry', name: 'Harry Palpatine', email: 'harry@example.com', email_verified: true, password: 'hhPassword', sso_enabled: true })
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/users/${harry.hashid}`,
+                    payload: {
+                        email: 'harry2@example.com'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('email', 'harry2@example.com')
+
+                await harry.reload()
+                harry.sso_enabled.should.be.false()
+
+                await harry.destroy()
             })
         })
     })

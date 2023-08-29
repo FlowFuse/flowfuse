@@ -24,7 +24,7 @@
                     <p>You have a dashboard-only role in this team.</p>
                     <p>
                         This means you can access the pages created by the Node-RED instances in this team, but
-                        you cannot access their FlowForge settings.
+                        you cannot access their FlowFuse settings.
                     </p>
                 </template>
             </EmptyState>
