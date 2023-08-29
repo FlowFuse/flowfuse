@@ -38,7 +38,7 @@
             <div class="italic text-gray-500 pl-1 pt-0.5 text-sm .max-w-sm truncate">{{ selectedApplication?.description || '' }}</div>
         </div>
         <!-- No Existing Applications, or we are creating a new one -->
-        <div v-else-if="creatingApplication">
+        <div v-else-if="creatingApplication" class="space-y-6">
             <FormRow
                 v-model="input.applicationName"
                 :error="errors.applicationName || submitErrors?.applicationName"
