@@ -32,12 +32,14 @@ describe('Device API', async function () {
         })
         let device = response.json()
 
-        // get the db device and apply an agentVersion of 1.11.0 to permit "Add to Application" feature
-        // ordinarily, the `agentVersion` is set by the device when it first connects. In tests we don't
-        // have an actual device and must set it manually inorder for the API to permit the "Add to Application"
-        const dbDevice = await app.db.models.Device.byId(device.id)
-        await dbDevice.update({ agentVersion: '1.11.0' })
-        await dbDevice.save()
+        if (options.agentVersion) {
+            // get the db device and apply an agentVersion of 1.11.0 to permit "Add to Application" feature
+            // ordinarily, the `agentVersion` is set by the device when it first connects. In tests we don't
+            // have an actual device and must set it manually inorder for the API to permit the "Add to Application"
+            const dbDevice = await app.db.models.Device.byId(device.id)
+            await dbDevice.update({ agentVersion: options.agentVersion })
+            await dbDevice.save()
+        }
 
         if (options.application) {
             const response2 = await app.inject({
@@ -503,10 +505,8 @@ describe('Device API', async function () {
         })
         describe('assign to application', function () {
             it('can assign to an application - default starter snapshot', async function () {
-                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
-                const dbDevice = await app.db.models.Device.byId(device.id)
-                dbDevice.agentVersion = '1.11.0' // min agent version required for application assignment
-                await dbDevice.save()
+                const agentVersion = '1.11.0' // min agent version required for application assignment
+                const device = await createDevice({ name: 'Ad1a', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion })
                 const response = await app.inject({
                     method: 'PUT',
                     url: `/api/v1/devices/${device.id}`,
@@ -521,10 +521,7 @@ describe('Device API', async function () {
                 result.application.should.have.property('id', TestObjects.Application1.hashid)
             })
             it('cannot assign to an application if device agent version is not present', async function () {
-                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
-                const dbDevice = await app.db.models.Device.byId(device.id)
-                dbDevice.agentVersion = null // clear the faked agentVersion value (as if a new not-yet-checked-in device were created)
-                await dbDevice.save()
+                const device = await createDevice({ name: 'Ad1b', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
                 const response = await app.inject({
                     method: 'PUT',
                     url: `/api/v1/devices/${device.id}`,
@@ -538,10 +535,8 @@ describe('Device API', async function () {
                 result.should.have.property('code', 'invalid_agent_version')
             })
             it('cannot assign to an application if device agent version is too old', async function () {
-                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
-                const dbDevice = await app.db.models.Device.byId(device.id)
-                dbDevice.agentVersion = '1.10.1' // agent version too old for application assignment
-                await dbDevice.save()
+                const agentVersion = '1.10.1' // agent version too old for application assignment
+                const device = await createDevice({ name: 'Ad1c', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion })
                 const response = await app.inject({
                     method: 'PUT',
                     url: `/api/v1/devices/${device.id}`,
@@ -556,10 +551,8 @@ describe('Device API', async function () {
             })
             it('can unassign from an application', async function () {
                 // first, create a device and add it to application
-                const device = await createDevice({ name: 'Ad1b', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
-                const dbDevice = await app.db.models.Device.byId(device.id)
-                dbDevice.agentVersion = '1.11.0' // agent version required for application assignment
-                await dbDevice.save()
+                const agentVersion = '1.11.0' // min agent version required for application assignment
+                const device = await createDevice({ name: 'Ad1d', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion })
                 const response = await app.inject({
                     method: 'PUT',
                     url: `/api/v1/devices/${device.id}`,
@@ -1203,12 +1196,13 @@ describe('Device API', async function () {
         it('lists devices in an application', async function () {
             // GET /api/v1/applications/:applicationId/devices
             TestObjects.Application2 = await app.factory.createApplication({ name: 'application-2' }, TestObjects.BTeam)
+            const agentVersion = '1.11.0' // min agent version required for application assignment
 
-            await createDevice({ name: 'Ad1', type: '', application: TestObjects.Application1.hashid, team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
-            await createDevice({ name: 'Ad2', type: '', application: TestObjects.Application1.hashid, team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
-            await createDevice({ name: 'Ad3', type: '', application: TestObjects.Application1.hashid, team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
-            await createDevice({ name: 'Bd1', type: '', application: TestObjects.Application2.hashid, team: TestObjects.BTeam.hashid, as: TestObjects.tokens.bob })
-            await createDevice({ name: 'Bd2', type: '', application: TestObjects.Application2.hashid, team: TestObjects.BTeam.hashid, as: TestObjects.tokens.bob })
+            await createDevice({ name: 'Ad1', type: '', application: TestObjects.Application1.hashid, team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion })
+            await createDevice({ name: 'Ad2', type: '', application: TestObjects.Application1.hashid, team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion })
+            await createDevice({ name: 'Ad3', type: '', application: TestObjects.Application1.hashid, team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion })
+            await createDevice({ name: 'Bd1', type: '', application: TestObjects.Application2.hashid, team: TestObjects.BTeam.hashid, as: TestObjects.tokens.bob, agentVersion })
+            await createDevice({ name: 'Bd2', type: '', application: TestObjects.Application2.hashid, team: TestObjects.BTeam.hashid, as: TestObjects.tokens.bob, agentVersion })
 
             const app1List = await listDevices({ application: TestObjects.Application1.hashid, as: TestObjects.tokens.alice })
             app1List.should.have.property('count', 3)
