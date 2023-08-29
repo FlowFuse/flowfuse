@@ -341,9 +341,11 @@ module.exports = async function (app) {
             // ### Add/Remove device to/from project ###
 
             const assignTo = request.body.instance ? 'instance' : (request.body.application ? 'application' : null)
-
             if (!assignTo) {
                 // ### Remove device from application/project ###
+                const unassignApplication = request.body.application === null
+                const unassignInstance = request.body.instance === null
+
                 const commonUpdates = async () => {
                     // Clear its target snapshot, so the next time it calls home
                     // it will stop the current snapshot
@@ -354,7 +356,7 @@ module.exports = async function (app) {
                     await device.save()
                 }
 
-                if (device.Application !== null) {
+                if (unassignApplication && device.Application) {
                     // const oldApplication = device.Application
                     // unassign from application
                     await device.setApplication(null)
@@ -364,7 +366,7 @@ module.exports = async function (app) {
                     // await app.auditLog.Project.project.device.unassigned(request.session.User, null, oldProject, request.device)
                 }
 
-                if (device.Project !== null) {
+                if (unassignInstance && device.Project) {
                     const oldProject = device.Project
                     // unassign from project
                     await device.setProject(null)
