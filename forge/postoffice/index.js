@@ -10,7 +10,7 @@ module.exports = fp(async function (app, _opts, next) {
     let EMAIL_ENABLED = app.config.email.enabled
     let poStartupCheck
     const isConfigured = EMAIL_ENABLED && (app.config.email.smtp || app.config.email.transport || app.config.email.ses)
-    const mailDefaults = { from: app.config.email.from ? app.config.email.from : '"FlowFuse Platform" <donotreply@FlowFuse.com>' }
+    const mailDefaults = { from: app.config.email.from ? app.config.email.from : '"FlowFuse Platform" <donotreply@flowfuse.com>' }
     app.addHook('onClose', async (_) => {
         if (poStartupCheck) {
             clearInterval(poStartupCheck)
