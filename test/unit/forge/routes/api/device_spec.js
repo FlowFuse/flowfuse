@@ -494,6 +494,89 @@ describe('Device API', async function () {
             })
             response.statusCode.should.equal(403)
         })
+        describe('assign to application', function () {
+            it('can assign to an application - default starter snapshot', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const dbDevice = await app.db.models.Device.byId(device.id)
+                dbDevice.agentVersion = '1.11.0' // agent version required for application assignment
+                await dbDevice.save()
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: {
+                        application: TestObjects.Application1.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                const result = response.json()
+                result.should.have.property('ownerType', 'application')
+                result.should.have.property('application').and.be.an.Object()
+                result.application.should.have.property('id', TestObjects.Application1.hashid)
+            })
+            it('cannot assign to an application if device agent version is not present', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: {
+                        application: TestObjects.Application1.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(400)
+                const result = response.json()
+                result.should.have.property('code', 'invalid_agent_version')
+            })
+            it('cannot assign to an application if device agent version is too old', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const dbDevice = await app.db.models.Device.byId(device.id)
+                dbDevice.agentVersion = '1.10.1' // agent version too old for application assignment
+                await dbDevice.save()
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: {
+                        application: TestObjects.Application1.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(400)
+                const result = response.json()
+                result.should.have.property('code', 'invalid_agent_version')
+            })
+            it('can unassign from an application', async function () {
+                // first, create a device and add it to application
+                const device = await createDevice({ name: 'Ad1b', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const dbDevice = await app.db.models.Device.byId(device.id)
+                dbDevice.agentVersion = '1.11.0' // agent version required for application assignment
+                await dbDevice.save()
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: {
+                        application: TestObjects.Application1.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                const result = response.json()
+                result.should.have.property('ownerType', 'application')
+                result.should.have.property('application').and.be.an.Object()
+                result.application.should.have.property('id', TestObjects.Application1.hashid)
+
+                // next, unassign from application
+                const response2 = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: {
+                        application: null
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                const result2 = response2.json()
+                result2.should.have.property('ownerType').and.not.equal('application')
+                result2.should.not.have.property('application')
+            })
+        })
         describe('assign to project', function () {
             async function setupProjectWithSnapshot (setActive) {
                 TestObjects.deviceProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
@@ -532,21 +615,6 @@ describe('Device API', async function () {
                 result.should.not.have.property('application')
                 result.should.have.property('targetSnapshot', null)
                 result.instance.should.have.property('id', TestObjects.deviceProject.id)
-            })
-            it('can assign to an application - default starter snapshot', async function () {
-                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
-                const response = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/devices/${device.id}`,
-                    body: {
-                        application: TestObjects.Application1.hashid
-                    },
-                    cookies: { sid: TestObjects.tokens.bob }
-                })
-                const result = response.json()
-                result.should.have.property('ownerType', 'application')
-                result.should.have.property('application').and.be.an.Object()
-                result.application.should.have.property('id', TestObjects.Application1.hashid)
             })
             it('can assign to a project - with active snapshot', async function () {
                 // Create a project
@@ -598,34 +666,6 @@ describe('Device API', async function () {
                 // Check the targetSnapshot has been cleared
                 result2.should.have.property('targetSnapshot', null)
             })
-            it('can unassign from an application', async function () {
-                const device = await createDevice({ name: 'Ad1b', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
-                const response = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/devices/${device.id}`,
-                    body: {
-                        application: TestObjects.Application1.hashid
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                const result = response.json()
-                result.should.have.property('ownerType').and.equal('application')
-                result.should.have.property('application')
-                result.application.should.have.property('id', TestObjects.Application1.hashid)
-
-                const response2 = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/devices/${device.id}`,
-                    body: {
-                        application: null
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                const result2 = response2.json()
-                result2.should.have.property('ownerType').and.not.equal('application')
-                result2.should.not.have.property('application')
-            })
-
             it('non-owner cannot assign to a project', async function () {
                 // Chris (member) cannot assign to project
                 TestObjects.deviceProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })

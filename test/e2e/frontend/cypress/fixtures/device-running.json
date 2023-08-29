@@ -18,5 +18,6 @@
       "links": {
           "self": "http://localhost:3000/api/v1/teams/1"
       }
-  }
+  },
+  "agentVersion": "1.11.0"
 }
