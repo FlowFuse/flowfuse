@@ -39,7 +39,7 @@
             </ff-data-table>
             <ff-code-previewer v-else ref="code-preview" :snippet="contents" />
         </div>
-        <EmptyState v-else :featureUnavailable="!featureEnabled">
+        <EmptyState v-else :featureUnavailable="!featureEnabledForPlatform" :featureUnavailableToTeam="!featureEnabledForTeam">
             <template #img>
                 <img src="../../images/empty-states/team-library.png">
             </template>
@@ -123,8 +123,15 @@ export default {
     },
     computed: {
         ...mapState('account', ['features']),
-        featureEnabled () {
+        featureEnabledForTeam () {
+            const flag = this.team.type.properties.features?.['shared-library']
+            return flag === undefined || flag
+        },
+        featureEnabledForPlatform () {
             return this.features['shared-library']
+        },
+        featureEnabled () {
+            return this.featureEnabledForTeam && this.featureEnabledForPlatform
         }
     },
     created () {

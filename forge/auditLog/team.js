@@ -39,6 +39,11 @@ module.exports = {
                     await log('team.user.role-changed', actionedBy, team?.id, generateBody({ error, user, updates }))
                 }
             },
+            type: {
+                async changed (actionedBy, error, team, info) {
+                    await log('team.type.changed', actionedBy, team.id, generateBody({ error, team, info }))
+                }
+            },
             settings: {
                 async updated (actionedBy, error, team, updates) {
                     await log('team.settings.updated', actionedBy, team?.id, generateBody({ error, team, updates }))

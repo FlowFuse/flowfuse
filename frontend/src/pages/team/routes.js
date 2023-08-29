@@ -14,11 +14,11 @@ import TeamSettingsDevices from './Settings/Devices.vue'
 import TeamSettingsGeneral from './Settings/General.vue'
 import TeamSettings from './Settings/index.vue'
 // import TeamSettingsPermissions from './Settings/Permissions.vue'
+import ChangeTeamType from './changeType.vue'
 import CreateTeam from './create.vue'
 import CreateApplication from './createApplication.vue'
 import CreateInstance from './createInstance.vue'
 
-// EE Only
 import Team from './index.vue'
 
 export default [
@@ -93,6 +93,14 @@ export default [
                 component: TeamAuditLog,
                 meta: {
                     title: 'Team - Audit Log'
+                }
+            },
+            {
+                name: 'TeamChangeType',
+                path: 'settings/change-type',
+                component: ChangeTeamType,
+                meta: {
+                    title: 'Team - Change Type'
                 }
             },
             {

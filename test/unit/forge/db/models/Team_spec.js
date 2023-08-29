@@ -8,6 +8,8 @@ describe('Team model', function () {
     describe('model properties', async function () {
         let pt1, pt2, pt3
         let ATeam
+        let smallerTeamType
+        let biggerTeamType
         before(async function () {
             app = await setup({})
 
@@ -18,16 +20,56 @@ describe('Team model', function () {
             // Modify the default teamType to have some limits to test against
             const teamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
             const teamTypeProperties = { ...teamType.properties }
-            teamTypeProperties.users.limit = 3
+            teamTypeProperties.users.limit = 2
             teamTypeProperties.instances = {
                 [pt1.hashid]: { active: true, limit: 2 },
                 [pt2.hashid]: { active: true, limit: 7 },
                 [pt3.hashid]: { active: false }
             }
-            teamTypeProperties.devices.limit = 5
+            teamTypeProperties.devices.limit = 2
             teamType.properties = teamTypeProperties
             await teamType.save()
             ATeam = await app.db.models.Team.findOne({ where: { name: 'ATeam' } })
+
+            const d1 = await app.db.models.Device.create({ name: 'd1', type: 't1', credentialSecret: '' })
+            await ATeam.addDevice(d1)
+            const d2 = await app.db.models.Device.create({ name: 'd2', type: 't1', credentialSecret: '' })
+            await ATeam.addDevice(d2)
+
+            // Create a new teamType with stricter limits
+            smallerTeamType = await app.db.models.TeamType.create({
+                name: 'smaller-team-type',
+                description: 'team type description',
+                active: true,
+                order: 1,
+                properties: {
+                    instances: {
+                        [pt1.hashid]: { active: false },
+                        [pt2.hashid]: { active: true, limit: 2 },
+                        [pt3.hashid]: { active: true }
+                    },
+                    devices: { limit: 1 },
+                    users: { limit: 1 },
+                    features: { }
+                }
+            })
+
+            biggerTeamType = await app.db.models.TeamType.create({
+                name: 'bigger-team-type',
+                description: 'team type description',
+                active: true,
+                order: 1,
+                properties: {
+                    instances: {
+                        [pt1.hashid]: { active: true },
+                        [pt2.hashid]: { active: true },
+                        [pt3.hashid]: { active: true }
+                    },
+                    devices: { },
+                    users: { },
+                    features: { }
+                }
+            })
         })
         after(async function () {
             if (app) {
@@ -66,11 +108,11 @@ describe('Team model', function () {
 
         it('getUserLimit', async function () {
             const userLimit = await ATeam.getUserLimit()
-            userLimit.should.equal(3)
+            userLimit.should.equal(2)
         })
         it('getDeviceLimit', async function () {
             const deviceLimit = await ATeam.getDeviceLimit()
-            deviceLimit.should.equal(5)
+            deviceLimit.should.equal(2)
         })
         it('isInstanceTypeAvailable', async function () {
             // Check the function handles all the ways an instance type
@@ -105,12 +147,43 @@ describe('Team model', function () {
         })
 
         it('checkInstanceStartAllowed', async function () {
-            ATeam.checkInstanceTypeCreateAllowed(pt1).should.be.resolved()
-            ATeam.checkInstanceTypeCreateAllowed(pt2).should.be.resolved()
-            ATeam.checkInstanceTypeCreateAllowed(pt3).should.be.resolved()
+            ATeam.checkInstanceStartAllowed(pt1).should.be.resolved()
+            ATeam.checkInstanceStartAllowed(pt2).should.be.resolved()
+            ATeam.checkInstanceStartAllowed(pt3).should.be.resolved()
+        })
+
+        it('checkTeamTypeUpdateAllowed rejects changing type to smaller type', async function () {
+            let error
+            try {
+                await ATeam.checkTeamTypeUpdateAllowed(smallerTeamType)
+            } catch (err) {
+                error = err
+            }
+            should.exist(error, 'error not thrown')
+            error.code.should.equal('invalid_request')
+            error.should.have.property('errors')
+            error.errors.should.have.length(3)
+            error.errors.sort((A, B) => A.code.localeCompare(B.code))
+            error.errors[0].should.have.property('code', 'device_limit_reached')
+            error.errors[0].should.have.property('limit', 1)
+            error.errors[0].should.have.property('count', 2)
+            error.errors[1].should.have.property('code', 'instance_limit_reached')
+            error.errors[1].should.have.property('limit', 0)
+            error.errors[1].should.have.property('count', 2)
+            error.errors[1].should.have.property('type', pt1.hashid)
+            error.errors[2].should.have.property('code', 'member_limit_reached')
+            error.errors[2].should.have.property('limit', 1)
+            error.errors[2].should.have.property('count', 2)
+        })
+        it('checkTeamTypeUpdateAllowed allows changing type to bigger type', async function () {
+            await ATeam.checkTeamTypeUpdateAllowed(biggerTeamType)
+        })
+        it('updateTeamType applies type change', async function () {
+            await ATeam.updateTeamType(biggerTeamType)
+            const reloadedTeam = await app.db.models.Team.findOne({ where: { name: 'ATeam' } })
+            reloadedTeam.TeamTypeId.should.equal(biggerTeamType.id)
         })
     })
-    // describe()
     describe('License limits', function () {
         afterEach(async function () {
             if (app) {

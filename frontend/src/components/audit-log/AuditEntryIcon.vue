@@ -108,7 +108,8 @@ const iconMap = {
         'platform.settings.updated',
         'platform.settings.update',
         'team.settings.updated',
-        'project.settings.updated'
+        'project.settings.updated',
+        'team.type.changed'
     ],
     'user-profile': [
         'account.register',

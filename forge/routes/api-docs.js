@@ -125,7 +125,8 @@ module.exports = fp(async function (app, opts, done) {
         type: 'object',
         properties: {
             code: { type: 'string' },
-            error: { type: 'string' }
+            error: { type: 'string' },
+            errors: { type: 'array', items: { type: 'object', additionalProperties: true } }
         }
     })
     app.addSchema({

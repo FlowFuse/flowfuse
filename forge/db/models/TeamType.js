@@ -154,6 +154,9 @@ module.exports = {
                         instanceType = instanceType.hashid
                     }
                     return this.getProperty(`instances.${instanceType}.${property}`, defaultValue)
+                },
+                getFeatureProperty: function (property, defaultValue) {
+                    return this.getProperty(`features.${property}`, defaultValue)
                 }
             }
         }

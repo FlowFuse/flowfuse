@@ -14,6 +14,11 @@ module.exports = async function (app) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return
                     }
+                    const teamType = await request.project.Team.getTeamType()
+                    if (!teamType.getFeatureProperty('ha', true)) {
+                        reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                        return // eslint-disable-line no-useless-return
+                    }
                     if (request.session.User) {
                         request.teamMembership = await request.session.User.getTeamMembership(request.project.Team.id)
                         if (!request.teamMembership && !request.session.User.admin) {

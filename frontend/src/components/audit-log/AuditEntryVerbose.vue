@@ -59,6 +59,14 @@
         <span v-else-if="!error">Updates not found in audit entry.</span>
     </template>
 
+    <!-- Team Type Events -->
+    <template v-else-if="entry.event === 'team.type.changed'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <!-- <span v-if="!error && entry.body?.updates">The team type changed from '{{ entry.body.updates.typeName?.old || entry.body.updates.type.old }}' to '{{ entry.body.updates.typeName?.new || entry.body.updates.type.new }}'.</span> -->
+        <span v-if="!error && entry.body?.info">The team type changed from '{{ entry.body.info.old.name }}' to '{{ entry.body.info.new.name }}'.</span>
+        <span v-else-if="!error">Details not found in audit entry.</span>
+    </template>
+
     <!-- Team Device Developer Mode -->
     <template v-else-if="entry.event === 'team.device.developer-mode.enabled'">
         <label>{{ AuditEvents[entry.event] }}</label>

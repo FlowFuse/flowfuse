@@ -29,7 +29,7 @@
             </div>
             <LockSetting class="flex justify-end flex-col" :editTemplate="editTemplate" v-model="editable.policy.httpNodeAuth_pass" :changed="editable.changed.policy.httpNodeAuth_pass"></LockSetting>
         </div>
-
+        <FeatureUnavailableToTeam v-if="!ffAuthFeatureAvailable" featureName="FlowForge User Authentication" />
         <ff-radio-group v-model="editable.settings.httpNodeAuth_type" orientation="vertical" :options="authOptions2"></ff-radio-group>
     </form>
 </template>
@@ -37,11 +37,13 @@
 <script>
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
+import FeatureUnavailableToTeam from '../../../../components/banners/FeatureUnavailableToTeam.vue'
 import ChangeIndicator from '../components/ChangeIndicator.vue'
 import LockSetting from '../components/LockSetting.vue'
+
 export default {
     name: 'TemplateSettingsSecurity',
-    props: ['editTemplate', 'modelValue'],
+    props: ['editTemplate', 'modelValue', 'team'],
     computed: {
         editable: {
             get () {
@@ -50,6 +52,14 @@ export default {
             set (localValue) {
                 this.$emit('update:modelValue', localValue)
             }
+        },
+        ffAuthFeatureAvailable () {
+            if (!this.team) {
+                // If on the Admin Template view, then this option is available
+                return true
+            }
+            const flag = this.team.type.properties.features?.teamHttpSecurity
+            return flag === undefined || flag
         },
         authOptions1 () {
             return [
@@ -72,7 +82,7 @@ export default {
                 {
                     label: 'FlowFuse User Authentication',
                     value: 'flowforge-user',
-                    disabled: !this.editTemplate && !this.editable.policy.httpNodeAuth_type,
+                    disabled: !this.ffAuthFeatureAvailable || (!this.editTemplate && !this.editable.policy.httpNodeAuth_type),
                     description: 'Only members of the application instance\'s team will be able to access the routes'
                 }
             ]
@@ -82,7 +92,8 @@ export default {
         FormRow,
         FormHeading,
         LockSetting,
-        ChangeIndicator
+        ChangeIndicator,
+        FeatureUnavailableToTeam
     }
 }
 </script>
