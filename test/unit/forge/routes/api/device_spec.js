@@ -505,7 +505,7 @@ describe('Device API', async function () {
             it('can assign to an application - default starter snapshot', async function () {
                 const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
                 const dbDevice = await app.db.models.Device.byId(device.id)
-                dbDevice.agentVersion = '1.11.0' // agent version required for application assignment
+                dbDevice.agentVersion = '1.11.0' // min agent version required for application assignment
                 await dbDevice.save()
                 const response = await app.inject({
                     method: 'PUT',
@@ -522,6 +522,9 @@ describe('Device API', async function () {
             })
             it('cannot assign to an application if device agent version is not present', async function () {
                 const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const dbDevice = await app.db.models.Device.byId(device.id)
+                dbDevice.agentVersion = null // clear the faked agentVersion value (as if a new not-yet-checked-in device were created)
+                await dbDevice.save()
                 const response = await app.inject({
                     method: 'PUT',
                     url: `/api/v1/devices/${device.id}`,
