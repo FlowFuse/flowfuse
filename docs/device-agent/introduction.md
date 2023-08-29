@@ -1,4 +1,5 @@
 ---
+navTitle: Introduction
 navOrder: 1
 ---
 # FlowFuse Device Agent

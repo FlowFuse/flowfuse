@@ -62,8 +62,8 @@ more information.
 
 ## Creating a Snapshot locally
 
-Using the [Node-RED Tools Plugin](./node-red-tools.md) it is also possible to create
+Using the [Node-RED Tools Plugin](/docs/migration/node-red-tools.md) it is also possible to create
 Snapshots in a local copy of Node-RED and push them back into your FlowFuse
 managed Node-RED instances.
 
-For more information, see the [Node-RED Tools Plugin guide](./node-red-tools.md).
+For more information, see the [Node-RED Tools Plugin guide](/docs/migration/node-red-tools.md).
