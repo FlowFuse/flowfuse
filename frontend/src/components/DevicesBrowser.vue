@@ -64,25 +64,25 @@
                         @click="deviceAction('edit', row.id)"
                     />
                     <ff-list-item
-                        v-if="!row.instance && !row.application && displayingTeam"
+                        v-if="!row.ownerType && displayingTeam"
                         label="Add to Application"
                         data-action="device-assign-to-application"
                         @click="deviceAction('assignToApplication', row.id)"
                     />
                     <ff-list-item
-                        v-else-if="row.application && (displayingTeam || displayingApplication)"
+                        v-else-if="row.ownerType === 'application' && (displayingTeam || displayingApplication)"
                         label="Remove from Application"
                         data-action="device-remove-from-application"
                         @click="deviceAction('removeFromApplication', row.id)"
                     />
                     <ff-list-item
-                        v-if="!row.instance && !row.application && displayingTeam"
+                        v-if="!row.ownerType && displayingTeam"
                         label="Add to Instance"
                         data-action="device-assign-to-instance"
                         @click="deviceAction('assignToProject', row.id)"
                     />
                     <ff-list-item
-                        v-else-if="row.instance && (displayingTeam || displayingInstance)"
+                        v-else-if="row.ownerType === 'instance' && (displayingTeam || displayingInstance)"
                         label="Remove from Instance"
                         data-action="device-remove-from-instance"
                         @click="deviceAction('removeFromProject', row.id)"
