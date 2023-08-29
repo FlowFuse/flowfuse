@@ -578,7 +578,12 @@ module.exports = async function (app) {
                 code: err.code || 'unexpected_error',
                 error: err.toString()
             }
-            if (err.errors) {
+            if (/SequelizeUniqueConstraintError/.test(response.error)) {
+                if (err.errors) {
+                    // This is an error from sequelize - reformat the message to be more helpful
+                    response.error = err.errors.map(e => e.message).join(', ')
+                }
+            } else if (err.errors) {
                 response.errors = err.errors
             }
             reply.code(400).send(response)
