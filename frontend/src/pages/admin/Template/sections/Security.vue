@@ -70,7 +70,7 @@ export default {
         authOptions2 () {
             return [
                 {
-                    label: 'FlowForge User Authentication',
+                    label: 'FlowFuse User Authentication',
                     value: 'flowforge-user',
                     disabled: !this.editTemplate && !this.editable.policy.httpNodeAuth_type,
                     description: 'Only members of the application instance\'s team will be able to access the routes'

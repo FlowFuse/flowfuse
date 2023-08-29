@@ -15,21 +15,21 @@ For the Local deployment model, this covers two things:
     is useful when running on a memory constrained device such as a Raspberry Pi. Recommended minimum `256`.
  - `nodered` - the version number of Node-RED to use. This should match the value used in the steps following.
 
-The FlowForge installer will create a default stack using the latest stable
+The FlowFuse installer will create a default stack using the latest stable
 release of Node-RED.
 
 The stacks are stored under `/opt/flowforge/var/stacks` or `c:\flowforge\var\stacks` on Windows.
 
 ### Creating a Stack
 
-When a new version of Node-RED is released, it can be added to your FlowForge
+When a new version of Node-RED is released, it can be added to your FlowFuse
 platform by creating a new stack.
 
 For a local install there are two steps required:
 
 1. Install a new Node-RED version
 
-   In the FlowForge Home directory, run the provided install script. You
+   In the FlowFuse Home directory, run the provided install script. You
    must provide the full Node-RED version number, eg `3.0.2`, or use `latest` to install the most recent stable version.
 
    Linux/Mac:
@@ -46,7 +46,7 @@ For a local install there are two steps required:
 
 2. Creating the Stack
 
-   Log into the FlowForge platform as an administrator. Navigate to the
+   Log into the FlowFuse platform as an administrator. Navigate to the
    Admin Settings -> Stacks section.
 
    If this new stack should be offered as a direct upgrade of an existing stack, select the 'Create new version' option from the dropdown menu
@@ -61,7 +61,7 @@ For a local install there are two steps required:
 
 ### Development Only
 
-If you are developing FlowForge having checked it out from GitHub then you can run 
+If you are developing FlowFuse having checked it out from GitHub then you can run 
 the following command in the repository root to install a stack:
 
 ```bash

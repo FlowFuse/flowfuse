@@ -1,11 +1,11 @@
 <template>
     <ff-dialog ref="dialog" header="Invite Team Member" confirm-label="Invite" @confirm="confirm()" :disable-primary="disableConfirm">
-        <template v-slot:default>
+        <template #default>
             <form class="space-y-2" @submit.prevent>
                 <template v-if="!responseErrors">
                     <p v-if="!exceedsUserLimit">Invite a user to join the team by username<span v-if="externalEnabled"> or email</span>.</p>
-                    <p v-if="hasUserLimit">Your team can have a maximum of {{team.type.properties.userLimit}} members.</p>
-                    <p v-if="exceedsUserLimit">You currently have {{totalMembers}} (including existing invites) so cannot invite any more.</p>
+                    <p v-if="hasUserLimit">Your team can have a maximum of {{ team.type.properties.userLimit }} members.</p>
+                    <p v-if="exceedsUserLimit">You currently have {{ totalMembers }} (including existing invites) so cannot invite any more.</p>
                     <div v-if="!exceedsUserLimit" class="space-y-4">
                         <FormRow id="userInfo" v-model="input.userInfo" :error="errors.userInfo" :placeholder="'username'+(externalEnabled?' or email':'')"></FormRow>
                         <ff-radio-group v-model="input.role" orientation="vertical" :options="roleOptions"></ff-radio-group>
@@ -14,7 +14,7 @@
                 <template v-else>
                     <ul>
                         <li class="text-sm" v-for="(value, name) in responseErrors" :key="name">
-                            <span class="font-medium">{{name}}</span>: <span>{{value}}</span>
+                            <span class="font-medium">{{ name }}</span>: <span>{{ value }}</span>
                         </li>
                     </ul>
                 </template>
@@ -122,7 +122,7 @@ export default {
             }, {
                 label: 'Dashboard Only',
                 value: Roles.Dashboard,
-                description: 'Dashboard users can only access the dashboards or HTTP endpoints created by the Node-RED instances when FlowForge authentication is enabled'
+                description: 'Dashboard users can only access the dashboards or HTTP endpoints created by the Node-RED instances when FlowFuse authentication is enabled'
             }],
             show () {
                 this.$refs.dialog.show()

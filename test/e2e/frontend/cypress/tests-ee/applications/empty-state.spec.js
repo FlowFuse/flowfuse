@@ -25,6 +25,6 @@ describe('FlowForge - Application - Empty State', () => {
     it('is shown when a user navigates to the Applications view and has no applications', () => {
         cy.visit('/team/ateam/applications?billing_session=BILLING_SESSION')
         cy.get('[data-el="notification-alert"]').should('exist')
-        cy.get('[data-el="notification-alert"]').contains('Thanks for signing up to FlowForge!')
+        cy.get('[data-el="notification-alert"]').contains('Thanks for signing up to FlowFuse!')
     })
 })

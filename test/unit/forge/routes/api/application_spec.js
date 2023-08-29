@@ -37,6 +37,7 @@ describe('Application API', function () {
 
         TestObjects.application = await app.db.models.Application.create({
             name: 'B-team Application',
+            description: 'B-team Application description',
             TeamId: TestObjects.BTeam.id
         })
     })
@@ -67,6 +68,7 @@ describe('Application API', function () {
                 cookies: { sid },
                 payload: {
                     name: 'my first application',
+                    description: 'my first application description',
                     teamId: TestObjects.ATeam.hashid
                 }
             })
@@ -77,6 +79,7 @@ describe('Application API', function () {
             const newApplication = await app.db.models.Application.byId(result.id)
             result.should.have.property('id', newApplication.hashid)
             result.should.have.property('name', 'my first application')
+            result.should.have.property('description', 'my first application description')
         })
 
         it('Owner: Create a simple application', async function () {
@@ -171,6 +174,7 @@ describe('Application API', function () {
             const result = response.json()
             result.should.have.property('id')
             result.should.have.property('name', 'B-team Application')
+            result.should.have.property('description', 'B-team Application description')
         })
 
         it('Member: Returns application info', async function () {
@@ -187,6 +191,7 @@ describe('Application API', function () {
             const result = response.json()
             result.should.have.property('id')
             result.should.have.property('name', 'B-team Application')
+            result.should.have.property('description', 'B-team Application description')
         })
 
         it('None: Errors if the user is not a member of the application', async function () {
@@ -235,7 +240,8 @@ describe('Application API', function () {
                 url: `/api/v1/applications/${TestObjects.application.hashid}`,
                 cookies: { sid },
                 payload: {
-                    name: 'Updated Name'
+                    name: 'Updated Name',
+                    description: 'Updated Description'
                 }
             })
 
@@ -243,9 +249,10 @@ describe('Application API', function () {
 
             const result = response.json()
             result.should.have.property('name', 'Updated Name')
+            result.should.have.property('description', 'Updated Description')
         })
 
-        it('Member: Can update the application properties', async function () {
+        it('Member: Can not update the application properties', async function () {
             const sid = await login('chris', 'ccPassword') // member
 
             // Alice

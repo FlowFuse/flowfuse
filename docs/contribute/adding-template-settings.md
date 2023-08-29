@@ -4,7 +4,7 @@ navTitle: Adding Template Settings
 
 # Adding Template Settings
 
-Within FlowForge, each Node-RED instance is created from a Template. The Template defines
+Within FlowFuse, each Node-RED instance is created from a Template. The Template defines
 a set of preconfigured options for the instance. This includes runtime settings - 
 values that you would normally expect to set in your Node-RED settings.js file.
 

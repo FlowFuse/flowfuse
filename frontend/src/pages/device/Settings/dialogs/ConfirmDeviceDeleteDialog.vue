@@ -1,6 +1,6 @@
 <template>
     <ff-dialog ref="dialog" header="Delete Device" kind="danger" confirm-label="Delete" @confirm="confirm()" :disable-primary="!formValid">
-        <template v-slot:default>
+        <template #default>
             <form class="space-y-6" @submit.prevent>
                 <div class="mt-2 space-y-2">
                     <p>

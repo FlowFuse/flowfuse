@@ -59,7 +59,7 @@
         </FormRow>
         <FormRow v-if="input['user:tcs-required']" containerClass="max-w-sm ml-9">
             <template #description>
-                <p>Last updated: {{tcsDate}}.</p>
+                <p>Last updated: {{ tcsDate }}.</p>
                 <div class="flex items-center space-x-2"><p>Require users to reaccept the terms now: </p><ff-button size="small" :disabled="loading" kind="tertiary" @click="updateTermsAndConditions" data-action="terms-and-condition-update">update now</ff-button></div>
             </template>
             <template #input>&nbsp;</template>
@@ -68,17 +68,21 @@
         <FormRow v-model="input['team:create']" type="checkbox">
             Allow users to create teams
             <template #description>
-                <p>If a user creates a team, they become its Owner. Otherwise they
-                    must be invited to an existing team by an Administrator or Team Owner.</p>
+                <p>
+                    If a user creates a team, they become its Owner. Otherwise they
+                    must be invited to an existing team by an Administrator or Team Owner.
+                </p>
                 <p>Administrators can always create teams.</p>
             </template>
         </FormRow>
         <FormRow v-model="input['team:user:invite:external']" type="checkbox" :disabled="!!errors.requiresEmail" :error="errors.requiresEmail">
             Allow users to invite external users to teams
             <template #description>
-                <p>Users can invite existing users to join a team. If they provide
+                <p>
+                    Users can invite existing users to join a team. If they provide
                     an email address of an unregistered user, the invitation will be
-                    sent to that email address.</p>
+                    sent to that email address.
+                </p>
             </template>
         </FormRow>
         <FormHeading>Platform</FormHeading>
@@ -103,7 +107,7 @@
                 <ff-loading v-if="platformStatsTokenGenerating" message="Generating token..."/>
                 <template v-else>
                     <p>The following token can be used to access the platform statistics api.</p>
-                    <code class="block my-2">{{platformStatsToken}}</code>
+                    <code class="block my-2">{{ platformStatsToken }}</code>
                     <p>
                         This is the only time this token will be shared. Make sure you save it
                         before closing this dialog.
@@ -130,7 +134,7 @@
             Enable collection of anonymous statistics
             <template #description>
                 <p>
-                    We collect anonymous statistics about how FlowForge is used.
+                    We collect anonymous statistics about how FlowFuse is used.
                     This allows us to improve how it works and make a better product.
                 </p>
                 <p>

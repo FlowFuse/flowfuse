@@ -1,10 +1,11 @@
 ---
-navTitle: FlowForge Concepts
+navTitle: FlowFuse Concepts
+navOrder: 2
 ---
 
-# FlowForge Concepts
+# FlowFuse Concepts
 
-FlowForge makes it easy to create and manage Node-RED instances. To do that, there
+FlowFuse makes it easy to create and manage Node-RED instances. To do that, there
 are a few concepts the platform introduces to help organise things.
 
  - [Team](#team)
@@ -20,13 +21,13 @@ are a few concepts the platform introduces to help organise things.
 
 ### Team
 
-Teams are how FlowForge organises the user on the platform. Each team can have
+Teams are how FlowFuse organises the user on the platform. Each team can have
 multiple members, and each user can be a member of multiple teams.
 
 The users in a team can have different roles that determine what they are
 [able to do](./team/#role-based-access-control).
 
-In FlowForge Cloud, each team has its own billing plan, managed via Stripe.
+In FlowFuse Cloud, each team has its own billing plan, managed via Stripe.
 
 #### Team Type
 
@@ -41,9 +42,8 @@ or how many members the team can have.
 
 To organise your Node-RED instances, they are grouped with Applications.
 
-With the 1.5 release, each Application has a single Node-RED instance. But later
-releases will introduce the ability to have multiple Node-RED instances within
-the application.
+With the 1.5 release, each Application has a single Node-RED instance. With the 
+1.6 release, an application can have multiple Node-RED instances.
 
 #### DevOps Pipeline
 
@@ -51,13 +51,17 @@ the application.
 
 DevOps Pipelines allow you to manage staged development environments. Pushing
 from your Development instances to Production once you have stable, and well tested,
-flows. You can find out how to implemnt DevOps Pipelines [here](./devops-pipelines.md)
+flows. You can find out how to implement DevOps Pipelines [here](./devops-pipelines.md)
+
+### What is the difference between an Instance and a Device?
+
+At FlowFuse, we make a distinction between `Instances` and `Devices` in our terminology, even though both refer to Node-RED environments. The key difference lies in where these environments run. An Instance runs within the FlowFuse infrastructure, benefiting from our platform's seamless integration and management capabilities. In contrast, a Device refers to a Node-RED environment managed by FlowFuse but running on a different infrastructure—be it a PLC, Gateway, local PC, or even a server in a different network.
 
 ### Instance
 
 **This was called a Project before FlowForge 1.5**
 
-Within your Application you can have one or more (coming soon) Instances of Node-RED.
+Within your Application you can have one or more Instances of Node-RED.
 
 The Instance is a customised version of Node-RED that includes various FlowForge
 plugins to integrate it with the platform.
@@ -65,7 +69,7 @@ plugins to integrate it with the platform.
 A number of the standard Node-RED settings are exposed for customisation, and they
 can be preset by applying a Template when creating the Instance.
 
-When running in Docker or Kubernetes (such as FlowForge Cloud), the instance names
+When running in Docker or Kubernetes (such as FlowFuse Cloud), the instance names
 are used as the hostname to access the instance. This means that the names must
 be DNS safe (made up of a-z, 0-9 and -) and not start with a number. Currently
 it is not possible to change an instance name after it has been created.
@@ -85,14 +89,14 @@ associated with it.
 
 A Stack describes properties of the Node-RED runtime. This can include the
 version of Node-RED, memory and CPU allocation. The specific details will depend
-on how and where FlowForge is running.
+on how and where FlowFuse is running.
 
 Stacks are created and owned by the platform Administrator. When a User
 comes to create a new Node-RED instance, they chose from the available stacks associated
 with the chosen Instance Type.
 
 For details on how to administer and manage Stacks, please see the
-[Administering FlowForge](../admin/#managing-stacks) docs.
+[Administering FlowFuse](../admin/#managing-stacks) docs.
 
 #### Template
 
@@ -105,7 +109,7 @@ A template can also specify [Environment Variables](./envvar.md) which can then 
 their values customised for each Node-RED instance, or have their values locked
 to prevent any changes.
 
-In the current release of FlowForge, Templates are created by the Administrator.
+In the current release of FlowFuse, Templates are created by the Administrator.
 As well as define the values, they also get to choose whether instances are able
 to override any of the settings for themselves.
 
@@ -114,14 +118,14 @@ to override any of the settings for themselves.
 A snapshot is a point-in-time backup of a Node-RED instance. It captures the flows, credentials
 and runtime settings.
 
-Snapshots can be created (and deleted) on the FlowForge dashboard, or using the
-[FlowForge Node-RED Tools plugin](./node-red-tools.md).
+Snapshots can be created (and deleted) on the FlowFuse dashboard, or using the
+[FlowFuse Node-RED Tools plugin](/docs/migration/node-red-tools.md).
 
 The dashboard also allows you to roll an instance back to a previous snapshot.
 
 ### Device
 
-The FlowForge platform can be used to manage Node-RED applications running on remote devices.
+The FlowFuse platform can be used to manage Node-RED applications running on remote devices.
 A Device runs a software agent that connects back to the platform to receive updates.
 Users must [install the agent](../device-agent/install.md) on the devices.
 

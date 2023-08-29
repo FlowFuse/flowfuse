@@ -6,7 +6,7 @@ navTitle: Changing the Stack
 
 [Stacks](concepts.md#stack) define various aspects of how Node-RED instances run - including the version of Node-RED being used.
 
-FlowForge allows you to change the stack an instance is using - providing a way
+FlowFuse allows you to change the stack an instance is using - providing a way
 to upgrade Node-RED.
 
 **Note:** Stacks are created by Administrators and made available to the teams

@@ -16,12 +16,14 @@
             </div>
         </div>
         <TransitionGroup class="ff-notifications" name="notifictions-list" tag="div">
-            <ff-notification-toast v-for="(a, $index) in alertsReversed"
-                                   :key="a.timestamp"
-                                   :type="a.type"
-                                   :message="a.message"
-                                   :countdown="a.countdown || 3000"
-                                   @close="clear($index)">
+            <ff-notification-toast
+                v-for="(a, $index) in alertsReversed"
+                :key="a.timestamp"
+                :type="a.type"
+                :message="a.message"
+                :countdown="a.countdown || 3000"
+                @close="clear($index)"
+            >
             </ff-notification-toast>
         </TransitionGroup>
     </div>

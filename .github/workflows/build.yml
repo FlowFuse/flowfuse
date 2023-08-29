@@ -2,18 +2,25 @@ name: Backend Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, maintenance ]
     paths:
       - 'forge/**'
       - 'test/unit/**'
       - 'test/system/**'
+      - 'frontend/**'
+      - 'test/e2e/frontend/**'
+      - 'test/unit/frontend/**'
       - 'package.json'
+      - 'package-lock.json'
       - '.eslintrc'
   pull_request:
     paths:
       - 'forge/**'
       - 'test/unit/**'
       - 'test/system/**'
+      - 'frontend/**'
+      - 'test/e2e/frontend/**'
+      - 'test/unit/frontend/**'
       - 'package.json'
       - '.eslintrc'
       - '.github/workflows/build.yml'

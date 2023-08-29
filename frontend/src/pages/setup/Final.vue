@@ -4,7 +4,7 @@
         <p class="text-center">All of these settings can be modified under the Admin Settings section of the platform.</p>
         <div class="flex justify-center">
             <ff-button @click="done()" class="mt-6">
-                Login to FlowForge
+                Login to FlowFuse
             </ff-button>
         </div>
     </form>

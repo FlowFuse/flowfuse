@@ -99,6 +99,7 @@ export default {
         this.applications = data.applications.map((a) => {
             return {
                 label: a.name,
+                description: a.description,
                 value: a.id
             }
         })
@@ -120,8 +121,8 @@ export default {
         async handleFormSubmit (formData, copyParts) {
             this.loading = true
 
-            // Drop applicationId & applicationName from the payload
-            const { applicationId, applicationName, ...instanceFields } = formData
+            // Drop application id, name and description from the payload
+            const { applicationId, applicationName, applicationDescription, ...instanceFields } = formData
 
             try {
                 const instance = await this.createInstance(applicationId, instanceFields, copyParts)

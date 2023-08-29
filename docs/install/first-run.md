@@ -11,10 +11,10 @@ through the initial setup.
 ## 1. Start setup
 
 ### - LocalFS
-Open FlowForge in your browser [http://localhost:3000](http://localhost:3000).  
+Open FlowFuse in your browser [http://localhost:3000](http://localhost:3000).  
 
 ### - Docker or Kubernetes
-Open FlowForge in your browser [http://forge.example.com](http://forge.example.com) (Change `.example.com` to match the domain you set up in DNS)
+Open FlowFuse in your browser [http://forge.example.com](http://forge.example.com) (Change `.example.com` to match the domain you set up in DNS)
 
 
 Click the **START SETUP** button
@@ -35,9 +35,9 @@ outside of the platform in a future release.
 
 ## 3. Upload a license
 
-FlowForge Community Edition is Open Source and can be used freely without a license.
+FlowFuse Community Edition is Open Source and can be used freely without a license.
 
-If you have a FlowForge Enterprise Edition license you can upload it here.
+If you have a FlowFuse Enterprise Edition license you can upload it here.
 
 <img src="images/setup-03-license.png" width=500 />
 
@@ -60,5 +60,5 @@ Once you complete the setup, you will be able to log in as the Administrator
 user you created and start using the platform. You can setup your Team and
 create your first Node-RED instance.
 
-More information about using the FlowForge platform is available in the
+More information about using the FlowFuse platform is available in the
 main [user guide](../user/).
