@@ -32,6 +32,13 @@ describe('Device API', async function () {
         })
         let device = response.json()
 
+        // get the db device and apply an agentVersion of 1.11.0 to permit "Add to Application" feature
+        // ordinarily, the `agentVersion` is set by the device when it first connects. In tests we don't
+        // have an actual device and must set it manually inorder for the API to permit the "Add to Application"
+        const dbDevice = await app.db.models.Device.byId(device.id)
+        await dbDevice.update({ agentVersion: '1.11.0' })
+        await dbDevice.save()
+
         if (options.application) {
             const response2 = await app.inject({
                 method: 'PUT',
