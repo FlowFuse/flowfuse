@@ -153,6 +153,9 @@ export default {
                     if (this.input.properties.features.ha === undefined) {
                         this.input.properties.features.ha = true
                     }
+                    if (this.input.properties.features.teamHttpSecurity === undefined) {
+                        this.input.properties.features.teamHttpSecurity = true
+                    }
                 } else {
                     this.editDisabled = false
                     this.input = {
