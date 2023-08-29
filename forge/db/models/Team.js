@@ -361,7 +361,6 @@ module.exports = {
                  * The team must be within any limits of the target type.
                  */
                 checkTeamTypeUpdateAllowed: async function (teamType) {
-                    // console.log(teamType.properties)
                     await this.ensureTeamTypeExists()
 
                     // Check the following limits:
@@ -393,10 +392,8 @@ module.exports = {
                     }
 
                     const currentInstanceCountsByType = await this.instanceCountByType()
-                    // console.log(currentInstanceCountsByType)
                     const targetInstanceLimits = {}
                     for (const instanceType of Object.keys(currentInstanceCountsByType)) {
-                        // console.log('checking', instanceType, teamType.properties.instances[instanceType])
                         if (!teamType.getInstanceTypeProperty(instanceType, 'active', false)) {
                             targetInstanceLimits[instanceType] = 0
                         } else {
@@ -419,11 +416,6 @@ module.exports = {
                         err.errors = errors
                         throw err
                     }
-                    // console.log(`members: ${currentMemberCount} / ${targetMemberLimit}`)
-                    // console.log(`devices: ${currentDeviceCount} / ${targetDeviceLimit}`)
-                    // for (const instanceType of Object.keys(currentInstanceCountsByType)) {
-                    //     console.log(`instance[${instanceType}] ${currentInstanceCountsByType[instanceType]} / ${targetInstanceLimits[instanceType]}`)
-                    // }
                 },
                 /**
                  * Update the team type.
