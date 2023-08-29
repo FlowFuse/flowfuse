@@ -74,8 +74,8 @@
                     <FormRow v-model="input.properties.features.projectComms" type="checkbox">Project Nodes</FormRow>
                     <FormRow v-model="input.properties.features.ha" type="checkbox">High Availability</FormRow>
                     <FormRow v-model="input.properties.features.teamHttpSecurity" type="checkbox">Team-based Endpoint Security</FormRow>
-                    <!--<FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
-                    <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow> -->
+                    <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
+                    <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
                 </div>
             </form>
         </template>
@@ -268,6 +268,9 @@ export default {
                         opts.properties.trial = { active: false }
                     }
                 }
+                formatNumber(opts.properties.features, 'fileStorageLimit')
+                formatNumber(opts.properties.features, 'contextLimit')
+
                 if (this.teamType) {
                     // For edits, we cannot touch the properties
                     // TODO: what can be edited when in use?
