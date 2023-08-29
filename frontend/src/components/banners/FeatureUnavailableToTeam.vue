@@ -5,7 +5,7 @@
     >
         <SparklesIcon class="ff-icon mr-2" style="stroke-width: 1px;" />
         <div>
-            {{ featureName }} is not available for your current Team. Please <a class="ff-link" href="#" target="_blank" rel="noopener noreferrer">upgrade</a> your Team in order to use it.
+            {{ featureName }} is not available for your current Team. Please <a class="ff-link" href="#" @click="navigateToUpgrade">upgrade</a> your Team in order to use it.
         </div>
         <SparklesIcon class="ff-icon ml-2" style="stroke-width: 1px;" />
     </div>
@@ -13,6 +13,8 @@
 
 <script>
 import { SparklesIcon } from '@heroicons/vue/outline'
+
+import { mapState } from 'vuex'
 
 export default {
     name: 'FeatureUnavailableToTeam',
@@ -23,6 +25,17 @@ export default {
         featureName: {
             type: String,
             default: 'This feature'
+        }
+    },
+    computed: {
+        ...mapState('account', ['team']),
+        upgradePath () {
+            return '/team/' + this.team.slug + '/settings/change-type'
+        }
+    },
+    methods: {
+        navigateToUpgrade () {
+            this.$router.push(this.upgradePath)
         }
     }
 }

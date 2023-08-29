@@ -10,6 +10,7 @@
         "team.user.invite.rejected": "User Invite Rejected",
         "team.user.role-changed": "User Role Modified",
         "team.settings.updated": "Team Settings Updated",
+        "team.type.changed": "Team Type Changed",
         "team.device.created": "New Device Created",
         "team.device.deleted": "Device Deleted",
         "team.device.updated": "Device Updated",
