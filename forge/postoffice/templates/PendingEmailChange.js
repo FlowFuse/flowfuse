@@ -1,9 +1,9 @@
 module.exports = {
-    subject: 'Please confirm your email change request on FlowForge',
+    subject: 'Please confirm your email change request on FlowFuse',
     text:
 `Hello
 
-A request to change your Email Address has been made on the FlowForge platform.
+A request to change your Email Address has been made on the FlowFuse platform.
 
 * Old email address: {{{ oldEmail }}}
 * New email address: {{{ newEmail }}}
@@ -18,7 +18,7 @@ If this continues to occur, contact your system administrator.
 `,
     html:
 `<p>Hello</p>
-<p>A request to change your Email Address has been made on the FlowForge platform.</p>
+<p>A request to change your Email Address has been made on the FlowFuse platform.</p>
 <ul>
 <li>Old email address: {{{ oldEmail }}}</li>
 <li>New email address: {{{ newEmail }}}</li>
