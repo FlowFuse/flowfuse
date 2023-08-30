@@ -172,7 +172,7 @@ export default {
             default: 'No Data Found'
         }
     },
-    emits: ['update:search', 'load-more', 'row-selected'],
+    emits: ['update:search', 'load-more', 'row-selected', 'update:sort'],
     data () {
         return {
             internalSearch: '',
@@ -274,6 +274,8 @@ export default {
                 } else {
                     this.sort.highlightColumn = null
                 }
+
+                this.$emit('update:sort', this.sort.key, this.sort.order)
             }
         },
         cycleOrder () {

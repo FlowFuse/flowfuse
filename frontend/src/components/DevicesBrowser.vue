@@ -28,6 +28,7 @@
                 :show-load-more="moreThanOnePage"
                 @load-more="loadMoreDevices"
                 @update:search="updateSearch"
+                @update:sort="updateSort"
             >
                 <template #actions>
                     <ff-button
@@ -283,7 +284,12 @@ export default {
             checkInterval: null,
 
             unsearchedHasMoreThanOnePage: true,
-            unfilteredHasMoreThanOnePage: true
+            unfilteredHasMoreThanOnePage: true,
+
+            sort: {
+                key: null,
+                direction: 'desc'
+            }
         }
     },
     computed: {
@@ -415,13 +421,26 @@ export default {
             }
         },
 
-        doFilterServerSide () {
-            this.loadDevices(true)
+        updateSort (key, direction) {
+            this.sort.key = key
+            this.sort.direction = direction
+
+            if (this.moreThanOnePage) {
+                this.doSortServerSide()
+            }
         },
+
+        doFilterServerSide: debounce(function () {
+            this.loadDevices(true)
+        }, 50),
 
         doSearchServerSide: debounce(function () {
             this.loadDevices(true)
         }, 150),
+
+        doSortServerSide: debounce(function () {
+            this.loadDevices(true)
+        }, 50),
 
         showCreateDeviceDialog () {
             this.$refs.teamDeviceCreateDialog.show(null, this.instance, this.application)
@@ -552,10 +571,10 @@ export default {
             if (this.searchTerm) {
                 extraParams.query = this.searchTerm
             }
-            if (this.sort) {
-                extraParams.sort = this.sort
-                if (this.dir) {
-                    extraParams.dir = this.dir
+            if (this.sort.key) {
+                extraParams.sort = this.sort.key
+                if (this.sort.direction) {
+                    extraParams.dir = this.sort.direction
                 }
             }
 

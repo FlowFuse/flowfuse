@@ -2,7 +2,7 @@
     <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigationTeamOptions />
     </Teleport>
-    <main class="ff-with-status-header">
+    <main v-if="device" class="ff-with-status-header">
         <Teleport v-if="mounted" to="#platform-banner">
             <SubscriptionExpiredBanner :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />

@@ -222,11 +222,13 @@ module.exports = {
                         ]
                     })
                 },
-                getAll: async (pagination = {}, where = {}, { includeApplication = false, statusOnly = false } = {}) => {
+                getAll: async (pagination = {}, where = {}, sort = {}, { includeApplication = false, statusOnly = false } = {}) => {
                     // Pagination
                     const limit = parseInt(pagination.limit) || 1000
                     if (pagination.cursor) {
-                        pagination.cursor = M.Device.decodeHashid(pagination.cursor)
+                        const cursors = pagination.cursor.split(',')
+                        cursors[cursors.length - 1] = M.Device.decodeHashid(cursors[cursors.length - 1])
+                        pagination.cursor = cursors.join(',')
                     }
 
                     // Filtering
@@ -258,6 +260,20 @@ module.exports = {
                         }
                     }
 
+                    // Sorting
+                    const order = [['id', 'ASC']]
+                    if (Object.keys(sort).length) {
+                        for (const key in sort) {
+                            if (key === 'application') {
+                                order.unshift([M.Application, 'name', sort[key] || 'ASC'])
+                            } else if (key === 'instance') {
+                                order.unshift([M.Project, 'name', sort[key] || 'ASC'])
+                            } else {
+                                order.unshift([key, sort[key] || 'ASC'])
+                            }
+                        }
+                    }
+
                     // Extra models to include
                     const projectInclude = {
                         model: M.Project,
@@ -282,16 +298,46 @@ module.exports = {
 
                     const [rows, count] = await Promise.all([
                         this.findAll({
-                            where: buildPaginationSearchClause(pagination, where, ['Device.name', 'Device.type', 'Device.id']),
+                            where: buildPaginationSearchClause(pagination, where, ['Device.name', 'Device.type', 'Device.id'], {}, order),
                             include: statusOnly ? [] : includes,
-                            order: [['id', 'ASC']],
+                            order,
                             limit
                         }),
                         this.count({ where })
                     ])
+
+                    let nextCursors = []
+                    if (rows.length === limit && limit > 0) {
+                        const lastRow = rows[rows.length - 1]
+                        nextCursors = order.map((sortProps) => {
+                            // Model, key, dir
+                            let [model, key] = sortProps
+
+                            // Key, dir
+                            if (arguments.length === 2) {
+                                key = model
+                                model = null
+                            }
+
+                            if (key === 'id') {
+                                key = 'hashid'
+                            }
+
+                            if (model === M.Application) {
+                                return lastRow.Project[model.name][key]
+                            }
+
+                            if (model !== null) {
+                                return lastRow[model.name][key]
+                            }
+
+                            return lastRow[key]
+                        })
+                    }
+
                     return {
                         meta: {
-                            next_cursor: (rows.length === limit && limit > 0) ? rows[rows.length - 1].hashid : undefined
+                            next_cursor: nextCursors.length > 0 ? nextCursors.join(',') : undefined
                         },
                         count,
                         devices: rows

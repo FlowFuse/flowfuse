@@ -92,7 +92,11 @@ module.exports = async function (app) {
             }
         }
 
-        console.log('Searching for devices with where: ', where)
+        const sort = {}
+        if (request.query.sort) {
+            sort[request.query.sort] = request.query.dir
+        }
+
 
         const devices = await app.db.models.Device.getAll(paginationOptions, where, sort, { includeApplication: true, statusOnly })
         devices.devices = devices.devices.map(d => app.db.views.Device.device(d, { statusOnly }))
