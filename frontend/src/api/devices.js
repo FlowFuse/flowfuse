@@ -106,7 +106,6 @@ const setMode = async (deviceId, mode) => {
  * @param {string} options.name - the name of the snapshot
  * @param {string} [options.description] - the description of the snapshot
  * @param {boolean} [options.setAsTarget] - set the snapshot as the new target for all devices
- * @see https://docs.flowforge.io/api/#operation/createSnapshot
  */
 const createSnapshot = async (instanceId, deviceId, options) => {
     const data = {

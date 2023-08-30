@@ -4,7 +4,7 @@
         <i class="ff-header--mobile-toggle" :class="{'active': mobileMenuOpen}">
             <MenuIcon class="ff-avatar" @click="$emit('menu-toggle')"/>
         </i>
-        <!-- FlowForge Logo -->
+        <!-- FlowFuse Logo -->
         <img class="ff-logo" src="/ff-logo--wordmark-caps--dark.png" @click="home()"/>
         <!-- Mobile: Toggle(User Options) -->
         <div v-if="team" class="flex">
