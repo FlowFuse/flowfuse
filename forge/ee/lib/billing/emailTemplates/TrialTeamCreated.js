@@ -12,8 +12,7 @@ module.exports = {
 Welcome to FlowFuse. We hope you enjoy your free trial for your first
 {{{trialDuration}}} days with us.
 
-To get started using FlowFuse, log in to your new team, '{{{teamName}}}' 
-and create your first Node-RED Application.
+To get started, log in to FlowFuse and begin creating Node-RED flows in your first application.
 
 You can also invite other users to join your team to collaborate on your applications.
 
@@ -38,8 +37,7 @@ Your friendly FlowFuse Team
 <p>Welcome to FlowFuse. We hope you enjoy your free trial for your first
 {{{trialDuration}}} days with us.</p>
 
-<p>To get started using FlowFuse, log in to your new team, '{{{teamName}}}' 
-and create your first Node-RED Application.</p>
+<p>To get started, log in to FlowFuse and begin creating Node-RED flows in your first application.</p>
 
 <p>You can also invite other users to join your team to collaborate on your applications.</p>
 
