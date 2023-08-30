@@ -198,7 +198,7 @@ module.exports = async function (app) {
     app.post('/:snapshotId/export', {
         preHandler: app.needsPermission('project:snapshot:export'),
         schema: {
-            summary: "Export an instance snapshot using the provided credentialSecret",
+            summary: 'Export an instance snapshot using the provided credentialSecret',
             tags: ['Snapshots'],
             params: {
                 type: 'object',
