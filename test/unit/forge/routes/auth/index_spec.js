@@ -518,8 +518,8 @@ describe('Accounts API', async function () {
                 }
             })
             response.statusCode.should.equal(200)
-            const body = response.body
-            console.log(body)
+            body.should.have.property('file')
+            body.should.have.property('context')
         })
     })
 })
