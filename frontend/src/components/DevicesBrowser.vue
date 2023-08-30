@@ -295,12 +295,12 @@ export default {
     computed: {
         columns () {
             const columns = [
-                { label: 'Device', key: 'name', class: ['w-64'], sortable: true, component: { is: markRaw(DeviceLink) } },
-                { label: 'Type', key: 'type', class: ['w-48'], sortable: true }
+                { label: 'Device', key: 'name', class: ['w-64'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
+                { label: 'Type', key: 'type', class: ['w-48'], sortable: !this.moreThanOnePage }
             ]
 
             const statusColumns = [
-                { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: true, component: { is: markRaw(DeviceLastSeenBadge) } },
+                { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLastSeenBadge) } },
                 { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge) } }
             ]
 
@@ -311,7 +311,7 @@ export default {
                         label: 'Application',
                         class: ['w-48'],
                         key: 'application',
-                        sortable: true,
+                        sortable: !this.moreThanOnePage,
                         component: {
                             is: markRaw(ApplicationLink),
                             map: {
@@ -328,7 +328,7 @@ export default {
                     label: 'Instance',
                     key: 'instance',
                     class: ['w-48'],
-                    sortable: true,
+                    sortable: !this.moreThanOnePage,
                     component: {
                         is: markRaw(InstanceInstancesLink),
                         map: {
