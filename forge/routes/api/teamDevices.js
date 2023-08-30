@@ -70,7 +70,6 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const paginationOptions = app.db.controllers.Device.getDevicePaginationOptions(request)
 
-
         const where = {
             TeamId: request.team.id
         }

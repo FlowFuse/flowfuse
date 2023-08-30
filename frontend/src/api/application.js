@@ -84,12 +84,10 @@ const getApplicationInstances = async (applicationId, cursor, limit) => {
  * @param {string} cursor
  * @param {string} limit
  */
-const getApplicationDevices = async (applicationId, cursor, limit) => {
-    const url = paginateUrl(`/api/v1/applications/${applicationId}/devices`, cursor, limit)
+const getApplicationDevices = async (applicationId, cursor, limit, query, extraParams = {}) => {
+    const url = paginateUrl(`/api/v1/applications/${applicationId}/devices`, cursor, limit, query, extraParams)
     const res = await client.get(url)
-    if (!res?.data?.count) {
-        return []
-    }
+
     res.data.devices = res.data.devices.map((item) => {
         item.createdSince = daysSince(item.createdAt)
         item.updatedSince = daysSince(item.updatedAt)
