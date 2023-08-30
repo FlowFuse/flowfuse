@@ -80,7 +80,7 @@ module.exports = async function (app) {
         }
 
         if (request.query.filter) {
-            // Takes a comma separated list of key:value pairs
+            // Takes a comma separated list of key:value,name:smith pairs
             const filters = Object.fromEntries(request.query.filter.split(',').map((filterString) => filterString.split(':')))
 
             if (filters.status) {
@@ -97,9 +97,9 @@ module.exports = async function (app) {
             sort[request.query.sort] = request.query.dir
         }
 
-
-        const devices = await app.db.models.Device.getAll(paginationOptions, where, sort, { includeApplication: true, statusOnly })
+        const devices = await app.db.models.Device.getAll(paginationOptions, where, sort, { includeInstanceApplication: true, statusOnly })
         devices.devices = devices.devices.map(d => app.db.views.Device.device(d, { statusOnly }))
+
         reply.send(devices)
     })
 

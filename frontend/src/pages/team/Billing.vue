@@ -30,7 +30,7 @@
                 <FormHeading v-if="trialMode" class="mb-6">Trial Ends:  <span class="font-normal">{{ formatDate(team.billing.trialEndsAt) }}</span></FormHeading>
                 <FormHeading class="mb-6">Next Payment: <span v-if="subscription && !subscriptionExpired" class="font-normal">{{ formatDate(subscription.next_billing_date) }}</span></FormHeading>
                 <div v-if="subscriptionExpired" class="ff-no-data ff-no-data-large">
-                    Your subscription has expired. Please renew it to continue using FlowForge.
+                    Your subscription has expired. Please renew it to continue using FlowFuse.
 
                     <ff-button data-action="renew-subscription" class="mx-auto mt-3" @click="setupBilling()">
                         <template #icon-right><ExternalLinkIcon /></template>

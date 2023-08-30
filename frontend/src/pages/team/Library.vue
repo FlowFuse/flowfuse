@@ -10,7 +10,7 @@
                 </template>
                 <template #helptext>
                     <p>In Node-RED you can export and import flows and functions, and save them to your Team Library.</p>
-                    <p>The contents of your Team Library are available across any of your application instances in FlowForge.</p>
+                    <p>The contents of your Team Library are available across any of your application instances in FlowFuse.</p>
                     <p>You can read more about <a href="https://nodered.org/docs/user-guide/editor/workspace/import-export" target="_blank">Import &amp; Exporting Flows</a> in the Node-RED documentation</p>
                 </template>
                 <template #tools>
@@ -39,17 +39,17 @@
             </ff-data-table>
             <ff-code-previewer v-else ref="code-preview" :snippet="contents" />
         </div>
-        <EmptyState v-else :featureUnavailable="!featureEnabled">
+        <EmptyState v-else :featureUnavailable="!featureEnabledForPlatform" :featureUnavailableToTeam="!featureEnabledForTeam">
             <template #img>
                 <img src="../../images/empty-states/team-library.png">
             </template>
             <template #header>Create your own Team Library</template>
             <template #message>
                 <p>
-                    You can import and export flows and functions to a shared <a class="ff-link" href="https://flowforge.com/docs/user/shared-library/" target="_blank">Team Library</a> from within your Node-RED Instances.
+                    You can import and export flows and functions to a shared <a class="ff-link" href="https://flowfuse.com/docs/user/shared-library/" target="_blank">Team Library</a> from within your Node-RED Instances.
                 </p>
                 <p>
-                    The contents of your Team Library will show here, and will be available within all of your Node-RED instances on FlowForge.
+                    The contents of your Team Library will show here, and will be available within all of your Node-RED instances on FlowFuse.
                 </p>
             </template>
             <template #actions>
@@ -123,8 +123,15 @@ export default {
     },
     computed: {
         ...mapState('account', ['features']),
-        featureEnabled () {
+        featureEnabledForTeam () {
+            const flag = this.team.type.properties.features?.['shared-library']
+            return flag === undefined || flag
+        },
+        featureEnabledForPlatform () {
             return this.features['shared-library']
+        },
+        featureEnabled () {
+            return this.featureEnabledForTeam && this.featureEnabledForPlatform
         }
     },
     created () {

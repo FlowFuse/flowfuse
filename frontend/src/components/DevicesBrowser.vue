@@ -66,15 +66,27 @@
                         @click="deviceAction('edit', row.id)"
                     />
                     <ff-list-item
-                        v-if="!row.instance && displayingTeam"
+                        v-if="!row.ownerType && displayingTeam"
+                        label="Add to Application"
+                        data-action="device-assign-to-application"
+                        @click="deviceAction('assignToApplication', row.id)"
+                    />
+                    <ff-list-item
+                        v-else-if="row.ownerType === 'application' && (displayingTeam || displayingApplication)"
+                        label="Remove from Application"
+                        data-action="device-remove-from-application"
+                        @click="deviceAction('removeFromApplication', row.id)"
+                    />
+                    <ff-list-item
+                        v-if="!row.ownerType && displayingTeam"
                         label="Add to Instance"
-                        data-action="device-assign"
+                        data-action="device-assign-to-instance"
                         @click="deviceAction('assignToProject', row.id)"
                     />
                     <ff-list-item
-                        v-else
-                        label="Remove from Application Instance"
-                        data-action="device-remove"
+                        v-else-if="row.ownerType === 'instance' && (displayingTeam || displayingInstance)"
+                        label="Remove from Instance"
+                        data-action="device-remove-from-instance"
                         @click="deviceAction('removeFromProject', row.id)"
                     />
                     <ff-list-item
@@ -99,15 +111,15 @@
                         <template #header>Connect your First Device</template>
                         <template #message>
                             <p>
-                                Devices in FlowForge allow you to manage Node-RED instances
+                                Devices in FlowFuse allow you to manage Node-RED instances
                                 running on remote hardware.
                             </p>
                             <p>
                                 A Device runs the <a
-                                    class="ff-link" href="https://flowforge.com/docs/user/devices"
+                                    class="ff-link" href="https://flowfuse.com/docs/user/devices"
                                     target="_blank"
-                                >FlowForge Device Agent</a>, and can be used to deploy and debug
-                                instances anywhere, from here, in FlowForge.
+                                >FlowFuse Device Agent</a>, and can be used to deploy and debug
+                                instances anywhere, from here, in FlowFuse.
                             </p>
                         </template>
                         <template #actions>
@@ -170,6 +182,7 @@
             <p>
                 Here, you can add a new device to your
                 <template v-if="displayingTeam">team.</template>
+                <template v-if="displayingApplication">application.</template>
                 <template v-else-if="displayingInstance">application instance.</template>
                 This will generate a <b>device.yml</b> file that should be
                 placed on the target device.
@@ -180,7 +193,7 @@
             </p>
             <p class="my-4">
                 Further info on Devices can be found
-                <a href="https://flowforge.com/docs/user/devices/" target="_blank">here</a>.
+                <a href="https://flowfuse.com/docs/user/devices/" target="_blank">here</a>.
             </p>
         </template>
     </TeamDeviceCreateDialog>
@@ -199,28 +212,37 @@
         ref="deviceAssignInstanceDialog"
         @assign-device="assignDevice"
     />
+
+    <DeviceAssignApplicationDialog
+        v-if="displayingTeam"
+        ref="deviceAssignApplicationDialog"
+        @assign-device="assignDeviceToApplication"
+    />
 </template>
 
 <script>
 import { ClockIcon } from '@heroicons/vue/outline'
 import { PlusSmIcon } from '@heroicons/vue/solid'
 
+import semver from 'semver'
 import { markRaw } from 'vue'
 
+import ApplicationApi from '../api/application.js'
 import deviceApi from '../api/devices.js'
 import instanceApi from '../api/instances.js'
 import teamApi from '../api/team.js'
 
 import permissionsMixin from '../mixins/Permissions.js'
+import { VueTimersMixin } from '../mixins/vue-timers.js'
 
-import ApplicationLink from '../pages/application/components/cells/ApplicationLink.vue'
+import DeviceAssignedToLink from '../pages/application/components/cells/DeviceAssignedToLink.vue'
 import DeviceLink from '../pages/application/components/cells/DeviceLink.vue'
-import InstanceInstancesLink from '../pages/application/components/cells/InstanceInstancesLink.vue'
 import Snapshot from '../pages/application/components/cells/Snapshot.vue'
 
 import DeviceLastSeenBadge from '../pages/device/components/DeviceLastSeenBadge.vue'
 import SnapshotAssignDialog from '../pages/instance/Snapshots/dialogs/SnapshotAssignDialog.vue'
 import InstanceStatusBadge from '../pages/instance/components/InstanceStatusBadge.vue'
+import DeviceAssignApplicationDialog from '../pages/team/Devices/dialogs/DeviceAssignApplicationDialog.vue'
 import DeviceAssignInstanceDialog from '../pages/team/Devices/dialogs/DeviceAssignInstanceDialog.vue'
 import DeviceCredentialsDialog from '../pages/team/Devices/dialogs/DeviceCredentialsDialog.vue'
 import TeamDeviceCreateDialog from '../pages/team/Devices/dialogs/TeamDeviceCreateDialog.vue'
@@ -233,10 +255,13 @@ import { debounce } from '../utils/eventHandling.js'
 import EmptyState from './EmptyState.vue'
 import DevicesStatusBar from './charts/DeviceStatusBar.vue'
 
+const POLL_TIME = 10000
+
 export default {
     name: 'DevicesBrowser',
     components: {
         ClockIcon,
+        DeviceAssignApplicationDialog,
         DeviceAssignInstanceDialog,
         DeviceCredentialsDialog,
         PlusSmIcon,
@@ -245,7 +270,7 @@ export default {
         EmptyState,
         DevicesStatusBar
     },
-    mixins: [permissionsMixin],
+    mixins: [permissionsMixin, VueTimersMixin],
     inheritAttrs: false,
     props: {
         // One of the two must be provided
@@ -254,11 +279,15 @@ export default {
             required: false,
             default: null
         },
+        application: {
+            type: Object,
+            required: false,
+            default: null
+        },
         team: {
             type: Object,
             required: true
         },
-
         // Used for hasPermission
         teamMembership: {
             type: Object,
@@ -281,7 +310,6 @@ export default {
             // Server side
             filter: null,
             nextCursor: null,
-            checkInterval: null,
 
             unsearchedHasMoreThanOnePage: true,
             unfilteredHasMoreThanOnePage: true,
@@ -296,52 +324,25 @@ export default {
         columns () {
             const columns = [
                 { label: 'Device', key: 'name', class: ['w-64'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
-                { label: 'Type', key: 'type', class: ['w-48'], sortable: !this.moreThanOnePage }
-            ]
-
-            const statusColumns = [
+                { label: 'Type', key: 'type', class: ['w-48'], sortable: !this.moreThanOnePage },
                 { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLastSeenBadge) } },
                 { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge) } }
             ]
 
             if (this.displayingTeam) {
-                columns.push(
-                    ...statusColumns,
-                    {
-                        label: 'Application',
-                        class: ['w-48'],
-                        key: 'application',
-                        sortable: !this.moreThanOnePage,
-                        component: {
-                            is: markRaw(ApplicationLink),
-                            map: {
-                                id: 'application.id',
-                                name: 'application.name'
-                            }
-                        }
-                    }
-                )
-            }
-
-            if (!this.displayingInstance) {
+                // Show which application/instance the device is assigned to when looking at devices owned by a team
                 columns.push({
-                    label: 'Instance',
-                    key: 'instance',
+                    label: 'Device Owner',
                     class: ['w-48'],
+                    key: '_ownerSortKey',
                     sortable: !this.moreThanOnePage,
                     component: {
-                        is: markRaw(InstanceInstancesLink),
-                        map: {
-                            id: 'instance.id',
-                            name: 'instance.name'
-                        }
+                        is: markRaw(DeviceAssignedToLink)
                     }
                 })
-            }
-
-            if (!this.displayingTeam) {
+            } else if (this.displayingInstance) {
+                // Show snapshot info when looking at devices owned by an instance
                 columns.push(
-                    ...statusColumns,
                     { label: 'Deployed Snapshot', class: ['w-48'], component: { is: markRaw(Snapshot) } }
                 )
             }
@@ -361,25 +362,29 @@ export default {
         },
         devicesWithStatuses () {
             return this.filteredDevices.map(device => {
-                const status = this.allDeviceStatuses.get(device.id)
-                if (status) {
-                    return {
-                        ...device,
-                        ...status
-                    }
+                const statusObject = this.allDeviceStatuses.get(device.id)
+                const ownerKey = this.getOwnerSortKeyForDevice(device)
+
+                return {
+                    ...device,
+                    ...statusObject,
+                    ...(ownerKey ? { _ownerSortKey: ownerKey } : null)
                 }
-                return device
             })
         },
         displayingInstance () {
             return this.instance !== null
         },
+        displayingApplication () {
+            return this.application !== null && !this.displayingInstance
+        },
         displayingTeam () {
-            return this.team !== null && !this.displayingInstance
+            return this.team !== null && !this.displayingInstance && !this.displayingApplication
         },
         hasLoadedModel () {
             return (
                 (this.displayingInstance && !!this.instance?.id) ||
+                (this.displayingApplication && !!this.application?.id) ||
                 (this.displayingTeam && !!this.team?.id)
             )
         },
@@ -394,11 +399,22 @@ export default {
     },
     mounted () {
         this.fullReloadOfData()
+        this.$timer.start('pollTimer')
     },
-    unmounted () {
-        clearInterval(this.checkInterval)
+    timers: {
+        pollTimer: { time: POLL_TIME, repeat: true, autostart: false }
     },
     methods: {
+        // pollTimer method is called by VueTimersMixin. See the timers property above.
+        pollTimer: async function () {
+            this.$timer.stop('pollTimer')
+            try {
+                await this.pollForDeviceStatuses()
+            } finally {
+                this.$timer.start('pollTimer')
+            }
+        },
+
         /**
          * filter: Object containing keys:
          *  - devices: an array of device ids
@@ -464,29 +480,28 @@ export default {
                 setTimeout(() => {
                     this.$refs.deviceCredentialsDialog.show(device)
                 }, 500)
-                this.loadedDevices.set(device.id, device)
-                this.allDevices.set(device.id, device)
-                this.applyFilter()
+                this.devices.set(device.id, device)
             }
         },
 
         deviceUpdated (device) {
-            this.allDevices.set(device.id, device)
-            this.loadedDevices.set(device.id, device)
+            this.devices.set(device.id, device)
         },
 
         async assignDevice (device, instanceId) {
             const updatedDevice = await deviceApi.updateDevice(device.id, { instance: instanceId })
 
-            if (updatedDevice.instance) {
-                device.instance = updatedDevice.instance
-            }
+            Alerts.emit('Device successfully assigned to instance.', 'confirmation')
 
-            if (updatedDevice.application) {
-                device.application = updatedDevice.application
-            }
+            this.devices.set(device.id, { ...device, ...updatedDevice })
+        },
 
-            this.devices.set(device.id, device)
+        async assignDeviceToApplication (device, applicationId) {
+            const updatedDevice = await deviceApi.updateDevice(device.id, { application: applicationId, instance: null })
+
+            Alerts.emit('Device successfully assigned to application.', 'confirmation')
+
+            this.devices.set(device.id, { ...device, ...updatedDevice })
         },
 
         // Device loading
@@ -506,16 +521,8 @@ export default {
         },
 
         async pollForDeviceStatuses (reset) {
-            if (this.checkInterval) {
-                clearTimeout(this.checkInterval)
-            }
-
-            try {
-                if (this.hasLoadedModel) {
-                    await this.fetchAllDeviceStatuses(reset)
-                }
-            } finally {
-                this.checkInterval = setTimeout(this.pollForDeviceStatuses, 10000)
+            if (this.hasLoadedModel) {
+                await this.fetchAllDeviceStatuses(reset)
             }
         },
 
@@ -524,6 +531,10 @@ export default {
             const query = null // handled via extraParams
             if (this.displayingInstance) {
                 return await instanceApi.getInstanceDevices(this.instance.id, nextCursor, limit, query, extraParams)
+            }
+
+            if (this.displayingApplication) {
+                return await ApplicationApi.getApplicationDevices(this.application.id, nextCursor, limit, query, extraParams)
             }
 
             if (this.displayingTeam) {
@@ -590,7 +601,7 @@ export default {
             })
 
             // Pagination
-            this.nextCursor = data.meta.next_cursor
+            this.nextCursor = data.meta?.next_cursor || null
 
             if (!extraParams.query) {
                 this.unsearchedHasMoreThanOnePage = this.moreThanOnePage
@@ -642,12 +653,55 @@ export default {
                     if (this.displayingInstance) {
                         this.devices.delete(device.id)
                     }
-
+                    this.pollForData()
                     Alerts.emit('Successfully removed the device from the instance.', 'confirmation')
+                })
+            } else if (action === 'removeFromApplication') {
+                Dialog.show({
+                    header: 'Remove Device from Application',
+                    kind: 'danger',
+                    text: 'Are you sure you want to remove this device from the application? This will stop the flows running on the device.',
+                    confirmLabel: 'Remove'
+                }, async () => {
+                    await deviceApi.updateDevice(device.id, { application: null })
+
+                    delete device.instance
+                    delete device.application
+
+                    if (this.displayingApplication) {
+                        this.devices.delete(device.id)
+                    }
+                    this.pollForData()
+                    Alerts.emit('Successfully removed the device from the application.', 'confirmation')
                 })
             } else if (action === 'assignToProject') {
                 this.$refs.deviceAssignInstanceDialog.show(device)
+            } else if (action === 'assignToApplication') {
+                if (!device?.agentVersion) {
+                    Alerts.emit('The device version could not be determined. Please connect the device to the platform before assigning it to an application', 'warning', 7500)
+                    return
+                } else if (semver.lt(device.agentVersion, '1.11.0')) {
+                    Alerts.emit('The device version is not supported. Please update the device to the latest version before assigning it to an application', 'warning', 7500)
+                    return
+                }
+                this.$refs.deviceAssignApplicationDialog.show(device, false)
             }
+        },
+
+        getOwnerSortKeyForDevice (device) {
+            if (!this.displayingTeam) {
+                return null
+            }
+
+            if (device.ownerType === 'application') {
+                return 'Application:' + device.application?.name || 'No Name'
+            }
+
+            if (device.ownerType === 'instance') {
+                return 'Instance:' + device.instance?.name || 'No Name'
+            }
+
+            return 'Unassigned'
         }
     }
 }

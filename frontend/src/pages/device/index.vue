@@ -38,7 +38,7 @@
                                 <ExternalLinkIcon />
                             </span>
                         </button>
-                        <ff-button :disabled="hasPermission('device:edit') !== true || !device?.instance" :kind="developerMode?'primary':'secondary'" data-action="toggle-mode" @click="showModeChoiceDialog()">
+                        <ff-button :disabled="hasPermission('device:edit') !== true || !(device?.instance || device?.application)" :kind="developerMode?'primary':'secondary'" data-action="toggle-mode" @click="showModeChoiceDialog()">
                             Developer Mode
                             <template #icon-right>
                                 <BeakerIcon />
@@ -147,7 +147,7 @@ export default {
             if (this.features.projectComms) {
                 this.navigation.splice(1, 0, {
                     label: 'Device Logs',
-                    path: `/device/${this.$route.params.id}/logs`,
+                    to: `/device/${this.$route.params.id}/logs`,
                     tag: 'device-logs',
                     icon: TerminalIcon
                 })

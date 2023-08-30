@@ -6,8 +6,8 @@
     >
         <span>
             <ExclamationCircleIcon class="ff-icon mr-2" />
-            <span v-if="license.expiring">Your FlowForge license will expire in {{ license.daysRemaining }} day{{ license.daysRemaining > 1 ? 's': '' }}.</span>
-            <span v-else-if="license.expired">Your FlowForge license has expired.</span>
+            <span v-if="license.expiring">Your FlowFuse license will expire in {{ license.daysRemaining }} day{{ license.daysRemaining > 1 ? 's': '' }}.</span>
+            <span v-else-if="license.expired">Your FlowFuse license has expired.</span>
         </span>
 
         <ChevronRightIcon class="ff-icon align-self-right" />

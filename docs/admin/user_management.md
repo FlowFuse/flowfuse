@@ -6,7 +6,7 @@ navTitle: User Management
 
 ## User registration
 
-Depending on where FlowForge is installed, users should or should not be allowed 
+Depending on where FlowFuse is installed, users should or should not be allowed 
 to sign up to the service. User registration can be configured in the admin panel.
 Go to "Admin Settings" > "Settings" and select or deselect "Allow new users to register on the login screen".
 

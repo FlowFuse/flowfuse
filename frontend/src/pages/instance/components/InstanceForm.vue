@@ -1,4 +1,5 @@
 <template>
+    <FeatureUnavailableToTeam v-if="teamInstanceLimitReached" fullMessage="You have reached the instance limit for this team." />
     <form
         class="space-y-6"
         @submit.prevent="$emit('on-submit', input, copyParts)"
@@ -38,7 +39,7 @@
             <div class="italic text-gray-500 pl-1 pt-0.5 text-sm .max-w-sm truncate">{{ selectedApplication?.description || '' }}</div>
         </div>
         <!-- No Existing Applications, or we are creating a new one -->
-        <div v-else-if="creatingApplication">
+        <div v-else-if="creatingApplication" class="space-y-6">
             <FormRow
                 v-model="input.applicationName"
                 :error="errors.applicationName || submitErrors?.applicationName"
@@ -98,113 +99,115 @@
 
         <!-- Instance Type -->
         <div
-            v-if="errors.projectTypes"
+            v-if="errors.projectType"
             class="text-red-400 text-xs"
         >
-            {{ errors.projectTypes }}
+            {{ errors.projectType }}
         </div>
-        <div
-            v-else
-            class="flex flex-wrap items-stretch"
-        >
-            <label class="w-full block text-sm font-medium text-gray-700">Choose your Instance Type</label>
-            <InstanceCreditBanner :subscription="subscription" />
-            <ff-tile-selection
-                v-model="input.projectType"
-                class="mt-5"
-                data-form="project-type"
+        <template v-else>
+            <div
+                v-if="projectTypes.length > 0"
+                class="flex flex-wrap items-stretch"
             >
-                <ff-tile-selection-option
-                    v-for="(projType, index) in projectTypes"
-                    :key="index"
-                    :label="projType.name"
-                    :description="projType.description"
-                    :price="projType.price"
-                    :price-interval="projType.priceInterval"
-                    :value="projType.id"
-                    :disabled="projType.disabled"
-                />
-            </ff-tile-selection>
-        </div>
+                <label class="w-full block text-sm font-medium text-gray-700">Choose your Instance Type</label>
+                <InstanceCreditBanner :subscription="subscription" />
+                <ff-tile-selection
+                    v-model="input.projectType"
+                    class="mt-5"
+                    data-form="project-type"
+                >
+                    <ff-tile-selection-option
+                        v-for="(projType, index) in projectTypes"
+                        :key="index"
+                        :label="projType.name"
+                        :description="projType.description"
+                        :price="projType.price"
+                        :price-interval="projType.priceInterval"
+                        :value="projType.id"
+                        :disabled="projType.disabled"
+                    />
+                </ff-tile-selection>
+            </div>
 
-        <!-- Stack -->
-        <div class="flex flex-wrap gap-1 items-stretch">
-            <label class="w-full block text-sm font-medium text-gray-700 mb-4">Choose your Stack</label>
-            <label
-                v-if="!input.projectType"
-                class="text-sm text-gray-400"
-            >
-                Please select a Instance Type first.</label>
-            <label
-                v-if="errors.stack"
-                class="text-sm text-gray-400"
-            >
-                {{ errors.stack }}
-            </label>
-            <ff-tile-selection
-                v-if="input.projectType"
-                v-model="input.stack"
-                data-form="instance-stack"
-            >
-                <ff-tile-selection-option
-                    v-for="(stack, index) in stacks"
-                    :key="index"
-                    :value="stack.id"
-                    :label="stack.label || stack.name"
-                />
-            </ff-tile-selection>
-        </div>
+            <!-- Stack -->
+            <div class="flex flex-wrap gap-1 items-stretch">
+                <label class="w-full block text-sm font-medium text-gray-700 mb-4">Choose your Stack</label>
+                <label
+                    v-if="!input.projectType"
+                    class="text-sm text-gray-400"
+                >
+                    Please select a Instance Type first.</label>
+                <label
+                    v-if="errors.stack"
+                    class="text-sm text-gray-400"
+                >
+                    {{ errors.stack }}
+                </label>
+                <ff-tile-selection
+                    v-if="input.projectType"
+                    v-model="input.stack"
+                    data-form="instance-stack"
+                >
+                    <ff-tile-selection-option
+                        v-for="(stack, index) in stacks"
+                        :key="index"
+                        :value="stack.id"
+                        :label="stack.label || stack.name"
+                    />
+                </ff-tile-selection>
+            </div>
 
-        <!-- Template -->
-        <div
-            v-if="creatingNew && templates.length > 1 "
-            class="flex flex-wrap gap-1 items-stretch"
-        >
-            <label class="w-full block text-sm font-medium text-gray-700 mb-1">Template</label>
-            <label
-                v-if="!input.projectType || !input.stack"
-                class="text-sm text-gray-400"
-            >Please select a Instance Type &amp; Stack first.</label>
-            <label
-                v-if="errors.template"
-                class="text-sm text-gray-400"
-            >{{ errors.template }}</label>
-            <ff-tile-selection
-                v-if="input.projectType && input.stack"
-                v-model="input.template"
-                data-form="project-template"
+            <!-- Template -->
+            <div
+                v-if="creatingNew && templates.length > 1 "
+                class="flex flex-wrap gap-1 items-stretch"
             >
-                <ff-tile-selection-option
-                    v-for="(t, index) in templates"
-                    :key="index"
-                    :value="t.id"
-                    :disabled="isCopyProject"
-                    :label="t.name"
-                    :description="t.description"
-                />
-            </ff-tile-selection>
-        </div>
+                <label class="w-full block text-sm font-medium text-gray-700 mb-1">Template</label>
+                <label
+                    v-if="!input.projectType || !input.stack"
+                    class="text-sm text-gray-400"
+                >Please select a Instance Type &amp; Stack first.</label>
+                <label
+                    v-if="errors.template"
+                    class="text-sm text-gray-400"
+                >{{ errors.template }}</label>
+                <ff-tile-selection
+                    v-if="input.projectType && input.stack"
+                    v-model="input.template"
+                    data-form="project-template"
+                >
+                    <ff-tile-selection-option
+                        v-for="(t, index) in templates"
+                        :key="index"
+                        :value="t.id"
+                        :disabled="isCopyProject"
+                        :label="t.name"
+                        :description="t.description"
+                    />
+                </ff-tile-selection>
+            </div>
 
-        <!-- Copying a instance -->
-        <template v-if="isCopyProject">
-            <p class="text-gray-500">
-                Select the components to copy from '{{ sourceInstance?.name }}'
-            </p>
-            <ExportInstanceComponents
-                id="exportSettings"
-                v-model="copyParts"
-            />
+            <!-- Copying a instance -->
+            <template v-if="isCopyProject">
+                <p class="text-gray-500">
+                    Select the components to copy from '{{ sourceInstance?.name }}'
+                </p>
+                <ExportInstanceComponents
+                    id="exportSettings"
+                    v-model="copyParts"
+                />
+            </template>
+
+            <!-- Billing details -->
+            <div v-if="showBilling">
+                <InstanceChargesTable
+                    v-model:confirmed="submitEnabled"
+                    :project-type="selectedProjectType"
+                    :subscription="subscription"
+                    :trialMode="isTrialProjectSelected"
+                />
+            </div>
         </template>
-
-        <!-- Billing details -->
-        <div v-if="showBilling">
-            <InstanceChargesTable
-                v-model:confirmed="submitEnabled"
-                :project-type="selectedProjectType"
-                :subscription="subscription"
-                :trialMode="isTrialProjectSelected"
-            />
-        </div>
 
         <!-- Submit -->
         <div class="flex flex-wrap gap-1 items-center">
@@ -250,6 +253,7 @@ import templatesApi from '../../../api/templates.js'
 
 import FormRow from '../../../components/FormRow.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 
 import NameGenerator from '../../../utils/name-generator/index.js'
 
@@ -261,6 +265,7 @@ export default {
     name: 'InstanceForm',
     components: {
         ExportInstanceComponents,
+        FeatureUnavailableToTeam,
         FormRow,
         InstanceChargesTable,
         InstanceCreditBanner,
@@ -323,6 +328,7 @@ export default {
             stacks: [],
             templates: [],
             projectTypes: [],
+            activeProjectTypeCount: 0,
             subscription: null,
             input: {
                 applicationName,
@@ -406,6 +412,9 @@ export default {
                     this.selectedProjectType?.id === this.settings['user:team:trial-mode:projectType']
                 )
             )
+        },
+        teamInstanceLimitReached () {
+            return this.projectTypes.length > 0 && this.activeProjectTypeCount === 0
         }
     },
     watch: {
@@ -431,7 +440,7 @@ export default {
         const projectTypes = (await projectTypesPromise).types
         this.templates = (await templateListPromise).templates.filter(template => template.active)
 
-        let activeProjectTypeCount = projectTypes.length
+        this.activeProjectTypeCount = projectTypes.length
         if (this.billingEnabled) {
             try {
                 this.subscription = await billingApi.getSubscriptionInfo(this.team.id)
@@ -501,7 +510,7 @@ export default {
                     }
                 }
                 if (pt.disabled) {
-                    activeProjectTypeCount--
+                    this.activeProjectTypeCount--
                 }
             })
         }
@@ -510,10 +519,10 @@ export default {
 
         if (this.projectTypes.length === 0) {
             this.errors.projectType = 'No instance types available. Ask an Administrator to create a new instance type'
-        } else if (activeProjectTypeCount === 1) {
+        } else if (this.activeProjectTypeCount === 1) {
+            // Only one active type - pre-select it for convenience
             this.input.projectType = this.projectTypes.find(pt => !pt.disabled).id
         }
-
         if (this.creatingNew && this.templates.length === 0) {
             this.errors.template = 'No templates available. Ask an Administrator to create a new template definition'
         }

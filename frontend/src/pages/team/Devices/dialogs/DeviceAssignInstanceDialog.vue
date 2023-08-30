@@ -4,7 +4,7 @@
         header="Add Device to Instance"
         class="ff-dialog-fixed-height"
         confirm-label="Add"
-        data-el="assign-device-dialog"
+        data-el="assign-device-to-instance-dialog"
         @confirm="assignDevice()"
     >
         <template #default>
@@ -22,8 +22,6 @@
 import { mapState } from 'vuex'
 
 import SelectInstance from '../../../../components/SelectInstance.vue'
-
-import alerts from '../../../../services/alerts.js'
 
 export default {
     name: 'DeviceAssignInstanceDialog',
@@ -52,7 +50,6 @@ export default {
     methods: {
         assignDevice () {
             this.$emit('assignDevice', this.device, this.input.instance.id)
-            alerts.emit('Device successfully assigned to instance.', 'confirmation')
         }
     }
 }

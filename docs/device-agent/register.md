@@ -5,7 +5,7 @@ navOrder: 3
 
 # Register your Device
 
-To connect a device to FlowForge, it needs a set of credentials. 
+To connect a device to FlowFuse, it needs a set of credentials. 
 
 There are two types of configurations to choose from:
 
@@ -95,7 +95,7 @@ The next step is to assign the device to a Node-RED instance.
 
 1. Go to your teams's **Devices** page.
 2. Open the dropdown menu to the right of the device you want to assign and
-   select the **Add to Application Instance** option.
+   select the **Add to Instance** option.
 3. Select the instance in the dialog and click **Add** to continue.
 
 ## Remove a device from a Node-RED instance
@@ -104,11 +104,32 @@ To remove the device from a Node-RED instance:
 
 1. Go to your teams's **Devices** page.
 2. Open the dropdown menu to the right of the device you want to remove and
-   select the **Remove from application instance** option.
+   select the **Remove from Instance** option.
 3. Confirm the action by clicking the **Remove** option.
 
 The device will stop running the current Node-RED flows. It will then wait
 until it is assigned to another instance.
+
+## Assign the device to an Application
+
+The next step is to assign the device to a FlowForge Application
+
+1. Go to your teams's **Devices** page.
+2. Open the dropdown menu to the right of the device you want to assign and
+   select the **Add to Application** option.
+3. Select the application in the dialog and click **Add** to continue.
+
+## Remove a device from an Application
+
+To remove the device from an application:
+
+1. Go to your teams's **Devices** page.
+2. Open the dropdown menu to the right of the device you want to remove and
+   select the **Remove from Application** option.
+3. Confirm the action by clicking the **Remove** option.
+
+The device will stop running the current Node-RED flows. It will then wait
+until it is assigned to another application or instance.
 
 ## Regenerating Configurations
 
@@ -190,5 +211,5 @@ httpStatic:
 If you have problems with the device agent the first thing to do is to enable the verbose logging mode.
 
 To do this add a `-v` to the command line. This will present a lot more information about what the agent is doing.
-It will show that is has connected to the FlowForge instance and every time it checks in, it will also log all the 
-local HTTP requests made when accessing the Node-RED Editor via the FlowForge application.
+It will show that is has connected to the FlowFuse instance and every time it checks in, it will also log all the 
+local HTTP requests made when accessing the Node-RED Editor via the FlowFuse application.

@@ -36,7 +36,7 @@ module.exports = fp(async function (app, opts, next) {
     }
 
     // if (!userLicense) {
-    //     console.log("No user-provided license found - using development license")
+    //     console.warn("No user-provided license found - using development license")
     //     userLicense = devLicense;
     // }
     let activeLicense = null

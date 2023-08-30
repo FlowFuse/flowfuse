@@ -29,7 +29,10 @@
             <router-view
                 :application="application"
                 :instances="instancesArray"
+                :devices="devicesArray"
                 :is-visiting-admin="isVisitingAdmin"
+                :team="team"
+                :team-membership="teamMembership"
                 @application-updated="updateApplication"
                 @application-delete="showConfirmDeleteApplicationDialog"
                 @instance-start="instanceStart"
@@ -44,7 +47,7 @@
 </template>
 
 <script>
-import { CogIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
+import { ChipIcon, CogIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 
 import { mapState } from 'vuex'
 
@@ -86,6 +89,7 @@ export default {
         return {
             mounted: false,
             application: {},
+            applicationDevices: [],
             applicationInstances: new Map(),
             loading: {
                 deleting: false,
@@ -103,7 +107,8 @@ export default {
         },
         navigation () {
             const routes = [
-                { label: 'Node-RED Instances', to: `/application/${this.application.id}/instances`, tag: 'application-overview', icon: ProjectsIcon },
+                { label: 'Instances', to: `/application/${this.application.id}/instances`, tag: 'application-overview', icon: ProjectsIcon },
+                { label: 'Devices', to: `/application/${this.application.id}/devices`, tag: 'application-devices-overview', icon: ChipIcon },
                 {
                     label: 'DevOps Pipelines',
                     to: `/application/${this.application.id}/pipelines`,
@@ -111,7 +116,7 @@ export default {
                     icon: PipelinesIcon,
                     featureUnavailable: !this.features?.['devops-pipelines']
                 },
-                { label: 'Node-RED Logs', to: `/application/${this.application.id}/logs`, tag: 'application-logs', icon: TerminalIcon },
+                { label: 'Logs', to: `/application/${this.application.id}/logs`, tag: 'application-logs', icon: TerminalIcon },
                 { label: 'Audit Log', to: `/application/${this.application.id}/activity`, tag: 'application-activity', icon: ViewListIcon },
                 { label: 'Settings', to: `/application/${this.application.id}/settings`, tag: 'application-settings', icon: CogIcon }
             ]
@@ -120,6 +125,9 @@ export default {
         },
         instancesArray () {
             return Array.from(this.applicationInstances.values())
+        },
+        devicesArray () {
+            return this.applicationDevices
         }
     },
     async created () {
@@ -142,8 +150,11 @@ export default {
                 this.applicationInstances = []
                 const applicationPromise = ApplicationApi.getApplication(applicationId)
                 const instancesPromise = ApplicationApi.getApplicationInstances(applicationId) // To-do needs to be enriched with instance state
+                const devicesPromise = ApplicationApi.getApplicationDevices(applicationId)
 
                 this.application = await applicationPromise
+                const deviceData = await devicesPromise
+                this.applicationDevices = deviceData?.devices
                 const applicationInstances = await instancesPromise
 
                 this.applicationInstances = new Map()

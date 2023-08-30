@@ -46,6 +46,9 @@ export default {
         }
     },
     watch: {
+        options: function () {
+            this.checkOptions()
+        },
         modelValue: function () {
             this.checkOptions()
         },

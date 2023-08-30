@@ -28,7 +28,7 @@ module.exports = async function (app) {
 
     /**
      * Create an application
-     * @name /api/v1/application
+     * @name /api/v1/applications
      * @memberof forge.routes.api.application
      */
     app.post('/', {
@@ -94,7 +94,7 @@ module.exports = async function (app) {
 
     /**
      * Get the details of a given application
-     * @name /api/v1/application/:applicationId
+     * @name /api/v1/applications/:applicationId
      * @static
      * @memberof forge.routes.api.application
      */
@@ -125,7 +125,7 @@ module.exports = async function (app) {
 
     /**
      * Update an application
-     * @name /api/v1/application/:id
+     * @name /api/v1/applications/:id
      * @memberof forge.routes.api.application
      */
     app.put('/:applicationId', {
@@ -193,7 +193,7 @@ module.exports = async function (app) {
 
     /**
      * Delete a application
-     * @name /api/v1/application/:id
+     * @name /api/v1/applications/:id
      * @memberof forge.routes.api.application
      */
     app.delete('/:applicationId', {
@@ -238,7 +238,7 @@ module.exports = async function (app) {
 
     /**
      * List Application instances
-     * @name /api/v1/application/:id/instances
+     * @name /api/v1/applications/:id/instances
      * @memberof forge.routes.api.application
      */
     app.get('/:applicationId/instances', {
@@ -289,8 +289,48 @@ module.exports = async function (app) {
     })
 
     /**
+     * Get a list of devices owned by this application
+     * @name /api/v1/applications/:id/devices
+     * @static
+     * @memberof forge.routes.api.application
+     */
+    app.get('/:applicationId/devices', {
+        preHandler: app.needsPermission('team:device:list'),
+        schema: {
+            summary: 'Get a list of all devices in an application',
+            tags: ['Applications'],
+            query: { $ref: 'PaginationParams' },
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        devices: { type: 'array', items: { $ref: 'Device' } }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const data = (await app.db.models.Device.byApplication(request.application.hashid, { includeSettings: true })) || []
+        reply.send({
+            count: data.length,
+            devices: data.map(d => app.db.views.Device.device(d))
+        })
+    })
+
+    /**
      * List Application instances statuses
-     * @name /api/v1/application/:id/instances/status
+     * @name /api/v1/applications/:id/instances/status
      * @memberof forge.routes.api.application
      */
     app.get('/:applicationId/instances/status', {

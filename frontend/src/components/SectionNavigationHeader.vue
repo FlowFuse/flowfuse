@@ -26,7 +26,7 @@
         </div>
         <ff-tabs v-if="tabs" :tabs="tabs" />
     </div>
-    <ff-dialog v-if="hasInfoDialog" ref="help-dialog" class="ff-dialog-box--info" :header="title || 'FlowForge Info'">
+    <ff-dialog v-if="hasInfoDialog" ref="help-dialog" class="ff-dialog-box--info" :header="title || 'FlowFuse Info'">
         <template #default>
             <div class="flex gap-8">
                 <slot name="pictogram"><img src="../images/pictograms/node_catalog_red.png"></slot>

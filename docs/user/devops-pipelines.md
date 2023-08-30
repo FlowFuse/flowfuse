@@ -11,7 +11,7 @@ navTitle: DevOps Pipelines
 <img src="./images/ui-devops-pipelines.jpg" width="100%" />
 
 
-In FlowForge it is possible to configure a DevOps pipeline for your Node-RED instances.
+In FlowFuse it is possible to configure a DevOps pipeline for your Node-RED instances.
 DevOps Pipelines allow you to easily deploy from one instance to another, most
 commonly used for having an unstable/experimental "Development" instance, and a more stable
 "Production" instance.
@@ -19,7 +19,7 @@ commonly used for having an unstable/experimental "Development" instance, and a 
 The pipeline then allows you to move your full flow and configuration along from "Development"
 to "Production" once it's ready.
 
-You can configure this in FlowForge from the Application screen. Note you will need to have created
+You can configure this in FlowFuse from the Application screen. Note you will need to have created
 any Instances you wish to include in the Pipeline before being able to add them to a Pipeline.
 
 ## Creating a Pipeline

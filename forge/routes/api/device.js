@@ -1,3 +1,5 @@
+const semver = require('semver')
+
 // eslint-disable-next-line no-unused-vars
 const { DeviceTunnelManager } = require('../../ee/lib/deviceEditor/DeviceTunnelManager')
 const { Roles } = require('../../lib/roles')
@@ -319,7 +321,8 @@ module.exports = async function (app) {
                 properties: {
                     name: { type: 'string' },
                     type: { type: 'string' },
-                    instance: { type: 'string', nullable: true }
+                    instance: { type: 'string', nullable: true },
+                    application: { type: 'string', nullable: true }
                 }
             },
             response: {
@@ -334,20 +337,40 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         let sendDeviceUpdate = false
         const device = request.device
-        if (request.body.instance !== undefined) {
+        if (request.body.instance !== undefined || request.body.application !== undefined) {
             // ### Add/Remove device to/from project ###
 
-            if (request.body.instance === null) {
-                // ### Remove device from project ###
+            const assignTo = request.body.instance ? 'instance' : (request.body.application ? 'application' : null)
+            if (!assignTo) {
+                // ### Remove device from application/project ###
+                const unassignApplication = request.body.application === null
+                const unassignInstance = request.body.instance === null
 
-                if (device.Project !== null) {
-                    const oldProject = device.Project
-                    // unassign from project
-                    await device.setProject(null)
+                const commonUpdates = async () => {
                     // Clear its target snapshot, so the next time it calls home
                     // it will stop the current snapshot
                     await device.setTargetSnapshot(null)
                     sendDeviceUpdate = true
+                    // disable developer mode
+                    device.mode = 'autonomous'
+                    await device.save()
+                }
+
+                if (unassignApplication && device.Application) {
+                    // const oldApplication = device.Application
+                    // unassign from application
+                    await device.setApplication(null)
+                    await commonUpdates()
+                    // TODO
+                    // await app.auditLog.Team.team.device.unassigned(request.session.User, null, request.device?.Team, oldProject, request.device)
+                    // await app.auditLog.Project.project.device.unassigned(request.session.User, null, oldProject, request.device)
+                }
+
+                if (unassignInstance && device.Project) {
+                    const oldProject = device.Project
+                    // unassign from project
+                    await device.setProject(null)
+                    await commonUpdates()
 
                     // disable developer mode
                     device.mode = 'autonomous'
@@ -355,15 +378,13 @@ module.exports = async function (app) {
 
                     await app.auditLog.Team.team.device.unassigned(request.session.User, null, request.device?.Team, oldProject, request.device)
                     await app.auditLog.Project.project.device.unassigned(request.session.User, null, oldProject, request.device)
-                } else {
-                    // project is already unassigned - nothing to do
                 }
-            } else {
-                // ### Add device to project ###
+            } else if (assignTo === 'instance') {
+                // ### Add device to instance ###
 
-                // Update includes a project id?
+                // Update includes a instance id?
                 if (device.Project?.id === request.body.instance) {
-                    // Project is already assigned to this project - nothing to do
+                    // Device is already assigned to this instance - nothing to do
                 } else {
                     // Check if the specified project is in the same team
                     const project = await app.db.models.Project.byId(request.body.instance)
@@ -379,6 +400,35 @@ module.exports = async function (app) {
                     sendDeviceUpdate = await assignDeviceToProject(device, project)
                     await app.auditLog.Team.team.device.assigned(request.session.User, null, device.Team, project, request.device)
                     await app.auditLog.Project.project.device.assigned(request.session.User, null, project, request.device)
+                }
+            } else if (assignTo === 'application') {
+                // ### Add device to application ###
+
+                // Update includes a application id?
+                if (device.Application?.id === request.body.application) {
+                    // Device is already assigned to this application - nothing to do
+                } else {
+                    // check the agent version is compatible with the application
+                    // the agent semver must be greater than or equal to first version that supports applications
+                    if (!device.agentVersion || semver.lt(device.agentVersion, '1.11.0')) {
+                        reply.code(400).send({ code: 'invalid_agent_version', error: 'invalid agent version' })
+                        return
+                    }
+                    // Check if the specified application is in the same team
+                    const application = await app.db.models.Application.byId(request.body.application)
+                    if (!application) {
+                        reply.code(400).send({ code: 'invalid_application', error: 'invalid application' })
+                        return
+                    }
+                    if (application.Team.id !== device.Team.id) {
+                        reply.code(400).send({ code: 'invalid_application', error: 'invalid application' })
+                        return
+                    }
+                    // Project exists and is in the right team - assign it to the project
+                    sendDeviceUpdate = await assignDeviceToApplication(device, application)
+                    // TODO
+                    // await app.auditLog.Team.team.device.assigned(request.session.User, null, device.Team, application, request.device)
+                    // await app.auditLog.Project.project.device.assigned(request.session.User, null, application, request.device)
                 }
             }
         } else {
@@ -651,6 +701,14 @@ module.exports = async function (app) {
         // Set the target snapshot to match the project's one
         const deviceSettings = await project.getSetting('deviceSettings')
         device.targetSnapshotId = deviceSettings?.targetSnapshot
+        return true
+    }
+    async function assignDeviceToApplication (device, application) {
+        await device.setApplication(application)
+        // Set the target snapshot to match the project's one
+        // TODO
+        // const deviceSettings = await application.getSetting('deviceSettings')
+        // device.targetSnapshotId = deviceSettings?.targetSnapshot
         return true
     }
     // #endregion

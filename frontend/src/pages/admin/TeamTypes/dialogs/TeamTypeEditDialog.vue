@@ -68,15 +68,15 @@
                     <FormRow v-if="features.billing" v-model="input.properties.devices.description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
                 </div>
 
-                <!-- <FormHeading>Features</FormHeading>
+                <FormHeading>Features</FormHeading>
                 <div class="grid gap-3 grid-cols-2">
-                    <FormRow v-model="input.properties.features.projectComms" type="checkbox">Project Nodes</FormRow>
                     <FormRow v-model="input.properties.features['shared-library']" type="checkbox">Team Library</FormRow>
-                    <FormRow v-model="input.properties.features.teamHttpSecurity" type="checkbox">Team-based Endpoint Security</FormRow>
+                    <FormRow v-model="input.properties.features.projectComms" type="checkbox">Project Nodes</FormRow>
                     <FormRow v-model="input.properties.features.ha" type="checkbox">High Availability</FormRow>
+                    <FormRow v-model="input.properties.features.teamHttpSecurity" type="checkbox">Team-based Endpoint Security</FormRow>
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
-                </div> -->
+                </div>
             </form>
         </template>
         <template #actions>
@@ -142,6 +142,20 @@ export default {
                         this.input.properties.trial.instanceType = '_'
                     }
                     this.input.order = '' + (teamType.order || 0)
+
+                    // Apply default feature values if undefined
+                    if (this.input.properties.features['shared-library'] === undefined) {
+                        this.input.properties.features['shared-library'] = true
+                    }
+                    if (this.input.properties.features.projectComms === undefined) {
+                        this.input.properties.features.projectComms = true
+                    }
+                    if (this.input.properties.features.ha === undefined) {
+                        this.input.properties.features.ha = true
+                    }
+                    if (this.input.properties.features.teamHttpSecurity === undefined) {
+                        this.input.properties.features.teamHttpSecurity = true
+                    }
                 } else {
                     this.editDisabled = false
                     this.input = {
@@ -257,6 +271,9 @@ export default {
                         opts.properties.trial = { active: false }
                     }
                 }
+                formatNumber(opts.properties.features, 'fileStorageLimit')
+                formatNumber(opts.properties.features, 'contextLimit')
+
                 if (this.teamType) {
                     // For edits, we cannot touch the properties
                     // TODO: what can be edited when in use?

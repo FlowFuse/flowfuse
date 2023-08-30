@@ -14,7 +14,7 @@ Users can create new teams. Creating a team requires a name and a unique url.
 The user who creates the team is added as its "owner".
 
 **Note**: Administrators might not [allow all users to create teams](../../admin#admin-settings).
-FlowForge Cloud does allow any user to create a new team.
+FlowFuse Cloud does allow any user to create a new team.
 
 ### Adding team members
 
@@ -63,6 +63,7 @@ table summaries what actions are available to the different roles.
 | • View Devices                       | ✓     | ✓      | ✓      | -              |
 | • Modify Device Settings             | ✓     | -      | -      | -              |
 | • Modify Environment Variables       | ✓     | ✓      | -      | -              |
+| • Assign to/Remove from Application  | ✓     | -      | -      | -              |
 | • Assign to/Remove from Instance     | ✓     | -      | -      | -              |
 | • Delete Device                      | ✓     | -      | -      | -              |
 | **Team Members**                     |       |        |        |                |

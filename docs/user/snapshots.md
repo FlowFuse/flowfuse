@@ -40,7 +40,7 @@ cause any connected devices to stop running the snapshot when they next check in
 ## Setting a Device Target snapshot
 
 Snapshots are used to identify a version of the Node-RED instance that should be pushed
-out to any connected devices. This allows you to develop you flows in FlowForge
+out to any connected devices. This allows you to develop you flows in FlowFuse
 and only push out to the devices when it is ready.
 
 To set the **Device Target**:
@@ -62,8 +62,8 @@ more information.
 
 ## Creating a Snapshot locally
 
-Using the [Node-RED Tools Plugin](./node-red-tools.md) it is also possible to create
-Snapshots in a local copy of Node-RED and push them back into your FlowForge
+Using the [Node-RED Tools Plugin](/docs/migration/node-red-tools.md) it is also possible to create
+Snapshots in a local copy of Node-RED and push them back into your FlowFuse
 managed Node-RED instances.
 
-For more information, see the [Node-RED Tools Plugin guide](./node-red-tools.md).
+For more information, see the [Node-RED Tools Plugin guide](/docs/migration/node-red-tools.md).

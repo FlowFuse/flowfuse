@@ -6,12 +6,12 @@ module.exports = fp(async function (app, opts, done) {
     await app.register(require('@fastify/swagger'), {
         openapi: {
             info: {
-                title: 'FlowForge Platform API',
-                description: 'API documentation for interacting with the FlowForge platform',
+                title: 'FlowFuse Platform API',
+                description: 'API documentation for interacting with the FlowFuse platform',
                 version: app.config.version
             },
             externalDocs: {
-                url: 'https://flowforge.com/docs',
+                url: 'https://flowfuse.com/docs',
                 description: 'Find more info here'
             },
             tags: [
@@ -61,7 +61,7 @@ module.exports = fp(async function (app, opts, done) {
     const swaggerUIOptions = {
         routePrefix: '/api/',
         theme: {
-            title: 'FlowForge API Documentation'
+            title: 'FlowFuse API Documentation'
         },
         logLevel: 'silent',
         hideUntagged: true,
@@ -125,7 +125,8 @@ module.exports = fp(async function (app, opts, done) {
         type: 'object',
         properties: {
             code: { type: 'string' },
-            error: { type: 'string' }
+            error: { type: 'string' },
+            errors: { type: 'array', items: { type: 'object', additionalProperties: true } }
         }
     })
     app.addSchema({

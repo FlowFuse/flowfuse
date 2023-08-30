@@ -2,13 +2,15 @@ module.exports = {
     ensureDefaultTypeExists: async function (app) {
         const teamTypeCount = await app.db.models.TeamType.count()
         if (teamTypeCount === 0 || teamTypeCount === 1) {
-            const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
+            let defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
             if (!defaultTeamType || defaultTeamType.getProperty('userLimit') !== undefined) {
                 // Either no defaultTeamType, or it is in the old format
                 const properties = {
                     users: { },
                     devices: { },
-                    features: { },
+                    features: {
+                        'shared-library': true
+                    },
                     instances: { }
                 }
 
@@ -44,7 +46,7 @@ module.exports = {
 
                 if (!defaultTeamType) {
                     // Create the default starter type
-                    await app.db.models.TeamType.create({
+                    defaultTeamType = await app.db.models.TeamType.create({
                         name: 'starter',
                         active: true,
                         order: 0,

@@ -58,7 +58,7 @@ describe('Application API', function () {
     })
 
     describe('Create application', async function () {
-        // POST /api/v1/application
+        // POST /api/v1/applications
         it('Admin: Create a simple application', async function () {
             const sid = await login('alice', 'aaPassword')
 

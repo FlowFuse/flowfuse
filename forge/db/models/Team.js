@@ -354,6 +354,79 @@ module.exports = {
                  */
                 checkInstanceStartAllowed: async function (instance) {
                     return true
+                },
+
+                /**
+                 * Checks whether the team type can be modified to the requested type.
+                 * The team must be within any limits of the target type.
+                 */
+                checkTeamTypeUpdateAllowed: async function (teamType) {
+                    await this.ensureTeamTypeExists()
+
+                    // Check the following limits:
+                    // - User count
+                    // - Device count
+                    // - Instance Type counts
+                    const errors = []
+
+                    const currentMemberCount = await this.memberCount()
+                    const targetMemberLimit = teamType.getProperty('users.limit', -1)
+                    if (targetMemberLimit !== -1 && targetMemberLimit < currentMemberCount) {
+                        errors.push({
+                            code: 'member_limit_reached',
+                            error: 'Member limit reached',
+                            limit: targetMemberLimit,
+                            count: currentMemberCount
+                        })
+                    }
+
+                    const currentDeviceCount = await this.deviceCount()
+                    const targetDeviceLimit = teamType.getProperty('devices.limit', -1)
+                    if (targetDeviceLimit !== -1 && targetDeviceLimit < currentDeviceCount) {
+                        errors.push({
+                            code: 'device_limit_reached',
+                            error: 'Device limit reached',
+                            limit: targetDeviceLimit,
+                            count: currentDeviceCount
+                        })
+                    }
+
+                    const currentInstanceCountsByType = await this.instanceCountByType()
+                    const targetInstanceLimits = {}
+                    for (const instanceType of Object.keys(currentInstanceCountsByType)) {
+                        if (!teamType.getInstanceTypeProperty(instanceType, 'active', false)) {
+                            targetInstanceLimits[instanceType] = 0
+                        } else {
+                            targetInstanceLimits[instanceType] = teamType.getInstanceTypeProperty(instanceType, 'limit', -1)
+                        }
+                        if (targetInstanceLimits[instanceType] !== -1 && targetInstanceLimits[instanceType] < currentInstanceCountsByType[instanceType]) {
+                            errors.push({
+                                code: 'instance_limit_reached',
+                                error: `Instance type ${instanceType} limit reached`,
+                                type: instanceType,
+                                limit: targetInstanceLimits[instanceType],
+                                count: currentInstanceCountsByType[instanceType]
+                            })
+                        }
+                    }
+                    if (errors.length > 0) {
+                        const message = errors.map(err => `${err.error} (current: ${err.count}, limit: ${err.limit})`).join(', ')
+                        const err = new Error(`Unable to change team type: ${message}`)
+                        err.code = 'invalid_request'
+                        err.errors = errors
+                        throw err
+                    }
+                },
+                /**
+                 * Update the team type.
+                 *
+                 * When running with EE, this function is replaced via ee/lib/billing/Team.js
+                 * to add additional checks related to billing
+                 */
+                updateTeamType: async function (teamType) {
+                    await this.setTeamType(teamType)
+                    await this.save()
+                    await this.reload({ include: [{ model: M.TeamType }] })
                 }
             }
         }

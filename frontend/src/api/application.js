@@ -1,5 +1,7 @@
 import product from '../services/product.js'
 import daysSince from '../utils/daysSince.js'
+import elapsedTime from '../utils/elapsedTime.js'
+import paginateUrl from '../utils/paginateUrl.js'
 
 import client from './client.js'
 
@@ -75,6 +77,27 @@ const getApplicationInstances = async (applicationId, cursor, limit) => {
     })
 
     return instances
+}
+
+/**
+ * @param {string} applicationId
+ * @param {string} cursor
+ * @param {string} limit
+ */
+const getApplicationDevices = async (applicationId, cursor, limit) => {
+    const url = paginateUrl(`/api/v1/applications/${applicationId}/devices`, cursor, limit)
+    const res = await client.get(url)
+    if (!res?.data?.count) {
+        return []
+    }
+    res.data.devices = res.data.devices.map((item) => {
+        item.createdSince = daysSince(item.createdAt)
+        item.updatedSince = daysSince(item.updatedAt)
+        item.lastSeenSince = item.lastSeenAt ? elapsedTime(0, item.lastSeenMs) + ' ago' : ''
+        return item
+    })
+
+    return res.data
 }
 
 /**
@@ -189,6 +212,7 @@ export default {
     updateApplication,
     deleteApplication,
     getApplication,
+    getApplicationDevices,
     getApplicationInstances,
     getApplicationInstancesStatuses,
     getPipeline,

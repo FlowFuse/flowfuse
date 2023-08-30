@@ -23,9 +23,17 @@ module.exports = {
         lastSeenAt: { type: DataTypes.DATE, allowNull: true },
         settingsHash: { type: DataTypes.STRING, allowNull: true },
         agentVersion: { type: DataTypes.STRING, allowNull: true },
-        mode: { type: DataTypes.STRING, allowNull: true, defaultValue: 'autonomous' }
+        mode: { type: DataTypes.STRING, allowNull: true, defaultValue: 'autonomous' },
+        /** @type {'instance'|'application'|null} a virtual column that signifies the parent type e.g. `"instance"`, `"application"` */
+        ownerType: {
+            type: DataTypes.VIRTUAL,
+            get () {
+                return this.Project?.id ? 'instance' : (this.Application?.hashid ? 'application' : null)
+            }
+        }
     },
     associations: function (M) {
+        this.belongsTo(M.Application)
         this.belongsTo(M.Team)
         this.belongsTo(M.Project)
         this.hasOne(M.AccessToken, {
@@ -172,6 +180,7 @@ module.exports = {
                                 model: M.Team,
                                 attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
                             },
+                            { model: M.Application, attributes: ['hashid', 'id', 'name', 'links'] },
                             {
                                 model: M.Project,
                                 attributes: ['id', 'name', 'links'],
@@ -194,12 +203,29 @@ module.exports = {
                                 where: { id: teamId },
                                 attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
                             },
+                            { model: M.Application, attributes: ['hashid', 'id', 'name', 'links'] },
                             {
                                 model: M.Project,
                                 attributes: ['id', 'name', 'links']
                             },
                             { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
                             { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
+                        ]
+                    })
+                },
+                byApplication: async (applicationId) => {
+                    const id = M.Application.decodeHashid(applicationId)
+                    return this.findAll({
+                        include: [
+                            {
+                                model: M.Team,
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
+                            },
+                            {
+                                model: M.Application,
+                                where: { id },
+                                attributes: ['hashid', 'id', 'name', 'links']
+                            }
                         ]
                     })
                 },
@@ -222,9 +248,9 @@ module.exports = {
                         ]
                     })
                 },
-                getAll: async (pagination = {}, where = {}, sort = {}, { includeApplication = false, statusOnly = false } = {}) => {
+                getAll: async (pagination = {}, where = {}, sort = {}, { includeInstanceApplication = false, statusOnly = false } = {}) => {
                     // Pagination
-                    const limit = parseInt(pagination.limit) || 1000
+                    const limit = Math.min(parseInt(pagination.limit) || 100, 100)
                     if (pagination.cursor) {
                         const cursors = pagination.cursor.split(',')
                         cursors[cursors.length - 1] = M.Device.decodeHashid(cursors[cursors.length - 1])
@@ -279,7 +305,7 @@ module.exports = {
                         model: M.Project,
                         attributes: ['id', 'name', 'links']
                     }
-                    if (includeApplication) {
+                    if (includeInstanceApplication) {
                         projectInclude.include = {
                             model: M.Application,
                             attributes: ['id', 'name', 'links']
@@ -296,12 +322,17 @@ module.exports = {
                         { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
                     ]
 
+                    includes.push({
+                        model: M.Application,
+                        attributes: ['hashid', 'id', 'name', 'links']
+                    })
+
                     const [rows, count] = await Promise.all([
                         this.findAll({
                             where: buildPaginationSearchClause(pagination, where, ['Device.name', 'Device.type', 'Device.id'], {}, order),
                             include: statusOnly ? [] : includes,
                             order,
-                            limit
+                            limit: statusOnly ? null : limit
                         }),
                         this.count({ where })
                     ])
@@ -379,6 +410,20 @@ module.exports = {
                     })
                     if (device) {
                         return device.ProjectId
+                    }
+                },
+                getDeviceApplicationId: async (id) => {
+                    if (typeof id === 'string') {
+                        id = M.Device.decodeHashid(id)
+                    }
+                    const device = await this.findOne({
+                        where: { id },
+                        attributes: [
+                            'ApplicationId'
+                        ]
+                    })
+                    if (device && device.ApplicationId) {
+                        return M.Application.encodeHashid(device.ApplicationId)
                     }
                 },
                 /**

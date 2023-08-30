@@ -506,5 +506,22 @@ describe('Accounts API', async function () {
             })
             response.statusCode.should.equal(401)
         })
+
+        it('Test token gets quota', async function () {
+            const authTokens = await app.project.refreshAuthTokens()
+            const response = await app.inject({
+                method: 'GET',
+                url: `/account/check/project/${app.project.id}`,
+                headers: {
+                    authorization: `Bearer ${authTokens.token}`,
+                    'ff-quota': 'true'
+                }
+            })
+            response.statusCode.should.equal(200)
+            const body = response.json()
+            body.should.have.property('quota')
+            body.quota.should.have.property('file')
+            body.quota.should.have.property('context')
+        })
     })
 })

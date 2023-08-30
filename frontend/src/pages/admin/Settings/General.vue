@@ -134,7 +134,7 @@
             Enable collection of anonymous statistics
             <template #description>
                 <p>
-                    We collect anonymous statistics about how FlowForge is used.
+                    We collect anonymous statistics about how FlowFuse is used.
                     This allows us to improve how it works and make a better product.
                 </p>
                 <p>
