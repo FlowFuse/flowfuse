@@ -302,14 +302,23 @@ module.exports = {
                     }
 
                     // Extra models to include
+                    const filteringOnApplication = !!where.ApplicationId
                     const projectInclude = {
                         model: M.Project,
-                        attributes: ['id', 'name', 'links']
+                        attributes: ['id', 'name', 'links'],
+                        required: filteringOnApplication
                     }
-                    if (includeInstanceApplication) {
+                    if (includeInstanceApplication || filteringOnApplication) {
                         projectInclude.include = {
                             model: M.Application,
-                            attributes: ['id', 'name', 'links']
+                            attributes: ['hashid', 'id', 'name', 'links']
+                        }
+
+                        // Handle nested ApplicationId filter
+                        if (filteringOnApplication) {
+                            projectInclude.include.where = { id: M.Application.decodeHashid(where.ApplicationId) }
+                            projectInclude.include.required = true
+                            delete where.ApplicationId
                         }
                     }
 
@@ -323,19 +332,14 @@ module.exports = {
                         { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
                     ]
 
-                    includes.push({
-                        model: M.Application,
-                        attributes: ['hashid', 'id', 'name', 'links']
-                    })
-
                     const [rows, count] = await Promise.all([
                         this.findAll({
                             where: buildPaginationSearchClause(pagination, where, ['Device.name', 'Device.type', 'Device.id'], {}, order),
-                            include: pagination.statusOnly ? [] : includes,
+                            include: pagination.statusOnly ? (projectInclude.include.where ? [projectInclude] : []) : includes,
                             order,
                             limit: pagination.statusOnly ? null : limit
                         }),
-                        this.count({ where })
+                        this.count({ where, include: (projectInclude.include.where ? [projectInclude] : []) })
                     ])
 
                     let nextCursors = []

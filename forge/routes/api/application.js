@@ -321,11 +321,16 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const data = (await app.db.models.Device.byApplication(request.application.hashid, { includeSettings: true })) || []
-        reply.send({
-            count: data.length,
-            devices: data.map(d => app.db.views.Device.device(d))
-        })
+        const paginationOptions = app.db.controllers.Device.getDevicePaginationOptions(request)
+
+        const where = {
+            ApplicationId: request.application.hashid
+        }
+
+        const devices = await app.db.models.Device.getAll(paginationOptions, where, { includeInstanceApplication: true })
+        devices.devices = devices.devices.map(d => app.db.views.Device.device(d, { statusOnly: paginationOptions.statusOnly }))
+
+        reply.send(devices)
     })
 
     /**
