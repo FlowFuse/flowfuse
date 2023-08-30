@@ -194,60 +194,6 @@ module.exports = {
                         ]
                     })
                 },
-                byTeam: async (teamHashId) => {
-                    const teamId = M.Team.decodeHashid(teamHashId)
-                    return this.findAll({
-                        include: [
-                            {
-                                model: M.Team,
-                                where: { id: teamId },
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
-                            },
-                            { model: M.Application, attributes: ['hashid', 'id', 'name', 'links'] },
-                            {
-                                model: M.Project,
-                                attributes: ['id', 'name', 'links']
-                            },
-                            { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
-                            { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
-                        ]
-                    })
-                },
-                byApplication: async (applicationId) => {
-                    const id = M.Application.decodeHashid(applicationId)
-                    return this.findAll({
-                        include: [
-                            {
-                                model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
-                            },
-                            {
-                                model: M.Application,
-                                where: { id },
-                                attributes: ['hashid', 'id', 'name', 'links']
-                            }
-                        ]
-                    })
-                },
-                byProject: async (projectId) => {
-                    return this.findAll({
-                        include: [
-                            {
-                                model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
-                            },
-                            {
-                                model: M.Project,
-                                where: {
-                                    id: projectId
-                                },
-                                attributes: ['id', 'name', 'links']
-                            },
-                            { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
-                            { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
-                        ]
-                    })
-                },
                 getAll: async (pagination = {}, where = {}, { includeInstanceApplication = false } = {}) => {
                     // Pagination
                     const limit = Math.min(parseInt(pagination.limit) || 100, 100)
