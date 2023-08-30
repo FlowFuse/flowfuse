@@ -104,6 +104,29 @@ describe('Device controller', function () {
             env.should.containEql({ name: 'FF_SNAPSHOT_ID', value: 'snapshot-id', platform: true })
             env.should.containEql({ name: 'FF_SNAPSHOT_NAME', value: 'snapshot-name', platform: true })
         })
+        it('generates env array with FF_APPLICATION_* vars and a default snapshot for device at application level', async function () {
+            const device = {
+                id: '1',
+                hashid: 'a-b-c-device-1',
+                name: 'device1',
+                type: 'PI4',
+                ownerType: 'application',
+                applicationId: 1,
+                Application: {
+                    name: 'application-name',
+                    hashid: 'app-id'
+                }
+            }
+            const env = app.db.controllers.Device.insertPlatformSpecificEnvVars(device, null)
+            should(env).be.an.Array().with.lengthOf(7)
+            env.should.containEql({ name: 'FF_DEVICE_ID', value: device.hashid, platform: true })
+            env.should.containEql({ name: 'FF_DEVICE_NAME', value: 'device1', platform: true })
+            env.should.containEql({ name: 'FF_DEVICE_TYPE', value: 'PI4', platform: true })
+            env.should.containEql({ name: 'FF_SNAPSHOT_ID', value: '0', platform: true })
+            env.should.containEql({ name: 'FF_SNAPSHOT_NAME', value: 'None', platform: true })
+            env.should.containEql({ name: 'FF_APPLICATION_ID', value: 'app-id', platform: true })
+            env.should.containEql({ name: 'FF_APPLICATION_NAME', value: 'application-name', platform: true })
+        })
         it('merges env vars', async function () {
             const device = {
                 id: '2',

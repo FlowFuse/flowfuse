@@ -4,7 +4,7 @@
         header="Add Device to Instance"
         class="ff-dialog-fixed-height"
         confirm-label="Add"
-        data-el="assign-device-dialog"
+        data-el="assign-device-to-instance-dialog"
         @confirm="assignDevice()"
     >
         <template #default>

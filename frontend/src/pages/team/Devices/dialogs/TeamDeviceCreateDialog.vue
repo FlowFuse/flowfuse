@@ -49,7 +49,8 @@ export default {
         return {
             show (device, instance, application) {
                 this.$refs.dialog.show()
-                this.instance = instance || application // TODO: This currently treats applications and instances the same
+                this.instance = instance
+                this.application = application
                 this.device = device
                 if (device) {
                     this.input = {
@@ -68,6 +69,7 @@ export default {
         return {
             device: null,
             instance: null,
+            application: null,
             totalDeviceCount: 0,
             input: {
                 name: '',
@@ -128,16 +130,28 @@ export default {
                 opts.team = this.team.id
                 this.$emit('deviceCreating')
                 devicesApi.create(opts).then((response) => {
-                    if (!this.instance) {
+                    if (!this.instance && !this.application) {
                         this.$emit('deviceCreated', response)
                         alerts.emit('Device successfully created.', 'confirmation')
-                    } else {
+                    } else if (this.instance) {
                         const creds = response.credentials
                         // TODO: should the create allow a device to be created
                         //       in the project directly? Currently done as a two
                         //       step process
                         // eslint-disable-next-line promise/no-nesting
                         return devicesApi.updateDevice(response.id, { project: this.instance.id }).then((response) => {
+                            // Reattach the credentials from the create request
+                            // so they can be displayed to the user
+                            response.credentials = creds
+                            this.$emit('deviceCreated', response)
+                            alerts.emit('Device successfully created.', 'confirmation')
+                        })
+                    } else if (this.application) {
+                        const creds = response.credentials
+                        // TODO: should the create allow a device to linked to an application at the same time?
+                        //       currently, as above, this is a 2 step process
+                        // eslint-disable-next-line promise/no-nesting
+                        return devicesApi.updateDevice(response.id, { application: this.application.id }).then((response) => {
                             // Reattach the credentials from the create request
                             // so they can be displayed to the user
                             response.credentials = creds

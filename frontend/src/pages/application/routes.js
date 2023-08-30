@@ -5,6 +5,7 @@
  * No new functionality should be added here.
  */
 import ApplicationActivity from './Activity.vue'
+import ApplicationDevices from './Devices.vue'
 import ApplicationLogs from './Logs.vue'
 import ApplicationOverview from './Overview.vue'
 import ApplicationPipelineCreate from './Pipeline/create.vue'
@@ -34,6 +35,14 @@ export default [
                 component: ApplicationOverview,
                 meta: {
                     title: 'Application - Instances'
+                }
+            },
+            {
+                path: 'devices',
+                name: 'ApplicationDevices',
+                component: ApplicationDevices,
+                meta: {
+                    title: 'Application - Devices'
                 }
             },
             {

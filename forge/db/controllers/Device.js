@@ -43,11 +43,21 @@ module.exports = {
                 }
             }
             const payload = {
+                ownerType: device.ownerType,
+                application: device.Application?.hashid || null,
                 project: device.Project?.id || null,
                 snapshot: snapshotId,
                 settings: device.settingsHash || null,
                 mode: device.mode,
                 licensed: app.license.active()
+            }
+            // if the device is assigned to an application but has no snapshot we need to send enough
+            // info to start the device in application mode so that it can start node-red and
+            // permit the user to generate new flows and submit a snapshot
+            if (device.ownerType === 'application' && device.Application?.hashid && payload.snapshot === null) {
+                delete payload.project // exclude project property to avoid triggering the wrong kind of update
+                payload.application = device.Application?.hashid
+                payload.snapshot = '0' // '0' is temporary value to indicate that the device should start in application mode with starter flows
             }
             app.comms.devices.sendCommand(device.Team.hashid, device.hashid, 'update', payload)
         }
@@ -75,11 +85,24 @@ module.exports = {
             return { name, value: value || '', platform: true } // add `platform` flag for UI
         }
         const result = []
+        let snapshotId
+        let snapshotName
+
+        if (device.ownerType === 'application') {
+            snapshotId = '0' // '0' is temporary value to indicate that the device should start in application mode with starter flows
+            snapshotName = 'None'
+            result.push(makeVar('FF_APPLICATION_ID', device.Application?.hashid || ''))
+            result.push(makeVar('FF_APPLICATION_NAME', device.Application?.name || ''))
+        } else {
+            // assume older device / part of an instance (i.e. NOT at application level)
+            snapshotId = device.targetSnapshot?.hashid || ''
+            snapshotName = device.targetSnapshot?.name || ''
+        }
         result.push(makeVar('FF_DEVICE_ID', device.hashid || ''))
         result.push(makeVar('FF_DEVICE_NAME', device.name || ''))
         result.push(makeVar('FF_DEVICE_TYPE', device.type || ''))
-        result.push(makeVar('FF_SNAPSHOT_ID', device.targetSnapshot?.hashid || ''))
-        result.push(makeVar('FF_SNAPSHOT_NAME', device.targetSnapshot?.name || ''))
+        result.push(makeVar('FF_SNAPSHOT_ID', snapshotId))
+        result.push(makeVar('FF_SNAPSHOT_NAME', snapshotName))
         result.push(...app.db.controllers.Device.removePlatformSpecificEnvVars(envVars))
         return result
     },

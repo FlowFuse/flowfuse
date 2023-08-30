@@ -64,15 +64,27 @@
                         @click="deviceAction('edit', row.id)"
                     />
                     <ff-list-item
-                        v-if="!row.instance && displayingTeam"
+                        v-if="!row.ownerType && displayingTeam"
+                        label="Add to Application"
+                        data-action="device-assign-to-application"
+                        @click="deviceAction('assignToApplication', row.id)"
+                    />
+                    <ff-list-item
+                        v-else-if="row.ownerType === 'application' && (displayingTeam || displayingApplication)"
+                        label="Remove from Application"
+                        data-action="device-remove-from-application"
+                        @click="deviceAction('removeFromApplication', row.id)"
+                    />
+                    <ff-list-item
+                        v-if="!row.ownerType && displayingTeam"
                         label="Add to Instance"
-                        data-action="device-assign"
+                        data-action="device-assign-to-instance"
                         @click="deviceAction('assignToProject', row.id)"
                     />
                     <ff-list-item
-                        v-else
-                        label="Remove from Application Instance"
-                        data-action="device-remove"
+                        v-else-if="row.ownerType === 'instance' && (displayingTeam || displayingInstance)"
+                        label="Remove from Instance"
+                        data-action="device-remove-from-instance"
                         @click="deviceAction('removeFromProject', row.id)"
                     />
                     <ff-list-item
@@ -168,6 +180,7 @@
             <p>
                 Here, you can add a new device to your
                 <template v-if="displayingTeam">team.</template>
+                <template v-if="displayingApplication">application.</template>
                 <template v-else-if="displayingInstance">application instance.</template>
                 This will generate a <b>device.yml</b> file that should be
                 placed on the target device.
@@ -197,28 +210,37 @@
         ref="deviceAssignInstanceDialog"
         @assign-device="assignDevice"
     />
+
+    <DeviceAssignApplicationDialog
+        v-if="displayingTeam"
+        ref="deviceAssignApplicationDialog"
+        @assign-device="assignDeviceToApplication"
+    />
 </template>
 
 <script>
 import { ClockIcon } from '@heroicons/vue/outline'
 import { PlusSmIcon } from '@heroicons/vue/solid'
 
+import semver from 'semver'
 import { markRaw } from 'vue'
 
+import ApplicationApi from '../api/application.js'
 import deviceApi from '../api/devices.js'
 import instanceApi from '../api/instances.js'
 import teamApi from '../api/team.js'
 
 import permissionsMixin from '../mixins/Permissions.js'
+import { VueTimersMixin } from '../mixins/vue-timers.js'
 
-import ApplicationLink from '../pages/application/components/cells/ApplicationLink.vue'
+import DeviceAssignedToLink from '../pages/application/components/cells/DeviceAssignedToLink.vue'
 import DeviceLink from '../pages/application/components/cells/DeviceLink.vue'
-import InstanceInstancesLink from '../pages/application/components/cells/InstanceInstancesLink.vue'
 import Snapshot from '../pages/application/components/cells/Snapshot.vue'
 
 import DeviceLastSeenBadge from '../pages/device/components/DeviceLastSeenBadge.vue'
 import SnapshotAssignDialog from '../pages/instance/Snapshots/dialogs/SnapshotAssignDialog.vue'
 import InstanceStatusBadge from '../pages/instance/components/InstanceStatusBadge.vue'
+import DeviceAssignApplicationDialog from '../pages/team/Devices/dialogs/DeviceAssignApplicationDialog.vue'
 import DeviceAssignInstanceDialog from '../pages/team/Devices/dialogs/DeviceAssignInstanceDialog.vue'
 import DeviceCredentialsDialog from '../pages/team/Devices/dialogs/DeviceCredentialsDialog.vue'
 import TeamDeviceCreateDialog from '../pages/team/Devices/dialogs/TeamDeviceCreateDialog.vue'
@@ -229,10 +251,13 @@ import Dialog from '../services/dialog.js'
 import EmptyState from './EmptyState.vue'
 import DevicesStatusBar from './charts/DeviceStatusBar.vue'
 
+const POLL_TIME = 10000
+
 export default {
     name: 'DevicesBrowser',
     components: {
         ClockIcon,
+        DeviceAssignApplicationDialog,
         DeviceAssignInstanceDialog,
         DeviceCredentialsDialog,
         PlusSmIcon,
@@ -241,7 +266,7 @@ export default {
         EmptyState,
         DevicesStatusBar
     },
-    mixins: [permissionsMixin],
+    mixins: [permissionsMixin, VueTimersMixin],
     inheritAttrs: false,
     props: {
         // One of the two must be provided
@@ -250,11 +275,15 @@ export default {
             required: false,
             default: null
         },
+        application: {
+            type: Object,
+            required: false,
+            default: null
+        },
         team: {
             type: Object,
             required: true
         },
-
         // Used for hasPermission
         teamMembership: {
             type: Object,
@@ -270,59 +299,32 @@ export default {
             deletingDevice: false,
             nextCursor: null,
             devices: new Map(),
-            checkInterval: null
+            firstRequest: true
         }
     },
     computed: {
         columns () {
             const columns = [
                 { label: 'Device', key: 'name', class: ['w-64'], sortable: true, component: { is: markRaw(DeviceLink) } },
-                { label: 'Type', key: 'type', class: ['w-48'], sortable: true }
-            ]
-
-            const statusColumns = [
+                { label: 'Type', key: 'type', class: ['w-48'], sortable: true },
                 { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: true, component: { is: markRaw(DeviceLastSeenBadge) } },
                 { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge) } }
             ]
 
             if (this.displayingTeam) {
-                columns.push(
-                    ...statusColumns,
-                    {
-                        label: 'Application',
-                        class: ['w-48'],
-                        key: 'application',
-                        sortable: true,
-                        component: {
-                            is: markRaw(ApplicationLink),
-                            map: {
-                                id: 'application.id',
-                                name: 'application.name'
-                            }
-                        }
-                    }
-                )
-            }
-
-            if (!this.displayingInstance) {
+                // show which application/instance the device is assigned to when looking at devices owned by a team
                 columns.push({
-                    label: 'Instance',
-                    key: 'instance',
+                    label: 'Device Owner',
                     class: ['w-48'],
+                    key: '_ownerSortKey',
                     sortable: true,
                     component: {
-                        is: markRaw(InstanceInstancesLink),
-                        map: {
-                            id: 'instance.id',
-                            name: 'instance.name'
-                        }
+                        is: markRaw(DeviceAssignedToLink)
                     }
                 })
-            }
-
-            if (!this.displayingTeam) {
+            } else if (this.displayingInstance) {
+                // show snapshot info when looking at devices owned by an instance
                 columns.push(
-                    ...statusColumns,
                     { label: 'Deployed Snapshot', class: ['w-48'], component: { is: markRaw(Snapshot) } }
                 )
             }
@@ -330,25 +332,41 @@ export default {
             return columns
         },
         filteredDevices () {
-            let filteredDevices = []
+            const filteredDevices = []
             if (!this.filter) {
-                filteredDevices = Array.from(this.devices.values())
+                filteredDevices.push(...this.devices.values())
             } else {
                 this.filter.devices.forEach((deviceId) => {
                     filteredDevices.push(this.devices.get(deviceId))
                 })
             }
+            // add "_ownerSortKey" to each device
+            filteredDevices.forEach((device) => {
+                if (this.displayingTeam) {
+                    if (device.ownerType === 'application') {
+                        device._ownerSortKey = 'Application:' + device.application?.name || 'No Name'
+                    } else if (device.ownerType === 'instance') {
+                        device._ownerSortKey = 'Instance:' + device.instance?.name || 'No Name'
+                    } else {
+                        device._ownerSortKey = 'Unassigned'
+                    }
+                }
+            })
             return filteredDevices
         },
         displayingInstance () {
             return this.instance !== null
         },
+        displayingApplication () {
+            return this.application !== null && !this.displayingInstance
+        },
         displayingTeam () {
-            return this.team !== null && !this.displayingInstance
+            return this.team !== null && !this.displayingInstance && !this.displayingApplication
         },
         hasLoadedModel () {
             return (
                 (this.displayingInstance && !!this.instance?.id) ||
+                (this.displayingApplication && !!this.application?.id) ||
                 (this.displayingTeam && !!this.team?.id)
             )
         }
@@ -358,13 +376,23 @@ export default {
         application: 'refreshData',
         team: 'refreshData'
     },
-    mounted () {
-        this.pollForData()
+    timers: {
+        pollTimer: { time: POLL_TIME, repeat: true, autostart: false }
     },
-    unmounted () {
-        clearInterval(this.checkInterval)
+    async mounted () {
+        await this.pollForData()
+        this.$timer.start('pollTimer')
     },
     methods: {
+        // pollTimer method is called by VueTimersMixin. See the timers property above.
+        pollTimer: async function () {
+            this.$timer.stop('pollTimer')
+            try {
+                await this.pollForData()
+            } finally {
+                this.$timer.start('pollTimer')
+            }
+        },
         /**
          * filter: Object containing keys:
          *  - devices: an array of device ids
@@ -420,17 +448,29 @@ export default {
                 device.application = updatedDevice.application
             }
 
-            this.devices.set(device.id, device)
+            this.devices.set(device.id, device) // immediately update the device in the list
+            this.pollForData() // but request an update from the server too (for latest info as the server sees it)
+        },
+
+        async assignDeviceToApplication (device, applicationId) {
+            const updatedDevice = await deviceApi.updateDevice(device.id, { application: applicationId, instance: null })
+
+            if (updatedDevice.application) {
+                device.application = updatedDevice.application
+            }
+
+            this.devices.set(device.id, device) // immediately update the device in the list
+            this.pollForData() // but request an update from the server too (for latest info as the server sees it)
         },
 
         async pollForData () {
             try {
+                this.$timer.stop('pollTimer')
                 if (this.hasLoadedModel) {
-                    const firstRequest = !this.checkInterval
-                    await this.fetchData(null, !firstRequest) // to-do: For now, this only polls the first page...
+                    await this.fetchData(null, !this.firstRequest) // TODO: For now, this only polls the first page...
                 }
             } finally {
-                this.checkInterval = setTimeout(this.pollForData, 10000)
+                this.$timer.start('pollTimer')
             }
         },
 
@@ -449,6 +489,8 @@ export default {
             let data
             if (this.displayingInstance) {
                 data = await instanceApi.getInstanceDevices(this.instance.id, nextCursor)
+            } else if (this.displayingApplication) {
+                data = await ApplicationApi.getApplicationDevices(this.application.id, nextCursor)
             } else if (this.displayingTeam) {
                 data = await teamApi.getTeamDevices(this.team.id, nextCursor)
             } else {
@@ -465,12 +507,13 @@ export default {
 
             // TODO: Polling only loads the first page
             if (!polled) {
-                this.nextCursor = data.meta.next_cursor
+                this.nextCursor = data.meta?.next_cursor || null
             }
 
             this.applyFilter(this.filter)
 
             this.loading = false
+            this.firstRequest = false
         },
 
         deviceAction (action, deviceId) {
@@ -512,11 +555,38 @@ export default {
                     if (this.displayingInstance) {
                         this.devices.delete(device.id)
                     }
-
+                    this.pollForData()
                     Alerts.emit('Successfully removed the device from the instance.', 'confirmation')
+                })
+            } else if (action === 'removeFromApplication') {
+                Dialog.show({
+                    header: 'Remove Device from Application',
+                    kind: 'danger',
+                    text: 'Are you sure you want to remove this device from the application? This will stop the flows running on the device.',
+                    confirmLabel: 'Remove'
+                }, async () => {
+                    await deviceApi.updateDevice(device.id, { application: null })
+
+                    delete device.instance
+                    delete device.application
+
+                    if (this.displayingApplication) {
+                        this.devices.delete(device.id)
+                    }
+                    this.pollForData()
+                    Alerts.emit('Successfully removed the device from the application.', 'confirmation')
                 })
             } else if (action === 'assignToProject') {
                 this.$refs.deviceAssignInstanceDialog.show(device)
+            } else if (action === 'assignToApplication') {
+                if (!device?.agentVersion) {
+                    Alerts.emit('The device version could not be determined. Please connect the device to the platform before assigning it to an application', 'warning', 7500)
+                    return
+                } else if (semver.lt(device.agentVersion, '1.11.0')) {
+                    Alerts.emit('The device version is not supported. Please update the device to the latest version before assigning it to an application', 'warning', 7500)
+                    return
+                }
+                this.$refs.deviceAssignApplicationDialog.show(device, false)
             }
         }
     }

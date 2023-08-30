@@ -18,11 +18,17 @@ flowforge-device-agent
 By default Node-RED will listen to port `1880`, you can change there using the options
 detailed [here](./install.md#listen-port).
 
-This will start the agent, and connect to FlowFuse, waiting until a Target Snapshot
-has been assigned to it.
+This will start the agent, and connect to FlowForge, waiting until a Target Snapshot
+has been assigned to it or it is assigned to an Application.
 
+### When assigned to an instance:
 Once the agent has been assigned a Target Snapshot, it will download the Snapshot and
 deploy it to the device.
+
+### When assigned to an application:
+Once the agent has been assigned to an application it start up. If the device is new, 
+it will get a default set of flows which can be edited directly. 
+See [Editing the Node-RED flows on a device that is assigned to an application](./deploy.md#editing-the-node-red-flows-on-a-device-that-is-assigned-to-an-application) for details.
 
 ### Device Agent Command Line Options
 
@@ -83,9 +89,9 @@ with the `-d` option) (e.g. `/opt/flowforge-device/module_cache`.).
 
 ### Creating a module cache
 
-To create a suitable module cache, you will need to install the modules on a local device with
-access to npmjs.org, ensuring you use the same OS and Architecture as your target
-device, and then copy the modules on to your device.
+To create a suitable module cache, the device must be assigned to an instance.  You will need to
+install the modules on a local device with access to npmjs.org, ensuring you use the same
+OS and Architecture as your target device, and then copy the modules on to your device.
 
 1. From the Snapshot page, select the snapshot you want to deploy and select the option to download its `package.json` file.
 2. Place this file in an empty directory on your local device.

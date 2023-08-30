@@ -4,6 +4,7 @@ module.exports = function (app) {
         type: 'object',
         properties: {
             id: { type: 'string' },
+            ownerType: { type: 'string' },
             name: { type: 'string' },
             type: { type: 'string' },
             createdAt: { type: 'string' },
@@ -50,7 +51,8 @@ module.exports = function (app) {
             links: result.links,
             status: result.state || 'offline',
             agentVersion: result.agentVersion,
-            mode: result.mode || 'autonomous'
+            mode: result.mode || 'autonomous',
+            ownerType: result.ownerType
         }
         if (device.Team) {
             filtered.team = app.db.views.Team.teamSummary(device.Team)
@@ -60,6 +62,9 @@ module.exports = function (app) {
             if (device.Project.Application) {
                 filtered.application = app.db.views.Application.applicationSummary(device.Project.Application)
             }
+        }
+        if (device.Application && !filtered.application) {
+            filtered.application = app.db.views.Application.applicationSummary(device.Application)
         }
         if (app.license.active() && result.mode === 'developer') {
             /** @type {import("../../ee/lib/deviceEditor/DeviceTunnelManager").DeviceTunnelManager} */
@@ -73,6 +78,7 @@ module.exports = function (app) {
         type: 'object',
         properties: {
             id: { type: 'string' },
+            ownerType: { type: 'string' },
             name: { type: 'string' },
             type: { type: 'string' },
             links: { $ref: 'LinksMeta' }
@@ -83,6 +89,7 @@ module.exports = function (app) {
             const result = device.toJSON()
             const filtered = {
                 id: result.hashid,
+                ownerType: result.ownerType,
                 name: result.name,
                 type: result.type,
                 links: result.links

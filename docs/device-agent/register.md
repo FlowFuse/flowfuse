@@ -95,7 +95,7 @@ The next step is to assign the device to a Node-RED instance.
 
 1. Go to your teams's **Devices** page.
 2. Open the dropdown menu to the right of the device you want to assign and
-   select the **Add to Application Instance** option.
+   select the **Add to Instance** option.
 3. Select the instance in the dialog and click **Add** to continue.
 
 ## Remove a device from a Node-RED instance
@@ -104,11 +104,32 @@ To remove the device from a Node-RED instance:
 
 1. Go to your teams's **Devices** page.
 2. Open the dropdown menu to the right of the device you want to remove and
-   select the **Remove from application instance** option.
+   select the **Remove from Instance** option.
 3. Confirm the action by clicking the **Remove** option.
 
 The device will stop running the current Node-RED flows. It will then wait
 until it is assigned to another instance.
+
+## Assign the device to an Application
+
+The next step is to assign the device to a FlowForge Application
+
+1. Go to your teams's **Devices** page.
+2. Open the dropdown menu to the right of the device you want to assign and
+   select the **Add to Application** option.
+3. Select the application in the dialog and click **Add** to continue.
+
+## Remove a device from an Application
+
+To remove the device from an application:
+
+1. Go to your teams's **Devices** page.
+2. Open the dropdown menu to the right of the device you want to remove and
+   select the **Remove from Application** option.
+3. Confirm the action by clicking the **Remove** option.
+
+The device will stop running the current Node-RED flows. It will then wait
+until it is assigned to another application or instance.
 
 ## Regenerating Configurations
 

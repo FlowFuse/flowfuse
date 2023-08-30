@@ -36,19 +36,17 @@
                     Deployment
                 </div>
             </FormHeading>
-
             <table class="table-fixed w-full" v-if="device">
                 <tr class="border-b">
                     <td class="w-1/4 font-medium">Application</td>
                     <td class="py-2">
-                        <router-link v-if="device?.instance" :to="{name: 'Application', params: { id: device.instance.id }}">
-                            {{ device.instance?.name }}
+                        <router-link v-if="device?.application" :to="{name: 'Application', params: { id: device.application.id }}">
+                            {{ device.application?.name }}
                         </router-link>
                         <span v-else>None</span>
                     </td>
                 </tr>
-                <!-- TODO: Currently links to same object as instance -->
-                <tr class="border-b">
+                <tr class="border-b" v-if="deviceOwnerType!=='application'">
                     <td class="w-1/4 font-medium">Instance</td>
                     <td class="py-2">
                         <router-link v-if="device?.instance" :to="{name: 'Instance', params: { id: device.instance.id }}">
@@ -57,7 +55,7 @@
                         <span v-else>None</span>
                     </td>
                 </tr>
-                <tr class="border-b">
+                <tr class="border-b" v-if="deviceOwnerType!=='application'">
                     <td class="w-1/4 font-medium">Active Snapshot</td>
                     <td class="py-2 flex">
                         <span class="flex space-x-4 pr-2">
@@ -77,7 +75,7 @@
                         </template>
                     </td>
                 </tr>
-                <tr class="border-b">
+                <tr class="border-b" v-if="deviceOwnerType!=='application'">
                     <td class="w-1/4 font-medium">Target Snapshot</td>
                     <td class="py-2 flex">
                         <span class="flex space-x-4 pr-2">
@@ -155,7 +153,7 @@
                     </td>
                     <td class="w-1/4 md:w-1/3">&nbsp;</td>
                 </tr>
-                <tr class="border-b">
+                <tr class="border-b" v-if="deviceOwnerType==='instance'">
                     <td class="w-1/4 font-medium">Device Flows</td>
                     <td class="w-28 font-medium">&nbsp;</td>
                     <td class="py-2">
@@ -190,16 +188,18 @@ import deviceApi from '../../api/devices.js'
 // components
 import FormHeading from '../../components/FormHeading.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
-
+import { VueTimersMixin } from '../../mixins/vue-timers.js'
 import alerts from '../../services/alerts.js'
 
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
 import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog.vue'
 
-// icons
+// constants
+const POLL_TIME = 5000
 
 export default {
     name: 'DeviceOverview',
+    mixins: [VueTimersMixin],
     emits: ['device-updated', 'device-refresh'],
     props: ['device'],
     components: {
@@ -212,9 +212,6 @@ export default {
         FormHeading,
         StatusBadge,
         SnapshotCreateDialog
-    },
-    beforeRouteLeave () {
-        clearInterval(this.polling)
     },
     computed: {
         ...mapState('account', ['settings', 'features']),
@@ -244,6 +241,9 @@ export default {
         },
         lastSeenSince: function () {
             return this.device?.lastSeenSince || ''
+        },
+        deviceOwnerType: function () {
+            return this.device?.ownerType || ''
         }
     },
     data () {
@@ -251,31 +251,24 @@ export default {
             agentSupportsDeviceAccess: false,
             busy: false,
             openingTunnel: false,
-            closingTunnel: false,
-            polling: null
+            closingTunnel: false
         }
     },
-    watch: {
-        'device.editor' (v) {
-            if (this.isDevModeAvailable) {
-                if (v.enabled) {
-                    // If the editor is enabled, start polling so we can
-                    // promptly report if it is unavailable
-                    clearInterval(this.polling)
-                    this.polling = setInterval(() => {
-                        this.$emit('device-refresh')
-                    }, 5000)
-                } else {
-                    clearInterval(this.polling)
-                }
-            }
-        }
+    timers: {
+        // declare a pollTimer that will call the pollTimer method every POLL_TIME milliseconds
+        // see the documentation in `frontend/src/mixins/vue-timers.js` for more details and examples
+        pollTimer: { time: POLL_TIME, repeat: true, autostart: false } // no autoStart: manually start in mounted()
     },
     mounted () {
-        this.refreshDevice()
         this.agentSupportsDeviceAccess = this.device?.agentVersion && semver.gt(this.device.agentVersion, '0.6.1')
+        this.refreshDevice()
+        this.$timer.start('pollTimer') // vue-timer auto stops when navigating away
     },
     methods: {
+        // pollTimer method is called by VueTimersMixin. See the timers property above.
+        pollTimer: async function () {
+            this.refreshDevice()
+        },
         refreshDevice: function () {
             this.$emit('device-refresh') // cause parent to refresh device
         },

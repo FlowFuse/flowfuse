@@ -23,7 +23,14 @@ backup of the Node-RED flows and configuration.
 This model allows you to develop your flows in FlowFuse and only push it out
 to the registered devices when you're happy with what you've created.
 
-## Editing the Node-RED flows on a device
+## Starting Node-RED on the device without deploying a snapshot
+
+A device can be assigned to an application without a snapshot being deployed to it.
+
+In this mode, the device will start Node-RED with a default set of flows that can
+be edited on the device see [Editing the Node-RED flows on a device that is assigned to an application](#editing-the-node-red-flows-on-a-device-that-is-assigned-to-an-application) below
+
+## Editing the Node-RED flows on a device that is assigned to an instance
 
 The device agent does not allow local access to the Node-RED editor. This ensures
 the device is running the deployed snapshot without modification.
@@ -37,6 +44,32 @@ generated from the device that can be deployed to other devices in the applicati
 
 Whilst in Developer Mode the device will not receive new updates from the platform
 when new snapshots are deployed.
+
+**Accessing the Editor**
+
+1. Once developer mode is enabled, click the **Enable** button next to the 'Editor Access' option
+2. When the editor is available, the Editor button in the header will become active and will take you to the device editor.
+
+**Creating a Device Snapshot**
+
+To create an instance snapshot from the device use the **Create Snapshot** button
+in the Developer Mode options panel.
+
+You will be prompted to give the snapshot a name and description. See [Snapshots](../user/snapshots.md) for more information
+about working with snapshots.
+
+## Editing the Node-RED flows on a device that is assigned to an application
+
+The device agent does not allow local access to the Node-RED editor. Access to the
+editor is only available when:
+
+* The device is in Developer Mode
+
+* When running on FlowForge Cloud, or a premium licensed FlowForge instance (with the
+[MQTT broker enabled](https://flowforge.com/docs/install/local/#setting-up-mosquitto-(optional))
+access to the editor.
+
+Whilst in Developer Mode the device will not receive new updates from the platform.
 
 **Enabling Developer Mode**
 
@@ -53,18 +86,21 @@ when new snapshots are deployed.
 
 **Creating a Device Snapshot**
 
-To create an instance snapshot from the device use the **Create Snapshot** button
-in the Developer Mode options panel.
-
-You will be prompted to give the snapshot a name and description. See [Snapshots](../user/snapshots.md) for more information
-about working with snapshots.
+Device Snapshots are not currently supported when editing flows on a device that is assigned to an application.
+This feature is on the roadmap for a future release.
 
 ### Important Notes
 
 * Remote access to the editor requires Device Agent v0.8.0 or later.
 * The Web UI requires Device Agent v0.9.0 or later.
-* The device must first have a snapshot applied before editor access is possible.
+* Assigning a device to an application requires Device Agent v0.11.0 and FlowForge v0.11.0 or later.
+* When a device is assigned to an instance:
+    * It must first have a snapshot applied before editor access is possible.
+    * Disabling Developer Mode will cause the device to check-in with the platform. If the device flows have changed, it will be reloaded with the current target snapshot assigned to that device, causing any changes made in Developer Mode to be overwritten. Therefore, it is recommended to create a snapshot of the changes before disabling Developer Mode.
+* When a device is assigned to an application:
+    * It will start with a set of default flows.
+    * It will not be possible to take a snapshot.
+    * Disabling Developer Mode will cause the device to check-in with the platform. If the device settings have changed, it will be updated and restarted. The edited flows will be untouched.
 * The device will not receive any updates from the platform while in Developer Mode.
-* Disabling Developer Mode will cause the device to check-in with the platform. If the device flows have changed, it will be reloaded with the current target snapshot assigned to that device, causing any changes made in Developer Mode to be overwritten. Therefore, it is recommended to create a snapshot of the changes before disabling Developer Mode.
 * The device must be online and connected to the platform to enable "Editor Access".
 * To minimise server and device resources, it is recommended to disable "Editor Access" when not actively developing flows on a device.

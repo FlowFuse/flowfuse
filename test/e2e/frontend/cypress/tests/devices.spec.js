@@ -182,32 +182,22 @@ describe('FlowForge - Devices', () => {
                 // Row
                 cy.contains('tr', 'team2-unassigned-device').within(() => {
                     cy.get('.ff-kebab-menu').click()
-                    cy.get('.ff-kebab-menu .ff-kebab-options').find('[data-action="device-assign"]').click()
+                    cy.get('.ff-kebab-menu .ff-kebab-options').find('[data-action="device-assign-to-instance"]').click()
                 })
             })
 
             // Dialog
-            cy.get('[data-el="assign-device-dialog"]')
+            cy.get('[data-el="assign-device-to-instance-dialog"]')
                 .should('be.visible')
                 .within(() => {
-                    // Instance dropdown
+                    // Application dropdown
                     cy.get('[data-form="application"]').within(() => {
                         cy.get('.ff-dropdown[disabled=false]').click()
 
-                        // Grab name of first instance
-                        cy.get('.ff-dropdown-options').should('be.visible')
-                        cy.get('.ff-dropdown-options > .ff-dropdown-option:first').invoke('text').then((text) => {
-                            selectedInstance = text
-                        })
-
-                        // Click first instance
+                        // Click first Application
                         cy.get('.ff-dropdown-options > .ff-dropdown-option:first').click()
                     })
-                })
 
-            cy.get('[data-el="assign-device-dialog"]')
-                .should('be.visible')
-                .within(() => {
                     // Instance dropdown
                     cy.get('[data-form="instance"]').within(() => {
                         cy.get('.ff-dropdown[disabled=false]').click()
@@ -232,7 +222,7 @@ describe('FlowForge - Devices', () => {
                     cy.contains(selectedInstance)
 
                     cy.get('.ff-kebab-menu').click()
-                    cy.get('.ff-kebab-menu .ff-kebab-options').find('[data-action="device-remove"]').click()
+                    cy.get('.ff-kebab-menu .ff-kebab-options').find('[data-action="device-remove-from-instance"]').click()
                 })
             })
 
@@ -247,6 +237,61 @@ describe('FlowForge - Devices', () => {
             cy.get('[data-el="devices-browser"]').within(() => {
                 // Row
                 cy.contains('tr', 'team2-unassigned-device').should('not.have.text', selectedInstance)
+            })
+        })
+        it('can assign and unassign devices to application', () => {
+            let selectedApplication
+
+            // Devices list
+            cy.get('[data-el="devices-browser"]').within(() => {
+                // Row
+                cy.contains('tr', 'team2-unassigned-device').within(() => {
+                    cy.get('.ff-kebab-menu').click()
+                    cy.get('.ff-kebab-menu .ff-kebab-options').find('[data-action="device-assign-to-application"]').click()
+                })
+            })
+
+            // Dialog
+            cy.get('[data-el="assign-device-to-application-dialog"]')
+                .should('be.visible')
+                .within(() => {
+                    // Instance dropdown
+                    cy.get('[data-form="application"]').within(() => {
+                        cy.get('.ff-dropdown[disabled=false]').click()
+
+                        // Grab name of first application
+                        cy.get('.ff-dropdown-options').should('be.visible')
+                        cy.get('.ff-dropdown-options > .ff-dropdown-option:first').invoke('text').then((text) => {
+                            selectedApplication = text
+                        })
+                        cy.get('.ff-dropdown-options > .ff-dropdown-option:first').click()
+                    })
+                    // chose the first application by clicking the primary button within the dialog
+                    cy.get('.ff-btn--primary').click()
+                })
+
+            // Devices list
+            cy.get('[data-el="devices-browser"]').within(() => {
+                // Row
+                cy.contains('tr', 'team2-unassigned-device').within(() => {
+                    cy.contains(selectedApplication)
+
+                    cy.get('.ff-kebab-menu').click()
+                    cy.get('.ff-kebab-menu .ff-kebab-options').find('[data-action="device-remove-from-application"]').click()
+                })
+            })
+
+            // Remove dialog
+            cy.get('[data-el="platform-dialog"]')
+                .should('be.visible')
+                .within(() => {
+                    cy.get('.ff-btn--danger').click()
+                })
+
+            // Devices list
+            cy.get('[data-el="devices-browser"]').within(() => {
+                // Row
+                cy.contains('tr', 'team2-unassigned-device').should('not.have.text', selectedApplication)
             })
         })
     })

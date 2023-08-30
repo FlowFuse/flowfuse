@@ -83,6 +83,10 @@ class DeviceCommsHandler {
                     // The Project is incorrect
                     sendUpdateCommand = true
                 }
+                if (Object.hasOwn(payload, 'application') && payload.application !== (device.Application?.hashid || null)) {
+                    // The Application is incorrect
+                    sendUpdateCommand = true
+                }
                 if (Object.hasOwn(payload, 'snapshot')) {
                     // load the full snapshot (as specified by the device) from the db so we can check the snapshots
                     // `ProjectId` is "something" (not orphaned) and matches the device's project
@@ -156,6 +160,22 @@ class DeviceCommsHandler {
      */
     sendCommandToProjectDevices (teamId, projectId, command, payload) {
         const topic = `ff/v1/${teamId}/p/${projectId}/command`
+        this.client.publish(topic, JSON.stringify({
+            command,
+            ...payload
+        }))
+    }
+
+    /**
+     * Send a command to all devices assigned to an application using the broadcast
+     * topic.
+     * @param {String} teamId
+     * @param {String} projectId
+     * @param {String} command
+     * @param {Object} payload
+     */
+    sendCommandToApplicationDevices (teamId, applicationId, command, payload) {
+        const topic = `ff/v1/${teamId}/a/${applicationId}/command`
         this.client.publish(topic, JSON.stringify({
             command,
             ...payload

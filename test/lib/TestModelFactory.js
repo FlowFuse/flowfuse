@@ -168,7 +168,8 @@ module.exports = class TestModelFactory {
         const defaultDeviceDetails = {
             name: 'unnamed-device',
             type: 'unnamed-type',
-            credentialSecret: ''
+            credentialSecret: '',
+            agentVersion: '1.11.0'
         }
         const device = await this.forge.db.models.Device.create({
             ...defaultDeviceDetails,
