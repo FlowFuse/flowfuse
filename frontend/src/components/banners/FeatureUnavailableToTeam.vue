@@ -5,7 +5,14 @@
     >
         <SparklesIcon class="ff-icon mr-2" style="stroke-width: 1px;" />
         <div>
-            {{ featureName }} is not available for your current Team. Please <a class="ff-link" href="#" @click="navigateToUpgrade">upgrade</a> your Team in order to use it.
+            <span v-if="fullMessage">
+                {{ fullMessage }}
+                Please <a class="ff-link" href="#" @click="navigateToUpgrade">upgrade</a> your Team to continue.
+            </span>
+            <span v-else>
+                {{ featureName }} is not available for your current Team.
+                Please <a class="ff-link" href="#" @click="navigateToUpgrade">upgrade</a> your Team in order to use it.
+            </span>
         </div>
         <SparklesIcon class="ff-icon ml-2" style="stroke-width: 1px;" />
     </div>
@@ -25,6 +32,10 @@ export default {
         featureName: {
             type: String,
             default: 'This feature'
+        },
+        fullMessage: {
+            type: String,
+            default: ''
         }
     },
     computed: {
