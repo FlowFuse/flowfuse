@@ -39,7 +39,7 @@ module.exports.init = function (app) {
                     subscription.destroy()
                 }
             } catch (err) {
-                app.log.info(`Error handling expired trial subscription ${subscription.subscription}: ${err.toString()}`)
+                app.log.error(`Error handling expired trial subscription ${subscription.subscription}: ${err.toString()}`)
             }
         }
 
@@ -87,7 +87,7 @@ module.exports.init = function (app) {
                     subscription.destroy()
                 }
             } catch (err) {
-                app.log.info(`Error handling trial subscription ${subscription.subscription}: ${err.toString()}`)
+                app.log.error(`Error handling trial subscription ${subscription.subscription}: ${err.toString()}`)
             }
         }
     }
