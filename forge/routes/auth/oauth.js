@@ -417,9 +417,9 @@ module.exports = async function (app) {
             let response
             if (request.headers['ff-quota']) {
                 const project = await app.db.models.Project.byId(request.session.ownerId)
-                const team = await app.db.models.Team.byId(project.Team.id)
-                const fileStorageLimit = team.TeamType.getFeatureProperty('fileStorageLimit', 100)
-                const contextLimit = team.TeamType.getFeatureProperty('contextLimit', 1)
+                const teamType = await project.Team.getTeamType()
+                const fileStorageLimit = teamType.getFeatureProperty('fileStorageLimit', 100)
+                const contextLimit = teamType.getFeatureProperty('contextLimit', 1)
                 response = {
                     file: fileStorageLimit * 1024 * 1024,
                     context: contextLimit * 1024 * 1024
