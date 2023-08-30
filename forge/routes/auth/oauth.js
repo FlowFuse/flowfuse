@@ -421,8 +421,10 @@ module.exports = async function (app) {
                 const fileStorageLimit = teamType.getFeatureProperty('fileStorageLimit', 100)
                 const contextLimit = teamType.getFeatureProperty('contextLimit', 1)
                 response = {
-                    file: fileStorageLimit * 1024 * 1024,
-                    context: contextLimit * 1024 * 1024
+                    quota: {
+                        file: fileStorageLimit * 1024 * 1024,
+                        context: contextLimit * 1024 * 1024
+                    }
                 }
             }
             reply.code(200).send(response)
