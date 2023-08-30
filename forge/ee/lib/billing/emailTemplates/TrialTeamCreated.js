@@ -5,15 +5,14 @@
 // - trialProjectTypeName
 
 module.exports = {
-    subject: 'Welcome to your free FlowForge trial',
+    subject: 'Welcome to your free FlowFuse trial',
     text:
 `Hello {{{username}}},
 
-Welcome to FlowForge. We hope you enjoy your free trial for your first
+Welcome to FlowFuse. We hope you enjoy your free trial for your first
 {{{trialDuration}}} days with us.
 
-To get started using FlowForge, log in to your new team, '{{{teamName}}}' 
-and create your first Node-RED Application.
+To get started, log in to FlowFuse and begin creating Node-RED flows in your first application.
 
 You can also invite other users to join your team to collaborate on your applications.
 
@@ -26,20 +25,19 @@ If you want to do more with your team during the trial, you can add your credit
 card details at any time and create more instances.  Again, we'll email to remind
 you what is happening with the trial.
 
-We hope you enjoy the FlowForge experience.
+We hope you enjoy the FlowFuse experience.
 
 Cheers!
 
-Your friendly FlowForge Team
+Your friendly FlowFuse Team
 `,
     html:
 `<p>Hello {{{username}}},</p>
 
-<p>Welcome to FlowForge. We hope you enjoy your free trial for your first
+<p>Welcome to FlowFuse. We hope you enjoy your free trial for your first
 {{{trialDuration}}} days with us.</p>
 
-<p>To get started using FlowForge, log in to your new team, '{{{teamName}}}' 
-and create your first Node-RED Application.</p>
+<p>To get started, log in to FlowFuse and begin creating Node-RED flows in your first application.</p>
 
 <p>You can also invite other users to join your team to collaborate on your applications.</p>
 
@@ -52,10 +50,10 @@ nearing its end.</p>
 card details at any time and create more instances.  Again, we'll email to remind
 you what is happening with the trial.</p>
 
-<p>We hope you enjoy the FlowForge experience.</p>
+<p>We hope you enjoy the FlowFuse experience.</p>
 
 <p>Cheers!</p>
 
-<p>Your friendly FlowForge Team</p>
+<p>Your friendly FlowFuse Team</p>
 `
 }
