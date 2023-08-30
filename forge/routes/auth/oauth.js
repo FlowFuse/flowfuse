@@ -414,7 +414,17 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         if (request.params.ownerType === request.session.ownerType && request.params.ownerId === request.session.ownerId) {
-            reply.code(200).send()
+            let response = undefined
+            if (request.headers['ff-quota']) {
+                const team = app.db.models.Teams.byId(request.session.ownerId)
+                const fileStorageLimit = team.TeamType.getFeatureProperty('fileStorageLimit', 100)
+                const contextLimit = team.TeamType.getFeatureProperty('contextLimit', 1)
+                response = {
+                    file: fileStorageLimit * 1024 * 1024,
+                    context: contextLimit * 1024 * 1024
+                }
+            }
+            reply.code(200).send(response)
         } else {
             reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
         }
