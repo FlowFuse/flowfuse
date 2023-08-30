@@ -414,7 +414,7 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         if (request.params.ownerType === request.session.ownerType && request.params.ownerId === request.session.ownerId) {
-            let response = undefined
+            let response
             if (request.headers['ff-quota']) {
                 const project = await app.db.models.Project.byId(request.session.ownerId)
                 const team = await app.db.models.Team.byId(project.Team.id)

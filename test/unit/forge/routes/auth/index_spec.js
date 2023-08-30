@@ -514,10 +514,11 @@ describe('Accounts API', async function () {
                 url: `/account/check/project/${app.project.id}`,
                 headers: {
                     authorization: `Bearer ${authTokens.token}`,
-                    'ff-quota': 'true' 
+                    'ff-quota': 'true'
                 }
             })
             response.statusCode.should.equal(200)
+            const body = response.json()
             body.should.have.property('file')
             body.should.have.property('context')
         })
