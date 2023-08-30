@@ -248,7 +248,7 @@ module.exports = {
                         ]
                     })
                 },
-                getAll: async (pagination = {}, where = {}, sort = {}, { includeInstanceApplication = false, statusOnly = false } = {}) => {
+                getAll: async (pagination = {}, where = {}, { includeInstanceApplication = false } = {}) => {
                     // Pagination
                     const limit = Math.min(parseInt(pagination.limit) || 100, 100)
                     if (pagination.cursor) {
@@ -258,13 +258,14 @@ module.exports = {
                     }
 
                     // Filtering
-                    if (where.state === 'offline') {
-                        where.state = '' // empty string is the offline state
+                    if (pagination.filters?.state) {
+                        // Offline is the blank state
+                        where.state = pagination.filters.state === 'offline' ? '' : pagination.filters.state
                     }
-                    if (where.lastseen) {
-                        // Last seen string must be mapped to a filter on lastSeenAt
-                        const lastseen = where.lastseen
-                        delete where.lastseen
+
+                    if (pagination.filters?.lastseen) {
+                        // Must be mapped to lastSeenAt filter
+                        const lastseen = pagination.filters.lastseen
 
                         // Needs to be kept in sync with frontend (frontend/src/services/device-status.js)
                         // Thresholds are currently running <1.5, safe <3, error >3
@@ -288,14 +289,14 @@ module.exports = {
 
                     // Sorting
                     const order = [['id', 'ASC']]
-                    if (Object.keys(sort).length) {
-                        for (const key in sort) {
+                    if (pagination.order && Object.keys(pagination.order).length) {
+                        for (const key in pagination.order) {
                             if (key === 'application') {
-                                order.unshift([M.Application, 'name', sort[key] || 'ASC'])
+                                order.unshift([M.Application, 'name', pagination.order[key] || 'ASC'])
                             } else if (key === 'instance') {
-                                order.unshift([M.Project, 'name', sort[key] || 'ASC'])
+                                order.unshift([M.Project, 'name', pagination.order[key] || 'ASC'])
                             } else {
-                                order.unshift([key, sort[key] || 'ASC'])
+                                order.unshift([key, pagination.order[key] || 'ASC'])
                             }
                         }
                     }
@@ -330,9 +331,9 @@ module.exports = {
                     const [rows, count] = await Promise.all([
                         this.findAll({
                             where: buildPaginationSearchClause(pagination, where, ['Device.name', 'Device.type', 'Device.id'], {}, order),
-                            include: statusOnly ? [] : includes,
+                            include: pagination.statusOnly ? [] : includes,
                             order,
-                            limit: statusOnly ? null : limit
+                            limit: pagination.statusOnly ? null : limit
                         }),
                         this.count({ where })
                     ])

@@ -68,37 +68,15 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const statusOnly = !!request.query.statusOnly
+        const paginationOptions = app.db.controllers.Device.getDevicePaginationOptions(request)
 
-        const paginationOptions = app.getPaginationOptions(request)
-        if (statusOnly) {
-            delete paginationOptions.limit
-        }
 
         const where = {
             TeamId: request.team.id
         }
 
-        if (request.query.filter) {
-            // Takes a comma separated list of key:value,name:smith pairs
-            const filters = Object.fromEntries(request.query.filter.split(',').map((filterString) => filterString.split(':')))
-
-            if (filters.status) {
-                where.state = filters.status
-            }
-
-            if (filters.lastseen) {
-                where.lastseen = filters.lastseen
-            }
-        }
-
-        const sort = {}
-        if (request.query.sort) {
-            sort[request.query.sort] = request.query.dir
-        }
-
-        const devices = await app.db.models.Device.getAll(paginationOptions, where, sort, { includeInstanceApplication: true, statusOnly })
-        devices.devices = devices.devices.map(d => app.db.views.Device.device(d, { statusOnly }))
+        const devices = await app.db.models.Device.getAll(paginationOptions, where, { includeInstanceApplication: true })
+        devices.devices = devices.devices.map(d => app.db.views.Device.device(d, { statusOnly: paginationOptions.statusOnly }))
 
         reply.send(devices)
     })

@@ -553,7 +553,7 @@ export default {
                 this.allDeviceStatuses = new Map()
             }
 
-            if (data.meta.next_cursor || data.devices.length < data.count) {
+            if (data.meta?.next_cursor || data.devices.length < data.count) {
                 console.warn('Device Status API should not be paginating')
             }
 
@@ -575,7 +575,7 @@ export default {
 
             // Specific filtering
             if (this.filter?.property && this.filter?.bucket) {
-                extraParams.filter = `${this.filter.property}:${this.filter.bucket}`
+                extraParams.filters = `${this.filter.property}:${this.filter.bucket}`
             }
 
             // Search and sort
@@ -607,7 +607,7 @@ export default {
                 this.unsearchedHasMoreThanOnePage = this.moreThanOnePage
             }
 
-            if (!extraParams.filter) {
+            if (!extraParams.filters) {
                 this.unfilteredHasMoreThanOnePage = this.moreThanOnePage
             }
 
