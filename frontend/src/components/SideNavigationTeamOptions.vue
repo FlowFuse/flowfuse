@@ -95,7 +95,7 @@ export default {
                     to: '/library',
                     tag: 'shared-library',
                     icon: FolderIcon,
-                    featureUnavailable: !this.features?.['shared-library']
+                    featureUnavailable: !this.features?.['shared-library'] || this.team?.type.properties.features?.['shared-library'] === false
                 },
                 {
                     label: 'Members',
