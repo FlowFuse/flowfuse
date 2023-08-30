@@ -12,8 +12,6 @@ const base64URLEncode = str => URLEncode(str.toString('base64'))
 const md5 = str => crypto.createHash('md5').update(str).digest('hex')
 const sha256 = value => crypto.createHash('sha256').update(value).digest().toString('base64')
 
-const utils = require('util')
-
 let app
 
 /**
