@@ -31,7 +31,7 @@ export default {
             type: String,
             default: ''
         },
-        // flowforge specific props
+        // flowfuse specific props
         size: {
             default: 'normal',
             type: String // "small", "normal"

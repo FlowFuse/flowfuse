@@ -73,9 +73,9 @@ router.beforeEach((to, from, next) => {
 
     // If a route with a title was found, set the document (page) title to that value.
     if (nearestWithTitle) {
-        document.title = nearestWithTitle.meta.title + ' - FlowForge'
+        document.title = nearestWithTitle.meta.title + ' - FlowFuse'
     } else if (previousNearestWithMeta) {
-        document.title = previousNearestWithMeta.meta.title + ' - FlowForge'
+        document.title = previousNearestWithMeta.meta.title + ' - FlowFuse'
     }
 
     // Remove any stale meta tags from the document using the key attribute we set below.
