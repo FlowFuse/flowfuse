@@ -464,7 +464,7 @@ describe('Accounts API', async function () {
         })
     })
 
-    describe.only('Verify FF Tokens', async function () {
+    describe('Verify FF Tokens', async function () {
         before(async function () {
             app = await setup()
         })
