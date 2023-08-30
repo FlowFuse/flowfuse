@@ -248,21 +248,26 @@ module.exports = {
                     }
 
                     // Extra models to include
-                    const filteringOnApplication = !!where.ApplicationId
+                    const filteringOnInstanceApplication = !!where.ApplicationId && includeInstanceApplication
                     const projectInclude = {
                         model: M.Project,
                         attributes: ['id', 'name', 'links'],
-                        required: filteringOnApplication
+                        required: filteringOnInstanceApplication
                     }
-                    if (includeInstanceApplication || filteringOnApplication) {
+
+                    // Naive filter on Devices->Application
+                    if (where.ApplicationId) {
+                        where.ApplicationId = M.Application.decodeHashid(where.ApplicationId)
+                    }
+                    if (includeInstanceApplication || filteringOnInstanceApplication) {
                         projectInclude.include = {
                             model: M.Application,
                             attributes: ['hashid', 'id', 'name', 'links']
                         }
 
-                        // Handle nested ApplicationId filter
-                        if (filteringOnApplication) {
-                            projectInclude.include.where = { id: M.Application.decodeHashid(where.ApplicationId) }
+                        // Handle Applications included via Device->Instance->Application
+                        if (filteringOnInstanceApplication) {
+                            projectInclude.include.where = { id: where.ApplicationId }
                             projectInclude.include.required = true
                             delete where.ApplicationId
                         }
@@ -275,17 +280,23 @@ module.exports = {
                         },
                         projectInclude,
                         { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
-                        { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
+                        { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] },
+                        {
+                            model: M.Application,
+                            attributes: ['hashid', 'id', 'name', 'links']
+                        }
                     ]
+
+                    const statusOnlyIncludes = projectInclude.include?.where ? [projectInclude] : []
 
                     const [rows, count] = await Promise.all([
                         this.findAll({
                             where: buildPaginationSearchClause(pagination, where, ['Device.name', 'Device.type', 'Device.id'], {}, order),
-                            include: pagination.statusOnly ? (projectInclude.include.where ? [projectInclude] : []) : includes,
+                            include: pagination.statusOnly ? statusOnlyIncludes : includes,
                             order,
                             limit: pagination.statusOnly ? null : limit
                         }),
-                        this.count({ where, include: (projectInclude.include.where ? [projectInclude] : []) })
+                        this.count({ where, include: statusOnlyIncludes })
                     ])
 
                     let nextCursors = []

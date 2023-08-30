@@ -327,7 +327,7 @@ module.exports = async function (app) {
             ApplicationId: request.application.hashid
         }
 
-        const devices = await app.db.models.Device.getAll(paginationOptions, where, { includeInstanceApplication: true })
+        const devices = await app.db.models.Device.getAll(paginationOptions, where, { includeInstanceApplication: false })
         devices.devices = devices.devices.map(d => app.db.views.Device.device(d, { statusOnly: paginationOptions.statusOnly }))
 
         reply.send(devices)
