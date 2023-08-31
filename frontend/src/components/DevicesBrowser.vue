@@ -375,12 +375,12 @@ export default {
             )
         },
         teamDeviceLimitReached () {
-            const teamTypeDeviceProperties = this.team.type.properties.devices
-            if (teamTypeDeviceProperties.limit !== undefined) {
-                // TODO: check the current device count.
+            const teamTypeDeviceLimit = this.team.type.properties?.devices?.limit
+            if (!teamTypeDeviceLimit || teamTypeDeviceLimit < 0) {
+                return false
             }
 
-            return true
+            return this.team.deviceCount >= teamTypeDeviceLimit
         }
     },
     watch: {
