@@ -57,15 +57,6 @@ module.exports = async function (config = {}) {
         { start: false }
     )
 
-    const instance2 = await factory.createInstance(
-        { name: 'project2' },
-        application,
-        stack,
-        template,
-        projectType,
-        { start: false }
-    )
-
     forge.factory = factory
 
     forge.adminUser = userAlice
@@ -85,7 +76,6 @@ module.exports = async function (config = {}) {
     forge.projectType = projectType
     forge.application = application
     forge.project = instance
-    forge.project2 = instance2
 
     return forge
 }
