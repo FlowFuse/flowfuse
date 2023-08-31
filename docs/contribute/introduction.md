@@ -117,8 +117,8 @@ likely want to begin.
 ## Development Setup
 
 1. [Create a Stack](#create-a-stack)
-1. [Running FlowFuse](#running-flowforge)
-1. [Configuring FlowFuse](#configuring-flowforge)
+1. [Running FlowFuse](#running-flowfuse)
+1. [Configuring FlowFuse](#configuring-flowfuse)
 1. [Mocking email](#mocking-email)
 1. [Testing](#testing)
 1. [VSCode Tips](#vscode-tips)

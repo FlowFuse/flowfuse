@@ -96,7 +96,7 @@ comes to create a new Node-RED instance, they chose from the available stacks as
 with the chosen Instance Type.
 
 For details on how to administer and manage Stacks, please see the
-[Administering FlowFuse](../admin/#managing-stacks) docs.
+[Administering FlowFuse](../admin/introduction.md#managing-stacks) docs.
 
 #### Template
 
