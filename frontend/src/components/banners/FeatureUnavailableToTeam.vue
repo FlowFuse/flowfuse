@@ -1,6 +1,6 @@
 <template>
     <div
-        class="ff-page-banner my-4"
+        class="ff-page-banner mb-4"
         data-el="page-banner-feature-unavailable-to-team"
     >
         <SparklesIcon class="ff-icon mr-2" style="stroke-width: 1px;" />

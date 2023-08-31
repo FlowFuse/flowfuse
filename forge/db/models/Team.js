@@ -104,6 +104,15 @@ module.exports = {
                                         "members"."TeamId" = "Team"."id"
                                     )`),
                                     'memberCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "Devices" AS "devices"
+                                        WHERE
+                                        "devices"."TeamId" = "Team"."id"
+                                    )`),
+                                    'deviceCount'
                                 ]
                             ]
                         }
@@ -134,6 +143,15 @@ module.exports = {
                                         "members"."TeamId" = "Team"."id"
                                     )`),
                                     'memberCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "Devices" AS "devices"
+                                        WHERE
+                                        "devices"."TeamId" = "Team"."id"
+                                    )`),
+                                    'deviceCount'
                                 ]
                             ]
                         }
@@ -177,6 +195,15 @@ module.exports = {
                                         "members"."TeamId" = "Team"."id"
                                     )`),
                                     'memberCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "Devices" AS "devices"
+                                        WHERE
+                                        "devices"."TeamId" = "Team"."id"
+                                    )`),
+                                    'deviceCount'
                                 ]
                             ]
                         }
