@@ -33,6 +33,7 @@ module.exports = function (app) {
             instanceCount: { type: 'number' },
             instanceCountByType: { type: 'object', additionalProperties: true },
             memberCount: { type: 'number' },
+            deviceCount: { type: 'number' },
             createdAt: { type: 'string' },
             updatedAt: { type: 'string' },
             billing: { type: 'object', additionalProperties: true },
@@ -51,6 +52,7 @@ module.exports = function (app) {
                 avatar: result.avatar,
                 instanceCount: result.projectCount,
                 memberCount: result.memberCount,
+                deviceCount: result.deviceCount,
                 createdAt: result.createdAt,
                 updatedAt: result.updatedAt,
                 links: result.links
