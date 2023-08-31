@@ -40,8 +40,6 @@ describe('Project Snapshots API', function () {
             app.projectType,
             { start: false }
         )
-        // TestObjects.project2 = app.project2
-        // await instance2.destroy()
 
         // alice : admin
         // bob
