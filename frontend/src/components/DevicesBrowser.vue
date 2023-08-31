@@ -7,14 +7,6 @@
             v-if="loading"
             message="Loading Devices..."
         />
-        <ff-loading
-            v-else-if="creatingDevice"
-            message="Creating Device..."
-        />
-        <ff-loading
-            v-else-if="deletingDevice"
-            message="Deleting Device..."
-        />
         <template v-else>
             <FeatureUnavailableToTeam v-if="devices.size > 0 && teamDeviceLimitReached" fullMessage="You have reached the device limit for this team." />
             <DevicesStatusBar v-if="devices.size > 0" data-el="devicestatus-lastseen" label="Last Seen" :devices="Array.from(devices.values())" property="lastseen" :filter="filter" @filter-selected="applyFilter" />
@@ -224,7 +216,6 @@
 import { ClockIcon } from '@heroicons/vue/outline'
 import { PlusSmIcon } from '@heroicons/vue/solid'
 
-import semver from 'semver'
 import { markRaw } from 'vue'
 
 import ApplicationApi from '../api/application.js'
@@ -299,8 +290,6 @@ export default {
         return {
             loading: true,
             filter: null,
-            creatingDevice: false,
-            deletingDevice: false,
             nextCursor: null,
             devices: new Map(),
             firstRequest: true,
@@ -434,12 +423,7 @@ export default {
             this.$refs.snapshotAssignDialog.show()
         },
 
-        deviceCreating () {
-            this.creatingDevice = true
-        },
-
         deviceCreated (device) {
-            this.creatingDevice = false
             if (device) {
                 setTimeout(() => {
                     this.$refs.deviceCredentialsDialog.show(device)
@@ -544,7 +528,6 @@ export default {
                     text: 'Are you sure you want to delete this device? Once deleted, there is no going back.',
                     confirmLabel: 'Delete'
                 }, async () => {
-                    this.deletingDevice = true
                     try {
                         await deviceApi.deleteDevice(device.id)
                         Alerts.emit('Successfully deleted the device', 'confirmation')
@@ -552,8 +535,6 @@ export default {
                         this.deviceCountDeltaSincePageLoad--
                     } catch (err) {
                         Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
-                    } finally {
-                        this.deletingDevice = false
                     }
                 })
             } else if (action === 'updateCredentials') {
