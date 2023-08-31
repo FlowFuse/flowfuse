@@ -303,7 +303,8 @@ export default {
             deletingDevice: false,
             nextCursor: null,
             devices: new Map(),
-            firstRequest: true
+            firstRequest: true,
+            deviceCountDeltaSincePageLoad: 0
         }
     },
     computed: {
@@ -374,13 +375,16 @@ export default {
                 (this.displayingTeam && !!this.team?.id)
             )
         },
+        teamDeviceCount () {
+            return this.team.deviceCount + this.deviceCountDeltaSincePageLoad
+        },
         teamDeviceLimitReached () {
             const teamTypeDeviceLimit = this.team.type.properties?.devices?.limit
             if (!teamTypeDeviceLimit || teamTypeDeviceLimit < 0) {
                 return false
             }
 
-            return this.team.deviceCount >= teamTypeDeviceLimit
+            return this.teamDeviceCount >= teamTypeDeviceLimit
         }
     },
     watch: {
@@ -441,6 +445,7 @@ export default {
                     this.$refs.deviceCredentialsDialog.show(device)
                 }, 500)
                 this.devices.set(device.id, device)
+                this.deviceCountDeltaSincePageLoad++
                 this.applyFilter()
             }
         },
@@ -544,6 +549,7 @@ export default {
                         await deviceApi.deleteDevice(device.id)
                         Alerts.emit('Successfully deleted the device', 'confirmation')
                         this.devices.delete(device.id)
+                        this.deviceCountDeltaSincePageLoad--
                     } catch (err) {
                         Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
                     } finally {
