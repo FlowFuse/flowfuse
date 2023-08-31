@@ -13,7 +13,7 @@ Teams are groups of users that collaborate on their Node-RED applications.
 Users can create new teams. Creating a team requires a name and a unique url.
 The user who creates the team is added as its "owner".
 
-**Note**: Administrators might not [allow all users to create teams](../../admin#admin-settings).
+**Note**: Administrators might not [allow all users to create teams](../../admin/introduction.md#admin-settings).
 FlowFuse Cloud does allow any user to create a new team.
 
 ### Adding team members
