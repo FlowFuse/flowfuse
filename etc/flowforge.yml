@@ -71,8 +71,8 @@ driver:
 # File Server config                            #
 #################################################
 
-fileStore:
-  url: http://localhost:3001
+# fileStore:
+#   url: http://localhost:3001
 
 
 #################################################
