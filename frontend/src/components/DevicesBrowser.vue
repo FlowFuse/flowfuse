@@ -8,7 +8,7 @@
             message="Loading Devices..."
         />
         <template v-else>
-            <FeatureUnavailableToTeam v-if="devices.size > 0 && teamDeviceLimitReached" fullMessage="You have reached the device limit for this team." />
+            <FeatureUnavailableToTeam v-if="devices.size > 0 && teamDeviceLimitReached" fullMessage="You have reached the device limit for this team." :class="{'mt-0': displayingTeam }" />
             <DevicesStatusBar v-if="devices.size > 0" data-el="devicestatus-lastseen" label="Last Seen" :devices="Array.from(devices.values())" property="lastseen" :filter="filter" @filter-selected="applyFilter" />
             <DevicesStatusBar v-if="devices.size > 0" data-el="devicestatus-status" label="Last Known Status" :devices="Array.from(devices.values())" property="status" :filter="filter" @filter-selected="applyFilter" />
             <ff-data-table
@@ -166,7 +166,6 @@
     <TeamDeviceCreateDialog
         ref="teamDeviceCreateDialog"
         :team="team"
-        @device-creating="deviceCreating"
         @device-created="deviceCreated"
         @device-updated="deviceUpdated"
     >
@@ -216,6 +215,7 @@
 import { ClockIcon } from '@heroicons/vue/outline'
 import { PlusSmIcon } from '@heroicons/vue/solid'
 
+import semver from 'semver'
 import { markRaw } from 'vue'
 
 import ApplicationApi from '../api/application.js'
