@@ -3,9 +3,11 @@ const crypto = require('crypto')
 const should = require('should') // eslint-disable-line no-unused-vars
 
 const { addFlowsToProject } = require('../../../../lib/Snapshots')
+const TestModelFactory = require('../../../../lib/TestModelFactory')
 const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
+
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 function decryptCredentials (key, cipher) {
@@ -19,13 +21,27 @@ function decryptCredentials (key, cipher) {
 
 describe('Project Snapshots API', function () {
     let app
+    let factory
     const TestObjects = {}
 
     before(async function () {
         app = await setup()
+        factory = new TestModelFactory(app)
 
         TestObjects.project1 = app.project
-        TestObjects.project2 = app.project2
+
+        // Create the 2nd project here instead of have it as a base setup shared by many tests
+
+        TestObjects.project2 = await factory.createInstance(
+            { name: 'project2' },
+            app.application,
+            app.stack,
+            app.template,
+            app.projectType,
+            { start: false }
+        )
+        // TestObjects.project2 = app.project2
+        // await instance2.destroy()
 
         // alice : admin
         // bob
@@ -50,11 +66,14 @@ describe('Project Snapshots API', function () {
         await login('chris', 'ccPassword')
 
         // TestObjects.tokens.alice = (await app.db.controllers.AccessToken.createTokenForPasswordReset(TestObjects.alice)).token
-        TestObjects.tokens.project = (await app.project.refreshAuthTokens()).token
-        TestObjects.tokens.project2 = (await app.project2.refreshAuthTokens()).token
+        TestObjects.tokens.project = (await TestObjects.project1.refreshAuthTokens()).token
+        TestObjects.tokens.project2 = (await TestObjects.project2.refreshAuthTokens()).token
 
         TestObjects.template1 = app.template
         TestObjects.stack1 = app.stack
+    })
+    after(async function () {
+        await TestObjects.project2.destroy()
     })
 
     async function login (username, password) {
