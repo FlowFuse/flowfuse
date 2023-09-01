@@ -1,3 +1,9 @@
+#### 1.11.1: Release
+
+ - Fix sending welcome email at start of new trial type (backport #2688) (#2690) @app/github-actions
+ - Device Limit Banner Improvements (backport #2683) (#2689) @app/github-actions
+ - Fix links following docs restructuring (backport #2684) (#2685) @app/github-actions
+
 #### 1.11.0: Release
 
  - Add banner to DeviceBrowser when device limit reached (#2670) @knolleary
