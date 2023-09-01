@@ -7,16 +7,8 @@
             v-if="loading"
             message="Loading Devices..."
         />
-        <ff-loading
-            v-else-if="creatingDevice"
-            message="Creating Device..."
-        />
-        <ff-loading
-            v-else-if="deletingDevice"
-            message="Deleting Device..."
-        />
         <template v-else>
-            <FeatureUnavailableToTeam v-if="devices.size > 0 && teamDeviceLimitReached" fullMessage="You have reached the device limit for this team." />
+            <FeatureUnavailableToTeam v-if="devices.size > 0 && teamDeviceLimitReached" fullMessage="You have reached the device limit for this team." :class="{'mt-0': displayingTeam }" />
             <DevicesStatusBar v-if="devices.size > 0" data-el="devicestatus-lastseen" label="Last Seen" :devices="Array.from(devices.values())" property="lastseen" :filter="filter" @filter-selected="applyFilter" />
             <DevicesStatusBar v-if="devices.size > 0" data-el="devicestatus-status" label="Last Known Status" :devices="Array.from(devices.values())" property="status" :filter="filter" @filter-selected="applyFilter" />
             <ff-data-table
@@ -174,7 +166,6 @@
     <TeamDeviceCreateDialog
         ref="teamDeviceCreateDialog"
         :team="team"
-        @device-creating="deviceCreating"
         @device-created="deviceCreated"
         @device-updated="deviceUpdated"
     >
@@ -299,11 +290,10 @@ export default {
         return {
             loading: true,
             filter: null,
-            creatingDevice: false,
-            deletingDevice: false,
             nextCursor: null,
             devices: new Map(),
-            firstRequest: true
+            firstRequest: true,
+            deviceCountDeltaSincePageLoad: 0
         }
     },
     computed: {
@@ -374,13 +364,16 @@ export default {
                 (this.displayingTeam && !!this.team?.id)
             )
         },
+        teamDeviceCount () {
+            return this.team.deviceCount + this.deviceCountDeltaSincePageLoad
+        },
         teamDeviceLimitReached () {
             const teamTypeDeviceLimit = this.team.type.properties?.devices?.limit
             if (!teamTypeDeviceLimit || teamTypeDeviceLimit < 0) {
                 return false
             }
 
-            return this.team.deviceCount >= teamTypeDeviceLimit
+            return this.teamDeviceCount >= teamTypeDeviceLimit
         }
     },
     watch: {
@@ -430,17 +423,13 @@ export default {
             this.$refs.snapshotAssignDialog.show()
         },
 
-        deviceCreating () {
-            this.creatingDevice = true
-        },
-
         deviceCreated (device) {
-            this.creatingDevice = false
             if (device) {
                 setTimeout(() => {
                     this.$refs.deviceCredentialsDialog.show(device)
                 }, 500)
                 this.devices.set(device.id, device)
+                this.deviceCountDeltaSincePageLoad++
                 this.applyFilter()
             }
         },
@@ -539,15 +528,13 @@ export default {
                     text: 'Are you sure you want to delete this device? Once deleted, there is no going back.',
                     confirmLabel: 'Delete'
                 }, async () => {
-                    this.deletingDevice = true
                     try {
                         await deviceApi.deleteDevice(device.id)
                         Alerts.emit('Successfully deleted the device', 'confirmation')
                         this.devices.delete(device.id)
+                        this.deviceCountDeltaSincePageLoad--
                     } catch (err) {
                         Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
-                    } finally {
-                        this.deletingDevice = false
                     }
                 })
             } else if (action === 'updateCredentials') {
