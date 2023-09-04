@@ -1,6 +1,8 @@
 <template>
     <form class="space-y-6">
         <TemplateSettingsPalette v-model="editable" :editTemplate="false" />
+        <TemplateSectionCatalogue v-model="editableTemplate" :editTemplate="false" :project="project" />
+        <TemplateSectionNPM v-model="editableTemplate" :editTemplate="false" :project="project" />
         <TemplatePaletteModulesEditor v-model="editable" :editTemplate="false" :readOnly="!paletteEditable" :project="project" />
         <div class="space-x-4 whitespace-nowrap">
             <ff-button size="small" :disabled="!unsavedChanges && !modulesChanged" @click="saveSettings()">Save settings</ff-button>
@@ -17,6 +19,8 @@ import { mapState } from 'vuex'
 import InstanceApi from '../../../api/instances.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import alerts from '../../../services/alerts.js'
+import TemplateSectionCatalogue from '../../admin/Template/sections/Catalogues.vue'
+import TemplateSectionNPM from '../../admin/Template/sections/NPMRegistry.vue'
 import TemplateSettingsPalette from '../../admin/Template/sections/Palette.vue'
 import TemplatePaletteModulesEditor from '../../admin/Template/sections/PaletteModules.vue'
 
@@ -31,6 +35,8 @@ import {
 export default {
     name: 'InstanceSettingsPalette',
     components: {
+        TemplateSectionCatalogue,
+        TemplateSectionNPM,
         TemplateSettingsPalette,
         TemplatePaletteModulesEditor
     },

@@ -137,6 +137,16 @@ const templateValidators = {
             }
         }
     }
+    // palette_catalogue: (v) => {
+    //     if (v.trim() === '') {
+    //         return
+    //     }
+    //     try {
+    //         new URL(v)
+    //     } catch (err) {
+    //         return 'Must be a valid URL'
+    //     }
+    // }
 }
 function getObjectValue (object, path) {
     const parts = path.split('_')
