@@ -134,6 +134,7 @@ export default {
         addURL () {
             if (this.input.url.trim()) {
                 try {
+                    // eslint-disable-next-line
                     const u = new URL(this.input.url.trim())
                 } catch (err) {
                     this.input.error = 'Invalid URL'

@@ -7,10 +7,10 @@
             <LockSetting v-model="editable.policy.palette_npmrc" :editTemplate="editTemplate" :changed="editable.changed.policy.palette_npmrc" />
         </div>
         <FormRow v-model="npmrc">
-            <template #input><textarea class="font-mono w-full" v-model="editable.settings.palette_npmrc" placeholder=".npmrc" rows="8"></textarea></template>
+            <template #input><textarea class="font-mono w-full" v-model="editable.settings.palette_npmrc" placeholder=".npmrc" rows="8" /></template>
             <template #append><ChangeIndicator :value="editable.changed.palette_npmrc" /></template>
         </FormRow>
-    </form> 
+    </form>
 </template>
 
 <script>
@@ -60,7 +60,7 @@ export default {
             set (localValue) {
                 this.$emit('update:modelValue', localValue)
             }
-        }  
+        }
     },
     watch: {
         'editable.settings.palette_npmrc': {
@@ -69,6 +69,6 @@ export default {
                 this.npmrc = v
             }
         }
-    },
+    }
 }
 </script>
