@@ -123,6 +123,7 @@ import LockSetting from '../components/LockSetting.vue'
 export default {
     name: 'TemplateSettingsEditor',
     props: ['editTemplate', 'modelValue'],
+    emits: ['update:modelValue'],
     computed: {
         editable: {
             get () {

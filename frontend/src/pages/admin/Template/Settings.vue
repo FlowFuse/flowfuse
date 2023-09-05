@@ -29,6 +29,7 @@ import TemplateSettingsEditor from './sections/Editor.vue'
 export default {
     name: 'AdminTemplateSettings',
     props: ['modelValue', 'editTemplate'],
+    emits: ['update:modelValue'],
     computed: {
         editableTemplate: {
             get () { return this.modelValue },

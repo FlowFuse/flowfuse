@@ -15,6 +15,7 @@ import httpClient from '../../api/client.js'
 
 export default {
     name: 'SetupFinal',
+    emits: ['error'],
     methods: {
         async done () {
             // eslint-disable-next-line no-undef

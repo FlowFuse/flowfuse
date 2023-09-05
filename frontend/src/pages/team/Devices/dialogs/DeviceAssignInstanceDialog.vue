@@ -30,6 +30,7 @@ export default {
     components: {
         SelectInstance
     },
+    emits: ['assignDevice'],
     setup () {
         return {
             async show (device) {

@@ -11,6 +11,7 @@
 <script>
 export default {
     name: 'SetupFinal',
+    emits: ['next'],
     methods: {
         done () {
             this.$emit('next')
