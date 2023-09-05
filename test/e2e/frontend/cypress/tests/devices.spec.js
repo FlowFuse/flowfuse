@@ -1,7 +1,7 @@
 import deviceOffline from '../fixtures/device-offline.json'
 import deviceRunning from '../fixtures/device-running.json'
 
-describe('FlowForge - Devices', () => {
+describe('FlowForge - Team Devices', () => {
     describe('team with no devices', () => {
         beforeEach(() => {
             cy.intercept('GET', '/api/*/teams/*/devices').as('getDevices')
@@ -68,8 +68,8 @@ describe('FlowForge - Devices', () => {
         })
 
         it('can load multiple pages of devices when the API paginates', function () {
-        // Mock active and inactive stacks having multiple pages
-            cy.intercept('GET', '/api/v1/teams/*/devices', {
+            // Mock active and inactive stacks having multiple pages
+            cy.intercept('GET', '/api/v1/teams/*/devices*', {
                 count: 2,
                 meta: { next_cursor: 'next' },
                 devices: [deviceOffline]
@@ -116,62 +116,148 @@ describe('FlowForge - Devices', () => {
                 })
         })
 
-        it('can filter the device browser by "last seen" values', () => {
+        describe('with a single page', () => {
+            it('can filter the device browser by "last seen" values', () => {
             // ensure we have something "last seen" in the past 1.5 mins
-            deviceRunning.lastSeenAt = (new Date()).toISOString()
-            cy.intercept('GET', '/api/v1/teams/*/devices', {
-                count: 2,
-                meta: { next_cursor: 'next' },
-                devices: [deviceOffline, deviceRunning]
-            }).as('getDevicesNextPage')
+                deviceRunning.lastSeenAt = (new Date()).toISOString()
+                cy.intercept('GET', '/api/v1/teams/*/devices*', {
+                    count: 2,
+                    meta: {},
+                    devices: [deviceOffline, deviceRunning]
+                }).as('getDevicesNextPage')
 
-            cy.visit('/team/bteam/devices')
-            cy.contains('device-1')
-            cy.contains('device-2')
+                cy.visit('/team/bteam/devices')
+                cy.contains('device-1')
+                cy.contains('device-2')
 
-            // apply filter
-            cy.get('[data-el="devicestatus-lastseen"] .ff-chart-bar.ff-chart-bar--never').click()
-            cy.contains('device-1')
-            cy.contains('device-2').should('not.exist')
+                // apply filter
+                cy.get('[data-el="devicestatus-lastseen"] .ff-chart-bar.ff-chart-bar--never').click()
+                cy.contains('device-1')
+                cy.contains('device-2').should('not.exist')
 
-            // select different filter value
-            cy.get('[data-el="devicestatus-lastseen"] .ff-chart-bar.ff-chart-bar--running').click()
-            cy.contains('device-1').should('not.exist')
-            cy.contains('device-2')
+                // select different filter value
+                cy.get('[data-el="devicestatus-lastseen"] .ff-chart-bar.ff-chart-bar--running').click()
+                cy.contains('device-1').should('not.exist')
+                cy.contains('device-2')
 
-            // reverse the filter
-            cy.get('[data-el="devicestatus-lastseen"] .ff-chart-bar.ff-chart-bar--running').click()
-            cy.contains('device-1')
-            cy.contains('device-2')
+                // reverse the filter
+                cy.get('[data-el="devicestatus-lastseen"] .ff-chart-bar.ff-chart-bar--running').click()
+                cy.contains('device-1')
+                cy.contains('device-2')
+            })
+
+            it('can filter the device browser by "status" values', () => {
+            // ensure we have something "last seen" in the past 1.5 mins
+                deviceRunning.lastSeenAt = (new Date()).toISOString()
+                cy.intercept('GET', '/api/v1/teams/*/devices*', {
+                    count: 2,
+                    meta: {},
+                    devices: [deviceOffline, deviceRunning]
+                }).as('getDevicesNextPage')
+
+                cy.visit('/team/bteam/devices')
+                cy.contains('device-1')
+                cy.contains('device-2')
+
+                // apply filter
+                cy.get('[data-el="devicestatus-status"] .ff-chart-bar.ff-chart-bar--offline').click()
+                cy.contains('device-1')
+                cy.contains('device-2').should('not.exist')
+
+                // select different filter value
+                cy.get('[data-el="devicestatus-status"] .ff-chart-bar.ff-chart-bar--running').click()
+                cy.contains('device-1').should('not.exist')
+                cy.contains('device-2')
+
+                // reverse the filter
+                cy.get('[data-el="devicestatus-status"] .ff-chart-bar.ff-chart-bar--running').click()
+                cy.contains('device-1')
+                cy.contains('device-2')
+            })
         })
 
-        it('can filter the device browser by "status" values', () => {
+        describe('with a multiple pages page (server side filtering)', () => {
+            it.only('can filter the device browser by "last seen" values', () => {
+                cy.intercept('GET', '/api/v1/teams/*/devices', {
+                    count: 2,
+                    meta: { next_cursor: 'next' },
+                    devices: [deviceOffline]
+                }).as('getDevicesWithTwoPages')
+
+                cy.intercept('GET', '/api/v1/teams/*/devices?statusOnly=true', {
+                    count: 2,
+                    devices: [deviceOffline, deviceRunning]
+                }).as('getDeviceStatus')
+
+                cy.visit('/team/bteam/devices')
+                cy.wait('@getDevicesWithTwoPages')
+                cy.contains('device-1') // offline
+                cy.contains('device-2').should('not.exist') // online
+
+                cy.intercept('GET', '/api/v1/teams/*/devices?filters=lastseen%3Anever', {
+                    count: 1,
+                    meta: { next_cursor: null },
+                    devices: [deviceOffline]
+                }).as('getDevicesFiltered')
+
+                // apply filter
+                cy.get('[data-el="devicestatus-lastseen"] .ff-chart-bar.ff-chart-bar--never').click()
+                cy.wait('@getDevicesFiltered')
+                cy.contains('device-1') // offlie
+                cy.contains('device-2').should('not.exist') // online
+
+                cy.intercept('GET', '/api/v1/teams/*/devices?filters=lastseen%3Arunning', {
+                    count: 1,
+                    meta: { next_cursor: null },
+                    devices: [deviceRunning]
+                }).as('getDevicesFiltered')
+
+                // select different filter value
+                cy.get('[data-el="devicestatus-lastseen"] .ff-chart-bar.ff-chart-bar--running').click()
+                cy.contains('device-1').should('not.exist') // offline
+                cy.contains('device-2') // online
+
+                cy.intercept('GET', '/api/v1/teams/*/devices', {
+                    count: 2,
+                    meta: { next_cursor: null },
+                    devices: [deviceOffline]
+                }).as('getDevicesUnfiltered')
+
+                // reverse the filter
+                cy.get('[data-el="devicestatus-lastseen"] .ff-chart-bar.ff-chart-bar--running').click()
+                cy.wait('@getDevicesUnfiltered')
+                cy.contains('device-1') // offline
+                cy.contains('device-2').should('not.exist') // online
+            })
+
+            it('can filter the device browser by "status" values', () => {
             // ensure we have something "last seen" in the past 1.5 mins
-            deviceRunning.lastSeenAt = (new Date()).toISOString()
-            cy.intercept('GET', '/api/v1/teams/*/devices', {
-                count: 2,
-                meta: { next_cursor: 'next' },
-                devices: [deviceOffline, deviceRunning]
-            }).as('getDevicesNextPage')
+                deviceRunning.lastSeenAt = (new Date()).toISOString()
+                cy.intercept('GET', '/api/v1/teams/*/devices*', {
+                    count: 2,
+                    meta: {},
+                    devices: [deviceOffline, deviceRunning]
+                }).as('getDevicesNextPage')
 
-            cy.visit('/team/bteam/devices')
-            cy.contains('device-1')
-            cy.contains('device-2')
+                cy.visit('/team/bteam/devices')
+                cy.contains('device-1')
+                cy.contains('device-2')
 
-            // apply filter
-            cy.get('[data-el="devicestatus-status"] .ff-chart-bar.ff-chart-bar--offline').click()
-            cy.contains('device-1')
-            cy.contains('device-2').should('not.exist')
+                // apply filter
+                cy.get('[data-el="devicestatus-status"] .ff-chart-bar.ff-chart-bar--offline').click()
+                cy.contains('device-1')
+                cy.contains('device-2').should('not.exist')
 
-            // select different filter value
-            cy.get('[data-el="devicestatus-status"] .ff-chart-bar.ff-chart-bar--running').click()
-            cy.contains('device-1').should('not.exist')
-            cy.contains('device-2')
+                // select different filter value
+                cy.get('[data-el="devicestatus-status"] .ff-chart-bar.ff-chart-bar--running').click()
+                cy.contains('device-1').should('not.exist')
+                cy.contains('device-2')
 
-            // reverse the filter
-            cy.get('[data-el="devicestatus-status"] .ff-chart-bar.ff-chart-bar--running').click()
-            cy.contains('device-1')
-            cy.contains('device-2')
+                // reverse the filter
+                cy.get('[data-el="devicestatus-status"] .ff-chart-bar.ff-chart-bar--running').click()
+                cy.contains('device-1')
+                cy.contains('device-2')
+            })
         })
 
         it('can assign and unassign devices to instances', () => {
