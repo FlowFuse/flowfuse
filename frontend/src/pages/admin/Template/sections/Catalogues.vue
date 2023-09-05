@@ -153,6 +153,7 @@ export default {
                 }
                 this.editable.settings.palette_catalogue.push(newURL)
                 this.input.url = ''
+                this.input.error = ''
             }
         },
         removeURL (index) {
