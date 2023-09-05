@@ -18,7 +18,7 @@
             </div>
             <div class="min-w-fit flex-shrink-0">
                 <ff-button kind="danger" data-action="delete-team" :disabled="!deleteActive" @click="showConfirmDeleteDialog()">Delete Team</ff-button>
-                <ConfirmTeamDeleteDialog @delete-team="deleteTeam" ref="confirmTeamDeleteDialog"/>
+                <ConfirmTeamDeleteDialog ref="confirmTeamDeleteDialog" @delete-team="deleteTeam"/>
             </div>
         </div>
     </div>

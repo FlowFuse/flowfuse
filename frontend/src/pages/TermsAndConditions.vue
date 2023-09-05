@@ -10,8 +10,8 @@
             <ff-checkbox v-model="accept" data-action="accept-terms-check">
                 I accept
             </ff-checkbox>
-            <ff-button :disabled="!accept || loading" kind="primary" @click="acceptAction" data-action="accept-terms-button">Continue</ff-button>
-            <ff-button kind="tertiary" @click="logout" data-action="logout-terms-button">Log out</ff-button>
+            <ff-button :disabled="!accept || loading" kind="primary" data-action="accept-terms-button" @click="acceptAction">Continue</ff-button>
+            <ff-button kind="tertiary" data-action="logout-terms-button" @click="logout">Log out</ff-button>
         </form>
     </ff-layout-box>
 </template>

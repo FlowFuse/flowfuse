@@ -4,16 +4,16 @@
             <ff-loading v-if="loggingIn" message="Logging in..." color="white"/>
             <template v-else>
                 <label>username / email</label>
-                <ff-text-input ref="login-username" label="username" :error="errors.username" v-model="input.username" @enter="login"/>
+                <ff-text-input ref="login-username" v-model="input.username" label="username" :error="errors.username" @enter="login"/>
                 <span class="ff-error-inline" data-el="errors-username">{{ errors.username }}</span>
                 <div v-if="passwordRequired">
                     <label>password</label>
-                    <ff-text-input ref="login-password" label="password" :error="errors.password" v-model="input.password" @enter="login" type="password"/>
+                    <ff-text-input ref="login-password" v-model="input.password" label="password" :error="errors.password" type="password" @enter="login"/>
                     <span class="ff-error-inline" data-el="errors-password">{{ errors.password }}</span>
                 </div>
                 <label class="ff-error-inline" data-el="errors-general">{{ errors.general }}</label>
                 <div class="ff-actions">
-                    <ff-button @click="login()" data-action="login" :disabled="loggingIn || tooManyRequests">
+                    <ff-button data-action="login" :disabled="loggingIn || tooManyRequests" @click="login()">
                         <span>Login</span>
                         <span class="w-4">
                             <SpinnerIcon v-if="loggingIn || tooManyRequests" class="ff-icon ml-3 !w-3.5" />

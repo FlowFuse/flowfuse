@@ -18,34 +18,34 @@
         <template v-else-if="user && !user.password_expired && !termsAndConditionsRequired && user.email_verified !== false">
             <template v-if="!isModalPage">
                 <ff-layout-platform>
-                    <LicenseBanner></LicenseBanner>
-                    <router-view></router-view>
+                    <LicenseBanner />
+                    <router-view />
                 </ff-layout-platform>
             </template>
             <template v-else>
                 <ff-layout-box>
-                    <router-view></router-view>
+                    <router-view />
                 </ff-layout-box>
             </template>
         </template>
         <!-- Password Reset Required -->
         <template v-else-if="user && user.password_expired">
-            <PasswordExpired/>
+            <PasswordExpired />
         </template>
         <!-- Email Verification Required (Show "Resend")-->
         <template v-else-if="user && user.email_verified === false && !isEmailVerificationPage">
-            <UnverifiedEmail/>
+            <UnverifiedEmail />
         </template>
         <!-- T+Cs Acceptance Required -->
         <template v-else-if="user && termsAndConditionsRequired">
-            <TermsAndConditions/>
+            <TermsAndConditions />
         </template>
         <template v-else-if="!loginRequired">
-            <router-view></router-view>
+            <router-view />
         </template>
         <!-- Authentication Screen -->
         <template v-else>
-            <Login/>
+            <Login />
         </template>
     </div>
 </template>
@@ -65,6 +65,17 @@ import UnverifiedEmail from './pages/UnverifiedEmail.vue'
 
 export default {
     name: 'App',
+    components: {
+        Login,
+        PasswordExpired,
+        UnverifiedEmail,
+        TermsAndConditions,
+        LicenseBanner,
+        Loading,
+        Offline,
+        'ff-layout-platform': FFLayoutPlatform,
+        'ff-layout-box': FFLayoutBox
+    },
     computed: {
         ...mapState('account', ['pending', 'user', 'team', 'offline', 'settings']),
         loginRequired () {
@@ -94,17 +105,6 @@ export default {
             }
             return platformTcsDate > userTcsDate
         }
-    },
-    components: {
-        Login,
-        PasswordExpired,
-        UnverifiedEmail,
-        TermsAndConditions,
-        LicenseBanner,
-        Loading,
-        Offline,
-        'ff-layout-platform': FFLayoutPlatform,
-        'ff-layout-box': FFLayoutBox
     },
     mounted () {
         this.$store.dispatch('account/checkState')

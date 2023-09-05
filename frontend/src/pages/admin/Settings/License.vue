@@ -21,16 +21,16 @@
                 </table>
             </template>
             <div class="space-x-4 whitespace-nowrap">
-                <ff-button @click="editLicense" data-form="update-licence">Update license</ff-button>
+                <ff-button data-form="update-licence" @click="editLicense">Update license</ff-button>
             </div>
         </template>
         <template v-if="editing.license">
             <FormHeading>1. Upload new license</FormHeading>
             <template v-if="!inspectedLicense">
-                <FormRow v-model="input.license" :error="errors.license" id="license" placeholder="Enter new license" ref="row-license" data-form="license"></FormRow>
+                <FormRow id="license" ref="row-license" v-model="input.license" :error="errors.license" placeholder="Enter new license" data-form="license"></FormRow>
                 <div class="space-x-4 whitespace-nowrap flex">
                     <ff-button @click="cancelEditLicense">Cancel</ff-button>
-                    <ff-button :disabled="!formValid" @click="inspectLicense" data-form="check-license">Check license</ff-button>
+                    <ff-button :disabled="!formValid" data-form="check-license" @click="inspectLicense">Check license</ff-button>
                 </div>
             </template>
             <template v-if="inspectedLicense">
@@ -44,7 +44,7 @@
                 <details><pre class="break-words">{{ inspectedLicense }}</pre></details>
                 <div class="space-x-4 whitespace-nowrap flex">
                     <ff-button kind="secondary" @click="cancelEditLicense">Cancel</ff-button>
-                    <ff-button kind="primary" @click="applyLicense" data-form="submit">Apply license</ff-button>
+                    <ff-button kind="primary" data-form="submit" @click="applyLicense">Apply license</ff-button>
                 </div>
             </template>
         </template>

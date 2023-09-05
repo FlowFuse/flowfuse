@@ -5,8 +5,8 @@
         :columns="providerColumns"
         :rows="providers"
         :rows-selectable="true"
-        @row-selected="providerSelected"
         :show-search="true"
+        @row-selected="providerSelected"
     >
         <template #actions>
             <ff-button :to="{ name: 'AdminSettingsSSOEdit', params: { id: 'create' } }">
