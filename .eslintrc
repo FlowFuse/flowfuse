@@ -344,7 +344,6 @@
                 "vue/order-in-components": "off"
             },
             "files": [
-                "frontend/src/App.vue",
                 "frontend/src/components/Accordion.vue",
                 "frontend/src/components/audit-log/AuditEntry.vue",
                 "frontend/src/components/audit-log/AuditEntryIcon.vue",
@@ -429,8 +428,7 @@
                 "frontend/src/pages/team/Settings/index.vue",
                 "frontend/src/pages/team/Settings/Permissions.vue",
                 "frontend/src/pages/TermsAndConditions.vue",
-                "frontend/src/pages/UnverifiedEmail.vue",
-                "frontend/src/SetupApp.vue"
+                "frontend/src/pages/UnverifiedEmail.vue"
             ]
         },
         {

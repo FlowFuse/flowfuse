@@ -65,6 +65,17 @@ import UnverifiedEmail from './pages/UnverifiedEmail.vue'
 
 export default {
     name: 'App',
+    components: {
+        Login,
+        PasswordExpired,
+        UnverifiedEmail,
+        TermsAndConditions,
+        LicenseBanner,
+        Loading,
+        Offline,
+        'ff-layout-platform': FFLayoutPlatform,
+        'ff-layout-box': FFLayoutBox
+    },
     computed: {
         ...mapState('account', ['pending', 'user', 'team', 'offline', 'settings']),
         loginRequired () {
@@ -94,17 +105,6 @@ export default {
             }
             return platformTcsDate > userTcsDate
         }
-    },
-    components: {
-        Login,
-        PasswordExpired,
-        UnverifiedEmail,
-        TermsAndConditions,
-        LicenseBanner,
-        Loading,
-        Offline,
-        'ff-layout-platform': FFLayoutPlatform,
-        'ff-layout-box': FFLayoutBox
     },
     mounted () {
         this.$store.dispatch('account/checkState')

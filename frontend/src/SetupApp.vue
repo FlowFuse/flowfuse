@@ -32,6 +32,13 @@ const views = [
 ]
 export default {
     name: 'SetupApp',
+    components: {
+        PageFooter,
+        Logo,
+        CreateAdminUser,
+        License,
+        'ff-layout-box': FFLayoutBox
+    },
     data () {
         return {
             step: 0,
@@ -49,13 +56,6 @@ export default {
         error () {
             this.step = views.length - 1
         }
-    },
-    components: {
-        PageFooter,
-        Logo,
-        CreateAdminUser,
-        License,
-        'ff-layout-box': FFLayoutBox
     }
 }
 </script>
