@@ -4,7 +4,6 @@
             NPM configuration file
         </FormHeading>
 
-
         <div v-if="!projectLauncherCompatible" class="text-red-400 space-y-1">
             <p>You will need to update your Project Stack to use this feature.</p>
             <div v-if="project.stack.replacedBy">
@@ -12,7 +11,7 @@
             </div>
         </div>
 
-        <FormRow >
+        <FormRow>
             <template #input><textarea v-model="editable.settings.palette_npmrc" class="font-mono w-full max-w-md sm:mr-8" placeholder=".npmrc" rows="8" /></template>
             <template #append>
                 <ChangeIndicator :value="editable.changed.settings.palette_npmrc" />
@@ -23,6 +22,8 @@
 </template>
 
 <script>
+import SemVer from 'semver'
+
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
 import ChangeIndicator from '../components/ChangeIndicator.vue'
