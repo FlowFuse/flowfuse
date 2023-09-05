@@ -34,6 +34,7 @@ export default {
             team: null
         }
     },
+    emits: ['user-removed'],
     methods: {
         async confirm () {
             if (!this.disableConfirm) {

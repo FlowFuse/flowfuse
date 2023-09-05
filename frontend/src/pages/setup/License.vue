@@ -32,6 +32,7 @@ import FormRow from '../../components/FormRow.vue'
 export default {
     name: 'SetupLicense',
     props: ['state'],
+    emits: ['next'],
     data () {
         return {
             input: {

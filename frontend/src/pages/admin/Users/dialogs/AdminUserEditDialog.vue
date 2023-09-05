@@ -91,6 +91,7 @@ export default {
         FormHeading,
         LockClosedIcon
     },
+    emits: ['user-updated', 'user-deleted'],
     data () {
         return {
             input: {},
