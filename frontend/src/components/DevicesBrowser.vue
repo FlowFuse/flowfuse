@@ -353,7 +353,7 @@ export default {
             const devicesToDisplay = new Set(this.filter?.devices)
 
             return Array.from(this.devices.values()).filter((device) => {
-                if (!this.filter) {
+                if (!this.filter || this.unfilteredHasMoreThanOnePage) {
                     return true
                 }
 
