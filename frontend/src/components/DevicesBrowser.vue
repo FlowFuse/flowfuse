@@ -480,11 +480,22 @@ export default {
                 setTimeout(() => {
                     this.$refs.deviceCredentialsDialog.show(device)
                 }, 500)
-                this.devices.set(device.id, device)
+
+                this.updateLocalCopyOfDevice(device)
             }
         },
 
         deviceUpdated (device) {
+            this.updateLocalCopyOfDevice(device)
+        },
+
+        deleteLocalCopyOfDevice (device) {
+            this.allDeviceStatuses.delete(device.id)
+            this.devices.delete(device.id)
+        },
+
+        updateLocalCopyOfDevice (device) {
+            this.allDeviceStatuses.set(device.id, { ...this.allDeviceStatuses.get(device.id), ...device })
             this.devices.set(device.id, device)
         },
 
@@ -493,7 +504,7 @@ export default {
 
             Alerts.emit('Device successfully assigned to instance.', 'confirmation')
 
-            this.devices.set(device.id, { ...device, ...updatedDevice })
+            this.updateLocalCopyOfDevice({ ...device, ...updatedDevice })
         },
 
         async assignDeviceToApplication (device, applicationId) {
@@ -501,7 +512,7 @@ export default {
 
             Alerts.emit('Device successfully assigned to application.', 'confirmation')
 
-            this.devices.set(device.id, { ...device, ...updatedDevice })
+            this.updateLocalCopyOfDevice({ ...device, ...updatedDevice })
         },
 
         // Device loading
@@ -629,7 +640,7 @@ export default {
                     try {
                         await deviceApi.deleteDevice(device.id)
                         Alerts.emit('Successfully deleted the device', 'confirmation')
-                        this.devices.delete(device.id)
+                        this.deleteLocalCopyOfDevice(device)
                     } catch (err) {
                         Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
                     } finally {
@@ -651,7 +662,7 @@ export default {
                     delete device.application
 
                     if (this.displayingInstance) {
-                        this.devices.delete(device.id)
+                        this.deleteLocalCopyOfDevice(device)
                     }
                     this.pollForData()
                     Alerts.emit('Successfully removed the device from the instance.', 'confirmation')
@@ -669,7 +680,7 @@ export default {
                     delete device.application
 
                     if (this.displayingApplication) {
-                        this.devices.delete(device.id)
+                        this.deleteLocalCopyOfDevice(device)
                     }
                     this.pollForData()
                     Alerts.emit('Successfully removed the device from the application.', 'confirmation')
