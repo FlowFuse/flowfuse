@@ -3,10 +3,6 @@
         <FormHeading>
             Node Catalogues
         </FormHeading>
-        <div class="flex flex-col sm:flex-row">
-            <LockSetting v-model="editable.policy.palette_catalogue" :editTemplate="editTemplate" :changed="editable.changed.policy.palette_catalogue" />
-        </div>
-        <div class="flex justify-center"><ChangeIndicator :value="editable.changed.palette_catalogue" /></div>
 
         <div v-if="!projectLauncherCompatible" class="text-red-400 space-y-1">
             <p>You will need to update your Project Stack to use this feature.</p>
@@ -15,35 +11,49 @@
             </div>
         </div>
 
-        <table>
-            <tbody>
-                <tr v-for="(url, index) in editable.settings.palette_catalogue" :key="index">
-                    <td class="px-2 align-top">
-                        {{ url }}
-                    </td>
-                    <td>
-                        <ff-button kind="tertiary" size="small" @click="removeURL(index)">
+        <div v-else>
+            <div class="flex flex-col sm:flex-row">
+                <ChangeIndicator :value="editable.changed.settings.palette_catalogue" />
+            </div>
+            <div class="flex flex-col sm:flex-row">
+                <table class="w-full max-w-md sm:mr-8">
+                    <tbody>
+                        <tr v-for="(url, index) in editable.settings.palette_catalogue" :key="index">
+                            <td class="px-2 align-top">
+                                {{ url }}
+                            </td>
+                            <td>
+                                <ff-button kind="tertiary" size="small" @click="removeURL(index)">
+                                    <template #icon>
+                                        <XIcon />
+                                    </template>
+                                </ff-button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="max-w-sm w-24">
+                    <LockSetting v-model="editable.policy.palette_catalogue" :editTemplate="editTemplate" :changed="editable.changed.policy.palette_catalogue" />
+                </div>
+            </div>
+            <div class="flex flex-col sm:flex-row">
+                <FormRow v-model="input.url" class="w-full max-w-md sm:mr-8" :error="input.error" :disabled="readOnly">
+                    <template #append>
+                        <ff-button kind="secondary" size="small" @click="addURL()">
                             <template #icon>
-                                <XIcon />
+                                <PlusSmIcon />
                             </template>
                         </ff-button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <FormRow v-model="input.url" :error="input.error" :disabled="readOnly" />
-        <ff-button size="small" @click="addURL()">
-            Add URL
-            <template #icon>
-                <PlusSmIcon />
-            </template>
-        </ff-button>
-        <ff-button size="small" @click="addDefault()">
-            Add Default
-            <template #icon>
-                <PlusSmIcon />
-            </template>
-        </ff-button>
+                    </template>
+                </FormRow>
+            </div>
+            <ff-button size="small" @click="addDefault()">
+                Add Default
+                <template #icon>
+                    <PlusSmIcon />
+                </template>
+            </ff-button>
+        </div>
     </form>
 </template>
 
@@ -118,7 +128,7 @@ export default {
                 // of permissive
                 return true
             }
-            // TODO needs to semver >= 1.11.0
+            // TODO needs to semver >= 1.12.0
             return SemVer.satisfies(launcherVersion, '>=1.11.0')
         }
     },
@@ -132,28 +142,25 @@ export default {
     },
     methods: {
         addURL () {
-            if (this.input.url.trim()) {
+            const newURL = this.input.url.trim()
+            if (newURL) {
                 try {
                     // eslint-disable-next-line
-                    const u = new URL(this.input.url.trim())
+                    const u = new URL(newURL)
                 } catch (err) {
                     this.input.error = 'Invalid URL'
                     return
                 }
-                this.urls.push(this.input.url.trim())
+                this.editable.settings.palette_catalogue.push(newURL)
                 this.input.url = ''
-                this.editable.settings.palette_catalogue = this.urls
-                // this.$emit('update:modelValue', this.editable)
             }
         },
         removeURL (index) {
-            this.urls.splice(index, 1)
-            this.editable.settings.palette_catalogue = this.urls
+            this.editable.settings.palette_catalogue.splice(index, 1)
         },
         addDefault () {
-            if (this.urls.indexOf('https://catalogue.nodered.org/catalogue.json')) {
-                this.urls.unshift('https://catalogue.nodered.org/catalogue.json')
-                this.editable.settings.palette_catalogue = this.urls
+            if (this.editable.settings.palette_catalogue.indexOf('https://catalogue.nodered.org/catalogue.json')) {
+                this.editable.settings.palette_catalogue.unshift('https://catalogue.nodered.org/catalogue.json')
             }
         }
     }

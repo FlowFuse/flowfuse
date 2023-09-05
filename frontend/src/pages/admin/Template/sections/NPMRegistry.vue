@@ -3,8 +3,17 @@
         <FormHeading>
             NPM configuration file
         </FormHeading>
-        <FormRow>
-            <template #input><textarea v-model="editable.settings.palette_npmrc" class="font-mono w-full" placeholder=".npmrc" rows="8" /></template>
+
+
+        <div v-if="!projectLauncherCompatible" class="text-red-400 space-y-1">
+            <p>You will need to update your Project Stack to use this feature.</p>
+            <div v-if="project.stack.replacedBy">
+                <ff-button size="small" to="./settings/danger">Update</ff-button>
+            </div>
+        </div>
+
+        <FormRow >
+            <template #input><textarea v-model="editable.settings.palette_npmrc" class="font-mono w-full max-w-md sm:mr-8" placeholder=".npmrc" rows="8" /></template>
             <template #append>
                 <ChangeIndicator :value="editable.changed.settings.palette_npmrc" />
                 <LockSetting v-model="editable.policy.palette_npmrc" :editTemplate="editTemplate" :changed="editable.changed.policy.palette_npmrc" />
@@ -60,6 +69,21 @@ export default {
             set (localValue) {
                 this.$emit('update:modelValue', localValue)
             }
+        },
+        projectLauncherCompatible () {
+            if (this.editTemplate) {
+                // When editing template we don't have a project
+                return true
+            }
+
+            const launcherVersion = this.project?.meta?.versions?.launcher
+            if (!launcherVersion) {
+                // We won't have this for a suspended project - so err on the side
+                // of permissive
+                return true
+            }
+            // TODO needs to semver >= 1.12.0
+            return SemVer.satisfies(launcherVersion, '>=1.11.0')
         }
     },
     watch: {
