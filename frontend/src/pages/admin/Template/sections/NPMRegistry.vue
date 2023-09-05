@@ -3,9 +3,8 @@
         <FormHeading>
             NPM configuration file
         </FormHeading>
-        
         <FormRow>
-            <template #input><textarea class="font-mono w-full" v-model="editable.settings.palette_npmrc" placeholder=".npmrc" rows="8" /></template>
+            <template #input><textarea v-model="editable.settings.palette_npmrc" class="font-mono w-full" placeholder=".npmrc" rows="8" /></template>
             <template #append>
                 <ChangeIndicator :value="editable.changed.settings.palette_npmrc" />
                 <LockSetting v-model="editable.policy.palette_npmrc" :editTemplate="editTemplate" :changed="editable.changed.policy.palette_npmrc" />
