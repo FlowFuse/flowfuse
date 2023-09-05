@@ -107,6 +107,9 @@ export default {
             urls: []
         }
     },
+    mounted () {
+        this.urls = this.editable.settings.palette_catalogue
+    },
     computed: {
         editable: {
             get () {
