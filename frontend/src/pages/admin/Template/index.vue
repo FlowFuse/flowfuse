@@ -118,7 +118,6 @@ export default {
                     this.editable.changed.description = this.editable.description !== this.original.description
                     changed = changed || this.editable.changed.description
                     templateFields.forEach(field => {
-                        console.log(field)
                         if (field === 'palette_modules') {
                             const pmChanges = comparePaletteModules(this.editable.settings.palette_modules, this.original.settings.palette_modules)
                             this.editable.changed.palette_modules = this.editable.changed.palette_modules || pmChanges.changed
@@ -130,10 +129,11 @@ export default {
                             if (this.original.settings.palette_catalogue.length !== this.editable.settings.palette_catalogue.length) {
                                 this.editable.changed.settings.palette_catalogue = true
                             } else {
-                                for (let i in this.editable.settings.palette_catalogue) {
+                                for (const i in this.editable.settings.palette_catalogue) {
                                     const d = this.editable.settings.palette_catalogue[i] !== this.original.settings.palette_catalogue[i]
                                     if (d) {
-                                        this.editable.changed.settings.palette_catalogue = true                                            break
+                                        this.editable.changed.settings.palette_catalogue = true
+                                        break
                                     }
                                 }
                             }
