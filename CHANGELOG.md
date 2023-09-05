@@ -1,3 +1,26 @@
+#### 1.11.0: Release
+
+ - Add banner to DeviceBrowser when device limit reached (#2670) @knolleary
+ - Update trial emails to new branding (#2669) @knolleary
+ - Rebrand some more UI components (#2676) @knolleary
+ - Show sparkles if library feature unavailable for given team type (#2675) @knolleary
+ - Handle errors whilst processing trial subscriptions (#2673) @knolleary
+ - File server quota (#2672) @hardillb
+ - Allow a device to be assigned to application (#2621) @Steve-Mcl
+ - TeamType fixes (#2666) @knolleary
+ - Add file/context quotas to teamType UI (#2671) @knolleary
+ - Update branding in email templates (#2668) @knolleary
+ - Give App Description field some space (#2665) @knolleary
+ - Add team-type feature flag for Shared Library (#2599) @knolleary
+ - Restructure Docs (#2650) @MarianRaphael
+ - Bump @vitejs/plugin-vue from 4.2.3 to 4.3.3 (#2659) @app/dependabot
+ - Bump nodemon from 2.0.22 to 3.0.1 (#2661) @app/dependabot
+ - Bump webpack from 5.88.1 to 5.88.2 (#2658) @app/dependabot
+ - Fix instructions for building custom stacks (#2648) @hardillb
+ - README Rebrand (#2649) @MarianRaphael
+ - FlowFuse UI Rebrand (#2613) @MarianRaphael
+ - Docs Rebranding (#2617) @MarianRaphael
+
 #### 1.10.0: Release
 
  - Bump eslint-plugin-import from 2.27.5 to 2.28.0 (#2544) @dependabot

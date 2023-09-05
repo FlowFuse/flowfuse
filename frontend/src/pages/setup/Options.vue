@@ -30,6 +30,7 @@ import FormRow from '../../components/FormRow.vue'
 export default {
     name: 'SetupOptions',
     props: ['state'],
+    emits: ['next'],
     data () {
         return {
             input: {

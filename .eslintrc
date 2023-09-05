@@ -460,26 +460,6 @@
         },
         {
             "rules": {
-                "vue/require-explicit-emits": "off"
-            },
-            "files": [
-                "frontend/src/pages/admin/Template/sections/Editor.vue",
-                "frontend/src/pages/admin/Template/sections/Security.vue",
-                "frontend/src/pages/admin/Template/Settings.vue",
-                "frontend/src/pages/admin/Users/dialogs/AdminUserEditDialog.vue",
-                "frontend/src/pages/application/components/ExportProjectComponents.vue",
-                "frontend/src/pages/setup/CreateAdminUser.vue",
-                "frontend/src/pages/setup/Final.vue",
-                "frontend/src/pages/setup/License.vue",
-                "frontend/src/pages/setup/Options.vue",
-                "frontend/src/pages/setup/Start.vue",
-                "frontend/src/pages/team/Devices/dialogs/DeviceAssignInstanceDialog.vue",
-                "frontend/src/pages/team/dialogs/ConfirmTeamDeleteDialog.vue",
-                "frontend/src/pages/team/dialogs/ConfirmTeamUserRemoveDialog.vue"
-            ]
-        },
-        {
-            "rules": {
                 "vue/require-prop-types": "off"
             },
             "files": [

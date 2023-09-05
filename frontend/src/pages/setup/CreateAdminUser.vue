@@ -56,6 +56,7 @@ export default {
         }
     },
     props: ['state'],
+    emits: ['next'],
     watch: {
         'input.username': function (v) {
             if (v && !/^[a-z0-9-_]+$/i.test(v)) {

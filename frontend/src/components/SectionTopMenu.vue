@@ -50,7 +50,7 @@ export default {
             default: null
         },
         helpHeader: {
-            // for the dialog that open, e.g. "FlowForge - Devices"
+            // for the dialog that open, e.g. "FlowFuse - Devices"
             type: String,
             default: null
         },

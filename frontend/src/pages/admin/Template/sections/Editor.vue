@@ -123,6 +123,7 @@ import LockSetting from '../components/LockSetting.vue'
 export default {
     name: 'TemplateSettingsEditor',
     props: ['editTemplate', 'modelValue'],
+    emits: ['update:modelValue'],
     computed: {
         editable: {
             get () {
@@ -137,8 +138,8 @@ export default {
         return {
             timezones: timezonesData.timezones,
             themes: [
-                { label: 'FlowForge Light', value: 'forge-light' },
-                { label: 'FlowForge Dark', value: 'forge-dark' }
+                { label: 'FlowFuse Light', value: 'forge-light' },
+                { label: 'FlowFuse Dark', value: 'forge-dark' }
             ] // FUTURE: Get from theme plugins
         }
     },

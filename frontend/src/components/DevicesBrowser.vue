@@ -7,15 +7,8 @@
             v-if="loadingStatuses || loadingDevices"
             message="Loading Devices..."
         />
-        <ff-loading
-            v-else-if="creatingDevice"
-            message="Creating Device..."
-        />
-        <ff-loading
-            v-else-if="deletingDevice"
-            message="Deleting Device..."
-        />
         <template v-else>
+            <FeatureUnavailableToTeam v-if="devices.size > 0 && teamDeviceLimitReached" fullMessage="You have reached the device limit for this team." :class="{'mt-0': displayingTeam }" />
             <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-lastseen" label="Last Seen" :devices="Array.from(allDeviceStatuses.values())" property="lastseen" :filter="filter" @filter-selected="applyFilter" />
             <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-status" label="Last Known Status" :devices="Array.from(allDeviceStatuses.values())" property="status" :filter="filter" @filter-selected="applyFilter" />
             <ff-data-table
@@ -49,6 +42,7 @@
                         class="font-normal"
                         data-action="register-device"
                         kind="primary"
+                        :disabled="teamDeviceLimitReached"
                         @click="showCreateDeviceDialog"
                     >
                         <template #icon-left>
@@ -174,7 +168,6 @@
     <TeamDeviceCreateDialog
         ref="teamDeviceCreateDialog"
         :team="team"
-        @device-creating="deviceCreating"
         @device-created="deviceCreated"
         @device-updated="deviceUpdated"
     >
@@ -253,6 +246,7 @@ import Dialog from '../services/dialog.js'
 import { debounce } from '../utils/eventHandling.js'
 
 import EmptyState from './EmptyState.vue'
+import FeatureUnavailableToTeam from './banners/FeatureUnavailableToTeam.vue'
 import DevicesStatusBar from './charts/DeviceStatusBar.vue'
 
 const POLL_TIME = 10000
@@ -264,6 +258,7 @@ export default {
         DeviceAssignApplicationDialog,
         DeviceAssignInstanceDialog,
         DeviceCredentialsDialog,
+        FeatureUnavailableToTeam,
         PlusSmIcon,
         SnapshotAssignDialog,
         TeamDeviceCreateDialog,
@@ -306,6 +301,7 @@ export default {
             // Devices lists
             allDeviceStatuses: new Map(), // every device known
             devices: new Map(), // devices currently available to be displayed
+            deviceCountDeltaSincePageLoad: 0,
 
             // Server side
             filter: null,
@@ -390,6 +386,17 @@ export default {
         },
         moreThanOnePage () {
             return !!this.nextCursor
+        },
+        teamDeviceCount () {
+            return this.team.deviceCount + this.deviceCountDeltaSincePageLoad
+        },
+        teamDeviceLimitReached () {
+            const teamTypeDeviceLimit = this.team.type.properties?.devices?.limit
+            if (!teamTypeDeviceLimit || teamTypeDeviceLimit < 0) {
+                return false
+            }
+
+            return this.teamDeviceCount >= teamTypeDeviceLimit
         }
     },
     watch: {
@@ -470,12 +477,7 @@ export default {
             this.$refs.snapshotAssignDialog.show()
         },
 
-        deviceCreating () {
-            this.creatingDevice = true
-        },
-
         deviceCreated (device) {
-            this.creatingDevice = false
             if (device) {
                 setTimeout(() => {
                     this.$refs.deviceCredentialsDialog.show(device)
@@ -490,11 +492,17 @@ export default {
         },
 
         deleteLocalCopyOfDevice (device) {
+            if (this.allDeviceStatuses.get(device.id)) {
+                this.deviceCountDeltaSincePageLoad--
+            }
             this.allDeviceStatuses.delete(device.id)
             this.devices.delete(device.id)
         },
 
         updateLocalCopyOfDevice (device) {
+            if (!this.allDeviceStatuses.get(device.id)) {
+                this.deviceCountDeltaSincePageLoad++
+            }
             this.allDeviceStatuses.set(device.id, { ...this.allDeviceStatuses.get(device.id), ...device })
             this.devices.set(device.id, device)
         },
@@ -636,15 +644,12 @@ export default {
                     text: 'Are you sure you want to delete this device? Once deleted, there is no going back.',
                     confirmLabel: 'Delete'
                 }, async () => {
-                    this.deletingDevice = true
                     try {
                         await deviceApi.deleteDevice(device.id)
                         Alerts.emit('Successfully deleted the device', 'confirmation')
                         this.deleteLocalCopyOfDevice(device)
                     } catch (err) {
                         Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
-                    } finally {
-                        this.deletingDevice = false
                     }
                 })
             } else if (action === 'updateCredentials') {

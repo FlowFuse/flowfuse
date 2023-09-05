@@ -29,7 +29,7 @@
             </div>
             <LockSetting class="flex justify-end flex-col" :editTemplate="editTemplate" v-model="editable.policy.httpNodeAuth_pass" :changed="editable.changed.policy.httpNodeAuth_pass"></LockSetting>
         </div>
-        <FeatureUnavailableToTeam v-if="!ffAuthFeatureAvailable" featureName="FlowForge User Authentication" />
+        <FeatureUnavailableToTeam v-if="!ffAuthFeatureAvailable" featureName="FlowFuse User Authentication" />
         <ff-radio-group v-model="editable.settings.httpNodeAuth_type" orientation="vertical" :options="authOptions2"></ff-radio-group>
     </form>
 </template>
@@ -44,6 +44,7 @@ import LockSetting from '../components/LockSetting.vue'
 export default {
     name: 'TemplateSettingsSecurity',
     props: ['editTemplate', 'modelValue', 'team'],
+    emits: ['update:modelValue'],
     computed: {
         editable: {
             get () {

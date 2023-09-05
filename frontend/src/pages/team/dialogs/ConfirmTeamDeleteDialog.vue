@@ -35,6 +35,7 @@ export default {
             team: null
         }
     },
+    emits: ['delete-team'],
     watch: {
         'input.teamName': function () {
             this.formValid = this.team?.name === this.input.teamName
