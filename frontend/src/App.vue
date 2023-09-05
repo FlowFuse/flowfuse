@@ -30,22 +30,22 @@
         </template>
         <!-- Password Reset Required -->
         <template v-else-if="user && user.password_expired">
-            <PasswordExpired/>
+            <PasswordExpired />
         </template>
         <!-- Email Verification Required (Show "Resend")-->
         <template v-else-if="user && user.email_verified === false && !isEmailVerificationPage">
-            <UnverifiedEmail/>
+            <UnverifiedEmail />
         </template>
         <!-- T+Cs Acceptance Required -->
         <template v-else-if="user && termsAndConditionsRequired">
-            <TermsAndConditions/>
+            <TermsAndConditions />
         </template>
         <template v-else-if="!loginRequired">
             <router-view />
         </template>
         <!-- Authentication Screen -->
         <template v-else>
-            <Login/>
+            <Login />
         </template>
     </div>
 </template>

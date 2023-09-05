@@ -231,7 +231,6 @@
                 "vue/html-closing-bracket-spacing": "off"
             },
             "files": [
-                "frontend/src/App.vue",
                 "frontend/src/components/audit-log/AuditEntryVerbose.vue",
                 "frontend/src/components/banners/TeamTrial.vue",
                 "frontend/src/components/DropdownMenu.vue",
