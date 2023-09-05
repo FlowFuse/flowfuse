@@ -118,12 +118,26 @@ export default {
                     this.editable.changed.description = this.editable.description !== this.original.description
                     changed = changed || this.editable.changed.description
                     templateFields.forEach(field => {
+                        console.log(field)
                         if (field === 'palette_modules') {
                             const pmChanges = comparePaletteModules(this.editable.settings.palette_modules, this.original.settings.palette_modules)
                             this.editable.changed.palette_modules = this.editable.changed.palette_modules || pmChanges.changed
                             modulesChanged = modulesChanged || pmChanges.changed
                             changed = changed || pmChanges.changed
                             errors = errors || pmChanges.errors
+                        } else if (field === 'palette_catalogue') {
+                            this.editable.changed.settings.palette_catalogue = false
+                            if (this.original.settings.palette_catalogue.length !== this.editable.settings.palette_catalogue.length) {
+                                this.editable.changed.settings.palette_catalogue = true
+                            } else {
+                                for (let i in this.editable.settings.palette_catalogue) {
+                                    const d = this.editable.settings.palette_catalogue[i] !== this.original.settings.palette_catalogue[i]
+                                    if (d) {
+                                        this.editable.changed.settings.palette_catalogue = true                                            break
+                                    }
+                                }
+                            }
+                            needsRestart = needsRestart || this.editable.changed.settings.palette_catalogue
                         } else {
                             this.editable.changed.settings[field] = this.editable.settings[field] !== this.original.settings[field]
                             needsRestart = needsRestart || this.editable.changed.settings[field]

@@ -18,7 +18,7 @@
             <div class="flex flex-col sm:flex-row">
                 <table class="w-full max-w-md sm:mr-8">
                     <tbody>
-                        <tr v-for="(url, index) in editable.settings.palette_catalogue" :key="index">
+                        <tr v-for="(url, index) in urls" :key="index">
                             <td class="px-2 align-top">
                                 {{ url }}
                             </td>
@@ -160,8 +160,9 @@ export default {
             this.editable.settings.palette_catalogue.splice(index, 1)
         },
         addDefault () {
-            if (this.editable.settings.palette_catalogue.indexOf('https://catalogue.nodered.org/catalogue.json')) {
-                this.editable.settings.palette_catalogue.unshift('https://catalogue.nodered.org/catalogue.json')
+            const defaultCatalogue = 'https://catalogue.nodered.org/catalogue.json'
+            if (this.editable.settings.palette_catalogue.indexOf(defaultCatalogue)) {
+                this.editable.settings.palette_catalogue.unshift(defaultCatalogue)
             }
         }
     }
