@@ -1,9 +1,9 @@
 <template>
     <form class="space-y-6">
-        <FormRow v-model="teamId" type="uneditable" id="teamId" ref="id-row">
+        <FormRow id="teamId" ref="id-row" v-model="teamId" type="uneditable">
             <template #default>Team ID</template>
         </FormRow>
-        <FormRow v-model="input.teamName" :type="editing ? 'text' : 'uneditable'" :error="errors.teamName" id="teamName" ref="name-row">
+        <FormRow id="teamName" ref="name-row" v-model="input.teamName" :type="editing ? 'text' : 'uneditable'" :error="errors.teamName">
             <template #default>Name</template>
             <template #description>
                 <div v-if="editing">eg. 'Development'</div>
@@ -17,7 +17,7 @@
                 </template>
             </template>
         </FormRow>
-        <FormRow v-model="input.slug" :type="editing ? 'text' : 'uneditable'" :error="errors.slug" id="teamSlug">
+        <FormRow id="teamSlug" v-model="input.slug" :type="editing ? 'text' : 'uneditable'" :error="errors.slug">
             <template #default>Slug</template>
             <template #description>
                 <div v-if="editing">

@@ -38,7 +38,7 @@
                     <FormRow v-model="input.options.cert">
                         X.509 Certificate Public Key
                         <template #description>Supplied by your Identity Provider</template>
-                        <template #input><textarea class="font-mono w-full" placeholder="---BEGIN CERTIFICATE---&#10;loremipsumdolorsitamet&#10;consecteturadipiscinge&#10;---END CERTIFICATE---&#10;" rows="6" v-model="input.options.cert"></textarea></template>
+                        <template #input><textarea v-model="input.options.cert" class="font-mono w-full" placeholder="---BEGIN CERTIFICATE---&#10;loremipsumdolorsitamet&#10;consecteturadipiscinge&#10;---END CERTIFICATE---&#10;" rows="6"></textarea></template>
                     </FormRow>
                     <FormRow v-model="input.active" type="checkbox">Active</FormRow>
                     <ff-button :disabled="!formValid" @click="updateProvider()">

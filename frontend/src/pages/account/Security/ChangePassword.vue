@@ -2,9 +2,9 @@
     <ff-loading v-if="loading" message="Changing Password..." />
     <form v-else class="space-y-6">
         <FormHeading>Change password</FormHeading>
-        <FormRow type="password" :error="errors.old_password" v-model="input.old_password" id="old_password">Old Password</FormRow>
-        <FormRow type="password" :error="errors.password" v-model="input.password" id="password">New Password</FormRow>
-        <FormRow type="password" :error="errors.password_confirm" v-model="input.password_confirm" id="password_confirm">Confirm</FormRow>
+        <FormRow id="old_password" v-model="input.old_password" type="password" :error="errors.old_password">Old Password</FormRow>
+        <FormRow id="password" v-model="input.password" type="password" :error="errors.password">New Password</FormRow>
+        <FormRow id="password_confirm" v-model="input.password_confirm" type="password" :error="errors.password_confirm">Confirm</FormRow>
         <ff-button @click="changePassword">
             Change password
         </ff-button>

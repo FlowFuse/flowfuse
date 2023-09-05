@@ -1,7 +1,7 @@
 <template>
     <form class="space-y-6">
         <FormHeading>Application Creation</FormHeading>
-        <FormRow v-model="input.teamName" id="teamName" type="checkbox">
+        <FormRow id="teamName" v-model="input.teamName" type="checkbox">
             Limit application creation
             <template #description>
             </template>
