@@ -1,7 +1,7 @@
 <template>
     <div class="min-h-screen flex flex-col">
         <ff-layout-box class="ff-setup">
-            <component :is="views[step]" :state="state" @next="next" @error="error"></component>
+            <component :is="views[step]" :state="state" @next="next" @error="error" />
         </ff-layout-box>
     </div>
 </template>

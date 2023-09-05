@@ -18,13 +18,13 @@
         <template v-else-if="user && !user.password_expired && !termsAndConditionsRequired && user.email_verified !== false">
             <template v-if="!isModalPage">
                 <ff-layout-platform>
-                    <LicenseBanner></LicenseBanner>
-                    <router-view></router-view>
+                    <LicenseBanner />
+                    <router-view />
                 </ff-layout-platform>
             </template>
             <template v-else>
                 <ff-layout-box>
-                    <router-view></router-view>
+                    <router-view />
                 </ff-layout-box>
             </template>
         </template>
@@ -41,7 +41,7 @@
             <TermsAndConditions/>
         </template>
         <template v-else-if="!loginRequired">
-            <router-view></router-view>
+            <router-view />
         </template>
         <!-- Authentication Screen -->
         <template v-else>
