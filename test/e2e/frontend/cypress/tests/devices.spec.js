@@ -284,6 +284,8 @@ describe('FlowForge - Team Devices', () => {
         it('can assign and unassign devices to instances', () => {
             let selectedInstance
 
+            cy.intercept('PUT', '/api/v1/devices/*').as('updateDevice')
+
             // Devices list
             cy.get('[data-el="devices-browser"]').within(() => {
                 // Row
@@ -322,6 +324,8 @@ describe('FlowForge - Team Devices', () => {
                     cy.get('.ff-btn--primary').click()
                 })
 
+            cy.wait('@updateDevice')
+
             // Devices list
             cy.get('[data-el="devices-browser"]').within(() => {
                 // Row
@@ -340,14 +344,28 @@ describe('FlowForge - Team Devices', () => {
                     cy.get('.ff-btn--danger').click()
                 })
 
+            cy.wait('@updateDevice')
+
             // Devices list
             cy.get('[data-el="devices-browser"]').within(() => {
                 // Row
                 cy.contains('tr', 'team2-unassigned-device').should('not.have.text', selectedInstance)
             })
+
+            // Option to re-assign is still available
+            cy.get('[data-el="devices-browser"]').within(() => {
+                // Row
+                cy.contains('tr', 'team2-unassigned-device').within(() => {
+                    cy.get('.ff-kebab-menu').click()
+                    cy.get('.ff-kebab-menu .ff-kebab-options').find('[data-action="device-assign-to-instance"]')
+                })
+            })
         })
+
         it('can assign and unassign devices to application', () => {
             let selectedApplication
+
+            cy.intercept('PUT', '/api/v1/devices/*').as('updateDevice')
 
             // Devices list
             cy.get('[data-el="devices-browser"]').within(() => {
@@ -377,6 +395,8 @@ describe('FlowForge - Team Devices', () => {
                     cy.get('.ff-btn--primary').click()
                 })
 
+            cy.wait('@updateDevice')
+
             // Devices list
             cy.get('[data-el="devices-browser"]').within(() => {
                 // Row
@@ -395,10 +415,21 @@ describe('FlowForge - Team Devices', () => {
                     cy.get('.ff-btn--danger').click()
                 })
 
+            cy.wait('@updateDevice')
+
             // Devices list
             cy.get('[data-el="devices-browser"]').within(() => {
                 // Row
                 cy.contains('tr', 'team2-unassigned-device').should('not.have.text', selectedApplication)
+            })
+
+            // Option to re-assign is still available
+            cy.get('[data-el="devices-browser"]').within(() => {
+                // Row
+                cy.contains('tr', 'team2-unassigned-device').within(() => {
+                    cy.get('.ff-kebab-menu').click()
+                    cy.get('.ff-kebab-menu .ff-kebab-options').find('[data-action="device-assign-to-application"]')
+                })
             })
         })
     })

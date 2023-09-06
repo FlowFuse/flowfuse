@@ -357,16 +357,18 @@ export default {
             })
         },
         devicesWithStatuses () {
-            return this.filteredDevices.map(device => {
+            const output = this.filteredDevices.map(device => {
                 const statusObject = this.allDeviceStatuses.get(device.id)
                 const ownerKey = this.getOwnerSortKeyForDevice(device)
 
                 return {
                     ...device,
                     ...statusObject,
-                    ...(ownerKey ? { _ownerSortKey: ownerKey } : null)
+                    ...(ownerKey ? { _ownerSortKey: ownerKey } : { _ownerSortKey: undefined })
                 }
             })
+
+            return output
         },
         displayingInstance () {
             return this.instance !== null
@@ -503,7 +505,15 @@ export default {
             if (!this.allDeviceStatuses.get(device.id)) {
                 this.deviceCountDeltaSincePageLoad++
             }
-            this.allDeviceStatuses.set(device.id, { ...this.allDeviceStatuses.get(device.id), ...device })
+
+            // Only grab status props to avoid polluting allDeviceStatuses with extra info
+            const currentDeviceStatus = this.allDeviceStatuses.get(device.id)
+            const updatedDeviceStatusPropsOnly = Object.keys(currentDeviceStatus).reduce((acc, key) => {
+                acc[key] = device[key]
+                return acc
+            }, { ...currentDeviceStatus })
+            this.allDeviceStatuses.set(device.id, updatedDeviceStatusPropsOnly)
+
             this.devices.set(device.id, device)
         },
 
@@ -663,13 +673,12 @@ export default {
                 }, async () => {
                     await deviceApi.updateDevice(device.id, { instance: null })
 
-                    delete device.instance
-                    delete device.application
-
                     if (this.displayingInstance) {
                         this.deleteLocalCopyOfDevice(device)
+                    } else {
+                        this.updateLocalCopyOfDevice({ ...device, instance: undefined, application: undefined, ownerType: '' })
                     }
-                    this.pollForData()
+
                     Alerts.emit('Successfully removed the device from the instance.', 'confirmation')
                 })
             } else if (action === 'removeFromApplication') {
@@ -681,13 +690,12 @@ export default {
                 }, async () => {
                     await deviceApi.updateDevice(device.id, { application: null })
 
-                    delete device.instance
-                    delete device.application
-
                     if (this.displayingApplication) {
                         this.deleteLocalCopyOfDevice(device)
+                    } else {
+                        this.updateLocalCopyOfDevice({ ...device, instance: undefined, application: undefined, ownerType: '' })
                     }
-                    this.pollForData()
+
                     Alerts.emit('Successfully removed the device from the application.', 'confirmation')
                 })
             } else if (action === 'assignToProject') {
