@@ -1,14 +1,14 @@
 <template>
     <ff-layout-box class="ff-login">
         <div v-if="!pending">
-            <ff-loading v-if="loggingIn" message="Logging in..." color="white"/>
+            <ff-loading v-if="loggingIn" message="Logging in..." color="white" />
             <template v-else>
                 <label>username / email</label>
-                <ff-text-input ref="login-username" v-model="input.username" label="username" :error="errors.username" @enter="login"/>
+                <ff-text-input ref="login-username" v-model="input.username" label="username" :error="errors.username" @enter="login" />
                 <span class="ff-error-inline" data-el="errors-username">{{ errors.username }}</span>
                 <div v-if="passwordRequired">
                     <label>password</label>
-                    <ff-text-input ref="login-password" v-model="input.password" label="password" :error="errors.password" type="password" @enter="login"/>
+                    <ff-text-input ref="login-password" v-model="input.password" label="password" :error="errors.password" type="password" @enter="login" />
                     <span class="ff-error-inline" data-el="errors-password">{{ errors.password }}</span>
                 </div>
                 <label class="ff-error-inline" data-el="errors-general">{{ errors.general }}</label>
@@ -42,6 +42,11 @@ import FFLayoutBox from '../layouts/Box.vue'
 
 export default {
     name: 'LoginPage',
+    components: {
+        Logo,
+        SpinnerIcon,
+        'ff-layout-box': FFLayoutBox
+    },
     data () {
         return {
             loggingIn: false,
@@ -58,41 +63,8 @@ export default {
             }
         }
     },
-    methods: {
-        login () {
-            let valid = true
-            this.errors.username = ''
-            this.errors.password = ''
-            if (this.input.username === '') {
-                valid = false
-                this.errors.username = 'Required field'
-            }
-            if (this.passwordRequired && this.input.password === '') {
-                valid = false
-                this.errors.password = 'Required field'
-            }
-            if (this.input.password.length > 1024) {
-                valid = false
-                this.errors.password = 'Too long'
-            }
-            if (valid) {
-                this.loggingIn = true
-                this.$store.dispatch('account/login', this.input)
-            }
-        },
-        focusUsername () {
-            this.$refs['login-username'].focus()
-        },
-        focusPassword () {
-            this.$refs['login-password'].focus()
-        }
-    },
     computed: {
         ...mapState('account', ['settings', 'pending', 'loginError', 'redirectUrlAfterLogin'])
-    },
-    async mounted () {
-        await this.$nextTick()
-        this.focusUsername()
     },
     watch: {
         async loginError (newError, oldError) {
@@ -141,10 +113,38 @@ export default {
             }
         }
     },
-    components: {
-        Logo,
-        SpinnerIcon,
-        'ff-layout-box': FFLayoutBox
+    async mounted () {
+        await this.$nextTick()
+        this.focusUsername()
+    },
+    methods: {
+        login () {
+            let valid = true
+            this.errors.username = ''
+            this.errors.password = ''
+            if (this.input.username === '') {
+                valid = false
+                this.errors.username = 'Required field'
+            }
+            if (this.passwordRequired && this.input.password === '') {
+                valid = false
+                this.errors.password = 'Required field'
+            }
+            if (this.input.password.length > 1024) {
+                valid = false
+                this.errors.password = 'Too long'
+            }
+            if (valid) {
+                this.loggingIn = true
+                this.$store.dispatch('account/login', this.input)
+            }
+        },
+        focusUsername () {
+            this.$refs['login-username'].focus()
+        },
+        focusPassword () {
+            this.$refs['login-password'].focus()
+        }
     }
 }
 </script>
