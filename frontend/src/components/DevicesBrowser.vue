@@ -508,11 +508,15 @@ export default {
 
             // Only grab status props to avoid polluting allDeviceStatuses with extra info
             const currentDeviceStatus = this.allDeviceStatuses.get(device.id)
-            const updatedDeviceStatusPropsOnly = Object.keys(currentDeviceStatus).reduce((acc, key) => {
-                acc[key] = device[key]
-                return acc
-            }, { ...currentDeviceStatus })
-            this.allDeviceStatuses.set(device.id, updatedDeviceStatusPropsOnly)
+            if (currentDeviceStatus) {
+                const updatedDeviceStatusPropsOnly = Object.keys(currentDeviceStatus).reduce((acc, key) => {
+                    acc[key] = device[key]
+                    return acc
+                }, { ...currentDeviceStatus })
+                this.allDeviceStatuses.set(device.id, updatedDeviceStatusPropsOnly)
+            } else {
+                this.allDeviceStatuses.set(device.id, device)
+            }
 
             this.devices.set(device.id, device)
         },
