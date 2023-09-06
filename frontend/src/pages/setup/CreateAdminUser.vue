@@ -15,19 +15,19 @@
                     <div class="text-red-400">Email has not be configured. This will limit available features, such as inviting users to the platform. Check the documentation for how to configure email before running this setup.</div>
                 </template>
             </FormRow>
-            <FormRow type="password" :error="errors.password" v-model="input.password" id="password" :onBlur="checkPassword" >
+            <FormRow id="password" v-model="input.password" type="password" :error="errors.password" :onBlur="checkPassword">
                 Password
                 <template #description>At least 8 characters</template>
             </FormRow>
-            <FormRow type="password" :error="errors.password_confirm" v-model="input.password_confirm" id="password_confirm">Confirm Password</FormRow>
-            <ff-button :disabled="!formValid" @click="createUser()" class="mt-6">
+            <FormRow id="password_confirm" v-model="input.password_confirm" type="password" :error="errors.password_confirm">Confirm Password</FormRow>
+            <ff-button :disabled="!formValid" class="mt-6" @click="createUser()">
                 Next
             </ff-button>
         </template>
         <template v-else>
             <p class="text-center">You have already created an admin user.</p>
             <div class="flex justify-center">
-                <ff-button @click="next()" class="mt-3">
+                <ff-button class="mt-3" @click="next()">
                     Next
                 </ff-button>
             </div>
@@ -41,6 +41,17 @@ import FormHeading from '../../components/FormHeading.vue'
 import FormRow from '../../components/FormRow.vue'
 export default {
     name: 'CreateAdminUser',
+    components: {
+        FormHeading,
+        FormRow
+    },
+    props: {
+        state: {
+            type: Object,
+            required: true
+        }
+    },
+    emits: ['next'],
     data () {
         return {
             input: {
@@ -55,8 +66,14 @@ export default {
             errors: {}
         }
     },
-    props: ['state'],
-    emits: ['next'],
+    computed: {
+        formValid () {
+            return this.input.email &&
+                   (this.input.username && !this.errors.username) &&
+                   this.input.password !== '' &&
+                   this.input.password === this.input.password_confirm
+        }
+    },
     watch: {
         'input.username': function (v) {
             if (v && !/^[a-z0-9-_]+$/i.test(v)) {
@@ -76,14 +93,6 @@ export default {
             if (this.errors.password && v.length >= 8) {
                 this.errors.password = ''
             }
-        }
-    },
-    computed: {
-        formValid () {
-            return this.input.email &&
-                   (this.input.username && !this.errors.username) &&
-                   this.input.password !== '' &&
-                   this.input.password === this.input.password_confirm
         }
     },
     methods: {
@@ -123,10 +132,6 @@ export default {
                 }
             })
         }
-    },
-    components: {
-        FormHeading,
-        FormRow
     }
 }
 </script>

@@ -67,10 +67,10 @@ const VueTimers = {
                     vm
                 )
                 if (options[name].immediate) {
-                    vm.$emit('timer-tick:' + name)
+                    // vm.$emit('timer-tick:' + name)
                     options[name].callback()
                 }
-                vm.$emit('timer-start:' + name)
+                // vm.$emit('timer-start:' + name)
             },
 
             stop: function (name) {
@@ -82,7 +82,7 @@ const VueTimers = {
                 if (!data[name].isRunning) return
                 clearTimer(options[name].repeat)(data[name].instance)
                 data[name].isRunning = false
-                vm.$emit('timer-stop:' + name)
+                // vm.$emit('timer-stop:' + name)
             },
 
             restart: function (name) {
@@ -93,7 +93,7 @@ const VueTimers = {
                 }
                 this.stop(name)
                 this.start(name)
-                vm.$emit('timer-restart:' + name)
+                // vm.$emit('timer-restart:' + name)
             }
         }
     },
@@ -186,7 +186,7 @@ function clearTimer (repeat) {
 
 function generateTimer (options, vm) {
     return setTimer(options.repeat)(function () {
-        vm.$emit('timer-tick:' + options.name)
+        // vm.$emit('timer-tick:' + options.name)
         options.callback()
     }, options.time)
 }

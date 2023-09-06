@@ -110,13 +110,13 @@ const importInstance = async (instanceId, components) => {
     })
 }
 
-const getInstanceDevices = async (instanceId, cursor, limit) => {
-    const url = paginateUrl(`/api/v1/projects/${instanceId}/devices`, cursor, limit)
+const getInstanceDevices = async (instanceId, cursor, limit, query, extraParams = {}) => {
+    const url = paginateUrl(`/api/v1/projects/${instanceId}/devices`, cursor, limit, query, extraParams)
     const res = await client.get(url)
     res.data.devices.forEach(device => {
         device.lastSeenSince = device.lastSeenAt ? daysSince(device.lastSeenAt) : ''
 
-        // TODO: Remove this temporary copy of application over instance
+        // TODO: Remove this remap of project to instance
         if (device.project) {
             device.instance = device.project
         }

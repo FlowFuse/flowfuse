@@ -3,7 +3,7 @@
         <p class="text-lg text-center">Well done - that's all we need to get started.</p>
         <p class="text-center">All of these settings can be modified under the Admin Settings section of the platform.</p>
         <div class="flex justify-center">
-            <ff-button @click="done()" class="mt-6">
+            <ff-button class="mt-6" @click="done()">
                 Login to FlowFuse
             </ff-button>
         </div>

@@ -4,7 +4,7 @@
         <template v-if="!state.license">
             <p class="mt-4">FlowFuse Community Edition is Open Source and can be used freely without a license.</p>
             <p>If you have a FlowFuse Enterprise Edition license, upload it here.</p>
-            <FormRow class="mt-6" v-model="input.license" :error="errors.license">License Key</FormRow>
+            <FormRow v-model="input.license" class="mt-6" :error="errors.license">License Key</FormRow>
             <div class="flex mt-8">
                 <ff-button kind="tertiary" @click="next()">
                     Continue with FlowFuse CE
@@ -31,7 +31,16 @@ import FormRow from '../../components/FormRow.vue'
 
 export default {
     name: 'SetupLicense',
-    props: ['state'],
+    components: {
+        FormHeading,
+        FormRow
+    },
+    props: {
+        state: {
+            type: Object,
+            required: true
+        }
+    },
     emits: ['next'],
     data () {
         return {
@@ -59,10 +68,6 @@ export default {
                 this.errors.license = err.response.data.error
             })
         }
-    },
-    components: {
-        FormHeading,
-        FormRow
     }
 }
 </script>

@@ -26,14 +26,14 @@ export default {
      * @param {Function} onCancel (optional) A callback function to call when the cancel button is clicked
      * @example
      * // show a simple dialog
-     * dialogService.show('Are you sure?', () => { console.log('confirmed') })
+     * dialogService.show('Are you sure?', () => { console.info('confirmed') })
      * @example
      * // show a dialog with a custom header and confirm button label
      * dialogService.show({
      *    header: 'Are you sure?',
      *    text: 'This action cannot be undone',
      *    confirmLabel: 'Yes, I am sure'
-     * }, () => { console.log('confirmed') })
+     * }, () => { console.info('confirmed') })
      */
     show: async function (msg, onConfirm, onCancel) {
         for (let fcn = 0; fcn < subscriptions.length; fcn++) {
@@ -49,9 +49,9 @@ export default {
      * // show a simple dialog
      * const result = await dialogService.showAsync('Are you sure?')
      * if (result === 'confirm') {
-     *   console.log('confirmed')
+     *   console.info('confirmed')
      * } else {
-     *  console.log('cancelled')
+     *  console.info('cancelled')
      * }
      * @example
      * // show a dialog with a custom header and confirm button label
@@ -61,9 +61,9 @@ export default {
      *   confirmLabel: 'Yes, I am sure'
      * })
      * if (result === 'confirm') {
-     *   console.log('confirmed')
+     *   console.info('confirmed')
      * } else {
-     *   console.log('cancelled')
+     *   console.info('cancelled')
      * }
      */
     showAsync: function (msg) {

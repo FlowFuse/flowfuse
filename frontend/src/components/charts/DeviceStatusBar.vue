@@ -68,6 +68,7 @@ export default {
     computed: {
         buckets () {
             let devices = []
+            let order = []
             if (this.property === 'lastseen') {
                 devices = this.devices.map((d) => {
                     return {
@@ -75,6 +76,7 @@ export default {
                         bucket: DeviceStatus.lastSeenStatus(d.lastSeenAt, d.lastSeenMs)
                     }
                 })
+                order = ['running', 'safe', 'error', 'never']
             } else if (this.property === 'status') {
                 devices = this.devices.map((d) => {
                     return {
@@ -85,6 +87,7 @@ export default {
                         }
                     }
                 })
+                order = ['running', 'stopped', 'offline', 'unknown']
             } else {
                 throw Error(`Do not know how to filter on the property '${this.property}'`)
             }
@@ -98,7 +101,9 @@ export default {
                 }
                 buckets[d.bucket.class].devices.push(d.id)
             })
-            return buckets
+
+            const orderedObject = Object.fromEntries(order.filter((key) => !!buckets[key]).map(order => [order, null]))
+            return Object.assign(orderedObject, buckets)
         }
     },
     methods: {
