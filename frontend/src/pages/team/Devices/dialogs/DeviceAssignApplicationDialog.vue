@@ -31,7 +31,6 @@ import { mapState } from 'vuex'
 
 import TeamAPI from '../../../../api/team.js'
 import FormRow from '../../../../components/FormRow.vue'
-import alerts from '../../../../services/alerts.js'
 
 export default {
     name: 'DeviceAssignApplicationDialog',
@@ -85,7 +84,6 @@ export default {
         },
         assignDeviceToApplication () {
             this.$emit('assignDevice', this.device, this.input.application.id)
-            alerts.emit('Device successfully assigned to application.', 'confirmation')
         }
     }
 }

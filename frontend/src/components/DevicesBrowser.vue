@@ -4,22 +4,24 @@
         data-el="devices-section"
     >
         <ff-loading
-            v-if="loading"
+            v-if="loadingStatuses || loadingDevices"
             message="Loading Devices..."
         />
         <template v-else>
             <FeatureUnavailableToTeam v-if="devices.size > 0 && teamDeviceLimitReached" fullMessage="You have reached the device limit for this team." :class="{'mt-0': displayingTeam }" />
-            <DevicesStatusBar v-if="devices.size > 0" data-el="devicestatus-lastseen" label="Last Seen" :devices="Array.from(devices.values())" property="lastseen" :filter="filter" @filter-selected="applyFilter" />
-            <DevicesStatusBar v-if="devices.size > 0" data-el="devicestatus-status" label="Last Known Status" :devices="Array.from(devices.values())" property="status" :filter="filter" @filter-selected="applyFilter" />
+            <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-lastseen" label="Last Seen" :devices="Array.from(allDeviceStatuses.values())" property="lastseen" :filter="filter" @filter-selected="applyFilter" />
+            <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-status" label="Last Known Status" :devices="Array.from(allDeviceStatuses.values())" property="status" :filter="filter" @filter-selected="applyFilter" />
             <ff-data-table
-                v-if="devices.size > 0"
+                v-if="allDeviceStatuses.size > 0"
                 data-el="devices-browser"
                 :columns="columns"
-                :rows="filteredDevices"
+                :rows="devicesWithStatuses"
                 :show-search="true"
                 search-placeholder="Search Devices"
-                :show-load-more="!!nextCursor"
-                @load-more="loadMore"
+                :show-load-more="moreThanOnePage"
+                @load-more="loadMoreDevices"
+                @update:search="updateSearch"
+                @update:sort="updateSort"
             >
                 <template #actions>
                     <ff-button
@@ -241,6 +243,8 @@ import TeamDeviceCreateDialog from '../pages/team/Devices/dialogs/TeamDeviceCrea
 import Alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 
+import { debounce } from '../utils/eventHandling.js'
+
 import EmptyState from './EmptyState.vue'
 import FeatureUnavailableToTeam from './banners/FeatureUnavailableToTeam.vue'
 import DevicesStatusBar from './charts/DeviceStatusBar.vue'
@@ -288,36 +292,52 @@ export default {
     emits: ['instance-updated'],
     data () {
         return {
-            loading: true,
+            // Page state
+            loadingStatuses: true,
+            loadingDevices: true,
+            creatingDevice: false,
+            deletingDevice: false,
+
+            // Devices lists
+            allDeviceStatuses: new Map(), // every device known
+            devices: new Map(), // devices currently available to be displayed
+            deviceCountDeltaSincePageLoad: 0,
+
+            // Server side
             filter: null,
             nextCursor: null,
-            devices: new Map(),
-            firstRequest: true,
-            deviceCountDeltaSincePageLoad: 0
+
+            unsearchedHasMoreThanOnePage: true,
+            unfilteredHasMoreThanOnePage: true,
+
+            sort: {
+                key: null,
+                direction: 'desc'
+            }
         }
     },
     computed: {
         columns () {
             const columns = [
-                { label: 'Device', key: 'name', class: ['w-64'], sortable: true, component: { is: markRaw(DeviceLink) } },
-                { label: 'Type', key: 'type', class: ['w-48'], sortable: true },
-                { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: true, component: { is: markRaw(DeviceLastSeenBadge) } },
+                { label: 'Device', key: 'name', class: ['w-64'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
+                { label: 'Type', key: 'type', class: ['w-48'], sortable: !this.moreThanOnePage },
+                { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLastSeenBadge) } },
                 { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge) } }
             ]
 
             if (this.displayingTeam) {
-                // show which application/instance the device is assigned to when looking at devices owned by a team
+                // Show which application/instance the device is assigned to when looking at devices owned by a team
                 columns.push({
                     label: 'Device Owner',
                     class: ['w-48'],
                     key: '_ownerSortKey',
-                    sortable: true,
+                    sortable: !this.moreThanOnePage,
                     component: {
                         is: markRaw(DeviceAssignedToLink)
                     }
                 })
             } else if (this.displayingInstance) {
-                // show snapshot info when looking at devices owned by an instance
+                // Show snapshot info when looking at devices owned by an instance
                 columns.push(
                     { label: 'Deployed Snapshot', class: ['w-48'], component: { is: markRaw(Snapshot) } }
                 )
@@ -326,27 +346,29 @@ export default {
             return columns
         },
         filteredDevices () {
-            const filteredDevices = []
-            if (!this.filter) {
-                filteredDevices.push(...this.devices.values())
-            } else {
-                this.filter.devices.forEach((deviceId) => {
-                    filteredDevices.push(this.devices.get(deviceId))
-                })
-            }
-            // add "_ownerSortKey" to each device
-            filteredDevices.forEach((device) => {
-                if (this.displayingTeam) {
-                    if (device.ownerType === 'application') {
-                        device._ownerSortKey = 'Application:' + device.application?.name || 'No Name'
-                    } else if (device.ownerType === 'instance') {
-                        device._ownerSortKey = 'Instance:' + device.instance?.name || 'No Name'
-                    } else {
-                        device._ownerSortKey = 'Unassigned'
-                    }
+            const devicesToDisplay = new Set(this.filter?.devices)
+
+            return Array.from(this.devices.values()).filter((device) => {
+                if (!this.filter || this.unfilteredHasMoreThanOnePage) {
+                    return true
+                }
+
+                return devicesToDisplay.has(device.id)
+            })
+        },
+        devicesWithStatuses () {
+            const output = this.filteredDevices.map(device => {
+                const statusObject = this.allDeviceStatuses.get(device.id)
+                const ownerKey = this.getOwnerSortKeyForDevice(device)
+
+                return {
+                    ...device,
+                    ...statusObject,
+                    ...(ownerKey ? { _ownerSortKey: ownerKey } : { _ownerSortKey: undefined })
                 }
             })
-            return filteredDevices
+
+            return output
         },
         displayingInstance () {
             return this.instance !== null
@@ -364,6 +386,9 @@ export default {
                 (this.displayingTeam && !!this.team?.id)
             )
         },
+        moreThanOnePage () {
+            return !!this.nextCursor
+        },
         teamDeviceCount () {
             return this.team.deviceCount + this.deviceCountDeltaSincePageLoad
         },
@@ -377,40 +402,71 @@ export default {
         }
     },
     watch: {
-        instance: 'refreshData',
-        application: 'refreshData',
-        team: 'refreshData'
+        instance: 'fullReloadOfData',
+        application: 'fullReloadOfData',
+        team: 'fullReloadOfData'
+    },
+    mounted () {
+        this.fullReloadOfData()
+        this.$timer.start('pollTimer')
     },
     timers: {
         pollTimer: { time: POLL_TIME, repeat: true, autostart: false }
-    },
-    async mounted () {
-        await this.pollForData()
-        this.$timer.start('pollTimer')
     },
     methods: {
         // pollTimer method is called by VueTimersMixin. See the timers property above.
         pollTimer: async function () {
             this.$timer.stop('pollTimer')
             try {
-                await this.pollForData()
+                await this.pollForDeviceStatuses()
             } finally {
                 this.$timer.start('pollTimer')
             }
         },
+
         /**
          * filter: Object containing keys:
          *  - devices: an array of device ids
          *  - property: which filter row is being applied, e.g. status or lastseen
          *  - bucket: which value of this property are we filtering on from the buckets in the status bar
-         *
-         * We store these in order to apply the filter of devices to the table, and handle
-         * the situation where we switch between filters, property/bucket are checked against local
-         * values inside the StatusBar
-        */
+         */
         applyFilter (filter) {
             this.filter = filter
+
+            if (this.unfilteredHasMoreThanOnePage) {
+                this.doFilterServerSide()
+            }
         },
+
+        updateSearch (searchTerm) {
+            this.searchTerm = searchTerm
+
+            if (this.unsearchedHasMoreThanOnePage) {
+                this.doSearchServerSide()
+            }
+        },
+
+        updateSort (key, direction) {
+            this.sort.key = key
+            this.sort.direction = direction
+
+            if (this.moreThanOnePage) {
+                this.doSortServerSide()
+            }
+        },
+
+        doFilterServerSide: debounce(function () {
+            this.loadDevices(true)
+        }, 50),
+
+        doSearchServerSide: debounce(function () {
+            this.loadDevices(true)
+        }, 150),
+
+        doSortServerSide: debounce(function () {
+            this.loadDevices(true)
+        }, 50),
+
         showCreateDeviceDialog () {
             this.$refs.teamDeviceCreateDialog.show(null, this.instance, this.application)
         },
@@ -428,93 +484,167 @@ export default {
                 setTimeout(() => {
                     this.$refs.deviceCredentialsDialog.show(device)
                 }, 500)
-                this.devices.set(device.id, device)
-                this.deviceCountDeltaSincePageLoad++
-                this.applyFilter()
+
+                this.updateLocalCopyOfDevice(device)
             }
         },
 
         deviceUpdated (device) {
+            this.updateLocalCopyOfDevice(device)
+        },
+
+        deleteLocalCopyOfDevice (device) {
+            if (this.allDeviceStatuses.get(device.id)) {
+                this.deviceCountDeltaSincePageLoad--
+            }
+            this.allDeviceStatuses.delete(device.id)
+            this.devices.delete(device.id)
+        },
+
+        updateLocalCopyOfDevice (device) {
+            if (!this.allDeviceStatuses.get(device.id)) {
+                this.deviceCountDeltaSincePageLoad++
+            }
+
+            // Only grab status props to avoid polluting allDeviceStatuses with extra info
+            const currentDeviceStatus = this.allDeviceStatuses.get(device.id)
+            if (currentDeviceStatus) {
+                const updatedDeviceStatusPropsOnly = Object.keys(currentDeviceStatus).reduce((acc, key) => {
+                    acc[key] = device[key]
+                    return acc
+                }, { ...currentDeviceStatus })
+                this.allDeviceStatuses.set(device.id, updatedDeviceStatusPropsOnly)
+            } else {
+                this.allDeviceStatuses.set(device.id, device)
+            }
+
             this.devices.set(device.id, device)
         },
 
         async assignDevice (device, instanceId) {
             const updatedDevice = await deviceApi.updateDevice(device.id, { instance: instanceId })
 
-            if (updatedDevice.instance) {
-                device.instance = updatedDevice.instance
-            }
+            Alerts.emit('Device successfully assigned to instance.', 'confirmation')
 
-            if (updatedDevice.application) {
-                device.application = updatedDevice.application
-            }
-
-            this.devices.set(device.id, device) // immediately update the device in the list
-            this.pollForData() // but request an update from the server too (for latest info as the server sees it)
+            this.updateLocalCopyOfDevice({ ...device, ...updatedDevice })
         },
 
         async assignDeviceToApplication (device, applicationId) {
             const updatedDevice = await deviceApi.updateDevice(device.id, { application: applicationId, instance: null })
 
-            if (updatedDevice.application) {
-                device.application = updatedDevice.application
-            }
+            Alerts.emit('Device successfully assigned to application.', 'confirmation')
 
-            this.devices.set(device.id, device) // immediately update the device in the list
-            this.pollForData() // but request an update from the server too (for latest info as the server sees it)
+            this.updateLocalCopyOfDevice({ ...device, ...updatedDevice })
         },
 
-        async pollForData () {
-            try {
-                this.$timer.stop('pollTimer')
-                if (this.hasLoadedModel) {
-                    await this.fetchData(null, !this.firstRequest) // TODO: For now, this only polls the first page...
-                }
-            } finally {
-                this.$timer.start('pollTimer')
-            }
+        // Device loading
+        fullReloadOfData () {
+            this.loadDevices(true)
+            this.pollForDeviceStatuses(true)
         },
 
-        async refreshData () {
-            this.nextCursor = null
-            this.loadMore()
-        },
-
-        async loadMore () {
+        async loadDevices (reset) {
             if (this.hasLoadedModel) {
-                await this.fetchData(this.nextCursor)
+                await this.fetchDevices(reset)
             }
         },
 
-        async fetchData (nextCursor = null, polled = false) {
-            let data
+        async loadMoreDevices () {
+            await this.fetchDevices()
+        },
+
+        async pollForDeviceStatuses (reset) {
+            if (this.hasLoadedModel) {
+                await this.fetchAllDeviceStatuses(reset)
+            }
+        },
+
+        // Actual fetching methods
+        async fetchData (nextCursor = null, limit = null, extraParams = { statusOnly: false }) {
+            const query = null // handled via extraParams
             if (this.displayingInstance) {
-                data = await instanceApi.getInstanceDevices(this.instance.id, nextCursor)
-            } else if (this.displayingApplication) {
-                data = await ApplicationApi.getApplicationDevices(this.application.id, nextCursor)
-            } else if (this.displayingTeam) {
-                data = await teamApi.getTeamDevices(this.team.id, nextCursor)
-            } else {
-                return console.warn('Trying to fetch data without a loaded model.')
+                return await instanceApi.getInstanceDevices(this.instance.id, nextCursor, limit, query, extraParams)
             }
 
-            // Polling never resets the devices list
-            if (!nextCursor && !polled) {
+            if (this.displayingApplication) {
+                return await ApplicationApi.getApplicationDevices(this.application.id, nextCursor, limit, query, extraParams)
+            }
+
+            if (this.displayingTeam) {
+                return await teamApi.getTeamDevices(this.team.id, nextCursor, limit, query, extraParams)
+            }
+
+            console.warn('Trying to fetch data without a loaded model.')
+
+            return null
+        },
+
+        async fetchAllDeviceStatuses (reset = false) {
+            const data = await this.fetchData(null, null, { statusOnly: true })
+
+            if (reset) {
+                this.allDeviceStatuses = new Map()
+            }
+
+            if (data.meta?.next_cursor || data.devices.length < data.count) {
+                console.warn('Device Status API should not be paginating')
+            }
+
+            data.devices.forEach(device => {
+                this.allDeviceStatuses.set(device.id, device)
+            })
+
+            this.loadingStatuses = false
+        },
+
+        async fetchDevices (resetPage = false) {
+            if (resetPage) {
+                this.nextCursor = null
+            }
+
+            /// Params to send to the server
+            const nextCursor = this.nextCursor
+            const extraParams = {}
+
+            // Specific filtering
+            if (this.filter?.property && this.filter?.bucket) {
+                extraParams.filters = `${this.filter.property}:${this.filter.bucket}`
+            }
+
+            // Search and sort
+            if (this.searchTerm) {
+                extraParams.query = this.searchTerm
+            }
+            if (this.sort.key) {
+                extraParams.sort = this.sort.key
+                if (this.sort.direction) {
+                    extraParams.dir = this.sort.direction
+                }
+            }
+
+            // Actually fetch the data
+            const data = await this.fetchData(nextCursor, null, extraParams)
+
+            if (resetPage) {
                 this.devices = new Map()
             }
+
             data.devices.forEach(device => {
                 this.devices.set(device.id, device)
             })
 
-            // TODO: Polling only loads the first page
-            if (!polled) {
-                this.nextCursor = data.meta?.next_cursor || null
+            // Pagination
+            this.nextCursor = data.meta?.next_cursor || null
+
+            if (!extraParams.query) {
+                this.unsearchedHasMoreThanOnePage = this.moreThanOnePage
             }
 
-            this.applyFilter(this.filter)
+            if (!extraParams.filters) {
+                this.unfilteredHasMoreThanOnePage = this.moreThanOnePage
+            }
 
-            this.loading = false
-            this.firstRequest = false
+            this.loadingDevices = false
         },
 
         deviceAction (action, deviceId) {
@@ -531,8 +661,7 @@ export default {
                     try {
                         await deviceApi.deleteDevice(device.id)
                         Alerts.emit('Successfully deleted the device', 'confirmation')
-                        this.devices.delete(device.id)
-                        this.deviceCountDeltaSincePageLoad--
+                        this.deleteLocalCopyOfDevice(device)
                     } catch (err) {
                         Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
                     }
@@ -548,13 +677,12 @@ export default {
                 }, async () => {
                     await deviceApi.updateDevice(device.id, { instance: null })
 
-                    delete device.instance
-                    delete device.application
-
                     if (this.displayingInstance) {
-                        this.devices.delete(device.id)
+                        this.deleteLocalCopyOfDevice(device)
+                    } else {
+                        this.updateLocalCopyOfDevice({ ...device, instance: undefined, application: undefined, ownerType: '' })
                     }
-                    this.pollForData()
+
                     Alerts.emit('Successfully removed the device from the instance.', 'confirmation')
                 })
             } else if (action === 'removeFromApplication') {
@@ -566,13 +694,12 @@ export default {
                 }, async () => {
                     await deviceApi.updateDevice(device.id, { application: null })
 
-                    delete device.instance
-                    delete device.application
-
                     if (this.displayingApplication) {
-                        this.devices.delete(device.id)
+                        this.deleteLocalCopyOfDevice(device)
+                    } else {
+                        this.updateLocalCopyOfDevice({ ...device, instance: undefined, application: undefined, ownerType: '' })
                     }
-                    this.pollForData()
+
                     Alerts.emit('Successfully removed the device from the application.', 'confirmation')
                 })
             } else if (action === 'assignToProject') {
@@ -587,6 +714,22 @@ export default {
                 }
                 this.$refs.deviceAssignApplicationDialog.show(device, false)
             }
+        },
+
+        getOwnerSortKeyForDevice (device) {
+            if (!this.displayingTeam) {
+                return null
+            }
+
+            if (device.ownerType === 'application') {
+                return 'Application:' + device.application?.name || 'No Name'
+            }
+
+            if (device.ownerType === 'instance') {
+                return 'Instance:' + device.instance?.name || 'No Name'
+            }
+
+            return 'Unassigned'
         }
     }
 }
