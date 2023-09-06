@@ -15,7 +15,7 @@
             </template>
         </FormRow>
         <div class="space-x-2">
-            <ff-button @click="applyOptions()" class="mt-6">
+            <ff-button class="mt-6" @click="applyOptions()">
                 Next
             </ff-button>
         </div>
@@ -29,7 +29,16 @@ import FormRow from '../../components/FormRow.vue'
 
 export default {
     name: 'SetupOptions',
-    props: ['state'],
+    components: {
+        FormHeading,
+        FormRow
+    },
+    props: {
+        state: {
+            type: Object,
+            required: true
+        }
+    },
     emits: ['next'],
     data () {
         return {
@@ -52,10 +61,6 @@ export default {
                 console.error(err)
             })
         }
-    },
-    components: {
-        FormHeading,
-        FormRow
     }
 }
 </script>
