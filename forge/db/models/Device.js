@@ -291,7 +291,7 @@ module.exports = {
 
                     const [rows, count] = await Promise.all([
                         this.findAll({
-                            where: buildPaginationSearchClause(pagination, where, ['Device.name', 'Device.type', 'Device.id'], {}, order),
+                            where: buildPaginationSearchClause(pagination, where, ['Device.name', 'Device.type'], {}, order),
                             include: pagination.statusOnly ? statusOnlyIncludes : includes,
                             order,
                             limit: pagination.statusOnly ? null : limit
