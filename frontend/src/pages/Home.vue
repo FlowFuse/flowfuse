@@ -2,11 +2,11 @@
     <main>
         <template v-if="pending">
             <div class="flex-grow flex flex-col items-center justify-center mx-auto text-gray-600 opacity-50">
-                <FlowFuseLogo class="max-w-xs mx-auto w-full"/>
+                <FlowFuseLogo class="max-w-xs mx-auto w-full" />
             </div>
         </template>
         <template v-else-if="teams.length === 0">
-            <NoTeamsUser/>
+            <NoTeamsUser />
         </template>
     </main>
 </template>
@@ -21,13 +21,17 @@ import NoTeamsUser from './account/NoTeamsUser.vue'
 
 export default {
     name: 'HomePage',
-    computed: {
-        ...mapState('account', ['pending', 'user', 'team', 'teams', 'redirectUrlAfterLogin'])
+    components: {
+        FlowFuseLogo,
+        NoTeamsUser
     },
     data () {
         return {
             projects: []
         }
+    },
+    computed: {
+        ...mapState('account', ['pending', 'user', 'team', 'teams', 'redirectUrlAfterLogin'])
     },
     watch: {
         team: 'redirectOnLoad',
@@ -50,10 +54,6 @@ export default {
                 }
             }
         }
-    },
-    components: {
-        FlowFuseLogo,
-        NoTeamsUser
     }
 }
 </script>
