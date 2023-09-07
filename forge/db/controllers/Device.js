@@ -159,8 +159,11 @@ module.exports = {
         }
 
         if (paginationOptions.sort) {
-            paginationOptions.order[paginationOptions.sort] = paginationOptions.sort
+            paginationOptions.order = {
+                [paginationOptions.sort]: paginationOptions.order
+            }
             delete paginationOptions.sort
+            delete paginationOptions.dir
         }
 
         return paginationOptions

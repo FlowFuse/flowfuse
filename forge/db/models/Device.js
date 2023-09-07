@@ -238,7 +238,13 @@ module.exports = {
                     if (pagination.order && Object.keys(pagination.order).length) {
                         for (const key in pagination.order) {
                             if (key === 'application') {
-                                order.unshift([M.Application, 'name', pagination.order[key] || 'ASC'])
+                                // Sort by Device->Instance->Application.name
+                                if (includeInstanceApplication) {
+                                    order.unshift([M.Project, M.Application, 'name', pagination.order[key] || 'ASC'])
+                                // Order Device->Application.name
+                                } else {
+                                    order.unshift([M.Application, 'name', pagination.order[key] || 'ASC'])
+                                }
                             } else if (key === 'instance') {
                                 order.unshift([M.Project, 'name', pagination.order[key] || 'ASC'])
                             } else {
