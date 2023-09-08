@@ -1,3 +1,8 @@
+#### 1.11.2: Release
+
+ - Update websocket close codes to proper range (backport #2711) (#2713) @app/github-actions
+ - Change default device command timeout to 10s (backport #2708) (#2712) @app/github-actions
+
 #### 1.11.1: Release
 
  - Fix sending welcome email at start of new trial type (backport #2688) (#2690) @app/github-actions
