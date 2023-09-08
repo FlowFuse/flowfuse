@@ -175,13 +175,13 @@ module.exports = async function (app) {
             if (tunnelManager.verifyToken(deviceId, token)) {
                 const tunnelSetupOK = tunnelManager.initTunnel(deviceId, token, connection)
                 if (!tunnelSetupOK) {
-                    connection.socket.close(1008, 'Tunnel setup failed')
+                    connection.socket.close(4000, 'Tunnel setup failed')
                 }
             } else {
-                connection.socket.close(1008, 'Invalid token')
+                connection.socket.close(4001, 'Invalid token')
             }
         } else {
-            connection.socket.close(1008, 'No tunnel')
+            connection.socket.close(4004, 'No tunnel')
         }
     })
 
@@ -236,7 +236,7 @@ module.exports = async function (app) {
                 return // handled
             }
             // not handled
-            connection.socket.close(1008, 'No tunnel established')
+            connection.socket.close(4000, 'No tunnel established')
         }
     })
 
