@@ -8,6 +8,23 @@ describe('Team Devices API', function () {
     /** @type {import('../../../../../forge/db/controllers/AccessToken') */
     let AccessTokenController
     const TestObjects = {}
+
+    const queryDevices = async (url, expectedStatusCode = 200) => {
+        // Match device on name
+        const response = await app.inject({
+            method: 'GET',
+            url,
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+
+        const result = response.json()
+        result.should.have.property('devices').and.be.an.Array()
+
+        response.statusCode.should.equal(expectedStatusCode)
+
+        return result.devices
+    }
+
     before(async function () {
         const opts = {}
         app = await setup(opts)
@@ -77,29 +94,15 @@ describe('Team Devices API', function () {
             should(currentDeviceCount).equal(1)
 
             // add 2 devices
-            const device1 = await app.db.models.Device.create({
-                name: 'device 2',
-                type: 'test device',
-                credentialSecret: ''
-            })
-            await TestObjects.ATeam.addDevice(device1)
-            const device2 = await app.db.models.Device.create({
-                name: 'device 3',
-                type: 'test device',
-                credentialSecret: ''
-            })
-            await TestObjects.ATeam.addDevice(device2)
+            const device2 = await app.factory.createDevice({ name: 'device 2', type: 'test device' }, TestObjects.ATeam, TestObjects.Project1)
+            const device3 = await app.factory.createDevice({ name: 'device 3', type: 'test device' }, TestObjects.ATeam, TestObjects.Project1)
 
             // check that we get 2 devices
-            const response = await app.inject({
-                method: 'GET',
-                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices`,
-                cookies: { sid: TestObjects.tokens.alice }
-            })
-            response.statusCode.should.equal(200)
-            const result = response.json()
-            result.should.have.property('devices').and.be.an.Array()
-            result.devices.should.have.a.property('length', 3)
+            const devices = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices`)
+            devices.should.length(3)
+
+            await device2.destroy()
+            await device3.destroy()
         })
 
         it('Non member does not get a list of devices', async function () {
@@ -117,7 +120,7 @@ describe('Team Devices API', function () {
             before(async function () {
                 // Add 2 more devices
                 await app.factory.createDevice({ name: 'device 2', type: 'it is another type of device' }, TestObjects.ATeam)
-                await app.factory.createDevice({ name: 'device 3', type: 'it is another type of device' }, TestObjects.ATeam)
+                await app.factory.createDevice({ name: 'device 3', type: 'it is another type of device numbered 3' }, TestObjects.ATeam)
             })
 
             after(async function () {
@@ -129,31 +132,15 @@ describe('Team Devices API', function () {
             })
 
             it('by name', async function () {
-                // Match device on name
-                const responseName = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices?query=Device%202`,
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-
-                const resultName = responseName.json()
-                resultName.should.have.property('devices').and.be.an.Array()
-                resultName.devices.should.have.a.property('length', 1)
+                const devices = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?query=Device%202`)
+                devices.map((device) => device.name).should.match(['device 2'])
+                devices.should.have.length(1)
             })
 
             it('by type', async function () {
                 // Match device on type
-                const responseType = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices?query=another%20type`,
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-
-                const resultType = responseType.json()
-                resultType.should.have.property('devices').and.be.an.Array()
-                resultType.devices.should.have.a.property('length', 2)
-
-                responseType.statusCode.should.equal(200)
+                const devices = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?query=another%20type`)
+                devices.should.have.length(2)
             })
         })
 
@@ -186,129 +173,113 @@ describe('Team Devices API', function () {
 
             it('by name', async function () {
                 // Sort by name ASC (default)
-                const responseName = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=name`,
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-
-                const resultName = responseName.json()
-                resultName.should.have.property('devices').and.be.an.Array()
-                resultName.devices.map((device) => device.name).should.match(['device 1', 'device 2', 'device 3', 'device 4'])
-
-                responseName.statusCode.should.equal(200)
+                const resultName = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=name`)
+                resultName.map((device) => device.name).should.match(['device 1', 'device 2', 'device 3', 'device 4'])
 
                 // Sort by name DESC (explicit)
-                const responseNameDesc = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=name&order=desc`,
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-
-                const resultNameDesc = responseNameDesc.json()
-                resultNameDesc.should.have.property('devices').and.be.an.Array()
-                resultNameDesc.devices.map((device) => device.name).should.match(['device 4', 'device 3', 'device 2', 'device 1'])
-
-                responseNameDesc.statusCode.should.equal(200)
+                const resultNameDesc = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=name&order=desc`)
+                resultNameDesc.map((device) => device.name).should.match(['device 4', 'device 3', 'device 2', 'device 1'])
 
                 // Sort by name ASC (explicit)
-                const responseNameAsc = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=name&order=asc`,
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-
-                const resultNameAsc = responseNameAsc.json()
-                resultNameAsc.should.have.property('devices').and.be.an.Array()
-                resultNameAsc.devices.map((device) => device.name).should.match(['device 1', 'device 2', 'device 3', 'device 4'])
-
-                responseNameAsc.statusCode.should.equal(200)
+                const resultNameAsc = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=name&order=asc`)
+                resultNameAsc.map((device) => device.name).should.match(['device 1', 'device 2', 'device 3', 'device 4'])
             })
 
             it('by instance->application name', async function () {
                 // Sort by application name ASC (default)
-                const responseName = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=application`,
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-
-                const resultName = responseName.json()
-                resultName.should.have.property('devices').and.be.an.Array()
-                resultName.devices.map((device) => device.application?.name).should.match([undefined, 'application-1', 'application-1', 'application-2'])
-
-                responseName.statusCode.should.equal(200)
+                const resultName = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=application`)
+                resultName.map((device) => device.application?.name).should.match([undefined, 'application-1', 'application-1', 'application-2'])
 
                 // Sort by application name DESC (explicit)
-                const responseNameDesc = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=application&order=desc`,
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-
-                const resultNameDesc = responseNameDesc.json()
-                resultNameDesc.should.have.property('devices').and.be.an.Array()
-                resultNameDesc.devices.map((device) => device.application?.name).should.match(['application-2', 'application-1', 'application-1', undefined])
-
-                responseNameDesc.statusCode.should.equal(200)
+                const resultNameDesc = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=application&order=desc`)
+                resultNameDesc.map((device) => device.application?.name).should.match(['application-2', 'application-1', 'application-1', undefined])
 
                 // Sort by application name ASC (explicit)
-                const responseNameAsc = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=application&order=asc`,
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-
-                const resultNameAsc = responseNameAsc.json()
-                resultNameAsc.should.have.property('devices').and.be.an.Array()
-                resultNameAsc.devices.map((device) => device.application?.name).should.match([undefined, 'application-1', 'application-1', 'application-2'])
-
-                responseNameAsc.statusCode.should.equal(200)
+                const resultNameAsc = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=application&order=asc`)
+                resultNameAsc.map((device) => device.application?.name).should.match([undefined, 'application-1', 'application-1', 'application-2'])
             })
 
             it('by instance name', async function () {
                 // Sort by instance name ASC (default)
-                const responseName = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=instance`,
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-
-                const resultName = responseName.json()
-                resultName.should.have.property('devices').and.be.an.Array()
-                resultName.devices.map((device) => device.instance?.name).should.match([undefined, 'instance-2', 'project1', 'project1'])
-
-                responseName.statusCode.should.equal(200)
+                const resultName = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=instance`)
+                resultName.map((device) => device.instance?.name).should.match([undefined, 'instance-2', 'project1', 'project1'])
 
                 // Sort by instance name DESC (explicit)
-                const responseNameDesc = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=instance&order=desc`,
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-
-                const resultNameDesc = responseNameDesc.json()
-                resultNameDesc.should.have.property('devices').and.be.an.Array()
-                resultNameDesc.devices.map((device) => device.instance?.name).should.match(['project1', 'project1', 'instance-2', undefined])
-
-                responseNameDesc.statusCode.should.equal(200)
+                const resultNameDesc = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=instance&order=desc`)
+                resultNameDesc.map((device) => device.instance?.name).should.match(['project1', 'project1', 'instance-2', undefined])
 
                 // Sort by instance name ASC (explicit)
-                const responseNameAsc = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=instance&order=asc`,
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-
-                const resultNameAsc = responseNameAsc.json()
-                resultNameAsc.should.have.property('devices').and.be.an.Array()
-                resultNameAsc.devices.map((device) => device.instance?.name).should.match([undefined, 'instance-2', 'project1', 'project1'])
-
-                responseNameAsc.statusCode.should.equal(200)
+                const resultNameAsc = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=instance&order=asc`)
+                resultNameAsc.map((device) => device.instance?.name).should.match([undefined, 'instance-2', 'project1', 'project1'])
             })
         })
 
         describe('Supports filtering the devices', function () {
+            before(async function () {
+                await app.factory.createDevice({ name: 'device 2', state: 'running', lastSeenAt: new Date() }, TestObjects.ATeam, TestObjects.Project1)
+                await app.factory.createDevice({ name: 'device 3', state: 'stopped', lastSeenAt: new Date(Date.now() - 5 * 60 * 1000) }, TestObjects.ATeam)
+                await app.factory.createDevice({ name: 'device 4', state: 'offline', lastSeenAt: new Date(Date.now() - 2 * 60 * 1000) }, TestObjects.ATeam)
+                await app.factory.createDevice({ name: 'device 5', state: 'running', lastSeenAt: new Date(Date.now() - 5 * 60 * 1000) }, TestObjects.ATeam, TestObjects.Project1)
+            })
+
+            after(async function () {
+                await app.db.models.Device.destroy({
+                    where: {
+                        name: ['device 2', 'device 3', 'device 4', 'device 5']
+                    }
+                })
+            })
+
+            it('by state', async function () {
+                // Running
+                const runningDevices = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?filters=status:running`)
+                runningDevices.map((device) => device.name).should.match(['device 2', 'device 5'])
+
+                // Error
+                const errorDevices = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?filters=status:stopped`)
+                errorDevices.map((device) => device.name).should.match(['device 3'])
+
+                // Stopped
+                const stoppedDevices = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?filters=status:offline`)
+                stoppedDevices.map((device) => device.name).should.match(['device 4'])
+
+                // Unknown
+                const unknownDevices = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?filters=status:unknown`)
+                unknownDevices.map((device) => device.name).should.match(['device 1'])
+            })
+
+            it('by last seen', async function () {
+                // Running
+                const runningDevices = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?filters=lastseen:never`)
+                runningDevices.map((device) => device.name).should.match(['device 1'])
+
+                // Error
+                const errorDevices = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?filters=lastseen:running`)
+                errorDevices.map((device) => device.name).should.match(['device 2'])
+
+                // Stopped
+                const stoppedDevices = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?filters=lastseen:safe`)
+                stoppedDevices.map((device) => device.name).should.match(['device 4'])
+
+                // Unknown
+                const unknownDevices = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?filters=lastseen:error`)
+                unknownDevices.map((device) => device.name).should.match(['device 3', 'device 5'])
+            })
+
+            it('by both last seen and state', async function () {
+                // Error but and not running
+                const erroredDevices = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?filters=lastseen:error,status:stopped`)
+                erroredDevices.map((device) => device.name).should.match(['device 3'])
+
+                // Running and seen
+                const runningDevices = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?filters=lastseen:running,status:running`)
+                runningDevices.map((device) => device.name).should.match(['device 2'])
+
+                // Running and not seen
+                const runningUnseenDevices = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?filters=lastseen:never,status:running`)
+                runningUnseenDevices.should.have.length(0)
+            })
+        })
     })
 
     describe('Provisioning Tokens', function () {

@@ -205,8 +205,8 @@ module.exports = {
 
                     // Filtering
                     if (pagination.filters?.state) {
-                        // Offline is the blank state
-                        where.state = pagination.filters.state === 'offline' ? '' : pagination.filters.state
+                        // Unknown is the blank state
+                        where.state = pagination.filters.state === 'unknown' ? '' : pagination.filters.state
                     }
 
                     if (pagination.filters?.lastseen) {
