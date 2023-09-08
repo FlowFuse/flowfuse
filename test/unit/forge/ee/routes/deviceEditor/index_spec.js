@@ -15,7 +15,7 @@ describe('Device Editor API', function () {
     const TestObjects = { tokens: {} }
 
     before(async function () {
-        app = await setup({ billing: null })
+        app = await setup({ })
         await login('alice', 'aaPassword')
 
         app.device = await app.factory.createDevice({
@@ -166,7 +166,7 @@ describe('Device Editor API', function () {
             await sleep(200)
 
             ws.readyState.should.equal(WebSocket.CLOSED)
-            closeCode.should.equal(1008)
+            closeCode.should.equal(4004)
             closeReason.should.equal('No tunnel')
         })
         it('device websocket cannot connect with incorrect token', async function () {
@@ -186,7 +186,7 @@ describe('Device Editor API', function () {
             await sleep(200)
 
             ws.readyState.should.equal(WebSocket.CLOSED)
-            closeCode.should.equal(1008)
+            closeCode.should.equal(4001)
             closeReason.should.equal('Invalid token')
         })
         it('Proxy HTTP GET - fails if device ws not connected', async function () {
