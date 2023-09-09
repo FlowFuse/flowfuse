@@ -25,35 +25,25 @@ If you are already familiar with Node-RED, you can [skip this section](#creating
 
 1. **Access the Node-RED Editor**.
 
-2. **Add an Inject Node**: The Inject node allows you to manually or automatically inject messages into a flow. Drag one onto the workspace from the palette. After adding, you can review its properties in the Information sidebar.
+2. **Add Nodes**: Drag an "http in" node into the editor. This node will listen for incoming HTTP requests. Next, drag in the "change" and the "http response" nodes. 
 
-3. **Add a Debug Node**: The Debug node will display messages in the Debug sidebar. By default, it displays only the payload of the message.
+3. **Connect Nodes**: Connect the "http in" node to the "change" node, and then the "change" node to the "http response" node. Your flow should look like this:
 
-4. **Wire Them Together**: Connect the Inject and Debug nodes by dragging from the output port of one to the input port of the other.
+    ![The three nodes](./images/getting-started/three-nodes.png)
 
-5. **Deploy**: At this stage, the nodes exist only in the editor. Click the Deploy button to implement them on the server.
+4. **Configure 'http in' Node**: Double-click on the "http in" node to open its properties. Set the URL to "/hello" and the method to "GET".
 
-6. **Inject**: With the Debug sidebar tab selected, click the Inject button (next to your Inject node). You should see numbers appear in the sidebar. By default, the Inject node uses milliseconds since January 1st, 1970, as its payload.
+5. **Configure 'change' Node**: Double-click the "change" node. Add "Hello World" to the field that says "to the value".
 
-7. **Add a Function Node**: This allows you to modify messages using JavaScript.
+    ![Configure the change node](./images/getting-started/set-reply.png)
 
-    - Delete the existing wire (select it and press Delete).
-    - Insert a Function node between the Inject and Debug nodes.
-    - Double-click the Function node to access the edit dialog. Paste the following code:
+6. **Configure 'http response' Node**: Double-click to open its properties. Set the "Status Code" to be 200.
 
-    ```javascript
-    // Create a Date object from the payload
-    var date = new Date(msg.payload);
-    // Format the payload as a Date string
-    msg.payload = date.toString();
-    // Return the modified message
-    return msg;
-    ```
-    - Click Done, and then Deploy.
+    ![Configure the http response node](./images/getting-started/response-code.png)
 
-Now, when you click the Inject button, the messages in the sidebar will display as formatted, readable timestamps.
+7. **Deploy**: Now that we have our flow set up, we can deploy it by clicking the "Deploy" button in the top right corner of the editor. Once the flow is deployed, you can test it by opening up a web browser, take the URL of your Instance and add "/hello" to the end, it should looks something like this `https://your-project.flowforge.cloud/hello`. You should see "Hello World!" displayed in the browser.
 
-[Learn more about Flow creation](https://nodered.org/docs/user-guide/editor/)
+[Learn more about Flow creation](https://flowfuse.com/blog/2023/01/getting-started-with-node-red/#first-flow)
 
 ## Creating Your First DevOps Pipeline
 
