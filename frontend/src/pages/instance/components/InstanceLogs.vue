@@ -75,6 +75,14 @@ export default {
         instance: 'fetchData'
     },
     async mounted () {
+        // https://github.com/flowforge/flowforge/issues/2707
+        // Something causes the InstanceLogs component to get remounted after
+        // the Instance is deleted and we navigate back to the Application view.
+        // Check the internal DELETE flag so we don't start polling for logs
+        // for the deleted instance.
+        if (this.instance.DELETED) {
+            return
+        }
         if (!this.instance.meta || this.instance.meta.state === 'suspended') {
             this.loading = false
         }
@@ -89,7 +97,7 @@ export default {
         },
         fetchData: async function () {
             if (this.instance.id) {
-                if (this.instance.meta && this.instance.meta.state !== 'suspended') {
+                if (this.instance.meta && this.instance.meta.state !== 'suspended' && this.instance.meta.state !== 'suspending') {
                     await this.loadItems(this.instance.id)
                     this.loading = false
                 } else {

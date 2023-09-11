@@ -248,6 +248,11 @@ export default {
             const applicationId = this.instance.application.id
             this.loading.deleting = true
             InstanceApi.deleteInstance(this.instance).then(async () => {
+                // Something is triggering the instance components to get briefly
+                // remounted before the navigation back to the ApplicationInstances
+                // page occurs. To prevent those components from doing any work,
+                // setting a flag on the instance object.
+                this.instance.DELETED = true
                 await this.$store.dispatch('account/refreshTeam')
                 this.$router.push({ name: 'ApplicationInstances', params: { id: applicationId } })
                 alerts.emit('Instance successfully deleted.', 'confirmation')
