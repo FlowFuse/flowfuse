@@ -4,7 +4,7 @@ navOrder: 2
 ---
 # ctrlX Node-RED App
 
-Learn more about the Node-RED App in the [ctrlX World Marketplace](https://developer.community.boschrexroth.com/t5/Store-and-How-to/FlowFuse-Node-RED/ba-p/82135)
+Learn more about the Node-RED App in the [ctrlX World Store](https://developer.community.boschrexroth.com/t5/Store-and-How-to/FlowFuse-Node-RED/ba-p/82135)
 
 ## Installation Procedure
 
