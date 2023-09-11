@@ -190,7 +190,7 @@ describe('Team Devices API', function () {
                 const resultName = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=application`)
 
                 // SQLite puts undefined includes first ASC, Postgres has it last...
-                const usingSQLite = resultName[0].application === undefined
+                const usingSQLite = app.db.sequelize.getDialect() === 'sqlite'
                 const ascendingOrder = ['application-1', 'application-1', 'application-2']
                 const descendingOrder = ['application-2', 'application-1', 'application-1']
                 if (usingSQLite) {
@@ -217,7 +217,7 @@ describe('Team Devices API', function () {
                 const resultName = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=instance`)
 
                 // SQLite puts undefined includes first ASC, Postgres has it last...
-                const usingSQLite = resultName[0].instance === undefined
+                const usingSQLite = app.db.sequelize.getDialect() === 'sqlite'
                 const ascendingOrder = ['instance-2', 'project1', 'project1']
                 const descendingOrder = ['project1', 'project1', 'instance-2']
                 if (usingSQLite) {
