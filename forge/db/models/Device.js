@@ -205,8 +205,8 @@ module.exports = {
 
                     // Filtering
                     if (pagination.filters?.state) {
-                        // Offline is the blank state
-                        where.state = pagination.filters.state === 'offline' ? '' : pagination.filters.state
+                        // Unknown is the blank state
+                        where.state = pagination.filters.state === 'unknown' ? '' : pagination.filters.state
                     }
 
                     if (pagination.filters?.lastseen) {
@@ -238,7 +238,13 @@ module.exports = {
                     if (pagination.order && Object.keys(pagination.order).length) {
                         for (const key in pagination.order) {
                             if (key === 'application') {
-                                order.unshift([M.Application, 'name', pagination.order[key] || 'ASC'])
+                                // Sort by Device->Instance->Application.name
+                                if (includeInstanceApplication) {
+                                    order.unshift([M.Project, M.Application, 'name', pagination.order[key] || 'ASC'])
+                                // Order Device->Application.name
+                                } else {
+                                    order.unshift([M.Application, 'name', pagination.order[key] || 'ASC'])
+                                }
                             } else if (key === 'instance') {
                                 order.unshift([M.Project, 'name', pagination.order[key] || 'ASC'])
                             } else {
@@ -291,7 +297,7 @@ module.exports = {
 
                     const [rows, count] = await Promise.all([
                         this.findAll({
-                            where: buildPaginationSearchClause(pagination, where, ['Device.name', 'Device.type', 'Device.id'], {}, order),
+                            where: buildPaginationSearchClause(pagination, where, ['Device.name', 'Device.type'], {}, order),
                             include: pagination.statusOnly ? statusOnlyIncludes : includes,
                             order,
                             limit: pagination.statusOnly ? null : limit
