@@ -1,30 +1,87 @@
 ---
+navTitle: Getting Started
 navOrder: 1
-navTitle: Introduction
 ---
 
-# Using FlowFuse
+# Getting Started with FlowFuse
 
-This guide will help you learn how to use the FlowFuse platform to quickly create
-new Node-RED applications.
+This guide will help you learn how to use the FlowFuse platform to quickly create new Node-RED applications after a successful [installation](/docs/install/introduction.md) or [sign-up](https://app.flowforge.com/account/create) for FlowFuse Cloud.
 
-## Concepts
+## Creating a Node-RED Instance
 
-Within FlowFuse, users are members of _Teams_. Each team can create _Applications_
-that are collections of one or more _Node-RED instances_. Each instance is created
-from a _Template_ to provide its default settings and runs on a _Stack_ that determines
-the Node-RED version, memory and CPU usage.
+1. **Automatic Creation**: Your first Node-RED instance should be automatically created upon your initial login to FlowFuse. To access the Node-RED Editor, simply click on `Open Editor`.
 
-_Devices_ can be assigned to an instance and have flows automatically deployed to
-them when _snapshots_ are created of the instance.
+    ![Open Editor](./images/getting-started/Open-Editor.png)
 
-For more details on these and other core concepts, you can learn about them [here](concepts.md).
+2. **Additional Instance**: For utilizing various other FlowFuse features (e.g., DevOps Pipelines), it's highly beneficial to create a second Node-RED instance. A second Node-RED instance is included in both our Starter Tier and the Trial Phase of FlowFuse Cloud. To do so, select your application— in our example, "Demo's Application"— and click `Add Instance`.
 
-## Working with Applications
+    ![Add Instance](./images/getting-started/Add-Instance.png)
 
- - [DevOps Pipelines](devops-pipelines.md) - How to create DevOps pipelines to easily deploy between Node-RED instances
+[Learn more about Instances](#working-with-instances)
 
-## Working with Instances
+## Creating Your First Flow
+
+If you are already familiar with Node-RED, you can [skip this section](#creating-your-first-devops-pipeline).
+
+1. **Access the Node-RED Editor**.
+
+2. **Add Nodes**: Drag an "http in" node into the editor. This node will listen for incoming HTTP requests. Next, drag in the "change" and the "http response" nodes. 
+
+3. **Connect Nodes**: Connect the "http in" node to the "change" node, and then the "change" node to the "http response" node. Your flow should look like this:
+
+    ![The three nodes](./images/getting-started/three-nodes.png)
+
+4. **Configure 'http in' Node**: Double-click on the "http in" node to open its properties. Set the URL to "/hello" and the method to "GET".
+
+5. **Configure 'change' Node**: Double-click the "change" node. Add "Hello World" to the field that says "to the value".
+
+    ![Configure the change node](./images/getting-started/set-reply.png)
+
+6. **Configure 'http response' Node**: Double-click to open its properties. Set the "Status Code" to be 200.
+
+    ![Configure the http response node](./images/getting-started/response-code.png)
+
+7. **Deploy**: Now that we have our flow set up, we can deploy it by clicking the "Deploy" button in the top right corner of the editor. Once the flow is deployed, you can test it by opening up a web browser, take the URL of your Instance and add "/hello" to the end, it should looks something like this `https://your-project.flowforge.cloud/hello`. You should see "Hello World!" displayed in the browser.
+
+[Learn more about Flow creation](https://flowfuse.com/blog/2023/01/getting-started-with-node-red/#first-flow)
+
+## Creating Your First DevOps Pipeline
+
+DevOps Pipelines enable you to link multiple Node-RED instances together in a deployment pipeline.
+
+1. **Add a Pipeline**: Select your application and click `Add Pipeline`.
+
+    ![Add Pipeline](./images/getting-started/Add-Pipeline.png)
+
+2. **Name Your Pipeline**: Enter a suitable name.
+
+3. **Add Stages**: You can now add stages to your pipeline. In our example, we add a Development Stage and a Production Stage.
+
+4. **Execute the Pipeline**: It is now easy to execute the pipeline with one click, promoting your recently created flow to your Production Node-RED instance.
+
+    ![Execute Pipeline](./images/getting-started/Execute-Pipeline.png)
+
+[Learn more about DevOps Pipelines](./devops-pipelines.md)
+
+## Working with Devices 
+
+FlowFuse supports managing Node-RED on your own hardware.
+
+ - [Getting started with Devices](../device-agent/introduction.md)
+
+## Working with Teams
+
+ - [Team management](./team/) - How to add and remove users from a team.
+ - [Role based access control](./team/#role-based-access-control) - Which privileges are granted to different roles.
+
+## Working with Files and Context
+
+FlowFuse supports reading and writing persistent files and persistent context.
+
+ - [Working with Files](filenodes.md)
+ - [Working with Context](persistent-context.md)
+
+ ## Working with Instances
 
  - [Snapshots](snapshots.md) - Create point-in-time backups of your Node-RED instances.
  - [Environment Variables](envvar.md) - How to manage Environment Variables in your Node-RED instances.
@@ -35,22 +92,3 @@ For more details on these and other core concepts, you can learn about them [her
  - [Shared Team Library](shared-library.md) - Share flows easily between different Node-RED instances in your team.
  - [Node-RED Tools Plugin](/docs/migration/node-red-tools.md) - A plugin for Node-RED that lets you work with your flows outside of FlowFuse.
  - [High Availability mode](high-availability.md) - Run multiple copies of your instance for scaling and availability.
-
-## Working with Teams
-
- - [Team management](./team/) - How to add and remove users from a team.
- - [Role based access control](./team/#role-based-access-control) - Which privileges are granted to different roles.
-
-## Working with Devices
-
-FlowFuse supports deploying projects to remote _Devices_. They run a software agent
-that connects back to the platform to receive updates.
-
- - [Working with Devices](../device-agent/introduction.md)
-
-## Working with Files and Context
-
-FlowFuse supports reading and writing persistent files and persistent context.
-
- - [Working with Files](filenodes.md)
- - [Working with Context](persistent-context.md)
