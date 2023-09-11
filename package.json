@@ -86,7 +86,7 @@
         "pg": "^8.11.3",
         "pino-pretty": "^10.0.0",
         "semver": "~7.5.4",
-        "sequelize": "^6.32.0",
+        "sequelize": "^6.33.0",
         "sqlite3": "^5.1.6",
         "stripe": "^8.222.0",
         "uuid": "^9.0.0",
