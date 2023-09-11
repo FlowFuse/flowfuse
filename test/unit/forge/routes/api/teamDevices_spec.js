@@ -188,29 +188,55 @@ describe('Team Devices API', function () {
             it('by instance->application name', async function () {
                 // Sort by application name ASC (default)
                 const resultName = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=application`)
-                resultName.map((device) => device.application?.name).should.match([undefined, 'application-1', 'application-1', 'application-2'])
+
+                // SQLite puts undefined includes first ASC, Postgres has it last...
+                const usingSQLite = resultName[0].application === undefined
+                const ascendingOrder = ['application-1', 'application-1', 'application-2']
+                const descendingOrder = ['application-2', 'application-1', 'application-1']
+                if (usingSQLite) {
+                    ascendingOrder.unshift(undefined)
+                    descendingOrder.push(undefined)
+                } else {
+                    ascendingOrder.push(undefined)
+                    descendingOrder.unshift(undefined)
+                }
+
+                resultName.map((device) => device.application?.name).should.match(ascendingOrder)
 
                 // Sort by application name DESC (explicit)
                 const resultNameDesc = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=application&order=desc`)
-                resultNameDesc.map((device) => device.application?.name).should.match(['application-2', 'application-1', 'application-1', undefined])
+                resultNameDesc.map((device) => device.application?.name).should.match(descendingOrder)
 
                 // Sort by application name ASC (explicit)
                 const resultNameAsc = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=application&order=asc`)
-                resultNameAsc.map((device) => device.application?.name).should.match([undefined, 'application-1', 'application-1', 'application-2'])
+                resultNameAsc.map((device) => device.application?.name).should.match(ascendingOrder)
             })
 
             it('by instance name', async function () {
                 // Sort by instance name ASC (default)
                 const resultName = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=instance`)
-                resultName.map((device) => device.instance?.name).should.match([undefined, 'instance-2', 'project1', 'project1'])
+
+                // SQLite puts undefined includes first ASC, Postgres has it last...
+                const usingSQLite = resultName[0].instance === undefined
+                const ascendingOrder = ['instance-2', 'project1', 'project1']
+                const descendingOrder = ['project1', 'project1', 'instance-2']
+                if (usingSQLite) {
+                    ascendingOrder.unshift(undefined)
+                    descendingOrder.push(undefined)
+                } else {
+                    ascendingOrder.push(undefined)
+                    descendingOrder.unshift(undefined)
+                }
+
+                resultName.map((device) => device.instance?.name).should.match(ascendingOrder)
 
                 // Sort by instance name DESC (explicit)
                 const resultNameDesc = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=instance&order=desc`)
-                resultNameDesc.map((device) => device.instance?.name).should.match(['project1', 'project1', 'instance-2', undefined])
+                resultNameDesc.map((device) => device.instance?.name).should.match(descendingOrder)
 
                 // Sort by instance name ASC (explicit)
                 const resultNameAsc = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=instance&order=asc`)
-                resultNameAsc.map((device) => device.instance?.name).should.match([undefined, 'instance-2', 'project1', 'project1'])
+                resultNameAsc.map((device) => device.instance?.name).should.match(ascendingOrder)
             })
         })
 
