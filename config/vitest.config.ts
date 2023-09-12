@@ -1,7 +1,7 @@
 /// <reference types="vitest" />
 
 import { fileURLToPath, URL } from 'url'
-import { defineConfig } from 'vitest/config'
+import { defineConfig, configDefaults } from 'vitest/config'
 import Vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
@@ -11,9 +11,9 @@ export default defineConfig({
     test: {
         globals: true,
         environment: 'jsdom',
+        exclude: [...configDefaults.exclude, 'coverage/*'],
         coverage: {
             provider: 'istanbul',
-            src: ['./frontend/src'],
             reportsDirectory: 'coverage/reports/frontend',
             all: true,
             reporter: [ 'json' ]
