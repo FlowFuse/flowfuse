@@ -40,6 +40,11 @@
 
 const VueTimers = {
 
+    // Flag that is set when the component is unmounted or deactivated
+    // Prevents an async callback starting a timer after the component has
+    // been removed from the dom
+    timersDisabled: false,
+
     data: function () {
         if (!this.$options.timers) return {}
         this.$options.timers = normalizeOptions(this.$options.timers, this)
@@ -59,6 +64,10 @@ const VueTimers = {
                     throw new ReferenceError(
                         '[vue-timers.start] Cannot find timer ' + name
                     )
+                }
+                if (process.env.NODE_ENV !== 'production' && vm.timersDisabled === true) {
+                    console.warn('Trying to start a timer for an unmounted component')
+                    return
                 }
                 if (data[name].isRunning) return
                 data[name].isRunning = true
@@ -100,6 +109,8 @@ const VueTimers = {
 
     mounted: function () {
         if (!this.$options.timers) return
+        this.timersDisabled = false
+
         const vm = this
         const options = vm.$options.timers
         Object.keys(options).forEach(function (key) {
@@ -111,6 +122,8 @@ const VueTimers = {
 
     activated: function () {
         if (!this.$options.timers) { return }
+        this.timersDisabled = false
+
         const vm = this
         const data = vm.timers
         const options = vm.$options.timers
@@ -123,6 +136,8 @@ const VueTimers = {
 
     deactivated: function () {
         if (!this.$options.timers) { return }
+        this.timersDisabled = true
+
         const vm = this
         const data = vm.timers
         const options = vm.$options.timers
@@ -132,8 +147,11 @@ const VueTimers = {
             }
         })
     },
+
     beforeUnmount: function () {
         if (!this.$options.timers) { return }
+        this.timersDisabled = true
+
         const vm = this
         Object.keys(vm.$options.timers).forEach(function (key) {
             vm.$timer.stop(key)
