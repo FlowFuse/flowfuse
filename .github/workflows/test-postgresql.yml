@@ -57,5 +57,5 @@ jobs:
           FF_TEST_DB_POSTGRES_USER: postgres
           FF_TEST_DB_POSTGRES_PASSWORD: secret
           FF_TEST_DB_POSTGRES_DATABASE: flowforge
-          NODE_OPTIONS: "--max_old_space_size=4096"
+          NODE_OPTIONS: "--max-old-space-size=6144"
         run: npm run test
