@@ -2,7 +2,7 @@
     <div class="space-y-6">
         <SectionTopMenu hero="Team Types">
             <template #tools>
-                <ff-button data-action="create-type" @click="showEditTeamTypeDialog">
+                <ff-button data-action="create-type" @click="showEditTeamTypeDialog()">
                     <template #icon-right>
                         <PlusSmIcon />
                     </template>

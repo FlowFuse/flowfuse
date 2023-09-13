@@ -82,11 +82,11 @@
         <template #actions>
             <div class="w-full grow flex justify-between">
                 <div>
-                    <ff-button v-if="teamType" kind="danger" style="margin: 0;" @click="$emit('show-delete-dialog', teamType); $refs.dialog.close()">Delete Team Type</ff-button>
+                    <ff-button v-if="isEditingExisting" kind="danger" style="margin: 0;" @click="$emit('show-delete-dialog', teamType); $refs.dialog.close()">Delete Team Type</ff-button>
                 </div>
                 <div class="flex">
                     <ff-button kind="secondary" @click="$refs['dialog'].close()">Cancel</ff-button>
-                    <ff-button :disabled="!formValid" @click="confirm(); $refs.dialog.close()">{{ teamType ? 'Update' : 'Create' }}</ff-button>
+                    <ff-button :disabled="!formValid" @click="confirm(); $refs.dialog.close()">{{ isEditingExisting ? 'Update' : 'Create' }}</ff-button>
                 </div>
             </div>
         </template>
@@ -165,6 +165,7 @@ export default {
                         order: '0',
                         properties: {
                             billing: {},
+                            trial: {},
                             users: {},
                             devices: {},
                             instances: {},
@@ -215,6 +216,9 @@ export default {
         ...mapState('account', ['features']),
         formValid () {
             return (this.input.name)
+        },
+        isEditingExisting () {
+            return !!this.teamType
         },
         dialogTitle () {
             if (this.teamType) {
