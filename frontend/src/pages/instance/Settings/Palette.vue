@@ -1,8 +1,11 @@
 <template>
     <form class="space-y-6">
         <TemplateSettingsPalette v-model="editable" :editTemplate="false" />
-        <TemplateSectionCatalogue v-model="editableTemplate" :editTemplate="false" :project="project" />
-        <TemplateSectionNPM v-model="editableTemplate" :editTemplate="false" :project="project" />
+        Foo
+        <TemplateSectionCatalogue v-model="editable" :editTemplate="false" :project="project" />
+        Ben
+        <TemplateSectionNPM v-model="editable" :editTemplate="false" :project="project" />
+        Bill
         <TemplatePaletteModulesEditor v-model="editable" :editTemplate="false" :readOnly="!paletteEditable" :project="project" />
         <div class="space-x-4 whitespace-nowrap">
             <ff-button size="small" :disabled="!unsavedChanges && !modulesChanged" @click="saveSettings()">Save settings</ff-button>
