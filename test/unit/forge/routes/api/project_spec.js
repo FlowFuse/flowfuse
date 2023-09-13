@@ -162,6 +162,25 @@ describe('Project API', function () {
             response.statusCode.should.equal(401)
         })
 
+        it('Non-member admin can create project', async function () {
+            // Alice (non-member admin) cannot create in CTeam
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/projects',
+                payload: {
+                    name: generateProjectName(),
+                    applicationId: TestObjects.ApplicationC.hashid,
+                    projectType: TestObjects.projectType1.hashid,
+                    template: TestObjects.template1.hashid,
+                    stack: TestObjects.stack1.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('id')
+        })
+
         it('Fails for unknown template', async function () {
             const response = await app.inject({
                 method: 'POST',
