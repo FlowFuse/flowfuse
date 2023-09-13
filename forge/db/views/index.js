@@ -15,7 +15,6 @@ const modelTypes = [
     'Application',
     'AuditLog',
     'Device',
-    'DeviceSnapshot',
     'Invitation',
     'Project',
     'ProjectSnapshot',

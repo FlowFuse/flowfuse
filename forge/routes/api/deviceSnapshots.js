@@ -190,7 +190,7 @@ module.exports = async function (app) {
             description: request.body.description,
             setAsTarget: undefined // TODO: device snapshot: what to do with `setAsTarget`?
         }
-        const snapShot = await app.db.controllers.DeviceSnapshot.createSnapshotFromDevice(
+        const snapShot = await app.db.controllers.ProjectSnapshot.createDeviceSnapshot(
             request.device.Application,
             request.device,
             request.session.User,
@@ -199,6 +199,6 @@ module.exports = async function (app) {
         snapShot.User = request.session.User
         // TODO: device snapshot: Needs application level audit log
         // TODO: device snapshot: what to do with `setAsTarget`?
-        reply.send(app.db.views.DeviceSnapshot.snapshot(snapShot))
+        reply.send(app.db.views.ProjectSnapshot.snapshot(snapShot))
     })
 }
