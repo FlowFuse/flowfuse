@@ -1,6 +1,6 @@
 <template>
-    <ff-dialog ref="dialog" header="Change Role" confirm-label="Change" @confirm="confirm()" :disable-primary="ownerCount < 2 && isOwner">
-        <template #default v-if="user">
+    <ff-dialog ref="dialog" header="Change Role" confirm-label="Change" :disable-primary="ownerCount < 2 && isOwner" @confirm="confirm()">
+        <template v-if="user" #default>
             <form class="space-y-6" @submit.prevent>
                 <div class="space-y-2">
                     <template v-if="ownerCount < 2 && isOwner">

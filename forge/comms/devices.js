@@ -6,7 +6,7 @@
 const { v4: uuidv4 } = require('uuid')
 
 const noop = () => {}
-const DEFAULT_TIMEOUT = 5000
+const DEFAULT_TIMEOUT = 10000
 
 // declare command and response monitor types (and freeze them)
 const CommandMonitorTemplate = {

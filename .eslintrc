@@ -184,20 +184,9 @@
                 "frontend/src/components/PageHeader.vue",
                 "frontend/src/components/SectionTopMenu.vue",
                 "frontend/src/components/TeamSelection.vue",
-                "frontend/src/pages/account/Create.vue",
-                "frontend/src/pages/account/ForgotPassword.vue",
-                "frontend/src/pages/account/index.vue",
-                "frontend/src/pages/account/PasswordReset.vue",
-                "frontend/src/pages/account/Security/ChangePassword.vue",
                 "frontend/src/pages/account/Teams/Teams.vue",
-                "frontend/src/pages/admin/index.vue",
                 "frontend/src/pages/admin/InstanceTypes/dialogs/InstanceTypeEditDialog.vue",
                 "frontend/src/pages/admin/InstanceTypes/index.vue",
-                "frontend/src/pages/admin/Settings/Email.vue",
-                "frontend/src/pages/admin/Settings/General.vue",
-                "frontend/src/pages/admin/Settings/License.vue",
-                "frontend/src/pages/admin/Settings/SSO/createEditProvider.vue",
-                "frontend/src/pages/admin/Settings/SSO/index.vue",
                 "frontend/src/pages/admin/Stacks/dialogs/AdminStackEditDialog.vue",
                 "frontend/src/pages/admin/Stacks/index.vue",
                 "frontend/src/pages/admin/Teams.vue",
@@ -214,26 +203,9 @@
                 "frontend/src/pages/device/Settings/dialogs/ConfirmDeviceDeleteDialog.vue",
                 "frontend/src/pages/device/Settings/Environment.vue",
                 "frontend/src/pages/device/Settings/General.vue",
-                "frontend/src/pages/Login.vue",
-                "frontend/src/pages/setup/CreateAdminUser.vue",
-                "frontend/src/pages/setup/Final.vue",
-                "frontend/src/pages/setup/License.vue",
-                "frontend/src/pages/setup/Options.vue",
-                "frontend/src/pages/setup/Start.vue",
                 "frontend/src/pages/team/components/MemberSummaryList.vue",
                 "frontend/src/pages/team/components/ProjectSummaryList.vue",
-                "frontend/src/pages/team/create.vue",
-                "frontend/src/pages/team/Devices/dialogs/CreateProvisioningTokenDialog.vue",
-                "frontend/src/pages/team/dialogs/ChangeTeamRoleDialog.vue",
-                "frontend/src/pages/team/dialogs/ConfirmTeamDeleteDialog.vue",
-                "frontend/src/pages/team/dialogs/ConfirmTeamUserRemoveDialog.vue",
-                "frontend/src/pages/team/dialogs/InviteMemberDialog.vue",
-                "frontend/src/pages/team/Members/General.vue",
-                "frontend/src/pages/team/Settings/Danger.vue",
-                "frontend/src/pages/team/Settings/Devices.vue",
-                "frontend/src/pages/team/Settings/General.vue",
-                "frontend/src/pages/team/Settings/Permissions.vue",
-                "frontend/src/pages/TermsAndConditions.vue"
+                "frontend/src/pages/team/Devices/dialogs/CreateProvisioningTokenDialog.vue"
             ]
         },
         {
@@ -254,7 +226,6 @@
                 "vue/html-closing-bracket-spacing": "off"
             },
             "files": [
-                "frontend/src/App.vue",
                 "frontend/src/components/audit-log/AuditEntryVerbose.vue",
                 "frontend/src/components/banners/TeamTrial.vue",
                 "frontend/src/components/DropdownMenu.vue",
@@ -288,9 +259,6 @@
                 "frontend/src/pages/admin/Users/UserDetails.vue",
                 "frontend/src/pages/device/Overview.vue",
                 "frontend/src/pages/device/Settings/Danger.vue",
-                "frontend/src/pages/Home.vue",
-                "frontend/src/pages/Login.vue",
-                "frontend/src/pages/setup/CreateAdminUser.vue",
                 "frontend/src/pages/team/components/LibraryEntryTypeIcon.vue",
                 "frontend/src/pages/team/create.vue",
                 "frontend/src/pages/team/Settings/Danger.vue",
@@ -303,7 +271,6 @@
                 "vue/html-self-closing": "off"
             },
             "files": [
-                "frontend/src/App.vue",
                 "frontend/src/components/Accordion.vue",
                 "frontend/src/components/audit-log/AuditEntry.vue",
                 "frontend/src/components/audit-log/AuditEntryVerbose.vue",
@@ -360,8 +327,7 @@
                 "frontend/src/pages/team/Members/Invitations.vue",
                 "frontend/src/pages/team/Settings/General.vue",
                 "frontend/src/pages/team/Settings/index.vue",
-                "frontend/src/pages/team/Settings/Permissions.vue",
-                "frontend/src/SetupApp.vue"
+                "frontend/src/pages/team/Settings/Permissions.vue"
             ]
         },
         {
@@ -369,7 +335,6 @@
                 "vue/order-in-components": "off"
             },
             "files": [
-                "frontend/src/App.vue",
                 "frontend/src/components/Accordion.vue",
                 "frontend/src/components/audit-log/AuditEntry.vue",
                 "frontend/src/components/audit-log/AuditEntryIcon.vue",
@@ -426,12 +391,6 @@
                 "frontend/src/pages/device/Settings/Environment.vue",
                 "frontend/src/pages/device/Settings/General.vue",
                 "frontend/src/pages/device/Settings/index.vue",
-                "frontend/src/pages/Home.vue",
-                "frontend/src/pages/Login.vue",
-                "frontend/src/pages/PasswordExpired.vue",
-                "frontend/src/pages/setup/CreateAdminUser.vue",
-                "frontend/src/pages/setup/License.vue",
-                "frontend/src/pages/setup/Options.vue",
                 "frontend/src/pages/team/components/LibraryEntryTypeIcon.vue",
                 "frontend/src/pages/team/components/MemberSummaryList.vue",
                 "frontend/src/pages/team/components/ProjectSummaryList.vue",
@@ -454,28 +413,7 @@
                 "frontend/src/pages/team/Settings/index.vue",
                 "frontend/src/pages/team/Settings/Permissions.vue",
                 "frontend/src/pages/TermsAndConditions.vue",
-                "frontend/src/pages/UnverifiedEmail.vue",
-                "frontend/src/SetupApp.vue"
-            ]
-        },
-        {
-            "rules": {
-                "vue/require-explicit-emits": "off"
-            },
-            "files": [
-                "frontend/src/pages/admin/Template/sections/Editor.vue",
-                "frontend/src/pages/admin/Template/sections/Security.vue",
-                "frontend/src/pages/admin/Template/Settings.vue",
-                "frontend/src/pages/admin/Users/dialogs/AdminUserEditDialog.vue",
-                "frontend/src/pages/application/components/ExportProjectComponents.vue",
-                "frontend/src/pages/setup/CreateAdminUser.vue",
-                "frontend/src/pages/setup/Final.vue",
-                "frontend/src/pages/setup/License.vue",
-                "frontend/src/pages/setup/Options.vue",
-                "frontend/src/pages/setup/Start.vue",
-                "frontend/src/pages/team/Devices/dialogs/DeviceAssignInstanceDialog.vue",
-                "frontend/src/pages/team/dialogs/ConfirmTeamDeleteDialog.vue",
-                "frontend/src/pages/team/dialogs/ConfirmTeamUserRemoveDialog.vue"
+                "frontend/src/pages/UnverifiedEmail.vue"
             ]
         },
         {
@@ -512,9 +450,6 @@
                 "frontend/src/pages/device/Settings/index.vue",
                 "frontend/src/pages/instance/components/ExportInstanceComponents.vue",
                 "frontend/src/pages/instance/components/ImportInstanceComponents.vue",
-                "frontend/src/pages/setup/CreateAdminUser.vue",
-                "frontend/src/pages/setup/License.vue",
-                "frontend/src/pages/setup/Options.vue",
                 "frontend/src/pages/team/Applications.vue",
                 "frontend/src/pages/team/AuditLog.vue",
                 "frontend/src/pages/team/Billing.vue",

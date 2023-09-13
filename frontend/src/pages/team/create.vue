@@ -27,14 +27,14 @@
                         />
                     </ff-tile-selection>
                 </div>
-                <FormRow v-model="input.name" id="team" :error="errors.name">
+                <FormRow id="team" v-model="input.name" :error="errors.name">
                     Team Name
                     <template #description>
                         eg. 'Development'
                     </template>
                 </FormRow>
 
-                <FormRow v-model="input.slug" id="team" :error="input.slugError" :placeholder="input.defaultSlug">
+                <FormRow id="team" v-model="input.slug" :error="input.slugError" :placeholder="input.defaultSlug">
                     URL Slug
                     <template #description>
                         Use the default slug based on the team name or set your own.<br/>

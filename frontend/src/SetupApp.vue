@@ -1,7 +1,7 @@
 <template>
     <div class="min-h-screen flex flex-col">
         <ff-layout-box class="ff-setup">
-            <component :is="views[step]" :state="state" @next="next" @error="error"></component>
+            <component :is="views[step]" :state="state" @next="next" @error="error" />
         </ff-layout-box>
     </div>
 </template>
@@ -32,6 +32,13 @@ const views = [
 ]
 export default {
     name: 'SetupApp',
+    components: {
+        PageFooter,
+        Logo,
+        CreateAdminUser,
+        License,
+        'ff-layout-box': FFLayoutBox
+    },
     data () {
         return {
             step: 0,
@@ -49,13 +56,6 @@ export default {
         error () {
             this.step = views.length - 1
         }
-    },
-    components: {
-        PageFooter,
-        Logo,
-        CreateAdminUser,
-        License,
-        'ff-layout-box': FFLayoutBox
     }
 }
 </script>

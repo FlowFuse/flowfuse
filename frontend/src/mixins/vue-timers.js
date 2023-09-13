@@ -40,6 +40,11 @@
 
 const VueTimers = {
 
+    // Flag that is set when the component is unmounted or deactivated
+    // Prevents an async callback starting a timer after the component has
+    // been removed from the dom
+    timersDisabled: false,
+
     data: function () {
         if (!this.$options.timers) return {}
         this.$options.timers = normalizeOptions(this.$options.timers, this)
@@ -60,6 +65,10 @@ const VueTimers = {
                         '[vue-timers.start] Cannot find timer ' + name
                     )
                 }
+                if (process.env.NODE_ENV !== 'production' && vm.timersDisabled === true) {
+                    console.warn('Trying to start a timer for an unmounted component')
+                    return
+                }
                 if (data[name].isRunning) return
                 data[name].isRunning = true
                 data[name].instance = generateTimer(
@@ -67,10 +76,10 @@ const VueTimers = {
                     vm
                 )
                 if (options[name].immediate) {
-                    vm.$emit('timer-tick:' + name)
+                    // vm.$emit('timer-tick:' + name)
                     options[name].callback()
                 }
-                vm.$emit('timer-start:' + name)
+                // vm.$emit('timer-start:' + name)
             },
 
             stop: function (name) {
@@ -82,7 +91,7 @@ const VueTimers = {
                 if (!data[name].isRunning) return
                 clearTimer(options[name].repeat)(data[name].instance)
                 data[name].isRunning = false
-                vm.$emit('timer-stop:' + name)
+                // vm.$emit('timer-stop:' + name)
             },
 
             restart: function (name) {
@@ -93,13 +102,15 @@ const VueTimers = {
                 }
                 this.stop(name)
                 this.start(name)
-                vm.$emit('timer-restart:' + name)
+                // vm.$emit('timer-restart:' + name)
             }
         }
     },
 
     mounted: function () {
         if (!this.$options.timers) return
+        this.timersDisabled = false
+
         const vm = this
         const options = vm.$options.timers
         Object.keys(options).forEach(function (key) {
@@ -111,6 +122,8 @@ const VueTimers = {
 
     activated: function () {
         if (!this.$options.timers) { return }
+        this.timersDisabled = false
+
         const vm = this
         const data = vm.timers
         const options = vm.$options.timers
@@ -123,6 +136,8 @@ const VueTimers = {
 
     deactivated: function () {
         if (!this.$options.timers) { return }
+        this.timersDisabled = true
+
         const vm = this
         const data = vm.timers
         const options = vm.$options.timers
@@ -132,8 +147,11 @@ const VueTimers = {
             }
         })
     },
+
     beforeUnmount: function () {
         if (!this.$options.timers) { return }
+        this.timersDisabled = true
+
         const vm = this
         Object.keys(vm.$options.timers).forEach(function (key) {
             vm.$timer.stop(key)
@@ -186,7 +204,7 @@ function clearTimer (repeat) {
 
 function generateTimer (options, vm) {
     return setTimer(options.repeat)(function () {
-        vm.$emit('timer-tick:' + options.name)
+        // vm.$emit('timer-tick:' + options.name)
         options.callback()
     }, options.time)
 }

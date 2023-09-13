@@ -15,12 +15,12 @@ import FFLayoutBox from '../layouts/Box.vue'
 
 export default {
     name: 'PasswordExpired',
-    methods: {
-    },
-    computed: mapState('account', ['user']),
     components: {
         'ff-layout-box': FFLayoutBox,
         UpdateExpiredPassword
+    },
+    computed: mapState('account', ['user']),
+    methods: {
     }
 }
 </script>

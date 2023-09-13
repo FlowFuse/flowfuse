@@ -121,5 +121,51 @@ module.exports = {
             }
         }
         return null
+    },
+
+    /**
+     * Takes a comma separated list of key:value,name:smith pairs to an object
+     */
+    parseFiltersFromString (app, filterString = '') {
+        const filters = Object.fromEntries(filterString.split(',').map((filterString) => filterString.split(':')))
+
+        return {
+            ...(filters.status ? { state: filters.status } : null),
+            ...(filters.lastseen ? { lastseen: filters.lastseen } : null)
+        }
+    },
+
+    /**
+     * Return pagination options for the request including status flag, filters, and order
+     * On top of the standard limit/cursor/query
+     * @param {import('../../forge').forge} app Forge app instance
+     * @param {FastifyRequest} request request
+     * @returns {Object}
+     */
+    getDevicePaginationOptions: function (app, request) {
+        const paginationOptions = { ...request.query }
+        if (paginationOptions.query) {
+            paginationOptions.query = paginationOptions.query.trim()
+        }
+
+        paginationOptions.statusOnly = !!paginationOptions.statusOnly
+
+        if (paginationOptions.statusOnly) {
+            delete paginationOptions.limit
+        }
+
+        if (paginationOptions.filters) {
+            paginationOptions.filters = app.db.controllers.Device.parseFiltersFromString(paginationOptions.filters)
+        }
+
+        if (paginationOptions.sort) {
+            paginationOptions.order = {
+                [paginationOptions.sort]: paginationOptions.order
+            }
+            delete paginationOptions.sort
+            delete paginationOptions.dir
+        }
+
+        return paginationOptions
     }
 }

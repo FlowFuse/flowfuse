@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" header="Invite Team Member" confirm-label="Invite" @confirm="confirm()" :disable-primary="disableConfirm">
+    <ff-dialog ref="dialog" header="Invite Team Member" confirm-label="Invite" :disable-primary="disableConfirm" @confirm="confirm()">
         <template #default>
             <form class="space-y-2" @submit.prevent>
                 <template v-if="!responseErrors">
@@ -13,7 +13,7 @@
                 </template>
                 <template v-else>
                     <ul>
-                        <li class="text-sm" v-for="(value, name) in responseErrors" :key="name">
+                        <li v-for="(value, name) in responseErrors" :key="name" class="text-sm">
                             <span class="font-medium">{{ name }}</span>: <span>{{ value }}</span>
                         </li>
                     </ul>

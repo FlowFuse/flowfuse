@@ -44,6 +44,7 @@ import LockSetting from '../components/LockSetting.vue'
 export default {
     name: 'TemplateSettingsSecurity',
     props: ['editTemplate', 'modelValue', 'team'],
+    emits: ['update:modelValue'],
     computed: {
         editable: {
             get () {

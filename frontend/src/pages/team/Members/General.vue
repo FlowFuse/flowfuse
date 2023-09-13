@@ -16,9 +16,9 @@
         </ff-data-table>
     </form>
 
-    <ChangeTeamRoleDialog @role-updated="roleUpdated" ref="changeTeamRoleDialog" />
-    <ConfirmTeamUserRemoveDialog @user-removed="userRemoved" ref="confirmTeamUserRemoveDialog" />
-    <InviteMemberDialog @invitation-sent="$emit('invites-updated')" :team="team" :inviteCount="inviteCount" :userCount="userCount" v-if="hasPermission('team:user:invite')" ref="inviteMemberDialog" />
+    <ChangeTeamRoleDialog ref="changeTeamRoleDialog" @role-updated="roleUpdated" />
+    <ConfirmTeamUserRemoveDialog ref="confirmTeamUserRemoveDialog" @user-removed="userRemoved" />
+    <InviteMemberDialog v-if="hasPermission('team:user:invite')" ref="inviteMemberDialog" :team="team" :inviteCount="inviteCount" :userCount="userCount" @invitation-sent="$emit('invites-updated')" />
 </template>
 
 <script>

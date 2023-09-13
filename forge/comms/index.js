@@ -33,7 +33,7 @@ module.exports = fp(async function (app, _opts, next) {
         // Not in the current release, but when we handle Launcher status
         // via MQTT, it will arrive here. Compare to the status/device handler in `devices.js`
         // client.on('status/project', (status) => {
-        //     // console.log(status)
+        //     // console.info(status)
         // })
 
         // Setup the platform API for the comms component

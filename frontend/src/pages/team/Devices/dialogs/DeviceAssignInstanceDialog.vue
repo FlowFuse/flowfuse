@@ -23,13 +23,12 @@ import { mapState } from 'vuex'
 
 import SelectInstance from '../../../../components/SelectInstance.vue'
 
-import alerts from '../../../../services/alerts.js'
-
 export default {
     name: 'DeviceAssignInstanceDialog',
     components: {
         SelectInstance
     },
+    emits: ['assignDevice'],
     setup () {
         return {
             async show (device) {
@@ -52,7 +51,6 @@ export default {
     methods: {
         assignDevice () {
             this.$emit('assignDevice', this.device, this.input.instance.id)
-            alerts.emit('Device successfully assigned to instance.', 'confirmation')
         }
     }
 }

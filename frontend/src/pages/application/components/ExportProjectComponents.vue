@@ -44,6 +44,7 @@ export default {
         FormRow
     },
     props: ['modelValue', 'showSecret', 'showTemplate', 'showSettings'],
+    emits: ['update:modelValue'],
     setup () {
         return {
             envVarKeyOptions: [{

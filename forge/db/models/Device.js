@@ -4,7 +4,7 @@
  */
 const crypto = require('crypto')
 
-const { DataTypes } = require('sequelize')
+const { DataTypes, Op } = require('sequelize')
 
 const Controllers = require('../controllers')
 const { buildPaginationSearchClause } = require('../utils')
@@ -195,74 +195,88 @@ module.exports = {
                         ]
                     })
                 },
-                byTeam: async (teamHashId) => {
-                    const teamId = M.Team.decodeHashid(teamHashId)
-                    return this.findAll({
-                        include: [
-                            {
-                                model: M.Team,
-                                where: { id: teamId },
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
-                            },
-                            { model: M.Application, attributes: ['hashid', 'id', 'name', 'links'] },
-                            {
-                                model: M.Project,
-                                attributes: ['id', 'name', 'links']
-                            },
-                            { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
-                            { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
-                        ]
-                    })
-                },
-                byApplication: async (applicationId) => {
-                    const id = M.Application.decodeHashid(applicationId)
-                    return this.findAll({
-                        include: [
-                            {
-                                model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
-                            },
-                            {
-                                model: M.Application,
-                                where: { id },
-                                attributes: ['hashid', 'id', 'name', 'links']
-                            }
-                        ]
-                    })
-                },
-                byProject: async (projectId) => {
-                    return this.findAll({
-                        include: [
-                            {
-                                model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
-                            },
-                            {
-                                model: M.Project,
-                                where: {
-                                    id: projectId
-                                },
-                                attributes: ['id', 'name', 'links']
-                            },
-                            { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
-                            { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
-                        ]
-                    })
-                },
                 getAll: async (pagination = {}, where = {}, { includeInstanceApplication = false } = {}) => {
-                    const limit = parseInt(pagination.limit) || 1000
+                    // Pagination
+                    const limit = Math.min(parseInt(pagination.limit) || 100, 100)
                     if (pagination.cursor) {
-                        pagination.cursor = M.Device.decodeHashid(pagination.cursor)
+                        const cursors = pagination.cursor.split(',')
+                        cursors[cursors.length - 1] = M.Device.decodeHashid(cursors[cursors.length - 1])
+                        pagination.cursor = cursors.join(',')
                     }
 
+                    // Filtering
+                    if (pagination.filters?.state) {
+                        // Unknown is the blank state
+                        where.state = pagination.filters.state === 'unknown' ? '' : pagination.filters.state
+                    }
+
+                    if (pagination.filters?.lastseen) {
+                        // Must be mapped to lastSeenAt filter
+                        const lastseen = pagination.filters.lastseen
+
+                        // Needs to be kept in sync with frontend (frontend/src/services/device-status.js)
+                        // Thresholds are currently running <1.5, safe <3, error >3
+                        // To-do: Move this logic entirely server side rather than calculating it in the frontend
+                        if (lastseen === 'never') {
+                            where.lastSeenAt = null
+                        } else if (lastseen === 'running') {
+                            where.lastSeenAt = {}
+                            where.lastSeenAt[Op.gt] = new Date(Date.now() - (1.5 * 60 * 1000))
+                        } else if (lastseen === 'safe') {
+                            where.lastSeenAt = {}
+                            where.lastSeenAt[Op.lte] = new Date(Date.now() - (1.5 * 60 * 1000))
+                            where.lastSeenAt[Op.gt] = new Date(Date.now() - (3 * 60 * 1000))
+                        } else if (lastseen === 'error') {
+                            where.lastSeenAt = {}
+                            where.lastSeenAt[Op.lte] = new Date(Date.now() - (3 * 60 * 1000))
+                        } else {
+                            console.warn('Unknown lastseen filter, silently ignoring', lastseen)
+                        }
+                    }
+
+                    // Sorting
+                    const order = [['id', 'ASC']]
+                    if (pagination.order && Object.keys(pagination.order).length) {
+                        for (const key in pagination.order) {
+                            if (key === 'application') {
+                                // Sort by Device->Instance->Application.name
+                                if (includeInstanceApplication) {
+                                    order.unshift([M.Project, M.Application, 'name', pagination.order[key] || 'ASC'])
+                                // Order Device->Application.name
+                                } else {
+                                    order.unshift([M.Application, 'name', pagination.order[key] || 'ASC'])
+                                }
+                            } else if (key === 'instance') {
+                                order.unshift([M.Project, 'name', pagination.order[key] || 'ASC'])
+                            } else {
+                                order.unshift([key, pagination.order[key] || 'ASC'])
+                            }
+                        }
+                    }
+
+                    // Extra models to include
+                    const filteringOnInstanceApplication = !!where.ApplicationId && includeInstanceApplication
                     const projectInclude = {
                         model: M.Project,
-                        attributes: ['id', 'name', 'links']
+                        attributes: ['id', 'name', 'links'],
+                        required: filteringOnInstanceApplication
                     }
-                    if (includeInstanceApplication) {
+
+                    // Naive filter on Devices->Application
+                    if (where.ApplicationId) {
+                        where.ApplicationId = M.Application.decodeHashid(where.ApplicationId)
+                    }
+                    if (includeInstanceApplication || filteringOnInstanceApplication) {
                         projectInclude.include = {
                             model: M.Application,
-                            attributes: ['id', 'name', 'links']
+                            attributes: ['hashid', 'id', 'name', 'links']
+                        }
+
+                        // Handle Applications included via Device->Instance->Application
+                        if (filteringOnInstanceApplication) {
+                            projectInclude.include.where = { id: where.ApplicationId }
+                            projectInclude.include.required = true
+                            delete where.ApplicationId
                         }
                     }
 
@@ -273,26 +287,57 @@ module.exports = {
                         },
                         projectInclude,
                         { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
-                        { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
+                        { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] },
+                        {
+                            model: M.Application,
+                            attributes: ['hashid', 'id', 'name', 'links']
+                        }
                     ]
 
-                    includes.push({
-                        model: M.Application,
-                        attributes: ['hashid', 'id', 'name', 'links']
-                    })
+                    const statusOnlyIncludes = projectInclude.include?.where ? [projectInclude] : []
 
                     const [rows, count] = await Promise.all([
                         this.findAll({
-                            where: buildPaginationSearchClause(pagination, where, ['Device.name', 'Device.type']),
-                            include: includes,
-                            order: [['id', 'ASC']],
-                            limit
+                            where: buildPaginationSearchClause(pagination, where, ['Device.name', 'Device.type'], {}, order),
+                            include: pagination.statusOnly ? statusOnlyIncludes : includes,
+                            order,
+                            limit: pagination.statusOnly ? null : limit
                         }),
-                        this.count({ where })
+                        this.count({ where, include: statusOnlyIncludes })
                     ])
+
+                    let nextCursors = []
+                    if (rows.length === limit && limit > 0) {
+                        const lastRow = rows[rows.length - 1]
+                        nextCursors = order.map((sortProps) => {
+                            // Model, key, dir
+                            let [model, key] = sortProps
+
+                            // Key, dir
+                            if (arguments.length === 2) {
+                                key = model
+                                model = null
+                            }
+
+                            if (key === 'id') {
+                                key = 'hashid'
+                            }
+
+                            if (model === M.Application) {
+                                return lastRow.Project[model.name][key]
+                            }
+
+                            if (model !== null) {
+                                return lastRow[model.name][key]
+                            }
+
+                            return lastRow[key]
+                        })
+                    }
+
                     return {
                         meta: {
-                            next_cursor: (rows.length === limit && limit > 0) ? rows[rows.length - 1].hashid : undefined
+                            next_cursor: nextCursors.length > 0 ? nextCursors.join(',') : undefined
                         },
                         count,
                         devices: rows

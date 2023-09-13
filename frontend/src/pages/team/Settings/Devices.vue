@@ -47,8 +47,8 @@
             </ff-data-table>
         </template>
     </div>
-    <CreateProvisioningTokenDialog :team="team" @token-creating="tokenCreating" @token-created="tokenCreated" @token-updated="tokenUpdated" ref="CreateProvisioningTokenDialog"/>
-    <ProvisioningCredentialsDialog :team="team" ref="provisioningCredentialsDialog" />
+    <CreateProvisioningTokenDialog ref="CreateProvisioningTokenDialog" :team="team" @token-creating="tokenCreating" @token-created="tokenCreated" @token-updated="tokenUpdated"/>
+    <ProvisioningCredentialsDialog ref="provisioningCredentialsDialog" :team="team" />
 </template>
 
 <script>
