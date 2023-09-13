@@ -112,6 +112,47 @@ module.exports = {
                         count,
                         snapshots: rows
                     }
+                },
+                forApplication: async (idOrHash, pagination = {}) => {
+                    let id = idOrHash
+                    if (typeof idOrHash === 'string') {
+                        id = M.Application.decodeHashid(idOrHash)
+                    }
+                    const limit = parseInt(pagination.limit) || 1000
+                    const where = {
+                        [Op.or]: {
+                            '$Project.ApplicationId$': id,
+                            '$Device.ApplicationId$': id
+                        }
+                    }
+                    if (pagination.cursor) {
+                        where.id = { [Op.lt]: M.ProjectSnapshot.decodeHashid(pagination.cursor) }
+                    }
+                    const { count, rows } = await this.findAndCountAll({
+                        where,
+                        order: [['id', 'DESC']],
+                        limit,
+                        attributes: ['hashid', 'id', 'name', 'description', 'createdAt', 'updatedAt', 'ProjectId', 'DeviceId', 'ownerType'],
+                        include: [{
+                            model: M.User,
+                            attributes: ['hashid', 'id', 'username', 'avatar']
+                        },
+                        {
+                            model: M.Project,
+                            attributes: ['hashid', 'id', 'name', 'createdAt', 'updatedAt']
+                        },
+                        {
+                            model: M.Device,
+                            attributes: ['hashid', 'id', 'name', 'type', 'createdAt', 'updatedAt']
+                        }]
+                    })
+                    return {
+                        meta: {
+                            next_cursor: rows.length === limit ? rows[rows.length - 1].hashid : undefined
+                        },
+                        count,
+                        snapshots: rows
+                    }
                 }
             }
         }

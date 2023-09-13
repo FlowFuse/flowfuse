@@ -376,4 +376,47 @@ module.exports = async function (app) {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
     })
+
+    /**
+     * List All snapshots in an Application
+     * @name /api/v1/applications/:id/snapshots
+     * @memberof forge.routes.api.application
+     */
+    app.get('/:applicationId/snapshots', {
+        // TODO: create application:snapshot:list OR consolidate "project:snapshot:list" with "device:snapshot:list"?
+        preHandler: app.needsPermission('project:snapshot:list'),
+        schema: {
+            summary: 'Get a list of all snapshots in an Application',
+            tags: ['Applications'],
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        // meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        snapshots: { type: 'array', items: { $ref: 'Snapshot' } }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const applicationId = request.application?.hashid
+        if (applicationId) {
+            const paginationOptions = app.getPaginationOptions(request)
+            const snapshots = await app.db.models.ProjectSnapshot.forApplication(applicationId, paginationOptions)
+            snapshots.snapshots = snapshots.snapshots.map(s => app.db.views.ProjectSnapshot.snapshot(s))
+            reply.send(snapshots)
+        } else {
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+    })
 }
