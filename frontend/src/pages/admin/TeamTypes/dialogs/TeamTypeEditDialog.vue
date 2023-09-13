@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" :header="dialogTitle">
+    <ff-dialog ref="dialog" :header="dialogTitle" data-el="team-type-dialog">
         <template #default>
             <form class="space-y-6 mt-2" @submit.prevent>
                 <div class="grid gap-3 grid-cols-3 items-middle">
