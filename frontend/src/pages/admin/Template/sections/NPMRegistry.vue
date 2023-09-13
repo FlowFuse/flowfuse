@@ -12,7 +12,7 @@
         </div>
 
         <FormRow>
-            <template #input><textarea v-model="editable.settings.palette_npmrc" class="font-mono w-full max-w-md sm:mr-8" placeholder=".npmrc" rows="8" /></template>
+            <template #input><textarea v-model="editable.settings.palette_npmrc" v-bind:readonly="readOnly" class="font-mono w-full max-w-md sm:mr-8" placeholder=".npmrc" rows="8" /></template>
             <template #append>
                 <ChangeIndicator :value="editable.changed.settings.palette_npmrc" />
                 <LockSetting v-model="editable.policy.palette_npmrc" :editTemplate="editTemplate" :changed="editable.changed.policy.palette_npmrc" />

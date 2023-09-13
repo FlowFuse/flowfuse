@@ -1,11 +1,8 @@
 <template>
     <form class="space-y-6">
         <TemplateSettingsPalette v-model="editable" :editTemplate="false" />
-        Foo
-        <TemplateSectionCatalogue v-model="editable" :editTemplate="false" :project="project" />
-        Ben
-        <TemplateSectionNPM v-model="editable" :editTemplate="false" :project="project" />
-        Bill
+        <TemplateSectionCatalogue v-model="editable" :editTemplate="false" :readOnly="!catalogueEditable" :project="project" />
+        <TemplateSectionNPM v-model="editable" :editTemplate="false" :readOnly="!npmEditable" :project="project" />
         <TemplatePaletteModulesEditor v-model="editable" :editTemplate="false" :readOnly="!paletteEditable" :project="project" />
         <div class="space-x-4 whitespace-nowrap">
             <ff-button size="small" :disabled="!unsavedChanges && !modulesChanged" @click="saveSettings()">Save settings</ff-button>
@@ -78,6 +75,12 @@ export default {
         ...mapState('account', ['team', 'teamMembership']),
         paletteEditable () {
             return this.editable?.settings.palette_allowInstall
+        },
+        catalogueEditable () {
+            return this.editable?.settings.palette_catalogue
+        },
+        npmEditable () {
+            return this.editable?.settings.palette_npmrc
         }
     },
     watch: {

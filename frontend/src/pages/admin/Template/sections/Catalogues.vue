@@ -23,7 +23,7 @@
                                 {{ url }}
                             </td>
                             <td>
-                                <ff-button kind="tertiary" size="small" @click="removeURL(index)">
+                                <ff-button kind="tertiary" size="small" :disabled="readOnly" @click="removeURL(index)">
                                     <template #icon>
                                         <XIcon />
                                     </template>
@@ -39,7 +39,7 @@
             <div class="flex flex-col sm:flex-row">
                 <FormRow v-model="input.url" class="w-full max-w-md sm:mr-8" :error="input.error" :disabled="readOnly">
                     <template #append>
-                        <ff-button kind="secondary" size="small" @click="addURL()">
+                        <ff-button kind="secondary" size="small" :disabled="readOnly" @click="addURL()">
                             <template #icon>
                                 <PlusSmIcon />
                             </template>
@@ -47,7 +47,7 @@
                     </template>
                 </FormRow>
             </div>
-            <ff-button size="small" @click="addDefault()">
+            <ff-button size="small" :disabled="readOnly" @click="addDefault()">
                 Add Default
                 <template #icon>
                     <PlusSmIcon />
@@ -107,9 +107,6 @@ export default {
             urls: []
         }
     },
-    mounted () {
-        this.urls = this.editable.settings.palette_catalogue
-    },
     computed: {
         editable: {
             get () {
@@ -142,6 +139,9 @@ export default {
                 this.urls = v
             }
         }
+    },
+    mounted () {
+        this.urls = this.editable.settings.palette_catalogue
     },
     methods: {
         addURL () {
