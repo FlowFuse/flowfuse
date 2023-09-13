@@ -2,10 +2,10 @@
     <div class="ff-header">
         <!-- Mobile: Toggle(Team & Team Admin Options) -->
         <i class="ff-header--mobile-toggle" :class="{'active': mobileMenuOpen}">
-            <MenuIcon class="ff-avatar" @click="$emit('menu-toggle')"/>
+            <MenuIcon class="ff-avatar" @click="$emit('menu-toggle')" />
         </i>
         <!-- FlowFuse Logo -->
-        <img class="ff-logo" src="/ff-logo--wordmark-caps--dark.png" @click="home()"/>
+        <img class="ff-logo" src="/ff-logo--wordmark-caps--dark.png" @click="home()" />
         <!-- Mobile: Toggle(User Options) -->
         <div v-if="team" class="flex">
             <i class="ff-header--mobile-usertoggle" :class="{'active': mobileTeamSelectionOpen}">
@@ -41,8 +41,8 @@
             <ff-dropdown v-if="user" class="ff-navigation ff-user-options" options-align="right" data-action="user-options" data-cy="user-options">
                 <template #placeholder>
                     <div class="ff-user">
-                        <img :src="user.avatar" class="ff-avatar"/>
-                        <ff-notification-pill v-if="notifications.total > 0" data-el="notification-pill" class="ml-3" :count="notifications.total"/>
+                        <img :src="user.avatar" class="ff-avatar" />
+                        <ff-notification-pill v-if="notifications.total > 0" data-el="notification-pill" class="ml-3" :count="notifications.total" />
                         <!-- <label>{{ user.name }}</label> -->
                     </div>
                 </template>

@@ -1,7 +1,7 @@
 <template>
-    <FolderIcon v-if="type === 'folder'" class="ff-icon"/>
-    <ProjectIcon v-if="type === 'flows'" class="ff-icon"/>
-    <CodeIcon v-if="type === 'functions'" class="ff-icon"/>
+    <FolderIcon v-if="type === 'folder'" class="ff-icon" />
+    <ProjectIcon v-if="type === 'flows'" class="ff-icon" />
+    <CodeIcon v-if="type === 'functions'" class="ff-icon" />
 </template>
 
 <script>

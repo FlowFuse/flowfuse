@@ -12,12 +12,12 @@
         <ff-loading v-if="redirecting" message="Redirecting to Stripe..." />
         <ff-loading v-else-if="loading" message="Creating Team..." />
         <div v-else class="max-w-2xl m-auto">
-            <form class="space-y-6" >
+            <form class="space-y-6">
                 <FormHeading>Create a new team</FormHeading>
                 <div class="mb-8 text-sm text-gray-500">Teams are how you organize who collaborates on your projects.</div>
                 <!-- TeamType Type -->
                 <div class="flex flex-wrap gap-1 items-stretch">
-                    <ff-tile-selection v-model="input.teamTypeId" >
+                    <ff-tile-selection v-model="input.teamTypeId">
                         <ff-tile-selection-option
                             v-for="(teamType, index) in teamTypes" :key="index"
                             :label="teamType.name" :description="teamType.description"
@@ -37,7 +37,7 @@
                 <FormRow id="team" v-model="input.slug" :error="input.slugError" :placeholder="input.defaultSlug">
                     URL Slug
                     <template #description>
-                        Use the default slug based on the team name or set your own.<br/>
+                        Use the default slug based on the team name or set your own.<br />
                         <pre>/team/&lt;slug&gt;</pre>
                     </template>
                 </FormRow>

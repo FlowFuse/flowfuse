@@ -24,8 +24,8 @@
                     <span class="text-red-700">Warning:</span>
                     Changing this will modify all urls used to access the team.
                     The platform will not redirect requests to the old url.
-                    <br/>
-                    <br/>
+                    <br />
+                    <br />
                     <pre>/team/&lt;slug&gt;</pre>
                 </div>
             </template>

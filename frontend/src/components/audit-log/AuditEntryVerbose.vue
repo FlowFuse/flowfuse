@@ -478,12 +478,12 @@
     <template v-if="error">
         <details class="ff-audit-entry--error">
             <summary>
-                <ChevronRightIcon class="ff-icon ff-icon-sm"/>
+                <ChevronRightIcon class="ff-icon ff-icon-sm" />
                 Show Error
             </summary>
             <span>
                 {{ entry.body }}
-                <ChevronDownIcon class="ff-icon ff-icon-sm"/>
+                <ChevronDownIcon class="ff-icon ff-icon-sm" />
             </span>
         </details>
     </template>

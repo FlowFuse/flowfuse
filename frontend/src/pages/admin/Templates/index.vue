@@ -23,8 +23,8 @@
             @row-selected="editTemplate"
         >
             <template #context-menu="{row}">
-                <ff-list-item label="Edit Template" @click.stop="editTemplate(row)"/>
-                <ff-list-item label="Delete Template" kind="danger" @click.stop="showDeleteDialog(row)"/>
+                <ff-list-item label="Edit Template" @click.stop="editTemplate(row)" />
+                <ff-list-item label="Delete Template" kind="danger" @click.stop="showDeleteDialog(row)" />
             </template>
         </ff-data-table>
         <div v-if="nextCursor">

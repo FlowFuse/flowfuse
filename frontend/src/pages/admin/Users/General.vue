@@ -25,7 +25,7 @@
                 <ff-list-item label="Edit User" @click.stop="showEditUserDialog(row)"></ff-list-item>
             </template>
         </ff-data-table>
-        <AdminUserEditDialog @user-updated="userUpdated" @user-deleted="userDeleted" ref="adminUserEditDialog"/>
+        <AdminUserEditDialog @user-updated="userUpdated" @user-deleted="userDeleted" ref="adminUserEditDialog" />
     </div>
 </template>
 

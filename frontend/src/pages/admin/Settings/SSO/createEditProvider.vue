@@ -10,8 +10,8 @@
     </Teleport>
     <main>
         <div class="max-w-2xl m-auto">
-            <ff-loading v-if="loading && !isCreate" message="Loading SSO Configuration..."/>
-            <ff-loading v-if="loading && isCreate" message="Creating SSO Configuration..."/>
+            <ff-loading v-if="loading && !isCreate" message="Loading SSO Configuration..." />
+            <ff-loading v-if="loading && isCreate" message="Creating SSO Configuration..." />
             <form v-else class="space-y-6">
                 <FormHeading>{{ pageTitle }}</FormHeading>
                 <FormRow v-model="input.name" :error="errors.name">

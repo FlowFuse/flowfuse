@@ -36,7 +36,7 @@
                     </ff-button>
                 </template>
                 <template v-if="editEnabled || deleteEnabled" #context-menu="{row}">
-                    <ff-list-item :disabled="!editEnabled" label="Edit Details" @click="menuAction('edit', row.id)"/>
+                    <ff-list-item :disabled="!editEnabled" label="Edit Details" @click="menuAction('edit', row.id)" />
                     <ff-list-item :disabled="!deleteEnabled" kind="danger" label="Delete Token" @click="menuAction('delete', row.id)" />
                 </template>
                 <template v-if="tokens.size === 0" #table>
@@ -47,7 +47,7 @@
             </ff-data-table>
         </template>
     </div>
-    <CreateProvisioningTokenDialog ref="CreateProvisioningTokenDialog" :team="team" @token-creating="tokenCreating" @token-created="tokenCreated" @token-updated="tokenUpdated"/>
+    <CreateProvisioningTokenDialog ref="CreateProvisioningTokenDialog" :team="team" @token-creating="tokenCreating" @token-created="tokenCreated" @token-updated="tokenUpdated" />
     <ProvisioningCredentialsDialog ref="provisioningCredentialsDialog" :team="team" />
 </template>
 

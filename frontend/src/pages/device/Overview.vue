@@ -18,7 +18,7 @@
                 <tr class="border-b">
                     <td class="w-1/4 font-medium">Status</td>
                     <td class="py-2">
-                        <StatusBadge :status="device.status"/>
+                        <StatusBadge :status="device.status" />
                     </td>
                 </tr>
                 <tr class="border-b">

@@ -2,7 +2,7 @@
     <ff-dropdown v-if="team" class="ff-team-selection">
         <template #placeholder>
             <div class="flex grow items-center">
-                <img :src="team.avatar" class="ff-avatar"/>
+                <img :src="team.avatar" class="ff-avatar" />
                 <div class="ff-team-selection-name">
                     <label>TEAM:</label>
                     <h5>{{ team.name }}</h5>

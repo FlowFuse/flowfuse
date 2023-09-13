@@ -23,7 +23,7 @@
                 <ff-text-input ref="signup-email" v-model="input.email" data-form="signup-email" label="E-Mail Address" :error="errors.email" />
                 <span class="ff-error-inline">{{ errors.email }}</span>
                 <label>Password</label>
-                <ff-text-input ref="signup-password" v-model="input.password" data-form="signup-password" label="password" :error="errors.password" type="password"/>
+                <ff-text-input ref="signup-password" v-model="input.password" data-form="signup-password" label="password" :error="errors.password" type="password" />
                 <span class="ff-error-inline">{{ errors.password }}</span>
             </div>
             <div v-if="askJoinReason" class="pt-3">
