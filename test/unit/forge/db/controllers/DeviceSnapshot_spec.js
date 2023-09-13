@@ -1,8 +1,5 @@
-const crypto = require('crypto')
-
 const sinon = require('sinon')
 const should = require('should') // eslint-disable-line
-const { decryptCreds } = require('../../../../lib/credentials')
 const setup = require('../setup')
 
 describe('DeviceSnapshot controller', function () {
