@@ -7,6 +7,8 @@ navTitle: Local Install
 This version of the FlowForge platform is intended for running on a single machine
 for a smaller deployment (e.g. evaluation or home user).
 
+Note that the local install does not support HTTPS.
+
 ## Prerequisites
 
 ### Operating System
