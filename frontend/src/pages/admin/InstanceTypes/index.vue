@@ -26,8 +26,8 @@
         <SectionTopMenu hero="Inactive Types"></SectionTopMenu>
         <ff-data-table :columns="columns" :rows="inactiveInstanceTypes" data-el="inactive-types">
             <template #context-menu="{row}">
-                <ff-list-item label="Edit Instance Type" @click="instanceTypeAction('edit', row.id)"/>
-                <ff-list-item label="Delete Instance Type" kind="danger" @click="instanceTypeAction('delete', row.id)"/>
+                <ff-list-item label="Edit Instance Type" @click="instanceTypeAction('edit', row.id)" />
+                <ff-list-item label="Delete Instance Type" kind="danger" @click="instanceTypeAction('delete', row.id)" />
             </template>
         </ff-data-table>
         <div v-if="nextCursor">

@@ -1,7 +1,7 @@
 <template>
     <ff-dialog ref="dialog" :header="dialogTitle" :confirm-label="stack ? 'Save' : 'Create'" @confirm="confirm()" :disable-primary="!formValid || loading">
         <template #default>
-            <ff-loading v-if="loading" message="Creating Stack..."/>
+            <ff-loading v-if="loading" message="Creating Stack..." />
             <form v-else class="space-y-6" @submit.prevent>
                 <div v-if="input.replaces">
                     This will create a new stack to replace '{{ input.replaces.name }}'.

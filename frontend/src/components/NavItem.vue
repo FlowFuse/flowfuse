@@ -1,8 +1,8 @@
 <template>
     <li class="ff-nav-item">
         <div class="flex w-full justify-between items-center">
-            <component v-if="icon" :is="icon" class="transition-fade--color"/>
-            <img v-if="avatar" :src="avatar" class="ff-avatar"/>
+            <component v-if="icon" :is="icon" class="transition-fade--color" />
+            <img v-if="avatar" :src="avatar" class="ff-avatar" />
             <label class="transition-fade--color flex-grow">{{ label }}</label>
             <span v-if="featureUnavailable" data-el="premium-feature">
                 <SparklesIcon class="transition-fade--color hollow" style="stroke-width: 1;" />

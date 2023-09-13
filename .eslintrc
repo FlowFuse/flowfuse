@@ -223,51 +223,6 @@
         },
         {
             "rules": {
-                "vue/html-closing-bracket-spacing": "off"
-            },
-            "files": [
-                "frontend/src/components/audit-log/AuditEntryVerbose.vue",
-                "frontend/src/components/banners/TeamTrial.vue",
-                "frontend/src/components/DropdownMenu.vue",
-                "frontend/src/components/Loading.vue",
-                "frontend/src/components/Logo.vue",
-                "frontend/src/components/NavItem.vue",
-                "frontend/src/components/PageHeader.vue",
-                "frontend/src/components/SectionTopMenu.vue",
-                "frontend/src/components/tables/cells/InviteUserCell.vue",
-                "frontend/src/components/tables/cells/TeamCell.vue",
-                "frontend/src/components/tables/cells/UserCell.vue",
-                "frontend/src/components/TeamSelection.vue",
-                "frontend/src/layouts/Platform.vue",
-                "frontend/src/pages/account/AccessRequest.vue",
-                "frontend/src/pages/account/AccessRequestEditor.vue",
-                "frontend/src/pages/account/Create.vue",
-                "frontend/src/pages/account/index.vue",
-                "frontend/src/pages/account/Teams/Invitations.vue",
-                "frontend/src/pages/admin/InstanceTypes/index.vue",
-                "frontend/src/pages/admin/Settings/General.vue",
-                "frontend/src/pages/admin/Settings/index.vue",
-                "frontend/src/pages/admin/Settings/SSO/createEditProvider.vue",
-                "frontend/src/pages/admin/Settings/SSO/index.vue",
-                "frontend/src/pages/admin/Stacks/dialogs/AdminStackEditDialog.vue",
-                "frontend/src/pages/admin/Stacks/index.vue",
-                "frontend/src/pages/admin/Templates/index.vue",
-                "frontend/src/pages/admin/Users/createUser.vue",
-                "frontend/src/pages/admin/Users/General.vue",
-                "frontend/src/pages/admin/Users/index.vue",
-                "frontend/src/pages/admin/Users/Invitations.vue",
-                "frontend/src/pages/admin/Users/UserDetails.vue",
-                "frontend/src/pages/device/Overview.vue",
-                "frontend/src/pages/device/Settings/Danger.vue",
-                "frontend/src/pages/team/components/LibraryEntryTypeIcon.vue",
-                "frontend/src/pages/team/create.vue",
-                "frontend/src/pages/team/Settings/Danger.vue",
-                "frontend/src/pages/team/Settings/Devices.vue",
-                "frontend/src/pages/team/Settings/General.vue"
-            ]
-        },
-        {
-            "rules": {
                 "vue/html-self-closing": "off"
             },
             "files": [

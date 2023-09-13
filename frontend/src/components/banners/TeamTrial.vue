@@ -10,7 +10,7 @@
         data-el="banner-team-trial"
         @click="navigateToBilling"
     >
-        <span >
+        <span>
             <ExclamationCircleIcon class="ff-icon mr-2" />
             <span v-if="!team.billing?.trialEnded">
                 You have <span class="font-bold">{{ trialEndsIn }} left</span> of your free trial.

@@ -1,5 +1,5 @@
 <template>
-    <ff-loading v-if="loading" message="Saving Settings..."/>
+    <ff-loading v-if="loading" message="Saving Settings..." />
     <div v-else class="space-y-4">
         <FormHeading>Users</FormHeading>
         <FormRow v-model="input['user:signup']" data-el="enable-signup" type="checkbox" :error="errors.requiresEmail" :disabled="!!errors.requiresEmail">
@@ -104,7 +104,7 @@
         </FormRow>
         <ff-dialog ref="enablePlatformStatsToken" header="Allow token-based access to platform statistics">
             <template #default>
-                <ff-loading v-if="platformStatsTokenGenerating" message="Generating token..."/>
+                <ff-loading v-if="platformStatsTokenGenerating" message="Generating token..." />
                 <template v-else>
                     <p>The following token can be used to access the platform statistics api.</p>
                     <code class="block my-2">{{ platformStatsToken }}</code>

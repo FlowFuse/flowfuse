@@ -25,7 +25,7 @@
     <ff-dialog v-if="hasInfoDialog" ref="help-dialog" class="ff-dialog-box--info" :header="helpHeader || 'FlowFuse Info'">
         <template #default>
             <div class="flex gap-8">
-                <slot name="pictogram"><img src="../images/pictograms/node_catalog_red.png"/></slot>
+                <slot name="pictogram"><img src="../images/pictograms/node_catalog_red.png" /></slot>
                 <div><slot name="helptext"></slot></div>
             </div>
         </template>

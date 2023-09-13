@@ -17,8 +17,8 @@
             </ff-button>
         </template>
         <template #context-menu="{row}">
-            <ff-list-item label="Edit Properties" @click.stop="providerSelected(row)"/>
-            <ff-list-item label="Delete SAML Configuration" kind="danger" @click.stop="deleteProvider(row)"/>
+            <ff-list-item label="Edit Properties" @click.stop="providerSelected(row)" />
+            <ff-list-item label="Delete SAML Configuration" kind="danger" @click.stop="deleteProvider(row)" />
         </template>
     </ff-data-table>
 </template>

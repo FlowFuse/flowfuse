@@ -4,7 +4,7 @@
             <div class="text-right"></div>
             <ff-data-table :columns="inviteColumns" :rows="invitations" :show-search="true" search-placeholder="Search Invites...">
                 <template #context-menu="{row}">
-                    <ff-list-item label="Remove Invite" kind="danger" @click="removeInvite(row)"/>
+                    <ff-list-item label="Remove Invite" kind="danger" @click="removeInvite(row)" />
                 </template>
             </ff-data-table>
         </div>

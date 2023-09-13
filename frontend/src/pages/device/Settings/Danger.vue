@@ -9,7 +9,7 @@
         </div>
         <div class="min-w-fit flex-shrink-0">
             <ff-button kind="danger" @click="showConfirmDeleteDialog()">Delete Device</ff-button>
-            <ConfirmDeviceDeleteDialog @delete-device="deleteDevice()" ref="confirmDeviceDeleteDialog"/>
+            <ConfirmDeviceDeleteDialog @delete-device="deleteDevice()" ref="confirmDeviceDeleteDialog" />
         </div>
     </div>
 </template>

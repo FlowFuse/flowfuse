@@ -20,9 +20,9 @@
                 </ff-button>
             </template>
             <template #context-menu="{row}">
-                <ff-list-item label="Create New Version" @click="stackAction('createNewVersion', row.id)"/>
-                <ff-list-item label="Edit Properties" @click="stackAction('editProperties', row.id)"/>
-                <ff-list-item label="Delete Stack" kind="danger" @click="stackAction('delete', row.id)"/>
+                <ff-list-item label="Create New Version" @click="stackAction('createNewVersion', row.id)" />
+                <ff-list-item label="Edit Properties" @click="stackAction('editProperties', row.id)" />
+                <ff-list-item label="Delete Stack" kind="danger" @click="stackAction('delete', row.id)" />
             </template>
         </ff-data-table>
         <div v-if="nextActiveCursor">
@@ -40,16 +40,16 @@
             no-data-message="No Inactive Stacks Found"
         >
             <template #context-menu="{row}">
-                <ff-list-item label="Create New Version" @click="stackAction('createNewVersion', row.id)"/>
-                <ff-list-item label="Edit Properties" @click="stackAction('editProperties', row.id)"/>
-                <ff-list-item label="Delete Stack" kind="danger" @click="stackAction('delete', row.id)"/>
+                <ff-list-item label="Create New Version" @click="stackAction('createNewVersion', row.id)" />
+                <ff-list-item label="Edit Properties" @click="stackAction('editProperties', row.id)" />
+                <ff-list-item label="Delete Stack" kind="danger" @click="stackAction('delete', row.id)" />
             </template>
         </ff-data-table>
         <div v-if="nextInactiveCursor">
             <a v-if="!loadingInactive" @click.stop="loadInactiveItems" class="forge-button-inline" data-action="load-more-inactive">Load more...</a>
         </div>
     </div>
-    <AdminStackEditDialog @stack-created="stackCreated" @stack-updated="stackUpdated" ref="adminStackEditDialog"/>
+    <AdminStackEditDialog @stack-created="stackCreated" @stack-updated="stackUpdated" ref="adminStackEditDialog" />
 </template>
 
 <script>
