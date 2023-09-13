@@ -1,6 +1,6 @@
 <template>
     <SectionTopMenu hero="Admin Settings" />
-    <div class="grid grid-cols-4 gap-4 text-gray-700">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-gray-700">
         <div class="border rounded px-4 py-2 text-center">
             <router-link to="/admin/users/general">
                 <div class="text-xl">{{ stats.userCount }}/{{ stats.maxUsers }}</div>
@@ -31,7 +31,7 @@
             <div class="text-xl">{{ stats.deviceCount }}/{{ stats.maxDevices }}</div>
             <div>{{ $filters.pluralize(stats.deviceCount,'Device') }}</div>
         </div>
-        <div class="border rounded p-4 col-span-4">
+        <div class="border rounded p-4 col-span-2 md:col-span-4">
             <div class="text-xl mb-1 border-b">License</div>
             <table v-if="license">
                 <tr><td class="font-medium p-2 pr-4 align-top">Type</td><td class="p-2"><span v-if="!license.dev">FlowFuse Enterprise Edition</span><span v-else class="font-bold">FlowFuse Development Only</span></td></tr>
@@ -44,7 +44,7 @@
                 </table>
             </div>
         </div>
-        <div class="border rounded p-4 col-span-4">
+        <div class="border rounded p-4 col-span-2 md:col-span-4">
             <div class="text-xl mb-1 border-b">Version</div>
             <table>
                 <tr><td class="font-medium p-2 pr-4 align-top">Forge Application</td><td class="p-2">{{ settings['version:forge'] }}</td></tr>
