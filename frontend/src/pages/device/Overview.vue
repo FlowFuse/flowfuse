@@ -153,7 +153,7 @@
                     </td>
                     <td class="w-1/4 md:w-1/3">&nbsp;</td>
                 </tr>
-                <tr class="border-b" v-if="deviceOwnerType==='instance'">
+                <tr class="border-b">
                     <td class="w-1/4 font-medium">Device Flows</td>
                     <td class="w-28 font-medium">&nbsp;</td>
                     <td class="py-2">

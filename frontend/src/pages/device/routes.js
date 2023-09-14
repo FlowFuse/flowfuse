@@ -4,6 +4,7 @@ import DeviceSettingsDanger from './Settings/Danger.vue'
 import DeviceSettingsEnvironment from './Settings/Environment.vue'
 import DeviceSettingsGeneral from './Settings/General.vue'
 import DeviceSettings from './Settings/index.vue'
+import DeviceSnapshots from './Snapshots/index.vue'
 
 import Device from './index.vue'
 
@@ -40,6 +41,14 @@ export default [
                 component: DeviceLogs,
                 meta: {
                     title: 'Device - Logs'
+                }
+            },
+            {
+                path: 'snapshots',
+                name: 'DeviceSnapshots',
+                component: DeviceSnapshots,
+                meta: {
+                    title: 'Device - Snapshots'
                 }
             }
         ]

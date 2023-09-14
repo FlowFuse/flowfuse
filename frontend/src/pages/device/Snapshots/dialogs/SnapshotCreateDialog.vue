@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" header="Create Snapshot" confirm-label="Create" :disable-primary="!formValid" :closeOnConfirm="false" @confirm="confirm()" @cancel="cancel">
+    <ff-dialog ref="dialog" header="Create Snapshot" confirm-label="Create" :disable-primary="!formValid" @confirm="confirm()">
         <template #default>
             <form class="space-y-6 mt-2" @submit.prevent>
                 <FormRow v-model="input.name" :error="errors.name" data-form="snapshot-name">Name</FormRow>
@@ -9,28 +9,26 @@
                         <textarea v-model="input.description" rows="8" class="ff-input ff-text-input" style="height: auto" />
                     </template>
                 </FormRow>
-                <FormRow v-model="input.setAsTarget" type="checkbox" data-form="snapshot-name">
+                <!-- <FormRow v-model="input.setAsTarget" type="checkbox" data-form="snapshot-name">
                     <span v-ff-tooltip:right="'If checked, all devices assigned to this instance will be restarted on this snapshot.'" class="">
                         Set as Target <QuestionMarkCircleIcon class="ff-icon" style="margin: 0px 0px 0px 4px; height: 18px;" />
                     </span>
-                </FormRow>
+                </FormRow> -->
             </form>
         </template>
     </ff-dialog>
 </template>
 <script>
 
-import { QuestionMarkCircleIcon } from '@heroicons/vue/solid'
+import deviceApi from '../../../../api/devices.js'
 
-import deviceApi from '../../../api/devices.js'
-
-import FormRow from '../../../components/FormRow.vue'
+import FormRow from '../../../../components/FormRow.vue'
+import alerts from '../../../../services/alerts.js'
 
 export default {
     name: 'SnapshotCreateDialog',
     components: {
-        FormRow,
-        QuestionMarkCircleIcon
+        FormRow
     },
     props: {
         device: {
@@ -38,7 +36,7 @@ export default {
             required: true
         }
     },
-    emits: ['device-upload-failed', 'device-upload-success', 'canceled'],
+    emits: ['snapshot-created'],
     setup () {
         return {
             show () {
@@ -63,9 +61,6 @@ export default {
         }
     },
     computed: {
-        instance () {
-            return this.device?.instance
-        },
         formValid () {
             return !this.submitted && !!(this.input.name)
         }
@@ -78,22 +73,23 @@ export default {
                 this.submitted = true
                 const opts = {
                     name: this.input.name,
-                    description: this.input.description,
-                    setAsTarget: this.input.setAsTarget
+                    description: this.input.description
+                    // setAsTarget: this.input.setAsTarget
                 }
                 deviceApi.createSnapshot(this.device, opts).then((response) => {
-                    this.$emit('device-upload-success', response)
-                    this.$refs.dialog.close()
+                    this.$emit('snapshot-created', response)
+                    alerts.emit('Successfully created snapshot of device.', 'confirmation')
                 }).catch(err => {
-                    this.$emit('device-upload-failed', err)
-                }).finally(() => {
-                    this.submitted = false
+                    console.error(err.response?.data)
+                    if (err.response?.data) {
+                        if (/name/.test(err.response.data.error)) {
+                            this.errors.name = err.response.data.error
+                            return
+                        }
+                    }
+                    alerts.emit('Failed to create snapshot of device.', 'error')
                 })
             }
-        },
-        cancel () {
-            this.$refs.dialog.close()
-            this.$emit('canceled')
         }
     }
 }

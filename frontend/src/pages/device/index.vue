@@ -96,7 +96,8 @@ export default {
     data: function () {
         const navigation = [
             { label: 'Overview', to: `/device/${this.$route.params.id}/overview`, tag: 'device-overview' },
-            // { label: 'Device Logs', path: `/device/${this.$route.params.id}/logs`, tag: 'device-logs', icon: TerminalIcon },
+            // snapshots - added in mounted, if device is owned by an application,
+            // device logs - added in mounted, if project comms is enabled,
             { label: 'Settings', to: `/device/${this.$route.params.id}/settings`, tag: 'device-settings' }
         ]
 
@@ -132,10 +133,10 @@ export default {
             return this.device.editor?.url || ''
         }
     },
-    mounted () {
-        this.checkFeatures()
+    async mounted () {
         this.mounted = true
-        this.loadDevice()
+        await this.loadDevice()
+        this.checkFeatures()
     },
     methods: {
         loadDevice: async function () {
@@ -150,6 +151,13 @@ export default {
                     to: `/device/${this.$route.params.id}/logs`,
                     tag: 'device-logs',
                     icon: TerminalIcon
+                })
+            }
+            if (this.device?.ownerType === 'application') {
+                this.navigation.splice(1, 0, {
+                    label: 'Snapshots',
+                    to: `/device/${this.$route.params.id}/snapshots`,
+                    tag: 'device-snapshots'
                 })
             }
         },

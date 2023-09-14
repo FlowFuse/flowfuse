@@ -352,7 +352,9 @@ module.exports = async function (app) {
                         'team:projects:list',
                         'project:read',
                         'project:snapshot:list',
-                        'project:snapshot:create'
+                        'project:snapshot:create',
+                        'device:snapshot:list',
+                        'device:snapshot:create'
                     ],
                     true
                 )
