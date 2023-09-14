@@ -134,9 +134,6 @@ module.exports.init = async function (app) {
         },
 
         removeProject: async (team, project) => {
-            // Update state so it gets removed from the billing counts
-            project.state = 'deleting'
-            await project.save()
             return app.billing.updateTeamInstanceCount(team)
         },
         /**

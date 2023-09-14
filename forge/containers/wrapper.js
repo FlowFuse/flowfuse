@@ -153,7 +153,10 @@ module.exports = {
         if (this._driver.remove) {
             await this._driver.remove(project)
         }
-        if (!project.state !== 'suspended') {
+        if (project.state !== 'suspended') {
+            // Update state so it gets removed from the billing counts
+            project.state = 'deleting'
+            await project.save()
             // Only updated billing if the project isn't already suspended
             if (this._isBillingEnabled()) {
                 await this._subscriptionHandler.removeProject(project)
