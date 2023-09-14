@@ -39,6 +39,7 @@
                     <tr v-if="inspectedLicense.dev"><td class="font-medium p-2 pr-4 align-top" colspan="2">Development-mode Only</td></tr>
                     <tr><td class="font-medium p-2 pr-4 align-top">License ID</td><td class="p-2">{{ inspectedLicense.id }}</td></tr>
                     <tr><td class="font-medium p-2 pr-4 align-top">Organisation</td><td class="p-2">{{ inspectedLicense.organisation }}</td></tr>
+                    <tr><td class="font-medium p-2 pr-4 align-top">Tier</td><td class="p-2">{{ inspectedLicense.tier }}</td></tr>
                     <tr><td class="font-medium p-2 pr-4 align-top">Expires</td><td class="p-2">{{ inspectedLicense.expires }}<br><span class="text-xs">{{ inspectedLicense.expiresAt }}</span></td></tr>
                 </table>
                 <details><pre class="break-words">{{ inspectedLicense }}</pre></details>

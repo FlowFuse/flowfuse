@@ -54,6 +54,8 @@ const { v4: uuidv4 } = require('uuid')
                 replace: '*'
             })
 
+        const licenseTier = await promptly.choose('License tier (team*, enterprise): ', ['team', 'enterprise'], { default: 'team', trim: true })
+
         const licenseHolder = await promptly.prompt('License holder name: ')
 
         const maxUsers = parseInt(await promptly.prompt('Max allowed users: ', { default: '150' }))
@@ -102,7 +104,8 @@ const { v4: uuidv4 } = require('uuid')
             users: maxUsers,
             teams: maxTeams,
             projects: maxProjects,
-            devices: maxDevices
+            devices: maxDevices,
+            tier: licenseTier
         }
 
         if (devLicense) {
