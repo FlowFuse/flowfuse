@@ -339,6 +339,10 @@ describe('Billing', function () {
             stripe.subscriptions.update.resetHistory()
             stripe.subscriptionItems.update.resetHistory()
 
+            // Mark the project as deleting so it gets ignored by billing
+            app.project.state = 'deleting'
+            await app.project.save()
+
             await app.billing.removeProject(app.team, app.project)
 
             should.equal(stripe.subscriptionItems.update.calledOnce, true)
@@ -351,6 +355,10 @@ describe('Billing', function () {
         })
 
         it('removes a project from a Stripe subscription with existing invoice item for project type with quantity = 1', async function () {
+            // Mark the project as deleting so it gets ignored by billing
+            app.project.state = 'deleting'
+            await app.project.save()
+
             await app.billing.removeProject(app.team, app.project)
 
             should.equal(stripe.subscriptionItems.del.calledOnce, true)
@@ -399,6 +407,10 @@ describe('Billing', function () {
             await app.billing.addProject(app.team, instanceTwo)
             stripe.subscriptions.update.resetHistory()
             stripe.subscriptionItems.update.resetHistory()
+
+            // Mark the project as deleting so it gets ignored by billing
+            app.project.state = 'deleting'
+            await app.project.save()
 
             await app.billing.removeProject(app.team, app.project)
 
