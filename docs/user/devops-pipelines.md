@@ -25,13 +25,16 @@ any Instances you wish to include in the Pipeline before being able to add them 
 ## Creating a Pipeline
 
 1. Select the Application you want to configure a Pipeline for.
-2. Select the "DevOps Pipelines" tab
-3. Select "Add Pipeline"
-4. Name your pipeline appropriately (this can be changed later)
-5. Select "Add Stage"
-6. Define your Stage's name and the Instance associated to this Stage.
-7. Click "Add Stage"
-8. Repeat 5. - 7. for as many stages as you need.
+2. Ensure an instance is created for each stage you plan to create, e.g. development, QA, and production.
+   1. For the instance you want to duplicate go to the **Settings** tab
+   2. Click **Duplicate Instance** and provide the necessairy details
+4. Select the "DevOps Pipelines" tab
+5. Select "Add Pipeline"
+6. Name your pipeline appropriately (this can be changed later)
+7. Select "Add Stage"
+8. Define your Stage's name and the Instance associated to this Stage.
+9. Click "Add Stage"
+10. Repeat 5. - 7. for as many stages as you need.
 
 _Note: You cannot currently insert a Stage into the middle of a Pipeline, only at the end._
 
