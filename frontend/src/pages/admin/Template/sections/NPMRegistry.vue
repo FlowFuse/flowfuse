@@ -94,9 +94,8 @@ export default {
             return SemVer.satisfies(launcherVersion, '>=1.11.0')
         },
         obfuscated () {
-           if (this.editable.settings.palette_npmrc) {
+            if (this.editable.settings.palette_npmrc) {
                 const text = this.editable.settings.palette_npmrc.replace(/_authToken="(.*)"/g, '_authToken="xxxxxxx"')
-                console.log("ben", text)
                 return text
             } else {
                 return ''
