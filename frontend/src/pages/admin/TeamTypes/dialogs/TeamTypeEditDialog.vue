@@ -26,6 +26,7 @@
                         <FormRow v-model="input.properties.billing.priceId" :type="editDisabled?'uneditable':''">Price Id</FormRow>
                         <FormRow v-model="input.properties.billing.description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
                     </div>
+                    <FormRow v-model="input.properties.billing.proration" :options="prorationOptions" class="mb-4">Invoicing</FormRow>
                     <div class="space-y-2">
                         <FormRow v-model="input.properties.trial.active" type="checkbox" class="mb-4">Enable trial mode for personal teams</FormRow>
                         <div v-if="input.properties.trial.active" class="grid gap-2 grid-cols-3 pl-4">
@@ -156,6 +157,9 @@ export default {
                     if (this.input.properties.features.teamHttpSecurity === undefined) {
                         this.input.properties.features.teamHttpSecurity = true
                     }
+                    if (this.input.properties.billing.proration === undefined) {
+                        this.input.properties.billing.proration = 'always_invoice'
+                    }
                 } else {
                     this.editDisabled = false
                     this.input = {
@@ -194,6 +198,10 @@ export default {
             teamType: null,
             instanceTypes: [],
             trialInstanceTypes: [],
+            prorationOptions: [
+                { label: 'Generate invoice for each change', value: 'always_invoice' },
+                { label: 'Add proration items to monthly invoice', value: 'create_prorations' }
+            ],
             input: {
                 name: '',
                 active: true,

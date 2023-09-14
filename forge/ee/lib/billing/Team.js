@@ -187,6 +187,7 @@ module.exports = function (app) {
      * @returns 'always_invoice' | 'create_prorations'
      */
     app.db.models.Team.prototype.getBillingProrationBehavior = async function () {
+        await this.ensureTeamTypeExists()
         return this.TeamType.getProperty('billing.proration', 'always_invoice')
     }
 }
