@@ -77,10 +77,10 @@ export default {
             return this.editable?.settings.palette_allowInstall
         },
         catalogueEditable () {
-            return this.editable?.settings.palette_catalogue
+            return this.editable?.policy.palette_catalogue
         },
         npmEditable () {
-            return this.editable?.settings.palette_npmrc
+            return this.editable?.policy.palette_npmrc
         }
     },
     watch: {

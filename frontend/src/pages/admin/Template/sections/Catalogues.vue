@@ -47,7 +47,7 @@
                     </template>
                 </FormRow>
             </div>
-            <ff-button size="small" :disabled="readOnly" @click="addDefault()">
+            <ff-button class="mt-2" size="small" :disabled="addDefaultEnabled" @click="addDefault()">
                 Add Default
                 <template #icon>
                     <PlusSmIcon />
@@ -130,6 +130,13 @@ export default {
             }
             // TODO needs to semver >= 1.12.0
             return SemVer.satisfies(launcherVersion, '>=1.11.0')
+        },
+        addDefaultEnabled () {
+            if (this.readOnly) {
+                return true
+            } else {
+                return this.urls.includes('https://catalogue.nodered.org/catalogue.json')
+            }
         }
     },
     watch: {
