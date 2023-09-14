@@ -205,10 +205,31 @@ const updatePipeline = async (applicationId, pipeline) => {
         })
 }
 
+/**
+ * Get a list of all snapshots for an application (includes device and instance snapshots)
+ * @param {string} applicationId - The ID of application to get snapshots for
+ * @param {string} cursor
+ * @param {string} limit
+ */
+const getSnapshots = async (applicationId, cursor, limit) => {
+    // TODO: UNTESTED / UNUSED as of writing
+    const url = paginateUrl(`/api/v1/applications/${applicationId}/snapshots`, cursor, limit)
+    const res = await client.get(url)
+
+    res.data.devices = res.data.devices.map((item) => {
+        item.createdSince = daysSince(item.createdAt)
+        item.updatedSince = daysSince(item.updatedAt)
+        return item
+    })
+
+    return res.data
+}
+
 export default {
     createApplication,
     updateApplication,
     deleteApplication,
+    getSnapshots,
     getApplication,
     getApplicationDevices,
     getApplicationInstances,
