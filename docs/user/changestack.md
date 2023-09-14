@@ -17,8 +17,8 @@ the platform will notify you that there is a new version available.
 
 To change an instance's stack:
 
-1. Go to the instance's page and select **Settings** in the sidebar.
-2. Click the **Change Instance Stack** button
+1. Go to the instance's page and select the **Settings** tab.
+2. Click the **Change Instance Stack** button.
 3. You will be prompted to select the new stack.
 4. Click **Change Stack**
 
