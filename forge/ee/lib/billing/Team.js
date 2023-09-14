@@ -181,4 +181,13 @@ module.exports = function (app) {
         await app.billing.updateTeamDeviceCount(this)
         await app.billing.updateTeamInstanceCount(this)
     }
+
+    /**
+     * Get the desired proration behaviour when a subscription is modified.
+     * @returns 'always_invoice' | 'create_prorations'
+     */
+    app.db.models.Team.prototype.getBillingProrationBehavior = async function () {
+        await this.ensureTeamTypeExists()
+        return this.TeamType.getProperty('billing.proration', 'always_invoice')
+    }
 }
