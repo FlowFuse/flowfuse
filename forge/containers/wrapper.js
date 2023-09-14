@@ -150,14 +150,14 @@ module.exports = {
      * @returns {Promise} Resolves when the project has been stopped
      */
     remove: async (project) => {
-        if (project.state !== 'suspended') {
+        if (this._driver.remove) {
+            await this._driver.remove(project)
+        }
+        if (!project.state !== 'suspended') {
             // Only updated billing if the project isn't already suspended
             if (this._isBillingEnabled()) {
                 await this._subscriptionHandler.removeProject(project)
             }
-        }
-        if (this._driver.remove) {
-            await this._driver.remove(project)
         }
     },
     details: async (project) => {

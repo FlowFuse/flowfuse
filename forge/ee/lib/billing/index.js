@@ -134,6 +134,9 @@ module.exports.init = async function (app) {
         },
 
         removeProject: async (team, project) => {
+            // Update state so it gets removed from the billing counts
+            project.state = 'deleting'
+            await project.save()
             return app.billing.updateTeamInstanceCount(team)
         },
         /**
@@ -173,7 +176,7 @@ module.exports.init = async function (app) {
          * @param {Team} team
          */
         updateTeamInstanceCount: async (team) => {
-            const counts = await team.instanceCountByType({ state: { [Op.ne]: 'suspended' } })
+            const counts = await team.instanceCountByType({ state: { [Op.notIn]: ['suspended', 'deleting'] } })
             const subscription = await team.getSubscription()
             if (subscription && subscription.isActive()) {
                 const prorationBehavior = await team.getBillingProrationBehavior()
