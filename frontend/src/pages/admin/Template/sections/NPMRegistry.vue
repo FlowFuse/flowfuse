@@ -11,8 +11,15 @@
             </div>
         </div>
 
-        <FormRow>
+        <FormRow v-if="!readOnly">
             <template #input><textarea v-model="editable.settings.palette_npmrc" :disabled="readOnly" class="font-mono w-full max-w-md sm:mr-8" placeholder=".npmrc" rows="8" /></template>
+            <template #append>
+                <ChangeIndicator :value="editable.changed.settings.palette_npmrc" />
+                <LockSetting v-model="editable.policy.palette_npmrc" :editTemplate="editTemplate" :changed="editable.changed.policy.palette_npmrc" />
+            </template>
+        </FormRow>
+        <FormRow v-else>
+            <template #input><textarea v-model="obfuscated" :disabled="readOnly" class="font-mono w-full max-w-md sm:mr-8" placeholder=".npmrc" rows="8" /></template>
             <template #append>
                 <ChangeIndicator :value="editable.changed.settings.palette_npmrc" />
                 <LockSetting v-model="editable.policy.palette_npmrc" :editTemplate="editTemplate" :changed="editable.changed.policy.palette_npmrc" />
@@ -85,6 +92,15 @@ export default {
             }
             // TODO needs to semver >= 1.12.0
             return SemVer.satisfies(launcherVersion, '>=1.11.0')
+        },
+        obfuscated () {
+           if (this.editable.settings.palette_npmrc) {
+                const text = this.editable.settings.palette_npmrc.replace(/_authToken="(.*)"/g, '_authToken="xxxxxxx"')
+                console.log("ben", text)
+                return text
+            } else {
+                return ''
+            }
         }
     },
     watch: {
