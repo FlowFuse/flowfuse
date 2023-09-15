@@ -1,3 +1,17 @@
+#### 1.11.3: Release
+
+ - Update localfs to latest (backport #2762) (#2763) @app/github-actions
+ - Snapshots: "extract full project snapshot" API (backport #2462) (#2761) @knolleary
+ - Add invoice proration option to TeamType (backport #2758) (#2760) @app/github-actions
+ - Fix create TeamType dialog (backport #2743) (#2754) @app/github-actions
+ - docs: settings is a tab, not a menu item (backport #2751) (#2752) @app/github-actions
+ - Allow admin to create application/instances (backport #2744) (#2749) @app/github-actions
+ - Fix Admin Overview layout on small screens (backport #2747) (#2748) @app/github-actions
+ - docs: \"currently\" support HTTPS for local (backport #2741) (#2742) @app/github-actions
+ - docs: LocalFS doesn't support HTTPS (backport #2739) (#2740) @app/github-actions
+ - Introduce ctrlX guides for docs (backport #2733) (#2735) @app/github-actions
+ - Add getting started guide (backport #2723) (#2724) @app/github-actions
+
 #### 1.11.2: Release
 
  - Update websocket close codes to proper range (backport #2711) (#2713) @app/github-actions
