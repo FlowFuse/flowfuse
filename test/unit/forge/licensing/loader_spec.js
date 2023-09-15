@@ -14,6 +14,7 @@ describe('License Loader', function () {
         const licenseDetails = await licensing.verifyLicense(TEST_LICENSE)
         licenseDetails.should.have.property('organisation', 'Acme Customer')
         licenseDetails.expired.should.false()
+        console.log(licenseDetails)
     })
     it('should load a newer license with id', async function () {
         // {
@@ -79,5 +80,10 @@ describe('License Loader', function () {
         const TEST_LICENSE = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjJmZjAwMjJiLTAwOGMtNDI3OS1hNWU5LTEwOTI2YTNhNWNjMCIsImlzcyI6IkZsb3dGb3JnZSBJbmMuIiwic3ViIjoiRmxvd0ZvcmdlIEluYy4iLCJuYmYiOjE2OTQ2NDk2MDAsImV4cCI6MzI1MDM2ODAwMDAsIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjo1MCwidGllciI6ImVudGVycHJpc2UiLCJkZXYiOnRydWUsImlhdCI6MTY5NDcwMTM3Nn0.3Gtyr0axCR2LcBUFAJgDwfIjhLEBbd91rHiGpePHl_oBab9Y6f3osPK6xBtR5ZnRwuSg6XuTp6xc7bQtdONKmA'
         const licenseDetails = await licensing.verifyLicense(TEST_LICENSE)
         licenseDetails.should.have.property('tier', 'enterprise')
+    })
+    it('should load teams tier license', async function () {
+        const TEST_LICENSE = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQyOWE5ZjM1LTA3ZmMtNDlmYy1iNGY5LTA3MjY0ZGQxOTE2MCIsImlzcyI6IkZsb3dGb3JnZSBJbmMuIiwic3ViIjoiRmxvd0ZvcmdlIEluYy4iLCJuYmYiOjE2OTQ2NDk2MDAsImV4cCI6MzI1MDM2ODAwMDAsIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjo1MCwidGllciI6InRlYW1zIiwiZGV2Ijp0cnVlLCJpYXQiOjE2OTQ3MDExNzh9.ENcnQ-_c-sBGmEAQjiLbt5rIBRVCFBeLj2uZYXrGRoJ3JY7XL5r12KCNAW12BiMkTVqvCVnsRIA3lyQz-yteKA'
+        const licenseDetails = await licensing.verifyLicense(TEST_LICENSE)
+        licenseDetails.should.have.property('tier', 'teams')
     })
 })
