@@ -14,7 +14,6 @@ describe('License Loader', function () {
         const licenseDetails = await licensing.verifyLicense(TEST_LICENSE)
         licenseDetails.should.have.property('organisation', 'Acme Customer')
         licenseDetails.expired.should.false()
-        console.log(licenseDetails)
     })
     it('should load a newer license with id', async function () {
         // {
