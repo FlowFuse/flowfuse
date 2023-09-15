@@ -83,6 +83,9 @@ module.exports = {
                 },
                 async imported (actionedBy, error, project, sourceProject, snapshot) {
                     await log('project.snapshot.imported', actionedBy, project?.id, generateBody({ error, project, sourceProject, snapshot }))
+                },
+                async exported (actionedBy, error, project, snapshot) {
+                    await log('project.snapshot.exported', actionedBy, project?.id, generateBody({ error, project, snapshot }))
                 }
             }
         }
