@@ -93,17 +93,20 @@ module.exports.init = function (app) {
     }
 
     async function sendTrialEmail (team, template, inserts) {
-        const owners = await team.getOwners()
-        for (const user of owners) {
-            await app.postoffice.send(
-                user,
-                template,
-                {
-                    username: user.name,
-                    teamName: team.name,
-                    ...inserts
-                }
-            )
+        const teamType = await team.getTeamType()
+        if (await teamType.getProperty('trial.sendEmail', true)) {
+            const owners = await team.getOwners()
+            for (const user of owners) {
+                await app.postoffice.send(
+                    user,
+                    template,
+                    {
+                        username: user.name,
+                        teamName: team.name,
+                        ...inserts
+                    }
+                )
+            }
         }
     }
 

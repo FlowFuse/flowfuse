@@ -29,6 +29,7 @@
                     <FormRow v-model="input.properties.billing.proration" :options="prorationOptions" class="mb-4">Invoicing</FormRow>
                     <div class="space-y-2">
                         <FormRow v-model="input.properties.trial.active" type="checkbox" class="mb-4">Enable trial mode for personal teams</FormRow>
+                        <FormRow v-if="input.properties.trial.active" v-model="input.properties.trial.sendEmail" type="checkbox" class="pl-4 mb-4">Send trial emails</FormRow>
                         <div v-if="input.properties.trial.active" class="grid gap-2 grid-cols-3 pl-4">
                             <FormRow v-model="input.properties.trial.duration" :type="editDisabled?'uneditable':''" placeholder="days">Duration</FormRow>
                             <div class="col-span-2">
@@ -159,6 +160,9 @@ export default {
                     }
                     if (this.input.properties.billing.proration === undefined) {
                         this.input.properties.billing.proration = 'always_invoice'
+                    }
+                    if (this.input.properties.trial.active && this.input.properties.trial.sendEmail === undefined) {
+                        this.input.properties.trial.sendEmail = true
                     }
                 } else {
                     this.editDisabled = false
