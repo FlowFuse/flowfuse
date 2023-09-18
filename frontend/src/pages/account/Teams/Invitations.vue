@@ -18,7 +18,12 @@ import TeamCell from '../../../components/tables/cells/TeamCell.vue'
 
 export default {
     name: 'UserInviteTable',
-    props: ['user'],
+    props: {
+        user: {
+            default: null,
+            type: Object
+        }
+    },
     emits: ['invites-updated'],
     data () {
         return {

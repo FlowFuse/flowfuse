@@ -1,5 +1,5 @@
 <template>
-    <div class="text-right mb-4" v-if="settings['team:create']"><CreateTeamButton /></div>
+    <div v-if="settings['team:create']" class="text-right mb-4"><CreateTeamButton /></div>
     <ff-data-table :columns="columns" :rows="teams">
         <template #context-menu="{row}">
             <ff-list-item data-action="member-remove-from-team" label="Leave Team" kind="danger" @click="removeUserDialog(row)" />
@@ -21,12 +21,6 @@ import CreateTeamButton from '../components/CreateTeamButton.vue'
 
 export default {
     name: 'AccountTeams',
-    computed: {
-        ...mapState('account', ['user', 'teams', 'settings']),
-        teamCount () {
-            return this.teams ? this.teams.length : 0
-        }
-    },
     components: {
         CreateTeamButton
     },
@@ -38,6 +32,12 @@ export default {
                 { label: 'Members', key: 'memberCount', class: ['w-32', 'text-center'] },
                 { label: 'Role', key: 'roleName', class: ['w-40'] }
             ]
+        }
+    },
+    computed: {
+        ...mapState('account', ['user', 'teams', 'settings']),
+        teamCount () {
+            return this.teams ? this.teams.length : 0
         }
     },
     methods: {

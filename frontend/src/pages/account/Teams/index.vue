@@ -3,7 +3,7 @@
         <div class="flex flex-col sm:flex-row">
             <SectionSideMenu :options="sideNavigation" />
             <div class="flex-grow">
-                <router-view></router-view>
+                <router-view />
             </div>
         </div>
     </template>
@@ -22,14 +22,14 @@ export default {
     components: {
         SectionSideMenu
     },
-    computed: {
-        ...mapState('account', ['user', 'teams']),
-        ...mapGetters('account', ['notifications'])
-    },
     data () {
         return {
             sideNavigation: []
         }
+    },
+    computed: {
+        ...mapState('account', ['user', 'teams']),
+        ...mapGetters('account', ['notifications'])
     },
     watch: {
         notifications: {

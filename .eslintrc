@@ -23,7 +23,7 @@
                 "promptly",
                 "lottie-web-vue",
                 "@heroicons/vue"
-            ],
+            ]
         }
     },
     "rules": {
@@ -94,7 +94,7 @@
             "rules": {
                 "vue/component-definition-name-casing": ["error", "kebab-case"],
                 "vue/first-attribute-linebreak": "off",
-                "vue/html-self-closing": "off",
+                "vue/html-self-closing": "off"
             }
         },
 
@@ -184,7 +184,6 @@
                 "frontend/src/components/PageHeader.vue",
                 "frontend/src/components/SectionTopMenu.vue",
                 "frontend/src/components/TeamSelection.vue",
-                "frontend/src/pages/account/Teams/Teams.vue",
                 "frontend/src/pages/admin/InstanceTypes/dialogs/InstanceTypeEditDialog.vue",
                 "frontend/src/pages/admin/InstanceTypes/index.vue",
                 "frontend/src/pages/admin/Stacks/dialogs/AdminStackEditDialog.vue",
@@ -242,13 +241,6 @@
                 "frontend/src/components/TeamSelection.vue",
                 "frontend/src/layouts/Box.vue",
                 "frontend/src/layouts/Platform.vue",
-                "frontend/src/pages/account/AccessRequest.vue",
-                "frontend/src/pages/account/AccessRequestEditor.vue",
-                "frontend/src/pages/account/Create.vue",
-                "frontend/src/pages/account/ForgotPassword.vue",
-                "frontend/src/pages/account/index.vue",
-                "frontend/src/pages/account/Security.vue",
-                "frontend/src/pages/account/Teams/index.vue",
                 "frontend/src/pages/admin/index.vue",
                 "frontend/src/pages/admin/InstanceTypes/components/InstanceTypeDescriptionCell.vue",
                 "frontend/src/pages/admin/InstanceTypes/dialogs/InstanceTypeEditDialog.vue",
@@ -299,18 +291,6 @@
                 "frontend/src/components/SectionTopMenu.vue",
                 "frontend/src/components/tables/cells/InviteUserCell.vue",
                 "frontend/src/components/TeamSelection.vue",
-                "frontend/src/pages/account/AccessRequest.vue",
-                "frontend/src/pages/account/AccessRequestEditor.vue",
-                "frontend/src/pages/account/Create.vue",
-                "frontend/src/pages/account/ForgotPassword.vue",
-                "frontend/src/pages/account/index.vue",
-                "frontend/src/pages/account/NoTeamsUser.vue",
-                "frontend/src/pages/account/PasswordReset.vue",
-                "frontend/src/pages/account/Security/ChangePassword.vue",
-                "frontend/src/pages/account/Settings.vue",
-                "frontend/src/pages/account/Teams/index.vue",
-                "frontend/src/pages/account/Teams/Teams.vue",
-                "frontend/src/pages/account/VerifyEmail.vue",
                 "frontend/src/pages/admin/index.vue",
                 "frontend/src/pages/admin/InstanceTypes/dialogs/InstanceTypeEditDialog.vue",
                 "frontend/src/pages/admin/InstanceTypes/index.vue",
@@ -377,8 +357,6 @@
                 "frontend/src/components/tables/cells/TeamTypeCell.vue",
                 "frontend/src/components/tables/cells/UserCell.vue",
                 "frontend/src/components/tables/cells/UserRoleCell.vue",
-                "frontend/src/pages/account/Teams/Invitations.vue",
-                "frontend/src/pages/account/VerifyEmail.vue",
                 "frontend/src/pages/admin/InstanceTypes/components/InstanceTypeDescriptionCell.vue",
                 "frontend/src/pages/admin/Stacks/components/StackPropertiesCell.vue",
                 "frontend/src/pages/admin/Template/components/ChangeIndicator.vue",
