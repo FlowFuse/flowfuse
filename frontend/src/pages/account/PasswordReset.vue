@@ -27,6 +27,10 @@ import alerts from '../../services/alerts.js'
 
 export default {
     name: 'PasswordRequest',
+    components: {
+        'ff-layout-box': FFLayoutBox,
+        FormRow
+    },
     data () {
         return {
             input: {
@@ -40,6 +44,7 @@ export default {
             complete: false
         }
     },
+    computed: mapState('account', ['settings', 'pending']),
     methods: {
         resetPassword () {
             this.errors.password = ''
@@ -70,11 +75,6 @@ export default {
                 console.error(e)
             })
         }
-    },
-    computed: mapState('account', ['settings', 'pending']),
-    components: {
-        'ff-layout-box': FFLayoutBox,
-        FormRow
     }
 }
 </script>

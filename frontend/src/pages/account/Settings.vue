@@ -46,7 +46,10 @@ import dialog from '../../services/dialog.js'
 
 export default {
     name: 'AccountSettings',
-
+    components: {
+        FormRow,
+        FormHeading
+    },
     data () {
         const currentUser = this.$store.getters['account/user']
         const teams = this.$store.getters['account/teams']
@@ -74,6 +77,17 @@ export default {
             defaultTeamName,
             changed: {},
             teams: teamOptions
+        }
+    },
+    computed: {
+        formValid () {
+            return (this.changed.name || this.changed.username || this.changed.email || this.changed.defaultTeam) &&
+                   (!this.emailEditingEnabled || (this.input.email && !this.errors.email)) &&
+                   (this.input.username && !this.errors.username) &&
+                   (this.input.name && !this.errors.name)
+        },
+        emailEditingEnabled () {
+            return this.editing && !this.user.sso_enabled
         }
     },
     watch: {
@@ -204,21 +218,6 @@ export default {
                 }
             })
         }
-    },
-    computed: {
-        formValid () {
-            return (this.changed.name || this.changed.username || this.changed.email || this.changed.defaultTeam) &&
-                   (!this.emailEditingEnabled || (this.input.email && !this.errors.email)) &&
-                   (this.input.username && !this.errors.username) &&
-                   (this.input.name && !this.errors.name)
-        },
-        emailEditingEnabled () {
-            return this.editing && !this.user.sso_enabled
-        }
-    },
-    components: {
-        FormRow,
-        FormHeading
     }
 }
 </script>

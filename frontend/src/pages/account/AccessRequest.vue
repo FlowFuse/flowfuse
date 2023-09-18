@@ -8,7 +8,7 @@
                 <KeyIcon class="w-8" />
                 <ArrowSmRightIcon class="w-8" />
                 <div class="ff-user">
-                    <img :src="user.avatar" class="ff-avatar-large" />
+                    <img :src="user.avatar" class="ff-avatar-large">
                 </div>
             </div>
         </div>
@@ -28,14 +28,14 @@ import { mapState } from 'vuex'
 
 export default {
     name: 'AccessRequest',
-    computed: {
-        ...mapState('account', ['user', 'team'])
-    },
     components: {
         TemplateIcon,
         KeyIcon,
         ArrowSmRightIcon,
         ArrowSmLeftIcon
+    },
+    computed: {
+        ...mapState('account', ['user', 'team'])
     },
     methods: {
         allowAccess () {
