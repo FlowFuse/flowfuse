@@ -3,7 +3,7 @@
         <SideNavigation>
             <template #back>
                 <router-link :to="{name: 'AdminUsersGeneral'}">
-                    <nav-item :icon="icons.chevronLeft" label="Back to Users"></nav-item>
+                    <nav-item :icon="icons.chevronLeft" label="Back to Users" />
                 </router-link>
             </template>
         </SideNavigation>
@@ -15,8 +15,8 @@
                 <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
                 <FormRow v-model="input.name" :placeholder="input.username" :error="errors.name">Full Name</FormRow>
                 <FormRow v-model="input.email" :error="errors.email">Email</FormRow>
-                <FormRow type="password" :error="errors.password" v-model="input.password" id="password" :onBlur="checkPassword">Password</FormRow>
-                <FormRow type="password" :error="errors.password_confirm" v-model="input.password_confirm" id="password_confirm">Confirm Password</FormRow>
+                <FormRow id="password" v-model="input.password" type="password" :error="errors.password" :onBlur="checkPassword">Password</FormRow>
+                <FormRow id="password_confirm" v-model="input.password_confirm" type="password" :error="errors.password_confirm">Confirm Password</FormRow>
                 <FormRow id="isAdmin" v-model="input.isAdmin" type="checkbox">Administrator</FormRow>
                 <FormHeading>Team options</FormHeading>
                 <FormRow id="createDefaultTeam" v-model="input.createDefaultTeam" type="checkbox">

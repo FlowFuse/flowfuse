@@ -15,7 +15,7 @@
             </FormRow>
             <FormRow v-model="input['branding:account:signUpLeftBanner']" containerClass="max-w-sm ml-9">
                 HTML content to show to the left of the sign-up form
-                <template #input><textarea v-model="input['branding:account:signUpLeftBanner']" data-el="splash" class="w-full" rows="6"></textarea></template>
+                <template #input><textarea v-model="input['branding:account:signUpLeftBanner']" data-el="splash" class="w-full" rows="6" /></template>
             </FormRow>
         </template>
         <FormRow v-model="input['user:team:auto-create']" type="checkbox">

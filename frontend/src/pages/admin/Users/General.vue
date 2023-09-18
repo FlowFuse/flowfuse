@@ -1,17 +1,17 @@
 <template>
     <div class="space-y-6">
         <ff-data-table
+            v-model:search="userSearch"
             :columns="columns"
             :rows="users"
             :show-search="true"
-            v-model:search="userSearch"
             search-placeholder="Search Users..."
             :show-load-more="!!nextCursor"
             :loading="loading"
             loading-message="Loading Users"
-            @load-more="loadItems"
             no-data-message="No Users Found"
-            :rows-selectable="true" @row-selected="showUser"
+            :rows-selectable="true"
+            @load-more="loadItems" @row-selected="showUser"
         >
             <template #actions>
                 <ff-button to="./create">
@@ -22,10 +22,10 @@
                 </ff-button>
             </template>
             <template #context-menu="{row}">
-                <ff-list-item label="Edit User" @click.stop="showEditUserDialog(row)"></ff-list-item>
+                <ff-list-item label="Edit User" @click.stop="showEditUserDialog(row)" />
             </template>
         </ff-data-table>
-        <AdminUserEditDialog @user-updated="userUpdated" @user-deleted="userDeleted" ref="adminUserEditDialog" />
+        <AdminUserEditDialog ref="adminUserEditDialog" @user-updated="userUpdated" @user-deleted="userDeleted" />
     </div>
 </template>
 

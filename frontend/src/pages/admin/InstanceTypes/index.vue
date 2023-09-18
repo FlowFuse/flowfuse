@@ -2,7 +2,7 @@
     <div class="space-y-6">
         <SectionTopMenu hero="Instance Types">
             <template #tools>
-                <ff-button @click="showCreateInstanceTypeDialog" data-action="create-type">
+                <ff-button data-action="create-type" @click="showCreateInstanceTypeDialog">
                     <template #icon-right>
                         <PlusSmIcon />
                     </template>
@@ -13,17 +13,17 @@
         <ff-tile-selection data-el="active-types">
             <ff-tile-selection-option
                 v-for="(instanceType, index) in activeInstanceTypes" :key="index"
-                :editable="true" @edit="showEditInstanceTypeDialog(instanceType)"
-                :price="instanceType.properties?.billingDescription?.split('/')[0]"
+                :editable="true" :price="instanceType.properties?.billingDescription?.split('/')[0]"
                 :price-interval="instanceType.properties?.billingDescription?.split('/')[1]"
-                :label="instanceType.name" :description="instanceType.description"
-                :meta="[{key: 'ID', value: instanceType.id}, {key: 'Instance Count', value: instanceType.instanceCount}, {key: 'Stack Count', value: instanceType.stackCount}]"
+                :label="instanceType.name"
+                :description="instanceType.description" :meta="[{key: 'ID', value: instanceType.id}, {key: 'Instance Count', value: instanceType.instanceCount}, {key: 'Stack Count', value: instanceType.stackCount}]"
+                @edit="showEditInstanceTypeDialog(instanceType)"
             />
         </ff-tile-selection>
         <div v-if="nextCursor">
-            <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
+            <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
         </div>
-        <SectionTopMenu hero="Inactive Types"></SectionTopMenu>
+        <SectionTopMenu hero="Inactive Types" />
         <ff-data-table :columns="columns" :rows="inactiveInstanceTypes" data-el="inactive-types">
             <template #context-menu="{row}">
                 <ff-list-item label="Edit Instance Type" @click="instanceTypeAction('edit', row.id)" />
@@ -31,7 +31,7 @@
             </template>
         </ff-data-table>
         <div v-if="nextCursor">
-            <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
+            <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
         </div>
     </div>
     <InstanceTypeEditDialog

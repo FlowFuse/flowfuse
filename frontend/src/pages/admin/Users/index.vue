@@ -1,7 +1,7 @@
 <template>
     <SectionTopMenu hero="Users" :options="sideNavigation" />
     <div class="flex-grow">
-        <router-view></router-view>
+        <router-view />
     </div>
 </template>
 

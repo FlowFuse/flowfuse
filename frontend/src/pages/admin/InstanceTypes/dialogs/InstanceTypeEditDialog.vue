@@ -7,9 +7,9 @@
                 <FormRow v-model="input.description" :error="errors.description" data-form="description">
                     Description
                     <template #description>Use markdown for formatting</template>
-                    <template #input><textarea class="w-full" rows="6" v-model="input.description"></textarea></template>
+                    <template #input><textarea v-model="input.description" class="w-full" rows="6" /></template>
                 </FormRow>
-                <FormRow :options="stacks" v-model="input.defaultStack" :disabled="stacks.length === 0" id="stack" data-form="stack">
+                <FormRow id="stack" v-model="input.defaultStack" :options="stacks" :disabled="stacks.length === 0" data-form="stack">
                     Default Stack
                     <template #description><div v-if="stacks.length === 0">There are no stacks defined for this Instance Type yet.</div></template>
                 </FormRow>
@@ -30,7 +30,7 @@
                 </div>
                 <div class="flex">
                     <ff-button kind="secondary" @click="$refs['dialog'].close()">Cancel</ff-button>
-                    <ff-button @click="confirm(); $refs.dialog.close()" :disabled="!formValid">{{ instanceType ? 'Update' : 'Create' }}</ff-button>
+                    <ff-button :disabled="!formValid" @click="confirm(); $refs.dialog.close()">{{ instanceType ? 'Update' : 'Create' }}</ff-button>
                 </div>
             </div>
         </template>

@@ -28,7 +28,7 @@
             </template>
         </ff-data-table>
         <div v-if="nextCursor">
-            <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
+            <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
         </div>
     </div>
 </template>

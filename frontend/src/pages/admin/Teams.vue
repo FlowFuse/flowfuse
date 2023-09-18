@@ -2,20 +2,20 @@
     <div>
         <SectionTopMenu hero="Teams" />
         <ff-data-table
+            v-model:search="teamSearch"
             :columns="columns"
             :rows="teams"
             :rows-selectable="true"
-            @row-selected="viewTeam"
             :show-search="true"
-            v-model:search="teamSearch"
             search-placeholder="Search Teams..."
             :search-fields="['name', 'id']"
             :show-load-more="!!nextCursor"
             :loading="loading"
             loading-message="Loading Teams"
-            @load-more="loadItems"
             no-data-message="No Teams Found"
             data-el="teams-table"
+            @row-selected="viewTeam"
+            @load-more="loadItems"
         />
     </div>
 </template>

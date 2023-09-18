@@ -1,6 +1,6 @@
 <template>
     <!-- eslint-disable-next-line vue/no-v-html -->
-    <div class="list-disc " v-html="renderedDescription"></div>
+    <div class="list-disc " v-html="renderedDescription" />
 </template>
 <script>
 

@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" :header="dialogTitle" :confirm-label="stack ? 'Save' : 'Create'" @confirm="confirm()" :disable-primary="!formValid || loading">
+    <ff-dialog ref="dialog" :header="dialogTitle" :confirm-label="stack ? 'Save' : 'Create'" :disable-primary="!formValid || loading" @confirm="confirm()">
         <template #default>
             <ff-loading v-if="loading" message="Creating Stack..." />
             <form v-else class="space-y-6" @submit.prevent>
@@ -18,7 +18,7 @@
                 </FormRow>
                 <FormRow v-model="input.active" type="checkbox">Active</FormRow>
                 <template v-if="!editDisabled">
-                    <FormRow :options="instanceTypes" :disabled="editTypeDisabled" :error="errors.projectType" v-model="input.projectType" id="projectType">
+                    <FormRow id="projectType" v-model="input.projectType" :options="instanceTypes" :disabled="editTypeDisabled" :error="errors.projectType">
                         Instance Type
                         <template #description>
                             <div v-if="editTypeDisabled">Stacks cannot be moved to a different instance type</div>
