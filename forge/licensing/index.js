@@ -166,13 +166,14 @@ module.exports = fp(async function (app, opts, next) {
             app.log.info('  * Development-mode License *')
             app.log.info('  ****************************')
         }
-        app.log.info(` License ID : ${activeLicense.id}`)
-        app.log.info(` Org        : ${activeLicense.organisation}`)
-        app.log.info(` Valid From : ${activeLicense.validFrom.toISOString()}`)
+        app.log.info(` License ID   : ${activeLicense.id}`)
+        app.log.info(` Org          : ${activeLicense.organisation}`)
+        app.log.info(` Valid From   : ${activeLicense.validFrom.toISOString()}`)
+        app.log.info(` License Tier : ${activeLicense.tier}`)
         if (activeLicense.expired) {
-            app.log.warn(` Expired    : ${activeLicense.expiresAt.toISOString()}`)
+            app.log.warn(` Expired      : ${activeLicense.expiresAt.toISOString()}`)
         } else {
-            app.log.info(` Expires    : ${activeLicense.expiresAt.toISOString()}`)
+            app.log.info(` Expires      : ${activeLicense.expiresAt.toISOString()}`)
         }
         await reportUsage()
     }
