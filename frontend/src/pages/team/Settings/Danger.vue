@@ -34,7 +34,16 @@ import ConfirmTeamDeleteDialog from '../dialogs/ConfirmTeamDeleteDialog.vue'
 
 export default {
     name: 'TeamSettingsDanger',
-    props: ['team'],
+    components: {
+        FormHeading,
+        ConfirmTeamDeleteDialog
+    },
+    props: {
+        team: {
+            type: Object,
+            required: true
+        }
+    },
     data () {
         return {
             applicationCount: -1,
@@ -81,10 +90,6 @@ export default {
                 this.applicationCount = applicationList.count
             }
         }
-    },
-    components: {
-        FormHeading,
-        ConfirmTeamDeleteDialog
     }
 }
 </script>

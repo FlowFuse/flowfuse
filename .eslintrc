@@ -279,10 +279,7 @@
                 "frontend/src/pages/team/dialogs/InviteMemberDialog.vue",
                 "frontend/src/pages/team/Members/General.vue",
                 "frontend/src/pages/team/Members/index.vue",
-                "frontend/src/pages/team/Members/Invitations.vue",
-                "frontend/src/pages/team/Settings/General.vue",
-                "frontend/src/pages/team/Settings/index.vue",
-                "frontend/src/pages/team/Settings/Permissions.vue"
+                "frontend/src/pages/team/Members/Invitations.vue"
             ]
         },
         {
@@ -362,11 +359,6 @@
                 "frontend/src/pages/team/Members/index.vue",
                 "frontend/src/pages/team/Members/Invitations.vue",
                 "frontend/src/pages/team/Overview.vue",
-                "frontend/src/pages/team/Settings/Danger.vue",
-                "frontend/src/pages/team/Settings/Devices.vue",
-                "frontend/src/pages/team/Settings/General.vue",
-                "frontend/src/pages/team/Settings/index.vue",
-                "frontend/src/pages/team/Settings/Permissions.vue",
                 "frontend/src/pages/TermsAndConditions.vue",
                 "frontend/src/pages/UnverifiedEmail.vue"
             ]
@@ -419,12 +411,7 @@
                 "frontend/src/pages/team/Members/General.vue",
                 "frontend/src/pages/team/Members/index.vue",
                 "frontend/src/pages/team/Members/Invitations.vue",
-                "frontend/src/pages/team/Overview.vue",
-                "frontend/src/pages/team/Settings/Danger.vue",
-                "frontend/src/pages/team/Settings/Devices.vue",
-                "frontend/src/pages/team/Settings/General.vue",
-                "frontend/src/pages/team/Settings/index.vue",
-                "frontend/src/pages/team/Settings/Permissions.vue"
+                "frontend/src/pages/team/Overview.vue"
             ]
         }
     ]
