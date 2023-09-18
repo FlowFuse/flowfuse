@@ -28,19 +28,28 @@ import TemplateSettingsEditor from './sections/Editor.vue'
 
 export default {
     name: 'AdminTemplateSettings',
-    props: ['modelValue', 'editTemplate'],
+    components: {
+        FormRow,
+        FormHeading,
+        ChangeIndicator,
+        TemplateSettingsEditor
+    },
+    props: {
+        modelValue: {
+            type: Object,
+            default: null
+        },
+        editTemplate: {
+            type: Boolean,
+            default: false
+        }
+    },
     emits: ['update:modelValue'],
     computed: {
         editableTemplate: {
             get () { return this.modelValue },
             set (localValue) { this.$emit('update:modelValue', localValue) }
         }
-    },
-    components: {
-        FormRow,
-        FormHeading,
-        ChangeIndicator,
-        TemplateSettingsEditor
     }
 }
 </script>

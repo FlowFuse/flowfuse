@@ -20,7 +20,22 @@ function toBoolean (v) {
 }
 export default {
     name: 'LockSetting',
-    props: ['modelValue', 'changed', 'editTemplate'],
+    components: { FormRow, ChangeIndicator, LockClosedIcon },
+    props: {
+        // eslint-disable-next-line vue/require-prop-types
+        modelValue: {
+            // This can be null/undefined/boolean
+            default: false
+        },
+        changed: {
+            type: Boolean,
+            default: false
+        },
+        editTemplate: {
+            type: Boolean,
+            default: false
+        }
+    },
     emits: ['update:modelValue'],
     computed: {
         locked () {
@@ -30,7 +45,6 @@ export default {
             get () { return this.modelValue },
             set (localValue) { this.$emit('update:modelValue', toBoolean(localValue)) }
         }
-    },
-    components: { FormRow, ChangeIndicator, LockClosedIcon }
+    }
 }
 </script>

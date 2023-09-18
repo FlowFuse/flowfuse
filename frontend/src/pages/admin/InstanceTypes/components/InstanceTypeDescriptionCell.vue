@@ -8,7 +8,12 @@ const marked = require('marked')
 
 export default {
     name: 'InstanceTypeDescriptionCell',
-    props: ['description'],
+    props: {
+        description: {
+            type: String,
+            default: ''
+        }
+    },
     computed: {
         renderedDescription () {
             return marked.parse(this.description)

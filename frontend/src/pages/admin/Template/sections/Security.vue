@@ -43,7 +43,27 @@ import LockSetting from '../components/LockSetting.vue'
 
 export default {
     name: 'TemplateSettingsSecurity',
-    props: ['editTemplate', 'modelValue', 'team'],
+    components: {
+        FormRow,
+        FormHeading,
+        LockSetting,
+        ChangeIndicator,
+        FeatureUnavailableToTeam
+    },
+    props: {
+        editTemplate: {
+            type: Boolean,
+            default: false
+        },
+        modelValue: {
+            type: Object,
+            default: null
+        },
+        team: {
+            type: Object,
+            default: null
+        }
+    },
     emits: ['update:modelValue'],
     computed: {
         editable: {
@@ -88,13 +108,6 @@ export default {
                 }
             ]
         }
-    },
-    components: {
-        FormRow,
-        FormHeading,
-        LockSetting,
-        ChangeIndicator,
-        FeatureUnavailableToTeam
     }
 }
 </script>
