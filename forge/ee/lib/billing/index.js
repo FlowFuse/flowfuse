@@ -340,20 +340,22 @@ module.exports.init = async function (app) {
                         team,
                         Date.now() + teamTrialDuration * ONE_DAY
                     )
-                    const emailInserts = {
-                        username: user.name,
-                        teamName: team.name,
-                        trialDuration: teamTrialDuration
+                    if (await team.TeamType.getProperty('trial.sendEmail', true)) {
+                        const emailInserts = {
+                            username: user.name,
+                            teamName: team.name,
+                            trialDuration: teamTrialDuration
+                        }
+                        if (teamTrialInstanceTypeId) {
+                            const trialProjectType = await app.db.models.ProjectType.byId(teamTrialInstanceTypeId)
+                            emailInserts.trialProjectTypeName = trialProjectType.name
+                        }
+                        await app.postoffice.send(
+                            user,
+                            'TrialTeamCreated',
+                            emailInserts
+                        )
                     }
-                    if (teamTrialInstanceTypeId) {
-                        const trialProjectType = await app.db.models.ProjectType.byId(teamTrialInstanceTypeId)
-                        emailInserts.trialProjectTypeName = trialProjectType.name
-                    }
-                    await app.postoffice.send(
-                        user,
-                        'TrialTeamCreated',
-                        emailInserts
-                    )
                 }
             }
         },
