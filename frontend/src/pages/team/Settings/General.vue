@@ -24,8 +24,8 @@
                     <span class="text-red-700">Warning:</span>
                     Changing this will modify all urls used to access the team.
                     The platform will not redirect requests to the old url.
-                    <br />
-                    <br />
+                    <br>
+                    <br>
                     <pre>/team/&lt;slug&gt;</pre>
                 </div>
             </template>
@@ -54,7 +54,15 @@ import alerts from '../../../services/alerts.js'
 
 export default {
     name: 'TeamSettingsGeneral',
-    props: ['team'],
+    components: {
+        FormRow
+    },
+    props: {
+        team: {
+            type: Object,
+            required: true
+        }
+    },
     data () {
         return {
             errors: {
@@ -69,6 +77,18 @@ export default {
             },
             pendingSlugCheck: null
         }
+    },
+    computed: {
+        formValid () {
+            return this.input.teamName && !this.pendingSlugCheck && !this.errors.slug && !this.errors.teamName
+        },
+        teamId () {
+            return this.team.id
+        },
+        slugValid () {
+            return /^[a-z0-9-_]+$/i.test(this.input.slug)
+        }
+
     },
     watch: {
         team: 'fetchData',
@@ -89,18 +109,6 @@ export default {
                 this.errors.teamName = ''
             }
         }
-    },
-    computed: {
-        formValid () {
-            return this.input.teamName && !this.pendingSlugCheck && !this.errors.slug && !this.errors.teamName
-        },
-        teamId () {
-            return this.team.id
-        },
-        slugValid () {
-            return /^[a-z0-9-_]+$/i.test(this.input.slug)
-        }
-
     },
     mounted () {
         this.fetchData()
@@ -169,9 +177,6 @@ export default {
                 }
             }, 200)
         }
-    },
-    components: {
-        FormRow
     }
 }
 </script>
