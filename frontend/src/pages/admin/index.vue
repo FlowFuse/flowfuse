@@ -47,8 +47,14 @@ const navigation = [
 
 export default {
     name: 'AdminPage',
-    computed: {
-        ...mapState('account', ['user', 'team'])
+    components: {
+        SideNavigation,
+        NavItem
+    },
+    setup () {
+        return {
+            navigation
+        }
     },
     data () {
         return {
@@ -58,17 +64,11 @@ export default {
             }
         }
     },
-    setup () {
-        return {
-            navigation
-        }
+    computed: {
+        ...mapState('account', ['user', 'team'])
     },
     mounted () {
         this.mounted = true
-    },
-    components: {
-        SideNavigation,
-        NavItem
     }
 }
 </script>

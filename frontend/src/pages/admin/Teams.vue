@@ -32,6 +32,9 @@ import TeamTypeCell from '../../components/tables/cells/TeamTypeCell.vue'
 
 export default {
     name: 'AdminTeams',
+    components: {
+        SectionTopMenu
+    },
     data () {
         return {
             teams: [],
@@ -45,9 +48,6 @@ export default {
                 { label: 'Application Instances', class: ['w-54', 'text-center'], key: 'instanceCount', sortable: true }
             ]
         }
-    },
-    async created () {
-        await this.loadItems(true)
     },
     watch: {
         teamSearch (v) {
@@ -63,6 +63,9 @@ export default {
                 }, 300)
             }
         }
+    },
+    async created () {
+        await this.loadItems(true)
     },
     methods: {
         loadItems: async function (reload) {
@@ -88,9 +91,6 @@ export default {
                 }
             })
         }
-    },
-    components: {
-        SectionTopMenu
     }
 }
 </script>

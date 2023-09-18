@@ -122,18 +122,23 @@ import ChangeIndicator from '../components/ChangeIndicator.vue'
 import LockSetting from '../components/LockSetting.vue'
 export default {
     name: 'TemplateSettingsEditor',
-    props: ['editTemplate', 'modelValue'],
-    emits: ['update:modelValue'],
-    computed: {
-        editable: {
-            get () {
-                return this.modelValue
-            },
-            set (localValue) {
-                this.$emit('update:modelValue', localValue)
-            }
+    components: {
+        FormRow,
+        FormHeading,
+        LockSetting,
+        ChangeIndicator
+    },
+    props: {
+        editTemplate: {
+            type: Boolean,
+            default: false
+        },
+        modelValue: {
+            type: Object,
+            default: null
         }
     },
+    emits: ['update:modelValue'],
     data () {
         return {
             timezones: timezonesData.timezones,
@@ -143,11 +148,15 @@ export default {
             ] // FUTURE: Get from theme plugins
         }
     },
-    components: {
-        FormRow,
-        FormHeading,
-        LockSetting,
-        ChangeIndicator
+    computed: {
+        editable: {
+            get () {
+                return this.modelValue
+            },
+            set (localValue) {
+                this.$emit('update:modelValue', localValue)
+            }
+        }
     }
 }
 </script>

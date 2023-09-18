@@ -81,9 +81,6 @@ export default {
             }
         }
     },
-    async mounted () {
-        this.license = await adminApi.getLicenseDetails()
-    },
     computed: {
         formValid () {
             return this.input.license.length > 0
@@ -96,6 +93,9 @@ export default {
         'input.license': function () {
             this.errors.license = null
         }
+    },
+    async mounted () {
+        this.license = await adminApi.getLicenseDetails()
     },
     methods: {
         editLicense () {

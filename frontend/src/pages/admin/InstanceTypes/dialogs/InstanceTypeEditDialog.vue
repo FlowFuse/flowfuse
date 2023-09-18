@@ -48,10 +48,43 @@ import FormRow from '../../../../components/FormRow.vue'
 
 export default {
     name: 'AdminInstanceTypeCreateDialog',
-    emits: ['instance-type-updated', 'instance-type-created', 'show-delete-dialog'],
     components: {
         FormRow,
         FormHeading
+    },
+    emits: ['instance-type-updated', 'instance-type-created', 'show-delete-dialog'],
+    setup () {
+        return {
+            show (instanceType) {
+                this.$refs.dialog.show()
+                this.instanceType = instanceType
+                this.stacks = []
+                if (instanceType) {
+                    this.editDisabled = instanceType.instanceCount > 0
+                    this.input = {
+                        name: instanceType.name,
+                        active: instanceType.active,
+                        properties: instanceType.properties,
+                        description: instanceType.description,
+                        // Cast to string so the v-model into FormRow works
+                        // Normally you'd use v-model.number to handle this
+                        // but we don't have that inside FormRow currently and
+                        // this is good enough for now
+                        order: '' + instanceType.order
+                    }
+                    stacksApi.getStacks(null, null, null, instanceType.id).then(stackList => {
+                        this.stacks = stackList.stacks.filter(stack => stack.active).map(stack => { return { value: stack.id, label: stack.name } })
+                        this.input.defaultStack = instanceType.defaultStack
+                    }).catch(err => {
+                        console.warn('Error loading stacks', err)
+                    })
+                } else {
+                    this.editDisabled = false
+                    this.input = { active: true, name: '', properties: {}, description: '', order: '1' }
+                }
+                this.errors = {}
+            }
+        }
     },
     data () {
         return {
@@ -124,37 +157,6 @@ export default {
                         }
                     })
                 }
-            }
-        }
-    },
-    setup () {
-        return {
-            show (instanceType) {
-                this.$refs.dialog.show()
-                this.instanceType = instanceType
-                this.stacks = []
-                if (instanceType) {
-                    this.editDisabled = instanceType.instanceCount > 0
-                    this.input = {
-                        name: instanceType.name,
-                        active: instanceType.active,
-                        properties: instanceType.properties,
-                        description: instanceType.description,
-                        // Cast to string so the v-model into FormRow works
-                        // Normally you'd use v-model.number to handle this
-                        // but we don't have that inside FormRow currently and
-                        // this is good enough for now
-                        order: '' + instanceType.order
-                    }
-                    stacksApi.getStacks(null, null, null, instanceType.id).then(stackList => {
-                        this.stacks = stackList.stacks.filter(stack => stack.active).map(stack => { return { value: stack.id, label: stack.name } })
-                        this.input.defaultStack = instanceType.defaultStack
-                    })
-                } else {
-                    this.editDisabled = false
-                    this.input = { active: true, name: '', properties: {}, description: '', order: '1' }
-                }
-                this.errors = {}
             }
         }
     }

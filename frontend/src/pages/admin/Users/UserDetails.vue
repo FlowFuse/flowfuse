@@ -77,6 +77,11 @@ import AdminUserEditDialog from './dialogs/AdminUserEditDialog.vue'
 
 export default {
     name: 'AdminUserDetails',
+    components: {
+        AdminUserEditDialog,
+        FormHeading,
+        ChevronRightIcon
+    },
     data () {
         return {
             user: null,
@@ -92,13 +97,13 @@ export default {
             ]
         }
     },
-    async created () {
-        return this.loadUser()
-    },
     computed: {
         ...mapState('account', ['features'])
     },
     watch: {
+    },
+    async created () {
+        return this.loadUser()
     },
     methods: {
         async loadUser () {
@@ -109,6 +114,8 @@ export default {
                 this.loading = false
                 usersApi.getUserTeams(this.$route.params.id).then((result) => {
                     this.teams = result.teams
+                }).catch(err => {
+                    console.warn('Error loading user teams', err)
                 }).finally(() => {
                     this.loadingTeams = false
                 })
@@ -131,11 +138,6 @@ export default {
         userDeleted (userId) {
             this.$router.push({ path: '/admin/users' })
         }
-    },
-    components: {
-        AdminUserEditDialog,
-        FormHeading,
-        ChevronRightIcon
     }
 }
 </script>

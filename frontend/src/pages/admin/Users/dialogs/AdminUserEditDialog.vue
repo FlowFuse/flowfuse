@@ -92,6 +92,26 @@ export default {
         LockClosedIcon
     },
     emits: ['user-updated', 'user-deleted'],
+    setup () {
+        return {
+            show (user) {
+                this.$refs.dialog.show()
+                this.user = user
+                this.input.username = user.username
+                this.input.name = user.name
+                this.input.email = user.email
+                this.input.admin = user.admin
+                this.input.email_verified = user.email_verified
+                this.email_verifiedLocked = true
+                this.adminLocked = true
+                this.deleteLocked = true
+                this.expirePassLocked = true
+                this.user_suspendedLocked = true
+                this.input.user_suspended = user.suspended
+                this.errors = {}
+            }
+        }
+    },
     data () {
         return {
             input: {},
@@ -102,6 +122,12 @@ export default {
             deleteLocked: true,
             expirePassLocked: true,
             user_suspendedLocked: true
+        }
+    },
+    computed: {
+        disableSave () {
+            const { isChanged, isValid } = this.getChanges()
+            return !isValid || !isChanged
         }
     },
     watch: {
@@ -118,12 +144,6 @@ export default {
             } else {
                 this.errors.email = ''
             }
-        }
-    },
-    computed: {
-        disableSave () {
-            const { isChanged, isValid } = this.getChanges()
-            return !isValid || !isChanged
         }
     },
     methods: {
@@ -230,26 +250,6 @@ export default {
                 }).catch(err => {
                     this.errors.expirePassword = err.response.data.error
                 })
-        }
-    },
-    setup () {
-        return {
-            show (user) {
-                this.$refs.dialog.show()
-                this.user = user
-                this.input.username = user.username
-                this.input.name = user.name
-                this.input.email = user.email
-                this.input.admin = user.admin
-                this.input.email_verified = user.email_verified
-                this.email_verifiedLocked = true
-                this.adminLocked = true
-                this.deleteLocked = true
-                this.expirePassLocked = true
-                this.user_suspendedLocked = true
-                this.input.user_suspended = user.suspended
-                this.errors = {}
-            }
         }
     }
 }

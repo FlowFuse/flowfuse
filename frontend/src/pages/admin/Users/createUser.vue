@@ -45,6 +45,12 @@ import SideNavigation from '../../../components/SideNavigation.vue'
 
 export default {
     name: 'AdminCreateUser',
+    components: {
+        FormRow,
+        FormHeading,
+        SideNavigation,
+        NavItem
+    },
     data () {
         return {
             mounted: false,
@@ -72,9 +78,6 @@ export default {
                    (this.input.password === this.input.password_confirm) &&
                    (!this.errors.name)
         }
-    },
-    mounted () {
-        this.mounted = true
     },
     watch: {
         'input.username': function (v) {
@@ -104,6 +107,9 @@ export default {
             }
         }
     },
+    mounted () {
+        this.mounted = true
+    },
     methods: {
         checkPassword () {
             if (this.input.password && this.input.password.length < 8) {
@@ -132,12 +138,6 @@ export default {
                 }
             })
         }
-    },
-    components: {
-        FormRow,
-        FormHeading,
-        SideNavigation,
-        NavItem
     }
 }
 </script>

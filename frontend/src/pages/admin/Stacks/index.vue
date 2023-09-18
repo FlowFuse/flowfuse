@@ -98,6 +98,11 @@ function comparator (A, B) {
 
 export default {
     name: 'AdminStacks',
+    components: {
+        FormHeading,
+        AdminStackEditDialog,
+        PlusSmIcon
+    },
     data () {
         return {
             allStacks: new Map(),
@@ -119,14 +124,6 @@ export default {
             ]
         }
     },
-    async created () {
-        const result = await instanceTypesApi.getInstanceTypes(null, 100, 'all')
-        result.types.forEach(pt => {
-            this.instanceTypes[pt.id] = pt
-        })
-        this.loadInactiveItems()
-        this.loadActiveItems()
-    },
     computed: {
         ...mapState('account', ['settings']),
         stacksArray () {
@@ -138,6 +135,14 @@ export default {
         inactiveStacks () {
             return this.stacksArray.filter((stack) => !stack.active).sort(comparator.bind(this))
         }
+    },
+    async created () {
+        const result = await instanceTypesApi.getInstanceTypes(null, 100, 'all')
+        result.types.forEach(pt => {
+            this.instanceTypes[pt.id] = pt
+        })
+        this.loadInactiveItems()
+        this.loadActiveItems()
     },
     methods: {
         stackAction (action, stackId) {
@@ -222,11 +227,6 @@ export default {
             })
             this.loadingInactive = false
         }
-    },
-    components: {
-        FormHeading,
-        AdminStackEditDialog,
-        PlusSmIcon
     }
 }
 </script>

@@ -55,6 +55,61 @@ export default {
         FormRow
     },
     emits: ['stack-created', 'stack-updated'],
+    setup () {
+        return {
+            showCreate () {
+                this.$refs.dialog.show()
+                this.stack = null
+                this.editDisabled = false
+                this.editTypeDisabled = false
+                this.input = { active: true, name: '', properties: {}, replaces: null }
+                this.errors = {}
+                if (this.instanceTypes.length === 0) {
+                    this.errors.projectType = 'No instance types available. Ask an Administrator to create a new instance type definition'
+                }
+            },
+            showEdit (stack) {
+                this.$refs.dialog.show()
+                this.stack = stack
+                this.editDisabled = stack.instanceCount > 0
+                this.editTypeDisabled = !!stack.projectType
+                this.input = {
+                    name: stack.name,
+                    label: stack.label,
+                    active: stack.active,
+                    properties: {},
+                    replaces: null,
+                    projectType: stack.projectType
+                }
+                if (stack.properties) {
+                    Object.entries(stack.properties).forEach(([key, value]) => {
+                        this.input.properties[key] = value
+                    })
+                }
+                this.errors = {}
+            },
+            showCreateVersion (stack) {
+                this.$refs.dialog.show()
+                this.stack = null
+                this.editDisabled = false
+                this.editTypeDisabled = true
+                this.input = {
+                    active: true,
+                    name: stack.name + '-copy',
+                    label: stack.label,
+                    properties: { },
+                    projectType: stack.projectType,
+                    replaces: stack
+                }
+                if (stack.properties) {
+                    Object.entries(stack.properties).forEach(([key, value]) => {
+                        this.input.properties[key] = value
+                    })
+                }
+                this.errors = {}
+            }
+        }
+    },
     data () {
         return {
             stack: null,
@@ -71,27 +126,6 @@ export default {
             errors: {},
             editDisabled: false,
             editTypeDisabled: false
-        }
-    },
-    watch: {
-        'input.properties': {
-            deep: true,
-            handler (v) {
-                this.stackProperties.forEach(prop => {
-                    if (v[prop.name] && !prop.validator.test(v[prop.name])) {
-                        this.errors[prop.name] = prop.invalidMessage
-                    } else {
-                        this.errors[prop.name] = ''
-                    }
-                })
-            }
-        },
-        'input.name': function (v) {
-            if (v && !/^[a-z0-9-_/@.]+$/i.test(v)) {
-                this.errors.name = 'Must only contain a-z 0-9 - _ / @ .'
-            } else {
-                this.errors.name = ''
-            }
         }
     },
     computed: {
@@ -125,6 +159,27 @@ export default {
                     validator: new RegExp(value.validate)
                 }
             })
+        }
+    },
+    watch: {
+        'input.properties': {
+            deep: true,
+            handler (v) {
+                this.stackProperties.forEach(prop => {
+                    if (v[prop.name] && !prop.validator.test(v[prop.name])) {
+                        this.errors[prop.name] = prop.invalidMessage
+                    } else {
+                        this.errors[prop.name] = ''
+                    }
+                })
+            }
+        },
+        'input.name': function (v) {
+            if (v && !/^[a-z0-9-_/@.]+$/i.test(v)) {
+                this.errors.name = 'Must only contain a-z 0-9 - _ / @ .'
+            } else {
+                this.errors.name = ''
+            }
         }
     },
     mounted () {
@@ -207,61 +262,6 @@ export default {
                         this.loading = false
                     })
                 }
-            }
-        }
-    },
-    setup () {
-        return {
-            showCreate () {
-                this.$refs.dialog.show()
-                this.stack = null
-                this.editDisabled = false
-                this.editTypeDisabled = false
-                this.input = { active: true, name: '', properties: {}, replaces: null }
-                this.errors = {}
-                if (this.instanceTypes.length === 0) {
-                    this.errors.projectType = 'No instance types available. Ask an Administrator to create a new instance type definition'
-                }
-            },
-            showEdit (stack) {
-                this.$refs.dialog.show()
-                this.stack = stack
-                this.editDisabled = stack.instanceCount > 0
-                this.editTypeDisabled = !!stack.projectType
-                this.input = {
-                    name: stack.name,
-                    label: stack.label,
-                    active: stack.active,
-                    properties: {},
-                    replaces: null,
-                    projectType: stack.projectType
-                }
-                if (stack.properties) {
-                    Object.entries(stack.properties).forEach(([key, value]) => {
-                        this.input.properties[key] = value
-                    })
-                }
-                this.errors = {}
-            },
-            showCreateVersion (stack) {
-                this.$refs.dialog.show()
-                this.stack = null
-                this.editDisabled = false
-                this.editTypeDisabled = true
-                this.input = {
-                    active: true,
-                    name: stack.name + '-copy',
-                    label: stack.label,
-                    properties: { },
-                    projectType: stack.projectType,
-                    replaces: stack
-                }
-                if (stack.properties) {
-                    Object.entries(stack.properties).forEach(([key, value]) => {
-                        this.input.properties[key] = value
-                    })
-                }
-                this.errors = {}
             }
         }
     }

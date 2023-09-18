@@ -48,6 +48,10 @@ import Dialog from '../../../services/dialog.js'
 
 export default {
     name: 'AdminTemplates',
+    components: {
+        SectionTopMenu,
+        PlusSmIcon
+    },
     data () {
         return {
             templates: [],
@@ -75,11 +79,11 @@ export default {
             ]
         }
     },
-    async created () {
-        await this.loadItems()
-    },
     computed: {
         ...mapState('account', ['settings'])
+    },
+    async created () {
+        await this.loadItems()
     },
     methods: {
         loadItems: async function () {
@@ -116,10 +120,6 @@ export default {
                 this.templates.splice(index, 1)
             })
         }
-    },
-    components: {
-        SectionTopMenu,
-        PlusSmIcon
     }
 }
 </script>

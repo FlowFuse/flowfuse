@@ -44,6 +44,10 @@ import AdminUserEditDialog from './dialogs/AdminUserEditDialog.vue'
 
 export default {
     name: 'AdminUsers',
+    components: {
+        UserAddIcon,
+        AdminUserEditDialog
+    },
     data () {
         return {
             users: [],
@@ -57,14 +61,6 @@ export default {
                 { label: 'Admin', class: ['w-32', 'text-center'], key: 'admin', sortable: true },
                 { label: 'Suspended', class: ['w-32', 'text-center'], key: 'suspended', sortable: true }
             ]
-        }
-    },
-    async created () {
-        await this.loadItems(true)
-        if (this.features.sso) {
-            this.columns.push({
-                label: 'SSO Enabled', class: ['w-32', 'text-center'], key: 'sso_enabled', sortable: true
-            })
         }
     },
     computed: {
@@ -83,6 +79,14 @@ export default {
                     this.loadItems(true)
                 }, 300)
             }
+        }
+    },
+    async created () {
+        await this.loadItems(true)
+        if (this.features.sso) {
+            this.columns.push({
+                label: 'SSO Enabled', class: ['w-32', 'text-center'], key: 'sso_enabled', sortable: true
+            })
         }
     },
     methods: {
@@ -126,11 +130,6 @@ export default {
                 params: { id: user.id }
             })
         }
-    },
-    components: {
-        UserAddIcon,
-        AdminUserEditDialog
-
     }
 }
 </script>

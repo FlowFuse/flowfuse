@@ -63,6 +63,12 @@ import SideNavigation from '../../../../components/SideNavigation.vue'
 
 export default {
     name: 'AdminEditSSOProvider',
+    components: {
+        FormRow,
+        FormHeading,
+        SideNavigation,
+        NavItem
+    },
     data () {
         return {
             mounted: false,
@@ -105,6 +111,9 @@ export default {
     mounted () {
         this.mounted = true
     },
+    async created () {
+        await this.loadProvider()
+    },
     methods: {
         createProvider () {
             if (this.formValid) {
@@ -117,6 +126,8 @@ export default {
                     this.$router.push({ name: 'AdminSettingsSSOEdit', params: { id: response.id } })
                     this.loading = false
                     this.provider = response
+                }).catch(err => {
+                    console.warn('Failed to create provider', err)
                 })
             }
         },
@@ -160,15 +171,6 @@ export default {
             }
         }
 
-    },
-    async created () {
-        await this.loadProvider()
-    },
-    components: {
-        FormRow,
-        FormHeading,
-        SideNavigation,
-        NavItem
     }
 }
 </script>

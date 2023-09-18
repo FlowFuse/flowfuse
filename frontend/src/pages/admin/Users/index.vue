@@ -16,13 +16,13 @@ const sideNavigation = [
 
 export default {
     name: 'AdminUsers',
+    components: {
+        SectionTopMenu
+    },
     setup () {
         return {
             sideNavigation
         }
-    },
-    components: {
-        SectionTopMenu
     }
 }
 </script>

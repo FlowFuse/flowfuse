@@ -60,6 +60,11 @@ const marked = require('marked')
 
 export default {
     name: 'AdminInstanceTypes',
+    components: {
+        SectionTopMenu,
+        PlusSmIcon,
+        InstanceTypeEditDialog
+    },
     data () {
         return {
             instanceTypes: [],
@@ -75,9 +80,6 @@ export default {
             ]
         }
     },
-    async created () {
-        await this.loadItems()
-    },
     computed: {
         ...mapState('account', ['settings']),
         activeInstanceTypes () {
@@ -88,6 +90,9 @@ export default {
             const types = this.instanceTypes.filter(pt => !pt.active)
             return types
         }
+    },
+    async created () {
+        await this.loadItems()
     },
     methods: {
         instanceTypeAction (action, id) {
@@ -159,11 +164,6 @@ export default {
                 this.instanceTypes.push(v)
             })
         }
-    },
-    components: {
-        SectionTopMenu,
-        PlusSmIcon,
-        InstanceTypeEditDialog
     }
 }
 </script>
