@@ -137,7 +137,7 @@
         "sass-loader": "^13.3.2",
         "should": "^13.2.3",
         "should-sinon": "^0.0.6",
-        "sinon": "^15.2.0",
+        "sinon": "^16.0.0",
         "style-loader": "^3.3.3",
         "tailwindcss": "^2.2.19",
         "vitest": "^0.34.4",
