@@ -585,7 +585,6 @@ describe('Project Snapshots API', function () {
                 },
                 cookies: { sid: TestObjects.tokens.alice }
             })
-            console.log(rollbackResponse)
             rollbackResponse.statusCode.should.equal(200)
 
             // Get the new settings after rollback
