@@ -26,7 +26,7 @@
             </template>
         </ff-data-table>
         <div v-if="nextActiveCursor">
-            <a v-if="!loadingActive" @click.stop="loadActiveItems" class="forge-button-inline" data-action="load-more-active">Load more...</a>
+            <a v-if="!loadingActive" class="forge-button-inline" data-action="load-more-active" @click.stop="loadActiveItems">Load more...</a>
         </div>
         <FormHeading>Inactive Stacks</FormHeading>
         <ff-loading v-if="loadingInactive" message="Loading Stacks..." />
@@ -46,10 +46,10 @@
             </template>
         </ff-data-table>
         <div v-if="nextInactiveCursor">
-            <a v-if="!loadingInactive" @click.stop="loadInactiveItems" class="forge-button-inline" data-action="load-more-inactive">Load more...</a>
+            <a v-if="!loadingInactive" class="forge-button-inline" data-action="load-more-inactive" @click.stop="loadInactiveItems">Load more...</a>
         </div>
     </div>
-    <AdminStackEditDialog @stack-created="stackCreated" @stack-updated="stackUpdated" ref="adminStackEditDialog" />
+    <AdminStackEditDialog ref="adminStackEditDialog" @stack-created="stackCreated" @stack-updated="stackUpdated" />
 </template>
 
 <script>
@@ -98,6 +98,11 @@ function comparator (A, B) {
 
 export default {
     name: 'AdminStacks',
+    components: {
+        FormHeading,
+        AdminStackEditDialog,
+        PlusSmIcon
+    },
     data () {
         return {
             allStacks: new Map(),
@@ -119,14 +124,6 @@ export default {
             ]
         }
     },
-    async created () {
-        const result = await instanceTypesApi.getInstanceTypes(null, 100, 'all')
-        result.types.forEach(pt => {
-            this.instanceTypes[pt.id] = pt
-        })
-        this.loadInactiveItems()
-        this.loadActiveItems()
-    },
     computed: {
         ...mapState('account', ['settings']),
         stacksArray () {
@@ -138,6 +135,14 @@ export default {
         inactiveStacks () {
             return this.stacksArray.filter((stack) => !stack.active).sort(comparator.bind(this))
         }
+    },
+    async created () {
+        const result = await instanceTypesApi.getInstanceTypes(null, 100, 'all')
+        result.types.forEach(pt => {
+            this.instanceTypes[pt.id] = pt
+        })
+        this.loadInactiveItems()
+        this.loadActiveItems()
     },
     methods: {
         stackAction (action, stackId) {
@@ -222,11 +227,6 @@ export default {
             })
             this.loadingInactive = false
         }
-    },
-    components: {
-        FormHeading,
-        AdminStackEditDialog,
-        PlusSmIcon
     }
 }
 </script>

@@ -15,7 +15,7 @@
             </FormRow>
             <FormRow v-model="input['branding:account:signUpLeftBanner']" containerClass="max-w-sm ml-9">
                 HTML content to show to the left of the sign-up form
-                <template #input><textarea v-model="input['branding:account:signUpLeftBanner']" data-el="splash" class="w-full" rows="6"></textarea></template>
+                <template #input><textarea v-model="input['branding:account:signUpLeftBanner']" data-el="splash" class="w-full" rows="6" /></template>
             </FormRow>
         </template>
         <FormRow v-model="input['user:team:auto-create']" type="checkbox">
@@ -181,6 +181,10 @@ const validSettings = [
 
 export default {
     name: 'AdminSettingsGeneral',
+    components: {
+        FormRow,
+        FormHeading
+    },
     data () {
         return {
             loading: false,
@@ -274,6 +278,20 @@ export default {
             return instanceTypeOptions
         }
     },
+    watch: {
+        platformStatsTokenEnabled: function (newValue) {
+            if (this.platformStatsToken === null) {
+                // This is the initial setting of the value - ignore it
+                this.platformStatsToken = ''
+                return
+            }
+            if (newValue) {
+                this.showGenerateStatsToken()
+            } else {
+                this.showDisableStatsToken()
+            }
+        }
+    },
     async created () {
         if (!this.settings.email) {
             this.errors.requiresEmail = 'This option requires email to be configured'
@@ -297,20 +315,6 @@ export default {
         this.platformStatsTokenEnabled = this.input['platform:stats:token']
         if (!this.platformStatsTokenEnabled) {
             this.platformStatsToken = ''
-        }
-    },
-    watch: {
-        platformStatsTokenEnabled: function (newValue) {
-            if (this.platformStatsToken === null) {
-                // This is the initial setting of the value - ignore it
-                this.platformStatsToken = ''
-                return
-            }
-            if (newValue) {
-                this.showGenerateStatsToken()
-            } else {
-                this.showDisableStatsToken()
-            }
         }
     },
     methods: {
@@ -394,6 +398,8 @@ export default {
             adminApi.generateStatsAccessToken().then(result => {
                 this.platformStatsToken = result.token
                 this.platformStatsTokenGenerating = false
+            }).catch(err => {
+                console.warn('Error loading stats token', err)
             })
         },
         showDisableStatsToken () {
@@ -408,12 +414,8 @@ export default {
             this.$refs.disablePlatformStatsToken.close()
             this.platformStatsToken = ''
             this.platformStatsTokenEnabled = false
-            adminApi.deleteStatsAccessToken().then(result => {})
+            adminApi.deleteStatsAccessToken().then(result => {}).catch(err => { console.warn('Error disabling stats token', err) })
         }
-    },
-    components: {
-        FormRow,
-        FormHeading
     }
 }
 </script>

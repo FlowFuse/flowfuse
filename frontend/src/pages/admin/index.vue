@@ -4,24 +4,24 @@
             <template #options>
                 <li class="ff-navigation-divider">Admin Settings</li>
                 <router-link v-for="route in navigation" :key="route.label" :to="route.path">
-                    <nav-item :icon="route.icon" :label="route.name" :data-nav="route.tag"></nav-item>
+                    <nav-item :icon="route.icon" :label="route.name" :data-nav="route.tag" />
                 </router-link>
             </template>
             <template v-if="team" #back>
                 <router-link :to="{name: 'Team', params: {team_slug: team.slug}}">
-                    <nav-item :icon="icons.chevronLeft" label="Back to Dashboard" data-nav="team-overview"></nav-item>
+                    <nav-item :icon="icons.chevronLeft" label="Back to Dashboard" data-nav="team-overview" />
                 </router-link>
             </template>
             <template v-else #back>
                 <router-link :to="{name: 'CreateTeam'}">
-                    <nav-item :icon="icons.chevronLeft" label="Back to Create Team" data-nav="create-team"></nav-item>
+                    <nav-item :icon="icons.chevronLeft" label="Back to Create Team" data-nav="create-team" />
                 </router-link>
             </template>
         </SideNavigation>
     </Teleport>
     <ff-page>
         <div class="">
-            <router-view></router-view>
+            <router-view />
         </div>
     </ff-page>
 </template>
@@ -47,8 +47,14 @@ const navigation = [
 
 export default {
     name: 'AdminPage',
-    computed: {
-        ...mapState('account', ['user', 'team'])
+    components: {
+        SideNavigation,
+        NavItem
+    },
+    setup () {
+        return {
+            navigation
+        }
     },
     data () {
         return {
@@ -58,17 +64,11 @@ export default {
             }
         }
     },
-    setup () {
-        return {
-            navigation
-        }
+    computed: {
+        ...mapState('account', ['user', 'team'])
     },
     mounted () {
         this.mounted = true
-    },
-    components: {
-        SideNavigation,
-        NavItem
     }
 }
 </script>

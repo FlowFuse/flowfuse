@@ -6,7 +6,7 @@
             <FormHeading>License</FormHeading>
             <template v-if="license">
                 <table data-el="license-details">
-                    <tr v-if="license.dev"><td class="font-medium p-2 pr-4 align-top" colspan="2"></td></tr>
+                    <tr v-if="license.dev"><td class="font-medium p-2 pr-4 align-top" colspan="2" /></tr>
                     <tr><td class="font-medium p-2 pr-4 align-top">Type</td><td class="p-2"><span v-if="!license.dev">FlowFuse Enterprise Edition</span><span v-else class="font-bold">FlowFuse Development Only</span></td></tr>
                     <tr><td class="font-medium p-2 pr-4 align-top">License ID</td><td class="p-2">{{ license.id }}</td></tr>
                     <tr><td class="font-medium p-2 pr-4 align-top">Organisation</td><td class="p-2">{{ license.organisation }}</td></tr>
@@ -27,7 +27,7 @@
         <template v-if="editing.license">
             <FormHeading>1. Upload new license</FormHeading>
             <template v-if="!inspectedLicense">
-                <FormRow id="license" ref="row-license" v-model="input.license" :error="errors.license" placeholder="Enter new license" data-form="license"></FormRow>
+                <FormRow id="license" ref="row-license" v-model="input.license" :error="errors.license" placeholder="Enter new license" data-form="license" />
                 <div class="space-x-4 whitespace-nowrap flex">
                     <ff-button @click="cancelEditLicense">Cancel</ff-button>
                     <ff-button :disabled="!formValid" data-form="check-license" @click="inspectLicense">Check license</ff-button>
@@ -82,9 +82,6 @@ export default {
             }
         }
     },
-    async mounted () {
-        this.license = await adminApi.getLicenseDetails()
-    },
     computed: {
         formValid () {
             return this.input.license.length > 0
@@ -97,6 +94,9 @@ export default {
         'input.license': function () {
             this.errors.license = null
         }
+    },
+    async mounted () {
+        this.license = await adminApi.getLicenseDetails()
     },
     methods: {
         editLicense () {

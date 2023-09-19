@@ -24,6 +24,11 @@ export default {
     mixins: [permissionsMixin],
     inheritAttrs: false,
     props: {
+        project: {
+            type: Object,
+            required: false,
+            default: null
+        },
         modelValue: {
             type: Object,
             required: true

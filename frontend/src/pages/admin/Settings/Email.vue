@@ -22,11 +22,11 @@ import { mapState } from 'vuex'
 import FormHeading from '../../../components/FormHeading.vue'
 export default {
     name: 'AdminSettingsEmail',
-    computed: {
-        ...mapState('account', ['settings'])
-    },
     components: {
         FormHeading
+    },
+    computed: {
+        ...mapState('account', ['settings'])
     }
 }
 </script>

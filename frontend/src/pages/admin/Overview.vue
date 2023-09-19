@@ -62,6 +62,9 @@ import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
 export default {
     name: 'AdminSettingsGeneral',
+    components: {
+        SectionTopMenu
+    },
     data: function () {
         return {
             license: {},
@@ -73,9 +76,6 @@ export default {
         this.stats = await adminApi.getStats()
         this.license = await adminApi.getLicenseDetails()
         this.settings = await Settings.getSettings()
-    },
-    components: {
-        SectionTopMenu
     }
 }
 </script>

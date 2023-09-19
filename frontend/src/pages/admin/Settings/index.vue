@@ -1,7 +1,7 @@
 <template>
     <SectionTopMenu hero="Settings" :options="sideNavigation" />
     <div class="flex-grow">
-        <router-view></router-view>
+        <router-view />
     </div>
 </template>
 
@@ -12,26 +12,25 @@ import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 
 export default {
     name: 'AdminSettings',
+    components: {
+        SectionTopMenu
+    },
     data () {
         return {
             sideNavigation: [
                 { name: 'General', path: './general' },
-                // { name: "Permissions", path: "./permissions" },
                 { name: 'License', path: './license' },
                 { name: 'Email', path: './email' }
             ]
         }
     },
+    computed: {
+        ...mapState('account', ['features'])
+    },
     mounted () {
         if (this.features.sso) {
             this.sideNavigation.push({ name: 'SSO', path: './sso' })
         }
-    },
-    computed: {
-        ...mapState('account', ['features'])
-    },
-    components: {
-        SectionTopMenu
     }
 }
 </script>
