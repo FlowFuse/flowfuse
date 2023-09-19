@@ -235,6 +235,25 @@ you can use a pre-built docker image that provides everything needed.
 
     This will map the `1883`/`1884` ports to the host machine so they can be accessed outside of the container. If you already have an MQTT broker running on port 1883, then you'll need to modify the `-p` options to use a different set of ports. For example: `-p 9883:1883 -p 9884:1884`.
 
+## File Server
+
+By default the FlowFuse File Server component is disabled as it is a licensed feature. If you provide a license you can start the File Server with the following command:
+
+```bash
+sudo service flowforge-file start
+```
+
+You can then uncomment the following section in the `/opt/flowforge/etc/flowforge.yml` file
+
+```yaml
+#################################################
+# File Server config                            #
+#################################################
+
+fileStore:
+  url: http://localhost:3001
+
+```
 
 ## Upgrade
 
