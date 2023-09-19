@@ -24,7 +24,7 @@ jobs:
     if: |
       ( github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main' ) ||
       ( github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' )
-    uses: 'flowforge/github-actions-workflows/.github/workflows/publish_node_package.yml@5e57b30ac6ed8478406b3b3f2780241d2f4dcd8f'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@5e57b30ac6ed8478406b3b3f2780241d2f4dcd8f'
     with:
       package_name: flowforge
       build_package: true
@@ -49,7 +49,7 @@ jobs:
         uses: benc-uk/workflow-dispatch@v1
         with:
           workflow: flowforge-container.yml
-          repo: flowforge/helm
+          repo: flowfuse/helm
           ref: main
           token: ${{ steps.generate_token.outputs.token }}
           inputs: '{"flowforge_ref": "${{ github.ref }}", "flowforge_release_name": "${{ env.release_name }}"}'
