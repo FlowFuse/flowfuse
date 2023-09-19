@@ -394,13 +394,19 @@ module.exports = async function (app) {
                     env: request.body.settings.env
                 }
             }
-            const newSettings = app.db.controllers.ProjectTemplate.validateSettings(bodySettings, request.project.ProjectTemplate)
-            if (newSettings.httpNodeAuth?.type === 'flowforge-user') {
-                const teamType = await request.project.Team.getTeamType()
-                if (teamType.properties.features?.teamHttpSecurity === false) {
-                    reply.code(400).send({ code: 'invalid_request', error: 'FlowForge User Authentication not available for this team type' })
-                    return
+            try {
+                const newSettings = app.db.controllers.ProjectTemplate.validateSettings(bodySettings, request.project.ProjectTemplate)
+                if (newSettings.httpNodeAuth?.type === 'flowforge-user') {
+                    const teamType = await request.project.Team.getTeamType()
+                    if (teamType.properties.features?.teamHttpSecurity === false) {
+                        reply.code(400).send({ code: 'invalid_request', error: 'FlowForge User Authentication not available for this team type' })
+                        return
+                    }
                 }
+            } catch (err) {
+                console.log(err)
+                reply.code(400).send({ code: 'env_var_validation', error: `${err.message}` })
+                return
             }
 
             // Merge the settings into the existing values
