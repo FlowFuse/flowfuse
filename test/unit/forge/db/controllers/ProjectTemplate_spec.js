@@ -30,7 +30,7 @@ describe('Project Template controller', function () {
                     allowInstall: true,
                     NOT_ALLOWED: true
                 },
-                env: ['ONE'],
+                env: [{ name: 'ONE', value: 'FOO' }],
                 NOT_ALLOWED: true
             })
 
@@ -45,7 +45,7 @@ describe('Project Template controller', function () {
             result.modules.should.have.property('allowInstall', true)
             result.should.have.property('env')
             result.env.should.have.length(1)
-            result.env[0].should.eql('ONE')
+            result.env[0].should.have.property('name','ONE')
 
             result.should.not.have.property('NOT_ALLOWED')
             result.palette.should.not.have.property('NOT_ALLOWED')

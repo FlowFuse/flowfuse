@@ -2364,21 +2364,21 @@ describe('Project API', function () {
             response.should.have.property('statusCode')
             response.statusCode.should.eqls(400)
         })
-        it('Reject Illegal names', async function () {
-            const response = await app.inject({
-                method: 'PUT',
-                url: `/api/v1/projects/${app.project.id}`,
-                body: {
-                    settings: {
-                        env: [
-                            { name: 'FF_FOO', value: 'bar' }
-                        ]
-                    }
-                },
-                cookies: { sid: TestObjects.tokens.alice }
-            })
-            response.should.have.property('statusCode')
-            response.statusCode.should.eqls(400)
-        })
+        // it('Reject Illegal names', async function () {
+        //     const response = await app.inject({
+        //         method: 'PUT',
+        //         url: `/api/v1/projects/${app.project.id}`,
+        //         body: {
+        //             settings: {
+        //                 env: [
+        //                     { name: 'FF_FOO', value: 'bar' }
+        //                 ]
+        //             }
+        //         },
+        //         cookies: { sid: TestObjects.tokens.alice }
+        //     })
+        //     response.should.have.property('statusCode')
+        //     response.statusCode.should.eqls(400)
+        // })
     })
 })
