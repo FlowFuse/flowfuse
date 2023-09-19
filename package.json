@@ -67,7 +67,7 @@
         "@fastify/swagger-ui": "^1.9.0",
         "@fastify/websocket": "^8.1.0",
         "@flowforge/localfs": "^1.11.1",
-        "@headlessui/vue": "1.7.14",
+        "@headlessui/vue": "1.7.16",
         "@heroicons/vue": "1.0.6",
         "@node-saml/passport-saml": "^4.0.4",
         "axios": "^1.4.0",
