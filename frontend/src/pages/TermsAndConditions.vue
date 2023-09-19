@@ -25,6 +25,16 @@ import store from '../store/index.js'
 
 export default {
     name: 'TermsAndConditions',
+    components: {
+        'ff-layout-box': FFLayoutBox
+    },
+    data () {
+        return {
+            loading: false,
+            accept: false
+        }
+    },
+    computed: mapState('account', ['user', 'settings']),
     methods: {
         logout () {
             store.dispatch('account/logout')
@@ -42,16 +52,6 @@ export default {
                 this.loading = false
             }
         }
-    },
-    computed: mapState('account', ['user', 'settings']),
-    data () {
-        return {
-            loading: false,
-            accept: false
-        }
-    },
-    components: {
-        'ff-layout-box': FFLayoutBox
     }
 }
 </script>

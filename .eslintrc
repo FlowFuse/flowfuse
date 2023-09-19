@@ -329,8 +329,7 @@
                 "frontend/src/pages/team/Devices/dialogs/ProvisioningCredentialsDialog.vue",
                 "frontend/src/pages/team/dialogs/ChangeTeamRoleDialog.vue",
                 "frontend/src/pages/team/dialogs/ConfirmTeamDeleteDialog.vue",
-                "frontend/src/pages/team/dialogs/ConfirmTeamUserRemoveDialog.vue",
-                "frontend/src/pages/TermsAndConditions.vue"
+                "frontend/src/pages/team/dialogs/ConfirmTeamUserRemoveDialog.vue"
             ]
         },
         {
