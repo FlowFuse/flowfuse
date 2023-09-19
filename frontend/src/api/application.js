@@ -211,12 +211,18 @@ const updatePipeline = async (applicationId, pipeline) => {
  * @param {string} cursor
  * @param {string} limit
  */
-const getSnapshots = async (applicationId, cursor, limit) => {
-    // TODO: UNTESTED / UNUSED as of writing
-    const url = paginateUrl(`/api/v1/applications/${applicationId}/snapshots`, cursor, limit)
+const getSnapshots = async (applicationId, cursor, limit, options) => {
+    const extraParams = {}
+    if (options?.deviceId) {
+        extraParams.deviceId = options.deviceId
+    }
+    if (options?.instanceId) {
+        extraParams.instanceId = options.instanceId
+    }
+    const url = paginateUrl(`/api/v1/applications/${applicationId}/snapshots`, cursor, limit, null, extraParams)
     const res = await client.get(url)
 
-    res.data.devices = res.data.devices.map((item) => {
+    res.data.snapshots = res.data.snapshots.map((item) => {
         item.createdSince = daysSince(item.createdAt)
         item.updatedSince = daysSince(item.updatedAt)
         return item
