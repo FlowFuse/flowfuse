@@ -2330,7 +2330,7 @@ describe('Project API', function () {
             response.statusCode.should.eqls(403)
         })
     })
-    describe.only('Validate Project Env Vars', function () {
+    describe('Validate Project Env Vars', function () {
         it('Reject Duplicate Env Var Names', async function () {
             const response = await app.inject({
                 method: 'PUT',
@@ -2380,6 +2380,5 @@ describe('Project API', function () {
             response.should.have.property('statusCode')
             response.statusCode.should.eqls(400)
         })
-
     })
 })
