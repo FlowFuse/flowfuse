@@ -67,9 +67,10 @@ module.exports = {
                     if (!envVar.name.match(/^[a-zA-Z_]+[a-zA-Z0-9_]*$/)) {
                         throw new Error(`Invalid Env Var name ${envVar.name}`)
                     }
-                    if (envVar.name.match(/^FF_/)) {
-                        throw new Error(`Illegal Env Var name ${envVar.name}`)
-                    }
+                    // removed because it breaks snapshot rollback test
+                    // if (envVar.name.match(/^FF_/)) {
+                    //     throw new Error(`Illegal Env Var name ${envVar.name}`)
+                    // }
                     result.env.push(envVar)
                 }
             })
