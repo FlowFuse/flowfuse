@@ -400,7 +400,8 @@ module.exports = async function (app) {
                     properties: {
                         // meta: { $ref: 'PaginationMeta' },
                         count: { type: 'number' },
-                        snapshots: { type: 'array', items: { $ref: 'Snapshot' } }
+                        snapshots: { type: 'array', items: { $ref: 'Snapshot' } },
+                        application: { $ref: 'ApplicationSummary' }
                     }
                 },
                 '4xx': {
@@ -414,6 +415,7 @@ module.exports = async function (app) {
             const paginationOptions = app.getPaginationOptions(request)
             const snapshots = await app.db.models.ProjectSnapshot.forApplication(applicationId, paginationOptions)
             snapshots.snapshots = snapshots.snapshots.map(s => app.db.views.ProjectSnapshot.snapshot(s))
+            // snapshots.application = app.db.views.Application.applicationSummary(request.application)
             reply.send(snapshots)
         } else {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })

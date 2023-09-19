@@ -12,7 +12,9 @@ module.exports = function (app) {
             modules: { type: 'object', additionalProperties: true },
             ownerType: { type: 'string' },
             deviceId: { type: 'string' },
-            projectId: { type: 'string' }
+            projectId: { type: 'string' },
+            device: { $ref: 'DeviceSummary' },
+            project: { $ref: 'InstanceSummary' }
         }
     })
     function snapshot (snapshot) {
@@ -30,6 +32,12 @@ module.exports = function (app) {
             }
             if (snapshot.User) {
                 filtered.user = app.db.views.User.userSummary(snapshot.User)
+            }
+            if (filtered.deviceId) {
+                filtered.device = app.db.views.Device.device(snapshot.Device)
+            }
+            if (filtered.projectId) {
+                filtered.project = app.db.views.Project.projectSummary(snapshot.Project)
             }
             if (snapshot.settings?.modules) {
                 filtered.modules = snapshot.settings.modules
