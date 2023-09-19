@@ -46,6 +46,11 @@ export default {
             open: false
         }
     },
+    computed: {
+        isOpen () {
+            return this.open
+        }
+    },
     watch: {
         open: function () {
             this.$refs.container.scrollTop = 0

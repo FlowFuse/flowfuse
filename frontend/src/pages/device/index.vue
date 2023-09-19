@@ -17,12 +17,15 @@
                     <DeviceLastSeenBadge class="mr-6" :last-seen-at="device.lastSeenAt" :last-seen-ms="device.lastSeenMs" :last-seen-since="device.lastSeenSince" />
                     <StatusBadge :status="device.status" />
                 </template>
-                <template #parent>
-                    <div v-if="device?.instance">
+                <template #context>
+                    <div v-if="device?.ownerType === 'application' && device.application">
+                        Application:
+                        <router-link :to="{name: 'Application', params: {id: device.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.application.name }}</router-link>
+                    </div>
+                    <div v-else-if="device?.ownerType === 'instance' && device.instance">
                         Instance:
                         <router-link :to="{name: 'Instance', params: {id: device.instance.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.instance.name }}</router-link>
                     </div>
-                    <span v-else class="text-gray-400 italic">Device Not Assigned to an Instance</span>
                 </template>
                 <template v-if="isDevModeAvailable" #tools>
                     <div class="space-x-2 flex align-center">
@@ -38,12 +41,7 @@
                                 <ExternalLinkIcon />
                             </span>
                         </button>
-                        <ff-button :disabled="hasPermission('device:edit') !== true || !(device?.instance || device?.application)" :kind="developerMode?'primary':'secondary'" data-action="toggle-mode" @click="showModeChoiceDialog()">
-                            Developer Mode
-                            <template #icon-right>
-                                <BeakerIcon />
-                            </template>
-                        </ff-button>
+                        <DeveloperModeToggle :device="device" @mode-change="setDeviceMode" />
                     </div>
                 </template>
             </SectionNavigationHeader>
@@ -56,13 +54,12 @@
                 <router-view :instance="device.instance" :device="device" @device-updated="loadDevice()" @device-refresh="loadDevice()" />
             </div>
         </div>
-        <ModeChoiceDialog ref="mode-choice-dialog" :device="device" @mode-change="setDeviceMode" />
     </main>
 </template>
 
 <script>
 
-import { BeakerIcon, ExternalLinkIcon } from '@heroicons/vue/outline'
+import { ExternalLinkIcon } from '@heroicons/vue/outline'
 import { TerminalIcon } from '@heroicons/vue/solid'
 import semver from 'semver'
 import { mapState } from 'vuex'
@@ -76,17 +73,16 @@ import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpi
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import permissionsMixin from '../../mixins/Permissions.js'
 
+import DeveloperModeToggle from './components/DeveloperModeToggle.vue'
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
-import ModeChoiceDialog from './dialogs/ModeChoiceDialog.vue'
 
 export default {
     name: 'DevicePage',
     components: {
-        BeakerIcon,
         ExternalLinkIcon,
+        DeveloperModeToggle,
         DeviceLastSeenBadge,
         SectionNavigationHeader,
-        ModeChoiceDialog,
         SideNavigationTeamOptions,
         StatusBadge,
         SubscriptionExpiredBanner,
@@ -161,14 +157,14 @@ export default {
                 })
             }
         },
-        showModeChoiceDialog: function () {
-            this.$refs['mode-choice-dialog'].show()
-        },
         showOpenEditorDialog: async function () {
             this.$refs['open-editor-dialog'].show()
         },
-        setDeviceMode: async function (newMode) {
-            if (newMode === 'autonomous' || newMode === 'developer') {
+        setDeviceMode: async function (newMode, callback) {
+            try {
+                if (newMode !== 'autonomous' && newMode !== 'developer') {
+                    throw new Error('Unsupported mode')
+                }
                 // call to close tunnel regardless of selected mode being set
                 const disableResult = await deviceApi.disableEditorTunnel(this.device.id)
                 // set the selected mode
@@ -180,8 +176,13 @@ export default {
                     url: disableResult?.editor?.url
                 }
                 this.device.mode = setModeResult?.mode
-            } else {
-                throw new Error('Unknown mode')
+                callback(null, setModeResult)
+            } catch (error) {
+                if (callback) {
+                    callback(error)
+                } else {
+                    throw new Error('Unknown mode')
+                }
             }
         }
     }

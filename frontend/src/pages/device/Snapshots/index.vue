@@ -6,20 +6,23 @@
                 <p>Snapshots are also required for deploying to devices. In the Deployments page of a Project, you can define your “Target Snapshot”, which will then be deployed to all connected devices.</p>
                 <p>You can also generate Snapshots directly from any instance of Node-RED using the <a target="_blank" href="https://github.com/flowforge/flowforge-nr-tools-plugin">FlowFuse NR Tools Plugin.</a></p>
             </template>
+            <template #tools>
+                <div class="space-x-2 flex align-center">
+                    <ff-checkbox v-model="showDeviceSnapshotsOnly" v-ff-tooltip:left="'Tick this to show snapshots from other devices and instances'" label="Show only Snapshots created by this device" />
+                </div>
+            </template>
         </SectionTopMenu>
     </div>
     <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Snapshots..." />
         <template v-if="snapshots.length > 0">
             <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
-                <template v-if="hasPermission('project:snapshot:create')" #actions>
-                    <ff-button kind="primary" data-action="create-snapshot" @click="showCreateSnapshotDialog"><template #icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
+                <template v-if="hasPermission('device:snapshot:create')" #actions>
+                    <ff-button kind="primary" data-action="create-snapshot" :disabled="!developerMode || busyMakingSnapshot" @click="showCreateSnapshotDialog"><template #icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
                 </template>
                 <template v-if="showContextMenu" #context-menu="{row}">
-                    <ff-list-item v-if="hasPermission('project:snapshot:rollback')" label="Rollback" @click="showRollbackDialog(row)" />
-                    <ff-list-item v-if="hasPermission('project:snapshot:read')" label="Download package.json" @click="downloadSnapshotPackage(row)" />
-                    <ff-list-item v-if="hasPermission('project:snapshot:set-target')" label="Set as Device Target" @click="showDeviceTargetDialog(row)" />
-                    <ff-list-item v-if="hasPermission('project:snapshot:delete')" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />
+                    <ff-list-item v-if="hasPermission('device:snapshot:delete') && rowIsThisDevice(row)" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />
+                    <ff-list-item v-if="!rowIsThisDevice(row)" disabled label="No actions available" kind="info" />
                 </template>
             </ff-data-table>
         </template>
@@ -34,20 +37,18 @@
                         Snapshots are point-in-time backups of your Node-RED Instances
                         and capture the flows, credentials and runtime settings.
                     </p>
-                    <p>
-                        Snapshots are also used for deploying to your Devices. Devices have
-                        a set "Target Snapshot", which will roll out to all Devices connected
-                        to the respective Instance.
+                    <p v-if="!developerMode" class="block">
+                        A device must be in developer mode and online to create a snapshot.
                     </p>
                 </template>
-                <template v-if="hasPermission('project:snapshot:create')" #actions>
-                    <ff-button kind="primary" data-action="create-snapshot" @click="showCreateSnapshotDialog">
+                <template v-if="hasPermission('device:snapshot:create')" #actions>
+                    <ff-button kind="primary" :disabled="!developerMode || busyMakingSnapshot" data-action="create-snapshot" @click="showCreateSnapshotDialog">
                         <template #icon-left><PlusSmIcon /></template>Create Snapshot
                     </ff-button>
                 </template>
             </EmptyState>
         </template>
-        <SnapshotCreateDialog ref="snapshotCreateDialog" data-el="dialog-create-snapshot" :device="device" @snapshot-created="snapshotCreated" />
+        <SnapshotCreateDialog ref="snapshotCreateDialog" title="Create Device Snapshot" data-el="dialog-create-device-snapshot" :show-set-as-target="false" :device="device" @device-upload-success="onSnapshotCreated" @device-upload-failed="onSnapshotFailed" @canceled="onSnapshotCancel" />
     </div>
 </template>
 
@@ -57,7 +58,7 @@ import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
 import ApplicationApi from '../../../api/application.js'
-import deviceApi from '../../../api/devices.js'
+import DeviceApi from '../../../api/devices.js'
 
 import EmptyState from '../../../components/EmptyState.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
@@ -66,10 +67,12 @@ import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 import DaysSince from '../../application/Snapshots/components/cells/DaysSince.vue'
-import DeviceCount from '../../application/Snapshots/components/cells/DeviceCount.vue'
+// TODO - NEXT_ITERATION: Deploy this snapshot
+// import DeployThisSnapshot from '../../application/Snapshots/components/cells/DeployThisSnapshot.vue'
 import SnapshotName from '../../application/Snapshots/components/cells/SnapshotName.vue'
+import SnapshotSource from '../../application/Snapshots/components/cells/SnapshotSource.vue'
 
-import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog.vue'
+import SnapshotCreateDialog from '../dialogs/SnapshotCreateDialog.vue'
 
 export default {
     name: 'DeviceSnapshots',
@@ -92,18 +95,21 @@ export default {
         return {
             loading: false,
             deviceCounts: {},
-            snapshots: []
+            showDeviceSnapshotsOnly: true,
+            snapshots: [],
+            busyMakingSnapshot: false
         }
     },
     computed: {
         ...mapState('account', ['teamMembership']),
         showContextMenu: function () {
-            return this.hasPermission('project:snapshot:rollback') || this.hasPermission('project:snapshot:set-target') || this.hasPermission('project:snapshot:delete') || this.hasPermission('device:snapshot:delete')
+            return this.hasPermission('device:snapshot:delete')
         },
         columns () {
             const cols = [
                 {
                     label: 'Snapshot',
+                    class: ['w-56 sm:w-48'],
                     component: {
                         is: markRaw(SnapshotName),
                         extraProps: {
@@ -112,17 +118,17 @@ export default {
                     }
                 },
                 {
-                    label: '',
+                    label: 'Source',
+                    class: ['w-56'],
+                    key: '_ownerSortKey',
+                    // sortable: !this.moreThanOnePage,
                     component: {
-                        is: markRaw(DeviceCount),
-                        extraProps: {
-                            // targetSnapshot: this.instance.deviceSettings?.targetSnapshot
-                        }
+                        is: markRaw(SnapshotSource)
                     }
                 },
                 {
                     label: 'Created By',
-                    class: ['w-56'],
+                    class: ['w-48 hidden md:table-cell'],
                     component: {
                         is: markRaw(UserCell),
                         map: {
@@ -132,45 +138,63 @@ export default {
                         }
                     }
                 },
-                { label: 'Date Created', class: ['w-56'], component: { is: markRaw(DaysSince), map: { date: 'createdAt' } } }
+                {
+                    label: 'Date Created',
+                    class: ['w-48 hidden sm:table-cell'],
+                    component: { is: markRaw(DaysSince), map: { date: 'createdAt' } }
+                }
+                // TODO - NEXT_ITERATION: Deploy this snapshot
+                // {
+                //     label: '',
+                //     class: ['w-40 deploy-this-button-cell'],
+                //     component: {
+                //         is: markRaw(DeployThisSnapshot),
+                //         map: { snapshotId: 'id' },
+                //         extraProps: {
+                //             disabled: !this.developerMode
+                //         }
+                //     }
+                // }
             ]
             return cols
+        },
+        developerMode () {
+            return this.device?.mode === 'developer'
         }
     },
     watch: {
         team: 'fetchData',
-        device: 'fetchData'
+        device: 'fetchData',
+        showDeviceSnapshotsOnly: 'fetchData'
     },
     mounted () {
         this.fetchData()
     },
     methods: {
+        rowIsThisDevice: function (snapshot) {
+            if (!snapshot || !this.device.id) {
+                return false
+            }
+            return snapshot.device?.id === this.device.id
+        },
         fetchData: async function () {
-            if (this.device.id) {
+            if (this.device.id && this.device.application) {
                 this.loading = true
-                // const deviceCounts = await this.countDevices()
-                const data = await deviceApi.getDeviceSnapshots(this.device.id) // TODO Move devices snapshots?
-                this.snapshots = data.snapshots.map((s) => {
-                    // s.deviceCount = deviceCounts[s.id]
-                    return s
+                const ssFilter = {
+                    deviceId: this.showDeviceSnapshotsOnly ? this.device.id : null
+                }
+                const data = await ApplicationApi.getSnapshots(this.device.application.id, null, null, ssFilter) // TODO Move devices snapshots?
+
+                this.snapshots = data.snapshots.map(snapshot => {
+                    const ownerKey = this.getSortKeyForSnapshotSource(snapshot)
+                    return {
+                        ...snapshot,
+                        ...(ownerKey ? { _ownerSortKey: ownerKey } : { _ownerSortKey: undefined })
+                    }
                 })
+                this.snapshots = [...data.snapshots]
                 this.loading = false
             }
-        },
-        async countDevices () {
-            // hardcoded device limit to ensure all are returned - feels dirty
-            const data = await ApplicationApi.getApplicationDevices(this.application.id, null)
-            // map devices to snapshot deployed on that device
-            const deviceCounts = data.devices.reduce((acc, device) => {
-                const snapshot = device.activeSnapshot?.id
-                if (!acc[snapshot]) {
-                    acc[snapshot] = 1
-                } else {
-                    acc[snapshot]++
-                }
-                return acc
-            }, {})
-            return deviceCounts
         },
         // snapshot actions - delete
         showDeleteSnapshotDialog (snapshot) {
@@ -180,67 +204,54 @@ export default {
                 kind: 'danger',
                 confirmLabel: 'Delete'
             }, async () => {
-                await deviceApi.deleteSnapshot(this.device.id, snapshot.id)
+                await DeviceApi.deleteSnapshot(this.device.id, snapshot.id)
                 const index = this.snapshots.indexOf(snapshot)
                 this.snapshots.splice(index, 1)
                 Alerts.emit('Successfully deleted snapshot.', 'confirmation')
             })
         },
-        // snapshot actions - rollback
-        showRollbackDialog (snapshot) {
-            Dialog.show({
-                header: 'Rollback Snapshot',
-                html: `<p>This rollback will overwrite the current instance.</p>
-            <p>All changes to the flows, settings and environment variables made since
-                the last snapshot will be lost.</p>
-            <p>Are you sure you want to rollback to this snapshot?</p>`,
-                confirmLabel: 'Confirm Rollback'
-            }, async () => {
-                // await SnapshotApi.rollbackSnapshot(this.instance.id, snapshot.id)
-                // Alerts.emit('Successfully rollbacked snapshot.', 'confirmation')
-                Alerts.emit('rollback not currently supported.', 'confirmation')
-            })
-        },
-        // snapshot actions - set as device target
-        showDeviceTargetDialog (snapshot) {
-            // Dialog.show({
-            //     header: 'Set Device Target Snapshot',
-            //     html: `<p>Are you sure you want to set this snapshot as the device target?</p>
-            // <p>All devices assigned to this instance will be restarted on this snapshot.</p>`,
-            //     confirmLabel: 'Set Target'
-            // }, async () => {
-            //     await ApplicationApi.updateInstanceDeviceSettings(this.instance.id, {
-            //         targetSnapshot: snapshot.id
-            //     })
-            //     this.$emit('device-updated')
-            // })
-        },
         showCreateSnapshotDialog () {
+            this.busyMakingSnapshot = true
             this.$refs.snapshotCreateDialog.show()
         },
-        snapshotCreated (snapshot) {
+        onSnapshotCreated (snapshot) {
             this.snapshots.unshift(snapshot)
             // on next tick, update the table data to ensure
             // the new snapshot is shown and the correct status are shown
+            this.busyMakingSnapshot = false
             this.$emit('device-updated')
         },
-        async downloadSnapshotPackage (snapshot) {
-            const ss = await deviceApi.getDeviceSnapshot(this.device.id, snapshot.id)
-            const packageJSON = {
-                name: this.device.name,
-                description: `${snapshot.name} - ${snapshot.description}`,
-                private: true,
-                version: '0.0.0-' + snapshot.id,
-                dependencies: ss.modules
+        onSnapshotFailed (err) {
+            console.error(err)
+            Alerts.emit('Failed to create snapshot of device.', 'error')
+            this.busyMakingSnapshot = false
+        },
+        onSnapshotCancel () {
+            this.busyMakingSnapshot = false
+        },
+        getSortKeyForSnapshotSource (snapshot) {
+            if (snapshot.ownerType === 'device') {
+                return 'Device:' + snapshot.device?.name || 'No Name'
             }
-            const element = document.createElement('a')
-            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(packageJSON, null, 2)))
-            element.setAttribute('download', 'package.json')
-            element.style.display = 'none'
-            document.body.appendChild(element)
-            element.click()
-            document.body.removeChild(element)
+
+            if (snapshot.ownerType === 'instance') {
+                return 'Instance:' + snapshot.instance?.name || 'No Name'
+            }
+
+            return 'Unassigned'
         }
     }
 }
 </script>
+
+<style>
+
+tbody .ff-data-table--row > .ff-data-table--cell > .deploy-this-snapshot-button {
+    display: none;
+}
+
+tbody tr.ff-data-table--row:hover .ff-data-table--cell .deploy-this-snapshot-button {
+    display: flex;
+}
+
+</style>
