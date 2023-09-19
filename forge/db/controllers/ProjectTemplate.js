@@ -64,9 +64,21 @@ module.exports = {
             }
             settings.env.forEach((envVar) => {
                 if (templateEnvPolicyMap[envVar.name] !== false && !/ /.test(envVar.name)) {
+                    if (!envVar.name.match(/^[a-zA-Z_]+[a-zA-Z0-9_]*$/)) {
+                        throw new Error(`Invalid Env Var name ${envVar.name}`)
+                    }
+                    if (envVar.name.match(/^FF_/)) {
+                        throw new Error(`Illegal Env Var name ${envVar.name}`)
+                    }
                     result.env.push(envVar)
                 }
             })
+            // find duplicates
+            const seen = new Set()
+            const dups = result.env.some( item => { return seen.size === seen.add(item.name).size })
+            if (dups) {
+                throw new Error('Duplicate Env Var names provided')
+            }
         }
         // Validate palette modules:
         // * No duplicates
