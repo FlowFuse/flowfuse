@@ -75,7 +75,7 @@ module.exports = {
             })
             // find duplicates
             const seen = new Set()
-            const dups = result.env.some( item => { return seen.size === seen.add(item.name).size })
+            const dups = result.env.some(item => { return seen.size === seen.add(item.name).size })
             if (dups) {
                 throw new Error('Duplicate Env Var names provided')
             }

@@ -403,17 +403,16 @@ module.exports = async function (app) {
                         return
                     }
                 }
+
+                // Merge the settings into the existing values
+                const currentProjectSettings = await request.project.getSetting(KEY_SETTINGS) || {}
+                const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings)
+
+                changesToPersist.settings = { from: currentProjectSettings, to: updatedSettings }
             } catch (err) {
-                console.log(err)
                 reply.code(400).send({ code: 'env_var_validation', error: `${err.message}` })
                 return
             }
-
-            // Merge the settings into the existing values
-            const currentProjectSettings = await request.project.getSetting(KEY_SETTINGS) || {}
-            const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings)
-
-            changesToPersist.settings = { from: currentProjectSettings, to: updatedSettings }
         }
 
         // Project Type
