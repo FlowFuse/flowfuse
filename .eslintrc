@@ -267,11 +267,7 @@
                 "frontend/src/pages/team/components/ProjectTypeSummary.vue",
                 "frontend/src/pages/team/components/TeamUserEditButton.vue",
                 "frontend/src/pages/team/create.vue",
-                "frontend/src/pages/team/dialogs/ChangeTeamRoleDialog.vue",
-                "frontend/src/pages/team/dialogs/InviteMemberDialog.vue",
-                "frontend/src/pages/team/Members/General.vue",
-                "frontend/src/pages/team/Members/index.vue",
-                "frontend/src/pages/team/Members/Invitations.vue"
+                "frontend/src/pages/team/dialogs/ChangeTeamRoleDialog.vue"
             ]
         },
         {
@@ -333,14 +329,7 @@
                 "frontend/src/pages/team/Devices/dialogs/ProvisioningCredentialsDialog.vue",
                 "frontend/src/pages/team/dialogs/ChangeTeamRoleDialog.vue",
                 "frontend/src/pages/team/dialogs/ConfirmTeamDeleteDialog.vue",
-                "frontend/src/pages/team/dialogs/ConfirmTeamUserRemoveDialog.vue",
-                "frontend/src/pages/team/dialogs/InviteMemberDialog.vue",
-                "frontend/src/pages/team/Members/General.vue",
-                "frontend/src/pages/team/Members/index.vue",
-                "frontend/src/pages/team/Members/Invitations.vue",
-                "frontend/src/pages/team/Overview.vue",
-                "frontend/src/pages/TermsAndConditions.vue",
-                "frontend/src/pages/UnverifiedEmail.vue"
+                "frontend/src/pages/team/dialogs/ConfirmTeamUserRemoveDialog.vue"
             ]
         },
         {
@@ -384,12 +373,7 @@
                 "frontend/src/pages/team/components/TeamUserEditButton.vue",
                 "frontend/src/pages/team/Devices/dialogs/CreateProvisioningTokenDialog.vue",
                 "frontend/src/pages/team/Devices/dialogs/DeviceCredentialsDialog.vue",
-                "frontend/src/pages/team/Devices/dialogs/ProvisioningCredentialsDialog.vue",
-                "frontend/src/pages/team/dialogs/InviteMemberDialog.vue",
-                "frontend/src/pages/team/Members/General.vue",
-                "frontend/src/pages/team/Members/index.vue",
-                "frontend/src/pages/team/Members/Invitations.vue",
-                "frontend/src/pages/team/Overview.vue"
+                "frontend/src/pages/team/Devices/dialogs/ProvisioningCredentialsDialog.vue"
             ]
         }
     ]
