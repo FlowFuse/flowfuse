@@ -255,7 +255,8 @@ module.exports = async function (app) {
                 properties: {
                     name: { type: 'string' },
                     instanceId: { type: 'string' },
-                    source: { type: 'string' }
+                    source: { type: 'string' },
+                    action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) }
                 }
             },
             response: {
@@ -270,14 +271,15 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const team = await request.teamMembership.getTeam()
         const name = request.body.name?.trim() // name of the stage
-        const { instanceId, deployToDevices } = request.body
+        const { instanceId, deployToDevices, action } = request.body
 
         let stage
         try {
             const options = {
                 name,
                 instanceId,
-                deployToDevices
+                deployToDevices,
+                action
             }
             if (request.body.source) {
                 options.source = request.body.source
@@ -321,7 +323,8 @@ module.exports = async function (app) {
                 type: 'object',
                 properties: {
                     name: { type: 'string' },
-                    instanceId: { type: 'string' }
+                    instanceId: { type: 'string' },
+                    action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) }
                 }
             },
             response: {
@@ -339,6 +342,10 @@ module.exports = async function (app) {
 
             if (request.body.name) {
                 stage.name = request.body.name
+            }
+
+            if (request.body.action) {
+                stage.action = request.body.action
             }
 
             if (request.body.instanceId) {
