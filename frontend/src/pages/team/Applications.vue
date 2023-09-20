@@ -8,6 +8,9 @@
                 <template #help-header>
                     Applications
                 </template>
+                <template #pictogram>
+                    <img src="../../images/pictograms/application_red.png">
+                </template>
                 <template #helptext>
                     <p>This is a list of all Applications hosted on the same domain as FlowFuse.</p>
                     <p>Each Application can host multiple Node-RED instances.</p>
