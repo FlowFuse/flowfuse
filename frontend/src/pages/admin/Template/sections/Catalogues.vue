@@ -166,16 +166,13 @@ export default {
                     this.input.error = 'Invalid URL'
                     return
                 }
-                console.log('push to editable')
                 this.editable.settings.palette_catalogue.push(newURL)
                 this.input.url = ''
                 this.input.error = ''
             }
         },
         removeURL (url) {
-            console.log(this.editable.settings.palette_catalogue)
             const index = this.editable.settings.palette_catalogue.indexOf(url)
-            console.log(index, url)
             this.editable.settings.palette_catalogue.splice(index, 1)
         },
         addDefault () {

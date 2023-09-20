@@ -103,7 +103,6 @@ export default {
         editable: {
             deep: true,
             handler (v) {
-                console.log('editable changed')
                 // Only check for changes in existing templates
                 if (this.template.name) {
                     let changed = false
@@ -224,8 +223,6 @@ export default {
                 }
 
                 const preparedTemplate = prepareTemplateForEdit(this.template)
-
-                console.log(preparedTemplate.original)
 
                 this.editable = preparedTemplate.editable
                 this.original = preparedTemplate.original
