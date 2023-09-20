@@ -1,6 +1,7 @@
 <template>
     <FormHeading>
         Node Catalogues
+        <ChangeIndicator class="!inline-block ml-4 mt-0" :value="editable.changed.settings.palette_catalogue" />
     </FormHeading>
     <form class="space-y-4 max-w-2xl" @submit.prevent>
         <div v-if="!projectLauncherCompatible" class="text-red-400 space-y-1">
@@ -11,9 +12,7 @@
         </div>
 
         <div v-else>
-            <div class="flex flex-col sm:flex-row">
-                <ChangeIndicator :value="editable.changed.settings.palette_catalogue" />
-            </div>
+            <div class="flex flex-col sm:flex-row" />
             <div class="w-full flex flex-col sm:flex-row">
                 <div class="w-full sm:mr-8 space-y-2">
                     <div class="w-full flex items-center">
@@ -153,7 +152,8 @@ export default {
         }
     },
     mounted () {
-        this.urls = this.editable.settings.palette_catalogue
+        // deep copy
+        this.urls = JSON.parse(JSON.stringify(this.editable.settings.palette_catalogue))
     },
     methods: {
         addURL () {
@@ -166,6 +166,7 @@ export default {
                     this.input.error = 'Invalid URL'
                     return
                 }
+                console.log('push to editable')
                 this.editable.settings.palette_catalogue.push(newURL)
                 this.input.url = ''
                 this.input.error = ''

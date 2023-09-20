@@ -100,17 +100,11 @@ export default {
         }
     },
     watch: {
-        original: {
-            deep: true,
-            handler: function (v) {
-                console.log('original changed', this.original.settings.palette_catalogue)
-            }
-        },
         editable: {
             deep: true,
             handler (v) {
-                // Only check for changes in existing templates
                 console.log('editable changed')
+                // Only check for changes in existing templates
                 if (this.template.name) {
                     let changed = false
                     let modulesChanged = false
@@ -133,8 +127,6 @@ export default {
                             errors = errors || pmChanges.errors
                         } else if (field === 'palette_catalogue') {
                             this.editable.changed.settings.palette_catalogue = false
-                            console.log(this.original.settings.palette_catalogue, this.editable.settings.palette_catalogue)
-                            console.log(this.editable.changed.settings.palette_catalogue)
                             if (this.original.settings.palette_catalogue.length !== this.editable.settings.palette_catalogue.length) {
                                 this.editable.changed.settings.palette_catalogue = true
                             } else {
