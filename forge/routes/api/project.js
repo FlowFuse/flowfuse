@@ -414,7 +414,7 @@ module.exports = async function (app) {
             const currentProjectSettings = await request.project.getSetting(KEY_SETTINGS) || {}
             const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings)
 
-             changesToPersist.settings = { from: currentProjectSettings, to: updatedSettings }
+            changesToPersist.settings = { from: currentProjectSettings, to: updatedSettings }
         }
 
         // Project Type
