@@ -170,6 +170,7 @@ export default {
             if (entryIsFile) {
                 this.contents = contents
             } else {
+                this.contents = null // clear selection so that copy to clipboard is hidden
                 this.rows = this.formatEntries(contents, this.breadcrumbs.at(-1))
             }
         },
