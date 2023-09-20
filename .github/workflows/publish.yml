@@ -18,22 +18,21 @@ on:
       - main
     types: 
       - completed
-  schedule:
-    - cron: '0 23 * * *'
 
 jobs:
   publish:
     if: |
       ( github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main' ) ||
-      ( github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' ) ||
-      github.event_name == 'schedule'
-    uses: 'flowforge/github-actions-workflows/.github/workflows/publish_node_package.yml@main'
+      ( github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' )
+    uses: 'flowforge/github-actions-workflows/.github/workflows/publish_node_package.yml@5e57b30ac6ed8478406b3b3f2780241d2f4dcd8f'
     with:
       package_name: flowforge
       build_package: true
       publish_package: true
       package_dependencies: |
         @flowforge/localfs
+    secrets:
+      npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
 
   dispatch_container_build:
     needs: publish

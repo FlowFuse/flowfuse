@@ -238,7 +238,7 @@
     </template>
     <template v-else-if="entry.event === 'billing.subscription.deleted'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.billingSession"></span>
+        <span v-if="!error && entry.body?.billingSession" />
         <span v-else-if="!error">Billing data not found in audit entry.</span>
     </template>
 
@@ -478,12 +478,12 @@
     <template v-if="error">
         <details class="ff-audit-entry--error">
             <summary>
-                <ChevronRightIcon class="ff-icon ff-icon-sm"/>
+                <ChevronRightIcon class="ff-icon ff-icon-sm" />
                 Show Error
             </summary>
             <span>
                 {{ entry.body }}
-                <ChevronDownIcon class="ff-icon ff-icon-sm"/>
+                <ChevronDownIcon class="ff-icon ff-icon-sm" />
             </span>
         </details>
     </template>

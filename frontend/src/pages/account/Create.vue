@@ -2,8 +2,8 @@
 
 <template>
     <ff-layout-box class="ff-signup">
-        <template #splash-content v-if="splash">
-            <div v-html="splash" data-el="splash"></div>
+        <template v-if="splash" #splash-content>
+            <div data-el="splash" v-html="splash" />
         </template>
         <form v-if="!emailSent && !ssoCreated" class="max-w-md m-auto">
             <p
@@ -11,38 +11,38 @@
                 data-el="banner-text"
                 class="text-center -mt-6 pb-4 text-gray-400"
                 v-html="settings['branding:account:signUpTopBanner']"
-            ></p>
+            />
             <div>
                 <label>Username</label>
-                <ff-text-input ref="signup-username" data-form="signup-username" label="username" :error="errors.username" v-model="input.username" />
+                <ff-text-input ref="signup-username" v-model="input.username" data-form="signup-username" label="username" :error="errors.username" />
                 <span class="ff-error-inline">{{ errors.username }}</span>
                 <label>Full Name</label>
-                <ff-text-input ref="signup-fullname" data-form="signup-fullname" label="Full Name" :error="errors.name" v-model="input.name" />
+                <ff-text-input ref="signup-fullname" v-model="input.name" data-form="signup-fullname" label="Full Name" :error="errors.name" />
                 <span class="ff-error-inline">{{ errors.name }}</span>
                 <label>E-Mail Address</label>
-                <ff-text-input ref="signup-email" data-form="signup-email" label="E-Mail Address" :error="errors.email" v-model="input.email" />
+                <ff-text-input ref="signup-email" v-model="input.email" data-form="signup-email" label="E-Mail Address" :error="errors.email" />
                 <span class="ff-error-inline">{{ errors.email }}</span>
                 <label>Password</label>
-                <ff-text-input ref="signup-password" data-form="signup-password" label="password" :error="errors.password" v-model="input.password" type="password"/>
+                <ff-text-input ref="signup-password" v-model="input.password" data-form="signup-password" label="password" :error="errors.password" type="password" />
                 <span class="ff-error-inline">{{ errors.password }}</span>
             </div>
-            <div class="pt-3" v-if="askJoinReason">
+            <div v-if="askJoinReason" class="pt-3">
                 <ff-radio-group
-                    label="What brings you to FlowFuse?"
                     v-model="input.join_reason"
+                    label="What brings you to FlowFuse?"
                     orientation="grid"
                     data-form="signup-join-reason"
                     :options="reasons"
                 />
             </div>
-            <div class="pt-3" v-if="settings['user:tcs-required']">
+            <div v-if="settings['user:tcs-required']" class="pt-3">
                 <ff-checkbox v-model="input.tcs_accepted" data-form="signup-accept-tcs">
                     I accept the <a target="_blank" :href="settings['user:tcs-url']">FlowFuse Terms &amp; Conditions.</a>
                 </ff-checkbox>
             </div>
             <label v-if="errors.general" class="pt-3 ff-error-inline">{{ errors.general }}</label>
             <div class="ff-actions pt-2">
-                <ff-button :disabled="!formValid || busy || tooManyRequests" @click="registerUser()" data-action="sign-up">
+                <ff-button :disabled="!formValid || busy || tooManyRequests" data-action="sign-up" @click="registerUser()">
                     <span>Sign Up</span>
                     <span class="w-4">
                         <SpinnerIcon v-if="busy || tooManyRequests" class="ff-icon ml-3 !w-3.5" />
@@ -108,9 +108,6 @@ export default {
             ]
         }
     },
-    mounted () {
-        this.input.email = useRoute().query.email || ''
-    },
     computed: {
         ...mapState('account', ['settings', 'pending']),
         splash () {
@@ -155,6 +152,9 @@ export default {
                 this.errors.name = ''
             }
         }
+    },
+    mounted () {
+        this.input.email = useRoute().query.email || ''
     },
     methods: {
         checkPassword () {

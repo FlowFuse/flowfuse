@@ -11,7 +11,6 @@ import AdminSettingsLicense from './Settings/License.vue'
 import AdminSettingsSSOEdit from './Settings/SSO/createEditProvider.vue'
 import AdminSettingsSSO from './Settings/SSO/index.vue'
 import AdminSettings from './Settings/index.vue'
-// import AdminSettingsPermissions from './Settings/Permissions.vue'
 import AdminStacks from './Stacks/index.vue'
 import AdminTeamTypes from './TeamTypes/index.vue'
 import AdminTeams from './Teams.vue'
@@ -72,7 +71,6 @@ export default [
                 redirect: '/admin/settings/general',
                 children: [
                     { path: 'general', component: AdminSettingsGeneral },
-                    // { path: 'permissions', component: AdminSettingsPermissions },
                     { path: 'license', component: AdminSettingsLicense },
                     { path: 'email', component: AdminSettingsEmail },
                     { path: 'sso', name: 'AdminSettingsSSO', component: AdminSettingsSSO }

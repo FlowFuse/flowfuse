@@ -30,14 +30,22 @@ module.exports = function (app) {
         }
     })
 
-    function device (device, options) {
+    function device (device, { statusOnly = false } = {}) {
         if (!device) {
             return null
         }
-        options = options || {
-            // future options here
-        }
+
         const result = device.toJSON()
+
+        if (statusOnly) {
+            return {
+                id: result.hashid,
+                lastSeenAt: result.lastSeenAt,
+                lastSeenMs: result.lastSeenAt ? (Date.now() - new Date(result.lastSeenAt).valueOf()) : null,
+                status: result.state || 'offline'
+            }
+        }
+
         const filtered = {
             id: result.hashid,
             name: result.name,
@@ -71,6 +79,7 @@ module.exports = function (app) {
             const tunnelManager = app.comms.devices.tunnelManager
             filtered.editor = tunnelManager.getTunnelStatus(result.hashid) || {}
         }
+
         return filtered
     }
     app.addSchema({

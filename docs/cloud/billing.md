@@ -16,17 +16,21 @@ For each team you will need to setup the billing details for each time, though y
 
 ## Billing Cycle
 
-Teams are billed monthly on the anniversary of the team creation. You will receive one bill for each team. Node-RED instances are billed in advance for the coming month. If an instance is added during the billing cycle then a new charge is made for a full month and a pro-rated credit is then applied to the invoice on the next cycle for the unused time.
+Starter plan teams are billed monthly on the anniversary of the team creation. You will receive one bill for each team.
+
+For Team plan teams, Node-RED Instances and Devices are added as pro-rated charges on the current billing cycle and invoiced
+at the end of the cycle.
 
 ## Removing Instances
 
-When a Node-RED instance is deleted you will receive a pro-rated credit for the time remaining in the billing cycle, which is used against a future invoice.
+For Team plan teams, when a Node-RED instance is deleted your account will receive pro-rated credit for the time remaining in the billing cycle.
 
 ## Suspended Instances
 
 Suspended Node-RED instances have no running editor, nor a runtime. You are not charged for suspended instances.
-When an instance is suspended your account will receive a credit for the time remaining in the billing cycle.
-When an instance is started up again then you will be billed for the remaining seconds in the teams billing cycle, any credit on the account from the instance being suspended will be used towards this charge first.
+
+For Team plan teams, when an instance is suspended your account will receive pro-rated credit for the time remaining in the billing cycle. When an
+instance is restarted it will be charged for the remaining time in the billing cycle.
 
 ## Managing Billing Details
 

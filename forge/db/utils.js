@@ -21,6 +21,7 @@ let app
  * @param {Object} params the pagination options - cursor, query, limit
  * @param {Object} whereClause any pre-existing where-query clauses to include
  * @param {Array<String>} columns an array of column names to search.
+ * @param {Object} filterMap pairs of filters to apply
  * @returns a `where` object that can be passed to sequelize query
  */
 const buildPaginationSearchClause = (params, whereClause = {}, columns = [], filterMap = {}) => {

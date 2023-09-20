@@ -42,12 +42,15 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const paginationOptions = app.getPaginationOptions(request)
+        const paginationOptions = app.db.controllers.Device.getDevicePaginationOptions(request)
+
         const where = {
             ProjectId: request.project.id
         }
-        const devices = await app.db.models.Device.getAll(paginationOptions, where)
-        devices.devices = devices.devices.map(d => app.db.views.Device.device(d))
+
+        const devices = await app.db.models.Device.getAll(paginationOptions, where, { includeInstanceApplication: true })
+        devices.devices = devices.devices.map(d => app.db.views.Device.device(d, { statusOnly: paginationOptions.statusOnly }))
+
         reply.send(devices)
     })
 

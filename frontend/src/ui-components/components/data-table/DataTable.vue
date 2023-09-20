@@ -172,7 +172,7 @@ export default {
             default: 'No Data Found'
         }
     },
-    emits: ['update:search', 'load-more', 'row-selected'],
+    emits: ['update:search', 'load-more', 'row-selected', 'update:sort'],
     data () {
         return {
             internalSearch: '',
@@ -180,10 +180,6 @@ export default {
                 highlightColumn: null,
                 key: '',
                 order: 'desc'
-            },
-            pagination: {
-                active: -1,
-                max: -1
             },
             orders: ['desc', 'asc']
         }
@@ -197,8 +193,11 @@ export default {
                 return this.search
             },
             set (value) {
+                const valueChanged = value !== this.internalSearch
                 this.internalSearch = value
-                this.$emit('update:search', value)
+                if (valueChanged) {
+                    this.$emit('update:search', value)
+                }
             }
         },
         hasContextMenu: function () {
@@ -275,6 +274,8 @@ export default {
                 } else {
                     this.sort.highlightColumn = null
                 }
+
+                this.$emit('update:sort', this.sort.key, this.sort.order)
             }
         },
         cycleOrder () {

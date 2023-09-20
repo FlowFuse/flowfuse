@@ -36,7 +36,18 @@ module.exports = async function (app) {
             async (request, reply) => {
                 request.teamMembership = await request.session.User.getTeamMembership(request.body.teamId)
                 if (!request.teamMembership) {
-                    return reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                    // This could be an admin who is allowed to create an application.
+                    if (!request.session.User.admin) {
+                        return reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                    } else {
+                        // This is an admin
+                        request.team = await app.db.models.Team.byId(request.body.teamId)
+                    }
+                } else {
+                    request.team = await request.teamMembership.getTeam()
+                }
+                if (!request.team) {
+                    return reply.code(409).send({ code: 'invalid_team', error: 'Invalid team id' })
                 }
             },
             app.needsPermission('project:create') // TODO Using project level permissions
@@ -67,7 +78,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const team = await request.teamMembership.getTeam()
+        const team = request.team
 
         const name = request.body.name?.trim()
         if (name === '') {
@@ -321,11 +332,16 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const data = (await app.db.models.Device.byApplication(request.application.hashid, { includeSettings: true })) || []
-        reply.send({
-            count: data.length,
-            devices: data.map(d => app.db.views.Device.device(d))
-        })
+        const paginationOptions = app.db.controllers.Device.getDevicePaginationOptions(request)
+
+        const where = {
+            ApplicationId: request.application.hashid
+        }
+
+        const devices = await app.db.models.Device.getAll(paginationOptions, where, { includeInstanceApplication: false })
+        devices.devices = devices.devices.map(d => app.db.views.Device.device(d, { statusOnly: paginationOptions.statusOnly }))
+
+        reply.send(devices)
     })
 
     /**

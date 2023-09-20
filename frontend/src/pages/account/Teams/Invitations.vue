@@ -2,8 +2,8 @@
     <div class="space-y-6">
         <ff-data-table data-el="table" :columns="inviteColumns" :rows="invitations">
             <template #context-menu="{row}">
-                <ff-list-item data-action="accept" label="Accept" @click="acceptInvite(row)"/>
-                <ff-list-item data-action="reject" label="Reject" kind="danger" @click="rejectInvite(row)"/>
+                <ff-list-item data-action="accept" label="Accept" @click="acceptInvite(row)" />
+                <ff-list-item data-action="reject" label="Reject" kind="danger" @click="rejectInvite(row)" />
             </template>
         </ff-data-table>
     </div>
@@ -18,7 +18,12 @@ import TeamCell from '../../../components/tables/cells/TeamCell.vue'
 
 export default {
     name: 'UserInviteTable',
-    props: ['user'],
+    props: {
+        user: {
+            default: null,
+            type: Object
+        }
+    },
     emits: ['invites-updated'],
     data () {
         return {

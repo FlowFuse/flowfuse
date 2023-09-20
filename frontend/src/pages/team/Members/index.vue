@@ -8,7 +8,7 @@
             </ff-page-header>
         </template>
         <div class="flex-grow">
-            <router-view :team="team" :teamMembership="teamMembership" :inviteCount="inviteCount" @invites-updated="checkAccess()"></router-view>
+            <router-view :team="team" :teamMembership="teamMembership" :inviteCount="inviteCount" @invites-updated="checkAccess()" />
         </div>
     </ff-page>
 </template>
@@ -22,16 +22,25 @@ import permissionsMixin from '../../../mixins/Permissions.js'
 
 export default {
     name: 'TeamUsers',
-    props: ['team', 'teamMembership'],
     mixins: [permissionsMixin],
-    computed: {
-        ...mapState('account', ['user'])
+    props: {
+        team: {
+            type: Object,
+            required: true
+        },
+        teamMembership: {
+            type: Object,
+            required: true
+        }
     },
     data: function () {
         return {
             navigation: [],
             inviteCount: 0
         }
+    },
+    computed: {
+        ...mapState('account', ['user'])
     },
     watch: {
         teamMembership: 'checkAccess'

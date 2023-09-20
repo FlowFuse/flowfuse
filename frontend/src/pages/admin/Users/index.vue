@@ -1,7 +1,7 @@
 <template>
     <SectionTopMenu hero="Users" :options="sideNavigation" />
     <div class="flex-grow">
-        <router-view ></router-view>
+        <router-view />
     </div>
 </template>
 
@@ -16,13 +16,13 @@ const sideNavigation = [
 
 export default {
     name: 'AdminUsers',
+    components: {
+        SectionTopMenu
+    },
     setup () {
         return {
             sideNavigation
         }
-    },
-    components: {
-        SectionTopMenu
     }
 }
 </script>

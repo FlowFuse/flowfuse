@@ -9,7 +9,7 @@
         </template>
         <div class="flex flex-col sm:flex-row">
             <div class="flex-grow pt-4">
-                <router-view :team="team" :teamMembership="teamMembership"></router-view>
+                <router-view :team="team" :teamMembership="teamMembership" />
             </div>
         </div>
     </ff-page>
@@ -23,10 +23,16 @@ import permissionsMixin from '../../../mixins/Permissions.js'
 
 export default {
     name: 'TeamSettings',
-    props: ['team', 'teamMembership'],
     mixins: [permissionsMixin],
-    computed: {
-        ...mapState('account', ['features'])
+    props: {
+        team: {
+            type: Object,
+            required: true
+        },
+        teamMembership: {
+            type: Object,
+            required: true
+        }
     },
     data: function () {
         return {
@@ -36,6 +42,9 @@ export default {
                 { label: 'Danger', to: './danger' }
             ]
         }
+    },
+    computed: {
+        ...mapState('account', ['features'])
     },
     watch: {
         teamMembership: 'checkAccess'

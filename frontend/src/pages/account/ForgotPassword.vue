@@ -1,9 +1,9 @@
 <template>
     <ff-layout-box>
         <form v-if="!pending" class="px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
-            <div v-if="flash" v-text="flash" class="font-medium"></div>
+            <div v-if="flash" class="font-medium" v-text="flash" />
             <template v-else>
-                <FormRow id="reset_email" :error="errors.email" v-model="input.email">Email address</FormRow>
+                <FormRow id="reset_email" v-model="input.email" :error="errors.email">Email address</FormRow>
                 <ff-button @click="requestPasswordReset">
                     Send reset link
                 </ff-button>
@@ -22,6 +22,10 @@ import FFLayoutBox from '../../layouts/Box.vue'
 
 export default {
     name: 'PasswordRequest',
+    components: {
+        'ff-layout-box': FFLayoutBox,
+        FormRow
+    },
     data () {
         return {
             input: {
@@ -33,6 +37,7 @@ export default {
             flash: ''
         }
     },
+    computed: mapState('account', ['settings', 'pending']),
     methods: {
         requestPasswordReset () {
             this.errors.email = ''
@@ -48,11 +53,6 @@ export default {
                 console.error(e)
             })
         }
-    },
-    computed: mapState('account', ['settings', 'pending']),
-    components: {
-        'ff-layout-box': FFLayoutBox,
-        FormRow
     }
 }
 </script>

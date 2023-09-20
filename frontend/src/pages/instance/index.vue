@@ -254,7 +254,6 @@ export default {
             }).catch(err => {
                 console.warn(err)
                 alerts.emit('Instance failed to delete.', 'warning')
-            }).finally(() => {
                 this.loading.deleting = false
             })
         },

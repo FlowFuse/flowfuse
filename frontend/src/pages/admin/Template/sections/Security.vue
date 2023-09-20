@@ -8,29 +8,29 @@
                     <template #input>&nbsp;</template>
                 </FormRow>
             </div>
-            <LockSetting class="flex justify-end flex-col" :editTemplate="editTemplate" v-model="editable.policy.httpNodeAuth_type" :changed="editable.changed.policy.httpNodeAuth_type"></LockSetting>
+            <LockSetting v-model="editable.policy.httpNodeAuth_type" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.httpNodeAuth_type" />
         </div>
-        <ff-radio-group v-model="editable.settings.httpNodeAuth_type" orientation="vertical" :options="authOptions1"></ff-radio-group>
+        <ff-radio-group v-model="editable.settings.httpNodeAuth_type" orientation="vertical" :options="authOptions1" />
         <div class="flex flex-col sm:flex-row sm:ml-4">
             <div class="space-y-4 w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.httpNodeAuth_user" :disabled="editable.settings.httpNodeAuth_type !=='basic' || !editTemplate && !editable.policy.httpNodeAuth_user" :type="(editTemplate||editable.policy.httpNodeAuth_user)?'text':'uneditable'">
                     HTTP Auth Username
-                    <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeAuth_user"></ChangeIndicator></template>
+                    <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeAuth_user" /></template>
                 </FormRow>
             </div>
-            <LockSetting class="flex justify-end flex-col" :editTemplate="editTemplate" v-model="editable.policy.httpNodeAuth_user" :changed="editable.changed.policy.httpNodeAuth_user"></LockSetting>
+            <LockSetting v-model="editable.policy.httpNodeAuth_user" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.httpNodeAuth_user" />
         </div>
         <div class="flex flex-col sm:flex-row sm:ml-4">
             <div class="space-y-4 w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.httpNodeAuth_pass" :disabled="editable.settings.httpNodeAuth_type !=='basic' || !editTemplate && !editable.policy.httpNodeAuth_pass" :type="(editTemplate||editable.policy.httpNodeAuth_pass)?'password':'uneditable'">
                     HTTP Auth Password
-                    <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeAuth_pass"></ChangeIndicator></template>
+                    <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeAuth_pass" /></template>
                 </FormRow>
             </div>
-            <LockSetting class="flex justify-end flex-col" :editTemplate="editTemplate" v-model="editable.policy.httpNodeAuth_pass" :changed="editable.changed.policy.httpNodeAuth_pass"></LockSetting>
+            <LockSetting v-model="editable.policy.httpNodeAuth_pass" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.httpNodeAuth_pass" />
         </div>
         <FeatureUnavailableToTeam v-if="!ffAuthFeatureAvailable" featureName="FlowFuse User Authentication" />
-        <ff-radio-group v-model="editable.settings.httpNodeAuth_type" orientation="vertical" :options="authOptions2"></ff-radio-group>
+        <ff-radio-group v-model="editable.settings.httpNodeAuth_type" orientation="vertical" :options="authOptions2" />
     </form>
 </template>
 
@@ -43,7 +43,28 @@ import LockSetting from '../components/LockSetting.vue'
 
 export default {
     name: 'TemplateSettingsSecurity',
-    props: ['editTemplate', 'modelValue', 'team'],
+    components: {
+        FormRow,
+        FormHeading,
+        LockSetting,
+        ChangeIndicator,
+        FeatureUnavailableToTeam
+    },
+    props: {
+        editTemplate: {
+            type: Boolean,
+            default: false
+        },
+        modelValue: {
+            type: Object,
+            default: null
+        },
+        team: {
+            type: Object,
+            default: null
+        }
+    },
+    emits: ['update:modelValue'],
     computed: {
         editable: {
             get () {
@@ -87,13 +108,6 @@ export default {
                 }
             ]
         }
-    },
-    components: {
-        FormRow,
-        FormHeading,
-        LockSetting,
-        ChangeIndicator,
-        FeatureUnavailableToTeam
     }
 }
 </script>

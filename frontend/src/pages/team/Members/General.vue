@@ -1,7 +1,7 @@
 <template>
     <ff-loading v-if="loading" message="Loading Team..." />
     <form v-else class="mb-8">
-        <div class="text-right"></div>
+        <div class="text-right" />
         <ff-data-table data-el="members-table" :columns="userColumns" :rows="users" :show-search="true" search-placeholder="Search Team Members..." :search-fields="['name', 'username', 'role']">
             <template v-if="hasPermission('team:user:invite')" #actions>
                 <ff-button data-action="member-invite-button" kind="primary" @click="inviteMember">
@@ -16,9 +16,9 @@
         </ff-data-table>
     </form>
 
-    <ChangeTeamRoleDialog @role-updated="roleUpdated" ref="changeTeamRoleDialog" />
-    <ConfirmTeamUserRemoveDialog @user-removed="userRemoved" ref="confirmTeamUserRemoveDialog" />
-    <InviteMemberDialog @invitation-sent="$emit('invites-updated')" :team="team" :inviteCount="inviteCount" :userCount="userCount" v-if="hasPermission('team:user:invite')" ref="inviteMemberDialog" />
+    <ChangeTeamRoleDialog ref="changeTeamRoleDialog" @role-updated="roleUpdated" />
+    <ConfirmTeamUserRemoveDialog ref="confirmTeamUserRemoveDialog" @user-removed="userRemoved" />
+    <InviteMemberDialog v-if="hasPermission('team:user:invite')" ref="inviteMemberDialog" :team="team" :inviteCount="inviteCount" :userCount="userCount" @invitation-sent="$emit('invites-updated')" />
 </template>
 
 <script>
@@ -37,9 +37,28 @@ import InviteMemberDialog from '../dialogs/InviteMemberDialog.vue'
 
 export default {
     name: 'TeamUsersGeneral',
-    props: ['team', 'teamMembership', 'inviteCount'],
-    emits: ['invites-updated'],
+    components: {
+        ChangeTeamRoleDialog,
+        ConfirmTeamUserRemoveDialog,
+        PlusSmIcon,
+        InviteMemberDialog
+    },
     mixins: [permissionsMixin],
+    props: {
+        team: {
+            type: Object,
+            required: true
+        },
+        teamMembership: {
+            type: Object,
+            required: true
+        },
+        inviteCount: {
+            type: Number,
+            required: true
+        }
+    },
+    emits: ['invites-updated'],
     data () {
         return {
             loading: false,
@@ -49,14 +68,14 @@ export default {
             ownerCount: 0
         }
     },
-    watch: {
-        team: 'fetchData'
-    },
     computed: {
         ...mapState('account', ['user']),
         canEditUser: function () {
             return this.hasPermission('team:user:remove') || this.hasPermission('team:user:change-role')
         }
+    },
+    watch: {
+        team: 'fetchData'
     },
     mounted () {
         this.fetchData()
@@ -97,12 +116,6 @@ export default {
             }
             this.loading = false
         }
-    },
-    components: {
-        ChangeTeamRoleDialog,
-        ConfirmTeamUserRemoveDialog,
-        PlusSmIcon,
-        InviteMemberDialog
     }
 }
 </script>

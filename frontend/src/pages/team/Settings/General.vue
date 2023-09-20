@@ -1,9 +1,9 @@
 <template>
     <form class="space-y-6">
-        <FormRow v-model="teamId" type="uneditable" id="teamId" ref="id-row">
+        <FormRow id="teamId" ref="id-row" v-model="teamId" type="uneditable">
             <template #default>Team ID</template>
         </FormRow>
-        <FormRow v-model="input.teamName" :type="editing ? 'text' : 'uneditable'" :error="errors.teamName" id="teamName" ref="name-row">
+        <FormRow id="teamName" ref="name-row" v-model="input.teamName" :type="editing ? 'text' : 'uneditable'" :error="errors.teamName">
             <template #default>Name</template>
             <template #description>
                 <div v-if="editing">eg. 'Development'</div>
@@ -17,15 +17,15 @@
                 </template>
             </template>
         </FormRow>
-        <FormRow v-model="input.slug" :type="editing ? 'text' : 'uneditable'" :error="errors.slug" id="teamSlug">
+        <FormRow id="teamSlug" v-model="input.slug" :type="editing ? 'text' : 'uneditable'" :error="errors.slug">
             <template #default>Slug</template>
             <template #description>
                 <div v-if="editing">
                     <span class="text-red-700">Warning:</span>
                     Changing this will modify all urls used to access the team.
                     The platform will not redirect requests to the old url.
-                    <br/>
-                    <br/>
+                    <br>
+                    <br>
                     <pre>/team/&lt;slug&gt;</pre>
                 </div>
             </template>
@@ -54,7 +54,15 @@ import alerts from '../../../services/alerts.js'
 
 export default {
     name: 'TeamSettingsGeneral',
-    props: ['team'],
+    components: {
+        FormRow
+    },
+    props: {
+        team: {
+            type: Object,
+            required: true
+        }
+    },
     data () {
         return {
             errors: {
@@ -69,6 +77,18 @@ export default {
             },
             pendingSlugCheck: null
         }
+    },
+    computed: {
+        formValid () {
+            return this.input.teamName && !this.pendingSlugCheck && !this.errors.slug && !this.errors.teamName
+        },
+        teamId () {
+            return this.team.id
+        },
+        slugValid () {
+            return /^[a-z0-9-_]+$/i.test(this.input.slug)
+        }
+
     },
     watch: {
         team: 'fetchData',
@@ -89,18 +109,6 @@ export default {
                 this.errors.teamName = ''
             }
         }
-    },
-    computed: {
-        formValid () {
-            return this.input.teamName && !this.pendingSlugCheck && !this.errors.slug && !this.errors.teamName
-        },
-        teamId () {
-            return this.team.id
-        },
-        slugValid () {
-            return /^[a-z0-9-_]+$/i.test(this.input.slug)
-        }
-
     },
     mounted () {
         this.fetchData()
@@ -169,9 +177,6 @@ export default {
                 }
             }, 200)
         }
-    },
-    components: {
-        FormRow
     }
 }
 </script>

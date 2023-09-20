@@ -18,7 +18,7 @@
             </div>
             <div class="min-w-fit flex-shrink-0">
                 <ff-button kind="danger" data-action="delete-team" :disabled="!deleteActive" @click="showConfirmDeleteDialog()">Delete Team</ff-button>
-                <ConfirmTeamDeleteDialog @delete-team="deleteTeam" ref="confirmTeamDeleteDialog"/>
+                <ConfirmTeamDeleteDialog ref="confirmTeamDeleteDialog" @delete-team="deleteTeam" />
             </div>
         </div>
     </div>
@@ -34,7 +34,16 @@ import ConfirmTeamDeleteDialog from '../dialogs/ConfirmTeamDeleteDialog.vue'
 
 export default {
     name: 'TeamSettingsDanger',
-    props: ['team'],
+    components: {
+        FormHeading,
+        ConfirmTeamDeleteDialog
+    },
+    props: {
+        team: {
+            type: Object,
+            required: true
+        }
+    },
     data () {
         return {
             applicationCount: -1,
@@ -81,10 +90,6 @@ export default {
                 this.applicationCount = applicationList.count
             }
         }
-    },
-    components: {
-        FormHeading,
-        ConfirmTeamDeleteDialog
     }
 }
 </script>

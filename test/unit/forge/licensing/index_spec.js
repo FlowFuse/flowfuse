@@ -42,6 +42,52 @@ describe('License API', async function () {
     const TEST_LICENSE_0_CLAIMS = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIiwibmJmIjoxNjYyNDIyNDAwLCJleHAiOjc5ODY5MDIzOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsImRldiI6dHJ1ZSwiaWF0IjoxNjYyNDgxOTY4fQ.kvFn4k9zPMEX8fL_VYrr4ElarqBd8MfrRh7UtIczqfPtWynijux37KjjPZPfMTKKr1hGWvb5rejn-mmceX9NfQ' // eslint-disable-line camelcase
 
     /**
+    * Test License with tier: teams
+    *
+    * Details:
+    * ```
+    * {
+    *   "id": "afb0e083-e560-4c07-a919-87dd775bb7a8",
+    *   "iss": "FlowForge Inc.",
+    *   "sub": "FlowForge Inc.",
+    *   "nbf": 1694649600,
+    *   "exp": 32503680000,,
+    *   "note": "Development-mode Only. Not for production",
+    *   "users": 150,
+    *   "teams": 50,
+    *   "projects": 50,
+    *   "devices": 50,
+    *   "tier": "teams",
+    *   "dev": true
+    * }
+    * ```
+    */
+    const TEST_LICENSE_TEAM = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQyOWE5ZjM1LTA3ZmMtNDlmYy1iNGY5LTA3MjY0ZGQxOTE2MCIsImlzcyI6IkZsb3dGb3JnZSBJbmMuIiwic3ViIjoiRmxvd0ZvcmdlIEluYy4iLCJuYmYiOjE2OTQ2NDk2MDAsImV4cCI6MzI1MDM2ODAwMDAsIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjo1MCwidGllciI6InRlYW1zIiwiZGV2Ijp0cnVlLCJpYXQiOjE2OTQ3MDExNzh9.ENcnQ-_c-sBGmEAQjiLbt5rIBRVCFBeLj2uZYXrGRoJ3JY7XL5r12KCNAW12BiMkTVqvCVnsRIA3lyQz-yteKA' // eslint-disable-line camelcase
+
+    /**
+    * Test License with tier: enterprise
+    *
+    * Details:
+    * ```
+    * {
+    *   "id": "afb0e083-e560-4c07-a919-87dd775bb7a8",
+    *   "iss": "FlowForge Inc.",
+    *   "sub": "FlowForge Inc.",
+    *   "nbf": 1694649600,
+    *   "exp": 32503680000,,
+    *   "note": "Development-mode Only. Not for production",
+    *   "users": 150,
+    *   "teams": 50,
+    *   "projects": 50,
+    *   "devices": 50,
+    *   "tier": "enterprise",
+    *   "dev": true
+    * }
+    * ```
+    */
+    const TEST_LICENSE_ENTERPRISE = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjJmZjAwMjJiLTAwOGMtNDI3OS1hNWU5LTEwOTI2YTNhNWNjMCIsImlzcyI6IkZsb3dGb3JnZSBJbmMuIiwic3ViIjoiRmxvd0ZvcmdlIEluYy4iLCJuYmYiOjE2OTQ2NDk2MDAsImV4cCI6MzI1MDM2ODAwMDAsIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjo1MCwidGllciI6ImVudGVycHJpc2UiLCJkZXYiOnRydWUsImlhdCI6MTY5NDcwMTM3Nn0.3Gtyr0axCR2LcBUFAJgDwfIjhLEBbd91rHiGpePHl_oBab9Y6f3osPK6xBtR5ZnRwuSg6XuTp6xc7bQtdONKmA' // eslint-disable-line camelcase
+
+    /**
      * Get the forge application (licensed or unlicensed)
      * @param {String} [license] (optional) The license to use. If null, use the default license
      * @returns the forge application
@@ -237,6 +283,28 @@ describe('License API', async function () {
             app.license.get('teams').should.equal(0)
             app.license.get('projects').should.equal(0)
             app.license.get('devices').should.equal(0)
+        })
+    })
+    describe('licensed - EE teams', function () {
+        before(async function () {
+            app = await getApp(TEST_LICENSE_TEAM)
+        })
+        after(async function () {
+            await app.close()
+        })
+        it('Identifies as Team Tier', async function () {
+            app.license.get('tier').should.equal('teams')
+        })
+    })
+    describe('licensed - EE enterprise', function () {
+        before(async function () {
+            app = await getApp(TEST_LICENSE_ENTERPRISE)
+        })
+        after(async function () {
+            await app.close()
+        })
+        it('Identifies as Enterprise Tier', async function () {
+            app.license.get('tier').should.equal('enterprise')
         })
     })
 })

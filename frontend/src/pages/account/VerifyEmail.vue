@@ -25,7 +25,9 @@ import alerts from '../../services/alerts.js'
 
 export default {
     name: 'VerifyEmail',
-    props: ['token'],
+    components: {
+        'ff-layout-box': FFLayoutBox
+    },
     computed: {
         ...mapState(['pending'])
     },
@@ -44,9 +46,6 @@ export default {
                 }
             }
         }
-    },
-    components: {
-        'ff-layout-box': FFLayoutBox
     }
 }
 </script>

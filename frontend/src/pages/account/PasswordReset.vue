@@ -6,8 +6,8 @@
                 <ff-button to="/">Return Home</ff-button>
             </template>
             <template v-else>
-                <FormRow id="new_password" type="password" :error="errors.password" v-model="input.password">New Password</FormRow>
-                <FormRow id="confirm_password" type="password" :error="errors.confirm" v-model="input.confirm">Confirm</FormRow>
+                <FormRow id="new_password" v-model="input.password" type="password" :error="errors.password">New Password</FormRow>
+                <FormRow id="confirm_password" v-model="input.confirm" type="password" :error="errors.confirm">Confirm</FormRow>
                 <ff-button @click="resetPassword">
                     Change password
                 </ff-button>
@@ -27,6 +27,10 @@ import alerts from '../../services/alerts.js'
 
 export default {
     name: 'PasswordRequest',
+    components: {
+        'ff-layout-box': FFLayoutBox,
+        FormRow
+    },
     data () {
         return {
             input: {
@@ -40,6 +44,7 @@ export default {
             complete: false
         }
     },
+    computed: mapState('account', ['settings', 'pending']),
     methods: {
         resetPassword () {
             this.errors.password = ''
@@ -70,11 +75,6 @@ export default {
                 console.error(e)
             })
         }
-    },
-    computed: mapState('account', ['settings', 'pending']),
-    components: {
-        'ff-layout-box': FFLayoutBox,
-        FormRow
     }
 }
 </script>

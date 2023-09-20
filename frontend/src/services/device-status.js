@@ -8,6 +8,7 @@ function since (lastSeenAt, lastSeenMs) {
     }
 }
 
+// Must be kept in sync with server side filtering of devices in Devices.getAll
 function lastSeenStatus (lastSeenAt, lastSeenMs) {
     const s = since(lastSeenAt, lastSeenMs)
     if (!lastSeenAt) {

@@ -1,10 +1,10 @@
 <template>
     <div>
         <div class="space-y-6">
-            <div class="text-right"></div>
+            <div class="text-right" />
             <ff-data-table :columns="inviteColumns" :rows="invitations" :show-search="true" search-placeholder="Search Invites...">
                 <template #context-menu="{row}">
-                    <ff-list-item label="Remove Invite" kind="danger" @click="removeInvite(row)"/>
+                    <ff-list-item label="Remove Invite" kind="danger" @click="removeInvite(row)" />
                 </template>
             </ff-data-table>
         </div>

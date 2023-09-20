@@ -12,9 +12,14 @@ import { mapState } from 'vuex'
 
 export default {
     name: 'StackPropertiesCell',
+    props: {
+        properties: {
+            type: Object,
+            required: true
+        }
+    },
     computed: {
         ...mapState('account', ['settings'])
-    },
-    props: ['properties']
+    }
 }
 </script>

@@ -9,7 +9,7 @@
     </template>
     <template v-else>
         <table class="">
-            <tr class="text-sm" v-for="(value, name) in settings.email" :key="name">
+            <tr v-for="(value, name) in settings.email" :key="name" class="text-sm">
                 <td class="font-medium p-2 pr-4 align-top">{{ name }}</td><td class="font-mono p-2">{{ value }}</td>
             </tr>
         </table>
@@ -22,11 +22,11 @@ import { mapState } from 'vuex'
 import FormHeading from '../../../components/FormHeading.vue'
 export default {
     name: 'AdminSettingsEmail',
-    computed: {
-        ...mapState('account', ['settings'])
-    },
     components: {
         FormHeading
+    },
+    computed: {
+        ...mapState('account', ['settings'])
     }
 }
 </script>

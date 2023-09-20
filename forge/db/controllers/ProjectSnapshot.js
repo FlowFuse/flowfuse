@@ -1,6 +1,8 @@
 module.exports = {
     /**
-     * Creates a snapshot of the current state of a project
+     * Creates a snapshot of the current state of a project.
+     * Patches with flows, credentials, settings modules and env from request, if provided
+     *
      * @param {*} app
      * @param {*} project
      */
@@ -29,6 +31,19 @@ module.exports = {
         }
         if (options.settings?.modules) {
             snapshotOptions.settings.modules = options.settings.modules
+        }
+        if (options.settings?.env) {
+            // derive the project's service env but not the rest
+            const serviceEnv = ['FF_INSTANCE_ID', 'FF_INSTANCE_NAME', 'FF_PROJECT_ID', 'FF_PROJECT_NAME']
+            snapshotOptions.settings.env = {
+                ...options.settings.env,
+                ...serviceEnv.reduce((obj, key) => {
+                    if (key in snapshotOptions.settings.env) {
+                        obj[key] = snapshotOptions.settings.env[key]
+                    }
+                    return obj
+                }, { })
+            }
         }
         const snapshot = await app.db.models.ProjectSnapshot.create(snapshotOptions)
         await snapshot.save()
@@ -69,5 +84,45 @@ module.exports = {
         const snapshot = await app.db.models.ProjectSnapshot.create(snapshotOptions)
         await snapshot.save()
         return snapshot
+    },
+    /**
+     * Export specific snapshot.
+     * @param {*} app
+     * @param {*} project project-originator of this snapshot
+     * @snapshot {*} snapshot snapshot object to export
+     * @options {*} options.
+     * Must include: credentialSecret.
+     * Optional: credentials of the target Project (either encrypted or raw).
+     * If not given, credentials of the current project will be re-encrypted, with credentialSecret.
+     */
+    exportSnapshot: async function (app, project, snapshot, options) {
+        let snapshotObj = snapshot.get()
+        if (!options.credentialSecret) {
+            return null
+        }
+        const user = await snapshot.getUser()
+        if (user) {
+            snapshotObj.user = app.db.views.User.userSummary(user)
+            const { UserId, id, ...newSnapshotObj } = snapshotObj
+            snapshotObj = newSnapshotObj
+            snapshotObj.id = snapshotObj.hashid
+        }
+        const serviceEnv = ['FF_INSTANCE_ID', 'FF_INSTANCE_NAME', 'FF_PROJECT_ID', 'FF_PROJECT_NAME']
+        serviceEnv.forEach((key) => {
+            delete snapshotObj.settings.env[key]
+        })
+        const result = {
+            ...snapshotObj
+        }
+        const projectSecret = await project.getCredentialSecret()
+        const credentials = options.credentials ? options.credentials : result.flows.credentials
+
+        // if provided credentials already encrypted: "exportCredentials" will just return the same credentials
+        // if provided credentials are raw: "exportCredentials" will encrypt them with the secret provided
+        // if credentials are not provided: project's flows credentials will be used, they will be encrypted with the provided secret
+        const keyToDecrypt = (options.credentials && options.credentials.$) ? options.credentialSecret : projectSecret
+        result.flows.credentials = app.db.controllers.Project.exportCredentials(credentials || {}, keyToDecrypt, options.credentialSecret)
+
+        return result
     }
 }

@@ -219,9 +219,12 @@ describe('Team API', async () => {
         const teamid = 'teamid'
         const cursor = 10
         const limit = 5
-        TeamAPI.default.getTeamDevices(teamid, cursor, limit)
+        const query = 'team name'
+        const extraParams = { key: 'value', other: 'value2' }
+
+        TeamAPI.default.getTeamDevices(teamid, cursor, limit, query, extraParams)
         expect(mockPaginateUrl).toHaveBeenCalledOnce()
-        expect(mockPaginateUrl).toHaveBeenCalledWith('/api/v1/teams/' + teamid + '/devices', cursor, limit)
+        expect(mockPaginateUrl).toHaveBeenCalledWith('/api/v1/teams/' + teamid + '/devices', cursor, limit, query, extraParams)
         expect(mockGet).toHaveBeenCalledOnce()
         expect(mockGet).toHaveBeenCalledWith('<paginated-url>')
     })

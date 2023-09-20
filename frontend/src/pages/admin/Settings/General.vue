@@ -1,8 +1,8 @@
 <template>
-    <ff-loading v-if="loading" message="Saving Settings..."/>
+    <ff-loading v-if="loading" message="Saving Settings..." />
     <div v-else class="space-y-4">
         <FormHeading>Users</FormHeading>
-        <FormRow data-el="enable-signup" v-model="input['user:signup']" type="checkbox" :error="errors.requiresEmail" :disabled="!!errors.requiresEmail">
+        <FormRow v-model="input['user:signup']" data-el="enable-signup" type="checkbox" :error="errors.requiresEmail" :disabled="!!errors.requiresEmail">
             Allow new users to register on the login screen
             <template #description>
                 If self-registration is not enabled, an Administrator must create users
@@ -10,12 +10,12 @@
             </template>
         </FormRow>
         <template v-if="input['user:signup']">
-            <FormRow data-el="banner" v-model="input['branding:account:signUpTopBanner']" containerClass="max-w-sm ml-9">
+            <FormRow v-model="input['branding:account:signUpTopBanner']" data-el="banner" containerClass="max-w-sm ml-9">
                 HTML content to show above the sign-up form
             </FormRow>
             <FormRow v-model="input['branding:account:signUpLeftBanner']" containerClass="max-w-sm ml-9">
                 HTML content to show to the left of the sign-up form
-                <template #input><textarea data-el="splash" class="w-full" rows="6" v-model="input['branding:account:signUpLeftBanner']"></textarea></template>
+                <template #input><textarea v-model="input['branding:account:signUpLeftBanner']" data-el="splash" class="w-full" rows="6" /></template>
             </FormRow>
         </template>
         <FormRow v-model="input['user:team:auto-create']" type="checkbox">
@@ -51,7 +51,7 @@
                 When signing up, users will be presented with a link to the terms and conditions, and will be required to accept them in order to register.
             </template>
         </FormRow>
-        <FormRow v-if="input['user:tcs-required']" containerClass="max-w-sm ml-9" v-model="input['user:tcs-url']" type="text" :error="errors.termsAndConditions" data-el="terms-and-condition-url">
+        <FormRow v-if="input['user:tcs-required']" v-model="input['user:tcs-url']" containerClass="max-w-sm ml-9" type="text" :error="errors.termsAndConditions" data-el="terms-and-condition-url">
             Terms &amp; Conditions URL
             <template #description>
                 <p>Changing this URL will require all users to reaccept the terms the next time they access the platform</p>
@@ -60,7 +60,7 @@
         <FormRow v-if="input['user:tcs-required']" containerClass="max-w-sm ml-9">
             <template #description>
                 <p>Last updated: {{ tcsDate }}.</p>
-                <div class="flex items-center space-x-2"><p>Require users to reaccept the terms now: </p><ff-button size="small" :disabled="loading" kind="tertiary" @click="updateTermsAndConditions" data-action="terms-and-condition-update">update now</ff-button></div>
+                <div class="flex items-center space-x-2"><p>Require users to reaccept the terms now: </p><ff-button size="small" :disabled="loading" kind="tertiary" data-action="terms-and-condition-update" @click="updateTermsAndConditions">update now</ff-button></div>
             </template>
             <template #input>&nbsp;</template>
         </FormRow>
@@ -104,7 +104,7 @@
         </FormRow>
         <ff-dialog ref="enablePlatformStatsToken" header="Allow token-based access to platform statistics">
             <template #default>
-                <ff-loading v-if="platformStatsTokenGenerating" message="Generating token..."/>
+                <ff-loading v-if="platformStatsTokenGenerating" message="Generating token..." />
                 <template v-else>
                     <p>The following token can be used to access the platform statistics api.</p>
                     <code class="block my-2">{{ platformStatsToken }}</code>
@@ -126,11 +126,11 @@
             </template>
             <template #actions>
                 <ff-button @click="cancelDisablePlatformStatsToken">Cancel</ff-button>
-                <ff-button @click="disableStatsToken" kind="danger">Disable</ff-button>
+                <ff-button kind="danger" @click="disableStatsToken">Disable</ff-button>
             </template>
         </ff-dialog>
 
-        <FormRow v-model="input['telemetry:enabled']" type="checkbox" v-if="!isLicensed">
+        <FormRow v-if="!isLicensed" v-model="input['telemetry:enabled']" type="checkbox">
             Enable collection of anonymous statistics
             <template #description>
                 <p>
@@ -145,7 +145,7 @@
         </FormRow>
 
         <div class="pt-8">
-            <ff-button :disabled="!saveEnabled" @click="saveChanges" data-action="save-settings">Save settings</ff-button>
+            <ff-button :disabled="!saveEnabled" data-action="save-settings" @click="saveChanges">Save settings</ff-button>
         </div>
     </div>
 </template>
@@ -181,6 +181,10 @@ const validSettings = [
 
 export default {
     name: 'AdminSettingsGeneral',
+    components: {
+        FormRow,
+        FormHeading
+    },
     data () {
         return {
             loading: false,
@@ -274,6 +278,20 @@ export default {
             return instanceTypeOptions
         }
     },
+    watch: {
+        platformStatsTokenEnabled: function (newValue) {
+            if (this.platformStatsToken === null) {
+                // This is the initial setting of the value - ignore it
+                this.platformStatsToken = ''
+                return
+            }
+            if (newValue) {
+                this.showGenerateStatsToken()
+            } else {
+                this.showDisableStatsToken()
+            }
+        }
+    },
     async created () {
         if (!this.settings.email) {
             this.errors.requiresEmail = 'This option requires email to be configured'
@@ -297,20 +315,6 @@ export default {
         this.platformStatsTokenEnabled = this.input['platform:stats:token']
         if (!this.platformStatsTokenEnabled) {
             this.platformStatsToken = ''
-        }
-    },
-    watch: {
-        platformStatsTokenEnabled: function (newValue) {
-            if (this.platformStatsToken === null) {
-                // This is the initial setting of the value - ignore it
-                this.platformStatsToken = ''
-                return
-            }
-            if (newValue) {
-                this.showGenerateStatsToken()
-            } else {
-                this.showDisableStatsToken()
-            }
         }
     },
     methods: {
@@ -394,6 +398,8 @@ export default {
             adminApi.generateStatsAccessToken().then(result => {
                 this.platformStatsToken = result.token
                 this.platformStatsTokenGenerating = false
+            }).catch(err => {
+                console.warn('Error loading stats token', err)
             })
         },
         showDisableStatsToken () {
@@ -408,12 +414,8 @@ export default {
             this.$refs.disablePlatformStatsToken.close()
             this.platformStatsToken = ''
             this.platformStatsTokenEnabled = false
-            adminApi.deleteStatsAccessToken().then(result => {})
+            adminApi.deleteStatsAccessToken().then(result => {}).catch(err => { console.warn('Error disabling stats token', err) })
         }
-    },
-    components: {
-        FormRow,
-        FormHeading
     }
 }
 </script>

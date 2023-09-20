@@ -151,7 +151,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const team = await request.teamMembership.getTeam()
+        const team = await request.application.getTeam()
         const application = request.application
 
         const projectType = await app.db.models.ProjectType.byId(request.body.projectType)

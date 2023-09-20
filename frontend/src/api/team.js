@@ -242,8 +242,8 @@ const updateTeam = async (teamId, options) => {
     })
 }
 
-const getTeamDevices = async (teamId, cursor, limit) => {
-    const url = paginateUrl(`/api/v1/teams/${teamId}/devices`, cursor, limit)
+const getTeamDevices = async (teamId, cursor, limit, query, extraParams = {}) => {
+    const url = paginateUrl(`/api/v1/teams/${teamId}/devices`, cursor, limit, query, extraParams)
     const res = await client.get(url)
     res.data.devices.forEach(device => {
         device.lastSeenSince = device.lastSeenAt ? daysSince(device.lastSeenAt) : ''

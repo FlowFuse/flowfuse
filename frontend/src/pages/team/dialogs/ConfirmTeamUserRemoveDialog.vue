@@ -1,6 +1,6 @@
 <template>
-    <ff-dialog ref="dialog" header="Remove User" kind="danger" confirm-label="Remove" @confirm="confirm()" :disable-primary="disableConfirm">
-        <template #default v-if="user">
+    <ff-dialog ref="dialog" header="Remove User" kind="danger" confirm-label="Remove" :disable-primary="disableConfirm" @confirm="confirm()">
+        <template v-if="user" #default>
             <form class="space-y-6" @submit.prevent>
                 <div class="mt-2 space-y-2">
                     <template v-if="ownerCount < 2 && user.role === 'owner'">
@@ -34,6 +34,7 @@ export default {
             team: null
         }
     },
+    emits: ['user-removed'],
     methods: {
         async confirm () {
             if (!this.disableConfirm) {
