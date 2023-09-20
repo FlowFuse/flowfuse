@@ -3,12 +3,12 @@
         <button class="ff-accordion--button" :disabled="disabled" @click="toggle()">
             <label>{{ label }}</label>
             <div>
-                <slot name="meta"></slot>
+                <slot name="meta" />
                 <ChevronLeftIcon v-if="!disabled" class="ff-icon" />
             </div>
         </button>
         <div ref="content" class="ff-accordion--content">
-            <slot name="content"></slot>
+            <slot name="content" />
         </div>
     </div>
 </template>
@@ -18,6 +18,9 @@ import { ChevronLeftIcon } from '@heroicons/vue/solid'
 
 export default {
     name: 'ff-accordion',
+    components: {
+        ChevronLeftIcon
+    },
     props: {
         label: {
             type: String,
@@ -50,6 +53,12 @@ export default {
             }
         }
     },
+    mounted () {
+        // accordion is open by default on page load
+        if (this.setOpen) {
+            this.isOpen = true
+        }
+    },
     methods: {
         toggle: function () {
             if (!this.disabled) {
@@ -67,15 +76,6 @@ export default {
         close: function () {
             this.isOpen = false
         }
-    },
-    mounted () {
-        // accordion is open by default on page load
-        if (this.setOpen) {
-            this.isOpen = true
-        }
-    },
-    components: {
-        ChevronLeftIcon
     }
 }
 </script>

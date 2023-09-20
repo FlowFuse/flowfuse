@@ -1,5 +1,5 @@
 <template>
-    <DropdownMenu buttonClass="forge-button-inline px-2" alt="Open user menu" :options="options"></DropdownMenu>
+    <DropdownMenu buttonClass="forge-button-inline px-2" alt="Open user menu" :options="options" />
 </template>
 <script>
 import DropdownMenu from '../../../components/DropdownMenu.vue'

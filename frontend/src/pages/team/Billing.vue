@@ -116,7 +116,20 @@ export default {
         ExternalLinkIcon
     },
     mixins: [formatDateMixin, formatCurrency, permissionsMixin],
-    props: ['billingUrl', 'team', 'teamMembership'],
+    props: {
+        billingUrl: {
+            type: String,
+            required: true
+        },
+        team: {
+            type: Object,
+            required: true
+        },
+        teamMembership: {
+            type: Object,
+            required: true
+        }
+    },
     data () {
         return {
             loading: false,

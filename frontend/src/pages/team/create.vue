@@ -3,7 +3,7 @@
         <SideNavigation v-if="team">
             <template #back>
                 <router-link :to="{name: 'Home'}">
-                    <nav-item :icon="icons.chevronLeft" label="Back to Dashboard"></nav-item>
+                    <nav-item :icon="icons.chevronLeft" label="Back to Dashboard" />
                 </router-link>
             </template>
         </SideNavigation>
@@ -37,7 +37,7 @@
                 <FormRow id="team" v-model="input.slug" :error="input.slugError" :placeholder="input.defaultSlug">
                     URL Slug
                     <template #description>
-                        Use the default slug based on the team name or set your own.<br />
+                        Use the default slug based on the team name or set your own.<br>
                         <pre>/team/&lt;slug&gt;</pre>
                     </template>
                 </FormRow>

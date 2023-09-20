@@ -205,41 +205,9 @@
         },
         {
             "rules": {
-                "vue/html-self-closing": "off"
-            },
-            "files": [
-                "frontend/src/components/Accordion.vue",
-                "frontend/src/components/audit-log/AuditEntry.vue",
-                "frontend/src/components/audit-log/AuditEntryVerbose.vue",
-                "frontend/src/components/audit-log/AuditLog.vue",
-                "frontend/src/components/DropdownMenu.vue",
-                "frontend/src/components/FormHeading.vue",
-                "frontend/src/components/FormRow.vue",
-                "frontend/src/components/NavItem.vue",
-                "frontend/src/components/PageHeader.vue",
-                "frontend/src/components/SectionTopMenu.vue",
-                "frontend/src/components/SideNavigation.vue",
-                "frontend/src/components/tables/cells/TeamCell.vue",
-                "frontend/src/components/tables/cells/UserCell.vue",
-                "frontend/src/components/TeamSelection.vue",
-                "frontend/src/layouts/Box.vue",
-                "frontend/src/layouts/Platform.vue",
-                "frontend/src/pages/device/Settings/Danger.vue",
-                "frontend/src/pages/device/Settings/index.vue",
-                "frontend/src/pages/instance/AuditLog.vue",
-                "frontend/src/pages/instance/Logs.vue",
-                "frontend/src/pages/team/components/ProjectTypeSummary.vue",
-                "frontend/src/pages/team/components/TeamUserEditButton.vue",
-                "frontend/src/pages/team/create.vue",
-                "frontend/src/pages/team/dialogs/ChangeTeamRoleDialog.vue"
-            ]
-        },
-        {
-            "rules": {
                 "vue/order-in-components": "off"
             },
             "files": [
-                "frontend/src/components/Accordion.vue",
                 "frontend/src/components/audit-log/AuditEntry.vue",
                 "frontend/src/components/audit-log/AuditEntryIcon.vue",
                 "frontend/src/components/audit-log/AuditEntryVerbose.vue",
@@ -296,9 +264,6 @@
                 "frontend/src/pages/device/Settings/index.vue",
                 "frontend/src/pages/instance/components/ExportInstanceComponents.vue",
                 "frontend/src/pages/instance/components/ImportInstanceComponents.vue",
-                "frontend/src/pages/team/Applications.vue",
-                "frontend/src/pages/team/AuditLog.vue",
-                "frontend/src/pages/team/Billing.vue",
                 "frontend/src/pages/team/components/MemberSummaryList.vue",
                 "frontend/src/pages/team/components/ProjectSummaryList.vue",
                 "frontend/src/pages/team/components/ProjectTypeSummary.vue",
