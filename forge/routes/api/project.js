@@ -394,25 +394,27 @@ module.exports = async function (app) {
                     env: request.body.settings.env
                 }
             }
+            let newSettings
             try {
-                const newSettings = app.db.controllers.ProjectTemplate.validateSettings(bodySettings, request.project.ProjectTemplate)
-                if (newSettings.httpNodeAuth?.type === 'flowforge-user') {
-                    const teamType = await request.project.Team.getTeamType()
-                    if (teamType.properties.features?.teamHttpSecurity === false) {
-                        reply.code(400).send({ code: 'invalid_request', error: 'FlowForge User Authentication not available for this team type' })
-                        return
-                    }
-                }
-
-                // Merge the settings into the existing values
-                const currentProjectSettings = await request.project.getSetting(KEY_SETTINGS) || {}
-                const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings)
-
-                changesToPersist.settings = { from: currentProjectSettings, to: updatedSettings }
+                newSettings = app.db.controllers.ProjectTemplate.validateSettings(bodySettings, request.project.ProjectTemplate)
             } catch (err) {
                 reply.code(400).send({ code: 'env_var_validation', error: `${err.message}` })
                 return
             }
+
+            if (newSettings.httpNodeAuth?.type === 'flowforge-user') {
+                const teamType = await request.project.Team.getTeamType()
+                if (teamType.properties.features?.teamHttpSecurity === false) {
+                    reply.code(400).send({ code: 'invalid_request', error: 'FlowForge User Authentication not available for this team type' })
+                    return
+                }
+            }
+
+            // Merge the settings into the existing values
+            const currentProjectSettings = await request.project.getSetting(KEY_SETTINGS) || {}
+            const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings)
+
+             changesToPersist.settings = { from: currentProjectSettings, to: updatedSettings }
         }
 
         // Project Type
