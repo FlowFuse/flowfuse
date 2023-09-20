@@ -65,7 +65,7 @@ module.exports = {
             settings.env.forEach((envVar) => {
                 if (templateEnvPolicyMap[envVar.name] !== false && !/ /.test(envVar.name)) {
                     if (!envVar.name.match(/^[a-zA-Z_]+[a-zA-Z0-9_]*$/)) {
-                        throw new Error(`Invalid Env Var name ${envVar.name}`)
+                        throw new Error(`Invalid Env Var name '${envVar.name}'`)
                     }
                     // removed because it breaks snapshot rollback test
                     // if (envVar.name.match(/^FF_/)) {
