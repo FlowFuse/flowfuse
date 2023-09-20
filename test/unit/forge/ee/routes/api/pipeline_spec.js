@@ -1016,10 +1016,17 @@ describe('Pipelines API', function () {
                     setAsTarget: false // no need to deploy to devices of the source
                 })
 
-                const sourceSnapshot = await createSnapshot(app, TestObjects.instanceOne, TestObjects.user, {
+                // This one has custom props to validate against
+                await createSnapshot(app, TestObjects.instanceOne, TestObjects.user, {
                     name: 'Latest Snapshot Created In Test',
                     description: 'This was created as part of the test process',
-                    setAsTarget: false // no need to deploy to devices of the source
+                    setAsTarget: false, // no need to deploy to devices of the source
+                    flows: { custom: 'custom-flows' },
+                    credentials: { custom: 'custom-creds' },
+                    settings: {
+                        modules: { custom: 'custom-module' },
+                        env: { custom: 'custom-env' }
+                    }
                 })
 
                 const response = await app.inject({
@@ -1051,6 +1058,10 @@ describe('Pipelines API', function () {
                     }, 250)
                 })
 
+                // No new snapshot should have been created
+                const sourceInstanceSnapshots = (await TestObjects.instanceOne.getProjectSnapshots())
+                sourceInstanceSnapshots.should.have.lengthOf(2)
+
                 // Now actually check things worked
                 // Snapshot created in stage 1 and set as target
                 // Snapshot created in stage 2, flows created, and set as target
@@ -1062,17 +1073,14 @@ describe('Pipelines API', function () {
                 const targetSnapshot = await app.db.models.ProjectSnapshot.byId(snapshots[0].id)
 
                 targetSnapshot.flows.should.have.property('flows')
-                targetSnapshot.flows.flows.should.have.lengthOf(1)
-                targetSnapshot.flows.flows[0].should.have.property('id', 'node1')
+                targetSnapshot.flows.flows.should.match({ custom: 'custom-flows' })
+
                 targetSnapshot.flows.should.have.property('credentials')
                 targetSnapshot.flows.credentials.should.have.property('$')
+
                 targetSnapshot.settings.should.have.property('settings')
-                targetSnapshot.settings.settings.should.have.property('httpAdminRoot', '/test-red')
-                targetSnapshot.settings.settings.should.have.property('dashboardUI', '/test-dash')
-                targetSnapshot.settings.should.have.property('env')
-                targetSnapshot.settings.env.should.have.property('one', 'a')
-                targetSnapshot.settings.env.should.have.property('two', 'b')
-                targetSnapshot.settings.should.have.property('modules')
+                targetSnapshot.settings.modules.should.have.property('custom', 'custom-module')
+                targetSnapshot.settings.env.should.have.property('custom', 'custom-env')
             })
 
             it('Fails gracefully if the source instance has no snapshots', async function () {
