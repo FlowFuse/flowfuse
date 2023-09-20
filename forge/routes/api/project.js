@@ -397,7 +397,7 @@ module.exports = async function (app) {
             let newSettings
             try {
                 newSettings = app.db.controllers.ProjectTemplate.validateSettings(bodySettings, request.project.ProjectTemplate)
-            } catch (err) {            
+            } catch (err) {
                 reply.code(400).send({ code: 'settings_validation', error: `${err.message}` })
                 return
             }
