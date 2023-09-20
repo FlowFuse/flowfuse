@@ -1,9 +1,9 @@
 <template>
-    <form class="space-y-4" @submit.prevent>
-        <FormHeading>
-            NPM configuration file
-        </FormHeading>
-
+    <FormHeading>
+        NPM configuration file
+        <ChangeIndicator class="!inline-block ml-4 mt-0" :value="editable.changed.settings.palette_npmrc" />
+    </FormHeading>
+    <form class="space-y-4 max-w-2xl" @submit.prevent>
         <div v-if="!projectLauncherCompatible" class="text-red-400 space-y-1">
             <p>You will need to update your Project Stack to use this feature.</p>
             <div v-if="project.stack.replacedBy">
@@ -11,20 +11,23 @@
             </div>
         </div>
 
-        <FormRow v-if="!readOnly">
-            <template #input><textarea v-model="editable.settings.palette_npmrc" :disabled="readOnly" class="font-mono w-full max-w-md sm:mr-8" placeholder=".npmrc" rows="8" /></template>
-            <template #append>
-                <ChangeIndicator :value="editable.changed.settings.palette_npmrc" />
-                <LockSetting v-model="editable.policy.palette_npmrc" :editTemplate="editTemplate" :changed="editable.changed.policy.palette_npmrc" />
-            </template>
-        </FormRow>
-        <FormRow v-else>
-            <template #input><textarea v-model="obfuscated" :disabled="readOnly" class="font-mono w-full max-w-md sm:mr-8" placeholder=".npmrc" rows="8" /></template>
-            <template #append>
-                <ChangeIndicator :value="editable.changed.settings.palette_npmrc" />
-                <LockSetting v-model="editable.policy.palette_npmrc" :editTemplate="editTemplate" :changed="editable.changed.policy.palette_npmrc" />
-            </template>
-        </FormRow>
+        <div v-if="!readOnly" class="flex flex-col sm:flex-row">
+            <div class="space-y-4 w-full sm:mr-8">
+                <FormRow containerClass="none">
+                    <template #input>
+                        <textarea v-model="editable.settings.palette_npmrc" :disabled="readOnly" class="font-mono w-full" placeholder=".npmrc" rows="8" />
+                    </template>
+                </FormRow>
+            </div><LockSetting v-model="editable.policy.palette_npmrc" :editTemplate="editTemplate" :changed="editable.changed.policy.palette_npmrc" />
+        </div>
+        <div v-else class="flex flex-col sm:flex-row">
+            <div class="space-y-4 w-full sm:mr-8">
+                <FormRow containerClass="none">
+                    <template #input><textarea v-model="obfuscated" :disabled="readOnly" class="font-mono w-full" placeholder=".npmrc" rows="8" /></template>
+                </FormRow>
+            </div>
+            <LockSetting v-model="editable.policy.palette_npmrc" :editTemplate="editTemplate" :changed="editable.changed.policy.palette_npmrc" />
+        </div>
     </form>
 </template>
 
