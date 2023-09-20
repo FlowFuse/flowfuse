@@ -435,9 +435,7 @@ module.exports = async function (app) {
 
     /**
      * Deploy one stage to another stage
-     * Create snapshot
-     * Copy over snapshot
-     * Set snapshot as target (and restart etc as needed)
+     * Approach depends on stage.action
      */
     app.put('/pipelines/:pipelineId/stages/:stageId/deploy', {
         preHandler: app.needsPermission('pipeline:edit')
@@ -478,12 +476,35 @@ module.exports = async function (app) {
         const targetInstance = targetInstances[0]
 
         if (sourceInstance.TeamId !== targetInstance.TeamId) {
-            return reply.code(403).send({ code: 'invalid_stage', erro: 'Source instance and Target instance not in same team' })
+            return reply.code(403).send({ code: 'invalid_stage', error: 'Source instance and Target instance not in same team' })
         }
 
         targetInstance.Team = await app.db.models.Team.byId(targetInstance.TeamId)
         if (!targetInstance.Team) {
             return reply.code(404).send({ code: 'invalid_stage', error: 'Instance not associated with a team' })
+        }
+
+        let sourceSnapshot
+        try {
+            if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.USE_LATEST_SNAPSHOT) {
+                sourceSnapshot = await sourceInstance.getLatestSnapshot()
+                if (!sourceSnapshot) {
+                    return reply.code(400).send({ code: 'invalid_source_instance', error: 'No snapshots found for source stages instance but deploy action is set to use latest snapshot' })
+                }
+            } else if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.CREATE_SNAPSHOT) {
+                sourceSnapshot = await createSnapshot(app, sourceInstance, user, {
+                    name: `Deploy Snapshot: ${new Date().toLocaleString('sv-SE')}`, // YYYY-MM-DD HH:MM:SS
+                    description: `Snapshot created for pipeline deployment from ${sourceStage.name} to ${targetStage.name} as part of pipeline ${request.pipeline.name}`,
+                    setAsTarget: false // no need to deploy to devices of the source
+                })
+            } else if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.PROMPT) {
+                sourceSnapshot = '' // TODO: get it from the params
+            } else {
+                return reply.code(400).send({ code: 'invalid_action', error: `Unsupported pipeline deploy action: ${sourceStage.action}` })
+            }
+        } catch (err) {
+            const resp = { code: 'unexpected_error', error: err.toString() }
+            reply.code(500).send(resp)
         }
 
         const restartTargetInstance = targetInstance.state === 'running'
@@ -497,14 +518,8 @@ module.exports = async function (app) {
             reply.code(200).send({ status: 'importing' })
             repliedEarly = true
 
-            const sourceSnapshot = await createSnapshot(app, sourceInstance, user, {
-                name: `Deploy Snapshot: ${new Date().toLocaleString('sv-SE')}`, // YYYY-MM-DD HH:MM:SS
-                description: `Snapshot created for pipeline deployment from ${sourceStage.name} to ${targetStage.name} as part of pipeline ${request.pipeline.name}`,
-                setAsTarget: false // no need to deploy to devices of the source
-            })
-
             const setAsTargetForDevices = targetStage.deployToDevices ?? false
-            const targetSnapshot = await copySnapshot(app, sourceSnapshot, targetInstance, { // eslint-disable-line no-unused-vars
+            const targetSnapshot = await copySnapshot(app, sourceSnapshot, targetInstance, {
                 importSnapshot: true, // target instance should import the snapshot
                 setAsTarget: setAsTargetForDevices,
                 decryptAndReEncryptCredentialsSecret: await sourceInstance.getCredentialSecret()
@@ -525,8 +540,9 @@ module.exports = async function (app) {
             await app.auditLog.Project.project.imported(user.id, null, targetInstance, sourceInstance) // technically this isn't a project event
             await app.auditLog.Project.project.snapshot.imported(user.id, resp, targetInstance, sourceInstance, null)
 
-            if (!repliedEarly) {
+            if (repliedEarly) {
                 console.warn('Deploy failed, but response already sent', err)
+            } else {
                 reply.code(500).send(resp)
             }
         }
