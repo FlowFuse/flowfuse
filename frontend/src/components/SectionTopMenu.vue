@@ -18,15 +18,15 @@
         </div>
         <ul v-if="hasTools" class="flex-shrink-0">
             <li class="w-full md:w-auto flex-grow mb-2 text-right">
-                <slot name="tools"></slot>
+                <slot name="tools" />
             </li>
         </ul>
     </div>
     <ff-dialog v-if="hasInfoDialog" ref="help-dialog" class="ff-dialog-box--info" :header="helpHeader || 'FlowFuse Info'">
         <template #default>
             <div class="flex gap-8">
-                <slot name="pictogram"><img src="../images/pictograms/node_catalog_red.png" /></slot>
-                <div><slot name="helptext"></slot></div>
+                <slot name="pictogram"><img src="../images/pictograms/node_catalog_red.png"></slot>
+                <div><slot name="helptext" /></div>
             </div>
         </template>
         <template #actions>

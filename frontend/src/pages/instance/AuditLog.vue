@@ -1,6 +1,6 @@
 <template>
     <div class="mb-3">
-        <SectionTopMenu hero="Audit Log" info=""></SectionTopMenu>
+        <SectionTopMenu hero="Audit Log" info="" />
     </div>
     <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" logType="project" @load-entries="loadEntries" />
 </template>

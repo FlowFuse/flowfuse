@@ -6,21 +6,21 @@
                 <!-- Each view uses a <Teleport> to fill this -->
             </div>
             <div class="ff-view">
-                <div id="platform-banner"></div>
-                <slot></slot>
+                <div id="platform-banner" />
+                <slot />
             </div>
             <TransitionGroup class="ff-notifications" name="notifications-list" tag="div">
                 <ff-notification-toast
                     v-for="(a, $index) in alertsReversed" :key="a.timestamp"
                     :type="a.type" :message="a.message" data-el="notification-alert"
                     :countdown="a.countdown || 3000" @close="clear($index)"
-                ></ff-notification-toast>
+                />
             </TransitionGroup>
-            <interview-popup v-if="interview?.enabled" :flag="interview.flag" :payload="interview.payload"></interview-popup>
+            <interview-popup v-if="interview?.enabled" :flag="interview.flag" :payload="interview.payload" />
             <ff-dialog ref="dialog" data-el="platform-dialog" :header="dialog.header" :kind="dialog.kind" :disable-primary="dialog.disablePrimary" :confirm-label="dialog.confirmLabel" @cancel="clearDialog(true)" @confirm="dialog.onConfirm">
                 <p v-if="dialog.text">{{ dialog.text }}</p>
                 <!-- eslint-disable-next-line vue/no-v-html -->
-                <div class="space-y-2" v-html="dialog.html"></div>
+                <div class="space-y-2" v-html="dialog.html" />
             </ff-dialog>
         </div>
     </div>
