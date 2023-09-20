@@ -44,6 +44,18 @@
             </template>
         </FormRow>
 
+        <!-- Actiom -->
+        <FormRow
+            v-model="input.action"
+            :options="actionOptions"
+            data-form="stage-action"
+            placeholder="Select Action"
+        >
+            <template #default>
+                Choose Instance
+            </template>
+        </FormRow>
+
         <!-- Deploy to Devices -->
         <FormRow
             v-model="input.deployToDevices"
@@ -129,8 +141,14 @@ export default {
             input: {
                 name: stage?.name,
                 instanceId: stage.instances?.[0].id,
+                action: stage?.action,
                 deployToDevices: stage.deployToDevices || false
-            }
+            },
+            actionOptions: [
+                { value: 'create_snapshot', label: 'Create new snapshot' },
+                { value: 'use_latest_snapshot', label: 'Use latest instance snapshot' },
+                { value: 'prompt', label: 'Prompt to select snapshot' }
+            ]
         }
     },
     computed: {
@@ -141,11 +159,12 @@ export default {
             return (
                 this.input.name !== this.stage.name ||
                 this.input.instanceId !== this.stage.instances?.[0].id ||
+                this.input.action !== this.stage.action ||
                 this.input.deployToDevices !== this.stage.deployToDevices
             )
         },
         submitEnabled () {
-            return this.formDirty && this.input.instanceId && this.input.name
+            return this.formDirty && this.input.instanceId && this.input.name && this.input.action
         },
         instancesNotInUse () {
             const instanceIdsInUse = this.pipeline.stages.reduce((acc, stage) => {

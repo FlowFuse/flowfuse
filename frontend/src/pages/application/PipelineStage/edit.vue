@@ -70,7 +70,8 @@ export default {
             const options = {
                 name: input.name,
                 instanceId: input.instanceId,
-                deployToDevices: input.deployToDevices
+                deployToDevices: input.deployToDevices,
+                action: input.action
             }
 
             await PipelinesAPI.updatePipelineStage(this.pipeline.id, this.stage.id, options)
