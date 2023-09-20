@@ -68,7 +68,8 @@
         "settings.update": "Node-RED Settings Updated",
         "flows.set": "Flow Deployed",
         "library.set": "Saved to Library",
-        "nodes.install": "Third-Party Nodes Installed"
+        "nodes.install": "Third-Party Nodes Installed",
+        "nodes.remove": "Third-Party Nodes Removed"
     },
     "platform": {
         "platform.license.applied": "License Applied",
