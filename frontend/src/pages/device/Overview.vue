@@ -99,7 +99,7 @@
                     <td class="w-1/4 font-medium">Device Mode</td>
                     <td class="py-2">
                         <span class="flex space-x-2 pr-2">
-                            <BeakerIcon class="text-yellow-600 w-4" />
+                            <BeakerIcon class="text-purple-600 w-4" />
                             <span> Developer Mode </span>
                         </span>
                     </td>
