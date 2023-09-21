@@ -394,7 +394,14 @@ module.exports = async function (app) {
                     env: request.body.settings.env
                 }
             }
-            const newSettings = app.db.controllers.ProjectTemplate.validateSettings(bodySettings, request.project.ProjectTemplate)
+            let newSettings
+            try {
+                newSettings = app.db.controllers.ProjectTemplate.validateSettings(bodySettings, request.project.ProjectTemplate)
+            } catch (err) {
+                reply.code(400).send({ code: 'settings_validation', error: `${err.message}` })
+                return
+            }
+
             if (newSettings.httpNodeAuth?.type === 'flowforge-user') {
                 const teamType = await request.project.Team.getTeamType()
                 if (teamType.properties.features?.teamHttpSecurity === false) {

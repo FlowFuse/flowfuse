@@ -468,6 +468,10 @@
         <label>{{ AuditEvents[entry.event] }}</label>
         <span>Nodes have been installed via the "Manage Palette" option inside Node-RED</span>
     </template>
+    <template v-else-if="entry.event === 'nodes.remove'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span>Nodes have been removed via the "Manage Palette" option inside Node-RED</span>
+    </template>
 
     <!-- Catch All -->
     <template v-else>
