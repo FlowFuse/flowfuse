@@ -63,6 +63,18 @@ const getApplication = (applicationId) => {
 }
 
 /**
+ * Get the audit log for an application
+ * @param {string} applicationId
+ * @param {object} params
+ * @param {string} cursor
+ * @param {string} limit
+ */
+const getApplicationAuditLog = async (applicationId, params, cursor, limit) => {
+    const url = paginateUrl(`/api/v1/applications/${applicationId}/audit-log`, cursor, limit)
+    return client.get(url, { params }).then(res => res.data)
+}
+
+/**
  * @param {string} applicationId
  * @param {string} cursor
  * @param {string} limit
@@ -210,6 +222,7 @@ export default {
     updateApplication,
     deleteApplication,
     getApplication,
+    getApplicationAuditLog,
     getApplicationDevices,
     getApplicationInstances,
     getApplicationInstancesStatuses,

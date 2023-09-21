@@ -46,6 +46,13 @@ module.exports = {
                     }
                     return M.AuditLog.forEntity(where, pagination)
                 },
+                forApplication: async (applicationId, pagination = {}) => {
+                    const where = {
+                        entityId: applicationId.toString(),
+                        entityType: 'application'
+                    }
+                    return M.AuditLog.forEntity(where, pagination)
+                },
                 forEntity: async (where = {}, pagination = {}) => {
                     const limit = parseInt(pagination.limit) || 1000
                     if (pagination.cursor) {

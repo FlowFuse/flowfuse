@@ -387,4 +387,47 @@ module.exports = async function (app) {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
     })
+
+    /**
+     * Get the application audit log
+     * @name /api/v1/application/:applicationId/audit-log
+     * @memberof forge.routes.api.project
+     */
+    app.get('/:applicationId/audit-log', {
+        preHandler: app.needsPermission('application:audit-log'),
+        schema: {
+            summary: 'Get application audit event entries',
+            tags: ['Applications'],
+            query: {
+                allOf: [
+                    { $ref: 'PaginationParams' },
+                    { $ref: 'AuditLogQueryParams' }
+                ]
+            },
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        log: { $ref: 'AuditLogEntryList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const paginationOptions = app.getPaginationOptions(request)
+        const logEntries = await app.db.models.AuditLog.forApplication(request.application.id, paginationOptions)
+        const result = app.db.views.AuditLog.auditLog(logEntries)
+        reply.send(result)
+    })
 }
