@@ -49,7 +49,7 @@
                 </template>
             </SectionNavigationHeader>
         </div>
-        <div class="text-sm sm:px-6 mt-4 sm:mt-8">
+        <div class="sm:px-6 mt-4 sm:mt-8">
             <Teleport v-if="mounted && isVisitingAdmin" to="#platform-banner">
                 <div class="ff-banner" data-el="banner-device-as-admin">You are viewing this device as an Administrator</div>
             </Teleport>
@@ -132,6 +132,23 @@ export default {
         },
         deviceEditorURL: function () {
             return this.device.editor?.url || ''
+        }
+    },
+    watch: {
+        'device.mode': function () {
+            if (this.device.mode === 'developer') {
+                this.navigation.push({
+                    label: 'Developer Mode',
+                    to: `/device/${this.$route.params.id}/developer-mode`,
+                    tag: 'device-devmode'
+                })
+            } else {
+                // check if developer mode in the list of options
+                const index = this.navigation.findIndex((item) => item.tag === 'device-devmode')
+                if (index > -1) {
+                    this.navigation.splice(index, 1)
+                }
+            }
         }
     },
     async mounted () {

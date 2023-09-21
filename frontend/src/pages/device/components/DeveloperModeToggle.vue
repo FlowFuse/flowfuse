@@ -1,14 +1,15 @@
 <template>
-    <ff-toggle-switch
-        v-model="developerModeLocal"
-        v-ff-tooltip:left="toggleTip"
-        mode="async"
-        :loading="busy"
-        :disabled="toggleDisabled"
-        @click="toggleDeveloperMode"
-    >
-        <CodeIcon />
-    </ff-toggle-switch>
+    <span v-ff-tooltip:left="toggleTip">
+        <ff-toggle-switch
+            v-model="developerModeLocal"
+            mode="async"
+            :loading="busy"
+            :disabled="toggleDisabled"
+            @click="toggleDeveloperMode"
+        >
+            <CodeIcon />
+        </ff-toggle-switch>
+    </span>
 </template>
 
 <script>
@@ -47,7 +48,7 @@ export default {
             if (this.unsupportedVersion) {
                 return 'Developer Mode unavailable'
             } else {
-                return 'Toggle Developer Mode'
+                return `Developer Mode: ${this.device.mode === 'developer' ? 'Enabled' : 'Disabled'}`
             }
         }
     },
