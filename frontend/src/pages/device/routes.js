@@ -1,3 +1,4 @@
+import DeviceDeveloperMode from './DeveloperMode/index.vue'
 import DeviceLogs from './Logs.vue'
 import DeviceOverview from './Overview.vue'
 import DeviceSettingsDanger from './Settings/Danger.vue'
@@ -49,6 +50,14 @@ export default [
                 component: DeviceSnapshots,
                 meta: {
                     title: 'Device - Snapshots'
+                }
+            },
+            {
+                path: 'developer-mode',
+                name: 'DeviceDeveloperMode',
+                component: DeviceDeveloperMode,
+                meta: {
+                    title: 'Device - Developer Mode'
                 }
             }
         ]

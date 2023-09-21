@@ -1,0 +1,29 @@
+@import '../../ui-components/stylesheets/ff-colors.scss';
+
+.ff-info-card h3 {
+    display: flex;
+    gap: 9px;
+    margin-bottom: 12px;
+    align-items: center;
+}
+
+.ff-info-card h3 svg {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.ff-info-card-content {
+    padding: 6px 12px;
+    background-color: white;
+    border: 1px solid $ff-grey-300;
+}
+
+.ff-info-card-row {
+    min-height: 36px;
+}
+
+.ff-info-card .ff-info-card-row:not(:last-child) {
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid $ff-grey-200;
+}
