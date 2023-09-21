@@ -3,7 +3,7 @@ const { ValidationError } = require('sequelize')
 const { registerPermissions } = require('../../../lib/permissions')
 const { Roles } = require('../../../lib/roles.js')
 
-const { createSnapshot, copySnapshot } = require('../../../services/snapshots')
+const { createSnapshot, copySnapshot, generateDeploySnapshotDescription, generateDeploySnapshotName } = require('../../../services/snapshots')
 
 module.exports = async function (app) {
     registerPermissions({
@@ -493,8 +493,8 @@ module.exports = async function (app) {
                 }
             } else if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.CREATE_SNAPSHOT) {
                 sourceSnapshot = await createSnapshot(app, sourceInstance, user, {
-                    name: `Deploy Snapshot: ${new Date().toLocaleString('sv-SE')}`, // YYYY-MM-DD HH:MM:SS
-                    description: `Snapshot created for pipeline deployment from ${sourceStage.name} to ${targetStage.name} as part of pipeline ${request.pipeline.name}`,
+                    name: generateDeploySnapshotName(),
+                    description: generateDeploySnapshotDescription(sourceStage, targetStage, request.pipeline),
                     setAsTarget: false // no need to deploy to devices of the source
                 })
             } else if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.PROMPT) {
@@ -522,7 +522,11 @@ module.exports = async function (app) {
             const targetSnapshot = await copySnapshot(app, sourceSnapshot, targetInstance, {
                 importSnapshot: true, // target instance should import the snapshot
                 setAsTarget: setAsTargetForDevices,
-                decryptAndReEncryptCredentialsSecret: await sourceInstance.getCredentialSecret()
+                decryptAndReEncryptCredentialsSecret: await sourceInstance.getCredentialSecret(),
+                targetSnapshotProperties: {
+                    name: generateDeploySnapshotName(sourceSnapshot),
+                    description: generateDeploySnapshotDescription(sourceStage, targetStage, request.pipeline)
+                }
             })
 
             if (restartTargetInstance) {

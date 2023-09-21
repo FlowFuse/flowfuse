@@ -2,24 +2,154 @@ const crypto = require('crypto')
 
 const should = require('should') // eslint-disable-line
 const snapshots = require('../../../../forge/services/snapshots')
+const factory = require('../../../lib/TestModelFactory')
 const { decryptCreds } = require('../../../lib/credentials')
 
-const FF_UTIL = require('flowforge-test-utils')
+const setup = require('../ee/setup')
 
 describe('Snapshots Service', function () {
-    let APP, USER, TEAM
+    let APP, USER, TEAM, FACTORY
 
     before(async function () {
-        APP = await FF_UTIL.setupApp()
+        APP = await setup()
 
-        USER = await APP.db.models.User.create({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
+        FACTORY = new factory(APP)
 
-        const defaultTeamType = await APP.db.models.TeamType.findOne()
-        TEAM = await APP.db.models.Team.create({ name: 'ATeam', TeamTypeId: defaultTeamType.id })
+        USER = APP.user
+        TEAM = APP.team
     })
 
     after(async function () {
         await APP.close()
+    })
+
+    describe('generateDeploySnapshotName', function () {
+        it('Generates a name for a snapshot to be deployed', async function () {
+            const name = snapshots.generateDeploySnapshotName()
+
+            name.should.match(/Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
+        })
+
+        it('Generates a name for a snapshot to be deployed based on a source snapshot', async function () {
+            const instance = await APP.db.models.Project.create({ name: 'instance-1', type: '', url: '' })
+
+            await TEAM.addProject(instance)
+
+            const snapshot = await snapshots.createSnapshot(APP, instance, USER, {
+                name: 'Version 1.1.0',
+                setAsTarget: false // no need to deploy to devices of the source
+            })
+
+            const name = snapshots.generateDeploySnapshotName(snapshot)
+
+            name.should.match(/Version 1\.1\.0 - Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
+        })
+
+        it('Handles a source snapshot already having a date by stripping the date', async function () {
+            const instance = await APP.db.models.Project.create({ name: 'instance-2', type: '', url: '' })
+
+            await TEAM.addProject(instance)
+
+            const snapshot = await snapshots.createSnapshot(APP, instance, USER, {
+                name: 'Version 1.1.0',
+                setAsTarget: false // no need to deploy to devices of the source
+            })
+
+            const name = snapshots.generateDeploySnapshotName(snapshot)
+            name.should.match(/Version 1\.1\.0 - Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
+
+            const snapshot2 = await snapshots.createSnapshot(APP, instance, USER, {
+                name,
+                setAsTarget: false // no need to deploy to devices of the source
+            })
+
+            const name2 = snapshots.generateDeploySnapshotName(snapshot2)
+            name2.should.match(/Version 1\.1\.0 - Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
+
+            const snapshot3 = await snapshots.createSnapshot(APP, instance, USER, {
+                name: name2,
+                setAsTarget: false // no need to deploy to devices of the source
+            })
+
+            const name3 = snapshots.generateDeploySnapshotName(snapshot3)
+            name3.should.match(/Version 1\.1\.0 - Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
+        })
+    })
+
+    describe('generateDeploySnapshotDescription', function () {
+        let pipeline, stageOne, stageTwo, stageThree, stageFour
+
+        before(async function () {
+            const application = await FACTORY.createApplication({ name: 'application1' }, TEAM)
+
+            const instance = await APP.db.models.Project.create({ name: 'instance-3', type: '', url: '' })
+
+            pipeline = await FACTORY.createPipeline({ name: 'pipeline-1' }, application)
+
+            stageOne = await FACTORY.createPipelineStage({ name: 's1', instanceId: instance.id }, pipeline)
+            stageTwo = await FACTORY.createPipelineStage({ name: 's2', instanceId: instance.id }, pipeline)
+            stageThree = await FACTORY.createPipelineStage({ name: 's3', instanceId: instance.id }, pipeline)
+            stageFour = await FACTORY.createPipelineStage({ name: 's4', instanceId: instance.id }, pipeline)
+        })
+
+        it('Generates a description for a snapshot to be deployed', async function () {
+            const description = snapshots.generateDeploySnapshotDescription(stageOne, stageTwo, pipeline)
+            description.should.equal('Snapshot created for pipeline deployment from s1 to s2 as part of pipeline pipeline-1')
+
+            const description2 = snapshots.generateDeploySnapshotDescription(stageTwo, stageThree, pipeline)
+            description2.should.equal('Snapshot created for pipeline deployment from s2 to s3 as part of pipeline pipeline-1')
+        })
+
+        it('Includes previous snapshots description if a source snapshot is set', async function () {
+            const snapshot = await snapshots.createSnapshot(APP, APP.instance, USER, {
+                name: 'Version 1.1.0',
+                description: 'This snapshot was created during our tests',
+                setAsTarget: false // no need to deploy to devices of the source
+            })
+
+            const description = snapshots.generateDeploySnapshotDescription(stageOne, stageTwo, pipeline, snapshot)
+            description.should.match(/Snapshot created for pipeline deployment from s1 to s2 as part of pipeline pipeline-1/)
+            description.should.match(/This snapshot was created during our tests/)
+
+            const description2 = snapshots.generateDeploySnapshotDescription(stageTwo, stageThree, pipeline, snapshot)
+            description2.should.match(/Snapshot created for pipeline deployment from s2 to s3 as part of pipeline pipeline-1/)
+            description2.should.match(/This snapshot was created during our tests/)
+        })
+
+        it('Strips autogenerate snapshot descriptions to prevent duplicates', async function () {
+            const snapshot = await snapshots.createSnapshot(APP, APP.instance, USER, {
+                name: 'Version 1.1.0',
+                description: 'Original description',
+                setAsTarget: false // no need to deploy to devices of the source
+            })
+
+            const description = snapshots.generateDeploySnapshotDescription(stageOne, stageTwo, pipeline, snapshot)
+            description.should.match(/Snapshot created for pipeline deployment from s1 to s2 as part of pipeline pipeline-1/)
+            description.should.match(/Original description/)
+
+            const snapshot2 = await snapshots.createSnapshot(APP, APP.instance, USER, {
+                name: 'Version 1.1.0',
+                description,
+                setAsTarget: false // no need to deploy to devices of the source
+            })
+
+            const description2 = snapshots.generateDeploySnapshotDescription(stageTwo, stageThree, pipeline, snapshot2)
+            description2.should.match(/Snapshot created for pipeline deployment from s2 to s3 as part of pipeline pipeline-1/)
+            description2.should.not.match(/Snapshot created for pipeline deployment from s1 to s2 as part of pipeline pipeline-1/)
+            description2.should.match(/Original description/)
+
+            const snapshot3 = await snapshots.createSnapshot(APP, APP.instance, USER, {
+                name: 'Version 1.1.0',
+                description,
+                setAsTarget: false // no need to deploy to devices of the source
+            })
+
+            const description3 = snapshots.generateDeploySnapshotDescription(stageThree, stageFour, pipeline, snapshot3)
+            description3.should.match(/Snapshot created for pipeline deployment from s3 to s4 as part of pipeline pipeline-1/)
+            description3.should.not.match(/Snapshot created for pipeline deployment from s1 to s2 as part of pipeline pipeline-1/)
+            description3.should.not.match(/Snapshot created for pipeline deployment from s2 to s3 as part of pipeline pipeline-1/)
+            description3.should.match(/Original description/)
+        })
     })
 
     describe('createSnapshot', function () {

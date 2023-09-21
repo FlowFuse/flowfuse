@@ -1,20 +1,82 @@
+const extractNameRegex =
+  /(?:(?<name>.*) - )?Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/
+const extractDescriptionRegex =
+  /Snapshot created for pipeline deployment from .* to .* as part of pipeline .*/
+
 async function setSnapShotAsTarget (app, snapshot, instance, user) {
     await snapshot.reload()
     await instance.updateSetting('deviceSettings', {
         targetSnapshot: snapshot.id
     })
     // Update the targetSnapshot of the devices assigned to this project
-    await app.db.models.Device.update({ targetSnapshotId: snapshot.id }, {
-        where: {
-            ProjectId: instance.id
+    await app.db.models.Device.update(
+        { targetSnapshotId: snapshot.id },
+        {
+            where: {
+                ProjectId: instance.id
+            }
         }
-    })
-    await app.auditLog.Project.project.snapshot.deviceTargetSet(user, null, instance, snapshot)
+    )
+    await app.auditLog.Project.project.snapshot.deviceTargetSet(
+        user,
+        null,
+        instance,
+        snapshot
+    )
     if (app.comms) {
-        app.comms.devices.sendCommandToProjectDevices((await instance.getTeam()).hashid, instance.id, 'update', {
-            snapshot: snapshot.hashid
-        })
+        app.comms.devices.sendCommandToProjectDevices(
+            (await instance.getTeam()).hashid,
+            instance.id,
+            'update',
+            {
+                snapshot: snapshot.hashid
+            }
+        )
     }
+}
+
+/**
+ * Generate a name for a deploy snapshot
+ * Optionally using the name of the source snapshot, stripping out the deploy timing info
+ * @param {*} sourceSnapshot
+ * @returns string
+ */
+module.exports.generateDeploySnapshotName = (sourceSnapshot = null) => {
+    const nameParts = [
+        'Deploy Snapshot',
+        new Date().toLocaleString('sv-SE') // YYYY-MM-DD HH:MM:SS
+    ]
+
+    if (sourceSnapshot) {
+        const extractedGroups = sourceSnapshot.name.match(extractNameRegex)
+        const existingName = extractedGroups?.groups.name ?? sourceSnapshot.name
+        if (existingName) {
+            nameParts.unshift(existingName)
+        }
+    }
+
+    return nameParts.join(' - ')
+}
+
+module.exports.generateDeploySnapshotDescription = (
+    sourceStage,
+    targetStage,
+    pipeline,
+    sourceSnapshot = null
+) => {
+    let description = `Snapshot created for pipeline deployment from ${sourceStage.name} to ${targetStage.name} as part of pipeline ${pipeline.name}`
+
+    if (sourceSnapshot) {
+        const existingDescription = sourceSnapshot.description
+            .replace(extractDescriptionRegex, '')
+            .trim()
+
+        if (existingDescription) {
+            description += `\n\n${existingDescription}`
+        }
+    }
+
+    return description
 }
 
 module.exports.createSnapshot = async (app, instance, user, snapshotProps) => {
@@ -27,7 +89,12 @@ module.exports.createSnapshot = async (app, instance, user, snapshotProps) => {
     )
 
     snapShot.User = user
-    await app.auditLog.Project.project.snapshot.created(user, null, instance, snapShot)
+    await app.auditLog.Project.project.snapshot.created(
+        user,
+        null,
+        instance,
+        snapShot
+    )
 
     if (snapshotProps.setAsTarget) {
         await setSnapShotAsTarget(app, snapShot, instance, user)
@@ -35,7 +102,22 @@ module.exports.createSnapshot = async (app, instance, user, snapshotProps) => {
     return snapShot
 }
 
-module.exports.copySnapshot = async (app, snapshot, toInstance, { importSnapshot, setAsTarget, decryptAndReEncryptCredentialsSecret } = { importSnapshot: true, setAsTarget: false, decryptAndReEncryptCredentialsSecret: null }) => {
+module.exports.copySnapshot = async (
+    app,
+    snapshot,
+    toInstance,
+    {
+        importSnapshot,
+        setAsTarget,
+        decryptAndReEncryptCredentialsSecret,
+        targetSnapshotProperties
+    } = {
+        importSnapshot: true,
+        setAsTarget: false,
+        decryptAndReEncryptCredentialsSecret: null,
+        targetSnapshotProperties: null
+    }
+) => {
     const { settings, flows, name, description } = snapshot.toJSON()
     const snapshotToCopyProps = { settings, flows, name, description }
 
@@ -51,21 +133,38 @@ module.exports.copySnapshot = async (app, snapshot, toInstance, { importSnapshot
 
         let newCredentials
         if (!decryptAndReEncryptCredentialsSecret) {
-            console.warn('Assuming credentials are not encrypted as no decryptAndReEncryptCredentialsSecret was passed')
-            newCredentials = app.db.controllers.Project.exportCredentials(oldCredentials, null, targetInstanceSecret)
+            console.warn(
+                'Assuming credentials are not encrypted as no decryptAndReEncryptCredentialsSecret was passed'
+            )
+            newCredentials = app.db.controllers.Project.exportCredentials(
+                oldCredentials,
+                null,
+                targetInstanceSecret
+            )
         } else {
-            newCredentials = await app.db.controllers.Project.reEncryptCredentials(flows.credentials, decryptAndReEncryptCredentialsSecret, targetInstanceSecret)
+            newCredentials = await app.db.controllers.Project.reEncryptCredentials(
+                flows.credentials,
+                decryptAndReEncryptCredentialsSecret,
+                targetInstanceSecret
+            )
         }
 
         snapshotToCopyProps.flows.credentials = newCredentials
     }
 
-    const newSnapshot = await app.db.models.ProjectSnapshot.create(
-        { ...snapshotToCopyProps, ProjectId: toInstance.id, UserId: snapshot.UserId }
-    )
+    const newSnapshot = await app.db.models.ProjectSnapshot.create({
+        ...snapshotToCopyProps,
+        ...targetSnapshotProperties,
+        ProjectId: toInstance.id,
+        UserId: snapshot.UserId
+    })
 
     if (importSnapshot) {
-        await app.db.controllers.Project.importProjectSnapshot(toInstance, newSnapshot, { mergeEnvVars: true, decryptAndReEncryptCredentialsSecret })
+        await app.db.controllers.Project.importProjectSnapshot(
+            toInstance,
+            newSnapshot,
+            { mergeEnvVars: true, decryptAndReEncryptCredentialsSecret }
+        )
     }
 
     if (setAsTarget) {
