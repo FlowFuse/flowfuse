@@ -81,9 +81,12 @@
                 </template>
                 <InfoCardRow property="Device Mode">
                     <template #value>
-                        <span class="flex space-x-2 pr-2 items-center">
+                        <span v-if="device.mode === 'developer'" class="flex space-x-2 pr-2 items-center">
                             <BeakerIcon class="text-purple-600 w-4" />
-                            <span> Developer Mode </span>
+                            <span> Developer Mode</span>
+                        </span>
+                        <span v-else>
+                            <span> Default</span>
                         </span>
                     </template>
                 </InfoCardRow>
@@ -96,7 +99,6 @@
 
 // utilities
 import { BeakerIcon, CheckCircleIcon, ExclamationIcon, TemplateIcon, WifiIcon } from '@heroicons/vue/outline'
-import semver from 'semver'
 
 // api
 import { mapState } from 'vuex'
@@ -133,9 +135,6 @@ export default {
         targetSnapshotDeployed: function () {
             return this.device.activeSnapshot?.id === this.device.targetSnapshot?.id
         },
-        editorTunnelConnected: function () {
-            return !!this.device?.editor?.connected
-        },
         lastSeenAt: function () {
             return this.device?.lastSeenAt || ''
         },
@@ -149,21 +148,12 @@ export default {
             return this.device?.ownerType || ''
         }
     },
-    data () {
-        return {
-            agentSupportsDeviceAccess: false,
-            busy: false,
-            openingTunnel: false,
-            closingTunnel: false
-        }
-    },
     timers: {
         // declare a pollTimer that will call the pollTimer method every POLL_TIME milliseconds
         // see the documentation in `frontend/src/mixins/vue-timers.js` for more details and examples
         pollTimer: { time: POLL_TIME, repeat: true, autostart: false } // no autoStart: manually start in mounted()
     },
     mounted () {
-        this.agentSupportsDeviceAccess = this.device?.agentVersion && semver.gt(this.device.agentVersion, '0.6.1')
         this.refreshDevice()
         this.$timer.start('pollTimer') // vue-timer auto stops when navigating away
     },

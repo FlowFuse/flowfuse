@@ -60,6 +60,7 @@
 
 <script>
 import { BeakerIcon } from '@heroicons/vue/outline'
+import semver from 'semver'
 import { mapState } from 'vuex'
 
 import deviceApi from '../../../api/devices.js'
@@ -104,6 +105,9 @@ export default {
         editorEnabled: function () {
             return !!this.device?.editor?.enabled
         },
+        editorTunnelConnected: function () {
+            return !!this.device?.editor?.connected
+        },
         editorCanBeEnabled: function () {
             return this.developerMode && this.device.status === 'running'
         }
@@ -116,6 +120,7 @@ export default {
         }
     },
     mounted () {
+        this.agentSupportsDeviceAccess = this.device?.agentVersion && semver.gt(this.device.agentVersion, '0.6.1')
         // check developer mode enabled
         if (this.device && this.device.mode !== 'developer') {
             this.redirect()
