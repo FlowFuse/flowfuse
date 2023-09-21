@@ -1,3 +1,11 @@
+#### 1.11.4: Release
+
+ - Backport cherry pick of #2785 #2785 #2789 (#2798) @hardillb
+ - docs: How to duplicate instances to create devops pipelines (backport #2753) (#2797) @app/github-actions
+ - Clarify need for content-type to be set for api requests (backport #2786) (#2787) @app/github-actions
+ - fix: Anchor tag broken in docs (backport #2775) (#2776) @app/github-actions
+ - Update FF Cloud billing description (backport #2767) (#2768) @app/github-actions
+
 #### 1.11.3: Release
 
  - Update localfs to latest (backport #2762) (#2763) @app/github-actions
