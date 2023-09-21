@@ -107,7 +107,6 @@ const setMode = async (deviceId, mode) => {
  * @param {boolean} [options.setAsTarget] - set the snapshot as the new target for all devices
  */
 const createSnapshot = async (device, options) => {
-    console.log('DevicesApi->createSnapshot', device, options)
     const ownerType = device.ownerType || (device.instance?.id ? 'instance' : (device.application?.id ? 'application' : null))
     const instanceId = device.instance?.id
     const applicationId = device.application?.id
@@ -148,7 +147,6 @@ const getDeviceSnapshot = (deviceId, snapshotId) => {
 
 // TODO: move to deviceSnapshots.js
 const getDeviceSnapshots = (deviceId, cursor, limit) => {
-    console.log('getDeviceSnapshots for device', deviceId)
     const url = paginateUrl(`/api/v1/devices/${deviceId}/snapshots`, cursor, limit)
     return client.get(url).then(res => {
         res.data.snapshots = res.data.snapshots.map(ss => {
@@ -162,7 +160,6 @@ const getDeviceSnapshots = (deviceId, cursor, limit) => {
 
 // TODO: move to deviceSnapshots.js
 const deleteSnapshot = async (deviceId, snapshotId) => {
-    console.log(`deleteSnapshot ${`/api/v1/devices/${deviceId}/snapshots/${snapshotId}`}`)
     return client.delete(`/api/v1/devices/${deviceId}/snapshots/${snapshotId}`).then(res => {
         product.capture('$ff-snapshot-deleted', {
             'snapshot-id': snapshotId,
