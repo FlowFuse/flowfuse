@@ -47,7 +47,7 @@
 </template>
 
 <script>
-import { ChipIcon, CogIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
+import { ChipIcon, ClockIcon, CogIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 
 import { mapState } from 'vuex'
 
@@ -109,6 +109,7 @@ export default {
             const routes = [
                 { label: 'Instances', to: `/application/${this.application.id}/instances`, tag: 'application-overview', icon: ProjectsIcon },
                 { label: 'Devices', to: `/application/${this.application.id}/devices`, tag: 'application-devices-overview', icon: ChipIcon },
+                { label: 'Snapshots', to: `/application/${this.application.id}/snapshots`, tag: 'application-snapshots', icon: ClockIcon },
                 {
                     label: 'DevOps Pipelines',
                     to: `/application/${this.application.id}/pipelines`,

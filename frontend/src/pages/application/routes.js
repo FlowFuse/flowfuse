@@ -14,6 +14,7 @@ import ApplicationPipelineStageCreate from './PipelineStage/create.vue'
 import ApplicationPipelineStageEdit from './PipelineStage/edit.vue'
 import ApplicationPipelines from './Pipelines.vue'
 import ApplicationSettings from './Settings.vue'
+import ApplicationSnapshots from './Snapshots.vue'
 import ApplicationCreateInstance from './createInstance.vue'
 import ApplicationIndex from './index.vue'
 
@@ -43,6 +44,14 @@ export default [
                 component: ApplicationDevices,
                 meta: {
                     title: 'Application - Devices'
+                }
+            },
+            {
+                path: 'snapshots',
+                name: 'ApplicationSnapshots',
+                component: ApplicationSnapshots,
+                meta: {
+                    title: 'Application - Snapshots'
                 }
             },
             {
