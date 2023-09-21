@@ -5,7 +5,7 @@ const snapshots = require('../../../../forge/services/snapshots')
 const factory = require('../../../lib/TestModelFactory')
 const { decryptCreds } = require('../../../lib/credentials')
 
-const setup = require('../ee/setup')
+const setup = require('../ee/setup') // EE setup for Pipeline support
 
 describe('Snapshots Service', function () {
     let APP, USER, TEAM, FACTORY
@@ -154,20 +154,16 @@ describe('Snapshots Service', function () {
 
     describe('createSnapshot', function () {
         it('Creates a snapshot of the passed instance', async function () {
-            const instance = await APP.db.models.Project.create({ name: 'instance-1', type: '', url: '' })
-
-            await TEAM.addProject(instance)
-
             // Flows
             const flows = JSON.stringify([{ id: '456', type: 'newNode' }, { id: '123', type: 'node' }])
-            await APP.db.controllers.StorageFlows.updateOrCreateForProject(instance, flows)
+            await APP.db.controllers.StorageFlows.updateOrCreateForProject(APP.instance, flows)
 
             // Credentials
             const credentials = { 456: { a: 'b' } }
-            await APP.db.controllers.StorageCredentials.updateOrCreateForProject(instance, credentials)
+            await APP.db.controllers.StorageCredentials.updateOrCreateForProject(APP.instance, credentials)
 
             // Settings
-            await instance.updateSettings({
+            await APP.instance.updateSettings({
                 settings: {
                     // as array
                     env: [
@@ -180,7 +176,7 @@ describe('Snapshots Service', function () {
                 }
             })
 
-            const snapshot = await snapshots.createSnapshot(APP, instance, USER, {
+            const snapshot = await snapshots.createSnapshot(APP, APP.instance, USER, {
                 name: 'Test Snapshot',
                 description: 'Snapshot description',
                 setAsTarget: false // no need to deploy to devices of the source
@@ -204,33 +200,27 @@ describe('Snapshots Service', function () {
         })
 
         it('Sets the snapshot as the target if setAsTarget is true', async function () {
-            const instance = await APP.db.models.Project.create({ name: 'instance-2', type: '', url: '' })
-
-            await TEAM.addProject(instance)
-
-            instance.reload()
-
             const deviceOne = await APP.db.models.Device.create({
                 name: 'device-1',
                 type: 'type-1',
                 credentialSecret: '123',
-                ProjectId: instance.id
+                ProjectId: APP.instance.id
             })
 
             const deviceTwo = await APP.db.models.Device.create({
                 name: 'device-2',
                 type: 'type-3',
                 credentialSecret: '123',
-                ProjectId: instance.id
+                ProjectId: APP.instance.id
             })
 
-            const snapshot = await snapshots.createSnapshot(APP, instance, USER, {
+            const snapshot = await snapshots.createSnapshot(APP, APP.instance, USER, {
                 name: 'Test Snapshot',
                 description: 'Snapshot description',
                 setAsTarget: true
             })
 
-            const deviceSettings = await instance.getSetting('deviceSettings')
+            const deviceSettings = await APP.instance.getSetting('deviceSettings')
             deviceSettings.targetSnapshot.should.equal(snapshot.id)
 
             await deviceOne.reload()
@@ -243,8 +233,6 @@ describe('Snapshots Service', function () {
 
     describe('copySnapshot', function () {
         it('Creates a copy of the passed snapshot', async function () {
-            const instance = await APP.db.models.Project.create({ name: 'instance-3', type: '', url: '' })
-
             const snapshotProps = {
                 name: 'Test Snapshot',
                 description: 'Description',
@@ -261,13 +249,13 @@ describe('Snapshots Service', function () {
                     flows: [{ id: '1', type: 'node-1' }],
                     credentials: { CRED_ONE: { a: 'b' } }
                 },
-                ProjectId: instance.id,
+                ProjectId: APP.instance.id,
                 UserId: USER.id
             }
 
             const originalSnapshot = await APP.db.models.ProjectSnapshot.create(snapshotProps)
 
-            const newSnapshot = await snapshots.copySnapshot(APP, originalSnapshot, instance, { importSnapshot: true, setAsTarget: false })
+            const newSnapshot = await snapshots.copySnapshot(APP, originalSnapshot, APP.instance, { importSnapshot: true, setAsTarget: false })
 
             originalSnapshot.id.should.not.equal(newSnapshot.id)
 
@@ -279,7 +267,7 @@ describe('Snapshots Service', function () {
             newSnapshot.flows.flows.length.should.equal(1)
 
             // Credentials
-            const toInstanceCredentialSecret = await instance.getCredentialSecret()
+            const toInstanceCredentialSecret = await APP.instance.getCredentialSecret()
             const toInstanceCredentialSecretHash = crypto.createHash('sha256').update(toInstanceCredentialSecret).digest()
             const decryptedCredentials = decryptCreds(toInstanceCredentialSecretHash, newSnapshot.flows.credentials)
             decryptedCredentials.should.match({ CRED_ONE: { a: 'b' } })
