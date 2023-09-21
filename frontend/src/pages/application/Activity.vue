@@ -4,11 +4,11 @@
             <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in within this application." />
         </template>
         <template #extraFilters>
-            <FormHeading class="mt-4">Application Instance:</FormHeading>
+            <FormHeading class="mt-4">Event Scope:</FormHeading>
             <div data-el="filter-event-types">
-                <ff-dropdown v-model="auditFilters.instance" class="w-full">
+                <ff-dropdown v-model="auditFilters.selectedEventScope" class="w-full">
                     <ff-dropdown-option
-                        v-for="instance in instances" :key="instance.id"
+                        v-for="instance in instanceList" :key="instance.id"
                         :label="instance.name" :value="instance.id"
                     />
                 </ff-dropdown>
@@ -20,6 +20,7 @@
 <script>
 import { mapState } from 'vuex'
 
+import ApplicationApi from '../../api/application.js'
 import InstanceApi from '../../api/instances.js'
 import TeamAPI from '../../api/team.js'
 import FormHeading from '../../components/FormHeading.vue'
@@ -27,7 +28,7 @@ import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser.vue'
 
 export default {
-    name: 'ProjectAuditLog',
+    name: 'ApplicationAuditLog',
     components: {
         SectionTopMenu,
         AuditLogBrowser,
@@ -45,21 +46,30 @@ export default {
             logEntries: [],
             users: [],
             auditFilters: {
-                instance: null
+                selectedEventScope: null
             }
         }
     },
     computed: {
-        ...mapState('account', ['team'])
+        ...mapState('account', ['team']),
+        instanceList () {
+            return [
+                { name: 'This Application', id: null },
+                ...this.instances.map(instance => ({
+                    name: instance.name,
+                    id: instance.id
+                }))
+            ]
+        },
+        applicationId () {
+            return this.$route.params.id
+        }
     },
     watch: {
-        application () {
+        'auditFilters.selectedEventScope' () {
             this.$refs.AuditLog?.loadEntries()
         },
-        team: 'loadUsers',
-        instances () {
-            this.auditFilters.instance = this.instances[0]?.id
-        }
+        team: 'loadUsers'
     },
     created () {
         this.loadUsers()
@@ -69,13 +79,13 @@ export default {
             this.users = (await TeamAPI.getTeamMembers(this.team.id)).members
         },
         async loadEntries (params = new URLSearchParams(), cursor = undefined) {
-            const applicationId = this.application?.id
-            if (applicationId) {
-                // TODO Currently this filter effectively does nothing as each application contains only one instance
-                // And the API only supports one set of instance logs at a time regardless
-                const instanceId = this.auditFilters.instance.id
-
-                this.logEntries = (await InstanceApi.getInstanceAuditLog(instanceId, params, cursor, 200)).log
+            if (this.applicationId) {
+                if (this.auditFilters.selectedEventScope === null) {
+                    this.logEntries = (await ApplicationApi.getApplicationAuditLog(this.applicationId, params, cursor, 200)).log
+                } else if (this.auditFilters.selectedEventScope) {
+                    const instanceId = this.auditFilters.selectedEventScope
+                    this.logEntries = (await InstanceApi.getInstanceAuditLog(instanceId, params, cursor, 200)).log
+                }
             }
         }
     }
