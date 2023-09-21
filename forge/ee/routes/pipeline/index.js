@@ -525,7 +525,7 @@ module.exports = async function (app) {
                 decryptAndReEncryptCredentialsSecret: await sourceInstance.getCredentialSecret(),
                 targetSnapshotProperties: {
                     name: generateDeploySnapshotName(sourceSnapshot),
-                    description: generateDeploySnapshotDescription(sourceStage, targetStage, request.pipeline)
+                    description: generateDeploySnapshotDescription(sourceStage, targetStage, request.pipeline, sourceSnapshot)
                 }
             })
 

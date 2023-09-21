@@ -888,14 +888,21 @@ describe('Pipelines API', function () {
                     })
 
                     // Now actually check things worked
-                    // Snapshot created in stage 1 and set as target
+                    // Snapshot created in stage 1
                     // Snapshot created in stage 2, flows created, and set as target
+                    const sourceStageSnapshots = await TestObjects.instanceOne.getProjectSnapshots()
+                    sourceStageSnapshots.should.have.lengthOf(1)
+                    sourceStageSnapshots[0].name.should.match(/Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
+                    sourceStageSnapshots[0].description.should.match(/Snapshot created for pipeline deployment from stage-one to stage-two as part of pipeline new-pipeline/)
 
                     // Get the snapshot for instance 2 post deploy
-                    const snapshots = (await app.db.models.ProjectSnapshot.forProject(TestObjects.instanceTwo.id)).snapshots
-                    snapshots.should.have.lengthOf(1)
+                    const targetStageSnapshots = await TestObjects.instanceTwo.getProjectSnapshots()
+                    targetStageSnapshots.should.have.lengthOf(1)
 
-                    const targetSnapshot = await app.db.models.ProjectSnapshot.byId(snapshots[0].id)
+                    const targetSnapshot = targetStageSnapshots[0]
+
+                    targetSnapshot.name.should.match(/Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
+                    targetSnapshot.description.should.match(/Snapshot created for pipeline deployment from stage-one to stage-two as part of pipeline new-pipeline/)
 
                     targetSnapshot.flows.should.have.property('flows')
                     targetSnapshot.flows.flows.should.have.lengthOf(1)
@@ -1012,14 +1019,14 @@ describe('Pipelines API', function () {
 
                 await createSnapshot(app, TestObjects.instanceOne, TestObjects.user, {
                     name: 'Oldest Snapshot Created In Test',
-                    description: 'This was created as part of the test process',
+                    description: 'This was the first snapshot created as part of the test process',
                     setAsTarget: false // no need to deploy to devices of the source
                 })
 
                 // This one has custom props to validate against
                 await createSnapshot(app, TestObjects.instanceOne, TestObjects.user, {
                     name: 'Latest Snapshot Created In Test',
-                    description: 'This was created as part of the test process',
+                    description: 'This was the second snapshot created as part of the test process',
                     setAsTarget: false, // no need to deploy to devices of the source
                     flows: { custom: 'custom-flows' },
                     credentials: { custom: 'custom-creds' },
@@ -1059,18 +1066,22 @@ describe('Pipelines API', function () {
                 })
 
                 // No new snapshot should have been created
-                const sourceInstanceSnapshots = (await TestObjects.instanceOne.getProjectSnapshots())
+                const sourceInstanceSnapshots = await TestObjects.instanceOne.getProjectSnapshots()
                 sourceInstanceSnapshots.should.have.lengthOf(2)
 
                 // Now actually check things worked
-                // Snapshot created in stage 1 and set as target
+                // Snapshot created in stage 1
                 // Snapshot created in stage 2, flows created, and set as target
 
                 // Get the snapshot for instance 2 post deploy
-                const snapshots = (await app.db.models.ProjectSnapshot.forProject(TestObjects.instanceTwo.id)).snapshots
+                const snapshots = await TestObjects.instanceTwo.getProjectSnapshots()
                 snapshots.should.have.lengthOf(1)
 
-                const targetSnapshot = await app.db.models.ProjectSnapshot.byId(snapshots[0].id)
+                const targetSnapshot = snapshots[0]
+
+                targetSnapshot.name.should.match(/Latest Snapshot Created In Test - Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
+                targetSnapshot.description.should.match(/Snapshot created for pipeline deployment from stage-one to stage-two as part of pipeline new-pipeline/)
+                targetSnapshot.description.should.match(/This was the second snapshot created as part of the test process/)
 
                 targetSnapshot.flows.should.have.property('flows')
                 targetSnapshot.flows.flows.should.match({ custom: 'custom-flows' })

@@ -2,7 +2,7 @@ const crypto = require('crypto')
 
 const should = require('should') // eslint-disable-line
 const snapshots = require('../../../../forge/services/snapshots')
-const factory = require('../../../lib/TestModelFactory')
+const Factory = require('../../../lib/TestModelFactory')
 const { decryptCreds } = require('../../../lib/credentials')
 
 const setup = require('../ee/setup') // EE setup for Pipeline support
@@ -13,7 +13,7 @@ describe('Snapshots Service', function () {
     before(async function () {
         APP = await setup()
 
-        FACTORY = new factory(APP)
+        FACTORY = new Factory(APP)
 
         USER = APP.user
         TEAM = APP.team
