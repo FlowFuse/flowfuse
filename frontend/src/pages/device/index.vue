@@ -14,8 +14,11 @@
                     <ff-nav-breadcrumb>{{ device.name }}</ff-nav-breadcrumb>
                 </template>
                 <template #status>
-                    <DeviceLastSeenBadge class="mr-6" :last-seen-at="device.lastSeenAt" :last-seen-ms="device.lastSeenMs" :last-seen-since="device.lastSeenSince" />
-                    <StatusBadge :status="device.status" />
+                    <div class="space-x-6">
+                        <DeviceLastSeenBadge :last-seen-at="device.lastSeenAt" :last-seen-ms="device.lastSeenMs" :last-seen-since="device.lastSeenSince" />
+                        <StatusBadge :status="device.status" />
+                        <DeveloperModeBadge v-if="device.mode === 'developer'" />
+                    </div>
                 </template>
                 <template #context>
                     <div v-if="device?.ownerType === 'application' && device.application">
@@ -73,6 +76,7 @@ import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpi
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import permissionsMixin from '../../mixins/Permissions.js'
 
+import DeveloperModeBadge from './components/DeveloperModeBadge.vue'
 import DeveloperModeToggle from './components/DeveloperModeToggle.vue'
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
 
@@ -81,6 +85,7 @@ export default {
     components: {
         ExternalLinkIcon,
         DeveloperModeToggle,
+        DeveloperModeBadge,
         DeviceLastSeenBadge,
         SectionNavigationHeader,
         SideNavigationTeamOptions,

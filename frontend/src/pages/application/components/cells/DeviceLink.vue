@@ -4,7 +4,7 @@
         class="flex"
     >
         <span v-if="mode === 'developer'" v-ff-tooltip="'Developer Mode'" class="flex flex-col space-y-2">
-            <BeakerIcon class="text-yellow-600 w-6 mr-2 flex-auto" />
+            <BeakerIcon class="text-purple-600 w-6 mr-2 flex-auto" />
         </span>
         <span v-else class="flex flex-col space-y-2">
             <ChipIcon class="text-gray-500 w-6 mr-2 flex-auto" />
