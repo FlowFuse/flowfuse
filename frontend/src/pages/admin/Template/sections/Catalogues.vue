@@ -171,7 +171,7 @@ export default {
                     this.input.url = ''
                     this.input.error = ''
                 } else {
-                    this.input.error = "Catalogue already present"
+                    this.input.error = 'Catalogue already present'
                 }
             }
         },
