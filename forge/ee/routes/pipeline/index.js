@@ -498,7 +498,19 @@ module.exports = async function (app) {
                     setAsTarget: false // no need to deploy to devices of the source
                 })
             } else if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.PROMPT) {
-                sourceSnapshot = '' // TODO: get it from the params
+                const sourceSnapshotId = request.body?.sourceSnapshotId
+                if (!sourceSnapshotId) { 
+                    return reply.code(400).send({ code: 'no_source_snapshot', error: 'Source snapshot is required as deploy action is set to prompt for snapshot' })
+                }
+
+                sourceSnapshot = await app.db.models.ProjectSnapshot.byId(sourceSnapshotId)
+                if (!sourceSnapshot) {
+                    return reply.code(400).send({ code: 'invalid_source_snapshot', error: 'Source snapshot not found' })
+                }
+
+                if (sourceSnapshot.ProjectId !== sourceInstance.id) {
+                    return reply.code(400).send({ code: 'invalid_source_snapshot', error: 'Source snapshot not associated with source instance' })
+                }
             } else {
                 return reply.code(400).send({ code: 'invalid_action', error: `Unsupported pipeline deploy action: ${sourceStage.action}` })
             }
