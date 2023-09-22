@@ -72,7 +72,7 @@ module.exports.generateDeploySnapshotDescription = (
             .trim()
 
         if (existingDescription) {
-            description += `\n\n${existingDescription}`
+            description = `${existingDescription}\n\n${description}`
         }
     }
 
