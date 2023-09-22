@@ -45,7 +45,7 @@ describe('Snapshots Service', function () {
             name.should.match(/Version 1\.1\.0 - Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
         })
 
-        it('Handles a source snapshot already having a date by stripping the date', async function () {
+        it('Handles a source snapshot already having a date and name by stripping the date and keeping the name', async function () {
             const instance = await APP.db.models.Project.create({ name: 'instance-2', type: '', url: '' })
 
             await TEAM.addProject(instance)
@@ -73,6 +73,28 @@ describe('Snapshots Service', function () {
 
             const name3 = snapshots.generateDeploySnapshotName(snapshot3)
             name3.should.match(/Version 1\.1\.0 - Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
+        })
+
+        it('Handles a source snapshot having only a date by replacing the name entirely', async function () {
+            const instance = await APP.db.models.Project.create({ name: 'instance-3', type: '', url: '' })
+
+            await TEAM.addProject(instance)
+
+            const snapshot = await snapshots.createSnapshot(APP, instance, USER, {
+                name: 'Deploy Snapshot - 2023-09-22 11:40:45',
+                setAsTarget: false // no need to deploy to devices of the source
+            })
+
+            const name = snapshots.generateDeploySnapshotName(snapshot)
+            name.should.match(/^Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/)
+
+            const snapshot2 = await snapshots.createSnapshot(APP, instance, USER, {
+                name,
+                setAsTarget: false // no need to deploy to devices of the source
+            })
+
+            const name2 = snapshots.generateDeploySnapshotName(snapshot2)
+            name2.should.match(/^Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
         })
     })
 

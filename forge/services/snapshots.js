@@ -47,9 +47,9 @@ module.exports.generateDeploySnapshotName = (sourceSnapshot = null) => {
         new Date().toLocaleString('sv-SE') // YYYY-MM-DD HH:MM:SS
     ]
 
-    if (sourceSnapshot) {
+    if (sourceSnapshot?.name) {
         const extractedGroups = sourceSnapshot.name.match(extractNameRegex)
-        const existingName = extractedGroups?.groups.name ?? sourceSnapshot.name
+        const existingName = extractedGroups?.groups.name ?? (extractedGroups?.length > 0 ? '' : sourceSnapshot.name)
         if (existingName) {
             nameParts.unshift(existingName)
         }
