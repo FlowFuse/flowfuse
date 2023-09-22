@@ -130,8 +130,7 @@ export default {
                                 this.editable.changed.settings.palette_catalogue = true
                             } else {
                                 for (const i in this.editable.settings.palette_catalogue) {
-                                    const d = this.editable.settings.palette_catalogue[i] !== this.original.settings.palette_catalogue[i]
-                                    if (d) {
+                                    if (this.editable.settings.palette_catalogue[i] !== this.original.settings.palette_catalogue[i]) {
                                         this.editable.changed.settings.palette_catalogue = true
                                         break
                                     }
