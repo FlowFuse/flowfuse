@@ -160,8 +160,8 @@ export default {
             const newURL = this.input.url.trim()
             if (newURL) {
                 try {
-                    // eslint-disable-next-line
-                    const u = new URL(newURL)
+                    // eslint-disable-next-line no-new
+                    new URL(newURL)
                 } catch (err) {
                     this.input.error = 'Invalid URL'
                     return
