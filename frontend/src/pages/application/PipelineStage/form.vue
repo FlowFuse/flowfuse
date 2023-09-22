@@ -44,7 +44,7 @@
             </template>
         </FormRow>
 
-        <!-- Actiom -->
+        <!-- Action -->
         <FormRow
             v-model="input.action"
             :options="actionOptions"
@@ -52,7 +52,10 @@
             placeholder="Select Action"
         >
             <template #default>
-                Choose Instance
+                Select Action
+            </template>
+            <template #description>
+                When this stage is pushed to the next, which action will be performed?
             </template>
         </FormRow>
 
