@@ -63,8 +63,8 @@ async function init (app, opts, done) {
         if (request.sid) {
             request.session = await app.db.controllers.Session.getOrExpire(request.sid)
             if (request.session && request.session.User) {
-                const emailVerified = !app.postoffice.enabled() || request.session.User.email_verified || request.routeConfig.allowUnverifiedEmail
-                const passwordNotExpired = !request.session.User.password_expired || request.routeConfig.allowExpiredPassword
+                const emailVerified = !app.postoffice.enabled() || request.session.User.email_verified || request.routeOptions.config.allowUnverifiedEmail
+                const passwordNotExpired = !request.session.User.password_expired || request.routeOptions.config.allowExpiredPassword
                 const suspended = request.session.User.suspended
                 if (emailVerified && passwordNotExpired && !suspended) {
                     return
@@ -112,7 +112,7 @@ async function init (app, opts, done) {
                 return
             }
         }
-        if (request.routeConfig.allowAnonymous) {
+        if (request.routeOptions.config.allowAnonymous) {
             return
         }
         reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
