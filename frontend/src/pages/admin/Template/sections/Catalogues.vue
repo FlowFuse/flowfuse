@@ -166,9 +166,13 @@ export default {
                     this.input.error = 'Invalid URL'
                     return
                 }
-                this.editable.settings.palette_catalogue.push(newURL)
-                this.input.url = ''
-                this.input.error = ''
+                if (!this.editable.settings.palette_catalogue.includes(newURL)) {
+                    this.editable.settings.palette_catalogue.push(newURL)
+                    this.input.url = ''
+                    this.input.error = ''
+                } else {
+                    this.input.error = "Catalogue already present"
+                }
             }
         },
         removeURL (url) {
