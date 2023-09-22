@@ -138,8 +138,8 @@ export default {
         }
     },
     watch: {
-        team: 'fetchData',
-        instance: 'fetchData'
+        'team.id': 'fetchData',
+        'instance.id': 'fetchData'
     },
     mounted () {
         this.fetchData()
