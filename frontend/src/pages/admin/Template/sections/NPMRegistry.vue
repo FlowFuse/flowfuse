@@ -108,8 +108,8 @@ export default {
     watch: {
         'editable.settings.palette_npmrc': {
             deep: true,
-            handler (v) {
-                this.npmrc = v
+            handler (newValue) {
+                this.npmrc = newValue
             }
         }
     }
