@@ -146,8 +146,8 @@ export default {
     watch: {
         'editable.settings.palette_catalogue': {
             deep: true,
-            handler (v) {
-                this.urls = v
+            handler (newValue) {
+                this.urls = newValue
             }
         }
     },
