@@ -2,7 +2,7 @@
 navTitle: Documentation
 ---
 
-# FlowFuse Documentaions
+# FlowFuse Documentation
 
 FlowFuse adds to Node-RED; collaborative development, management of
 remote deployments, support for DevOps delivery pipelines, and the ability to
