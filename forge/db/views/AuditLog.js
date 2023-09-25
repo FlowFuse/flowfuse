@@ -30,7 +30,11 @@ module.exports = function (app) {
         $id: 'AuditLogQueryParams',
         type: 'object',
         properties: {
-            event: { type: 'string' },
+            // `event` can be a string or an array of strings (e.g. ['project.snapshot.device-target-set', 'project.snapshot.deviceTarget'])
+            // this is to handle legacy log entries that have multiple events
+            // One such example is the legacy entry 'project.snapshot.deviceTarget' which is now called 'project.snapshot.device-target-set'
+            // this results in a querystring of ?event=project.snapshot.deviceTarget&event=project.snapshot.device-target-set
+            event: { anyOf: [{ type: 'string' }, { type: 'array', items: { type: 'string' } }] },
             username: { type: 'string' }
         }
     })
