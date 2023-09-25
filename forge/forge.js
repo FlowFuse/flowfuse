@@ -32,41 +32,50 @@ const settings = require('./settings')
 
 /** @type {ForgeApplication} */
 module.exports = async (options = {}) => {
+    const runtimeConfig = config.init(options)
     // TODO: Defer logger configuration until after `config` module is registered
     //       so that we can pull it from user-provided config
-    let loggerLevel = 'info'
-    if (options.config && options.config.logging) {
-        loggerLevel = options.config.logging.level || 'info'
+    const loggerConfig = {
+        formatters: {
+            level: (label) => {
+                return { level: label.toUpperCase() }
+            },
+            bindings: (bindings) => {
+                return { }
+            }
+        },
+        timestamp: require('pino').stdTimeFunctions.isoTime,
+        level: runtimeConfig.logging.level,
+        serializers: {
+            res (reply) {
+                return {
+                    statusCode: reply.statusCode,
+                    request: {
+                        url: reply.request?.raw?.url,
+                        method: reply.request?.method,
+                        remoteAddress: reply.request?.ip,
+                        remotePort: reply.request?.socket.remotePort
+                    }
+                }
+            }
+        }
+    }
+    if (runtimeConfig.logging.pretty !== false) {
+        loggerConfig.transport = {
+            target: 'pino-pretty',
+            options: {
+                translateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss.l'Z'",
+                ignore: 'pid,hostname',
+                singleLine: true
+            }
+        }
     }
     const server = fastify({
         forceCloseConnections: true,
         bodyLimit: 5242880,
         maxParamLength: 500,
         trustProxy: true,
-        logger: {
-            transport: {
-                target: 'pino-pretty',
-                options: {
-                    translateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss.l'Z'",
-                    ignore: 'pid,hostname',
-                    singleLine: true
-                }
-            },
-            level: loggerLevel,
-            serializers: {
-                res (reply) {
-                    return {
-                        statusCode: reply.statusCode,
-                        request: {
-                            url: reply.request?.raw?.url,
-                            method: reply.request?.method,
-                            remoteAddress: reply.request?.ip,
-                            remotePort: reply.request?.socket.remotePort
-                        }
-                    }
-                }
-            }
-        }
+        logger: loggerConfig
     })
     server.addHook('onError', async (request, reply, error) => {
         // Useful for debugging when a route goes wrong
@@ -75,10 +84,7 @@ module.exports = async (options = {}) => {
 
     try {
         // Config : loads environment configuration
-        await server.register(config, options)
-        if (server.config.logging?.level) {
-            server.log.level = server.config.logging.level
-        }
+        await server.register(config.attach, options)
 
         // Test Only. Permit access to app.routes - for evaluating routes in tests
         if (options.config?.test?.fastifyRoutes) {
