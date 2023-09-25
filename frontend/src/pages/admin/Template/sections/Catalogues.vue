@@ -124,8 +124,7 @@ export default {
                 // of permissive
                 return true
             }
-            // TODO needs to semver >= 1.12.0
-            return SemVer.satisfies(launcherVersion, '>=1.11.0')
+            return SemVer.satisfies(launcherVersion, '>=1.11.3')
         },
         addDefaultEnabled () {
             if (this.readOnly) {
