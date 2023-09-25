@@ -99,6 +99,7 @@ module.exports = async function (app) {
         }
 
         await app.auditLog.Team.application.created(request.session.User, null, team, application)
+        await app.auditLog.Application.application.created(request.session.User, null, application)
 
         reply.send(app.db.views.Application.application(application))
     })
@@ -198,6 +199,7 @@ module.exports = async function (app) {
         if (team) {
             await app.auditLog.Team.application.updated(request.session.User, null, team, request.application, updates)
         }
+        await app.auditLog.Application.application.updated(request.session.User, null, request.application, updates)
 
         reply.send(app.db.views.Application.application(request.application))
     })
