@@ -706,10 +706,10 @@ export default {
                 this.$refs.deviceAssignInstanceDialog.show(device)
             } else if (action === 'assignToApplication') {
                 if (!device?.agentVersion) {
-                    Alerts.emit('The device version could not be determined. Please connect the device to the platform before assigning it to an application', 'warning', 7500)
+                    Alerts.emit('The device version could not be determined. Please ensure you have refreshed the browser and the device has connected to the platform before assigning it to an application.', 'warning', 7500)
                     return
                 } else if (semver.lt(device.agentVersion, '1.11.0')) {
-                    Alerts.emit('The device version is not supported. Please update the device to the latest version before assigning it to an application', 'warning', 7500)
+                    Alerts.emit('The device version is not supported.  Please ensure you have refreshed the browser and and the device has been updated to the latest version before assigning it to an application', 'warning', 7500)
                     return
                 }
                 this.$refs.deviceAssignApplicationDialog.show(device, false)
