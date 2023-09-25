@@ -60,6 +60,11 @@
             </div>
         </div>
         <div v-else class="flex justify-center py-6">No Instances Bound</div>
+        <DeployStageDialog
+            ref="deployStageDialog"
+            :stage="stage"
+            @deploy-stage="deployStage"
+        />
     </div>
     <div v-else class="ff-pipeline-stage ff-pipeline-stage-ghost" data-action="add-stage">
         <PlusCircleIcon class="ff-icon ff-icon-lg" />
@@ -79,10 +84,13 @@ import Dialog from '../../services/dialog.js'
 
 import SpinnerIcon from '../icons/Spinner.js'
 
+import DeployStageDialog from './DeployStageDialog.vue'
+
 export default {
     name: 'PipelineStage',
     components: {
         InstanceStatusBadge,
+        DeployStageDialog,
         PencilAltIcon,
         PlayIcon,
         PlusCircleIcon,
@@ -131,31 +139,7 @@ export default {
                 )
             }
 
-            const msg = {
-                header: `Push to "${target.name}"`,
-                html: `
-                    <p>Are you sure you want to push from "${this.stage.name}" to "${target.name}"?</p>
-                    <p>This will copy over all flows, nodes and credentials from "${this.stage.name}".</p>
-                    ${target.deployToDevices ? `<p>And push out the changes to all devices connected to "${target.name}".</p>` : ''}
-                    <p>It will also transfer the keys of any newly created Environment Variables that your target instance does not currently have.</p>`
-            }
-
-            Dialog.show(msg, async () => {
-                this.$emit('stage-deploy-starting')
-
-                try {
-                    await PipelineAPI.deployPipelineStage(this.pipeline.id, this.stage.id)
-                } catch (error) {
-                    Alerts.emit(error.message, 'error')
-                    return
-                }
-
-                this.$emit('stage-deploy-started')
-                Alerts.emit(
-                    `Deployment from "${this.stage.name}" to "${target.name}"${target.deployToDevices ? ', and all its devices, ' : ''} has started.`,
-                    'confirmation'
-                )
-            })
+            this.$refs.deployStageDialog.show(target)
         },
         edit () {
             this.$router.push({
@@ -167,6 +151,23 @@ export default {
                     stageId: this.stage.id
                 }
             })
+        },
+
+        async deployStage (target) {
+            this.$emit('stage-deploy-starting')
+
+            try {
+                await PipelineAPI.deployPipelineStage(this.pipeline.id, this.stage.id)
+            } catch (error) {
+                Alerts.emit(error.message, 'error')
+                return
+            }
+
+            this.$emit('stage-deploy-started')
+            Alerts.emit(
+                `Deployment from "${this.stage.name}" to "${target.name}"${target.deployToDevices ? ', and all its devices, ' : ''} has started.`,
+                'confirmation'
+            )
         },
 
         deleteStage () {
