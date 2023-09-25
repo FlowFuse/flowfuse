@@ -153,19 +153,30 @@ export default {
             })
         },
 
-        async deployStage (target) {
+        async deployStage (target, sourceSnapshot) {
             this.$emit('stage-deploy-starting')
 
             try {
-                await PipelineAPI.deployPipelineStage(this.pipeline.id, this.stage.id)
+                await PipelineAPI.deployPipelineStage(this.pipeline.id, this.stage.id, sourceSnapshot.id)
             } catch (error) {
                 Alerts.emit(error.message, 'error')
                 return
             }
 
             this.$emit('stage-deploy-started')
+
+            const messageParts = ['Deployment']
+            if (sourceSnapshot) {
+                messageParts.push(`of snapshot "${sourceSnapshot.name}"`)
+            }
+            messageParts.push(`from "${this.stage.name}" to "${target.name}"`)
+            if (target.deployToDevices) {
+                messageParts.push(', and all its devices')
+            }
+            messageParts.push('has started.')
+
             Alerts.emit(
-                `Deployment from "${this.stage.name}" to "${target.name}"${target.deployToDevices ? ', and all its devices, ' : ''} has started.`,
+                messageParts.join(' '),
                 'confirmation'
             )
         },

@@ -70,10 +70,15 @@ const deletePipelineStage = async (pipelineId, stageId) => {
  * @param {string} pipelineId
  * @param {string} sourceStageId
  * @param {string} targetStageId
+ * @param {string} sourceSnapshotId Optional, required if source stage is set to prompt
  * Deploy pipeline stage
  * */
-const deployPipelineStage = async (pipelineId, sourceStageId) => {
-    return client.put(`/api/v1/pipelines/${pipelineId}/stages/${sourceStageId}/deploy`).then(res => {
+const deployPipelineStage = async (pipelineId, sourceStageId, sourceSnapshotId) => {
+    const options = {}
+    if (sourceSnapshotId) {
+        options.sourceSnapshotId = sourceSnapshotId
+    }
+    return client.put(`/api/v1/pipelines/${pipelineId}/stages/${sourceStageId}/deploy`, options).then(res => {
         return res.data
     })
 }
