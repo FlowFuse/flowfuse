@@ -499,7 +499,7 @@ module.exports = async function (app) {
                 })
             } else if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.PROMPT) {
                 const sourceSnapshotId = request.body?.sourceSnapshotId
-                if (!sourceSnapshotId) { 
+                if (!sourceSnapshotId) {
                     return reply.code(400).send({ code: 'no_source_snapshot', error: 'Source snapshot is required as deploy action is set to prompt for snapshot' })
                 }
 
