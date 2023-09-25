@@ -124,7 +124,7 @@ export default {
                 // of permissive
                 return true
             }
-            return SemVer.satisfies(launcherVersion, '>=1.11.3')
+            return SemVer.satisfies(SemVer.coerce(launcherVersion), '>=1.11.3')
         },
         addDefaultEnabled () {
             if (this.readOnly) {
