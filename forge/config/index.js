@@ -26,61 +26,60 @@ const features = require('./features')
 
 // const FastifySecrets = require('fastify-secrets-env')
 
-module.exports = fp(async function (app, opts, next) {
-    if (opts.config) {
-        // A custom config has been passed in. This means we're running
-        // programmatically rather than manually. At this stage, that
-        // means its our test framework.
-        process.env.NODE_ENV = 'development'
-        process.env.FLOWFORGE_HOME = process.cwd()
-    } else if (!process.env.FLOWFORGE_HOME) {
-        if (process.env.NODE_ENV === 'development') {
-            app.log.info('Development mode')
-            process.env.FLOWFORGE_HOME = path.resolve(__dirname, '../..')
-        } else {
-            if (fs.existsSync('/opt/flowforge')) {
-                process.env.FLOWFORGE_HOME = '/opt/flowforge'
+let config = {}
+
+module.exports = {
+    init: (opts) => {
+        if (opts.config) {
+            // A custom config has been passed in. This means we're running
+            // programmatically rather than manually. At this stage, that
+            // means its our test framework.
+            process.env.NODE_ENV = 'development'
+            process.env.FLOWFORGE_HOME = process.cwd()
+        } else if (!process.env.FLOWFORGE_HOME) {
+            if (process.env.NODE_ENV === 'development') {
+                process.env.FLOWFORGE_HOME = path.resolve(__dirname, '../..')
             } else {
-                process.env.FLOWFORGE_HOME = process.cwd()
+                if (fs.existsSync('/opt/flowforge')) {
+                    process.env.FLOWFORGE_HOME = '/opt/flowforge'
+                } else {
+                    process.env.FLOWFORGE_HOME = process.cwd()
+                }
             }
         }
-    }
 
-    let ffVersion
+        let ffVersion
+        if (process.env.npm_package_version) {
+            ffVersion = process.env.npm_package_version
+            // npm start
+        } else {
+            // everything else
+            const { version } = require(path.join(module.parent.path, '..', 'package.json'))
+            ffVersion = version
+        }
+        try {
+            fs.statSync(path.join(__dirname, '..', '..', '.git'))
+            ffVersion += '-git'
+        } catch (err) {
+            // No git directory
+        }
 
-    if (process.env.npm_package_version) {
-        ffVersion = process.env.npm_package_version
-        // npm start
-    } else {
-        // everything else
-        const { version } = require(path.join(module.parent.path, '..', 'package.json'))
-        ffVersion = version
-    }
-    try {
-        fs.statSync(path.join(__dirname, '..', '..', '.git'))
-        ffVersion += '-git'
-    } catch (err) {
-        // No git directory
-    }
-    app.log.info(`FlowForge v${ffVersion}`)
-
-    app.log.info(`FlowForge running with NodeJS ${process.version}`)
-
-    app.log.info(`FlowForge Data Directory: ${process.env.FLOWFORGE_HOME}`)
-
-    let configFile = path.join(process.env.FLOWFORGE_HOME, '/etc/flowforge.yml')
-    if (fs.existsSync(path.join(process.env.FLOWFORGE_HOME, '/etc/flowforge.local.yml'))) {
-        configFile = path.join(process.env.FLOWFORGE_HOME, '/etc/flowforge.local.yml')
-    }
-    if (!opts.config) {
-        app.log.info(`Config File: ${configFile}`)
-    }
-    try {
-        const configFileContent = fs.readFileSync(configFile, 'utf-8')
-        const config = opts.config === undefined
-            ? YAML.parse(configFileContent)
-            : { ...opts.config }
-
+        if (opts.config !== undefined) {
+            // Programmatically provided config - eg tests
+            config = { ...opts.config }
+        } else {
+            // Load from file
+            let configFile = path.join(process.env.FLOWFORGE_HOME, '/etc/flowforge.yml')
+            if (fs.existsSync(path.join(process.env.FLOWFORGE_HOME, '/etc/flowforge.local.yml'))) {
+                configFile = path.join(process.env.FLOWFORGE_HOME, '/etc/flowforge.local.yml')
+            }
+            try {
+                const configFileContent = fs.readFileSync(configFile, 'utf-8')
+                config = YAML.parse(configFileContent)
+            } catch (err) {
+                throw new Error(`Failed to read config file ${configFile}: ${err}`)
+            }
+        }
         // Ensure sensible defaults
 
         config.version = ffVersion
@@ -110,35 +109,31 @@ module.exports = fp(async function (app, opts, next) {
             }
         }
 
-        if (!config.logging) {
-            config.logging = {
-                level: 'info',
-                http: 'warn'
-            }
-        } else {
-            if (!config.logging.http) {
-                config.logging.http = 'warn'
-            }
+        const defaultLogging = {
+            level: 'info',
+            http: 'warn',
+            pretty: process.env.NODE_ENV === 'development'
         }
+        config.logging = { ...defaultLogging, ...config.logging }
 
-        config.rate_limits = rateLimits.getLimits(app, config.rate_limits)
+        return config
+    },
 
+    attach: fp(async function (app, opts, next) {
         config.features = features(app, config)
-
+        config.rate_limits = rateLimits.getLimits(app, config.rate_limits)
         Object.freeze(config)
         app.decorate('config', config)
-    } catch (err) {
-        app.log.error(`Failed to read config file ${configFile}: ${err}`)
-    }
 
-    // process.env.SESSION_SECRET =
-
-    // TODO: use an env var to select other fastify-secrets-* plugins (AWS, GCP, ...)
-    // app.register(FastifySecrets, {
-    //   secrets: {
-    //     sessionSecret: 'FLOWFORGE_SESSION_SECRET',
-    //     dbPassword:'FLOWFORGE_DB_PASSWORD'
-    //   }
-    // })
-    next()
-})
+        if (process.env.NODE_ENV === 'development') {
+            app.log.info('Development mode')
+        }
+        app.log.info(`FlowFuse v${config.version}`)
+        app.log.info(`FlowFuse running with NodeJS ${process.version}`)
+        app.log.info(`FlowFuse Data Directory: ${process.env.FLOWFORGE_HOME}`)
+        if (!opts.config) {
+            app.log.info(`Config File: ${config.configFile}`)
+        }
+        next()
+    })
+}
