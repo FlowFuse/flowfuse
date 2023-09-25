@@ -93,7 +93,7 @@ export default {
                 // of permissive
                 return true
             }
-            return SemVer.satisfies(launcherVersion, '>=1.11.3')
+            return SemVer.satisfies(SemVer.coerce(launcherVersion), '>=1.11.3')
         },
         obfuscated () {
             if (this.editable.settings.palette_npmrc) {
