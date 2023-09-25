@@ -1,5 +1,5 @@
 <template>
-    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" logType="project" @load-entries="loadEntries">
+    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" :logType="logScope" @load-entries="loadEntries">
         <template #title>
             <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in within this application." />
         </template>
@@ -63,11 +63,14 @@ export default {
         },
         applicationId () {
             return this.$route.params.id
+        },
+        logScope () {
+            return this.auditFilters.selectedEventScope === null ? 'application' : 'project' // cannot use 'instance' due to legacy naming
         }
     },
     watch: {
         'auditFilters.selectedEventScope' () {
-            this.$refs.AuditLog?.loadEntries()
+            this.$refs.AuditLog?.loadEntries(this.logScope)
         },
         team: 'loadUsers'
     },
