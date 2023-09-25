@@ -33,8 +33,6 @@ const settings = require('./settings')
 /** @type {ForgeApplication} */
 module.exports = async (options = {}) => {
     const runtimeConfig = config.init(options)
-    // TODO: Defer logger configuration until after `config` module is registered
-    //       so that we can pull it from user-provided config
     const loggerConfig = {
         formatters: {
             level: (label) => {
