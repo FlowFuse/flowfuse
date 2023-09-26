@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" :header="dialogTitle">
+    <ff-dialog ref="dialog" :header="dialogTitle" data-el="team-type-dialog">
         <template #default>
             <form class="space-y-6 mt-2" @submit.prevent>
                 <div class="grid gap-3 grid-cols-3 items-middle">
@@ -26,8 +26,10 @@
                         <FormRow v-model="input.properties.billing.priceId" :type="editDisabled?'uneditable':''">Price Id</FormRow>
                         <FormRow v-model="input.properties.billing.description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
                     </div>
+                    <FormRow v-model="input.properties.billing.proration" :options="prorationOptions" class="mb-4">Invoicing</FormRow>
                     <div class="space-y-2">
                         <FormRow v-model="input.properties.trial.active" type="checkbox" class="mb-4">Enable trial mode for personal teams</FormRow>
+                        <FormRow v-if="input.properties.trial.active" v-model="input.properties.trial.sendEmail" type="checkbox" class="pl-4 mb-4">Send trial emails</FormRow>
                         <div v-if="input.properties.trial.active" class="grid gap-2 grid-cols-3 pl-4">
                             <FormRow v-model="input.properties.trial.duration" :type="editDisabled?'uneditable':''" placeholder="days">Duration</FormRow>
                             <div class="col-span-2">
@@ -82,11 +84,11 @@
         <template #actions>
             <div class="w-full grow flex justify-between">
                 <div>
-                    <ff-button v-if="teamType" kind="danger" style="margin: 0;" @click="$emit('show-delete-dialog', teamType); $refs.dialog.close()">Delete Team Type</ff-button>
+                    <ff-button v-if="isEditingExisting" kind="danger" style="margin: 0;" @click="$emit('show-delete-dialog', teamType); $refs.dialog.close()">Delete Team Type</ff-button>
                 </div>
                 <div class="flex">
                     <ff-button kind="secondary" @click="$refs['dialog'].close()">Cancel</ff-button>
-                    <ff-button :disabled="!formValid" @click="confirm(); $refs.dialog.close()">{{ teamType ? 'Update' : 'Create' }}</ff-button>
+                    <ff-button :disabled="!formValid" @click="confirm(); $refs.dialog.close()">{{ isEditingExisting ? 'Update' : 'Create' }}</ff-button>
                 </div>
             </div>
         </template>
@@ -156,6 +158,12 @@ export default {
                     if (this.input.properties.features.teamHttpSecurity === undefined) {
                         this.input.properties.features.teamHttpSecurity = true
                     }
+                    if (this.input.properties.billing.proration === undefined) {
+                        this.input.properties.billing.proration = 'always_invoice'
+                    }
+                    if (this.input.properties.trial.active && this.input.properties.trial.sendEmail === undefined) {
+                        this.input.properties.trial.sendEmail = true
+                    }
                 } else {
                     this.editDisabled = false
                     this.input = {
@@ -165,6 +173,7 @@ export default {
                         order: '0',
                         properties: {
                             billing: {},
+                            trial: {},
                             users: {},
                             devices: {},
                             instances: {},
@@ -193,6 +202,10 @@ export default {
             teamType: null,
             instanceTypes: [],
             trialInstanceTypes: [],
+            prorationOptions: [
+                { label: 'Generate invoice for each change', value: 'always_invoice' },
+                { label: 'Add proration items to monthly invoice', value: 'create_prorations' }
+            ],
             input: {
                 name: '',
                 active: true,
@@ -215,6 +228,9 @@ export default {
         ...mapState('account', ['features']),
         formValid () {
             return (this.input.name)
+        },
+        isEditingExisting () {
+            return !!this.teamType
         },
         dialogTitle () {
             if (this.teamType) {

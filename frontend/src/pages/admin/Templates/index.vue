@@ -23,12 +23,12 @@
             @row-selected="editTemplate"
         >
             <template #context-menu="{row}">
-                <ff-list-item label="Edit Template" @click.stop="editTemplate(row)"/>
-                <ff-list-item label="Delete Template" kind="danger" @click.stop="showDeleteDialog(row)"/>
+                <ff-list-item label="Edit Template" @click.stop="editTemplate(row)" />
+                <ff-list-item label="Delete Template" kind="danger" @click.stop="showDeleteDialog(row)" />
             </template>
         </ff-data-table>
         <div v-if="nextCursor">
-            <a v-if="!loading" @click.stop="loadItems" class="forge-button-inline">Load more...</a>
+            <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
         </div>
     </div>
 </template>
@@ -48,6 +48,10 @@ import Dialog from '../../../services/dialog.js'
 
 export default {
     name: 'AdminTemplates',
+    components: {
+        SectionTopMenu,
+        PlusSmIcon
+    },
     data () {
         return {
             templates: [],
@@ -75,11 +79,11 @@ export default {
             ]
         }
     },
-    async created () {
-        await this.loadItems()
-    },
     computed: {
         ...mapState('account', ['settings'])
+    },
+    async created () {
+        await this.loadItems()
     },
     methods: {
         loadItems: async function () {
@@ -116,10 +120,6 @@ export default {
                 this.templates.splice(index, 1)
             })
         }
-    },
-    components: {
-        SectionTopMenu,
-        PlusSmIcon
     }
 }
 </script>

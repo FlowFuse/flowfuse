@@ -1,17 +1,17 @@
 <template>
     <div class="space-y-6">
         <ff-data-table
+            v-model:search="userSearch"
             :columns="columns"
             :rows="users"
             :show-search="true"
-            v-model:search="userSearch"
             search-placeholder="Search Users..."
             :show-load-more="!!nextCursor"
             :loading="loading"
             loading-message="Loading Users"
-            @load-more="loadItems"
             no-data-message="No Users Found"
-            :rows-selectable="true" @row-selected="showUser"
+            :rows-selectable="true"
+            @load-more="loadItems" @row-selected="showUser"
         >
             <template #actions>
                 <ff-button to="./create">
@@ -22,10 +22,10 @@
                 </ff-button>
             </template>
             <template #context-menu="{row}">
-                <ff-list-item label="Edit User" @click.stop="showEditUserDialog(row)"></ff-list-item>
+                <ff-list-item label="Edit User" @click.stop="showEditUserDialog(row)" />
             </template>
         </ff-data-table>
-        <AdminUserEditDialog @user-updated="userUpdated" @user-deleted="userDeleted" ref="adminUserEditDialog"/>
+        <AdminUserEditDialog ref="adminUserEditDialog" @user-updated="userUpdated" @user-deleted="userDeleted" />
     </div>
 </template>
 
@@ -44,6 +44,10 @@ import AdminUserEditDialog from './dialogs/AdminUserEditDialog.vue'
 
 export default {
     name: 'AdminUsers',
+    components: {
+        UserAddIcon,
+        AdminUserEditDialog
+    },
     data () {
         return {
             users: [],
@@ -57,14 +61,6 @@ export default {
                 { label: 'Admin', class: ['w-32', 'text-center'], key: 'admin', sortable: true },
                 { label: 'Suspended', class: ['w-32', 'text-center'], key: 'suspended', sortable: true }
             ]
-        }
-    },
-    async created () {
-        await this.loadItems(true)
-        if (this.features.sso) {
-            this.columns.push({
-                label: 'SSO Enabled', class: ['w-32', 'text-center'], key: 'sso_enabled', sortable: true
-            })
         }
     },
     computed: {
@@ -83,6 +79,14 @@ export default {
                     this.loadItems(true)
                 }, 300)
             }
+        }
+    },
+    async created () {
+        await this.loadItems(true)
+        if (this.features.sso) {
+            this.columns.push({
+                label: 'SSO Enabled', class: ['w-32', 'text-center'], key: 'sso_enabled', sortable: true
+            })
         }
     },
     methods: {
@@ -126,11 +130,6 @@ export default {
                 params: { id: user.id }
             })
         }
-    },
-    components: {
-        UserAddIcon,
-        AdminUserEditDialog
-
     }
 }
 </script>

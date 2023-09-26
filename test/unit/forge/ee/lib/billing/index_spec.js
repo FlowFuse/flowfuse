@@ -227,7 +227,29 @@ describe('Billing', function () {
             args[1].should.have.property('items')
             args[1].items[0].should.have.property('price', 'price_123')
             args[1].items[0].should.have.property('quantity', 1)
+            args[1].should.have.property('proration_behavior', 'always_invoice')
+            // Calling again - ensure it doesn't double the quantity
+            await app.billing.addProject(app.team, app.project)
+            should.equal(stripe.subscriptions.update.calledOnce, true)
+        })
 
+        it('adds a project to Stripe subscription - non-default proration behaviour', async function () {
+            const teamTypeProps = app.defaultTeamType.properties
+            teamTypeProps.billing = { proration: 'create_prorations' }
+            app.defaultTeamType.properties = teamTypeProps
+            await app.defaultTeamType.save()
+            await app.team.reload({ include: [app.db.models.TeamType] })
+
+            await app.billing.addProject(app.team, app.project)
+
+            should.equal(stripe.subscriptions.update.calledOnce, true)
+
+            const args = stripe.subscriptions.update.lastCall.args
+            args[0].should.equal('sub_1234567890')
+            args[1].should.have.property('items')
+            args[1].items[0].should.have.property('price', 'price_123')
+            args[1].items[0].should.have.property('quantity', 1)
+            args[1].should.have.property('proration_behavior', 'create_prorations')
             // Calling again - ensure it doesn't double the quantity
             await app.billing.addProject(app.team, app.project)
             should.equal(stripe.subscriptions.update.calledOnce, true)
@@ -317,24 +339,32 @@ describe('Billing', function () {
             stripe.subscriptions.update.resetHistory()
             stripe.subscriptionItems.update.resetHistory()
 
-            await app.project.destroy()
+            // Mark the project as deleting so it gets ignored by billing
+            app.project.state = 'deleting'
+            await app.project.save()
+
             await app.billing.removeProject(app.team, app.project)
 
             should.equal(stripe.subscriptionItems.update.calledOnce, true)
             const itemsArgs = stripe.subscriptionItems.update.lastCall.args
             itemsArgs[0].should.equal('item-0')
             itemsArgs[1].should.have.property('quantity', 1)
+            itemsArgs[1].should.have.property('proration_behavior', 'always_invoice')
 
             should.equal(stripe.subscriptions.update.calledOnce, false)
         })
 
         it('removes a project from a Stripe subscription with existing invoice item for project type with quantity = 1', async function () {
-            await app.project.destroy()
+            // Mark the project as deleting so it gets ignored by billing
+            app.project.state = 'deleting'
+            await app.project.save()
+
             await app.billing.removeProject(app.team, app.project)
 
             should.equal(stripe.subscriptionItems.del.calledOnce, true)
             const itemsArgs = stripe.subscriptionItems.del.lastCall.args
             itemsArgs[0].should.equal('item-0')
+            itemsArgs[1].should.have.property('proration_behavior', 'always_invoice')
 
             should.equal(stripe.subscriptions.update.calledOnce, false)
         })
@@ -378,13 +408,17 @@ describe('Billing', function () {
             stripe.subscriptions.update.resetHistory()
             stripe.subscriptionItems.update.resetHistory()
 
-            await app.project.destroy()
+            // Mark the project as deleting so it gets ignored by billing
+            app.project.state = 'deleting'
+            await app.project.save()
+
             await app.billing.removeProject(app.team, app.project)
 
             should.equal(stripe.subscriptionItems.update.calledOnce, true)
             const itemsArgs = stripe.subscriptionItems.update.lastCall.args
             itemsArgs[0].should.equal('item-0')
             itemsArgs[1].should.have.property('quantity', 1)
+            itemsArgs[1].should.have.property('proration_behavior', 'always_invoice')
         })
     })
 

@@ -8,6 +8,9 @@
                 <template #help-header>
                     Applications
                 </template>
+                <template #pictogram>
+                    <img src="../../images/pictograms/application_red.png">
+                </template>
                 <template #helptext>
                     <p>This is a list of all Applications hosted on the same domain as FlowFuse.</p>
                     <p>Each Application can host multiple Node-RED instances.</p>
@@ -140,7 +143,16 @@ export default {
         TemplateIcon
     },
     mixins: [permissionsMixin],
-    props: ['team', 'teamMembership'],
+    props: {
+        team: {
+            type: Object,
+            required: true
+        },
+        teamMembership: {
+            type: Object,
+            required: true
+        }
+    },
     data () {
         return {
             loading: false,

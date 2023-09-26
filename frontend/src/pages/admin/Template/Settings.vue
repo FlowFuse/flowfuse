@@ -3,16 +3,16 @@
         <FormHeading>General</FormHeading>
         <FormRow v-model="editableTemplate.name" :error="editableTemplate.errors.name">
             Name
-            <template #append><ChangeIndicator :value="editableTemplate.changed.name"></ChangeIndicator></template>
+            <template #append><ChangeIndicator :value="editableTemplate.changed.name" /></template>
         </FormRow>
         <FormRow v-model="editableTemplate.active" type="checkbox">
             Active
             <template #description>Users can only select from active templates</template>
-            <template #append><ChangeIndicator :value="editableTemplate.changed.active"></ChangeIndicator></template>
+            <template #append><ChangeIndicator :value="editableTemplate.changed.active" /></template>
         </FormRow>
         <FormRow v-model="editableTemplate.description" :error="editableTemplate.errors.description">
             Description
-            <template #append><ChangeIndicator :value="editableTemplate.changed.description"></ChangeIndicator></template>
+            <template #append><ChangeIndicator :value="editableTemplate.changed.description" /></template>
         </FormRow>
         <TemplateSettingsEditor v-model="editableTemplate" :editTemplate="editTemplate" />
     </form>
@@ -28,19 +28,28 @@ import TemplateSettingsEditor from './sections/Editor.vue'
 
 export default {
     name: 'AdminTemplateSettings',
-    props: ['modelValue', 'editTemplate'],
+    components: {
+        FormRow,
+        FormHeading,
+        ChangeIndicator,
+        TemplateSettingsEditor
+    },
+    props: {
+        modelValue: {
+            type: Object,
+            default: null
+        },
+        editTemplate: {
+            type: Boolean,
+            default: false
+        }
+    },
     emits: ['update:modelValue'],
     computed: {
         editableTemplate: {
             get () { return this.modelValue },
             set (localValue) { this.$emit('update:modelValue', localValue) }
         }
-    },
-    components: {
-        FormRow,
-        FormHeading,
-        ChangeIndicator,
-        TemplateSettingsEditor
     }
 }
 </script>

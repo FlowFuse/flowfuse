@@ -33,5 +33,18 @@ The tokens are passed using the `Authorization` header as a `Bearer` token.
 For example, the following will get a list of the token owner's teams:
 
 ```
-curl -H "Authorization: Bearer ffpat_d4vZlLhCN8muyFUi6UsquLj47H2aTDkDpvxBUf5Ea-0" http://app.flowforge.com/api/v1/user/teams
+curl -H "Authorization: Bearer ffpat_d4vZlLhCN8muyFUi6UsquLj47H2aTDkDpvxBUf5Ea" \
+     https://app.flowforge.com/api/v1/user/teams
+```
+
+When sending data to the API, requests must set the `Content-Type` header to `application/json`.
+
+For example, the following will update the name of the team with an id of `mNYLkklLAG`:
+
+```
+curl -X PUT \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer ffpat_d4vZlLhCN8muyFUi6UsquLj47H2aTDkDpvxBUf5Ea" \
+     -d '{"name": "My Development Team"}' \
+     https://app.flowforge.com/api/v1/teams/mNYLkklLAG
 ```

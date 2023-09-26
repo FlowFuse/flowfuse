@@ -7,8 +7,8 @@
                     <p v-if="hasUserLimit">Your team can have a maximum of {{ team.type.properties.userLimit }} members.</p>
                     <p v-if="exceedsUserLimit">You currently have {{ totalMembers }} (including existing invites) so cannot invite any more.</p>
                     <div v-if="!exceedsUserLimit" class="space-y-4">
-                        <FormRow id="userInfo" v-model="input.userInfo" :error="errors.userInfo" :placeholder="'username'+(externalEnabled?' or email':'')"></FormRow>
-                        <ff-radio-group v-model="input.role" orientation="vertical" :options="roleOptions"></ff-radio-group>
+                        <FormRow id="userInfo" v-model="input.userInfo" :error="errors.userInfo" :placeholder="'username'+(externalEnabled?' or email':'')" />
+                        <ff-radio-group v-model="input.role" orientation="vertical" :options="roleOptions" />
                     </div>
                 </template>
                 <template v-else>
@@ -34,11 +34,51 @@ import alerts from '../../../services/alerts.js'
 
 export default {
     name: 'InviteMemberDialog',
-    emits: ['invitation-sent'],
     components: {
         FormRow
     },
-    props: ['team', 'userCount', 'inviteCount'],
+    props: {
+        team: {
+            type: Object,
+            required: true
+        },
+        userCount: {
+            type: Object,
+            required: true
+        },
+        inviteCount: {
+            type: Number,
+            required: true
+        }
+    },
+    emits: ['invitation-sent'],
+    setup () {
+        return {
+            roleOptions: [{
+                label: 'Owner',
+                value: Roles.Owner,
+                description: 'Owners can add and remove members to the team and create applications and instances'
+            }, {
+                label: 'Member',
+                value: Roles.Member,
+                description: 'Members can access the team instances'
+            }, {
+                label: 'Viewer',
+                value: Roles.Viewer,
+                description: 'Viewers can access the team instances, but not make any changes'
+            }, {
+                label: 'Dashboard Only',
+                value: Roles.Dashboard,
+                description: 'Dashboard users can only access the dashboards or HTTP endpoints created by the Node-RED instances when FlowFuse authentication is enabled'
+            }],
+            show () {
+                this.$refs.dialog.show()
+                this.responseErrors = null
+                this.input.userInfo = ''
+                this.errors.userInfo = null
+            }
+        }
+    },
     data () {
         return {
             input: {
@@ -102,33 +142,6 @@ export default {
                 } else {
                     console.error(err)
                 }
-            }
-        }
-    },
-    setup () {
-        return {
-            roleOptions: [{
-                label: 'Owner',
-                value: Roles.Owner,
-                description: 'Owners can add and remove members to the team and create applications and instances'
-            }, {
-                label: 'Member',
-                value: Roles.Member,
-                description: 'Members can access the team instances'
-            }, {
-                label: 'Viewer',
-                value: Roles.Viewer,
-                description: 'Viewers can access the team instances, but not make any changes'
-            }, {
-                label: 'Dashboard Only',
-                value: Roles.Dashboard,
-                description: 'Dashboard users can only access the dashboards or HTTP endpoints created by the Node-RED instances when FlowFuse authentication is enabled'
-            }],
-            show () {
-                this.$refs.dialog.show()
-                this.responseErrors = null
-                this.input.userInfo = ''
-                this.errors.userInfo = null
             }
         }
     }

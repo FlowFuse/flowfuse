@@ -1,5 +1,5 @@
 <template>
-    <ff-loading v-if="loading.deleting" message="Deleting Device..."></ff-loading>
+    <ff-loading v-if="loading.deleting" message="Deleting Device..." />
     <FormHeading v-if="!loading.deleting" class="text-red-700">Delete Device</FormHeading>
     <div v-if="!loading.deleting" class="flex flex-col lg:flex-row max-w-2xl space-y-4">
         <div class="flex-grow">
@@ -9,7 +9,7 @@
         </div>
         <div class="min-w-fit flex-shrink-0">
             <ff-button kind="danger" @click="showConfirmDeleteDialog()">Delete Device</ff-button>
-            <ConfirmDeviceDeleteDialog @delete-device="deleteDevice()" ref="confirmDeviceDeleteDialog"/>
+            <ConfirmDeviceDeleteDialog @delete-device="deleteDevice()" ref="confirmDeviceDeleteDialog" />
         </div>
     </div>
 </template>

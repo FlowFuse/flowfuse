@@ -3,8 +3,8 @@
         <div v-if="locked" v-ff-tooltip="'This setting has been locked by the Project\'s Template.'">
             <LockClosedIcon class="w-4 mb-2" />
         </div>
-        <FormRow v-else-if="editTemplate" class="w-24" v-model="localValue" type="select" :options="[{label:'Editable', value:true},{label:'Locked', value:false}]">
-            <template #append><ChangeIndicator class="mt-2" :value="changed"></ChangeIndicator></template>
+        <FormRow v-else-if="editTemplate" v-model="localValue" class="w-24" type="select" :options="[{label:'Editable', value:true},{label:'Locked', value:false}]">
+            <template #append><ChangeIndicator class="mt-2" :value="changed" /></template>
         </FormRow>
     </div>
 </template>
@@ -20,7 +20,22 @@ function toBoolean (v) {
 }
 export default {
     name: 'LockSetting',
-    props: ['modelValue', 'changed', 'editTemplate'],
+    components: { FormRow, ChangeIndicator, LockClosedIcon },
+    props: {
+        // eslint-disable-next-line vue/require-prop-types
+        modelValue: {
+            // This can be null/undefined/boolean
+            default: false
+        },
+        changed: {
+            type: Boolean,
+            default: false
+        },
+        editTemplate: {
+            type: Boolean,
+            default: false
+        }
+    },
     emits: ['update:modelValue'],
     computed: {
         locked () {
@@ -30,7 +45,6 @@ export default {
             get () { return this.modelValue },
             set (localValue) { this.$emit('update:modelValue', toBoolean(localValue)) }
         }
-    },
-    components: { FormRow, ChangeIndicator, LockClosedIcon }
+    }
 }
 </script>

@@ -20,7 +20,7 @@ navOrder: 3
 
 ## Device Agent Configuration for ctrlX
 
-1. After successful installation, [generate and download the "Device Credentials" in FlowFuse](/docs/device-agent/register.md#generating-device-configuration)
+1. After successful installation, [generate and download the "Device Credentials" in FlowFuse](/docs/device-agent/register/#generating-"device-configuration")
 
 2. In the ctrlX CORE web interface, navigate to the window **Settings** ➔ **Apps** ➔ **Manage App Data**
 

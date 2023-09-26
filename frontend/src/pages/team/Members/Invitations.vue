@@ -2,7 +2,7 @@
     <div>
         <ff-loading v-if="loading" message="Loading Invitations..." />
         <form v-else class="space-y-6">
-            <div class="text-right"></div>
+            <div class="text-right" />
             <ff-data-table data-el="invites-table" :columns="inviteColumns" :rows="invitations">
                 <template #context-menu="{row}">
                     <ff-list-item data-action="remove-invite" label="Remove Invite" kind="danger" @click="removeInvite(row)" />
@@ -24,9 +24,22 @@ import permissionsMixin from '../../../mixins/Permissions.js'
 
 export default {
     name: 'MemberInviteTable',
-    props: ['team', 'teamMembership', 'inviteCount'],
-    emits: ['updated', 'invites-updated'],
     mixins: [permissionsMixin],
+    props: {
+        team: {
+            type: Object,
+            required: true
+        },
+        teamMembership: {
+            type: Object,
+            required: true
+        },
+        inviteCount: {
+            type: Number,
+            required: true
+        }
+    },
+    emits: ['updated', 'invites-updated'],
     data () {
         return {
             loading: false,

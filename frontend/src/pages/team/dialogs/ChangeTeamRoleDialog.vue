@@ -13,7 +13,7 @@
                         <p class="text-sm text-gray-500 mb-6">
                             Select a role for <span class="font-bold">{{ user.username }}</span>:
                         </p>
-                        <ff-radio-group v-model="input.role" orientation="vertical" :options="roleOptions"></ff-radio-group>
+                        <ff-radio-group v-model="input.role" orientation="vertical" :options="roleOptions" />
                     </template>
                 </div>
             </form>

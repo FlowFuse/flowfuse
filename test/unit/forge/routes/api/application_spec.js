@@ -60,7 +60,30 @@ describe('Application API', function () {
 
     describe('Create application', async function () {
         // POST /api/v1/applications
-        it('Admin: Create a simple application', async function () {
+        it('Admin (non-member): Create a simple application', async function () {
+            const sid = await login('alice', 'aaPassword')
+
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/applications',
+                cookies: { sid },
+                payload: {
+                    name: 'my first admin application',
+                    description: 'my first application description',
+                    teamId: TestObjects.BTeam.hashid
+                }
+            })
+
+            response.statusCode.should.equal(200)
+
+            const result = response.json()
+            const newApplication = await app.db.models.Application.byId(result.id)
+            result.should.have.property('id', newApplication.hashid)
+            result.should.have.property('name', 'my first admin application')
+            result.should.have.property('description', 'my first application description')
+        })
+
+        it('Admin (member): Create a simple application', async function () {
             const sid = await login('alice', 'aaPassword')
 
             const response = await app.inject({
@@ -141,6 +164,25 @@ describe('Application API', function () {
             const result = response.json()
             result.should.have.property('code', 'unauthorized')
             result.should.have.property('error')
+        })
+
+        it('Admin (non-member): Cannot create an application in non-existent team', async function () {
+            const sid = await login('alice', 'aaPassword')
+
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/applications',
+                cookies: { sid },
+                payload: {
+                    name: 'my first admin application',
+                    description: 'my first application description',
+                    teamId: 'doesNotExist'
+                }
+            })
+
+            response.statusCode.should.equal(409)
+            const result = response.json()
+            result.should.have.property('code', 'invalid_team')
         })
     })
 
