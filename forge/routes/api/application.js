@@ -428,7 +428,6 @@ module.exports = async function (app) {
             const paginationOptions = app.getPaginationOptions(request)
             const snapshots = await app.db.models.ProjectSnapshot.forApplication(applicationId, paginationOptions)
             snapshots.snapshots = snapshots.snapshots.map(s => app.db.views.ProjectSnapshot.snapshot(s))
-            // snapshots.application = app.db.views.Application.applicationSummary(request.application)
             reply.send(snapshots)
         } else {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
