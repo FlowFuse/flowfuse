@@ -339,6 +339,9 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         let sendDeviceUpdate = false
         const device = request.device
+        let assignToProject = null
+        let assignToApplication = null
+        let postOpAuditLogAction = null
         if (request.body.instance !== undefined || request.body.application !== undefined) {
             // ### Add/Remove device to/from project ###
 
@@ -359,13 +362,12 @@ module.exports = async function (app) {
                 }
 
                 if (unassignApplication && device.Application) {
-                    // const oldApplication = device.Application
+                    const oldApplication = device.Application
                     // unassign from application
                     await device.setApplication(null)
                     await commonUpdates()
-                    // TODO
-                    // await app.auditLog.Team.team.device.unassigned(request.session.User, null, request.device?.Team, oldProject, request.device)
-                    // await app.auditLog.Project.project.device.unassigned(request.session.User, null, oldProject, request.device)
+                    await app.auditLog.Team.team.device.unassigned(request.session.User, null, request.device?.Team, oldApplication, request.device)
+                    await app.auditLog.Application.application.device.unassigned(request.session.User, null, oldApplication, request.device)
                 }
 
                 if (unassignInstance && device.Project) {
@@ -389,19 +391,18 @@ module.exports = async function (app) {
                     // Device is already assigned to this instance - nothing to do
                 } else {
                     // Check if the specified project is in the same team
-                    const project = await app.db.models.Project.byId(request.body.instance)
-                    if (!project) {
+                    assignToProject = await app.db.models.Project.byId(request.body.instance)
+                    if (!assignToProject) {
                         reply.code(400).send({ code: 'invalid_instance', error: 'invalid instance' })
                         return
                     }
-                    if (project.Team.id !== device.Team.id) {
+                    if (assignToProject.Team.id !== device.Team.id) {
                         reply.code(400).send({ code: 'invalid_instance', error: 'invalid instance' })
                         return
                     }
                     // Project exists and is in the right team - assign it to the project
-                    sendDeviceUpdate = await assignDeviceToProject(device, project)
-                    await app.auditLog.Team.team.device.assigned(request.session.User, null, device.Team, project, request.device)
-                    await app.auditLog.Project.project.device.assigned(request.session.User, null, project, request.device)
+                    sendDeviceUpdate = await assignDeviceToProject(device, assignToProject)
+                    postOpAuditLogAction = 'assigned-to-project'
                 }
             } else if (assignTo === 'application') {
                 // ### Add device to application ###
@@ -417,20 +418,19 @@ module.exports = async function (app) {
                         return
                     }
                     // Check if the specified application is in the same team
-                    const application = await app.db.models.Application.byId(request.body.application)
-                    if (!application) {
+                    assignToApplication = await app.db.models.Application.byId(request.body.application)
+                    if (!assignToApplication) {
                         reply.code(400).send({ code: 'invalid_application', error: 'invalid application' })
                         return
                     }
-                    if (application.Team.id !== device.Team.id) {
+                    if (assignToApplication.Team.id !== device.Team.id) {
                         reply.code(400).send({ code: 'invalid_application', error: 'invalid application' })
                         return
                     }
+
                     // Device exists and is in the right team - assign it to the application
-                    sendDeviceUpdate = await assignDeviceToApplication(device, application)
-                    // TODO: Add audit loggers
-                    // await app.auditLog.Team.team.device.assigned(request.session.User, null, device.Team, application, request.device)
-                    // await app.auditLog.?Application?.device.assigned(request.session.User, null, application, request.device)
+                    sendDeviceUpdate = await assignDeviceToApplication(device, assignToApplication)
+                    postOpAuditLogAction = 'assigned-to-application'
                 }
             }
         } else {
@@ -458,6 +458,18 @@ module.exports = async function (app) {
         const updatedDevice = await app.db.models.Device.byId(device.id)
         if (sendDeviceUpdate) {
             await app.db.controllers.Device.sendDeviceUpdateCommand(updatedDevice)
+        }
+
+        // check post op audit log action - create audit log entry if required
+        switch (postOpAuditLogAction) {
+        case 'assigned-to-project':
+            await app.auditLog.Team.team.device.assigned(request.session.User, null, updatedDevice.Team, assignToProject, updatedDevice)
+            await app.auditLog.Project.project.device.assigned(request.session.User, null, assignToProject, updatedDevice)
+            break
+        case 'assigned-to-application':
+            await app.auditLog.Team.team.device.assigned(request.session.User, null, updatedDevice.Team, assignToApplication, updatedDevice)
+            await app.auditLog.Application.application.device.assigned(request.session.User, null, assignToApplication, updatedDevice)
+            break
         }
         reply.send(app.db.views.Device.device(updatedDevice))
     })

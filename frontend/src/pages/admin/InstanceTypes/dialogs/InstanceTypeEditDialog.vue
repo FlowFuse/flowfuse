@@ -7,9 +7,9 @@
                 <FormRow v-model="input.description" :error="errors.description" data-form="description">
                     Description
                     <template #description>Use markdown for formatting</template>
-                    <template #input><textarea class="w-full" rows="6" v-model="input.description"></textarea></template>
+                    <template #input><textarea v-model="input.description" class="w-full" rows="6" /></template>
                 </FormRow>
-                <FormRow :options="stacks" v-model="input.defaultStack" :disabled="stacks.length === 0" id="stack" data-form="stack">
+                <FormRow id="stack" v-model="input.defaultStack" :options="stacks" :disabled="stacks.length === 0" data-form="stack">
                     Default Stack
                     <template #description><div v-if="stacks.length === 0">There are no stacks defined for this Instance Type yet.</div></template>
                 </FormRow>
@@ -30,7 +30,7 @@
                 </div>
                 <div class="flex">
                     <ff-button kind="secondary" @click="$refs['dialog'].close()">Cancel</ff-button>
-                    <ff-button @click="confirm(); $refs.dialog.close()" :disabled="!formValid">{{ instanceType ? 'Update' : 'Create' }}</ff-button>
+                    <ff-button :disabled="!formValid" @click="confirm(); $refs.dialog.close()">{{ instanceType ? 'Update' : 'Create' }}</ff-button>
                 </div>
             </div>
         </template>
@@ -48,10 +48,43 @@ import FormRow from '../../../../components/FormRow.vue'
 
 export default {
     name: 'AdminInstanceTypeCreateDialog',
-    emits: ['instance-type-updated', 'instance-type-created', 'show-delete-dialog'],
     components: {
         FormRow,
         FormHeading
+    },
+    emits: ['instance-type-updated', 'instance-type-created', 'show-delete-dialog'],
+    setup () {
+        return {
+            show (instanceType) {
+                this.$refs.dialog.show()
+                this.instanceType = instanceType
+                this.stacks = []
+                if (instanceType) {
+                    this.editDisabled = instanceType.instanceCount > 0
+                    this.input = {
+                        name: instanceType.name,
+                        active: instanceType.active,
+                        properties: instanceType.properties,
+                        description: instanceType.description,
+                        // Cast to string so the v-model into FormRow works
+                        // Normally you'd use v-model.number to handle this
+                        // but we don't have that inside FormRow currently and
+                        // this is good enough for now
+                        order: '' + instanceType.order
+                    }
+                    stacksApi.getStacks(null, null, null, instanceType.id).then(stackList => {
+                        this.stacks = stackList.stacks.filter(stack => stack.active).map(stack => { return { value: stack.id, label: stack.name } })
+                        this.input.defaultStack = instanceType.defaultStack
+                    }).catch(err => {
+                        console.warn('Error loading stacks', err)
+                    })
+                } else {
+                    this.editDisabled = false
+                    this.input = { active: true, name: '', properties: {}, description: '', order: '1' }
+                }
+                this.errors = {}
+            }
+        }
     },
     data () {
         return {
@@ -124,37 +157,6 @@ export default {
                         }
                     })
                 }
-            }
-        }
-    },
-    setup () {
-        return {
-            show (instanceType) {
-                this.$refs.dialog.show()
-                this.instanceType = instanceType
-                this.stacks = []
-                if (instanceType) {
-                    this.editDisabled = instanceType.instanceCount > 0
-                    this.input = {
-                        name: instanceType.name,
-                        active: instanceType.active,
-                        properties: instanceType.properties,
-                        description: instanceType.description,
-                        // Cast to string so the v-model into FormRow works
-                        // Normally you'd use v-model.number to handle this
-                        // but we don't have that inside FormRow currently and
-                        // this is good enough for now
-                        order: '' + instanceType.order
-                    }
-                    stacksApi.getStacks(null, null, null, instanceType.id).then(stackList => {
-                        this.stacks = stackList.stacks.filter(stack => stack.active).map(stack => { return { value: stack.id, label: stack.name } })
-                        this.input.defaultStack = instanceType.defaultStack
-                    })
-                } else {
-                    this.editDisabled = false
-                    this.input = { active: true, name: '', properties: {}, description: '', order: '1' }
-                }
-                this.errors = {}
             }
         }
     }

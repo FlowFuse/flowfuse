@@ -2,7 +2,7 @@
     <HeadlessUIMenu as="div" class="relative inline-block text-left">
         <div>
             <MenuButton :class="[buttonClass ? buttonClass : 'forge-button', !hasLabel?'px-1':'']">
-                <slot></slot>
+                <slot />
                 <span class="sr-only">{{ alt }}</span>
                 <ChevronDownIcon class="ff-btn--icon ff-btn--icon-right" aria-hidden="true" />
             </MenuButton>
@@ -19,15 +19,15 @@
                 <div class="apx-1 apy-1">
                     <MenuItem v-for="(item, $index) in options" v-slot="{ active }" :key="$index" :disabled="!item || item.disabled == true ? true : false">
                         <template v-if="item == null">
-                            <hr/>
+                            <hr>
                         </template>
                         <template v-else-if="item.disabled">
                             <div :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm',...(item.class||[]),'opacity-20']">{{ item.name }}</div>
                         </template>
                         <template v-else>
                             <a :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm text-gray-700',...(item.class||[])]" :data-action="`menu-${item.name.toLowerCase()}`" @click="item.action">
-                                <component :is="item.icon" v-if="item.icon" class="w-4 inline"></component>
-                                <img v-if="item.imgUrl" :src="item.imgUrl" class="h-4 v-4 inline rounded mr-1"/>
+                                <component :is="item.icon" v-if="item.icon" class="w-4 inline" />
+                                <img v-if="item.imgUrl" :src="item.imgUrl" class="h-4 v-4 inline rounded mr-1">
                                 {{ item.name }}
                             </a>
                         </template>

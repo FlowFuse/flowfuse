@@ -19,6 +19,7 @@ class LicenseDetails {
         this.projects = claims.projects || 0
         this.devices = claims.devices || 0
         this.teams = claims.teams || 0
+        this.tier = claims.tier || 'enterprise'
         Object.freeze(this)
     }
 

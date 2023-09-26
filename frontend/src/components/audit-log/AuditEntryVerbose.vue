@@ -107,12 +107,12 @@
     </template>
     <template v-else-if="entry.event === 'team.device.assigned'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.device">Device '{{ entry.body.device?.name }}' has been assigned from the Instance '{{ entry.body.project?.name }}'.</span>
+        <span v-if="!error && entry.body?.device">Device '{{ entry.body.device?.name }}' has been assigned to the {{ entry.body.application ? 'Application' : 'Instance' }} '{{ entry.body.application ? entry.body.application.name : entry.body.project?.name }}'.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'team.device.unassigned'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.device">Device '{{ entry.body.device?.name }}' has been unassigned from the Instance '{{ entry.body.project?.name }}'.</span>
+        <span v-if="!error && entry.body?.device">Device '{{ entry.body.device?.name }}' has been unassigned from the {{ entry.body.application ? 'Application' : 'Instance' }} '{{ entry.body.application ? entry.body.application.name : entry.body.project?.name }}'.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'team.device.credentials-generated' || entry.event === 'team.device.credentialsGenerated'">
@@ -238,7 +238,7 @@
     </template>
     <template v-else-if="entry.event === 'billing.subscription.deleted'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.billingSession"></span>
+        <span v-if="!error && entry.body?.billingSession" />
         <span v-else-if="!error">Billing data not found in audit entry.</span>
     </template>
 
@@ -295,6 +295,7 @@
         <span v-else-if="!error">Update data not found in audit entry.</span>
     </template>
 
+    <!-- Application Events -->
     <template v-else-if="entry.event === 'application.created'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.application">Application {{ entry.body.application?.name }} was created {{ entry.body.team ? `in Team '${entry.body.team.name}'` : '' }}</span>
@@ -324,6 +325,18 @@
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.pipeline && entry.body?.pipelineStage">Pipeline Stage '{{ entry.body.pipelineStage?.name }}' was added to the DevOps Pipeline '{{ entry.body.pipeline?.name }}' {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }}</span>
         <span v-else-if="!error">Pipeline data not found in audit entry.</span>
+    </template>
+
+    <!-- Application Device Events -->
+    <template v-else-if="entry.event === 'application.device.assigned'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.application">Device '{{ entry.body.device?.name }}' was assigned to Application '{{ entry.body.application?.name }}'</span>
+        <span v-else-if="!error">Application data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'application.device.unassigned'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.application">Device '{{ entry.body.device?.name }}' was unassigned from Application '{{ entry.body.application?.name }}'</span>
+        <span v-else-if="!error">Application data not found in audit entry.</span>
     </template>
 
     <!-- Instance Events -->
@@ -468,6 +481,10 @@
         <label>{{ AuditEvents[entry.event] }}</label>
         <span>Nodes have been installed via the "Manage Palette" option inside Node-RED</span>
     </template>
+    <template v-else-if="entry.event === 'nodes.remove'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span>Nodes have been removed via the "Manage Palette" option inside Node-RED</span>
+    </template>
 
     <!-- Catch All -->
     <template v-else>
@@ -478,12 +495,12 @@
     <template v-if="error">
         <details class="ff-audit-entry--error">
             <summary>
-                <ChevronRightIcon class="ff-icon ff-icon-sm"/>
+                <ChevronRightIcon class="ff-icon ff-icon-sm" />
                 Show Error
             </summary>
             <span>
                 {{ entry.body }}
-                <ChevronDownIcon class="ff-icon ff-icon-sm"/>
+                <ChevronDownIcon class="ff-icon ff-icon-sm" />
             </span>
         </details>
     </template>

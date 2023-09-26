@@ -2,7 +2,7 @@
     <div class="flex flex-col sm:flex-row">
         <SectionSideMenu :options="sideNavigation" />
         <div class="flex-grow">
-            <router-view :device="device" @device-updated="$emit('device-updated')"></router-view>
+            <router-view :device="device" @device-updated="$emit('device-updated')" />
         </div>
     </div>
 </template>

@@ -28,13 +28,13 @@ export default {
         UserGroupIcon,
         InboxInIcon
     },
-    computed: {
-        ...mapState('account', ['settings', 'user'])
-    },
     data () {
         return {
             invitationCount: 0
         }
+    },
+    computed: {
+        ...mapState('account', ['settings', 'user'])
     },
     mounted () {
         this.fetchData()

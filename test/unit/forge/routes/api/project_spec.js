@@ -162,6 +162,25 @@ describe('Project API', function () {
             response.statusCode.should.equal(401)
         })
 
+        it('Non-member admin can create project', async function () {
+            // Alice (non-member admin) cannot create in CTeam
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/projects',
+                payload: {
+                    name: generateProjectName(),
+                    applicationId: TestObjects.ApplicationC.hashid,
+                    projectType: TestObjects.projectType1.hashid,
+                    template: TestObjects.template1.hashid,
+                    stack: TestObjects.stack1.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('id')
+        })
+
         it('Fails for unknown template', async function () {
             const response = await app.inject({
                 method: 'POST',
@@ -2310,5 +2329,56 @@ describe('Project API', function () {
             response.should.have.property('statusCode')
             response.statusCode.should.eqls(403)
         })
+    })
+    describe('Validate Project Env Vars', function () {
+        it('Reject Duplicate Env Var Names', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/projects/${app.project.id}`,
+                body: {
+                    settings: {
+                        env: [
+                            { name: 'FOO', value: 'bar' },
+                            { name: 'FOO', value: 'BAR' }
+                        ]
+                    }
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.should.have.property('statusCode')
+            response.statusCode.should.eqls(400)
+        })
+        it('Reject Invalid names', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/projects/${app.project.id}`,
+                body: {
+                    settings: {
+                        env: [
+                            { name: '99FOO', value: 'bar' }
+                        ]
+                    }
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.should.have.property('statusCode')
+            response.statusCode.should.eqls(400)
+        })
+        // it('Reject Illegal names', async function () {
+        //     const response = await app.inject({
+        //         method: 'PUT',
+        //         url: `/api/v1/projects/${app.project.id}`,
+        //         body: {
+        //             settings: {
+        //                 env: [
+        //                     { name: 'FF_FOO', value: 'bar' }
+        //                 ]
+        //             }
+        //         },
+        //         cookies: { sid: TestObjects.tokens.alice }
+        //     })
+        //     response.should.have.property('statusCode')
+        //     response.statusCode.should.eqls(400)
+        // })
     })
 })

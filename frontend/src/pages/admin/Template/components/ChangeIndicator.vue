@@ -1,13 +1,18 @@
 <template>
-    <div v-if="value" class="flex"><SparklesIcon class="w-4"></SparklesIcon></div>
+    <div v-if="value" class="flex"><SparklesIcon class="w-4" /></div>
 </template>
 <script>
 import { SparklesIcon } from '@heroicons/vue/outline'
 export default {
     name: 'ChangeIndicator',
-    props: ['value'],
     components: {
         SparklesIcon
+    },
+    props: {
+        value: {
+            type: Boolean,
+            default: false
+        }
     }
 }
 </script>

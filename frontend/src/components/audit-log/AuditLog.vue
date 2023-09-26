@@ -9,7 +9,7 @@
         </template>
         <template #content>
             <div v-for="entry in logEntries" :key="entry.id">
-                <AuditEntry :entry="entry"></AuditEntry>
+                <AuditEntry :entry="entry" />
             </div>
         </template>
     </ff-accordion>

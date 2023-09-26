@@ -26,6 +26,15 @@ import store from '../store/index.js'
 
 export default {
     name: 'UnverifiedEmail',
+    components: {
+        'ff-layout-box': FFLayoutBox
+    },
+    data () {
+        return {
+            sent: false
+        }
+    },
+    computed: mapState('account', ['user']),
     methods: {
         async resend () {
             if (!this.sent) {
@@ -36,15 +45,6 @@ export default {
         logout () {
             store.dispatch('account/logout')
         }
-    },
-    computed: mapState('account', ['user']),
-    data () {
-        return {
-            sent: false
-        }
-    },
-    components: {
-        'ff-layout-box': FFLayoutBox
     }
 }
 </script>

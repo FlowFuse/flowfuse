@@ -144,6 +144,7 @@ module.exports.init = async function (app) {
             // If a trial price is set, move it over to the proper team price
             const billingIds = await team.getTeamBillingIds()
             const subscription = await team.getSubscription()
+            const prorationBehavior = await team.getBillingProrationBehavior()
             if (billingIds.trialPrice && billingIds.trialProduct) {
                 const stripeSubscription = await stripe.subscriptions.retrieve(subscription.subscription)
                 // The subscription should have an item for the trial product. It needs to
@@ -152,14 +153,14 @@ module.exports.init = async function (app) {
                 if (existingTrialItem) {
                     app.log.info(`Updating team ${team.hashid} subscription: adding team item`)
                     await stripe.subscriptions.update(subscription.subscription, {
-                        proration_behavior: 'always_invoice',
+                        proration_behavior: prorationBehavior,
                         items: [{
                             price: billingIds.price,
                             quantity: 1
                         }]
                     })
                     app.log.info(`Updating team ${team.hashid} subscription: removing trial item`)
-                    await stripe.subscriptionItems.del(existingTrialItem.id, { proration_behavior: 'always_invoice' })
+                    await stripe.subscriptionItems.del(existingTrialItem.id, { proration_behavior: prorationBehavior })
                 }
             }
             await app.billing.updateTeamInstanceCount(team)
@@ -172,9 +173,10 @@ module.exports.init = async function (app) {
          * @param {Team} team
          */
         updateTeamInstanceCount: async (team) => {
-            const counts = await team.instanceCountByType({ state: { [Op.ne]: 'suspended' } })
+            const counts = await team.instanceCountByType({ state: { [Op.notIn]: ['suspended', 'deleting'] } })
             const subscription = await team.getSubscription()
             if (subscription && subscription.isActive()) {
+                const prorationBehavior = await team.getBillingProrationBehavior()
                 const stripeSubscription = await stripe.subscriptions.retrieve(subscription.subscription)
                 const newItems = []
                 // Get a list of the active instanceTypes
@@ -215,7 +217,7 @@ module.exports.init = async function (app) {
                                 app.log.info(`Updating team ${team.hashid} subscription: set instance type ${instanceType.hashid} count to ${billableCount} - removing item`)
                                 try {
                                     await stripe.subscriptionItems.del(instanceItem.id, {
-                                        proration_behavior: 'always_invoice'
+                                        proration_behavior: prorationBehavior
                                     })
                                 } catch (error) {
                                     app.log.warn(`Problem updating team ${team.hashid} subscription: ${error.message}`)
@@ -226,7 +228,7 @@ module.exports.init = async function (app) {
                                 try {
                                     await stripe.subscriptionItems.update(instanceItem.id, {
                                         quantity: billableCount,
-                                        proration_behavior: 'always_invoice'
+                                        proration_behavior: prorationBehavior
                                     })
                                 } catch (error) {
                                     app.log.warn(`Problem updating team ${team.hashid} subscription: ${error.message}`)
@@ -242,7 +244,7 @@ module.exports.init = async function (app) {
                             try {
                                 app.log.info(`Updating team ${team.hashid} subscription: set instance type ${instanceType.hashid} count to 0 - removing item`)
                                 await stripe.subscriptionItems.del(instanceItem.id, {
-                                    proration_behavior: 'always_invoice'
+                                    proration_behavior: prorationBehavior
                                 })
                             } catch (error) {
                                 app.log.warn(`Problem updating team ${team.hashid} subscription: ${error.message}`)
@@ -255,7 +257,7 @@ module.exports.init = async function (app) {
                     // Add new items to the subscription
                     try {
                         await stripe.subscriptions.update(subscription.subscription, {
-                            proration_behavior: 'always_invoice',
+                            proration_behavior: prorationBehavior,
                             items: newItems
                         })
                     } catch (error) {
@@ -278,6 +280,7 @@ module.exports.init = async function (app) {
             if (subscription && subscription.isActive()) {
                 const deviceCount = await team.deviceCount()
                 const deviceFreeAllocation = await team.getDeviceFreeAllowance()
+                const prorationBehavior = await team.getBillingProrationBehavior()
                 const billableCount = Math.max(0, deviceCount - deviceFreeAllocation)
                 const existingSub = await stripe.subscriptions.retrieve(subscription.subscription)
                 const subItems = existingSub.items
@@ -287,7 +290,7 @@ module.exports.init = async function (app) {
                         app.log.info(`Updating team ${team.hashid} subscription device count to ${billableCount}`)
                         const update = {
                             quantity: billableCount,
-                            proration_behavior: 'always_invoice'
+                            proration_behavior: prorationBehavior
                         }
                         try {
                             await stripe.subscriptionItems.update(deviceItem.id, update)
@@ -337,20 +340,22 @@ module.exports.init = async function (app) {
                         team,
                         Date.now() + teamTrialDuration * ONE_DAY
                     )
-                    const emailInserts = {
-                        username: user.name,
-                        teamName: team.name,
-                        trialDuration: teamTrialDuration
+                    if (await team.TeamType.getProperty('trial.sendEmail', true)) {
+                        const emailInserts = {
+                            username: user.name,
+                            teamName: team.name,
+                            trialDuration: teamTrialDuration
+                        }
+                        if (teamTrialInstanceTypeId) {
+                            const trialProjectType = await app.db.models.ProjectType.byId(teamTrialInstanceTypeId)
+                            emailInserts.trialProjectTypeName = trialProjectType.name
+                        }
+                        await app.postoffice.send(
+                            user,
+                            'TrialTeamCreated',
+                            emailInserts
+                        )
                     }
-                    if (teamTrialInstanceTypeId) {
-                        const trialProjectType = await app.db.models.ProjectType.byId(teamTrialInstanceTypeId)
-                        emailInserts.trialProjectTypeName = trialProjectType.name
-                    }
-                    await app.postoffice.send(
-                        user,
-                        'TrialTeamCreated',
-                        emailInserts
-                    )
                 }
             }
         },
@@ -408,12 +413,13 @@ module.exports.init = async function (app) {
 
                 // Get the team billing ids for the new team type
                 const targetTeamBillingIds = await targetTeamType.getTeamBillingIds()
+                const prorationBehavior = await team.getBillingProrationBehavior()
 
                 try {
                     // Add the new team plan item
                     app.log.info(`Updating team ${team.hashid} subscription: adding team plan ${targetTeamBillingIds.price}`)
                     await stripe.subscriptions.update(subscription.subscription, {
-                        proration_behavior: 'always_invoice',
+                        proration_behavior: prorationBehavior,
                         items: [{
                             price: targetTeamBillingIds.price,
                             quantity: 1
@@ -424,7 +430,7 @@ module.exports.init = async function (app) {
                     // later with the new billing ids
                     for (const item of stripeSubscription.items.data) {
                         app.log.info(`Updating team ${team.hashid} subscription: removing item ${item.price.id}`)
-                        await stripe.subscriptionItems.del(item.id, { proration_behavior: 'always_invoice' })
+                        await stripe.subscriptionItems.del(item.id, { proration_behavior: prorationBehavior })
                     }
                 } catch (err) {
                     app.log.warn(`Problem updating team ${team.hashid} subscription: ${err.message}`)

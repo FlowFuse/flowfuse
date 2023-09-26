@@ -9,12 +9,12 @@
             </div>
         </div>
         <div>
-            <ff-button @click="showEditUserDialog()" data-action="editUser">Edit</ff-button>
+            <ff-button data-action="editUser" @click="showEditUserDialog()">Edit</ff-button>
         </div>
     </div>
     <div>
         <div class="flex items-center mb-4">
-            <div class="mr-3"><img :src="user.avatar" class="h-14 v-14 rounded-md"/></div>
+            <div class="mr-3"><img :src="user.avatar" class="h-14 v-14 rounded-md"></div>
             <div class="flex flex-col">
                 <div class="text-xl font-bold">{{ user.name }}</div>
                 <div class="text-l text-gray-400">{{ user.username }}</div>
@@ -54,7 +54,7 @@
             data-el="teams-table"
         />
     </div>
-    <AdminUserEditDialog @user-updated="userUpdated" @user-deleted="userDeleted" ref="adminUserEditDialog"/>
+    <AdminUserEditDialog ref="adminUserEditDialog" @user-updated="userUpdated" @user-deleted="userDeleted" />
 </template>
 
 <script>
@@ -77,6 +77,11 @@ import AdminUserEditDialog from './dialogs/AdminUserEditDialog.vue'
 
 export default {
     name: 'AdminUserDetails',
+    components: {
+        AdminUserEditDialog,
+        FormHeading,
+        ChevronRightIcon
+    },
     data () {
         return {
             user: null,
@@ -92,13 +97,13 @@ export default {
             ]
         }
     },
-    async created () {
-        return this.loadUser()
-    },
     computed: {
         ...mapState('account', ['features'])
     },
     watch: {
+    },
+    async created () {
+        return this.loadUser()
     },
     methods: {
         async loadUser () {
@@ -109,6 +114,8 @@ export default {
                 this.loading = false
                 usersApi.getUserTeams(this.$route.params.id).then((result) => {
                     this.teams = result.teams
+                }).catch(err => {
+                    console.warn('Error loading user teams', err)
                 }).finally(() => {
                     this.loadingTeams = false
                 })
@@ -131,11 +138,6 @@ export default {
         userDeleted (userId) {
             this.$router.push({ path: '/admin/users' })
         }
-    },
-    components: {
-        AdminUserEditDialog,
-        FormHeading,
-        ChevronRightIcon
     }
 }
 </script>

@@ -59,11 +59,23 @@ module.exports = {
                 async updated (actionedBy, error, team, device, updates) {
                     await log('team.device.updated', actionedBy, team?.id, generateBody({ error, device, updates }))
                 },
-                async unassigned (actionedBy, error, team, project, device) {
-                    await log('team.device.unassigned', actionedBy, team?.id, generateBody({ error, project, device }))
+                async unassigned (actionedBy, error, team, projectOrApplication, device) {
+                    const bodyData = { error, device }
+                    if (device.ownerType === 'application' || projectOrApplication?.constructor?.name === 'Application') {
+                        bodyData.application = projectOrApplication
+                    } else {
+                        bodyData.project = projectOrApplication
+                    }
+                    await log('team.device.unassigned', actionedBy, team?.id, generateBody(bodyData))
                 },
-                async assigned (actionedBy, error, team, project, device) {
-                    await log('team.device.assigned', actionedBy, team?.id, generateBody({ error, project, device }))
+                async assigned (actionedBy, error, team, projectOrApplication, device) {
+                    const bodyData = { error, device }
+                    if (device.ownerType === 'application' || projectOrApplication?.constructor?.name === 'Application') {
+                        bodyData.application = projectOrApplication
+                    } else {
+                        bodyData.project = projectOrApplication
+                    }
+                    await log('team.device.assigned', actionedBy, team?.id, generateBody(bodyData))
                 },
                 async credentialsGenerated (actionedBy, error, team, device) {
                     await log('team.device.credentials-generated', actionedBy, team?.id, generateBody({ error, device }))

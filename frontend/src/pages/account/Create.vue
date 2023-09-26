@@ -3,7 +3,7 @@
 <template>
     <ff-layout-box class="ff-signup">
         <template v-if="splash" #splash-content>
-            <div data-el="splash" v-html="splash"></div>
+            <div data-el="splash" v-html="splash" />
         </template>
         <form v-if="!emailSent && !ssoCreated" class="max-w-md m-auto">
             <p
@@ -11,7 +11,7 @@
                 data-el="banner-text"
                 class="text-center -mt-6 pb-4 text-gray-400"
                 v-html="settings['branding:account:signUpTopBanner']"
-            ></p>
+            />
             <div>
                 <label>Username</label>
                 <ff-text-input ref="signup-username" v-model="input.username" data-form="signup-username" label="username" :error="errors.username" />
@@ -23,7 +23,7 @@
                 <ff-text-input ref="signup-email" v-model="input.email" data-form="signup-email" label="E-Mail Address" :error="errors.email" />
                 <span class="ff-error-inline">{{ errors.email }}</span>
                 <label>Password</label>
-                <ff-text-input ref="signup-password" v-model="input.password" data-form="signup-password" label="password" :error="errors.password" type="password"/>
+                <ff-text-input ref="signup-password" v-model="input.password" data-form="signup-password" label="password" :error="errors.password" type="password" />
                 <span class="ff-error-inline">{{ errors.password }}</span>
             </div>
             <div v-if="askJoinReason" class="pt-3">
@@ -108,9 +108,6 @@ export default {
             ]
         }
     },
-    mounted () {
-        this.input.email = useRoute().query.email || ''
-    },
     computed: {
         ...mapState('account', ['settings', 'pending']),
         splash () {
@@ -155,6 +152,9 @@ export default {
                 this.errors.name = ''
             }
         }
+    },
+    mounted () {
+        this.input.email = useRoute().query.email || ''
     },
     methods: {
         checkPassword () {

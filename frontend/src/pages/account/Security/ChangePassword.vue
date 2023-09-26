@@ -20,7 +20,10 @@ import FormRow from '../../../components/FormRow.vue'
 
 export default {
     name: 'AccountSecurityChangePassword',
-
+    components: {
+        FormRow,
+        FormHeading
+    },
     data () {
         return {
             loading: false,
@@ -75,10 +78,6 @@ export default {
                 this.loading = false
             })
         }
-    },
-    components: {
-        FormRow,
-        FormHeading
     }
 }
 </script>

@@ -190,8 +190,16 @@ Option        | Description
 --------------|------------
 `logging.level` | Change the default logging level. Default: `info`
 `logging.http`  | Change the default HTTP route logging level. Default: `warn`
+`logging.pretty`| Enable/Disable pretty-printing of the log output. Default: `false` - see below
 
 Setting `logging.http` to `info` will log every HTTP request and response details.
+
+The `pretty` option controls the formatting of the log output. When running in developer
+mode, (for example, if `NODE_ENV` is set to `developer`), then pretty formatting is enabled
+by default. This makes the logs more human-readable.
+
+Otherwise, the log output is JSON formatted for consumption by other tools.
+
 
 ## File storage
 

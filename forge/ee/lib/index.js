@@ -6,9 +6,11 @@ module.exports = fp(async function (app, opts, done) {
     }
     require('./projectComms').init(app)
     require('./deviceEditor').init(app)
-    require('./ha').init(app)
 
-    app.decorate('sso', await require('./sso').init(app))
+    if (app.license.get('tier') === 'enterprise') {
+        require('./ha').init(app)
+        app.decorate('sso', await require('./sso').init(app))
+    }
 
     // Set the Team Library Feature Flag
     app.config.features.register('shared-library', true, true)

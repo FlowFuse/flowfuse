@@ -17,8 +17,8 @@
             </ff-button>
         </template>
         <template #context-menu="{row}">
-            <ff-list-item label="Edit Properties" @click.stop="providerSelected(row)"/>
-            <ff-list-item label="Delete SAML Configuration" kind="danger" @click.stop="deleteProvider(row)"/>
+            <ff-list-item label="Edit Properties" @click.stop="providerSelected(row)" />
+            <ff-list-item label="Delete SAML Configuration" kind="danger" @click.stop="deleteProvider(row)" />
         </template>
     </ff-data-table>
 </template>
@@ -35,6 +35,17 @@ import Dialog from '../../../../services/dialog.js'
 
 export default {
     name: 'AdminSettingsSSO',
+    components: {
+        FormHeading,
+        PlusSmIcon
+    },
+    data () {
+        return {
+            loading: false,
+            providers: [],
+            selectedProvider: null
+        }
+    },
     computed: {
         ...mapState('account', ['features']),
         providerColumns () {
@@ -45,12 +56,13 @@ export default {
             ]
         }
     },
-    data () {
-        return {
-            loading: false,
-            providers: [],
-            selectedProvider: null
+    async beforeMount () {
+        if (!this.features.sso) {
+            this.$router.push({ path: '/admin/settings' })
         }
+    },
+    mounted () {
+        this.fetchData()
     },
     methods: {
         fetchData: async function () {
@@ -80,18 +92,6 @@ export default {
                     })
             })
         }
-    },
-    async beforeMount () {
-        if (!this.features.sso) {
-            this.$router.push({ path: '/admin/settings' })
-        }
-    },
-    mounted () {
-        this.fetchData()
-    },
-    components: {
-        FormHeading,
-        PlusSmIcon
     }
 }
 </script>

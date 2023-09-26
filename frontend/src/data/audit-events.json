@@ -14,8 +14,8 @@
         "team.device.created": "New Device Created",
         "team.device.deleted": "Device Deleted",
         "team.device.updated": "Device Updated",
-        "team.device.assigned": "Device Assigned from Instance",
-        "team.device.unassigned": "Device Unassigned from Instance",
+        "team.device.assigned": "Device Assigned",
+        "team.device.unassigned": "Device Unassigned",
         "team.device.credentials-generated": "Device Credentials Generated",
         "team.device.credentialsGenerated": "Device Credentials Generated",
         "team.device.provisioning.created": "Device Provisioning Token Generated",
@@ -37,6 +37,12 @@
         "billing.session.created": "Billing Session Created",
         "billing.session.completed": "Billing Session Completed",
         "billing.subscription.deleted": "Billing Subscription Deleted"
+    },
+    "application": {
+        "application.created": "Application Created",
+        "application.updated": "Application Modified",
+        "application.device.assigned": "Device Assigned to Application",
+        "application.device.unassigned": "Device Unassigned from Application"
     },
     "project": {
         "project.created": "Instance Created",
@@ -68,7 +74,8 @@
         "settings.update": "Node-RED Settings Updated",
         "flows.set": "Flow Deployed",
         "library.set": "Saved to Library",
-        "nodes.install": "Third-Party Nodes Installed"
+        "nodes.install": "Third-Party Nodes Installed",
+        "nodes.remove": "Third-Party Nodes Removed"
     },
     "platform": {
         "platform.license.applied": "License Applied",

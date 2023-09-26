@@ -2,13 +2,13 @@
     <div class="flex flex-col items-center">
         <h2>An application would like to connect to your account</h2>
         <div v-if="user" class="flex flex-row justify-center">
-            <div class="flex" >
+            <div class="flex">
                 <TemplateIcon class="w-12" />
                 <ArrowSmLeftIcon class="w-8" />
                 <KeyIcon class="w-8" />
                 <ArrowSmRightIcon class="w-8" />
                 <div class="ff-user">
-                    <img :src="user.avatar" class="ff-avatar-large"/>
+                    <img :src="user.avatar" class="ff-avatar-large">
                 </div>
             </div>
         </div>
@@ -28,14 +28,14 @@ import { mapState } from 'vuex'
 
 export default {
     name: 'AccessRequest',
-    computed: {
-        ...mapState('account', ['user', 'team'])
-    },
     components: {
         TemplateIcon,
         KeyIcon,
         ArrowSmRightIcon,
         ArrowSmLeftIcon
+    },
+    computed: {
+        ...mapState('account', ['user', 'team'])
     },
     methods: {
         allowAccess () {
