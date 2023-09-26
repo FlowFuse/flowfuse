@@ -128,16 +128,31 @@ Snapshots can be created (and deleted) on the FlowFuse dashboard, or using the
 
 The dashboard also allows you to roll an instance back to a previous snapshot.
 
+
+#### Device Snapshot
+
+Similar to instance snapshots, a device snapshot is a point-in-time backup of a Node-RED instance
+running on a device. It captures the flows, credentials and runtime settings.  The difference being
+local changes made on a device during developer mode are pulled into the FlowFuse platform and
+stored as a snapshot.
+
+The dashboard also allows you to see and manage these snapshots.
+
 ### Device
 
 The FlowFuse platform can be used to manage Node-RED applications running on remote devices.
 A Device runs a software agent that connects back to the platform to receive updates.
 Users must [install the agent](../device-agent/install.md) on the devices.
 
-Devices are registered to a Team, and then assigned to an individual Node-RED instance within that team.
-A user can create a [snapshot](#instance-snapshot) and then mark it as the
+Devices are registered to a Team, and then assigned to an individual Node-RED instance or a FlowFuse
+application within that team.
+
+A user can create an [instance snapshot](#instance-snapshot) and then mark it as the
 *target* snapshot for devices. The platform will then deploy that snapshot to
 all of the devices assigned to the instance.
+
+With devices assigned to an application, a user can create a [device snapshot](#device-snapshot) from
+the remote device.
 
 To further simplify device registration, Provisioning Tokens can be created to allow 
 devices to automatically connect to a team without having to manually register them first.
