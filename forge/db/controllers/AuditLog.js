@@ -40,6 +40,16 @@ module.exports = {
         })
         addToLog(app, 'user', entityId, event, body)
     },
+    applicationLog: async function (app, ApplicationId, UserId, event, body) {
+        await app.db.models.AuditLog.create({
+            entityType: 'application',
+            entityId: ApplicationId,
+            UserId,
+            event,
+            body: encodeBody(body)
+        })
+        addToLog(app, 'application', ApplicationId, event, body)
+    },
     projectLog: async function (app, ProjectId, UserId, event, body) {
         await app.db.models.AuditLog.create({
             entityType: 'project',

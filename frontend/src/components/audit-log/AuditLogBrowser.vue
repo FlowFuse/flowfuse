@@ -65,19 +65,27 @@ export default {
     data () {
         return {
             loading: true,
+            gettingEntries: false,
             auditFilters: {
                 type: undefined,
                 types: [],
                 user: null,
-                users: []
+                users: [],
+                scope: undefined
             }
         }
     },
     watch: {
         'auditFilters.user': function () {
+            if (this.loading || this.gettingEntries) {
+                return // skip if we're already loading entries
+            }
             this.loadEntries()
         },
         'auditFilters.type': function () {
+            if (this.loading || this.gettingEntries) {
+                return // skip if we're already loading entries
+            }
             this.loadEntries()
         },
         users: function (users) {
@@ -85,22 +93,28 @@ export default {
         }
     },
     created () {
-        this.loadEntries()
-
-        // convert the audit event labels into an array and alphabetise them
-        this.auditFilters.types = Object.entries(AuditEventsService.getGroup(this.logType)).sort((a, b) => {
-            if (a[0] < b[0]) {
-                return -1
-            } else if (a[0] > b[0]) {
-                return 1
-            }
-            return 0
-        })
-
+        this.loading = true
+        this.auditFilters.scope = this.logType // init the scope to the logType set in the component's props
         this.auditFilters.users = this.users
+        this.loadEventTypes()
+        this.loadEntries()
+        this.loading = false
     },
     methods: {
-        loadEntries () {
+        /**
+         * Load log entries. NOTE: `scope` is optional and will default to the value detected in `this.auditFilters.scope`
+         * (which is essentially defaulted to prop `logType` upon creation)
+         * @param {'platform'|'application'|'project'|'user'} [scope=this.auditFilters.scope] The log scope to load entries for
+         */
+        loadEntries (scope) {
+            this.gettingEntries = true
+            scope = scope || this.auditFilters.scope
+            if (this.auditFilters.scope !== scope) {
+                this.auditFilters.scope = scope // store the scope for later queries
+                // clear this.auditFilters.type without triggering a watch
+                this.auditFilters.type = undefined // clear the "event type filter" as scope has changed
+                this.loadEventTypes(scope)
+            }
             const params = new URLSearchParams()
             if (this.auditFilters.user) {
                 params.append('username', this.auditFilters.user)
@@ -112,6 +126,18 @@ export default {
             }
 
             this.$emit('load-entries', params)
+            this.gettingEntries = false
+        },
+        loadEventTypes (scope) {
+            scope = scope || this.auditFilters.scope
+            this.auditFilters.types = Object.entries(AuditEventsService.getGroup(scope)).sort((a, b) => {
+                if (a[0] < b[0]) {
+                    return -1
+                } else if (a[0] > b[0]) {
+                    return 1
+                }
+                return 0
+            })
         }
     }
 }

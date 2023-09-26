@@ -31,7 +31,7 @@ module.exports = async function (app) {
                         // If the user isn't in the team, only give 404 error if this
                         // is not a 'allowAnonymous' route. This allows the proxy routes
                         // to return a redirect for this auth fail rather than an API error
-                        if (!request.routeConfig.allowAnonymous && !request.teamMembership && !request.session.User.admin) {
+                        if (!request.routeOptions.config.allowAnonymous && !request.teamMembership && !request.session.User.admin) {
                             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                             return // eslint-disable-line no-useless-return
                         }

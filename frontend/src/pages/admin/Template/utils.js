@@ -246,8 +246,13 @@ function prepareTemplateForEdit (template) {
                 result.original.settings[field] = templateValue
             }
         } else {
-            result.editable.settings[field] = defaultTemplateValues[field]
-            result.original.settings[field] = defaultTemplateValues[field]
+            if (typeof (defaultTemplateValues[field]) === 'object') {
+                result.editable.settings[field] = JSON.parse(JSON.stringify(defaultTemplateValues[field]))
+                result.original.settings[field] = JSON.parse(JSON.stringify(defaultTemplateValues[field]))
+            } else {
+                result.editable.settings[field] = defaultTemplateValues[field]
+                result.original.settings[field] = defaultTemplateValues[field]
+            }
         }
         result.editable.changed.settings[field] = false
 

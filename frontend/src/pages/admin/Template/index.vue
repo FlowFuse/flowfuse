@@ -124,6 +124,19 @@ export default {
                             modulesChanged = modulesChanged || pmChanges.changed
                             changed = changed || pmChanges.changed
                             errors = errors || pmChanges.errors
+                        } else if (field === 'palette_catalogue') {
+                            this.editable.changed.settings.palette_catalogue = false
+                            if (this.original.settings.palette_catalogue.length !== this.editable.settings.palette_catalogue.length) {
+                                this.editable.changed.settings.palette_catalogue = true
+                            } else {
+                                for (const i in this.editable.settings.palette_catalogue) {
+                                    if (this.editable.settings.palette_catalogue[i] !== this.original.settings.palette_catalogue[i]) {
+                                        this.editable.changed.settings.palette_catalogue = true
+                                        break
+                                    }
+                                }
+                            }
+                            needsRestart = needsRestart || this.editable.changed.settings.palette_catalogue
                         } else {
                             this.editable.changed.settings[field] = this.editable.settings[field] !== this.original.settings[field]
                             needsRestart = needsRestart || this.editable.changed.settings[field]

@@ -84,3 +84,7 @@ have access to the team on FlowFuse and the cloud instance.
 
 This allows you to manage what extra nodes are installed inside Node-RED, as well
 as any restrictions you want to apply to the Palette Manager within Node-RED.
+
+It includes the option to add extra Node-RED Catalogue URLs and a `.npmrc` file
+that will be deployed to the instance. Details of the `.npmrc` format can be found
+[here](https://docs.npmjs.com/cli/v9/configuring-npm/npmrc)

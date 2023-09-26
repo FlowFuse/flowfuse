@@ -99,6 +99,7 @@ module.exports = async function (app) {
         }
 
         await app.auditLog.Team.application.created(request.session.User, null, team, application)
+        await app.auditLog.Application.application.created(request.session.User, null, application)
 
         reply.send(app.db.views.Application.application(application))
     })
@@ -198,6 +199,7 @@ module.exports = async function (app) {
         if (team) {
             await app.auditLog.Team.application.updated(request.session.User, null, team, request.application, updates)
         }
+        await app.auditLog.Application.application.updated(request.session.User, null, request.application, updates)
 
         reply.send(app.db.views.Application.application(request.application))
     })
@@ -429,5 +431,48 @@ module.exports = async function (app) {
         } else {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
+    })
+
+    /**
+     * Get the application audit log
+     * @name /api/v1/application/:applicationId/audit-log
+     * @memberof forge.routes.api.project
+     */
+    app.get('/:applicationId/audit-log', {
+        preHandler: app.needsPermission('application:audit-log'),
+        schema: {
+            summary: 'Get application audit event entries',
+            tags: ['Applications'],
+            query: {
+                allOf: [
+                    { $ref: 'PaginationParams' },
+                    { $ref: 'AuditLogQueryParams' }
+                ]
+            },
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        log: { $ref: 'AuditLogEntryList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const paginationOptions = app.getPaginationOptions(request)
+        const logEntries = await app.db.models.AuditLog.forApplication(request.application.id, paginationOptions)
+        const result = app.db.views.AuditLog.auditLog(logEntries)
+        reply.send(result)
     })
 }

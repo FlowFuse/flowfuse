@@ -44,7 +44,7 @@
         <template v-else>
             <label data-el="form-row-title" v-if="hasTitle" :for="inputId" :class="(disabled ? 'text-gray-300' : 'text-gray-800')" class="block text-sm font-medium mb-1"><slot /></label>
             <div v-if="hasDescription" data-el="form-row-description" class="ff-description mb-2 space-y-1"><slot name="description" /></div>
-            <div :class="(wrapperClass ? wrapperClass : 'flex flex-col sm:flex-row relative')">
+            <div :class="(wrapperClass ? wrapperClass : 'flex flex-col sm:flex-row relative items-center')">
                 <!-- Dropdown -->
                 <template v-if="options && type !== 'uneditable'">
                     <ff-dropdown v-model="localModelValue" class="w-full" :disabled="disabled" :placeholder="placeholder">
