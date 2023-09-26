@@ -522,4 +522,99 @@ describe('Application API', function () {
             instance3Results.meta.state.should.equal('unknown')
         })
     })
+    describe('Application Level Audit Log', async function () {
+        // Declare a dummy getLoggers function for type hint only
+        /** @type {import('../../../../../forge/auditLog/application').getLoggers} */
+        const getLoggers = (app) => { return {} }
+        let logger = getLoggers(null)
+        before(async () => {
+            // get Project scope logger
+            logger = app.auditLog.Application
+        })
+        beforeEach(async function () {
+            await app.db.models.AuditLog.destroy({ truncate: true })
+        })
+        it('Owner can access an application audit log', async function () {
+            const sid = await login('bob', 'bbPassword')
+            const application = await app.factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
+
+            // add some log entries
+            await logger.application.created(TestObjects.bob.id, null, application)
+            await logger.application.updated(TestObjects.bob.id, null, application, { name: 'updated name' })
+            await logger.application.device.assigned(TestObjects.bob.id, null, application, { id: 1, name: 'deviceOne' })
+            await logger.application.device.unassigned(TestObjects.bob.id, null, application, { id: 1, name: 'deviceOne' })
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/applications/${application.hashid}/audit-log`,
+                cookies: { sid }
+            })
+
+            response.statusCode.should.equal(200)
+
+            const result = response.json()
+            result.should.have.property('log')
+            result.log.should.have.length(4)
+        })
+        it('Owner can filter an application audit log', async function () {
+            const sid = await login('bob', 'bbPassword')
+            const application = await app.factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
+
+            // add some log entries
+            await logger.application.created(TestObjects.bob.id, null, application)
+            await logger.application.updated(TestObjects.bob.id, null, application, { name: 'updated name' })
+            await logger.application.device.assigned(TestObjects.bob.id, null, application, { id: 1, name: 'deviceOne' })
+            await logger.application.device.unassigned(TestObjects.bob.id, null, application, { id: 1, name: 'deviceOne' })
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/applications/${application.hashid}/audit-log?event=application.created`,
+                cookies: { sid }
+            })
+
+            response.statusCode.should.equal(200)
+
+            const result = response.json()
+            result.should.have.property('log')
+            result.log.should.have.length(1)
+        })
+        it('Owner can apply multiple filters to an application audit log', async function () {
+            const sid = await login('bob', 'bbPassword')
+            const application = await app.factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
+
+            // add some log entries
+            await logger.application.created(TestObjects.bob.id, null, application)
+            await logger.application.updated(TestObjects.bob.id, null, application, { name: 'updated name' })
+            await logger.application.device.assigned(TestObjects.bob.id, null, application, { id: 1, name: 'deviceOne' })
+            await logger.application.device.unassigned(TestObjects.bob.id, null, application, { id: 1, name: 'deviceOne' })
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/applications/${application.hashid}/audit-log?event=application.created&event=application.device.assigned`,
+                cookies: { sid }
+            })
+
+            response.statusCode.should.equal(200)
+
+            const result = response.json()
+            result.should.have.property('log')
+            result.log.should.have.length(2)
+        })
+        it('Non Owner can not access application audit log', async function () {
+            const sid = await login('chris', 'ccPassword')
+            const application = await app.factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
+
+            // add some log entries
+            await logger.application.created(TestObjects.bob.id, null, application)
+            await logger.application.device.unassigned(TestObjects.bob.id, null, application, { id: 1, name: 'deviceOne' })
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/applications/${application.hashid}/audit-log`,
+                cookies: { sid }
+            })
+
+            response.statusCode.should.equal(403)
+        })
+    })
 })

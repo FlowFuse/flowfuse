@@ -25,6 +25,8 @@ const Permissions = {
     'team:user:invite': { description: 'Invite Members', role: Roles.Owner },
     'team:user:remove': { description: 'Remove Member', role: Roles.Owner, self: true },
     'team:user:change-role': { description: 'Modify Member role', role: Roles.Owner },
+    // Applications
+    'application:audit-log': { description: 'Access Application Audit Log', role: Roles.Owner },
     // Projects
     'team:projects:list': { description: 'List Team Projects', role: Roles.Viewer },
     'project:create': { description: 'Create Project', role: Roles.Owner },
