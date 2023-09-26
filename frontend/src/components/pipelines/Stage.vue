@@ -1,5 +1,5 @@
 <template>
-    <div v-if="stage" class="ff-pipeline-stage">
+    <div v-if="stage" class="ff-pipeline-stage" data-el="ff-pipeline-stage">
         <div class="ff-pipeline-stage-banner">
             <label>{{ stage.name }}</label>
             <div class="ff-pipeline-actions">
