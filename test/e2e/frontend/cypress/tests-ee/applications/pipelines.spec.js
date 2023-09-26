@@ -62,6 +62,10 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.get('[data-form="stage-instance"] .ff-dropdown-options').should('be.visible')
         cy.get('[data-form="stage-instance"] .ff-dropdown-options > .ff-dropdown-option:first').click()
 
+        cy.get('[data-form="stage-action"]').click()
+        cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+
         cy.get('[data-action="add-stage"]').click()
 
         // Add stage 2
@@ -74,6 +78,10 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.get('[data-form="stage-instance"]').click()
         cy.get('[data-form="stage-instance"] .ff-dropdown-options').should('be.visible')
         cy.get('[data-form="stage-instance"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+
+        cy.get('[data-form="stage-action"] .ff-dropdown').click()
+        cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:last').click()
 
         cy.get('[data-action="add-stage"]').click()
 
@@ -98,6 +106,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
     it('can edit the instance assigned to a stage', () => {
         cy.intercept('GET', '/api/v1/applications/*/pipelines').as('getPipelines')
         cy.intercept('POST', '/api/v1/pipelines').as('createPipeline')
+        cy.intercept('POST', '/api/v1/pipelines/*/stages').as('createPipelineStage')
 
         cy.visit(`/application/${application.id}/pipelines`)
         cy.wait('@getPipelines')
@@ -116,13 +125,19 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
             cy.get('[data-action="add-stage"]').click()
         })
 
-        cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 1')
+        cy.get('[data-form="stage-name"] input[type="text"]').type(`Stage 1 for ${PIPELINE_NAME}`)
 
-        cy.get('[data-form="stage-instance"]').click()
+        cy.get('[data-form="stage-instance"] .ff-dropdown').click()
         cy.get('[data-form="stage-instance"] .ff-dropdown-options').should('be.visible')
         cy.get('[data-form="stage-instance"] .ff-dropdown-options > .ff-dropdown-option:first').click()
 
+        cy.get('[data-form="stage-action"] .ff-dropdown').click()
+        cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:last').click() // prompt
+
         cy.get('[data-action="add-stage"]').click()
+
+        cy.wait('@createPipelineStage')
 
         cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
             cy.contains('instance-2-1')
@@ -132,7 +147,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         // Stage Edit Form
         cy.get('[data-form="stage-name"] input').should(($input) => {
             const stageName = $input.val()
-            expect(stageName).to.equal('Stage 1')
+            expect(stageName).to.equal(`Stage 1 for ${PIPELINE_NAME}`)
         })
 
         cy.get('[data-form="stage-instance"] .ff-dropdown-selected').should('contain', 'instance-2-1')
@@ -142,6 +157,8 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.get('[data-form="stage-instance"] .ff-dropdown-options > .ff-dropdown-option:last').click()
 
         cy.get('[data-form="stage-instance"] .ff-dropdown-selected').should('contain', 'instance-2-with-devices')
+
+        cy.get('[data-form="stage-action"] .ff-dropdown-selected').should('contain', 'Prompt to select snapshot')
 
         cy.get('[data-action="add-stage"]').click()
 

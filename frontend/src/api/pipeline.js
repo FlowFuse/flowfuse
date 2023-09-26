@@ -26,7 +26,8 @@ const addPipelineStage = async (pipelineId, stage) => {
     const options = {
         name: stage.name,
         instanceId: stage.instanceId,
-        deployToDevices: stage.deployToDevices
+        deployToDevices: stage.deployToDevices,
+        action: stage.action
     }
     if (stage.source) {
         options.source = stage.source
