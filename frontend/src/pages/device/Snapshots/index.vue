@@ -27,7 +27,7 @@
             </ff-data-table>
         </template>
         <template v-else-if="!loading">
-            <EmptyState>
+            <EmptyState :feature-unavailable="!features.deviceEditor" :feature-unavailable-message="'This requires Developer Mode on Devices, which a FlowFuse Premium Feature'">
                 <template #img>
                     <img src="../../../images/empty-states/instance-snapshots.png">
                 </template>
@@ -37,7 +37,10 @@
                         Snapshots are point-in-time backups of your Node-RED Instances
                         and capture the flows, credentials and runtime settings.
                     </p>
-                    <p v-if="!developerMode" class="block">
+                    <p v-if="device.ownerType !== 'application'" class="block">
+                        A device must first be <a class="ff-link" href="https://flowfuse.com/docs/device-agent/register/#assign-the-device-to-an-application" target="_blank" rel="noreferrer">assigned to an Application</a>, in order to create snapshots.
+                    </p>
+                    <p v-else-if="!developerMode" class="block">
                         A device must be in developer mode and online to create a snapshot.
                     </p>
                 </template>
@@ -101,7 +104,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
+        ...mapState('account', ['teamMembership', 'features']),
         showContextMenu: function () {
             return this.hasPermission('device:snapshot:delete')
         },

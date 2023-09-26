@@ -5,7 +5,7 @@
     >
         <SparklesIcon class="ff-icon mr-2" style="stroke-width: 1px;" />
         <div>
-            This is a FlowFuse Premium feature. Please <a class="ff-link" href="https://flowfuse.com/docs/upgrade/open-source-to-premium/" target="_blank" rel="noopener noreferrer">upgrade</a> your instance of FlowFuse in order to use it.
+            {{ message }}. Please <a class="ff-link" href="https://flowfuse.com/docs/upgrade/open-source-to-premium/" target="_blank" rel="noopener noreferrer">upgrade</a> your instance of FlowFuse in order to use it.
         </div>
         <SparklesIcon class="ff-icon ml-2" style="stroke-width: 1px;" />
     </div>
@@ -18,6 +18,12 @@ export default {
     name: 'FeatureUnavailable',
     components: {
         SparklesIcon
+    },
+    props: {
+        message: {
+            type: String,
+            default: 'This is a FlowFuse Premium feature'
+        }
     }
 }
 </script>

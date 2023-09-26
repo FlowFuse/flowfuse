@@ -171,7 +171,7 @@ export default {
                     icon: TerminalIcon
                 })
             }
-            if (this.device?.ownerType === 'application') {
+            if (this.device?.ownerType !== 'instance') {
                 this.navigation.splice(1, 0, {
                     label: 'Snapshots',
                     to: `/device/${this.$route.params.id}/snapshots`,
