@@ -38,13 +38,13 @@
                                 <ExternalLinkIcon />
                             </span>
                         </a>
-                        <button v-else class="ff-btn ff-btn--secondary" disabled>
+                        <button v-else data-action="open-editor" class="ff-btn ff-btn--secondary" disabled>
                             Editor Disabled
                             <span class="ff-btn--icon ff-btn--icon-right">
                                 <ExternalLinkIcon />
                             </span>
                         </button>
-                        <DeveloperModeToggle :device="device" @mode-change="setDeviceMode" />
+                        <DeveloperModeToggle data-el="device-devmode-toggle" :device="device" @mode-change="setDeviceMode" />
                     </div>
                 </template>
             </SectionNavigationHeader>

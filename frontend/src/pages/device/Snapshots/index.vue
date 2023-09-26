@@ -8,7 +8,7 @@
             </template>
             <template #tools>
                 <div class="space-x-2 flex align-center">
-                    <ff-checkbox v-model="showDeviceSnapshotsOnly" v-ff-tooltip:left="'Tick this to show snapshots from other devices and instances'" label="Show only Snapshots created by this device" />
+                    <ff-checkbox v-model="showDeviceSnapshotsOnly" v-ff-tooltip:left="'Tick this to show snapshots from other devices and instances'" data-form="device-only-snapshots" label="Show only Snapshots created by this device" />
                 </div>
             </template>
         </SectionTopMenu>
