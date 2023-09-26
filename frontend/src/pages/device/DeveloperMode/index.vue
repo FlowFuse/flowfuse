@@ -54,7 +54,7 @@
                 </InfoCardRow>
             </template>
         </InfoCard>
-        <SnapshotCreateDialog ref="snapshotCreateDialog" data-el="dialog-create-device-snapshot" :device="device" @device-upload-success="onSnapshotCreated" @device-upload-failed="onSnapshotFailed" @canceled="onSnapshotCancel" />
+        <SnapshotCreateDialog ref="snapshotCreateDialog" data-el="dialog-create-device-snapshot" :device="device" :show-set-as-target="!isDeviceOwnedByApplication" @device-upload-success="onSnapshotCreated" @device-upload-failed="onSnapshotFailed" @canceled="onSnapshotCancel" />
     </div>
 </template>
 
@@ -110,6 +110,9 @@ export default {
         },
         editorCanBeEnabled: function () {
             return this.developerMode && this.device.status === 'running'
+        },
+        isDeviceOwnedByApplication: function () {
+            return this.device?.ownerType === 'application'
         }
     },
     watch: {
