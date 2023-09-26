@@ -104,7 +104,7 @@ describe('Snapshots Service', function () {
         before(async function () {
             const application = await FACTORY.createApplication({ name: 'application1' }, TEAM)
 
-            const instance = await APP.db.models.Project.create({ name: 'instance-3', type: '', url: '' })
+            const instance = await APP.db.models.Project.create({ name: 'instance-4', type: '', url: '' })
 
             pipeline = await FACTORY.createPipeline({ name: 'pipeline-1' }, application)
 
@@ -301,7 +301,7 @@ describe('Snapshots Service', function () {
         })
 
         it('Imports the snapshot if importSnapshot copying across the environment variables', async function () {
-            const instance = await APP.db.models.Project.create({ name: 'instance-4', type: '', url: '' })
+            const instance = await APP.db.models.Project.create({ name: 'instance-5', type: '', url: '' })
 
             await TEAM.addProject(instance)
 
@@ -345,7 +345,7 @@ describe('Snapshots Service', function () {
         })
 
         it('Sets the snapshot as the target if setAsTarget is true', async function () {
-            const toInstance = await APP.db.models.Project.create({ name: 'instance-5', type: '', url: '' })
+            const toInstance = await APP.db.models.Project.create({ name: 'instance-6', type: '', url: '' })
 
             await TEAM.addProject(toInstance)
             toInstance.reload()
@@ -383,7 +383,7 @@ describe('Snapshots Service', function () {
         })
 
         it('Re-encrypts any credentials found on the source instance', async function () {
-            const sourceInstance = await APP.db.models.Project.create({ name: 'instance-6', type: '', url: '' })
+            const sourceInstance = await APP.db.models.Project.create({ name: 'instance-7', type: '', url: '' })
 
             await TEAM.addProject(sourceInstance)
             sourceInstance.reload()
@@ -405,7 +405,7 @@ describe('Snapshots Service', function () {
             sourceSnapshot.flows.credentials.should.match(credentialsEncrypted)
 
             // Copy over
-            const toInstance = await APP.db.models.Project.create({ name: 'instance-7', type: '', url: '' })
+            const toInstance = await APP.db.models.Project.create({ name: 'instance-8', type: '', url: '' })
 
             await TEAM.addProject(toInstance)
             toInstance.reload()
