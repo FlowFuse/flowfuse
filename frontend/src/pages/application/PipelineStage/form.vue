@@ -125,8 +125,8 @@ export default {
             }
         },
         sourceStage: {
-            type: Boolean,
-            default: true // TODO: Disabled for not
+            type: String,
+            default: null
         }
     },
     emits: ['submit'],
