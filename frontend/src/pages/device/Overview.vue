@@ -31,66 +31,68 @@
                         <span v-else>None</span>
                     </template>
                 </InfoCardRow>
-                <template v-if="deviceOwnerType!=='application'">
-                    <InfoCardRow property="Instance:">
-                        <template #value>
-                            <router-link v-if="device?.instance" :to="{name: 'Instance', params: { id: device.instance.id }}">
-                                {{ device.instance?.name }}
-                            </router-link>
-                            <span v-else>None</span>
-                        </template>
-                    </InfoCardRow>
-                    <InfoCardRow property="Active Snapshot:">
-                        <template #value>
-                            <span class="flex space-x-4 pr-2">
-                                <span class="flex items-center space-x-2 text-gray-500 italic">
-                                    <ExclamationIcon class="text-yellow-600 w-4" v-if="!device.activeSnapshot || !targetSnapshotDeployed" />
-                                    <CheckCircleIcon class="text-green-700 w-4" v-else />
-                                </span>
-                            </span>
-                            <template v-if="device.activeSnapshot">
-                                <div class="flex flex-col">
-                                    <span>{{ device.activeSnapshot.name }}</span>
-                                    <span class="text-xs text-gray-500">{{ device.activeSnapshot.id }}</span>
-                                </div>
-                            </template>
-                            <template v-else>
-                                No Snapshot Deployed
-                            </template>
-                        </template>
-                    </InfoCardRow>
-                    <InfoCardRow property="Target Snapshot:">
-                        <template #value>
-                            <span class="flex space-x-4 pr-2">
-                                <span class="flex items-center space-x-2 text-gray-500 italic">
-                                    <ExclamationIcon class="text-yellow-600 w-4" v-if="!device.targetSnapshot" />
-                                    <CheckCircleIcon class="text-green-700 w-4" v-else />
-                                </span>
-                            </span>
-                            <template v-if="device.targetSnapshot">
-                                <div class="flex flex-col">
-                                    <span>{{ device.targetSnapshot.name }}</span>
-                                    <span class="text-xs text-gray-500">{{ device.targetSnapshot.id }}</span>
-                                </div>
-                            </template>
-                            <template v-else>
-                                No Target Snapshot Set
-                            </template>
-                        </template>
-                    </InfoCardRow>
-                </template>
-                <InfoCardRow property="Device Mode">
+
+                <InfoCardRow property="Instance:">
                     <template #value>
-                        <span v-if="device.mode === 'developer'" class="flex space-x-2 pr-2 items-center">
-                            <BeakerIcon class="text-purple-600 w-4" />
-                            <span> Developer Mode</span>
+                        <router-link v-if="device?.instance" :to="{name: 'Instance', params: { id: device.instance.id }}">
+                            {{ device.instance?.name }}
+                        </router-link>
+                        <span v-else>None</span>
+                    </template>
+                </InfoCardRow>
+
+                <InfoCardRow property="Active Snapshot:">
+                    <template #value>
+                        <span class="flex space-x-4 pr-2">
+                            <span class="flex items-center space-x-2 text-gray-500 italic">
+                                <ExclamationIcon class="text-yellow-600 w-4" v-if="!device.activeSnapshot || !targetSnapshotDeployed" />
+                                <CheckCircleIcon class="text-green-700 w-4" v-else />
+                            </span>
                         </span>
-                        <span v-else>
-                            <span> Default</span>
+                        <template v-if="device.activeSnapshot">
+                            <div class="flex flex-col">
+                                <span>{{ device.activeSnapshot.name }}</span>
+                                <span class="text-xs text-gray-500">{{ device.activeSnapshot.id }}</span>
+                            </div>
+                        </template>
+                        <template v-else>
+                            No Snapshot Deployed
+                        </template>
+                    </template>
+                </InfoCardRow>
+
+                <InfoCardRow property="Target Snapshot:">
+                    <template #value>
+                        <span class="flex space-x-4 pr-2">
+                            <span class="flex items-center space-x-2 text-gray-500 italic">
+                                <ExclamationIcon class="text-yellow-600 w-4" v-if="!device.targetSnapshot" />
+                                <CheckCircleIcon class="text-green-700 w-4" v-else />
+                            </span>
                         </span>
+                        <template v-if="device.targetSnapshot">
+                            <div class="flex flex-col">
+                                <span>{{ device.targetSnapshot.name }}</span>
+                                <span class="text-xs text-gray-500">{{ device.targetSnapshot.id }}</span>
+                            </div>
+                        </template>
+                        <template v-else>
+                            No Target Snapshot Set
+                        </template>
                     </template>
                 </InfoCardRow>
             </template>
+
+            <InfoCardRow property="Device Mode">
+                <template #value>
+                    <span v-if="device.mode === 'developer'" class="flex space-x-2 pr-2 items-center">
+                        <BeakerIcon class="text-purple-600 w-4" />
+                        <span> Developer Mode</span>
+                    </span>
+                    <span v-else>
+                        <span> Default</span>
+                    </span>
+                </template>
+            </InfoCardRow>
         </InfoCard>
     </div>
 </template>
