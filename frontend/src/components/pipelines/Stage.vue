@@ -58,7 +58,7 @@
                 <label>Status:</label>
                 <InstanceStatusBadge :status="stage.state" />
             </div>
-            <div class="ff-pipeline-stage-row">
+            <div v-if="playEnabled" class="ff-pipeline-stage-row">
                 <label>Deploy Action:</label>
                 <span>
                     <template v-if="stage.action === 'create_snapshot'">
