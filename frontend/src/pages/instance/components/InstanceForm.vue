@@ -66,6 +66,9 @@
 
         <FormRow v-if="creatingApplication" v-model="input.createInstance" type="checkbox" data-form="create-instance">
             Create Node-RED Instance
+            <template #description>
+                This will create an instance of Node-RED that will be managed in your new Application.
+            </template>
         </FormRow>
         <div v-if="!creatingApplication || input.createInstance" :class="creatingApplication ? 'ml-6' : ''" class="space-y-6">
             <!-- Instance Name -->
