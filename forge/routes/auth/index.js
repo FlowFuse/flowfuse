@@ -90,7 +90,7 @@ async function init (app, opts, done) {
                         request.session.provisioning = await app.db.views.AccessToken.provisioningTokenSummary(accessToken)
                     }
                     if (accessToken.ownerType === 'user') {
-                        console.log('accessToken.ownerId', accessToken.ownerId)
+                        console.info('accessToken.ownerId', accessToken.ownerId)
                         request.session.User = await app.db.models.User.findOne({ where: { id: parseInt(accessToken.ownerId) } })
                         // Unlike a cookie based session, we'll allow user tokens to continue
                         // working if password has expired or email isn't verified

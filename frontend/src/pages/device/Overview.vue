@@ -2,7 +2,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <InfoCard header="Connection:">
             <template #icon>
-                <WifiIcon/>
+                <WifiIcon />
             </template>
             <template #content>
                 <InfoCardRow property="Last Seen:">
@@ -12,15 +12,15 @@
                 </InfoCardRow>
                 <InfoCardRow property="Status:">
                     <template #value>
-                        <StatusBadge :status="device.status"/>
+                        <StatusBadge :status="device.status" />
                     </template>
                 </InfoCardRow>
-                <InfoCardRow property="Agent Version:" :value="device.agentVersion || 'unknown'"/>
+                <InfoCardRow property="Agent Version:" :value="device.agentVersion || 'unknown'" />
             </template>
         </InfoCard>
         <InfoCard header="Deployment:">
             <template #icon>
-                <TemplateIcon/>
+                <TemplateIcon />
             </template>
             <template #content>
                 <InfoCardRow property="Application:">
