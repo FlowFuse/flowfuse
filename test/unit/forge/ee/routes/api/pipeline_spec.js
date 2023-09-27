@@ -972,7 +972,7 @@ describe('Pipelines API', function () {
             afterEach(async function () {
                 await app.db.models.ProjectSnapshot.destroy({
                     where: {
-                        projectId: [TestObjects.instanceOne.id, TestObjects.instanceTwo.id]
+                        ProjectId: [TestObjects.instanceOne.id, TestObjects.instanceTwo.id]
                     }
                 })
             })
@@ -1143,7 +1143,7 @@ describe('Pipelines API', function () {
             afterEach(async function () {
                 await app.db.models.ProjectSnapshot.destroy({
                     where: {
-                        projectId: TestObjects.instanceOne.id
+                        ProjectId: TestObjects.instanceOne.id
                     }
                 })
             })
