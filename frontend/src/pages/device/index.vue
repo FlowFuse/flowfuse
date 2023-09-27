@@ -14,15 +14,21 @@
                     <ff-nav-breadcrumb>{{ device.name }}</ff-nav-breadcrumb>
                 </template>
                 <template #status>
-                    <DeviceLastSeenBadge class="mr-6" :last-seen-at="device.lastSeenAt" :last-seen-ms="device.lastSeenMs" :last-seen-since="device.lastSeenSince" />
-                    <StatusBadge :status="device.status" />
+                    <div class="space-x-6">
+                        <DeviceLastSeenBadge :last-seen-at="device.lastSeenAt" :last-seen-ms="device.lastSeenMs" :last-seen-since="device.lastSeenSince" />
+                        <StatusBadge :status="device.status" />
+                        <DeveloperModeBadge v-if="device.mode === 'developer'" />
+                    </div>
                 </template>
-                <template #parent>
-                    <div v-if="device?.instance">
+                <template #context>
+                    <div v-if="device?.ownerType === 'application' && device.application">
+                        Application:
+                        <router-link :to="{name: 'Application', params: {id: device.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.application.name }}</router-link>
+                    </div>
+                    <div v-else-if="device?.ownerType === 'instance' && device.instance">
                         Instance:
                         <router-link :to="{name: 'Instance', params: {id: device.instance.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.instance.name }}</router-link>
                     </div>
-                    <span v-else class="text-gray-400 italic">Device Not Assigned to an Instance</span>
                 </template>
                 <template v-if="isDevModeAvailable" #tools>
                     <div class="space-x-2 flex align-center">
@@ -38,17 +44,12 @@
                                 <ExternalLinkIcon />
                             </span>
                         </button>
-                        <ff-button :disabled="hasPermission('device:edit') !== true || !(device?.instance || device?.application)" :kind="developerMode?'primary':'secondary'" data-action="toggle-mode" @click="showModeChoiceDialog()">
-                            Developer Mode
-                            <template #icon-right>
-                                <BeakerIcon />
-                            </template>
-                        </ff-button>
+                        <DeveloperModeToggle :device="device" @mode-change="setDeviceMode" />
                     </div>
                 </template>
             </SectionNavigationHeader>
         </div>
-        <div class="text-sm sm:px-6 mt-4 sm:mt-8">
+        <div class="sm:px-6 mt-4 sm:mt-8">
             <Teleport v-if="mounted && isVisitingAdmin" to="#platform-banner">
                 <div class="ff-banner" data-el="banner-device-as-admin">You are viewing this device as an Administrator</div>
             </Teleport>
@@ -56,13 +57,12 @@
                 <router-view :instance="device.instance" :device="device" @device-updated="loadDevice()" @device-refresh="loadDevice()" />
             </div>
         </div>
-        <ModeChoiceDialog ref="mode-choice-dialog" :device="device" @mode-change="setDeviceMode" />
     </main>
 </template>
 
 <script>
 
-import { BeakerIcon, ExternalLinkIcon } from '@heroicons/vue/outline'
+import { ExternalLinkIcon } from '@heroicons/vue/outline'
 import { TerminalIcon } from '@heroicons/vue/solid'
 import semver from 'semver'
 import { mapState } from 'vuex'
@@ -76,17 +76,18 @@ import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpi
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import permissionsMixin from '../../mixins/Permissions.js'
 
+import DeveloperModeBadge from './components/DeveloperModeBadge.vue'
+import DeveloperModeToggle from './components/DeveloperModeToggle.vue'
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
-import ModeChoiceDialog from './dialogs/ModeChoiceDialog.vue'
 
 export default {
     name: 'DevicePage',
     components: {
-        BeakerIcon,
         ExternalLinkIcon,
+        DeveloperModeToggle,
+        DeveloperModeBadge,
         DeviceLastSeenBadge,
         SectionNavigationHeader,
-        ModeChoiceDialog,
         SideNavigationTeamOptions,
         StatusBadge,
         SubscriptionExpiredBanner,
@@ -96,7 +97,8 @@ export default {
     data: function () {
         const navigation = [
             { label: 'Overview', to: `/device/${this.$route.params.id}/overview`, tag: 'device-overview' },
-            // { label: 'Device Logs', path: `/device/${this.$route.params.id}/logs`, tag: 'device-logs', icon: TerminalIcon },
+            // snapshots - added in mounted, if device is owned by an application,
+            // device logs - added in mounted, if project comms is enabled,
             { label: 'Settings', to: `/device/${this.$route.params.id}/settings`, tag: 'device-settings' }
         ]
 
@@ -132,10 +134,27 @@ export default {
             return this.device.editor?.url || ''
         }
     },
-    mounted () {
-        this.checkFeatures()
+    watch: {
+        'device.mode': function () {
+            if (this.device.mode === 'developer') {
+                this.navigation.push({
+                    label: 'Developer Mode',
+                    to: `/device/${this.$route.params.id}/developer-mode`,
+                    tag: 'device-devmode'
+                })
+            } else {
+                // check if developer mode in the list of options
+                const index = this.navigation.findIndex((item) => item.tag === 'device-devmode')
+                if (index > -1) {
+                    this.navigation.splice(index, 1)
+                }
+            }
+        }
+    },
+    async mounted () {
         this.mounted = true
-        this.loadDevice()
+        await this.loadDevice()
+        this.checkFeatures()
     },
     methods: {
         loadDevice: async function () {
@@ -152,15 +171,22 @@ export default {
                     icon: TerminalIcon
                 })
             }
-        },
-        showModeChoiceDialog: function () {
-            this.$refs['mode-choice-dialog'].show()
+            if (this.device?.ownerType === 'application') {
+                this.navigation.splice(1, 0, {
+                    label: 'Snapshots',
+                    to: `/device/${this.$route.params.id}/snapshots`,
+                    tag: 'device-snapshots'
+                })
+            }
         },
         showOpenEditorDialog: async function () {
             this.$refs['open-editor-dialog'].show()
         },
-        setDeviceMode: async function (newMode) {
-            if (newMode === 'autonomous' || newMode === 'developer') {
+        setDeviceMode: async function (newMode, callback) {
+            try {
+                if (newMode !== 'autonomous' && newMode !== 'developer') {
+                    throw new Error('Unsupported mode')
+                }
                 // call to close tunnel regardless of selected mode being set
                 const disableResult = await deviceApi.disableEditorTunnel(this.device.id)
                 // set the selected mode
@@ -172,8 +198,13 @@ export default {
                     url: disableResult?.editor?.url
                 }
                 this.device.mode = setModeResult?.mode
-            } else {
-                throw new Error('Unknown mode')
+                callback(null, setModeResult)
+            } catch (error) {
+                if (callback) {
+                    callback(error)
+                } else {
+                    throw new Error('Unknown mode')
+                }
             }
         }
     }

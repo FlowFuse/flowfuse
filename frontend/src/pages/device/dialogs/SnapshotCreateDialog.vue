@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" header="Create Snapshot" confirm-label="Create" :disable-primary="!formValid" :closeOnConfirm="false" @confirm="confirm()" @cancel="cancel">
+    <ff-dialog ref="dialog" :header="title" confirm-label="Create" :disable-primary="!formValid" :closeOnConfirm="false" @confirm="confirm()" @cancel="cancel">
         <template #default>
             <form class="space-y-6 mt-2" @submit.prevent>
                 <FormRow v-model="input.name" :error="errors.name" data-form="snapshot-name">Name</FormRow>
@@ -9,7 +9,7 @@
                         <textarea v-model="input.description" rows="8" class="ff-input ff-text-input" style="height: auto" />
                     </template>
                 </FormRow>
-                <FormRow v-model="input.setAsTarget" type="checkbox" data-form="snapshot-name">
+                <FormRow v-if="showSetAsTarget" v-model="input.setAsTarget" type="checkbox" data-form="snapshot-name">
                     <span v-ff-tooltip:right="'If checked, all devices assigned to this instance will be restarted on this snapshot.'" class="">
                         Set as Target <QuestionMarkCircleIcon class="ff-icon" style="margin: 0px 0px 0px 4px; height: 18px;" />
                     </span>
@@ -36,6 +36,14 @@ export default {
         device: {
             type: Object,
             required: true
+        },
+        showSetAsTarget: {
+            type: Boolean,
+            default: true
+        },
+        title: {
+            type: String,
+            default: 'Create Snapshot'
         }
     },
     emits: ['device-upload-failed', 'device-upload-success', 'canceled'],
@@ -78,10 +86,12 @@ export default {
                 this.submitted = true
                 const opts = {
                     name: this.input.name,
-                    description: this.input.description,
-                    setAsTarget: this.input.setAsTarget
+                    description: this.input.description
                 }
-                deviceApi.createSnapshot(this.device.instance.id, this.device.id, opts).then((response) => {
+                if (this.showSetAsTarget) {
+                    opts.setAsTarget = this.input.setAsTarget
+                }
+                deviceApi.createSnapshot(this.device, opts).then((response) => {
                     this.$emit('device-upload-success', response)
                     this.$refs.dialog.close()
                 }).catch(err => {

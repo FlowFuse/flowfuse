@@ -100,21 +100,26 @@ const setMode = async (deviceId, mode) => {
 
 /**
  * create a snapshot from a device
- * @param {string} instanceId - the project id
- * @param {string} deviceId - the device id
+ * @param {string} device - the device
  * @param {object} options - the options
  * @param {string} options.name - the name of the snapshot
  * @param {string} [options.description] - the description of the snapshot
  * @param {boolean} [options.setAsTarget] - set the snapshot as the new target for all devices
  */
-const createSnapshot = async (instanceId, deviceId, options) => {
+const createSnapshot = async (device, options) => {
+    const ownerType = device.ownerType || (device.instance?.id ? 'instance' : (device.application?.id ? 'application' : null))
+    const instanceId = device.instance?.id
+    const applicationId = device.application?.id
+    const deviceId = device.id
     const data = {
         name: options.name, // name of the snapshot
         description: options.description, // description of the snapshot
         setAsTarget: options.setAsTarget // set the snapshot as the new target for all devices
     }
-    return client.post(`/api/v1/devices/${deviceId}/snapshot`, data).then(res => {
+    return client.post(`/api/v1/devices/${deviceId}/snapshots`, data).then(res => {
         const props = {
+            ownerType,
+            ownerId: ownerType === 'instance' ? instanceId : applicationId,
             'created-at': res.data.createdAt,
             'snapshot-id': res.data.id,
             'snapshot-name': options.name,
@@ -123,7 +128,44 @@ const createSnapshot = async (instanceId, deviceId, options) => {
         res.data.createdSince = daysSince(res.data.createdAt)
         res.data.updatedSince = daysSince(res.data.updatedAt)
         product.capture('$ff-snapshot-device', props, {
-            instance: instanceId
+            ownerType: device.ownerType,
+            instance: instanceId,
+            application: applicationId
+        })
+        return res.data
+    })
+}
+
+// TODO: move to deviceSnapshots.js
+const getDeviceSnapshot = (deviceId, snapshotId) => {
+    return client.get(`/api/v1/devices/${deviceId}/snapshots/${snapshotId}`).then(res => {
+        res.data.createdSince = daysSince(res.data.createdAt)
+        res.data.updatedSince = daysSince(res.data.updatedAt)
+        return res.data
+    })
+}
+
+// TODO: move to deviceSnapshots.js
+const getDeviceSnapshots = (deviceId, cursor, limit) => {
+    const url = paginateUrl(`/api/v1/devices/${deviceId}/snapshots`, cursor, limit)
+    return client.get(url).then(res => {
+        res.data.snapshots = res.data.snapshots.map(ss => {
+            ss.createdSince = daysSince(ss.createdAt)
+            ss.updatedSince = daysSince(ss.updatedAt)
+            return ss
+        })
+        return res.data
+    })
+}
+
+// TODO: move to deviceSnapshots.js
+const deleteSnapshot = async (deviceId, snapshotId) => {
+    return client.delete(`/api/v1/devices/${deviceId}/snapshots/${snapshotId}`).then(res => {
+        product.capture('$ff-snapshot-deleted', {
+            'snapshot-id': snapshotId,
+            'deleted-at': (new Date()).toISOString()
+        }, {
+            device: deviceId
         })
         return res.data
     })
@@ -142,5 +184,8 @@ export default {
     disableEditorTunnel,
     getMode,
     setMode,
-    createSnapshot
+    createSnapshot,
+    getDeviceSnapshot,
+    getDeviceSnapshots,
+    deleteSnapshot
 }

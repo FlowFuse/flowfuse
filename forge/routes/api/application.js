@@ -413,7 +413,8 @@ module.exports = async function (app) {
                     properties: {
                         // meta: { $ref: 'PaginationMeta' },
                         count: { type: 'number' },
-                        snapshots: { type: 'array', items: { $ref: 'Snapshot' } }
+                        snapshots: { type: 'array', items: { $ref: 'Snapshot' } },
+                        application: { $ref: 'ApplicationSummary' }
                     }
                 },
                 '4xx': {

@@ -128,6 +128,12 @@ module.exports = {
                     if (pagination.cursor) {
                         where.id = { [Op.lt]: M.ProjectSnapshot.decodeHashid(pagination.cursor) }
                     }
+                    if (pagination.deviceId) {
+                        where.DeviceId = { [Op.eq]: M.Device.decodeHashid(pagination.deviceId) }
+                    }
+                    if (pagination.instanceId) {
+                        where.InstanceId = { [Op.eq]: pagination.instanceId }
+                    }
                     const { count, rows } = await this.findAndCountAll({
                         where,
                         order: [['id', 'DESC']],
