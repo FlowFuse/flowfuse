@@ -29,6 +29,7 @@ FlowFuse uses Docker Compose to install and manage the required components. Inst
 
 [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/)
 
+FlowFuse requires docker-compose v2
 
 ### DNS
 
