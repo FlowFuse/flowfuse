@@ -85,7 +85,7 @@ export default {
             required: true
         }
     },
-    emits: ['device-updated', 'device-refresh'],
+    emits: ['device-updated'],
     data () {
         return {
             agentSupportsDeviceAccess: false,
