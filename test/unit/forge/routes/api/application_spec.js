@@ -1,4 +1,5 @@
 const should = require('should') // eslint-disable-line
+const sinon = require('sinon')
 
 const { KEY_SETTINGS } = require('../../../../../forge/db/models/ProjectSettings')
 const setup = require('../setup')
@@ -522,6 +523,94 @@ describe('Application API', function () {
             instance3Results.meta.state.should.equal('unknown')
         })
     })
+
+    describe('List snapshots belonging to the application', async function () {
+        const mockResponses = {}
+        /** @type {import('../../../../lib/TestModelFactory')} */
+        let factory
+        beforeEach(async function () {
+            factory = app.factory
+            // fake async sendCommandAwaitReply (teamId, deviceId, command, payload, options = { timeout: DEFAULT_TIMEOUT }) {
+            sinon.stub(app.comms.devices, 'sendCommandAwaitReply').callsFake(async function (teamId, deviceId, command, payload, options = { timeout: 1000 }) {
+                return mockResponses[deviceId]
+            })
+            sinon.stub(app.comms.devices, 'sendCommand').resolves()
+        })
+        afterEach(async function () {
+            // if app.comms.devices.sendCommandAwaitReply/sendCommand are stubbed, restore them
+            if (app.comms.devices.sendCommandAwaitReply.restore) {
+                app.comms.devices.sendCommandAwaitReply.restore()
+            }
+            if (app.comms.devices.sendCommand.restore) {
+                app.comms.devices.sendCommand.restore()
+            }
+        })
+        async function createInstanceSnapshot (projectId, name, token) {
+            return await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${projectId}/snapshots`,
+                payload: {
+                    name
+                },
+                cookies: { sid: token }
+            })
+        }
+        async function createInstanceSnapshotFromDevice (deviceId, name, token, mockResponse) {
+            mockResponses[deviceId] = { ...mockResponse }
+            return await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${deviceId}/snapshot`,
+                payload: {
+                    name
+                },
+                cookies: { sid: token }
+            })
+        }
+        async function createDeviceSnapshot (deviceId, name, token, mockResponse) {
+            mockResponses[deviceId] = { ...mockResponse }
+            return await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${deviceId}/snapshots`,
+                payload: {
+                    name
+                },
+                cookies: { sid: token }
+            })
+        }
+        it('Returns a list of snapshots', async function () {
+            const sid = await login('bob', 'bbPassword')
+            // create components
+            const application = await factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
+            const instance1 = await factory.createInstance({ name: generateName('instance-b') }, application, app.stack, app.template, app.projectType, { start: false })
+            const device1 = await factory.createDevice({ name: generateName('device') }, TestObjects.BTeam, instance1) // in team, assigned to instance
+            const device2 = await factory.createDevice({ name: generateName('device') }, TestObjects.BTeam, null, application) // in instance, assigned to application
+            // Create snapshots
+            const snapshot1 = await createInstanceSnapshot(instance1.id, 'snapshot1', sid, { name: 'snapshot1', description: 'a snapshot' })
+            const snapshot2 = await createInstanceSnapshotFromDevice(device1.hashid, 'snapshot2', sid, { name: 'snapshot2', description: 'b snapshot' })
+            const snapshot3 = await createDeviceSnapshot(device2.hashid, 'snapshot3', sid, { name: 'snapshot3', description: 'c snapshot' })
+            // Get application snapshots
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/applications/${application.hashid}/snapshots`,
+                cookies: { sid }
+            })
+            response.statusCode.should.equal(200)
+
+            const result = response.json()
+            result.should.have.property('snapshots')
+            result.snapshots.should.have.length(3)
+
+            const snapshot1Results = result.snapshots.find((snapshot) => snapshot.id === snapshot1.json().id)
+            should(snapshot1Results).be.an.Object()
+
+            const snapshot2Results = result.snapshots.find((snapshot) => snapshot.id === snapshot2.json().id)
+            should(snapshot2Results).be.an.Object()
+
+            const snapshot3Results = result.snapshots.find((snapshot) => snapshot.id === snapshot3.json().id)
+            should(snapshot3Results).be.an.Object()
+        })
+    })
+
     describe('Application Level Audit Log', async function () {
         // Declare a dummy getLoggers function for type hint only
         /** @type {import('../../../../../forge/auditLog/application').getLoggers} */

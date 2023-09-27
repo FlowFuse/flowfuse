@@ -5,6 +5,7 @@ const { DeviceTunnelManager } = require('../../ee/lib/deviceEditor/DeviceTunnelM
 const { Roles } = require('../../lib/roles')
 
 const DeviceLive = require('./deviceLive')
+const DeviceSnapshots = require('./deviceSnapshots.js')
 
 /**
  * Project Device api routes
@@ -37,6 +38,7 @@ module.exports = async function (app) {
     })
 
     app.register(DeviceLive, { prefix: '/:deviceId/live' })
+    app.register(DeviceSnapshots, { prefix: '/:deviceId/snapshots' })
 
     /**
      * Get a list of all devices
@@ -425,7 +427,8 @@ module.exports = async function (app) {
                         reply.code(400).send({ code: 'invalid_application', error: 'invalid application' })
                         return
                     }
-                    // Project exists and is in the right team - assign it to the project
+
+                    // Device exists and is in the right team - assign it to the application
                     sendDeviceUpdate = await assignDeviceToApplication(device, assignToApplication)
                     postOpAuditLogAction = 'assigned-to-application'
                 }
@@ -640,14 +643,14 @@ module.exports = async function (app) {
     })
 
     /**
-     * Create a snapshot from a device
+     * Create a snapshot from a device owned by an instance
      * @name /api/v1/devices/:deviceId/snapshot
      * @memberof module:forge/routes/api/device
      */
     app.post('/:deviceId/snapshot', {
         preHandler: app.needsPermission('project:snapshot:create'),
         schema: {
-            summary: 'Create a snapshot from a device',
+            summary: 'Create a snapshot from a device owned by an instance',
             tags: ['Devices'],
             params: {
                 type: 'object',

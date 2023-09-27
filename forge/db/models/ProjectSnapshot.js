@@ -28,6 +28,13 @@ module.exports = {
                 const rawValue = this.getDataValue('flows') || '{}'
                 return JSON.parse(rawValue)
             }
+        },
+        /** @type {'instance'|'application'|null} a virtual column that signifies the owner of the snapshot e.g. `"instance"`, `"device"` */
+        ownerType: {
+            type: DataTypes.VIRTUAL,
+            get () {
+                return this.Project?.id ? 'instance' : (this.Device?.hashid ? 'device' : null)
+            }
         }
     },
     meta: {
@@ -35,6 +42,7 @@ module.exports = {
     },
     associations: function (M) {
         this.belongsTo(M.Project)
+        this.belongsTo(M.Device)
         this.belongsTo(M.User)
         this.hasMany(M.Device, { foreignKey: 'targetSnapshotId' })
         this.hasMany(M.Device, { foreignKey: 'activeSnapshotId' })
@@ -70,6 +78,73 @@ module.exports = {
                             model: M.User,
                             attributes: ['hashid', 'id', 'username', 'avatar']
                         }
+                    })
+                    return {
+                        meta: {
+                            next_cursor: rows.length === limit ? rows[rows.length - 1].hashid : undefined
+                        },
+                        count,
+                        snapshots: rows
+                    }
+                },
+                forDevice: async (deviceId, pagination = {}) => {
+                    const limit = parseInt(pagination.limit) || 1000
+                    const where = {
+                        DeviceId: deviceId
+                    }
+                    if (pagination.cursor) {
+                        where.id = { [Op.lt]: M.ProjectSnapshot.decodeHashid(pagination.cursor) }
+                    }
+                    const { count, rows } = await this.findAndCountAll({
+                        where,
+                        order: [['id', 'DESC']],
+                        limit,
+                        attributes: ['hashid', 'id', 'name', 'description', 'createdAt', 'updatedAt'],
+                        include: {
+                            model: M.User,
+                            attributes: ['hashid', 'id', 'username', 'avatar']
+                        }
+                    })
+                    return {
+                        meta: {
+                            next_cursor: rows.length === limit ? rows[rows.length - 1].hashid : undefined
+                        },
+                        count,
+                        snapshots: rows
+                    }
+                },
+                forApplication: async (idOrHash, pagination = {}) => {
+                    let id = idOrHash
+                    if (typeof idOrHash === 'string') {
+                        id = M.Application.decodeHashid(idOrHash)
+                    }
+                    const limit = parseInt(pagination.limit) || 1000
+                    const where = {
+                        [Op.or]: {
+                            '$Project.ApplicationId$': id,
+                            '$Device.ApplicationId$': id
+                        }
+                    }
+                    if (pagination.cursor) {
+                        where.id = { [Op.lt]: M.ProjectSnapshot.decodeHashid(pagination.cursor) }
+                    }
+                    const { count, rows } = await this.findAndCountAll({
+                        where,
+                        order: [['id', 'DESC']],
+                        limit,
+                        attributes: ['hashid', 'id', 'name', 'description', 'createdAt', 'updatedAt', 'ProjectId', 'DeviceId', 'ownerType'],
+                        include: [{
+                            model: M.User,
+                            attributes: ['hashid', 'id', 'username', 'avatar']
+                        },
+                        {
+                            model: M.Project,
+                            attributes: ['hashid', 'id', 'name', 'createdAt', 'updatedAt']
+                        },
+                        {
+                            model: M.Device,
+                            attributes: ['hashid', 'id', 'name', 'type', 'createdAt', 'updatedAt']
+                        }]
                     })
                     return {
                         meta: {

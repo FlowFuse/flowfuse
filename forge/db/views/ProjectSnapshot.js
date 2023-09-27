@@ -9,7 +9,10 @@ module.exports = function (app) {
             createdAt: { type: 'string' },
             updatedAt: { type: 'string' },
             user: { $ref: 'UserSummary' },
-            modules: { type: 'object', additionalProperties: true }
+            modules: { type: 'object', additionalProperties: true },
+            ownerType: { type: 'string' },
+            deviceId: { type: 'string' },
+            projectId: { type: 'string' }
         }
     })
     function snapshot (snapshot) {
@@ -20,7 +23,10 @@ module.exports = function (app) {
                 name: result.name,
                 description: result.description || '',
                 createdAt: result.createdAt,
-                updatedAt: result.updatedAt
+                updatedAt: result.updatedAt,
+                ownerType: result.ownerType,
+                deviceId: result.Device?.hashid,
+                projectId: result.Project?.id
             }
             if (snapshot.User) {
                 filtered.user = app.db.views.User.userSummary(snapshot.User)

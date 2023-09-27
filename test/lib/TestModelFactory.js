@@ -164,7 +164,15 @@ module.exports = class TestModelFactory {
         return instance
     }
 
-    async createDevice (deviceDetails, team, project = null) {
+    /**
+     * Create a device and add it to a team. Optionally, add it to a project instance or application.
+     * @param {Object} deviceDetails - device details to override defaults
+     * @param {Object} team - team that this device will belong to
+     * @param {Object} [project] - (optional) project that this device will belong to
+     * @param {Object} [application] - (optional) application that this device will belong to
+     * @returns {Object} - the created device
+     */
+    async createDevice (deviceDetails, team, project = null, application = null) {
         const defaultDeviceDetails = {
             name: 'unnamed-device',
             type: 'unnamed-type',
@@ -178,6 +186,8 @@ module.exports = class TestModelFactory {
         await team.addDevice(device)
         if (project) {
             await device.setProject(project)
+        } else if (application) {
+            await device.setApplication(application)
         }
         return device
     }

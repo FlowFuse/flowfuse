@@ -1,9 +1,11 @@
+const TestModelFactory = require('../../../lib/TestModelFactory')
+
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 module.exports = async function (config = {}) {
     const forge = await FF_UTIL.setupApp(config)
-
+    const factory = new TestModelFactory(forge)
     /*
         alice (admin)
         bob
@@ -28,5 +30,14 @@ module.exports = async function (config = {}) {
     await team2.addUser(userBob, { through: { role: Roles.Owner } })
     await team2.addUser(userAlice, { through: { role: Roles.Owner } })
     await team3.addUser(userAlice, { through: { role: Roles.Owner } })
+    forge.TestObjects = {
+        defaultTeamType,
+        userAlice,
+        userBob,
+        team1,
+        team2,
+        team3
+    }
+    forge.factory = factory
     return forge
 }

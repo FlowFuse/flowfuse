@@ -46,6 +46,7 @@ module.exports = {
         this.belongsTo(M.ProjectSnapshot, { as: 'targetSnapshot' })
         this.belongsTo(M.ProjectSnapshot, { as: 'activeSnapshot' })
         this.hasMany(M.DeviceSettings)
+        this.hasMany(M.ProjectSnapshot) // associate device at application level with snapshots
     },
     hooks: function (M, app) {
         return {
