@@ -8,6 +8,7 @@
             :instances="instances"
             :pipeline="pipeline"
             :stage="stage"
+            :sourceStage="$route.query.sourceStage"
             @submit="update"
         />
     </main>

@@ -156,7 +156,7 @@ export default {
             this.$refs.deployStageDialog.show(target)
         },
         edit () {
-            this.$router.push({
+            const route = {
                 name: 'EditPipelineStage',
                 params: {
                     // url params
@@ -164,7 +164,15 @@ export default {
                     pipelineId: this.pipeline.id,
                     stageId: this.stage.id
                 }
-            })
+            }
+
+            if (this.pipeline.stages.length > 0 && this.pipeline.stages.indexOf(this.stage) > 0) {
+                route.query = {
+                    sourceStage: this.pipeline.stages[this.pipeline.stages.indexOf(this.stage)].id
+                }
+            }
+
+            this.$router.push(route)
         },
 
         async deployStage (target, sourceSnapshot) {
