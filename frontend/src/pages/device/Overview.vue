@@ -2,7 +2,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <InfoCard header="Connection:">
             <template #icon>
-                <WifiIcon/>
+                <WifiIcon />
             </template>
             <template #content>
                 <InfoCardRow property="Last Seen:">
@@ -12,15 +12,15 @@
                 </InfoCardRow>
                 <InfoCardRow property="Status:">
                     <template #value>
-                        <StatusBadge :status="device.status"/>
+                        <StatusBadge :status="device.status" />
                     </template>
                 </InfoCardRow>
-                <InfoCardRow property="Agent Version:" :value="device.agentVersion || 'unknown'"/>
+                <InfoCardRow property="Agent Version:" :value="device.agentVersion || 'unknown'" />
             </template>
         </InfoCard>
         <InfoCard header="Deployment:">
             <template #icon>
-                <TemplateIcon/>
+                <TemplateIcon />
             </template>
             <template #content>
                 <InfoCardRow property="Application:">
@@ -42,40 +42,40 @@
                     </InfoCardRow>
                     <InfoCardRow property="Active Snapshot:">
                         <template #value>
-                            <span class="flex space-x-4 pr-2">
+                            <span class="flex gap-2 pr-2">
                                 <span class="flex items-center space-x-2 text-gray-500 italic">
                                     <ExclamationIcon class="text-yellow-600 w-4" v-if="!device.activeSnapshot || !targetSnapshotDeployed" />
                                     <CheckCircleIcon class="text-green-700 w-4" v-else />
                                 </span>
+                                <template v-if="device.activeSnapshot">
+                                    <div class="flex flex-col">
+                                        <span>{{ device.activeSnapshot.name }}</span>
+                                        <span class="text-xs text-gray-500">{{ device.activeSnapshot.id }}</span>
+                                    </div>
+                                </template>
+                                <template v-else>
+                                    No Snapshot Deployed
+                                </template>
                             </span>
-                            <template v-if="device.activeSnapshot">
-                                <div class="flex flex-col">
-                                    <span>{{ device.activeSnapshot.name }}</span>
-                                    <span class="text-xs text-gray-500">{{ device.activeSnapshot.id }}</span>
-                                </div>
-                            </template>
-                            <template v-else>
-                                No Snapshot Deployed
-                            </template>
                         </template>
                     </InfoCardRow>
                     <InfoCardRow property="Target Snapshot:">
                         <template #value>
-                            <span class="flex space-x-4 pr-2">
+                            <span class="flex gap-2 pr-2">
                                 <span class="flex items-center space-x-2 text-gray-500 italic">
                                     <ExclamationIcon class="text-yellow-600 w-4" v-if="!device.targetSnapshot" />
                                     <CheckCircleIcon class="text-green-700 w-4" v-else />
                                 </span>
+                                <template v-if="device.targetSnapshot">
+                                    <div class="flex flex-col">
+                                        <span>{{ device.targetSnapshot.name }}</span>
+                                        <span class="text-xs text-gray-500">{{ device.targetSnapshot.id }}</span>
+                                    </div>
+                                </template>
+                                <template v-else>
+                                    No Target Snapshot Set
+                                </template>
                             </span>
-                            <template v-if="device.targetSnapshot">
-                                <div class="flex flex-col">
-                                    <span>{{ device.targetSnapshot.name }}</span>
-                                    <span class="text-xs text-gray-500">{{ device.targetSnapshot.id }}</span>
-                                </div>
-                            </template>
-                            <template v-else>
-                                No Target Snapshot Set
-                            </template>
                         </template>
                     </InfoCardRow>
                 </template>
