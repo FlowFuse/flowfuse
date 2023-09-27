@@ -2,6 +2,15 @@ const {
     DataTypes
 } = require('sequelize')
 
+const SNAPSHOT_ACTIONS = {
+    // Any changes to this list *must* be made via migration.
+    CREATE_SNAPSHOT: 'create_snapshot',
+    USE_LATEST_SNAPSHOT: 'use_latest_snapshot',
+    PROMPT: 'prompt'
+}
+
+Object.freeze(SNAPSHOT_ACTIONS)
+
 module.exports = {
     name: 'PipelineStage',
     schema: {
@@ -13,7 +22,13 @@ module.exports = {
             type: DataTypes.BOOLEAN,
             default: false
         },
+        action: {
+            type: DataTypes.ENUM(Object.values(SNAPSHOT_ACTIONS)),
+            defaultValue: SNAPSHOT_ACTIONS.CREATE_SNAPSHOT,
+            allowNull: false
+        },
 
+        // relations
         NextStageId: {
             type: DataTypes.INTEGER,
             allowNull: true
@@ -55,6 +70,7 @@ module.exports = {
                 }
             },
             static: {
+                SNAPSHOT_ACTIONS,
                 byId: async function (idOrHash) {
                     let id = idOrHash
                     if (typeof idOrHash === 'string') {

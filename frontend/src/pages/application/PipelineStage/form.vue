@@ -44,6 +44,47 @@
             </template>
         </FormRow>
 
+        <!-- Action -->
+        <FormRow
+            v-model="input.action"
+            :options="actionOptions"
+            data-form="stage-action"
+            placeholder="Select Action"
+        >
+            <template #default>
+                Select Action
+                <InformationCircleIcon class="ff-icon ff-icon-sm text-gray-800 cursor-pointer hover:text-blue-700" @click="$refs['help-dialog'].show()" />
+            </template>
+            <template #description>
+                When this stage is pushed to the next, which action will be performed?
+            </template>
+        </FormRow>
+
+        <ff-dialog ref="help-dialog" class="ff-dialog-box--info" header="Snapshot Actions">
+            <template #default>
+                <div class="flex gap-8">
+                    <slot name="pictogram"><img src="../../../images/pictograms/snapshot_red.png"></slot>
+                    <div>
+                        <p>
+                            When a Pipeline stage is triggered an Instance Snapshot is deployed to the next stage. You can configure how this stage picks what snapshot to deploy.
+                        </p>
+                        <p>
+                            Create New Snapshot: Creates a new snapshot using the current flows and settings.
+                        </p>
+                        <p>
+                            Use Latest Instance Snapshot: Uses the most recent existing snapshot of the instance. The deploy will fail if no snapshot exists.
+                        </p>
+                        <p>
+                            Prompt to Select Snapshot: Will ask at deploy time, which snapshot from the source stage should be copied to the next stage.
+                        </p>
+                    </div>
+                </div>
+            </template>
+            <template #actions>
+                <ff-button @click="$refs['help-dialog'].close()">Close</ff-button>
+            </template>
+        </ff-dialog>
+
         <!-- Deploy to Devices -->
         <FormRow
             v-model="input.deployToDevices"
@@ -83,7 +124,7 @@
 </template>
 
 <script>
-import { ChevronLeftIcon } from '@heroicons/vue/solid'
+import { InformationCircleIcon } from '@heroicons/vue/outline'
 
 import FormRow from '../../../components/FormRow.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
@@ -91,6 +132,7 @@ import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 export default {
     name: 'PipelineForm',
     components: {
+        InformationCircleIcon,
         SectionTopMenu,
         FormRow
     },
@@ -110,8 +152,8 @@ export default {
             }
         },
         sourceStage: {
-            type: Boolean,
-            default: true // TODO: Disabled for not
+            type: String,
+            default: null
         }
     },
     emits: ['submit'],
@@ -119,9 +161,6 @@ export default {
         const stage = this.stage
 
         return {
-            icons: {
-                chevronLeft: ChevronLeftIcon
-            },
             loading: {
                 create: false,
                 update: false
@@ -129,8 +168,14 @@ export default {
             input: {
                 name: stage?.name,
                 instanceId: stage.instances?.[0].id,
+                action: stage?.action,
                 deployToDevices: stage.deployToDevices || false
-            }
+            },
+            actionOptions: [
+                { value: 'create_snapshot', label: 'Create new snapshot' },
+                { value: 'use_latest_snapshot', label: 'Use latest instance snapshot' },
+                { value: 'prompt', label: 'Prompt to select snapshot' }
+            ]
         }
     },
     computed: {
@@ -141,11 +186,12 @@ export default {
             return (
                 this.input.name !== this.stage.name ||
                 this.input.instanceId !== this.stage.instances?.[0].id ||
+                this.input.action !== this.stage.action ||
                 this.input.deployToDevices !== this.stage.deployToDevices
             )
         },
         submitEnabled () {
-            return this.formDirty && this.input.instanceId && this.input.name
+            return this.formDirty && this.input.instanceId && this.input.name && this.input.action
         },
         instancesNotInUse () {
             const instanceIdsInUse = this.pipeline.stages.reduce((acc, stage) => {
