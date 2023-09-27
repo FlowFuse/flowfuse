@@ -34,18 +34,21 @@ module.exports = {
     sendDeviceUpdateCommand: async function (app, device) {
         if (app.comms) {
             let snapshotId = device.targetSnapshot?.hashid || null
+            const isApplicationOwned = device.ownerType === 'application' && device.Application?.id
             if (snapshotId) {
-                // device.targetSnapshot is a limited  view so we need to load the it from the db
-                // check it has an associated project and that it matches the device's project
-                const targetSnapshot = (await app.db.models.ProjectSnapshot.byId(snapshotId))
-                if (!targetSnapshot || !targetSnapshot.ProjectId || targetSnapshot.ProjectId !== device.ProjectId) {
-                    snapshotId = null // target snapshot is not associated with this project (possibly orphaned), set it to null
+                // device.targetSnapshot is a limited view so we need to load the it from the db
+                // If this device is owned by an instance, check it has an associated instance and that it matches the device's project
+                if (isApplicationOwned === false) {
+                    const targetSnapshot = (await app.db.models.ProjectSnapshot.byId(snapshotId))
+                    if (!targetSnapshot || !targetSnapshot.ProjectId || targetSnapshot.ProjectId !== device.ProjectId) {
+                        snapshotId = null // target snapshot is not associated with this project (possibly orphaned), set it to null
+                    }
                 }
             }
             const payload = {
                 ownerType: device.ownerType,
                 application: device.Application?.hashid || null,
-                project: device.Project?.id || null,
+                project: device.Project?.id,
                 snapshot: snapshotId,
                 settings: device.settingsHash || null,
                 mode: device.mode,
@@ -54,10 +57,11 @@ module.exports = {
             // if the device is assigned to an application but has no snapshot we need to send enough
             // info to start the device in application mode so that it can start node-red and
             // permit the user to generate new flows and submit a snapshot
-            if (device.ownerType === 'application' && device.Application?.hashid && payload.snapshot === null) {
+            if (isApplicationOwned) {
                 delete payload.project // exclude project property to avoid triggering the wrong kind of update
-                payload.application = device.Application?.hashid
-                payload.snapshot = '0' // '0' is temporary value to indicate that the device should start in application mode with starter flows
+                if (payload.snapshot === null) {
+                    payload.snapshot = '0' // '0' indicates that the application owned device should start with starter flows
+                }
             }
             app.comms.devices.sendCommand(device.Team.hashid, device.hashid, 'update', payload)
         }
@@ -89,8 +93,8 @@ module.exports = {
         let snapshotName
 
         if (device.ownerType === 'application') {
-            snapshotId = '0' // '0' is temporary value to indicate that the device should start in application mode with starter flows
-            snapshotName = 'None'
+            snapshotId = device.targetSnapshot ? device.targetSnapshot.hashid : '0' // '0' indicates that the device should start in application mode with starter flows
+            snapshotName = device.targetSnapshot ? device.targetSnapshot.name : 'None'
             result.push(makeVar('FF_APPLICATION_ID', device.Application?.hashid || ''))
             result.push(makeVar('FF_APPLICATION_NAME', device.Application?.name || ''))
         } else {

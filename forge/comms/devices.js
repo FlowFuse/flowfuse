@@ -66,6 +66,7 @@ class DeviceCommsHandler {
         if (status.id && status.status) {
             const deviceId = status.id
             const device = await this.app.db.models.Device.byId(deviceId)
+            const isApplicationOwned = device.ownerType === 'application' && device.Application?.id
             if (!device) {
                 // TODO: log invalid device
                 return
@@ -94,7 +95,7 @@ class DeviceCommsHandler {
                     if (payload.snapshot !== (targetSnapshot?.hashid || null)) {
                         // The Snapshot is incorrect
                         sendUpdateCommand = true
-                    } else if (targetSnapshot && payload.project !== (targetSnapshot?.ProjectId || null)) {
+                    } else if (targetSnapshot && !isApplicationOwned && payload.project !== (targetSnapshot?.ProjectId || null)) {
                         // The project the device is reporting it belongs to does not match the target Snapshot parent project
                         sendUpdateCommand = true
                     }

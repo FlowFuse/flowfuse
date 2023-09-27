@@ -339,6 +339,8 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         let sendDeviceUpdate = false
         const device = request.device
+        /** @type {import('../../auditLog/formatters').UpdatesCollection} */
+        const updates = new app.auditLog.formatters.UpdatesCollection()
         let assignToProject = null
         let assignToApplication = null
         let postOpAuditLogAction = null
@@ -366,8 +368,8 @@ module.exports = async function (app) {
                     // unassign from application
                     await device.setApplication(null)
                     await commonUpdates()
-                    await app.auditLog.Team.team.device.unassigned(request.session.User, null, request.device?.Team, oldApplication, request.device)
-                    await app.auditLog.Application.application.device.unassigned(request.session.User, null, oldApplication, request.device)
+                    await app.auditLog.Team.team.device.unassigned(request.session.User, null, device?.Team, oldApplication, device)
+                    await app.auditLog.Application.application.device.unassigned(request.session.User, null, oldApplication, device)
                 }
 
                 if (unassignInstance && device.Project) {
@@ -380,8 +382,8 @@ module.exports = async function (app) {
                     device.mode = 'autonomous'
                     await device.save()
 
-                    await app.auditLog.Team.team.device.unassigned(request.session.User, null, request.device?.Team, oldProject, request.device)
-                    await app.auditLog.Project.project.device.unassigned(request.session.User, null, oldProject, request.device)
+                    await app.auditLog.Team.team.device.unassigned(request.session.User, null, device?.Team, oldProject, device)
+                    await app.auditLog.Project.project.device.unassigned(request.session.User, null, oldProject, device)
                 }
             } else if (assignTo === 'instance') {
                 // ### Add device to instance ###
@@ -435,26 +437,40 @@ module.exports = async function (app) {
             }
         } else {
             // ### Modify device properties ###
-            let changed = false
-            const updates = new app.auditLog.formatters.UpdatesCollection()
+            if (request.body.targetSnapshot !== undefined && request.body.targetSnapshot !== device.targetSnapshotId) {
+                // get snapshot from db
+                const targetSnapshot = await app.db.models.ProjectSnapshot.byId(request.body.targetSnapshot)
+                if (!targetSnapshot) {
+                    reply.code(400).send({ code: 'invalid_snapshot', error: 'invalid snapshot' })
+                    return
+                }
+                // store original value for later audit log
+                const originalSnapshotId = device.targetSnapshotId
+
+                // Update the targetSnapshot of the device
+                await app.db.models.Device.update({ targetSnapshotId: targetSnapshot.id }, {
+                    where: {
+                        id: device.id
+                    }
+                })
+                await app.auditLog.Application.application.device.snapshot.deviceTargetSet(request.session.User, null, device.Application, device, targetSnapshot)
+                updates.push('targetSnapshotId', originalSnapshotId, device.targetSnapshotId)
+                sendDeviceUpdate = true
+            }
             if (request.body.name !== undefined && request.body.name !== device.name) {
                 updates.push('name', device.name, request.body.name)
                 device.name = request.body.name
                 sendDeviceUpdate = true
-                changed = true
             }
             if (request.body.type !== undefined && request.body.type !== device.type) {
                 updates.push('type', device.type, request.body.type)
                 device.type = request.body.type
                 sendDeviceUpdate = true
-                changed = true
-            }
-            if (changed) {
-                await app.auditLog.Team.team.device.updated(request.session.User, null, device.Team, request.device, updates)
             }
         }
-        await device.save()
 
+        // save and send update
+        await device.save()
         const updatedDevice = await app.db.models.Device.byId(device.id)
         if (sendDeviceUpdate) {
             await app.db.controllers.Device.sendDeviceUpdateCommand(updatedDevice)
@@ -471,6 +487,11 @@ module.exports = async function (app) {
             await app.auditLog.Application.application.device.assigned(request.session.User, null, assignToApplication, updatedDevice)
             break
         }
+        // fulfil team audit log updates
+        if (updates.length > 0) {
+            await app.auditLog.Team.team.device.updated(request.session.User, null, device.Team, device, updates)
+        }
+
         reply.send(app.db.views.Device.device(updatedDevice))
     })
 

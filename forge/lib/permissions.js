@@ -75,6 +75,7 @@ const Permissions = {
     'device:snapshot:list': { description: 'List Device Snapshots', role: Roles.Viewer },
     'device:snapshot:read': { description: 'View a Device Snapshot', role: Roles.Viewer },
     'device:snapshot:delete': { description: 'Delete Device Snapshot', role: Roles.Owner },
+    'device:snapshot:set-target': { description: 'Set Device Target Snapshot', role: Roles.Member },
 
     // Project Types
     'project-type:create': { description: 'Create a ProjectType', role: Roles.Admin },
