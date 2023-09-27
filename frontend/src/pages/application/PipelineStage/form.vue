@@ -53,11 +53,37 @@
         >
             <template #default>
                 Select Action
+                <InformationCircleIcon class="ff-icon ff-icon-sm text-gray-800 cursor-pointer hover:text-blue-700" @click="$refs['help-dialog'].show()" />
             </template>
             <template #description>
                 When this stage is pushed to the next, which action will be performed?
             </template>
         </FormRow>
+
+        <ff-dialog ref="help-dialog" class="ff-dialog-box--info" header="Snapshot Actions">
+            <template #default>
+                <div class="flex gap-8">
+                    <slot name="pictogram"><img src="../../../images/pictograms/snapshot_red.png"></slot>
+                    <div>
+                        <p>
+                            When a Pipeline stage is deployed from, the way the snapshot used to push the flows and settings can be configured.
+                        </p>
+                        <p>
+                            Create New Snapshot: Creates a new snapshot with the current time in the source stage and copies it to the target stage.
+                        </p>
+                        <p>
+                            Use Latest Instance Snapshot: Requires a snapshot to be manually created in the source stage, and will copy that to the target stage.
+                        </p>
+                        <p>
+                            Prompt to Select Snapshot: Will ask at deploy time, which snapshot from the source stage should be copied to the target.
+                        </p>
+                    </div>
+                </div>
+            </template>
+            <template #actions>
+                <ff-button @click="$refs['help-dialog'].close()">Close</ff-button>
+            </template>
+        </ff-dialog>
 
         <!-- Deploy to Devices -->
         <FormRow
@@ -98,7 +124,7 @@
 </template>
 
 <script>
-import { ChevronLeftIcon } from '@heroicons/vue/solid'
+import { InformationCircleIcon } from '@heroicons/vue/outline'
 
 import FormRow from '../../../components/FormRow.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
@@ -106,6 +132,7 @@ import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 export default {
     name: 'PipelineForm',
     components: {
+        InformationCircleIcon,
         SectionTopMenu,
         FormRow
     },
@@ -134,9 +161,6 @@ export default {
         const stage = this.stage
 
         return {
-            icons: {
-                chevronLeft: ChevronLeftIcon
-            },
             loading: {
                 create: false,
                 update: false
