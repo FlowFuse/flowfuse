@@ -191,7 +191,8 @@ export default {
 
             Alerts.emit(
                 messageParts.join(' '),
-                'confirmation'
+                'confirmation',
+                5000
             )
         },
 
