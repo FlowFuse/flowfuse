@@ -42,7 +42,8 @@
         "application.created": "Application Created",
         "application.updated": "Application Modified",
         "application.device.assigned": "Device Assigned to Application",
-        "application.device.unassigned": "Device Unassigned from Application"
+        "application.device.unassigned": "Device Unassigned from Application",
+        "application.device.snapshot.device-target-set": "Device Target Snapshot Set"
     },
     "project": {
         "project.created": "Instance Created",

@@ -168,6 +168,7 @@ const iconMap = {
         'project.device.assigned',
         'application.device.unassigned',
         'application.device.assigned',
+        'application.device.snapshot.device-target-set',
         'project.snapshot.device-target-set',
         'team.device.created',
         'team.device.deleted',

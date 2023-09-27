@@ -338,6 +338,11 @@
         <span v-if="!error && entry.body?.application">Device '{{ entry.body.device?.name }}' was unassigned from Application '{{ entry.body.application?.name }}'</span>
         <span v-else-if="!error">Application data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'application.device.snapshot.device-target-set'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.device && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been set as the target for Application owned device '{{ entry.body.device.name }}'.</span>
+        <span v-else-if="!error">Device data not found in audit entry.</span>
+    </template>
 
     <!-- Instance Events -->
     <template v-else-if="entry.event === 'project.created'">
