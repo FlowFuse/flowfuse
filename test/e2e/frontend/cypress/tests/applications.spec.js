@@ -9,7 +9,7 @@ describe('FlowForge - Applications', () => {
     })
 
     describe('can be created', () => {
-        it('without error', () => {
+        it('without error - including instance', () => {
             const ID = Math.random().toString(36).substring(2, 7)
             const APPLICATION_NAME = `new-application-${ID}`
             const APPLICATION_DESCRIPTION = `new-description-${ID}`
@@ -67,6 +67,42 @@ describe('FlowForge - Applications', () => {
                 // div.ff-application-list--app should have the app name and description
                 cy.get('div.ff-application-list--app').contains(APPLICATION_NAME)
                 cy.get('div.ff-application-list--app').contains(APPLICATION_DESCRIPTION)
+            })
+        })
+
+        it('without error', () => {
+            const ID = Math.random().toString(36).substring(2, 7)
+            const APPLICATION_NAME = `new-application-${ID}`
+            const APPLICATION_DESCRIPTION = `new-description-${ID}`
+
+            cy.request('GET', 'api/v1/teams').then((response) => {
+                const team = response.body.teams[0]
+
+                cy.visit(`/team/${team.slug}/applications/create`)
+
+                cy.intercept('POST', '/api/*/applications').as('createApplication')
+                cy.intercept('POST', '/api/*/projects').as('createInstance')
+                cy.intercept('GET', '/api/*/stacks*').as('loadStacks')
+                cy.get('[data-action="create-project"]').should('be.disabled')
+
+                cy.get('[data-form="project-name"] input').should('be.visible')
+
+                cy.get('[data-form="create-instance"] span.checkbox').click()
+
+                cy.get('[data-form="project-name"] input').should('not.exist')
+
+                cy.get('[data-form="application-name"] input').clear()
+                cy.get('[data-form="application-name"] input').type(APPLICATION_NAME)
+                cy.get('[data-form="application-description"] input').clear()
+                cy.get('[data-form="application-description"] input').type(APPLICATION_DESCRIPTION)
+
+                cy.get('[data-action="create-project"]').should('be.enabled').click()
+
+                cy.wait('@createApplication')
+
+                cy.contains(APPLICATION_NAME)
+
+                cy.url().should('include', '/application/')
             })
         })
 

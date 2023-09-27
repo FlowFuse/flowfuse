@@ -107,6 +107,9 @@ export default {
                 if (!this.applicationCreated) {
                     this.application = await this.createApplication(applicationFields)
                 }
+                if (!formData.createInstance) {
+                    this.$router.push({ name: 'Application', params: { id: this.application.id } })
+                }
             } catch (err) {
                 if (err.response.data?.error) {
                     Alerts.emit('Failed to create application: ' + err.response.data.error, 'warning', 7500)
@@ -118,25 +121,26 @@ export default {
                 this.loading = false
                 return
             }
+            if (formData.createInstance) {
+                try {
+                    const instance = await this.createProject(projectFields, copyParts)
 
-            try {
-                const instance = await this.createProject(projectFields, copyParts)
+                    await this.$store.dispatch('account/refreshTeam')
 
-                await this.$store.dispatch('account/refreshTeam')
+                    this.$router.push({ name: 'Instance', params: { id: instance.id } })
+                } catch (err) {
+                    this.projectDetails = projectFields
+                    if (err.response?.status === 409) {
+                        this.errors.name = err.response.data.error
+                    } else if (err.response?.status === 400) {
+                        Alerts.emit('Failed to create instance: ' + err.response.data.error, 'warning', 7500)
+                    } else {
+                        Alerts.emit('Failed to create instance')
+                        console.error(err)
+                    }
 
-                this.$router.push({ name: 'Instance', params: { id: instance.id } })
-            } catch (err) {
-                this.projectDetails = projectFields
-                if (err.response?.status === 409) {
-                    this.errors.name = err.response.data.error
-                } else if (err.response?.status === 400) {
-                    Alerts.emit('Failed to create instance: ' + err.response.data.error, 'warning', 7500)
-                } else {
-                    Alerts.emit('Failed to create instance')
-                    console.error(err)
+                    this.loading = false
                 }
-
-                this.loading = false
             }
         },
         createApplication (applicationDetails) {
