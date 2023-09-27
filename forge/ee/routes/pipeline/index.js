@@ -438,7 +438,35 @@ module.exports = async function (app) {
      * Approach depends on stage.action
      */
     app.put('/pipelines/:pipelineId/stages/:stageId/deploy', {
-        preHandler: app.needsPermission('pipeline:edit')
+        preHandler: app.needsPermission('pipeline:edit'),
+        schema: {
+            summary: 'Triggers a pipeline stage',
+            tags: ['Pipelines'],
+            params: {
+                type: 'object',
+                properties: {
+                    pipelineId: { type: 'string' },
+                    stageId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    sourceSnapshotId: { type: 'string', description: 'The snapshot to deploy if the stage action is set to "prompt"' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const user = request.session.User
 
