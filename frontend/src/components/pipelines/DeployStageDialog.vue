@@ -11,19 +11,25 @@
                 }}"?
             </p>
             <p class="my-4">
-                This will copy over all flows, nodes and credentials from "{{
-                    stage.name
-                }}".
+                This will
+                <template v-if="stage.action === 'create_snapshot'">
+                    create a new snapshot in "{{ stage.name }}" and
+                </template>
+                <template v-else-if="stage.action === 'use_latest_snapshot'">
+                    use the latest instance snapshot from "{{ stage.name }}" and
+                </template>
+                <template v-else-if="stage.action==='prompt'">
+                    use the snapshot selected below from "{{ stage.name }}" and
+                </template>
+                copy over all flows, nodes and credentials to "{{ target?.name }}".
             </p>
             <template v-if="target?.deployToDevices">
                 <p class="my-4">
-                    And push out the changes to all devices connected to "{{
-                        target?.name
-                    }}".
+                    And push out the changes to all devices connected to "{{ target?.name }}".
                 </p>
             </template>
             <p class="my-4">
-                It will also transfer the keys of any newly created Environment
+                It will also transfer the keys, but not the values, of any newly created Environment
                 Variables that your target instance does not currently have.
             </p>
 
@@ -31,9 +37,7 @@
                 <ff-loading v-if="loadingSnapshots" message="Loading stage Snapshots..." />
                 <form class="space-y-2" @submit.prevent="confirm">
                     <p>
-                        Please select the Snapshot that you wish to push to "{{
-                            target?.name
-                        }}":
+                        Please select the Snapshot from "{{ stage.name }}" that you wish to push to "{{ target?.name }}":
                     </p>
                     <FormRow data-form="snapshot" containerClass="w-full">
                         Source Snapshot
