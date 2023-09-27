@@ -66,16 +66,16 @@
                     <slot name="pictogram"><img src="../../../images/pictograms/snapshot_red.png"></slot>
                     <div>
                         <p>
-                            When a Pipeline stage is deployed from, the way the snapshot used to push the flows and settings can be configured.
+                            When a Pipeline stage is triggered an Instance Snapshot is deployed to the next stage. You can configure how this stage picks what snapshot to deploy.
                         </p>
                         <p>
-                            Create New Snapshot: Creates a new snapshot with the current time in the source stage and copies it to the target stage.
+                            Create New Snapshot: Creates a new snapshot using the current flows and settings.
                         </p>
                         <p>
-                            Use Latest Instance Snapshot: Requires a snapshot to be manually created in the source stage, and will copy that to the target stage.
+                            Use Latest Instance Snapshot: Uses the most recent existing snapshot of the instance. The deploy will fail if no snapshot exists.
                         </p>
                         <p>
-                            Prompt to Select Snapshot: Will ask at deploy time, which snapshot from the source stage should be copied to the target.
+                            Prompt to Select Snapshot: Will ask at deploy time, which snapshot from the source stage should be copied to the next stage.
                         </p>
                     </div>
                 </div>
