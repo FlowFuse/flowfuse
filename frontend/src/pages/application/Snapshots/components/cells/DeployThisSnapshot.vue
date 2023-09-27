@@ -1,5 +1,5 @@
 <template>
-    <ff-button class="deploy-this-snapshot-button" :disabled="disabled" @click="emitAction()">Deploy<span class="hidden sm:inline">&nbsp;Snapshot</span></ff-button>
+    <ff-button class="deploy-this-snapshot-button" :disabled="disabled" @click="onDeployClick(snapshotId)">Deploy<span class="hidden sm:inline">&nbsp;Snapshot</span></ff-button>
 </template>
 
 <script>
@@ -17,12 +17,10 @@ export default {
         disabled: {
             type: Boolean,
             default: false
-        }
-    },
-    emits: ['deploy-snapshot'],
-    methods: {
-        emitAction () {
-            this.$emit('deploy-snapshot', this.snapshotId, this.deviceId)
+        },
+        onDeployClick: {
+            type: Function,
+            default: () => {}
         }
     }
 }

@@ -171,6 +171,10 @@ const deleteSnapshot = async (deviceId, snapshotId) => {
     })
 }
 
+const setSnapshotAsTarget = async (deviceId, snapshotId) => {
+    return (await updateDevice(deviceId, { targetSnapshot: snapshotId }))
+}
+
 export default {
     create,
     getDevice,
@@ -187,5 +191,6 @@ export default {
     createSnapshot,
     getDeviceSnapshot,
     getDeviceSnapshots,
-    deleteSnapshot
+    deleteSnapshot,
+    setSnapshotAsTarget
 }
