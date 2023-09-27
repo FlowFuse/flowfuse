@@ -170,6 +170,7 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         try {
             const user = request.session.User
+            console.info('Request user is ', user)
             const deletedUser = {
                 id: user.id,
                 hashid: user.hashid,
@@ -184,6 +185,8 @@ module.exports = async function (app) {
             reply.clearCookie('sid')
             reply.send({ status: 'okay' })
         } catch (err) {
+            console.error('Error deleting user: ', err.toString(), err.stack, err)
+            app.log.error('Error deleting user: ', err.toString(), err.stack, err)
             const resp = { code: 'unexpected_error', error: err.toString() }
             await app.auditLog.User.user.deleted(request.session.User, resp, request.session.User)
             reply.code(400).send(resp)

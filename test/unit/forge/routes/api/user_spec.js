@@ -623,6 +623,7 @@ describe('User API', async function () {
             })
             response.statusCode.should.equal(400)
             const json = response.json()
+            console.log('JSON response', json)
             json.should.have.property('error', 'Error: Cannot delete the last owner of a team')
         })
         it('Non admin user who is a team member can delete own account', async function () {
