@@ -85,6 +85,8 @@ module.exports = {
                 }
             },
             beforeDestroy: async (user, opts) => {
+                console.info('beforeDestroy', user, opts)
+
                 // determine if this user is an admin whether they are the only admin
                 // throw an error if they are the only admin as we dont want to orphan platform
                 if (user.admin) {
