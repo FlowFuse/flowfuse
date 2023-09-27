@@ -58,6 +58,20 @@
                 <label>Status:</label>
                 <InstanceStatusBadge :status="stage.state" />
             </div>
+            <div class="ff-pipeline-stage-row">
+                <label>Deploy Action:</label>
+                <span>
+                    <template v-if="stage.action === 'create_snapshot'">
+                        Create new snapshot
+                    </template>
+                    <template v-else-if="stage.action === 'use_latest_snapshot'">
+                        Use latest instance snapshot
+                    </template>
+                    <template v-else-if="stage.action==='prompt'">
+                        Prompt to select snapshot
+                    </template>
+                </span>
+            </div>
         </div>
         <div v-else class="flex justify-center py-6">No Instances Bound</div>
         <DeployStageDialog
