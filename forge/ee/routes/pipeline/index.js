@@ -289,7 +289,7 @@ module.exports = async function (app) {
                 options
             )
         } catch (err) {
-            console.error(err)
+            app.log.error(err)
             return reply.status(500).send({ code: 'unexpected_error', error: err.toString() })
         }
         const instance = await app.db.models.Project.byId(instanceId)

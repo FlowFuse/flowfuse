@@ -133,8 +133,8 @@ module.exports.copySnapshot = async (
 
         let newCredentials
         if (!decryptAndReEncryptCredentialsSecret) {
-            console.warn(
-                'Assuming credentials are not encrypted as no decryptAndReEncryptCredentialsSecret was passed'
+            app.log.warn(
+                `Assuming credentials from snapshot ${name} (${snapshot.hashid}) are not encrypted as no decryptAndReEncryptCredentialsSecret was passed`
             )
             newCredentials = app.db.controllers.Project.exportCredentials(
                 oldCredentials,
