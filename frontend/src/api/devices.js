@@ -116,7 +116,8 @@ const createSnapshot = async (device, options) => {
         description: options.description, // description of the snapshot
         setAsTarget: options.setAsTarget // set the snapshot as the new target for all devices
     }
-    return client.post(`/api/v1/devices/${deviceId}/snapshots`, data).then(res => {
+    const url = ownerType === 'application' ? `/api/v1/devices/${deviceId}/snapshots` : `/api/v1/devices/${deviceId}/snapshot`
+    return client.post(url, data).then(res => {
         const props = {
             ownerType,
             ownerId: ownerType === 'instance' ? instanceId : applicationId,
