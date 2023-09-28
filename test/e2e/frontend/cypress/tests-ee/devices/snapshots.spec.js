@@ -56,10 +56,23 @@ describe('FlowForge - Devices - With Billing', () => {
     })
 
     it('allows for users to view all Snapshots for this Device from it\'s parent Application', () => {
+        let snapshots = 3
+
+        cy.intercept('/api/*/applications/*/snapshots', (req) => {
+            req.reply((response) => {
+                snapshots = response.body.count
+                return response
+            })
+        }).as('getDeviceSnapshots')
+
         cy.contains('span', 'application-device-a').click()
         cy.get('[data-nav="device-snapshots"]').click()
+
         cy.get('[data-form="device-only-snapshots"]').click()
-        cy.get('[data-el="empty-state"]').should('not.exist')
-        cy.get('[data-el="snapshots"] tbody').find('tr').should('have.length', 3)
+
+        cy.wait('@getDeviceSnapshots').then(() => {
+            cy.get('[data-el="empty-state"]').should('not.exist')
+            cy.get('[data-el="snapshots"] tbody').find('tr').should('have.length', snapshots)
+        })
     })
 })
