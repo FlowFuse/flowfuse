@@ -103,7 +103,7 @@ module.exports = {
                 for (const team of teams) {
                     const owners = await team.Team.getOwners()
                     console.info('owners', owners)
-                    const isOwner = owners.find((owner) => owner.id === user.id)
+                    const isOwner = owners.find((owner) => owner?.id === user.id)
                     // if this user is the only owner of this team, throw an error
                     if (isOwner && owners.length <= 1) {
                         throw new Error('Cannot delete the last owner of a team')
