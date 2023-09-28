@@ -260,7 +260,11 @@ module.exports = {
                         TeamId: this.id,
                         role: Roles.Owner
                     }
-                    return (await M.TeamMember.findAll({ where, include: M.User })).map(tm => tm.User)
+                    const owners = (await M.TeamMember.findAll({ where, include: M.User })).map(tm => tm.User)
+
+                    // There is a race condition (though it shouldn't happen) where a user, but not their membership, has been deleted
+                    // In this case the findAll above will return an array that includes null, this needs to be guarded against
+                    return owners.filter((owner) => owner !== null)
                 },
                 memberCount: async function (role) {
                     const where = {
