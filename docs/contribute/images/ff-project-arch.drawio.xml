@@ -23,7 +23,7 @@
         <mxCell id="DxYTIlkLGKt9Fb0Ll4yS-5" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="530" y="230" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="DxYTIlkLGKt9Fb0Ll4yS-6" value="FlowForge Platform API" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+        <mxCell id="DxYTIlkLGKt9Fb0Ll4yS-6" value="FlowFuse Platform API" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="300" y="180" width="210" height="30" as="geometry" />
         </mxCell>
         <mxCell id="DxYTIlkLGKt9Fb0Ll4yS-7" value="Projects" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
@@ -44,7 +44,7 @@
         <mxCell id="DxYTIlkLGKt9Fb0Ll4yS-12" value="" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="288" y="340" width="362" height="160" as="geometry" />
         </mxCell>
-        <mxCell id="DxYTIlkLGKt9Fb0Ll4yS-13" value="&lt;font style=&quot;font-size: 10px&quot;&gt;FlowForge nr-launcher&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+        <mxCell id="DxYTIlkLGKt9Fb0Ll4yS-13" value="&lt;font style=&quot;font-size: 10px&quot;&gt;FlowFuse nr-launcher&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="152.5" y="355" width="115" height="30" as="geometry" />
         </mxCell>
         <mxCell id="DxYTIlkLGKt9Fb0Ll4yS-14" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;fontSize=10;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="DxYTIlkLGKt9Fb0Ll4yS-11" target="DxYTIlkLGKt9Fb0Ll4yS-2">

@@ -46,4 +46,4 @@ node.
 
 ### GitHub
 
-The nodes are published under an Apache-2.0 license and available on [GitHub](https://github.com/flowforge/flowforge-nr-project-nodes).
+The nodes are published under an Apache-2.0 license and available on [GitHub](https://github.com/FlowFuse/flowforge-nr-project-nodes).

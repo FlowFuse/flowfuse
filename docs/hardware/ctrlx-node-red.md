@@ -8,7 +8,7 @@ Learn more about the Node-RED App in the [ctrlX World Store](https://developer.c
 
 ## Installation Procedure
 
-Follow these steps to install the Rexroth CtrlX App by FlowForge on your ctrlX device:
+Follow these steps to install the Rexroth CtrlX App by FlowFuse on your ctrlX device:
 
 1. In the ctrlX CORE web interface, navigate to the window **Settings** ➔ **Apps**.
 

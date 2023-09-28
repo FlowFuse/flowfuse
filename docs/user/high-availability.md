@@ -9,7 +9,7 @@ with incoming work distributed between them.
 
 The following requirements apply:
 
- - FlowForge/FlowFuse 1.8+ running with an EE license and the kubernetes driver
+ - FlowFuse 1.8+ running with an EE license and the kubernetes driver
  - FlowFuse Cloud
 
 Within FlowFuse Cloud it is currently free to use for all teams, but will
