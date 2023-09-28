@@ -209,7 +209,7 @@ forge:
 
 ## Upgrade
 
-As of FlowFuse v1.12.0 the URL used to host the helm chart changed, so in order to upgrade from a pervious 
+As of FlowFuse v1.12.0 the URL used to host the helm chart changed, so in order to upgrade from a previous 
 version you will need to update the repo.
 
  - Run `helm repo remove flowforge`
