@@ -17,7 +17,7 @@
                     <div class="space-x-6">
                         <DeviceLastSeenBadge :last-seen-at="device.lastSeenAt" :last-seen-ms="device.lastSeenMs" :last-seen-since="device.lastSeenSince" />
                         <StatusBadge :status="device.status" />
-                        <DeveloperModeBadge v-if="device.mode === 'developer'" />
+                        <DeveloperModeBadge v-if="isDevModeAvailable && device.mode === 'developer'" />
                     </div>
                 </template>
                 <template #context>
@@ -136,7 +136,7 @@ export default {
     },
     watch: {
         'device.mode': function () {
-            if (this.device.mode === 'developer') {
+            if (this.isDevModeAvailable && this.device.mode === 'developer') {
                 this.navigation.push({
                     label: 'Developer Mode',
                     to: `/device/${this.$route.params.id}/developer-mode`,

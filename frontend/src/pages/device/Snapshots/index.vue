@@ -15,7 +15,7 @@
     </div>
     <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Snapshots..." />
-        <template v-if="snapshots.length > 0">
+        <template v-if="features.deviceEditor && snapshots.length > 0">
             <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
                 <template v-if="hasPermission('device:snapshot:create')" #actions>
                     <ff-button kind="primary" data-action="create-snapshot" :disabled="!developerMode || busyMakingSnapshot" @click="showCreateSnapshotDialog"><template #icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
@@ -45,7 +45,7 @@
                     </p>
                 </template>
                 <template v-if="hasPermission('device:snapshot:create')" #actions>
-                    <ff-button kind="primary" :disabled="!developerMode || busyMakingSnapshot" data-action="create-snapshot" @click="showCreateSnapshotDialog">
+                    <ff-button kind="primary" :disabled="!developerMode || busyMakingSnapshot || !features.deviceEditor" data-action="create-snapshot" @click="showCreateSnapshotDialog">
                         <template #icon-left><PlusSmIcon /></template>Create Snapshot
                     </ff-button>
                 </template>
@@ -181,6 +181,9 @@ export default {
             return snapshot.device?.id === this.device.id
         },
         fetchData: async function () {
+            if (!this.features.deviceEditor) {
+                return
+            }
             if (this.device.id && this.device.application) {
                 this.loading = true
                 const ssFilter = {
