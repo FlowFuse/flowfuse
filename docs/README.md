@@ -39,7 +39,7 @@ Node-RED application development and delivery.
 ## How to get support?
 
 - [Troubleshooting](/docs/debugging/README.md)
-- [Community Support](https://community.flowforge.com/)
+- [Community Support](https://community.flowfuse.com/)
 - [FlowFuse Cloud Support](/docs/premium-support.md)
 
  ## Contributing to FlowFuse

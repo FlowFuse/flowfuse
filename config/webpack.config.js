@@ -1,12 +1,11 @@
-const HTMLWebpackPlugin = require('html-webpack-plugin')
+const path = require('path')
+
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
-const { VueLoaderPlugin } = require('vue-loader')
 const CopyPlugin = require('copy-webpack-plugin')
 const Dotenv = require('dotenv-webpack')
-
+const HTMLWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-
-const path = require('path')
+const { VueLoaderPlugin } = require('vue-loader')
 
 function getPath (file) {
     return path.resolve(__dirname, '..', file)
@@ -97,14 +96,14 @@ module.exports = {
         new VueLoaderPlugin(),
         new CleanWebpackPlugin(),
         new HTMLWebpackPlugin({
-            title: 'FlowForge',
+            title: 'FlowFuse',
             template: getPath('frontend/src/index.html'),
             favicon: getPath('frontend/public/favicon.ico'),
             filename: getPath('frontend/dist/index.html'),
             chunks: ['main']
         }),
         new HTMLWebpackPlugin({
-            title: 'FlowForge',
+            title: 'FlowFuse',
             template: getPath('frontend/src/setup.html'),
             favicon: getPath('frontend/public/favicon.ico'),
             filename: getPath('frontend/dist-setup/setup.html'),

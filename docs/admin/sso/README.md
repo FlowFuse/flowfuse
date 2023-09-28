@@ -4,7 +4,7 @@ navTitle: Administrator configuration for SSO
 
 # SAML Single-Sign On
 
-_This feature is only available on EE licensed instances of FlowForge._
+_This feature is only available on EE licensed instances of FlowFuse._
 
 FlowFuse allows users to sign in through their SAML identity provider, such
 as Google Workspace.
