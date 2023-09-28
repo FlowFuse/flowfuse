@@ -4,7 +4,7 @@ const setup = require('../setup')
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 
-describe('User API', async function () {
+describe.only('User API', async function () {
     let app
     const TestObjects = {}
 
