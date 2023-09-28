@@ -109,7 +109,7 @@
                     <template #note>
                         <p>
                             The FlowFuse team also have more planned for Applications, including
-                            <a class="ff-link" href="https://github.com/flowforge/flowforge/issues/1734" target="_blank">
+                            <a class="ff-link" href="https://github.com/FlowFuse/flowforge/issues/1734" target="_blank">
                                 shared settings across Instances</a>.
                         </p>
                     </template>

@@ -12,7 +12,7 @@ This will allow you to quickly spin up an AWS EC2 Machine with everything pre-in
 
 ### DNS
 
-To make use of the AWS Machine image you will need a DNS Domain to host both the FlowForge application and the Node-RED instances you create. 
+To make use of the AWS Machine image you will need a DNS Domain to host both the FlowFuse application and the Node-RED instances you create. 
 
 For example if you use `ff.example.com` then the FlowFuse application will run on `https://forge.ff.example.com` and Node-RED would be on `https://[instance-name].ff.example.com`.
 
@@ -54,12 +54,12 @@ Once logged in you will be presented with a wizard to set the domain and confirm
 
 ![Digital Ocean Wizard](../images/do-wizard.png)
 
-The wizard will then ask about setting up a SMTP server to allow FlowForge to send email. This used to invite users or reset passwords, 
+The wizard will then ask about setting up a SMTP server to allow FlowFuse to send email. This used to invite users or reset passwords, 
 it is optional.
 
 ![Digital Ocean Wizard SMTP](../images/do-wizard-smtp.png)
 
-The wizard will then update the configuration files and start FlowForge
+The wizard will then update the configuration files and start FlowFuse
 
 ![Digital Ocean Direct to Setup](../images/do-direct-to-setup.png)
 
@@ -72,4 +72,4 @@ Details of how to complete this steps are [here](../first-run.md)
 
 ## Upgrade
 
-You can follow the normal FlowForge Docker [upgrade instructions](./README.md#upgrade), the install directory is `/opt/flowforge` 
+You can follow the normal FlowFuse Docker [upgrade instructions](./README.md#upgrade), the install directory is `/opt/flowforge` 

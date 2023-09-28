@@ -78,7 +78,7 @@ This is a small application that handles downloading the Instance specific setti
 
 The launcher presents a HTTP API (it defaults to the Node-RED port + 1000) that allows the FlowFuse Management Application to start/stop/restart the Node-RED instance as well as query it's current state and retrieve the console logs.
 
-The launcher can be found [here](https://github.com/flowforge/flowforge-nr-launcher)
+The launcher can be found [here](https://github.com/FlowFuse/flowforge-nr-launcher)
 
 Within the launcher are some custom plugins that are loaded by Node-RED:
 
