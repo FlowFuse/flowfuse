@@ -140,6 +140,9 @@ module.exports = async function (settings = {}, config = {}) {
     await factory.createSnapshot({ name: 'snapshot 2' }, instanceWithDevices, userBob)
     await factory.createSnapshot({ name: 'snapshot 3' }, instanceWithDevices, userBob)
 
+    // create a device bound to an application directly
+    await factory.createDevice({ name: 'application-device-a', type: 'type2' }, team2, null, application2)
+
     forge.teams = [team1, team2]
     forge.projectTypes = [projectType, spareProjectType]
 

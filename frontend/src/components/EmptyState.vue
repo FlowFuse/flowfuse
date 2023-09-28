@@ -1,6 +1,6 @@
 <template>
     <div data-el="empty-state">
-        <FeatureUnavailable v-if="featureUnavailable" />
+        <FeatureUnavailable v-if="featureUnavailable" :message="featureUnavailableMessage" />
         <FeatureUnavailableToTeam v-if="featureUnavailableToTeam" />
         <div
             class="ff-empty-state" :class="{'ff-empty-state-feature-unavailable': featureUnavailable}"
@@ -38,6 +38,10 @@ export default {
         featureUnavailable: {
             type: Boolean,
             default: false
+        },
+        featureUnavailableMessage: {
+            type: String,
+            default: null
         },
         featureUnavailableToTeam: {
             type: Boolean,

@@ -17,7 +17,7 @@
                     <div class="space-x-6">
                         <DeviceLastSeenBadge :last-seen-at="device.lastSeenAt" :last-seen-ms="device.lastSeenMs" :last-seen-since="device.lastSeenSince" />
                         <StatusBadge :status="device.status" />
-                        <DeveloperModeBadge v-if="device.mode === 'developer'" />
+                        <DeveloperModeBadge v-if="isDevModeAvailable && device.mode === 'developer'" />
                     </div>
                 </template>
                 <template #context>
@@ -38,13 +38,13 @@
                                 <ExternalLinkIcon />
                             </span>
                         </a>
-                        <button v-else class="ff-btn ff-btn--secondary" disabled>
+                        <button v-else data-action="open-editor" class="ff-btn ff-btn--secondary" disabled>
                             Editor Disabled
                             <span class="ff-btn--icon ff-btn--icon-right">
                                 <ExternalLinkIcon />
                             </span>
                         </button>
-                        <DeveloperModeToggle :device="device" @mode-change="setDeviceMode" />
+                        <DeveloperModeToggle data-el="device-devmode-toggle" :device="device" @mode-change="setDeviceMode" />
                     </div>
                 </template>
             </SectionNavigationHeader>
@@ -136,7 +136,7 @@ export default {
     },
     watch: {
         'device.mode': function () {
-            if (this.device.mode === 'developer') {
+            if (this.isDevModeAvailable && this.device.mode === 'developer') {
                 this.navigation.push({
                     label: 'Developer Mode',
                     to: `/device/${this.$route.params.id}/developer-mode`,
@@ -171,7 +171,7 @@ export default {
                     icon: TerminalIcon
                 })
             }
-            if (this.device?.ownerType === 'application') {
+            if (this.device?.ownerType !== 'instance') {
                 this.navigation.splice(1, 0, {
                     label: 'Snapshots',
                     to: `/device/${this.$route.params.id}/snapshots`,
