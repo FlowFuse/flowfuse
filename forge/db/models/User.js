@@ -100,7 +100,11 @@ module.exports = {
                 const teams = await app.db.models.Team.forUser(user)
                 for (const team of teams) {
                     const owners = await team.Team.getOwners()
-                    const isOwner = owners.find((owner) => owner.id === user.id)
+                    const isOwner = owners.find((owner) => {
+                        // It's possible (though it shouldn't happen) for a user, but not their membership to have been deleted
+                        // In this case Team.getOwners() will return a null, so we need to guard for this
+                        return owner?.id === user.id
+                    })
                     // if this user is the only owner of this team, throw an error
                     if (isOwner && owners.length <= 1) {
                         throw new Error('Cannot delete the last owner of a team')
