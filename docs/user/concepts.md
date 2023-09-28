@@ -43,7 +43,7 @@ or how many members the team can have.
 
 ### Application
 
-**Introduced in FlowForge 1.5**
+**Introduced in FlowFuse 1.5**
 
 To organise your Node-RED instances, they are grouped with Applications.
 
@@ -52,7 +52,7 @@ With the 1.5 release, each Application has a single Node-RED instance. With the
 
 #### DevOps Pipeline
 
-**Introduced in FlowForge 1.8**
+**Introduced in FlowFuse 1.8**
 
 DevOps Pipelines allow you to manage staged development environments. Pushing
 from your Development instances to Production once you have stable, and well tested,
@@ -64,11 +64,11 @@ At FlowFuse, we make a distinction between `Instances` and `Devices` in our term
 
 ### Instance
 
-**This was called a Project before FlowForge 1.5**
+**This was called a Project before FlowFuse 1.5**
 
 Within your Application you can have one or more Instances of Node-RED.
 
-The Instance is a customised version of Node-RED that includes various FlowForge
+The Instance is a customised version of Node-RED that includes various FlowFuse
 plugins to integrate it with the platform.
 
 A number of the standard Node-RED settings are exposed for customisation, and they

@@ -81,7 +81,7 @@ Some features require the ability to send email to users. This can be currently 
 ### Download
 
 ```bash
-helm repo add flowforge https://flowforge.github.io/helm
+helm repo add flowforge https://flowfuse.github.io/helm
 helm repo update
 ```
 
@@ -145,7 +145,7 @@ forge:
   managementSelector:
 ```
 
-A full list of all the configurable values can be found in the [Helm Chart README](https://github.com/flowforge/helm/blob/main/helm/flowforge/README.md).
+A full list of all the configurable values can be found in the [Helm Chart README](https://github.com/FlowFuse/helm/blob/main/helm/flowforge/README.md).
 
 The install can then be started with the following command:
 
@@ -210,5 +210,5 @@ forge:
 ## Upgrade
 
 - Run `helm repo update flowforge` to pull the latest version
-- Check the [README.md](https://github.com/flowforge/helm/blob/main/helm/flowforge/README.md) for any new options to configure in `customization.yml`
+- Check the [README.md](https://github.com/FlowFuse/helm/blob/main/helm/flowforge/README.md) for any new options to configure in `customization.yml`
 - Run the `helm upgrade --install flowforge flowforge -f customization.yml`
