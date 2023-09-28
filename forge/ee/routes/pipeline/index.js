@@ -450,8 +450,7 @@ module.exports = async function (app) {
                 }
             },
             body: {
-                required: false,
-                type: 'object',
+                type: ['object', 'null'],
                 properties: {
                     sourceSnapshotId: { type: 'string', description: 'The snapshot to deploy if the stage action is set to "prompt"' }
                 }
