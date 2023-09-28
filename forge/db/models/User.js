@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * A User
  * @namespace forge.db.models.User
