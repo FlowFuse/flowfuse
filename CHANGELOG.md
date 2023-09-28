@@ -1,3 +1,9 @@
+#### 1.12.1: Release
+
+ - v1.12.0 helm upgrade doc (backport #2850) (#2851) @app/github-actions
+ - Fix URL for instance device snapshot (backport #2847) (#2849) @app/github-actions
+ - Fixup lots of FlowForge references (backport #2846) (#2848) @app/github-actions
+
 #### 1.12.0: Release
 
  - Add api docs to pipeline stage deploy end point (#2838) @knolleary
