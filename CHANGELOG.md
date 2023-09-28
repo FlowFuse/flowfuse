@@ -1,3 +1,91 @@
+#### 1.12.0: Release
+
+ - Add api docs to pipeline stage deploy end point (#2838) @knolleary
+ - Fix Tests: Guard against getOwners including a null (#2844) @Pezmc
+ - More robust check for Snapshot count in Device Snapshots E2E test (#2842) @joepavitt
+ - Add appropriate E2E Tests for Device Snapshots (#2831) @joepavitt
+ - Push Snapshots Though Devops Pipelines (#2818) @Pezmc
+ - Bump eslint from 8.49.0 to 8.50.0 (#2822) @app/dependabot
+ - Add option not to create NR instance when creating Application (#2836) @knolleary
+ - Include docker-compose version requirement (#2833) @hardillb
+ - Frontend for device owned snapshots (#2750) @Steve-Mcl
+ - Add backend support for device owned snapshots (#2738) @Steve-Mcl
+ - Add support for application audit log (#2819) @Steve-Mcl
+ - Bump @vitest/coverage-istanbul from 0.34.4 to 0.34.5 (#2823) @app/dependabot
+ - Bump @babel/core from 7.22.17 to 7.23.0 (#2824) @app/dependabot
+ - Bump eslint-plugin-cypress from 2.13.3 to 2.15.1 (#2825) @app/dependabot
+ - Bump @aws-sdk/credential-provider-node from 3.363.0 to 3.418.0 (#2821) @app/dependabot
+ - Fix test for pre-release versions (#2817) @hardillb
+ - Allow log output to be fully JSON formatted (#2815) @knolleary
+ - First Pass custom node catalogue (#2694) @hardillb
+ - Fix Main docs title (#2812) @hardillb
+ - Update deprecated api calls in fastify (#2808) @knolleary
+ - Bump fastify from 4.19.2 to 4.23.2 (#2777) @app/dependabot
+ - docs: How to duplicate instances to create devops pipelines (#2753) @ZJvandeWeg
+ - Enable concurrency for publish workflow (#2796) @ppawlowski
+ - Validate env vars on the backend (#2785) @hardillb
+ - Ensure content is cleared on selection change (#2789) @Steve-Mcl
+ - Use applications image instead of default (#2790) @Steve-Mcl
+ - Correctly render node-red event "nodes.remove" in audit log (#2791) @Steve-Mcl
+ - Chore: remove all eslint self-closing tag exceptions (#2788) @hardillb
+ - Clarify need for content-type to be set for api requests (#2786) @knolleary
+ - Chore: Remove all linting exceptions from admin pages (#2772) @knolleary
+ - Disable filestore by default (#2686) @hardillb
+ - Chore: Eslint team membership (#2783) @hardillb
+ - Bump sinon from 15.2.0 to 16.0.0 (#2778) @app/dependabot
+ - Bump @fastify/static from 6.11.0 to 6.11.2 (#2780) @app/dependabot
+ - Bump @headlessui/vue from 1.7.14 to 1.7.16 (#2781) @app/dependabot
+ - fix: Anchor tag broken in docs (#2775) @ZJvandeWeg
+ - Remove all linting exceptions from pages/account/* (#2769) @knolleary
+ - Publish nightly package to npmjs (#2773) @ppawlowski
+ - Introduce Enterprise license tier (#2757) @hardillb
+ - Chore: Remove eslint for pages/team/Settings/* (#2771) @hardillb
+ - Add TeamType option to disable email sending for Team Trial (#2766) @knolleary
+ - Update cypres (#2765) @hardillb
+ - Update FF Cloud billing description (#2767) @knolleary
+ - Update localfs to latest (#2762) @knolleary
+ - Add invoice proration option to TeamType (#2758) @knolleary
+ - Fix create TeamType dialog (#2743) @knolleary
+ - docs: settings is a tab, not a menu item (#2751) @ZJvandeWeg
+ - Allow admin to create application/instances (#2744) @knolleary
+ - Fix Admin Overview layout on small screens (#2747) @knolleary
+ - Remove vue/html-closing-bracket-spacing linting exceptions (#2745) @knolleary
+ - docs: "currently" support HTTPS for local (#2741) @ZJvandeWeg
+ - docs: LocalFS doesn't support HTTPS (#2739) @ZJvandeWeg
+ - Disable timers after unmount and fix instance log error (#2737) @Pezmc
+ - Bump @fastify/swagger-ui from 1.9.2 to 1.9.3 (#2662) @app/dependabot
+ - Bump axios from 1.4.0 to 1.5.0 (#2728) @app/dependabot
+ - Bump bcrypt from 5.1.0 to 5.1.1 (#2729) @app/dependabot
+ - Bump jsonwebtoken from 9.0.1 to 9.0.2 (#2730) @app/dependabot
+ - Bump @fastify/swagger from 8.9.0 to 8.10.0 (#2731) @app/dependabot
+ - Further Postgres memory limit increase (#2736) @Pezmc
+ - Pin reusable workflow to commit SHA (#2734) @ppawlowski
+ - Introduce ctrlX guides for docs (#2733) @MarianRaphael
+ - Snapshots: "extract full project snapshot" API (#2462) @elenaviter
+ - Devices Pagination: Coverage and fixes of devices search/filter/query (#2715) @Pezmc
+ - Do not add module to instance settings if error in audit event object (#2726) @knolleary
+ - Minor upgrades of all dev dependencies (#2717) @Pezmc
+ - Update sequelize (#2720) @Pezmc
+ - Update semver to avoid CVE (#2718) @Pezmc
+ - Add getting started guide (#2723) @MarianRaphael
+ - Move pg and fastify routes to runtime dependencies (#2716) @Pezmc
+ - Update websocket close codes to proper range (#2711) @knolleary
+ - Change default device command timeout to 10s (#2708) @knolleary
+ - Clean Home/Login/PasswordExpired (#2704) @hardillb
+ - CHORE: Lint fix for pages/setup/* (#2705) @hardillb
+ - Devices Browser Pagination (#2677) @Pezmc
+ - Chore: Update some of the attribute order lint (#2701) @hardillb
+ - Bump @fastify/cookie from 8.3.0 to 9.0.4 (#2660) @app/dependabot
+ - Remove require-explicit-emtis section from .eslintrc (#2700) @hardillb
+ - Bump vitest from 0.34.1 to 0.34.3 (#2695) @app/dependabot
+ - Bump @fastify/static from 6.10.2 to 6.11.0 (#2696) @app/dependabot
+ - Bump @fastify/swagger from 8.6.0 to 8.9.0 (#2697) @app/dependabot
+ - Disable scheduled package build (#2698) @ppawlowski
+ - Add logo with red text (#2693) @MarianRaphael
+ - Fix sending welcome email at start of new trial type (#2688) @knolleary
+ - Device Limit Banner Improvements (#2683) @Pezmc
+ - Fix links following docs restructuring (#2684) @knolleary
+
 #### 1.11.0: Release
 
  - Add banner to DeviceBrowser when device limit reached (#2670) @knolleary
