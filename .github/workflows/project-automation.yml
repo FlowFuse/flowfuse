@@ -5,6 +5,6 @@ on:
       - opened
 jobs:
   add_to_product_board:
-    uses: flowforge/.github/.github/workflows/project-automation.yml@main
+    uses: flowfuse/.github/.github/workflows/project-automation.yml@main
     secrets:
       token: ${{ secrets.PROJECT_ACCESS_TOKEN }}
