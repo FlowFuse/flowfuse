@@ -209,6 +209,14 @@ forge:
 
 ## Upgrade
 
+As of FlowFuse v1.12.0 the URL used to host the helm chart changed, so in order to upgrade from a previous 
+version you will need to update the repo.
+
+ - Run `helm repo remove flowforge`
+ - Run `helm repo add flowforge https://flowfuse.github.io/helm`
+
+ You can then run the following:
+
 - Run `helm repo update flowforge` to pull the latest version
 - Check the [README.md](https://github.com/FlowFuse/helm/blob/main/helm/flowforge/README.md) for any new options to configure in `customization.yml`
 - Run the `helm upgrade --install flowforge flowforge -f customization.yml`
