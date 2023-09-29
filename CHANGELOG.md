@@ -1,3 +1,7 @@
+#### 1.12.2: Release
+
+ - Fix Pipeline Issue where "Create New Snapshot" results in error (backport #2856) (#2858) @app/github-actions
+
 #### 1.12.1: Release
 
  - v1.12.0 helm upgrade doc (backport #2850) (#2851) @app/github-actions
