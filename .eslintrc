@@ -36,7 +36,7 @@
                 "ignoreDeclarationSort": true
             }
         ],
-        "no-console": ["error", { "allow": ["info", "warn", "error"] }],
+        "no-console": ["error", { "allow": ["debug", "info", "warn", "error"] }],
 
         // plugin:import
         "import/order": [

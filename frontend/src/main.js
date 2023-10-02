@@ -11,7 +11,9 @@ import SectionNavigationHeader from './components/SectionNavigationHeader.vue'
 import PageLayout from './layouts/Page.vue'
 import router from './routes.js'
 import Alerts from './services/alerts.js'
+import { setupSentry } from './services/error-tracking.js'
 import store from './store/index.js'
+
 import './index.css'
 
 import ForgeUIComponents from './ui-components/index.js'
@@ -20,6 +22,9 @@ const app = createApp(App)
     .use(ForgeUIComponents)
     .use(store)
     .use(router)
+
+// Error tracking
+setupSentry(app, router)
 
 // Globally available FF Components
 app.component('lottie-animation', LottieAnimation)

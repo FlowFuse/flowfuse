@@ -108,17 +108,19 @@ The FlowFuse UI can be configured to track usage to help understand how users ar
 It supports integration with two different services:
 
 - [PostHog](https://posthog.com/) _(recommended)_: You will require your own API key to pass into the `yml`, which will begin the logging of user interactions.
-- [Plausible](https://plausible.io/): _(deprecated since 0.9 and will be removed in the future)_: You can setup your own account, and pass the relevant domain to the `yml` in the telemetry configuration. As this
-option is deprecated, details of how to configure are no longer provided.
+- [Sentry](https://sentry.io/) _(recommended)_: You will need to specify your Sentry DSN for the frontend and back-end
+- [Plausible](https://plausible.io/): _(deprecated since 0.9 and will be removed in the future)_: You can setup your own account, and pass the relevant domain to the `yml` in the telemetry configuration. As this option is deprecated, details of how to configure are no longer provided.
 
 ### Configuring Telemetry
 
 Option        | Description
 --------------|------------
 `telemetry.enabled` | Enables the anonymous usage telemetry of the platform. Default: `true`
+`telemetry.backend.sentry.dsn` | The API key provided to you from your own sentry account. Default: `null`
 `telemetry.frontend.posthog.apikey` | The API key provided to you from your own PostHog account. Default: `null`
 `telemetry.frontend.posthog.capture_pageview` | FlowFuse is designed as to provide custom posthog `$pageview` events that provide more detail on navigation than the default, and suit a single page application better. As such, we recommend setting this to false in order to prevent duplicate `pageleave`/`pageview` events firing. Default: `true`
-
+`telemetry.frontend.sentry.dsn` | The API key provided to you from your own sentry account. Default: `null`
+`telemetry.frontend.sentry.production_mode` | Should this instance be treated as production (lower session count recorded). Default: `false`
 
 ```yaml
 telemetry:
@@ -127,4 +129,20 @@ telemetry:
     posthog:
       apikey: <api-key>
       capture_pageview: false
+    sentry:
+      dsn: <dsn-key>
+      production_mode: true
+  backend:
+    sentry:
+      dsn: <dsn-key>
+```
+#### Telemetry During Build
+
+Configure .env with the auth token, org and project name for the frontend project.
+
+```yaml
+# Used for BUILD time sentry reporting
+SENTRY_AUTH_TOKEN=
+SENTRY_ORG=
+SENTRY_PROJECT=
 ```
