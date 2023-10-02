@@ -69,6 +69,7 @@
         "@flowforge/localfs": "^1.12.0",
         "@headlessui/vue": "1.7.16",
         "@heroicons/vue": "1.0.6",
+        "@immobiliarelabs/fastify-sentry": "^7.1.1",
         "@node-saml/passport-saml": "^4.0.4",
         "@sentry/vue": "^7.72.0",
         "@sentry/webpack-plugin": "^2.7.1",

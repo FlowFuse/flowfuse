@@ -16,6 +16,8 @@ const postoffice = require('./postoffice')
 const routes = require('./routes')
 const settings = require('./settings')
 
+require('dotenv').config()
+
 // type defs for JSDoc and VSCode Intellisense
 
 /**
@@ -75,6 +77,15 @@ module.exports = async (options = {}) => {
         trustProxy: true,
         logger: loggerConfig
     })
+
+    if (config.telemetry.backend?.sentry?.dsn) {
+        server.register(require('@immobiliarelabs/fastify-sentry'), {
+            dsn: config.telemetry.backend.sentry.dsn,
+            environment: process.env.NODE_ENV,
+            release: `flowforge@${config.version}`
+        })
+    }
+
     server.addHook('onError', async (request, reply, error) => {
         // Useful for debugging when a route goes wrong
         // console.error(error.stack)
