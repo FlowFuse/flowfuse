@@ -58,7 +58,7 @@ Details of how to upgrade can be found for each deployment model:
 - [Docker](../install/docker/README.md#upgrade)
 - [Kubernetes](../install/kubernetes/README.md#upgrade)
 
-To enable the Team Library and FlowForge-based Authentication of HTTP routes each
+To enable the Team Library and FlowFuse-based Authentication of HTTP routes each
 Node-RED instance will need to be updated to the [latest Stack](../user/changestack.md).
 
 ### Upgrading to 1.2
@@ -75,7 +75,7 @@ The new Persistent Context feature is available to projects when running with a
 [premium license](./open-source-to-premium.md).
 
 This feature requires additional configuration to be added to the File Server component
-that was introduced in FlowForge 1.1.
+that was introduced in FlowFuse 1.1.
 
 Details of how to configure this can be found at the following links:
 

@@ -11,7 +11,7 @@
         <mxCell id="SbFxJDvEdPXgbU4HDMLh-2" value="" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="SbFxJDvEdPXgbU4HDMLh-1">
           <mxGeometry x="60" y="10" width="140" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="SbFxJDvEdPXgbU4HDMLh-3" value="FlowForge Platform" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="SbFxJDvEdPXgbU4HDMLh-1">
+        <mxCell id="SbFxJDvEdPXgbU4HDMLh-3" value="FlowFuse Platform" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="SbFxJDvEdPXgbU4HDMLh-1">
           <mxGeometry x="70" y="10" width="120" height="30" as="geometry" />
         </mxCell>
         <mxCell id="SbFxJDvEdPXgbU4HDMLh-4" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;rounded=0;" vertex="1" parent="SbFxJDvEdPXgbU4HDMLh-1">
@@ -107,7 +107,7 @@
         <mxCell id="SbFxJDvEdPXgbU4HDMLh-29" value="" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="SbFxJDvEdPXgbU4HDMLh-25">
           <mxGeometry x="20" y="95" width="90" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="SbFxJDvEdPXgbU4HDMLh-30" value="FlowForge" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="SbFxJDvEdPXgbU4HDMLh-25">
+        <mxCell id="SbFxJDvEdPXgbU4HDMLh-30" value="FlowFuse" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="SbFxJDvEdPXgbU4HDMLh-25">
           <mxGeometry x="32.5" y="105" width="65" height="45" as="geometry" />
         </mxCell>
         <mxCell id="SbFxJDvEdPXgbU4HDMLh-31" value="Database" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="SbFxJDvEdPXgbU4HDMLh-25">

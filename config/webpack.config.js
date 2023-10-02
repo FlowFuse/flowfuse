@@ -101,14 +101,14 @@ module.exports = function (env, argv) {
             new VueLoaderPlugin(),
             new CleanWebpackPlugin(),
             new HTMLWebpackPlugin({
-                title: 'FlowForge',
+                title: 'FlowFuse',
                 template: getPath('frontend/src/index.html'),
                 favicon: getPath('frontend/public/favicon.ico'),
                 filename: getPath('frontend/dist/index.html'),
                 chunks: ['main']
             }),
             new HTMLWebpackPlugin({
-                title: 'FlowForge',
+                title: 'FlowFuse',
                 template: getPath('frontend/src/setup.html'),
                 favicon: getPath('frontend/public/favicon.ico'),
                 filename: getPath('frontend/dist-setup/setup.html'),

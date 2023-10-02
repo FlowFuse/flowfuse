@@ -113,7 +113,7 @@ The first step is creating the systemd unit file for your service. You can start
 
 ```sudo nano /etc/systemd/system/flowforge-device-agent.service```
 
-The recommended content for the service file can be found here [this Github page](https://github.com/flowforge/flowforge-device-agent/blob/main/service/flowforge-device.service).
+The recommended content for the service file can be found here [this Github page](https://github.com/FlowFuse/device-agent/blob/main/service/flowforge-device.service).
 
 ### Starting the service on boot (optional)
 

@@ -2,17 +2,17 @@
     "name": "@flowforge/flowforge",
     "version": "1.12.0",
     "description": "An open source low-code development platform",
-    "homepage": "https://flowforge.com",
+    "homepage": "https://flowfuse.com",
     "bugs": {
-        "url": "https://github.com/flowforge/flowforge/issues"
+        "url": "https://github.com/FlowFuse/flowfuse/issues"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/flowforge/flowforge.git"
+        "url": "git+https://github.com/FlowFuse/flowfuse.git"
     },
     "license": "SEE LICENSE IN ./LICENSE",
     "author": {
-        "name": "FlowFlow Inc."
+        "name": "FlowFuse Inc."
     },
     "bin": {
         "ff-install-stack": "./scripts/install-stack.js",

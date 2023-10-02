@@ -49,7 +49,7 @@ Notes on how to setup DNS can be found [here](../dns-setup.md).
 
 Download the latest release tar.gz from the docker-compose project:
 
-[https://github.com/flowforge/docker-compose/releases/latest](https://github.com/flowforge/docker-compose/releases/latest)
+[https://github.com/FlowFuse/docker-compose/releases/latest](https://github.com/FlowFuse/docker-compose/releases/latest)
 
 Unpack this and cd into the created directory.	
 
@@ -218,7 +218,7 @@ fileStore:
    ```bash
    docker-compose -p flowforge down
    ```
-- Download the latest Source code tar.gz [here](https://github.com/flowforge/docker-compose/releases/latest/)
+- Download the latest Source code tar.gz [here](https://github.com/FlowFuse/docker-compose/releases/latest/)
 - Uncompress the tar file to a new directory
 - Pull the latest version of the containers from Docker hub
      - `docker pull flowforge/forge-docker`

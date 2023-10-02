@@ -149,7 +149,7 @@ export default {
             if (!target) {
                 Alerts.emit(
                     `Unable to find configured target for stage "${this.stage.name}".`,
-                    'error'
+                    'warning'
                 )
             }
 
@@ -179,9 +179,10 @@ export default {
             this.$emit('stage-deploy-starting')
 
             try {
-                await PipelineAPI.deployPipelineStage(this.pipeline.id, this.stage.id, sourceSnapshot.id)
+                // sourceSnapshot can be undefined if "create new snapshot" was chosen
+                await PipelineAPI.deployPipelineStage(this.pipeline.id, this.stage.id, sourceSnapshot?.id)
             } catch (error) {
-                Alerts.emit(error.message, 'error')
+                Alerts.emit(error.message, 'warning')
                 return
             }
 
