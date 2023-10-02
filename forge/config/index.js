@@ -132,7 +132,7 @@ module.exports = {
         app.log.info(`FlowFuse v${config.version}`)
         app.log.info(`FlowFuse running with NodeJS ${process.version}`)
         app.log.info(`FlowFuse Data Directory: ${process.env.FLOWFORGE_HOME}`)
-        if (!opts.config) {
+        if (config.configFile) {
             app.log.info(`Config File: ${config.configFile}`)
         }
         next()
