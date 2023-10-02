@@ -76,6 +76,7 @@ module.exports = {
             try {
                 const configFileContent = fs.readFileSync(configFile, 'utf-8')
                 config = YAML.parse(configFileContent)
+                config.configFile = configFile
             } catch (err) {
                 throw new Error(`Failed to read config file ${configFile}: ${err}`)
             }
@@ -131,7 +132,7 @@ module.exports = {
         app.log.info(`FlowFuse v${config.version}`)
         app.log.info(`FlowFuse running with NodeJS ${process.version}`)
         app.log.info(`FlowFuse Data Directory: ${process.env.FLOWFORGE_HOME}`)
-        if (!opts.config) {
+        if (config.configFile) {
             app.log.info(`Config File: ${config.configFile}`)
         }
         next()
