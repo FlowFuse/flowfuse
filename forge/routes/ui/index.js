@@ -65,8 +65,8 @@ module.exports = async function (app) {
               <!-- End of HubSpot Embed Code -->`
             }
 
-            if (telemetry.frontend.sentry.dsn) {
-                injection += `<script>window.sentryConfig = { dsn: "${telemetry.frontend.sentry.dsn}", production_mode: "${telemetry.frontend.sentry.production_mode}" }</script>`
+            if (telemetry.frontend?.sentry?.dsn) {
+                injection += `<script>window.sentryConfig = { dsn: "${telemetry.frontend.sentry.dsn}", production_mode: "${telemetry.frontend.sentry.production_mode ?? true}" }</script>`
             }
 
             // inject into index.html
