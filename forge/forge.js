@@ -78,11 +78,11 @@ module.exports = async (options = {}) => {
         logger: loggerConfig
     })
 
-    if (config.telemetry.backend?.sentry?.dsn) {
+    if (runtimeConfig.telemetry.backend?.sentry?.dsn) {
         server.register(require('@immobiliarelabs/fastify-sentry'), {
-            dsn: config.telemetry.backend.sentry.dsn,
+            dsn: runtimeConfig.telemetry.backend.sentry.dsn,
             environment: process.env.NODE_ENV,
-            release: `flowforge@${config.version}`
+            release: `flowforge@${runtimeConfig.version}`
         })
     }
 

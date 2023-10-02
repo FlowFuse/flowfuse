@@ -1,18 +1,17 @@
-export const setupSentry = async (app, router) => {
+import {
+    BrowserTracing,
+    Replay,
+    init,
+    vueRouterInstrumentation
+
+} from '@sentry/vue'
+
+export const setupSentry = (app, router) => {
     if (!window.sentryConfig) {
-        debugger
         return
     }
 
     const dsn = window.sentryConfig.dsn
-
-    const {
-        init,
-        BrowserTracing,
-        vueRouterInstrumentation,
-        Replay
-
-    } = await import('@sentry/vue')
 
     init({
         app,
@@ -20,7 +19,7 @@ export const setupSentry = async (app, router) => {
         integrations: [
             new BrowserTracing({
                 // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
-                tracePropagationTargets: ['127.0.0.1', /^https:\/\/forge.flowforge.dev\/api/, /^https:\/\/app.flowforge.com\//],
+                tracePropagationTargets: [/^https:\/\/forge.flowforge.dev\/api/, /^https:\/\/app.flowforge.com\//],
                 routingInstrumentation: vueRouterInstrumentation(router)
             }),
             new Replay()
@@ -31,6 +30,15 @@ export const setupSentry = async (app, router) => {
 
         // Session Replay
         replaysSessionSampleRate: window.sentryConfig.production ? 0.1 : 0.5,
-        replaysOnErrorSampleRate: 1.0
+        replaysOnErrorSampleRate: 1.0,
+
+        // Skip localhost reporting
+        beforeSend: (event) => {
+            if (['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+                console.debug('Would send Sentry event:', event)
+                return null
+            }
+            return event
+        }
     })
 }
