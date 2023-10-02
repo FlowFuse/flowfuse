@@ -65,6 +65,13 @@ module.exports = async function (app) {
               <!-- End of HubSpot Embed Code -->`
             }
 
+            if (telemetry.frontend.sentry.dsn) {
+                injection += `window.sentryConfig = {
+                    dsn: "${telemetry.frontend.sentry.dsn}"
+                    production_mode: "${telemetry.frontend.sentry.production_mode}"
+                }"";`
+            }
+
             // inject into index.html
             cachedIndex = data.replace(/<script>\/\*inject-ff-scripts\*\/<\/script>/g, injection)
         }
