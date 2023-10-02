@@ -32,14 +32,10 @@ Repository    | Description
 [FlowFuse](https://github.com/FlowFuse/flowforge) | This is the core of the platform.
 [forge-ui-components](https://github.com/FlowFuse/forge-ui-components) | Common UI components used in the forge platform.
 [installer](https://github.com/FlowFuse/installer) | The installer for the platform
-[flowforge-driver-localfs](https://github.com/FlowFuse/flowforge-driver-localfs) | The LocalFS driver. This deploys projects to the local system.
-[flowforge-driver-docker](https://github.com/FlowFuse/flowforge-driver-docker) | The Docker driver. This deploys projects as containers in a Docker-managed environment.
-[flowforge-driver-k8s](https://github.com/FlowFuse/flowforge-driver-k8s) | The Kubernetes driver. This deploys projects as containers in a Kubernetes-managed environment.
-[flowforge-nr-launcher](https://github.com/FlowFuse/flowforge-nr-launcher) | The launcher application used to start and monitor an individual instance of Node-RED in the FlowFuse platform.
-[flowforge-nr-audit-logger](https://github.com/FlowFuse/flowforge-nr-audit-logger) | A Node-RED logging plugin that captures audit log events and sends them back to the FlowFuse platform.
-[flowforge-nr-auth](https://github.com/FlowFuse/flowforge-nr-auth) | A Node-RED authentication plugin that controls access to a Node-RED instance based on FlowFuse access controls.
-[flowforge-nr-storage](https://github.com/FlowFuse/flowforge-nr-storage) | A Node-RED storage plugin that stores Node-RED state in the FlowFuse platform
-[flowforge-nr-theme](https://github.com/FlowFuse/flowforge-nr-theme) | A custom Node-RED theme
+[driver-localfs](https://github.com/FlowFuse/driver-localfs) | The LocalFS driver. This deploys projects to the local system.
+[driver-docker](https://github.com/FlowFuse/driver-docker) | The Docker driver. This deploys projects as containers in a Docker-managed environment.
+[driver-k8s](https://github.com/FlowFuse/driver-k8s) | The Kubernetes driver. This deploys projects as containers in a Kubernetes-managed environment.
+[nr-launcher](https://github.com/FlowFuse/nr-launcher) | The launcher application used to start and monitor an individual instance of Node-RED in the FlowFuse platform. This includes a number of Node-RED plugins used to integrate with the FlowFuse platform.
 
 ### Setting Up A Development Environment
 
