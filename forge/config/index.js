@@ -76,6 +76,7 @@ module.exports = {
             try {
                 const configFileContent = fs.readFileSync(configFile, 'utf-8')
                 config = YAML.parse(configFileContent)
+                config.configFile = configFile
             } catch (err) {
                 throw new Error(`Failed to read config file ${configFile}: ${err}`)
             }
