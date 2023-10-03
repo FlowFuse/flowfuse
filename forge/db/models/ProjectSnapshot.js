@@ -33,7 +33,7 @@ module.exports = {
         ownerType: {
             type: DataTypes.VIRTUAL,
             get () {
-                return this.Project?.id ? 'instance' : (this.Device?.hashid ? 'device' : null)
+                return this.ProjectId ? 'instance' : (this.DeviceId ? 'device' : null)
             }
         }
     },
