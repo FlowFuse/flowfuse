@@ -8,7 +8,7 @@
             </template>
             <template #tools>
                 <div class="space-x-2 flex align-center">
-                    <ff-checkbox v-model="showDeviceSnapshotsOnly" v-ff-tooltip:left="'Tick this to show snapshots from other devices and instances'" label="Show only Snapshots created by this device" />
+                    <ff-checkbox v-model="showDeviceSnapshotsOnly" v-ff-tooltip:left="'Untick this to show snapshots from other devices and instances within this application'" label="Show only Snapshots created by this device" />
                 </div>
             </template>
         </SectionTopMenu>
@@ -246,8 +246,8 @@ export default {
                 Alerts.emit('Oops, something went wrong! Please refresh the page and try again.', 'warning', 7500)
                 return
             }
-            const currentTargetSnapshot = this.device.targetSnapshot.id
-            if (currentTargetSnapshot === snapshot.id) {
+            const currentTargetSnapshot = this.device.targetSnapshot?.id
+            if (typeof currentTargetSnapshot === 'string' && currentTargetSnapshot === snapshot.id) {
                 Alerts.emit('This snapshot is already deployed to this device.', 'info', 7500)
                 return
             }
