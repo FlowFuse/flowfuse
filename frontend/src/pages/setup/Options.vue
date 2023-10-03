@@ -10,7 +10,7 @@
                 </p>
                 <p>
                     For more information about the data we collect and how it is used,
-                    please see our <a class="forge-link" href="https://github.com/flowforge/flowforge/tree/main/docs/admin/telemetry.md" target="_blank">Usage Data Collection Policy</a>
+                    please see our <a class="forge-link" href="https://github.com/FlowFuse/flowforge/tree/main/docs/admin/telemetry.md" target="_blank">Usage Data Collection Policy</a>
                 </p>
             </template>
         </FormRow>

@@ -6,6 +6,7 @@ module.exports = function (app) {
             id: { type: 'string' },
             name: { type: 'string' },
             instances: { type: 'array', items: { ref: 'InstanceSummaryList' } },
+            action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) },
             NextStageId: { type: 'string' }
         }
     })
@@ -15,6 +16,7 @@ module.exports = function (app) {
         const filtered = {
             id: result.hashid,
             name: result.name,
+            action: result.action,
             deployToDevices: result.deployToDevices
         }
 

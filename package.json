@@ -1,18 +1,18 @@
 {
     "name": "@flowforge/flowforge",
-    "version": "1.11.0",
+    "version": "1.12.0",
     "description": "An open source low-code development platform",
-    "homepage": "https://flowforge.com",
+    "homepage": "https://flowfuse.com",
     "bugs": {
-        "url": "https://github.com/flowforge/flowforge/issues"
+        "url": "https://github.com/FlowFuse/flowfuse/issues"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/flowforge/flowforge.git"
+        "url": "git+https://github.com/FlowFuse/flowfuse.git"
     },
     "license": "SEE LICENSE IN ./LICENSE",
     "author": {
-        "name": "FlowFlow Inc."
+        "name": "FlowFuse Inc."
     },
     "bin": {
         "ff-install-stack": "./scripts/install-stack.js",
@@ -66,13 +66,17 @@
         "@fastify/swagger": "^8.10.1",
         "@fastify/swagger-ui": "^1.9.0",
         "@fastify/websocket": "^8.1.0",
-        "@flowforge/localfs": "^1.11.1",
+        "@flowforge/localfs": "^1.12.0",
         "@headlessui/vue": "1.7.16",
         "@heroicons/vue": "1.0.6",
+        "@immobiliarelabs/fastify-sentry": "^7.1.1",
         "@node-saml/passport-saml": "^4.0.4",
+        "@sentry/vue": "^7.72.0",
+        "@sentry/webpack-plugin": "^2.7.1",
         "axios": "^1.4.0",
         "bcrypt": "^5.1.0",
         "cronosjs": "^1.7.1",
+        "dotenv": "^16.3.1",
         "fastify": "^4.18.0",
         "fastify-plugin": "^4.5.0",
         "handlebars": "^4.7.7",

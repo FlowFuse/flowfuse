@@ -4,18 +4,18 @@
             <template #helptext>
                 <p>Snapshots generate a point-in-time backup of your Node-RED flow, credentials and runtime settings.</p>
                 <p>Snapshots are also required for deploying to devices. In the Deployments page of a Project, you can define your “Target Snapshot”, which will then be deployed to all connected devices.</p>
-                <p>You can also generate Snapshots directly from any instance of Node-RED using the <a target="_blank" href="https://github.com/flowforge/flowforge-nr-tools-plugin">FlowFuse NR Tools Plugin.</a></p>
+                <p>You can also generate Snapshots directly from any instance of Node-RED using the <a target="_blank" href="https://github.com/FlowFuse/flowforge-nr-tools-plugin">FlowFuse NR Tools Plugin.</a></p>
             </template>
             <template #tools>
                 <div class="space-x-2 flex align-center">
-                    <ff-checkbox v-model="showDeviceSnapshotsOnly" v-ff-tooltip:left="'Untick this to show snapshots from other devices and instances within this application'" label="Show only Snapshots created by this device" />
+                    <ff-checkbox v-model="showDeviceSnapshotsOnly" v-ff-tooltip:left="'Untick this to show snapshots from other devices and instances within this application'" data-form="device-only-snapshots" label="Show only Snapshots created by this device" />
                 </div>
             </template>
         </SectionTopMenu>
     </div>
     <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Snapshots..." />
-        <template v-if="snapshots.length > 0">
+        <template v-if="features.deviceEditor && snapshots.length > 0">
             <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
                 <template v-if="hasPermission('device:snapshot:create')" #actions>
                     <ff-button kind="primary" data-action="create-snapshot" :disabled="!developerMode || busyMakingSnapshot" @click="showCreateSnapshotDialog"><template #icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
@@ -27,7 +27,7 @@
             </ff-data-table>
         </template>
         <template v-else-if="!loading">
-            <EmptyState>
+            <EmptyState :feature-unavailable="!features.deviceEditor" :feature-unavailable-message="'This requires Developer Mode on Devices, which a FlowFuse Premium Feature'">
                 <template #img>
                     <img src="../../../images/empty-states/instance-snapshots.png">
                 </template>
@@ -37,12 +37,15 @@
                         Snapshots are point-in-time backups of your Node-RED Instances
                         and capture the flows, credentials and runtime settings.
                     </p>
-                    <p v-if="!developerMode" class="block">
+                    <p v-if="device.ownerType !== 'application'" class="block">
+                        A device must first be <a class="ff-link" href="https://flowfuse.com/docs/device-agent/register/#assign-the-device-to-an-application" target="_blank" rel="noreferrer">assigned to an Application</a>, in order to create snapshots.
+                    </p>
+                    <p v-else-if="!developerMode" class="block">
                         A device must be in developer mode and online to create a snapshot.
                     </p>
                 </template>
                 <template v-if="hasPermission('device:snapshot:create')" #actions>
-                    <ff-button kind="primary" :disabled="!developerMode || busyMakingSnapshot" data-action="create-snapshot" @click="showCreateSnapshotDialog">
+                    <ff-button kind="primary" :disabled="!developerMode || busyMakingSnapshot || !features.deviceEditor" data-action="create-snapshot" @click="showCreateSnapshotDialog">
                         <template #icon-left><PlusSmIcon /></template>Create Snapshot
                     </ff-button>
                 </template>
@@ -100,7 +103,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
+        ...mapState('account', ['teamMembership', 'features']),
         showContextMenu: function () {
             return this.hasPermission('device:snapshot:delete')
         },
@@ -177,6 +180,9 @@ export default {
             return snapshot.device?.id === this.device.id
         },
         fetchData: async function () {
+            if (!this.features.deviceEditor) {
+                return
+            }
             if (this.device.id && this.device.application) {
                 this.loading = true
                 const ssFilter = {

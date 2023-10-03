@@ -8,6 +8,7 @@
             :instances="instances"
             :pipeline="pipeline"
             :stage="stage"
+            :sourceStage="$route.query.sourceStage"
             @submit="update"
         />
     </main>
@@ -70,7 +71,8 @@ export default {
             const options = {
                 name: input.name,
                 instanceId: input.instanceId,
-                deployToDevices: input.deployToDevices
+                deployToDevices: input.deployToDevices,
+                action: input.action
             }
 
             await PipelinesAPI.updatePipelineStage(this.pipeline.id, this.stage.id, options)

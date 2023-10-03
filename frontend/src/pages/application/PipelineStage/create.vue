@@ -55,7 +55,8 @@ export default {
             const options = {
                 name: input.name,
                 instanceId: input.instanceId,
-                deployToDevices: input.deployToDevices
+                deployToDevices: input.deployToDevices,
+                action: input.action
             }
             if (this.$route.query.sourceStage) {
                 options.source = this.$route.query.sourceStage

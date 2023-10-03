@@ -1,5 +1,5 @@
 <template>
-    <div v-if="stage" class="ff-pipeline-stage">
+    <div v-if="stage" class="ff-pipeline-stage" data-el="ff-pipeline-stage">
         <div class="ff-pipeline-stage-banner">
             <label>{{ stage.name }}</label>
             <div class="ff-pipeline-actions">
@@ -58,8 +58,27 @@
                 <label>Status:</label>
                 <InstanceStatusBadge :status="stage.state" />
             </div>
+            <div v-if="playEnabled" class="ff-pipeline-stage-row">
+                <label>Deploy Action:</label>
+                <span>
+                    <template v-if="stage.action === 'create_snapshot'">
+                        Create new snapshot
+                    </template>
+                    <template v-else-if="stage.action === 'use_latest_snapshot'">
+                        Use latest instance snapshot
+                    </template>
+                    <template v-else-if="stage.action==='prompt'">
+                        Prompt to select snapshot
+                    </template>
+                </span>
+            </div>
         </div>
         <div v-else class="flex justify-center py-6">No Instances Bound</div>
+        <DeployStageDialog
+            ref="deployStageDialog"
+            :stage="stage"
+            @deploy-stage="deployStage"
+        />
     </div>
     <div v-else class="ff-pipeline-stage ff-pipeline-stage-ghost" data-action="add-stage">
         <PlusCircleIcon class="ff-icon ff-icon-lg" />
@@ -79,10 +98,13 @@ import Dialog from '../../services/dialog.js'
 
 import SpinnerIcon from '../icons/Spinner.js'
 
+import DeployStageDialog from './DeployStageDialog.vue'
+
 export default {
     name: 'PipelineStage',
     components: {
         InstanceStatusBadge,
+        DeployStageDialog,
         PencilAltIcon,
         PlayIcon,
         PlusCircleIcon,
@@ -127,38 +149,14 @@ export default {
             if (!target) {
                 Alerts.emit(
                     `Unable to find configured target for stage "${this.stage.name}".`,
-                    'error'
+                    'warning'
                 )
             }
 
-            const msg = {
-                header: `Push to "${target.name}"`,
-                html: `
-                    <p>Are you sure you want to push from "${this.stage.name}" to "${target.name}"?</p>
-                    <p>This will copy over all flows, nodes and credentials from "${this.stage.name}".</p>
-                    ${target.deployToDevices ? `<p>And push out the changes to all devices connected to "${target.name}".</p>` : ''}
-                    <p>It will also transfer the keys of any newly created Environment Variables that your target instance does not currently have.</p>`
-            }
-
-            Dialog.show(msg, async () => {
-                this.$emit('stage-deploy-starting')
-
-                try {
-                    await PipelineAPI.deployPipelineStage(this.pipeline.id, this.stage.id)
-                } catch (error) {
-                    Alerts.emit(error.message, 'error')
-                    return
-                }
-
-                this.$emit('stage-deploy-started')
-                Alerts.emit(
-                    `Deployment from "${this.stage.name}" to "${target.name}"${target.deployToDevices ? ', and all its devices, ' : ''} has started.`,
-                    'confirmation'
-                )
-            })
+            this.$refs.deployStageDialog.show(target)
         },
         edit () {
-            this.$router.push({
+            const route = {
                 name: 'EditPipelineStage',
                 params: {
                     // url params
@@ -166,7 +164,45 @@ export default {
                     pipelineId: this.pipeline.id,
                     stageId: this.stage.id
                 }
-            })
+            }
+
+            if (this.pipeline.stages.length > 0 && this.pipeline.stages.indexOf(this.stage) > 0) {
+                route.query = {
+                    sourceStage: this.pipeline.stages[this.pipeline.stages.indexOf(this.stage)].id
+                }
+            }
+
+            this.$router.push(route)
+        },
+
+        async deployStage (target, sourceSnapshot) {
+            this.$emit('stage-deploy-starting')
+
+            try {
+                // sourceSnapshot can be undefined if "create new snapshot" was chosen
+                await PipelineAPI.deployPipelineStage(this.pipeline.id, this.stage.id, sourceSnapshot?.id)
+            } catch (error) {
+                Alerts.emit(error.message, 'warning')
+                return
+            }
+
+            this.$emit('stage-deploy-started')
+
+            const messageParts = ['Deployment']
+            if (sourceSnapshot) {
+                messageParts.push(`of snapshot "${sourceSnapshot.name}"`)
+            }
+            messageParts.push(`from "${this.stage.name}" to "${target.name}"`)
+            if (target.deployToDevices) {
+                messageParts.push(', and all its devices')
+            }
+            messageParts.push('has started.')
+
+            Alerts.emit(
+                messageParts.join(' '),
+                'confirmation',
+                5000
+            )
         },
 
         deleteStage () {
