@@ -134,11 +134,10 @@ module.exports = {
      * Export specific snapshot.
      * @param {*} app
      * @param {*} project project-originator of this snapshot
-     * @snapshot {*} snapshot snapshot object to export
-     * @options {*} options.
-     * Must include: credentialSecret.
-     * Optional: credentials of the target Project (either encrypted or raw).
-     * If not given, credentials of the current project will be re-encrypted, with credentialSecret.
+     * @param {*} snapshot snapshot object to export
+     * @param {Object} options
+     * @param {String} options.credentialSecret secret to encrypt credentials with
+     * @param {Object} [options.credentials] (Optional) credentials to export. If omitted, credentials of the current project will be re-encrypted, with credentialSecret.
      */
     exportSnapshot: async function (app, project, snapshot, options) {
         let snapshotObj = snapshot.get()
