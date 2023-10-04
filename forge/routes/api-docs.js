@@ -126,6 +126,7 @@ module.exports = fp(async function (app, opts, done) {
         properties: {
             code: { type: 'string' },
             error: { type: 'string' },
+            message: { type: 'string' },
             errors: { type: 'array', items: { type: 'object', additionalProperties: true } }
         }
     })

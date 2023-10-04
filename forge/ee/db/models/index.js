@@ -9,7 +9,8 @@ const modelTypes = [
     'UserBillingCode',
     'Pipeline',
     'PipelineStage',
-    'PipelineStageInstance'
+    'PipelineStageInstance',
+    'FlowTemplate'
 ]
 
 async function init (app) {

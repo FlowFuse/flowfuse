@@ -20,14 +20,6 @@ const Users = require('./users.js')
 
 module.exports = async function (app) {
     app.addHook('preHandler', app.verifySession)
-    app.decorate('getPaginationOptions', (request, defaults) => {
-        const result = { ...defaults, ...request.query }
-        if (result.query) {
-            result.query = result.query.trim()
-        }
-        return result
-    })
-
     app.register(Settings, { prefix: '/settings' })
     app.register(Admin, { prefix: '/admin' })
     app.register(User, { prefix: '/user' })

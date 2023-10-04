@@ -12,6 +12,14 @@
  */
 const fp = require('fastify-plugin')
 module.exports = fp(async function (app, opts, done) {
+    app.decorate('getPaginationOptions', (request, defaults) => {
+        const result = { ...defaults, ...request.query }
+        if (result.query) {
+            result.query = result.query.trim()
+        }
+        return result
+    })
+
     await app.register(require('./api-docs'))
     await app.register(require('@fastify/websocket'))
     await app.register(require('./auth'), { logLevel: app.config.logging.http })
