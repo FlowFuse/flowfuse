@@ -10,7 +10,7 @@
                     </template>
                 </FormRow>
                 <FormRow v-if="showSetAsTarget" v-model="input.setAsTarget" type="checkbox" data-form="snapshot-name">
-                    <span v-ff-tooltip:right="'If checked, all devices assigned to this instance will be restarted on this snapshot.'" class="">
+                    <span v-ff-tooltip:right="setAsTargetToolTip" class="">
                         Set as Target <QuestionMarkCircleIcon class="ff-icon" style="margin: 0px 0px 0px 4px; height: 18px;" />
                     </span>
                 </FormRow>
@@ -71,11 +71,16 @@ export default {
         }
     },
     computed: {
-        instance () {
-            return this.device?.instance
-        },
         formValid () {
             return !this.submitted && !!(this.input.name)
+        },
+        setAsTargetToolTip () {
+            if (this.device?.ownerType === 'application') {
+                // for an application owned device:
+                return 'If checked, the device will load this as its active snapshot at the next check-in'
+            }
+            // for default (instance owned device)
+            return 'If checked, all devices assigned to this instance will be restarted on this snapshot.'
         }
     },
     mounted () {
@@ -86,7 +91,8 @@ export default {
                 this.submitted = true
                 const opts = {
                     name: this.input.name,
-                    description: this.input.description
+                    description: this.input.description,
+                    setAsTarget: this.input.setAsTarget
                 }
                 if (this.showSetAsTarget) {
                     opts.setAsTarget = this.input.setAsTarget

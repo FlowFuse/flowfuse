@@ -51,7 +51,7 @@
                 </template>
             </EmptyState>
         </template>
-        <SnapshotCreateDialog ref="snapshotCreateDialog" title="Create Device Snapshot" data-el="dialog-create-device-snapshot" :show-set-as-target="false" :device="device" @device-upload-success="onSnapshotCreated" @device-upload-failed="onSnapshotFailed" @canceled="onSnapshotCancel" />
+        <SnapshotCreateDialog ref="snapshotCreateDialog" title="Create Device Snapshot" data-el="dialog-create-device-snapshot" :show-set-as-target="true" :device="device" @device-upload-success="onSnapshotCreated" @device-upload-failed="onSnapshotFailed" @canceled="onSnapshotCancel" />
     </div>
 </template>
 
