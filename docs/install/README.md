@@ -1,8 +1,6 @@
 ---
 navGroup: FlowFuse Self-Hosted
 navTitle: Installing FlowFuse
-redirect:
-  to: /docs/install/introduction
-layout: redirect
+redirect: /docs/install/introduction
 navOrder: 1
 ---
