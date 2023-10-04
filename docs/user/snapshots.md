@@ -43,15 +43,28 @@ Snapshots are used to identify a version of the Node-RED instance that should be
 out to any connected devices. This allows you to develop you flows in FlowFuse
 and only push out to the devices when it is ready.
 
-To set the **Device Target**:
+### Instance owned devices
+To set the **Device Target** of an instance owned device:
 
-1. Go to the instance's page and select **Snapshots** in the sidebar.
+1. Go to the instance's page and select the **Snapshots** tab.
 2. Open the dropdown menu to the right of the snapshot you want to set as the
    device target and select the **Set as Device Target** option.
 3. You will be asked to confirm - click **Set Target** to continue.
 
 This will cause the snapshot to be pushed out to any connected devices the
-next time they check in.
+next time it checks in.
+
+### Application owned devices
+To set the **Device Target** of an application owned device:
+
+1. Go to the devices's page and select the **Snapshots** tab.
+2. In the list of snapshots available, a "Deploy Snapshot" button will be displayed
+   for each snapshot as you hover over it.
+3. You will be asked to confirm - click **Set Target** to continue.
+
+This will cause the snapshot to be pushed out to the device the
+next time it checks in.
+
 
 ## Creating a Snapshot from a device
 
