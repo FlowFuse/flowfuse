@@ -38,7 +38,7 @@
                                 <ExternalLinkIcon />
                             </span>
                         </a>
-                        <button v-else data-action="open-editor" class="ff-btn ff-btn--secondary" disabled>
+                        <button v-else v-ff-tooltip:left="developerMode ? 'Please enable \'Editor Access\' in the \'Developer Mode\' tab' : '\'Developer Mode\' must be enabled'" data-action="open-editor" class="ff-btn ff-btn--secondary" disabled>
                             Editor Disabled
                             <span class="ff-btn--icon ff-btn--icon-right">
                                 <ExternalLinkIcon />
