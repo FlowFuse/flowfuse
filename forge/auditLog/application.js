@@ -23,6 +23,12 @@ module.exports = {
                     await log('application.device.assigned', actionedBy, application?.id, generateBody({ error, application, device }))
                 },
                 snapshot: {
+                    async created (actionedBy, error, application, device, snapshot) {
+                        await log('application.device.snapshot.created', actionedBy, application?.id, generateBody({ error, device, snapshot }))
+                    },
+                    async deleted (actionedBy, error, application, device, snapshot) {
+                        await log('application.device.snapshot.deleted', actionedBy, application?.id, generateBody({ error, device, snapshot }))
+                    },
                     async deviceTargetSet (actionedBy, error, application, device, snapshot) {
                         await log('application.device.snapshot.device-target-set', actionedBy, application?.id, generateBody({ error, device, snapshot }))
                     }
