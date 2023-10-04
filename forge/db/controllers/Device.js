@@ -48,7 +48,7 @@ module.exports = {
             const payload = {
                 ownerType: device.ownerType,
                 application: device.Application?.hashid || null,
-                project: device.Project?.id,
+                project: device.Project?.id || null,
                 snapshot: snapshotId,
                 settings: device.settingsHash || null,
                 mode: device.mode,
@@ -58,10 +58,12 @@ module.exports = {
             // info to start the device in application mode so that it can start node-red and
             // permit the user to generate new flows and submit a snapshot
             if (isApplicationOwned) {
-                delete payload.project // exclude project property to avoid triggering the wrong kind of update
+                delete payload.project // exclude project property to avoid triggering the wrong kind of update on the device
                 if (payload.snapshot === null) {
                     payload.snapshot = '0' // '0' indicates that the application owned device should start with starter flows
                 }
+            } else {
+                delete payload.application // exclude application property to avoid triggering the wrong kind of update on the device
             }
             app.comms.devices.sendCommand(device.Team.hashid, device.hashid, 'update', payload)
         }
