@@ -166,7 +166,7 @@ describe('Device controller', function () {
         afterEach(async function () {
             sinon.restore()
         })
-        it('sends update command to device', async function () {
+        it('sends update command to an instance owned device', async function () {
             const snapshot = await snapshotServices.createSnapshot(app, TestObjects.project, TestObjects.alice, {
                 name: 'snapshot 1',
                 description: 'snapshot 1 description',
@@ -203,6 +203,52 @@ describe('Device controller', function () {
             args[3].should.have.a.property('settings')
             args[3].should.have.a.property('licensed')
         })
+        it('can send a snapshot from an instance to an application owned device', async function () {
+            // create a new project with snapshot, assign to application owned device
+            const instance = await factory.createInstance(
+                { name: 'project3' },
+                TestObjects.application,
+                TestObjects.stack,
+                TestObjects.template,
+                TestObjects.projectType,
+                { start: false }
+            )
+
+            const snapshot = await snapshotServices.createSnapshot(app, instance, TestObjects.alice, {
+                name: 'instance 3 snapshot 1',
+                description: 'snapshot 1 on instance 3',
+                setAsTarget: true
+            })
+            await instance.reload()
+
+            // create a new application owned device
+            const newDevice = await factory.createDevice({ name: 'device2', type: 'type1' }, TestObjects.team, null, TestObjects.application)
+
+            // set the snapshot as the target snapshot on the project
+            await newDevice.setTargetSnapshot(snapshot)
+
+            // stub app.comms.devices.sendCommand so we can see what it was called with
+            /** @type {DeviceCommsHandler} */
+            const commsHandler = app.comms.devices
+            sinon.stub(commsHandler, 'sendCommand').resolves()
+
+            // load the full device model & use it in a call to sendDeviceUpdateCommand
+            const device = await app.db.models.Device.byId(newDevice.id)
+            await app.db.controllers.Device.sendDeviceUpdateCommand(device)
+
+            // ensure sendCommand was called
+            should(commsHandler.sendCommand.calledOnce).be.true('sendCommand was not called')
+            // get the args used to call sendCommand
+            const args = commsHandler.sendCommand.getCall(0).args
+            // check the args are as expected: Team.hashid, device.hashid, 'update', payload
+            should(args[0]).eql(TestObjects.team.hashid)
+            should(args[1]).eql(device.hashid)
+            should(args[2]).eql('update')
+            should(args[3]).be.an.Object()
+            args[3].should.not.have.a.property('project') // it is important that `.project` is not present to avoid triggering the wrong kind of update on the device
+            args[3].should.have.a.property('application', TestObjects.application.hashid)
+            args[3].should.have.a.property('snapshot', snapshot.hashid)
+        })
         it('does not send orphaned snapshot in update command to device', async function () {
             // create a new project with snapshot, assign to device, delete project to orphan the snapshot
             const instance2 = await factory.createInstance(
@@ -221,6 +267,7 @@ describe('Device controller', function () {
             })
             await instance2.reload()
 
+            // create an instance owned device
             const device1 = await factory.createDevice({ name: 'device1', type: 'type1' }, TestObjects.team, instance2)
 
             // set the snapshot as the target snapshot on the project
@@ -247,6 +294,7 @@ describe('Device controller', function () {
             should(args[1]).eql(device.hashid)
             should(args[2]).eql('update')
             should(args[3]).be.an.Object()
+            args[3].should.not.have.a.property('application') // it is important that `.application` is not present to avoid triggering the wrong kind of update on the device
             args[3].should.have.a.property('project', null)
             args[3].should.have.a.property('snapshot', null)
         })
