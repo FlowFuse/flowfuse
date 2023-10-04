@@ -17,18 +17,25 @@ Node-RED application development and delivery.
 
 ## Device Agent
 
+The [Device Agent](./device-agent/introduction.md) allows you to manage Node-RED instances running on remote Devices. A Device runs a software agent that connects back to FlowFuse in order to receive updates.
+
 - [Install the Device Agent](./device-agent/install.md) - Install the Device Agent on your own hardware to remotely manage your Node-RED instances.
-- [Registering your Device](./device-agent/register.md) - Connect with Device with FlowFuse.
+- [Registering your Device](./device-agent/register.md) - Connecting your Device to the FlowFuse platform.
 - [Deploying flows to your Device](./device-agent/deploy.md) - Learn how to remotely deploy flows to your Device.
 - [Editing flows on your Device](./device-agent/deploy.md) - Setup "Developer Mode" to enable editing of your flows, directly on your Device.
 
 ## FlowFuse Cloud
- - [FlowFuse Cloud](./cloud/) - find out how we've configured FlowFuse for FlowFuse Cloud.
+
+[FlowFuse Cloud](./cloud/introduction.md) is our hosted service allowing users to sign-up and start creating Node-RED instances without having to install and manage their own instance of FlowFuse.
+
  - [Network Connections](./cloud/introduction/#network-connections) - Details what connections can and cannot be established to Node-RED instances running in FlowFuse Cloud.
  - [Single Sign On](./cloud/introduction/#single-sign-on) - FlowFuse supports configuring SAML-based Single Sign-On for particular email domains. Contact us to configure for your team.
  - [Billing](./cloud/billing.md) - find out how we've configured FlowFuse for FlowFuse Cloud.
 
 ## FlowFuse Self-Hosted
+
+You can run the FlowFuse platform for yourself. This guide will help you get setup
+in no time.
 
 - [Installing FlowFuse](./install/introduction.md) - how to install the platform
 - [Upgrade your FlowFuse Instance](./upgrade/README.md)
