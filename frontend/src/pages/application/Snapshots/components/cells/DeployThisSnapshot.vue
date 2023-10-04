@@ -10,10 +10,6 @@ export default {
             type: String,
             required: true
         },
-        deviceId: {
-            type: String,
-            required: true
-        },
         disabled: {
             type: Boolean,
             default: false
