@@ -127,22 +127,7 @@ telemetry:
     posthog:
       apikey: <api-key>
       capture_pageview: false
-    sentry:
-      dsn: <dsn-key>
-      production_mode: true
   backend:
-    sentry:
-      dsn: <dsn-key>
     prometheus:
       enabled: true
-
-#### Telemetry During Build
-
-Configure .env with the auth token, org and project name for the frontend project.
-
-```yaml
-# Used for BUILD time sentry reporting
-SENTRY_AUTH_TOKEN=
-SENTRY_ORG=
-SENTRY_PROJECT=
 ```

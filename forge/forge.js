@@ -81,14 +81,6 @@ module.exports = async (options = {}) => {
         await server.register(metricsPlugin, { endpoint: '/metrics' })
     }
 
-    if (runtimeConfig.telemetry.backend?.sentry?.dsn) {
-        server.register(require('@immobiliarelabs/fastify-sentry'), {
-            dsn: runtimeConfig.telemetry.backend.sentry.dsn,
-            environment: process.env.NODE_ENV,
-            release: `flowforge@${runtimeConfig.version}`
-        })
-    }
-
     server.addHook('onError', async (request, reply, error) => {
         // Useful for debugging when a route goes wrong
         // console.error(error.stack)
