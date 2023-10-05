@@ -9,7 +9,7 @@ module.exports = {
         if (dialect === 'sqlite') {
             // Disable foreign_keys so that when sequelize does its sqlite-specific
             // copy/drop workaround for renaming columns, we don't cause cascade
-            // delete on the Teams table
+            // delete on any other tables
             await context.sequelize.query('PRAGMA foreign_keys = 0;')
         }
 
