@@ -133,7 +133,8 @@ telemetry:
   backend:
     sentry:
       dsn: <dsn-key>
-    prometheus: true
+    prometheus:
+      enabled: true
 
 #### Telemetry During Build
 
