@@ -21,16 +21,16 @@
                     </div>
                 </template>
                 <template #context>
-                    <div v-if="device?.ownerType === 'application' && device.application">
+                    <div v-if="device?.ownerType === 'application' && device.application" data-el="device-assigned-application">
                         Application:
                         <router-link :to="{name: 'Application', params: {id: device.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.application.name }}</router-link>
                     </div>
-                    <div v-else-if="device?.ownerType === 'instance' && device.instance">
+                    <div v-else-if="device?.ownerType === 'instance' && device.instance" data-el="device-assigned-instance">
                         Instance:
                         <router-link :to="{name: 'Instance', params: {id: device.instance.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.instance.name }}</router-link>
                     </div>
-                    <div v-else>
-                        <span class="italic">No Application or Instance Assigned</span> - <a class="ff-link" @click="openAssignmentDialog">Assign</a>
+                    <div v-else data-el="device-assigned-none">
+                        <span class="italic">No Application or Instance Assigned</span> - <a class="ff-link" data-action="assign-device" @click="openAssignmentDialog">Assign</a>
                     </div>
                 </template>
                 <template v-if="isDevModeAvailable" #tools>
@@ -64,16 +64,19 @@
         <AssignDeviceDialog
             v-if="notAssigned"
             ref="assignment-dialog"
+            data-el="assignment-dialog"
             @assign-option-selected="assignOptionSelected"
         />
         <DeviceAssignInstanceDialog
             v-if="notAssigned"
             ref="deviceAssignInstanceDialog"
+            data-el="assignment-dialog-instance"
             @assign-device="assignDeviceToInstance"
         />
         <DeviceAssignApplicationDialog
             v-if="notAssigned"
             ref="deviceAssignApplicationDialog"
+            data-el="assignment-dialog-application"
             @assign-device="assignDeviceToApplication"
         />
     </main>

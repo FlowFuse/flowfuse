@@ -26,18 +26,18 @@
             </template>
             <template #tools>
                 <div v-if="hasPermission('device:edit')" class="mb-2">
-                    <ff-button v-if="!notAssigned" size="small" kind="primary" @click="unassign">Unassign</ff-button>
+                    <ff-button v-if="!notAssigned" size="small" kind="primary" data-action="unassign-device" @click="unassign">Unassign</ff-button>
                 </div>
                 <div v-if="hasPermission('device:edit')" class="mb-2">
-                    <ff-button v-if="notAssigned" size="small" kind="primary" @click="assign">Assign</ff-button>
+                    <ff-button v-if="notAssigned" size="small" kind="primary" data-action="assign-device" @click="assign">Assign</ff-button>
                 </div>
             </template>
         </FormHeading>
         <template v-if="notAssigned">
             <p>To use Devices they must be assigned to an Application or Instance.</p>
             <ul class="list-disc ml-6 space-y-2 max-w-xl">
-                <li><label class="font-medium mr-2">Application:</label>Devices bound to an Application provide Remote Editor Access.</li>
-                <li><label class="font-medium mr-2">Instance:</label>Devices bound to an Instance also provide Remote Editor Access, but are best utilised when deploying flows from a centralised Instance out to multiple remote Devices. Any set "Target Snapshot" will automatically deploy out to all connected Devices.</li>
+                <li><label class="font-medium mr-2">Application:</label>Flows on this Device can only be edited and deployed via the 'Remote Editor' feature, available in 'Developer Mode'. You can create Snapshots for version control of the flows on your Device</li>
+                <li><label class="font-medium mr-2">Instance:</label>Auto-deploy flows from the bound Instance directly to this Device. You can still remotely edit and create Snapshots on the Device when the Device is in 'Developer Mode'.</li>
             </ul>
         </template>
         <template v-else-if="hasApplication">
