@@ -1,3 +1,40 @@
+#### 1.12.3: Release
+
+ - Remove not null constraint on ProjectSnapshot.ProjectId column (#2899) @knolleary
+ - New "Assign Device" dialog, exposed at Device page & new "Assignment" Settings (#2896) @joepavitt
+ - Add sentry-related environmental variables to build pipeline (#2876) @ppawlowski
+ - config: Prometheus config is now a map (#2893) @ZJvandeWeg
+ - metrics: Expose `/metrics` with Prometheus data (#2889) @ZJvandeWeg
+ - Dynamic label in tooltip for Editor Access button (#2888) @joepavitt
+ - Adds tooltip clarification to the "Editor Access" button for a Device (#2883) @joepavitt
+ - Bump @aws-sdk/client-ses from 3.363.0 to 3.421.0 (#2868) @app/dependabot
+ - Revert redirects as it breaks TOC for some reason (#2881) @knolleary
+ - Fix redirects in docs (#2879) @knolleary
+ - Add description of Agent and FF Cloud to docs index (#2877) @knolleary
+ - Bump vitest from 0.34.4 to 0.34.6 (#2870) @app/dependabot
+ - Bump postcss from 8.4.29 to 8.4.31 (#2867) @app/dependabot
+ - Bump @vitejs/plugin-vue from 4.3.4 to 4.4.0 (#2866) @app/dependabot
+ - Report Correct Config File Path (#2865) @Pezmc
+ - Guard against frontend or sentry being undefined (#2864) @Pezmc
+ - Feature: Error tracking (#2862) @Pezmc
+ - Update repo references (#2860) @knolleary
+ - Update ff references in package.json (#2861) @knolleary
+ - Fix Pipeline Issue where "Create New Snapshot" results in error (#2856) @joepavitt
+ - v1.12.0 helm upgrade doc (#2850) @hardillb
+ - Fix URL for instance device snapshot (#2847) @Steve-Mcl
+ - Fixup lots of FlowForge references (#2846) @knolleary
+ - Change repo references in workflows after github org rename (#2784) @ppawlowski
+
+#### 1.12.2: Release
+
+ - Fix Pipeline Issue where "Create New Snapshot" results in error (#2858)
+
+#### 1.12.1: Release
+
+ - v1.12.0 helm upgrade doc (#2851)
+ - Fix URL for instance device snapshot (#2849)
+ - Fixup lots of FlowForge references (#2848)
+
 #### 1.12.0: Release
 
  - Add api docs to pipeline stage deploy end point (#2838) @knolleary
