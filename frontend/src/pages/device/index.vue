@@ -21,13 +21,16 @@
                     </div>
                 </template>
                 <template #context>
-                    <div v-if="device?.ownerType === 'application' && device.application">
+                    <div v-if="device?.ownerType === 'application' && device.application" data-el="device-assigned-application">
                         Application:
                         <router-link :to="{name: 'Application', params: {id: device.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.application.name }}</router-link>
                     </div>
-                    <div v-else-if="device?.ownerType === 'instance' && device.instance">
+                    <div v-else-if="device?.ownerType === 'instance' && device.instance" data-el="device-assigned-instance">
                         Instance:
                         <router-link :to="{name: 'Instance', params: {id: device.instance.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.instance.name }}</router-link>
+                    </div>
+                    <div v-else data-el="device-assigned-none">
+                        <span class="italic">No Application or Instance Assigned</span> - <a class="ff-link" data-action="assign-device" @click="openAssignmentDialog">Assign</a>
                     </div>
                 </template>
                 <template v-if="isDevModeAvailable" #tools>
@@ -54,9 +57,28 @@
                 <div class="ff-banner" data-el="banner-device-as-admin">You are viewing this device as an Administrator</div>
             </Teleport>
             <div class="px-3 pb-3 md:px-6 md:pb-6">
-                <router-view :instance="device.instance" :device="device" @device-updated="loadDevice()" @device-refresh="loadDevice()" />
+                <router-view :instance="device.instance" :device="device" @device-updated="loadDevice()" @device-refresh="loadDevice()" @assign-device="openAssignmentDialog" />
             </div>
         </div>
+        <!-- Dialogs -->
+        <AssignDeviceDialog
+            v-if="notAssigned"
+            ref="assignment-dialog"
+            data-el="assignment-dialog"
+            @assign-option-selected="assignOptionSelected"
+        />
+        <DeviceAssignInstanceDialog
+            v-if="notAssigned"
+            ref="deviceAssignInstanceDialog"
+            data-el="assignment-dialog-instance"
+            @assign-device="assignDeviceToInstance"
+        />
+        <DeviceAssignApplicationDialog
+            v-if="notAssigned"
+            ref="deviceAssignApplicationDialog"
+            data-el="assignment-dialog-application"
+            @assign-device="assignDeviceToApplication"
+        />
     </main>
 </template>
 
@@ -75,6 +97,12 @@ import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import permissionsMixin from '../../mixins/Permissions.js'
+import Alerts from '../../services/alerts.js'
+
+import DeviceAssignApplicationDialog from '../team/Devices/dialogs/DeviceAssignApplicationDialog.vue'
+import DeviceAssignInstanceDialog from '../team/Devices/dialogs/DeviceAssignInstanceDialog.vue'
+
+import AssignDeviceDialog from './components/AssignDeviceDialog.vue'
 
 import DeveloperModeBadge from './components/DeveloperModeBadge.vue'
 import DeveloperModeToggle from './components/DeveloperModeToggle.vue'
@@ -91,7 +119,10 @@ export default {
         SideNavigationTeamOptions,
         StatusBadge,
         SubscriptionExpiredBanner,
-        TeamTrialBanner
+        TeamTrialBanner,
+        AssignDeviceDialog,
+        DeviceAssignApplicationDialog,
+        DeviceAssignInstanceDialog
     },
     mixins: [permissionsMixin],
     data: function () {
@@ -132,6 +163,12 @@ export default {
         },
         deviceEditorURL: function () {
             return this.device.editor?.url || ''
+        },
+        notAssigned () {
+            const device = this.device
+            const hasApplication = device?.ownerType === 'application' && device.application
+            const hasInstance = device?.ownerType === 'instance' && device.instance
+            return !hasApplication && !hasInstance
         }
     },
     watch: {
@@ -206,6 +243,27 @@ export default {
                     throw new Error('Unknown mode')
                 }
             }
+        },
+        openAssignmentDialog () {
+            this.$refs['assignment-dialog'].show()
+        },
+        assignOptionSelected (option) {
+            if (option === 'instance') {
+                this.$refs.deviceAssignInstanceDialog.show(this.device)
+            } else if (option === 'application') {
+                this.$refs.deviceAssignApplicationDialog.show(this.device)
+            }
+        },
+        async assignDeviceToInstance (device, instanceId) {
+            this.device = await deviceApi.updateDevice(device.id, { instance: instanceId })
+
+            Alerts.emit('Device successfully assigned to instance.', 'confirmation')
+        },
+
+        async assignDeviceToApplication (device, applicationId) {
+            this.device = await deviceApi.updateDevice(device.id, { application: applicationId, instance: null })
+
+            Alerts.emit('Device successfully assigned to application.', 'confirmation')
         }
     }
 }

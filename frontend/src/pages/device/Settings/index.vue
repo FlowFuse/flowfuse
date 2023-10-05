@@ -2,7 +2,7 @@
     <div class="flex flex-col sm:flex-row">
         <SectionSideMenu :options="sideNavigation" />
         <div class="flex-grow">
-            <router-view :device="device" @device-updated="$emit('device-updated')" />
+            <router-view :device="device" @device-updated="$emit('device-updated')" @assign-device="$emit('assign-device')" />
         </div>
     </div>
 </template>
@@ -18,7 +18,7 @@ import permissionsMixin from '../../../mixins/Permissions.js'
 export default {
     name: 'DeviceSettins',
     props: ['device'],
-    emits: ['device-updated'],
+    emits: ['device-updated', 'assign-device'],
     mixins: [permissionsMixin],
     data: function () {
         return {
