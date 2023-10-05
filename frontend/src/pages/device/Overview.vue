@@ -62,21 +62,21 @@
 
                 <InfoCardRow property="Target Snapshot:">
                     <template #value>
-                        <span class="flex space-x-4 pr-2">
+                        <span class="flex gap-2 pr-2">
                             <span class="flex items-center space-x-2 text-gray-500 italic">
                                 <ExclamationIcon class="text-yellow-600 w-4" v-if="!device.targetSnapshot" />
                                 <CheckCircleIcon class="text-green-700 w-4" v-else />
                             </span>
+                            <template v-if="device.targetSnapshot">
+                                <div class="flex flex-col">
+                                    <span>{{ device.targetSnapshot.name }}</span>
+                                    <span class="text-xs text-gray-500">{{ device.targetSnapshot.id }}</span>
+                                </div>
+                            </template>
+                            <template v-else>
+                                No Target Snapshot Set
+                            </template>
                         </span>
-                        <template v-if="device.targetSnapshot">
-                            <div class="flex flex-col">
-                                <span>{{ device.targetSnapshot.name }}</span>
-                                <span class="text-xs text-gray-500">{{ device.targetSnapshot.id }}</span>
-                            </div>
-                        </template>
-                        <template v-else>
-                            No Target Snapshot Set
-                        </template>
                     </template>
                 </InfoCardRow>
 
