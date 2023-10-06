@@ -15,3 +15,7 @@ The FlowFuse Device Agent can be installed on any Mac, Linux, or Windows-support
 - [ctrlX - Device Agent App](/docs/hardware/ctrlx-device-agent.md) - will be availble soon
 
 ## Other Hardware Guides
+
+<a href="/docs/hardware/raspbian.md"><img src="https://upload.wikimedia.org/wikipedia/de/c/cb/Raspberry_Pi_Logo.svg"  width="80" height="30"></a>
+
+- [Raspberry Pi](/docs/hardware/raspbian.md)
