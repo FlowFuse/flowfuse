@@ -3,7 +3,6 @@ import {
     Replay,
     init,
     vueRouterInstrumentation
-
 } from '@sentry/vue'
 
 export const setupSentry = (app, router) => {
@@ -18,15 +17,18 @@ export const setupSentry = (app, router) => {
         dsn,
         integrations: [
             new BrowserTracing({
-                // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
-                tracePropagationTargets: [/^https:\/\/forge.flowforge.dev\/api/, /^https:\/\/app.flowforge.com\//],
                 routingInstrumentation: vueRouterInstrumentation(router)
             }),
             new Replay()
         ],
 
+        release: window.sentryConfig.version,
+
         // Performance Monitoring
         tracesSampleRate: window.sentryConfig.production ? 1.0 : 0.1,
+
+        // Which URLs distributed tracing should be enabled
+        tracePropagationTargets: [/^https:\/\/forge.flowforge.dev\/api/, /^https:\/\/app.flowforge.com\//],
 
         // Session Replay
         replaysSessionSampleRate: window.sentryConfig.production ? 0.1 : 0.5,

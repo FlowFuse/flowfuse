@@ -1,3 +1,5 @@
+import { setUser } from '@sentry/vue'
+
 /**
  *
  * @param {String} userId - the unique identifier for the user
@@ -6,6 +8,12 @@
  */
 function identify (userId, set, setonce) {
     window.posthog?.identify(userId, set, setonce)
+    if (window.sentryConfig) {
+        setUser({
+            ...set,
+            ...setonce
+        })
+    }
 }
 
 /**
