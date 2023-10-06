@@ -98,7 +98,3 @@ OS and Architecture as your target device, and then copy the modules on to your 
 3. Run `npm install` to install the modules. This will create a `node_modules` directory.
 4. On your target device, create a directory called `module_cache` inside the Device Agent Configuration directory.
 5. Copy the `node_modules` directory from your local device to the target device so that it is under the `module_cache` directory.
-
-<br>
-
-[^global-install]: Starting the agent via the command `flowforge-device-agent` assumes it was installed as a global npm module and your path is properly configured to pick that up.
