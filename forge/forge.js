@@ -1,6 +1,7 @@
 const cookie = require('@fastify/cookie')
 const csrf = require('@fastify/csrf-protection')
 const helmet = require('@fastify/helmet')
+const { ProfilingIntegration } = require('@sentry/profiling-node')
 const fastify = require('fastify')
 
 const auditLog = require('./auditLog')
@@ -87,7 +88,12 @@ module.exports = async (options = {}) => {
         server.register(require('@immobiliarelabs/fastify-sentry'), {
             dsn: runtimeConfig.telemetry.backend.sentry.dsn,
             environment: process.env.NODE_ENV,
-            release: `flowforge@${runtimeConfig.version}`
+            release: `flowforge@${runtimeConfig.version}`,
+            tracesSampleRate: 0.1,
+            profilesSampleRate: 0.1,
+            integrations: [
+                new ProfilingIntegration()
+            ]
         })
     }
 
