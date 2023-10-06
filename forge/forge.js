@@ -93,7 +93,21 @@ module.exports = async (options = {}) => {
             profilesSampleRate: 0.1,
             integrations: [
                 new ProfilingIntegration()
-            ]
+            ],
+            extractUserData (request) {
+                const user = request.session?.User || request.user
+                if (!user) {
+                    return {}
+                }
+                const extractedUser = {
+                    id: user.hashid,
+                    username: user.username,
+                    email: user.email,
+                    name: user.name
+                }
+
+                return extractedUser
+            }
         })
     }
 
