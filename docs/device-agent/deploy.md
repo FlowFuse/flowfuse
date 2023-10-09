@@ -86,8 +86,11 @@ Whilst in Developer Mode the device will not receive new updates from the platfo
 
 **Creating a Device Snapshot**
 
-Device Snapshots are not currently supported when editing flows on a device that is assigned to an application.
-This feature is on the roadmap for a future release.
+To create a snapshot from an application owned device use the **Create Snapshot** button
+in the Developer Mode options panel.
+
+You will be prompted to give the snapshot a name and description. See [Snapshots](../user/snapshots.md) for more information
+about working with snapshots.
 
 ### Important Notes
 
@@ -95,6 +98,7 @@ This feature is on the roadmap for a future release.
 * The Web UI requires Device Agent v0.9.0 or later.
 * Assigning a device to an application requires Device Agent v1.11.0 and FlowFuse v1.11.0 or later.
 * Snapshots of devices assigned to an application are supported in FlowFuse V1.12.0 or later.
+* Deploying a snapshot from a different instance or device to an application owned device is supported in FlowFuse V1.13.0 or later.
 * When a device is assigned to an instance:
     * It must first have a snapshot applied before editor access is possible.
     * Disabling Developer Mode will cause the device to check-in with the platform. If the device flows have changed, it will be reloaded with the current target snapshot assigned to that device, causing any changes made in Developer Mode to be overwritten. Therefore, it is recommended to create a snapshot of the changes before disabling Developer Mode.

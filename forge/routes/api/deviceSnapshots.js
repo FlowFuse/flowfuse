@@ -141,8 +141,7 @@ module.exports = async function (app) {
             }
         }
         await request.snapshot.destroy()
-        // TODO: device snapshot: Application level Audit log
-        // await app.auditLog.Project.project.snapshot.deleted(request.session.User, null, request.device, request.snapshot)
+        await app.auditLog.Application.application.device.snapshot.deleted(request.session.User, null, request.device.Application, request.device, request.snapshot)
         reply.send({ status: 'okay' })
     })
 
@@ -180,7 +179,8 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        if (request.device.ownerType !== 'application') {
+        const device = request.device
+        if (device.ownerType !== 'application') {
             reply.code(400).send({ code: 'invalid_device', error: 'Device is not associated with an application' })
             return
         }
@@ -188,17 +188,31 @@ module.exports = async function (app) {
         const snapshotOptions = {
             name: request.body.name,
             description: request.body.description,
-            setAsTarget: undefined // TODO: device snapshot: what to do with `setAsTarget`?
+            setAsTarget: request.body.setAsTarget
         }
         const snapShot = await app.db.controllers.ProjectSnapshot.createDeviceSnapshot(
-            request.device.Application,
-            request.device,
+            device.Application,
+            device,
             request.session.User,
             snapshotOptions
         )
         snapShot.User = request.session.User
-        // TODO: device snapshot: Needs application level audit log
-        // TODO: device snapshot: what to do with `setAsTarget`?
+        await app.auditLog.Application.application.device.snapshot.created(request.session.User, null, device.Application, device, snapShot)
+        if (snapshotOptions.setAsTarget) {
+            // Update the targetSnapshot of the device
+            await app.db.models.Device.update({ targetSnapshotId: snapShot.id }, {
+                where: {
+                    id: device.id
+                }
+            })
+            await device.save()
+            await app.auditLog.Application.application.device.snapshot.deviceTargetSet(request.session.User, null, device.Application, device, snapShot)
+            const updatedDevice = await app.db.models.Device.byId(device.id)
+            if (app.comms) {
+                // save and send update
+                await app.db.controllers.Device.sendDeviceUpdateCommand(updatedDevice)
+            }
+        }
         reply.send(app.db.views.ProjectSnapshot.snapshot(snapShot))
     })
 }

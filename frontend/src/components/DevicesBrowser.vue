@@ -328,7 +328,7 @@ export default {
             if (this.displayingTeam) {
                 // Show which application/instance the device is assigned to when looking at devices owned by a team
                 columns.push({
-                    label: 'Device Owner',
+                    label: 'Assigned To',
                     class: ['w-48'],
                     key: '_ownerSortKey',
                     sortable: !this.moreThanOnePage,

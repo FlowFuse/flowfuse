@@ -8,6 +8,8 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 describe('Device Snapshots API', function () {
     let app
+    /** @type {import('../../../../lib/TestModelFactory')} */
+    let factory = null
     const TestObjects = {
         alice: null,
         bob: null,
@@ -22,15 +24,18 @@ describe('Device Snapshots API', function () {
         template1: null,
         stack1: null,
         application1: null,
-        device1: null
+        project1: null,
+        appOwnedDevice: null,
+        instanceOwnedDevice: null
     }
 
     before(async function () {
         app = await setup()
-
+        factory = app.factory
         TestObjects.application1 = app.application
         TestObjects.template1 = app.template
         TestObjects.stack1 = app.stack
+        TestObjects.project1 = app.project
 
         // alice : admin
         // bob
@@ -52,7 +57,8 @@ describe('Device Snapshots API', function () {
         await TestObjects.BTeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
         await TestObjects.BTeam.addUser(TestObjects.chris, { through: { role: Roles.Member } })
 
-        TestObjects.device1 = await app.factory.createDevice({ name: 'device-1' }, TestObjects.ATeam, null, TestObjects.application1)
+        TestObjects.appOwnedDevice = await factory.createDevice({ name: 'device-1' }, TestObjects.ATeam, null, TestObjects.application1)
+        TestObjects.instanceOwnedDevice = await factory.createDevice({ name: 'device-2' }, TestObjects.ATeam, TestObjects.project1, null)
 
         TestObjects.tokens = {}
         await login('alice', 'aaPassword')
@@ -83,6 +89,10 @@ describe('Device Snapshots API', function () {
         if (app.comms.devices.sendCommand.restore) {
             app.comms.devices.sendCommand.restore()
         }
+        // if app.db.controllers.Project.exportCredentials is stubbed, restore it
+        if (app.db.controllers.Project.exportCredentials.restore) {
+            app.db.controllers.Project.exportCredentials.restore()
+        }
     })
 
     async function createSnapshot (deviceId, name, token, mockResponse) {
@@ -97,6 +107,30 @@ describe('Device Snapshots API', function () {
             cookies: { sid: token }
         })
     }
+
+    async function createInstanceOwnedSnapshot (device, user, name, mockResponse, description = null) {
+        sinon.stub(app.comms.devices, 'sendCommandAwaitReply').resolves(mockResponse)
+        sinon.stub(app.comms.devices, 'sendCommand').resolves()
+        // as we are not testing instance snapshots, we can just create a snapshot without going via the API
+        let project = device.Project
+        if (device.ProjectId && !project) {
+            // if the device has a ProjectId but no Project, load the project directly
+            project = await app.db.models.Project.byId(device.ProjectId)
+        }
+        const snapshotOptions = {
+            name,
+            description,
+            setAsTarget: false
+        }
+        const snapShot = await app.db.controllers.ProjectSnapshot.createSnapshotFromDevice(
+            project,
+            device,
+            user,
+            snapshotOptions
+        )
+        return snapShot
+    }
+
     async function listDeviceSnapshots (deviceId, token) {
         return await app.inject({
             method: 'GET',
@@ -113,22 +147,27 @@ describe('Device Snapshots API', function () {
         credentials: {},
         package: {}
     }
+    const basicDeviceSnapshotWithFlowsAndCreds = {
+        flows: [{ id: '123', type: 'newNode' }],
+        credentials: { testCreds: 'abc' },
+        package: {}
+    }
 
     describe('Create device snapshot', function () {
         it('Non-owner can create device snapshot', async function () {
             // Bob (non-owner) can create in ATeam
-            const response = await createSnapshot(TestObjects.device1.hashid, 'test-project-snapshot-01', TestObjects.tokens.bob, basicDeviceSnapshot)
+            const response = await createSnapshot(TestObjects.appOwnedDevice.hashid, 'test-project-snapshot-01', TestObjects.tokens.bob, basicDeviceSnapshot)
             response.statusCode.should.equal(200)
         })
 
         it('Non-member cannot create project snapshot', async function () {
             // Chris (non-member) cannot create in ATeam
-            const response = await createSnapshot(TestObjects.device1.hashid, 'test-project-snapshot-01', TestObjects.tokens.chris, basicDeviceSnapshot)
+            const response = await createSnapshot(TestObjects.appOwnedDevice.hashid, 'test-project-snapshot-01', TestObjects.tokens.chris, basicDeviceSnapshot)
             response.statusCode.should.equal(404) // 404 as a non member should not know the resource exists
         })
 
         it('Create a device snapshot - empty state', async function () {
-            const response = await createSnapshot(TestObjects.device1.hashid, 'test-project-snapshot-01', TestObjects.tokens.alice, basicDeviceSnapshot)
+            const response = await createSnapshot(TestObjects.appOwnedDevice.hashid, 'test-project-snapshot-01', TestObjects.tokens.alice, basicDeviceSnapshot)
             response.statusCode.should.equal(200)
             const result = response.json()
             result.should.have.property('id')
@@ -166,7 +205,7 @@ describe('Device Snapshots API', function () {
                     ]
                 }
             }
-            const response = await createSnapshot(TestObjects.device1.hashid, 'test-project-snapshot-01', TestObjects.tokens.alice, deviceSpec)
+            const response = await createSnapshot(TestObjects.appOwnedDevice.hashid, 'test-project-snapshot-01', TestObjects.tokens.alice, deviceSpec)
             response.statusCode.should.equal(200)
             const result = response.json()
             result.should.have.property('id')
@@ -192,6 +231,89 @@ describe('Device Snapshots API', function () {
             // snapshot.settings.env.should.have.property('two', 'b')
             snapshot.settings.should.have.property('modules')
         })
+
+        it('Can push a snapshot from an application owned device to a different application owned device', async function () {
+            // create a snapshot from TestObjects.device
+            const response = await createSnapshot(TestObjects.appOwnedDevice.hashid, 'test-project-snapshot-02', TestObjects.tokens.alice, basicDeviceSnapshotWithFlowsAndCreds)
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            const snapshotObj = await app.db.models.ProjectSnapshot.byId(result.id)
+            const snapshot = snapshotObj.toJSON()
+
+            // create a 2nd device
+            const device2 = await factory.createDevice({ name: 'device-2' }, TestObjects.ATeam, null, TestObjects.application1)
+
+            // push the snapshot to device2
+            const response2 = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/devices/${device2.hashid}`,
+                payload: {
+                    targetSnapshot: snapshot.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response2.statusCode.should.equal(200)
+
+            // app.db.controllers.Device.sendDeviceUpdateCommand should have been called
+            app.comms.devices.sendCommand.calledOnce.should.be.true()
+            const callArgs = app.comms.devices.sendCommand.getCall(0).args
+            should(callArgs).have.lengthOf(4)
+            callArgs[0].should.equal(TestObjects.ATeam.hashid)
+            callArgs[1].should.equal(device2.hashid)
+            callArgs[2].should.equal('update')
+            callArgs[3].should.be.an.Object()
+            callArgs[3].should.have.property('snapshot', snapshot.hashid) // snapshotId should have been be the hashid snapshot
+            callArgs[3].should.have.property('application', TestObjects.application1.hashid)
+            callArgs[3].should.not.have.property('project') // project must not be present in a transmission to an application owned device
+
+            // get db object for device2 and check the flows and credentials are as expected
+            const device2Reloaded = await app.db.models.Device.byId(device2.id)
+            device2Reloaded.targetSnapshot.should.have.property('hashid', snapshot.hashid) // ensure the targetSnapshot is the snapshot we pushed
+        })
+        it('Can push a snapshot from an instance owned device to a different application owned device', async function () {
+            // get db object for device
+            const device = await app.db.models.Device.byId(TestObjects.instanceOwnedDevice.id)
+
+            // stub app.db.controllers.Project.exportCredentials to return the same credentials
+            sinon.stub(app.db.controllers.Project, 'exportCredentials').callsFake((creds, _sourceSecret, _targetSecret) => {
+                return creds
+            })
+
+            // create a snapshot from TestObjects.device
+            const snapshot = await createInstanceOwnedSnapshot(device, TestObjects.alice, 'test-project-snapshot-03', basicDeviceSnapshotWithFlowsAndCreds)
+            // we should have called exportCredentials at this point
+            app.db.controllers.Project.exportCredentials.calledOnce.should.be.true()
+
+            // create a 2nd (application owned) device
+            const device2 = await factory.createDevice({ name: 'device-2' }, TestObjects.ATeam, null, TestObjects.application1)
+
+            // push the snapshot to device2
+            const response2 = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/devices/${device2.hashid}`,
+                payload: {
+                    targetSnapshot: snapshot.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response2.statusCode.should.equal(200)
+
+            // app.db.controllers.Device.sendDeviceUpdateCommand should have been called
+            app.comms.devices.sendCommand.calledOnce.should.be.true()
+            const callArgs = app.comms.devices.sendCommand.getCall(0).args
+            should(callArgs).have.lengthOf(4)
+            callArgs[0].should.equal(TestObjects.ATeam.hashid)
+            callArgs[1].should.equal(device2.hashid)
+            callArgs[2].should.equal('update')
+            callArgs[3].should.be.an.Object()
+            callArgs[3].should.have.property('snapshot', snapshot.hashid) // snapshotId should have been be the hashid snapshot
+            callArgs[3].should.have.property('application', TestObjects.application1.hashid)
+            callArgs[3].should.not.have.property('project') // project must not be present in a transmission to an application owned device
+
+            // get db object for device2 and check the flows and credentials are as expected
+            const device2Reloaded = await app.db.models.Device.byId(device2.id)
+            device2Reloaded.targetSnapshot.should.have.property('hashid', snapshot.hashid) // ensure the targetSnapshot is the snapshot we pushed
+        })
     })
 
     describe('Get snapshot information', function () {
@@ -199,11 +321,11 @@ describe('Device Snapshots API', function () {
             // Chris (non-member) cannot create in ATeam
 
             // First alice creates one
-            const snapshotResponse = await createSnapshot(TestObjects.device1.hashid, 'test-device-snapshot-01', TestObjects.tokens.alice, basicDeviceSnapshotWithFlows)
+            const snapshotResponse = await createSnapshot(TestObjects.appOwnedDevice.hashid, 'test-device-snapshot-01', TestObjects.tokens.alice, basicDeviceSnapshotWithFlows)
             const result = snapshotResponse.json()
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/devices/${TestObjects.device1.hashid}/snapshots/${result.id}`,
+                url: `/api/v1/devices/${TestObjects.appOwnedDevice.hashid}/snapshots/${result.id}`,
                 cookies: { sid: TestObjects.tokens.chris }
             })
             // 404 as a non member should not know the resource exists
@@ -211,11 +333,11 @@ describe('Device Snapshots API', function () {
         })
         it('Get snapshot', async function () {
             // First alice creates one
-            const snapshotResponse = await createSnapshot(TestObjects.device1.hashid, 'test-device-snapshot-01', TestObjects.tokens.alice, basicDeviceSnapshotWithFlows)
+            const snapshotResponse = await createSnapshot(TestObjects.appOwnedDevice.hashid, 'test-device-snapshot-01', TestObjects.tokens.alice, basicDeviceSnapshotWithFlows)
             const snapshotResult = snapshotResponse.json()
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/devices/${TestObjects.device1.hashid}/snapshots/${snapshotResult.id}`,
+                url: `/api/v1/devices/${TestObjects.appOwnedDevice.hashid}/snapshots/${snapshotResult.id}`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
             const result = response.json()
@@ -228,13 +350,13 @@ describe('Device Snapshots API', function () {
             // Bob (non-owner) cannot delete in ATeam
 
             // First alice creates one
-            const snapshotResponse = await createSnapshot(TestObjects.device1.hashid, 'test-device-snapshot-01', TestObjects.tokens.alice, basicDeviceSnapshotWithFlows)
+            const snapshotResponse = await createSnapshot(TestObjects.appOwnedDevice.hashid, 'test-device-snapshot-01', TestObjects.tokens.alice, basicDeviceSnapshotWithFlows)
             const result = snapshotResponse.json()
 
             // Then bob tries to delete it
             const response = await app.inject({
                 method: 'DELETE',
-                url: `/api/v1/devices/${TestObjects.device1.hashid}/snapshots/${result.id}`,
+                url: `/api/v1/devices/${TestObjects.appOwnedDevice.hashid}/snapshots/${result.id}`,
                 cookies: { sid: TestObjects.tokens.bob }
             })
             response.statusCode.should.equal(403)
@@ -243,17 +365,17 @@ describe('Device Snapshots API', function () {
             // Alice (owner) can delete in ATeam
 
             // First alice creates one
-            const snapshotResponse = await createSnapshot(TestObjects.device1.hashid, 'test-project-snapshot-01', TestObjects.tokens.alice, basicDeviceSnapshotWithFlows)
+            const snapshotResponse = await createSnapshot(TestObjects.appOwnedDevice.hashid, 'test-project-snapshot-01', TestObjects.tokens.alice, basicDeviceSnapshotWithFlows)
             const result = snapshotResponse.json()
             // Then alice tries to delete it
             const response = await app.inject({
                 method: 'DELETE',
-                url: `/api/v1/devices/${TestObjects.device1.hashid}/snapshots/${result.id}`,
+                url: `/api/v1/devices/${TestObjects.appOwnedDevice.hashid}/snapshots/${result.id}`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
 
-            const snapshotList = (await listDeviceSnapshots(TestObjects.device1.hashid, TestObjects.tokens.alice)).json()
+            const snapshotList = (await listDeviceSnapshots(TestObjects.appOwnedDevice.hashid, TestObjects.tokens.alice)).json()
             const snapshot = snapshotList.snapshots.filter(snap => snap.id === result.id)
             snapshot.should.have.lengthOf(0)
         })

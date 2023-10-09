@@ -83,11 +83,11 @@ module.exports = async function (app) {
     })
 
     app.get('/snapshot', async (request, reply) => {
+        const device = request.device || null
+        const isApplicationOwned = device?.ownerType === 'application' // && 'EE'?
         if (!request.device.targetSnapshot) {
             // determine is device is in application mode? if so, return a default snapshot to permit the user to generate flows
-            const device = request.device || null
-            const ownerIsApplication = device?.ownerType === 'application' // && 'EE'?
-            if (ownerIsApplication) {
+            if (isApplicationOwned) {
                 const DEFAULT_APP_SNAPSHOT = {
                     id: '0',
                     name: 'Starter Snapshot',
@@ -125,12 +125,20 @@ module.exports = async function (app) {
                     ...snapshot.settings,
                     ...snapshot.flows
                 }
+                const getSecret = async () => {
+                    // default to project in the absence of ownerType
+                    if (snapshot.ownerType === 'instance' || !snapshot.ownerType) {
+                        return await (await snapshot.getProject()).getCredentialSecret()
+                    } else {
+                        return (await snapshot.getDevice()).credentialSecret
+                    }
+                }
                 if (result.credentials) {
-                    // Need to re-encrypt these credentials from the Project secret
-                    // to the Device secret
-                    const projectSecret = await (await snapshot.getProject()).getCredentialSecret()
+                    // Need to re-encrypt these credentials from the source secret
+                    // to the target Device secret
+                    const secret = await getSecret()
                     const deviceSecret = request.device.credentialSecret
-                    result.credentials = app.db.controllers.Project.exportCredentials(result.credentials, projectSecret, deviceSecret)
+                    result.credentials = app.db.controllers.Project.exportCredentials(result.credentials, secret, deviceSecret)
                 }
                 reply.send(result)
             } else {

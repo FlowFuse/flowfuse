@@ -3,6 +3,11 @@ const { generateBody, triggerObject } = require('./formatters')
 
 module.exports = {
     getLoggers (app) {
+        /**
+         * @name ApplicationAuditLog
+         * @alias ApplicationAuditLog
+         * @namespace
+         */
         const application = {
             async created (actionedBy, error, application) {
                 await log('application.created', actionedBy, application?.id, generateBody({ error, application }))
@@ -16,6 +21,17 @@ module.exports = {
                 },
                 async assigned (actionedBy, error, application, device) {
                     await log('application.device.assigned', actionedBy, application?.id, generateBody({ error, application, device }))
+                },
+                snapshot: {
+                    async created (actionedBy, error, application, device, snapshot) {
+                        await log('application.device.snapshot.created', actionedBy, application?.id, generateBody({ error, device, snapshot }))
+                    },
+                    async deleted (actionedBy, error, application, device, snapshot) {
+                        await log('application.device.snapshot.deleted', actionedBy, application?.id, generateBody({ error, device, snapshot }))
+                    },
+                    async deviceTargetSet (actionedBy, error, application, device, snapshot) {
+                        await log('application.device.snapshot.device-target-set', actionedBy, application?.id, generateBody({ error, device, snapshot }))
+                    }
                 }
             }
         }
