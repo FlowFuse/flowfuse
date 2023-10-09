@@ -68,7 +68,7 @@
         "@fastify/websocket": "^8.1.0",
         "@flowforge/localfs": "^1.12.0",
         "@headlessui/vue": "1.7.16",
-        "@heroicons/vue": "1.0.6",
+        "@heroicons/vue": "2.0.18",
         "@immobiliarelabs/fastify-sentry": "^7.1.1",
         "@node-saml/passport-saml": "^4.0.4",
         "@sentry/profiling-node": "^1.2.1",
