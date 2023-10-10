@@ -66,7 +66,7 @@ module.exports = async function (app) {
             }
 
             if (telemetry.frontend?.sentry?.dsn) {
-                injection += `<script>window.sentryConfig = { dsn: "${telemetry.frontend.sentry.dsn}", production_mode: ${telemetry.frontend.sentry.production_mode ?? true}, version: "flowfuse@${config.version}", }</script>`
+                injection += `<script>window.sentryConfig = { dsn: "${telemetry.frontend.sentry.dsn}", production_mode: ${telemetry.frontend.sentry.production_mode ?? true}, version: "flowfuse@${config.version}", environment: "${process.env.SENTRY_ENV ?? process.env.NODE_ENV}" }</script>`
             }
 
             // inject into index.html

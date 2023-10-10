@@ -22,7 +22,9 @@ export const setupSentry = (app, router) => {
             new Replay()
         ],
 
+        // Current build info
         release: window.sentryConfig.version,
+        environment: window.sentryConfig.environment,
 
         // Performance Monitoring
         tracesSampleRate: window.sentryConfig.production ? 1.0 : 0.1,
