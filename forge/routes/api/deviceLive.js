@@ -85,6 +85,11 @@ module.exports = async function (app) {
     app.get('/snapshot', async (request, reply) => {
         const device = request.device || null
         const isApplicationOwned = device?.ownerType === 'application' // && 'EE'?
+        let NRVersion = '3.0.2' // default to older Node-RED
+        if (SemVer.satisfies(SemVer.coerce(device.agentVersion), '>=1.11.2')) {
+            // 1.11.2 includes fix for ESM loading of GOT, so lets use 'latest' as before
+            nodeRedVersion = 'latest'
+        }
         if (!request.device.targetSnapshot) {
             // determine is device is in application mode? if so, return a default snapshot to permit the user to generate flows
             if (isApplicationOwned) {
@@ -100,7 +105,7 @@ module.exports = async function (app) {
                         { id: 'FFDBG00000000001', type: 'debug', z: 'FFF0000000000001', name: 'Info', active: true, tosidebar: true, console: true, tostatus: true, complete: 'payload', targetType: 'msg', statusVal: 'payload', statusType: 'auto', x: 490, y: 160 }
                     ],
                     modules: {
-                        'node-red': 'latest' // TODO: get this from the "somewhere!?!?" - this is where TAGs might work well.
+                        'node-red': nodeRedVersion // TODO: get this from the "somewhere!?!?" - this is where TAGs might work well.
                     },
                     env: {
                         FF_SNAPSHOT_ID: '0',
