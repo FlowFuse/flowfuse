@@ -1,3 +1,5 @@
+const SemVer = require('semver')
+
 /**
  * Device Live api routes
  *
@@ -5,7 +7,7 @@
  *
  * request.device will be defined for any route defined in here
  *
- * - /api/v1/project/:deviceId/live/
+ * - /api/v1/devices/:deviceId/live/
  *
  * @namespace device
  * @memberof forge.routes.api
@@ -21,6 +23,8 @@ module.exports = async function (app) {
     })
 
     /**
+     * POST /api/v1/devices/:deviceId/live/state
+     *
      * Devices post to /state at regular intervals. This acts as a heartbeat.
      * The payload should include:
      * {
@@ -71,6 +75,9 @@ module.exports = async function (app) {
         reply.code(200).send({})
     })
 
+    /**
+     * GET /api/v1/devices/:deviceId/live/state
+     */
     app.get('/state', async (request, reply) => {
         reply.send({
             application: request.device.Application?.id || null,
@@ -82,10 +89,18 @@ module.exports = async function (app) {
         })
     })
 
+    /**
+     * GET /api/v1/devices/:deviceId/live/snapshot
+     */
     app.get('/snapshot', async (request, reply) => {
         const device = request.device || null
         const isApplicationOwned = device?.ownerType === 'application' // && 'EE'?
         if (!request.device.targetSnapshot) {
+            let nodeRedVersion = '3.0.2' // default to older Node-RED
+            if (SemVer.satisfies(SemVer.coerce(device.agentVersion), '>=1.11.2')) {
+                // 1.11.2 includes fix for ESM loading of GOT, so lets use 'latest' as before
+                nodeRedVersion = 'latest'
+            }
             // determine is device is in application mode? if so, return a default snapshot to permit the user to generate flows
             if (isApplicationOwned) {
                 const DEFAULT_APP_SNAPSHOT = {
@@ -100,7 +115,7 @@ module.exports = async function (app) {
                         { id: 'FFDBG00000000001', type: 'debug', z: 'FFF0000000000001', name: 'Info', active: true, tosidebar: true, console: true, tostatus: true, complete: 'payload', targetType: 'msg', statusVal: 'payload', statusType: 'auto', x: 490, y: 160 }
                     ],
                     modules: {
-                        'node-red': 'latest' // TODO: get this from the "somewhere!?!?" - this is where TAGs might work well.
+                        'node-red': nodeRedVersion // TODO: get this from the "somewhere!?!?" - this is where TAGs might work well.
                     },
                     env: {
                         FF_SNAPSHOT_ID: '0',
@@ -147,6 +162,9 @@ module.exports = async function (app) {
         }
     })
 
+    /**
+     * GET /api/v1/devices/:deviceId/live/settings
+     */
     app.get('/settings', async (request, reply) => {
         const response = {
             hash: request.device.settingsHash,

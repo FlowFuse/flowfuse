@@ -520,6 +520,58 @@ describe('Device API', async function () {
                 result.should.have.property('application').and.be.an.Object()
                 result.application.should.have.property('id', TestObjects.Application1.hashid)
             })
+            it('agent < v1.11.2 is instructed to use Node-RED@3.0.2', async function () {
+                const agentVersion = '1.11.0' // min agent version required for application assignment
+                const device = await createDevice({ name: 'Ad1a', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion })
+                // assign the new device to application
+                await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: {
+                        application: TestObjects.Application1.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                // get the snapshot for this device
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${device.id}/live/snapshot`,
+                    headers: {
+                        authorization: `Bearer ${device.credentials.token}`
+                    }
+                })
+                const result = response.json()
+                result.should.have.property('id')
+                result.should.have.property('name', 'Starter Snapshot')
+                result.should.have.property('modules').and.be.an.Object()
+                result.modules.should.have.property('node-red', '3.0.2')
+            })
+            it('agent >= v1.11.2 is instructed to use Node-RED@latest', async function () {
+                const agentVersion = '1.11.2' // min agent version required for NR 3.1 (as this agent handles ESM issue)
+                const device = await createDevice({ name: 'Ad1a', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion })
+                // assign the new device to application
+                await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: {
+                        application: TestObjects.Application1.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                // get the snapshot for this device
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${device.id}/live/snapshot`,
+                    headers: {
+                        authorization: `Bearer ${device.credentials.token}`
+                    }
+                })
+                const result = response.json()
+                result.should.have.property('id')
+                result.should.have.property('name', 'Starter Snapshot')
+                result.should.have.property('modules').and.be.an.Object()
+                result.modules.should.have.property('node-red', 'latest')
+            })
             it('cannot assign to an application if device agent version is not present', async function () {
                 const device = await createDevice({ name: 'Ad1b', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
                 const response = await app.inject({
