@@ -1,3 +1,5 @@
+const SemVer = require("semver")
+
 /**
  * Device Live api routes
  *
@@ -85,7 +87,7 @@ module.exports = async function (app) {
     app.get('/snapshot', async (request, reply) => {
         const device = request.device || null
         const isApplicationOwned = device?.ownerType === 'application' // && 'EE'?
-        let NRVersion = '3.0.2' // default to older Node-RED
+        let nodeRedVersion = '3.0.2' // default to older Node-RED
         if (SemVer.satisfies(SemVer.coerce(device.agentVersion), '>=1.11.2')) {
             // 1.11.2 includes fix for ESM loading of GOT, so lets use 'latest' as before
             nodeRedVersion = 'latest'
