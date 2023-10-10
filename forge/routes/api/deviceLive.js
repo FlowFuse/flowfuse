@@ -1,4 +1,4 @@
-const SemVer = require("semver")
+const SemVer = require('semver')
 
 /**
  * Device Live api routes
