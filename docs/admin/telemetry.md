@@ -138,6 +138,9 @@ telemetry:
     prometheus:
       enabled: true
 ```
+
+Sentry reads the environment variable `SENTRY_ENV`, falling back to `NODE_ENV` to set the environment for both frontend and backend.
+
 #### Telemetry During Build
 
 Configure .env with the auth token, org and project name for the frontend project.
