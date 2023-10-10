@@ -24,7 +24,7 @@ module.exports = async function (app) {
 
     /**
      * POST /api/v1/devices/:deviceId/live/state
-     * 
+     *
      * Devices post to /state at regular intervals. This acts as a heartbeat.
      * The payload should include:
      * {
