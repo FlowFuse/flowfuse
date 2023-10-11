@@ -2,7 +2,7 @@
     <div class="space-y-6">
         <SectionTopMenu hero="Flow Blueprints">
             <template #tools>
-                <ff-button data-action="create-flow-blueprint" @click="showBlueprintForm">
+                <ff-button data-action="create-flow-blueprint" @click="showBlueprintForm()">
                     <template #icon-right>
                         <PlusSmIcon />
                     </template>

@@ -65,8 +65,8 @@ export default {
                     category: flowBlueprint?.category ?? '',
                     description: flowBlueprint?.description ?? '',
 
-                    flows: flowBlueprint.flows ? JSON.stringify(flowBlueprint.flows) : '',
-                    modules: flowBlueprint.modules ? JSON.stringify(flowBlueprint.modules) : ''
+                    flows: flowBlueprint?.flows ? JSON.stringify(flowBlueprint.flows) : '',
+                    modules: flowBlueprint?.modules ? JSON.stringify(flowBlueprint.modules) : ''
                 }
                 this.errors = {}
                 this.error = null
@@ -127,7 +127,7 @@ export default {
 
                 // Create
                 } else {
-                    const flowBlueprint = await FlowBlueprintsApi.create(flowBlueprintProps)
+                    const flowBlueprint = await FlowBlueprintsApi.createFlowBlueprint(flowBlueprintProps)
                     this.$emit('flow-blueprint-created', flowBlueprint)
                 }
 
