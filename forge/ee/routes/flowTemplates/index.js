@@ -44,7 +44,7 @@ module.exports = async function (app) {
             filter = { active: false }
         }
         const flowTemplates = await app.db.models.FlowTemplate.getAll(paginationOptions, filter)
-        flowTemplates.types = flowTemplates.templates.map(ft => app.db.views.FlowTemplate.flowTemplateSummary(ft))
+        flowTemplates.templates = flowTemplates.templates.map(ft => app.db.views.FlowTemplate.flowTemplateSummary(ft))
         reply.send(flowTemplates)
     })
 
