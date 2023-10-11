@@ -3,11 +3,29 @@ import paginateUrl from '../utils/paginateUrl.js'
 import client from './client.js'
 
 /**
+ * @typedef {Object} FlowBlueprintSummary
+ * @property {number} id
+ * @property {boolean} active
+ * @property {string} name
+ * @property {string} description
+ * @property {string} category
+ * @property {string} createdAt
+ * @property {string} updatedAt
+ */
+
+/**
+ * @typedef {object} FlowBlueprint
+ * @extends FlowBlueprintSummary
+ * @property {object} flows
+ * @property {object} modules
+ */
+
+/**
  * Get all flow blueprints from the backend
  * @param {string} state - 'active' (default), 'all' or 'inactive'
  * @param {G} cursor
  * @param {number} limit
- * @returns [{ id:number, active:boolean, name:string, description:string, category:string. createdAt:string, updatedAt:string }]
+ * @returns {Array.<FlowBlueprintSummary>}
  */
 const getFlowBlueprints = async (state = 'active', cursor, limit) => {
     const url = paginateUrl('/api/v1/flow-blueprints', cursor, limit, null, { filter: state })
@@ -19,7 +37,7 @@ const getFlowBlueprints = async (state = 'active', cursor, limit) => {
 /**
  * Get an existing blueprint
  * @param {number} flowBlueprintId
- * @returns {{ id:number, active:boolean, name:string, description:string, category:string. createdAt:string, updatedAt:string, flows:string, modules:string }}
+ * @returns {FlowBlueprint}
  */
 const getFlowBlueprint = async (flowBlueprintId) => {
     return await client.get(`/api/v1/flow-templates/${flowBlueprintId}`).then(res => res.data)
@@ -27,7 +45,7 @@ const getFlowBlueprint = async (flowBlueprintId) => {
 
 /**
  * Create a new blueprint
- * @param {{active:boolean, name:string, description:string, category:string, flows:string, modules:string}} flowBlueprintProperties
+ * @param {FlowBlueprint} flowBlueprintProperties
  * @returns
  */
 const createFlowBlueprint = async (flowBlueprintProperties) => {
@@ -47,8 +65,8 @@ const deleteFlowBlueprint = async (flowBlueprintId) => {
 /**
  * Update an existing blueprint
  * @param {number} flowBlueprintId
- * @param {{active:boolean, name:string, description:string, category:string, flows:string, modules:string}} options
- * @returns
+ * @param {FlowBlueprint} options
+ * @returns {FlowBlueprint}
  */
 const updateFlowBlueprint = async (flowBlueprintId, options) => {
     return client.put(`/api/v1/flow-templates/${flowBlueprintId}`, options).then(res => {
