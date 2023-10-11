@@ -41,6 +41,7 @@ const navigation = [
     { name: 'Instance Types', path: '/admin/instance-types', tag: 'admin-instancetypes', icon: ColorSwatchIcon },
     { name: 'Stacks', path: '/admin/stacks', tag: 'admin-stacks', icon: DesktopComputerIcon },
     { name: 'Templates', path: '/admin/templates', tag: 'admin-templates', icon: TemplateIcon },
+    { name: 'Flow Blueprints', path: '/admin/flow-blueprints', tag: 'admin-flow-blueprints', icon: TemplateIcon },
     { name: 'Activity', path: '/admin/audit-log', tag: 'admin-auditlog', icon: DatabaseIcon },
     { name: 'Settings', path: '/admin/settings', tag: 'admin-settings', icon: CogIcon }
 ]

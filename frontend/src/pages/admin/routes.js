@@ -3,6 +3,7 @@ import { AdjustmentsIcon } from '@heroicons/vue/outline'
 import ensureAdmin from '../../utils/ensureAdmin.js'
 
 import PlatformAuditLog from './AuditLog.vue'
+import AdminFlowBlueprints from './FlowBlueprints/index.vue'
 import AdminInstanceTypes from './InstanceTypes/index.vue'
 import AdminOverview from './Overview.vue'
 import AdminSettingsEmail from './Settings/Email.vue'
@@ -148,6 +149,14 @@ export default [
                     { path: 'environment', component: AdminTemplateEnvironment },
                     { path: 'palette', component: AdminTemplatePalette }
                 ]
+            },
+            {
+                name: 'Admin Flow Blueprints',
+                path: 'flow-blueprints',
+                component: AdminFlowBlueprints,
+                meta: {
+                    title: 'Admin - Flow Blueprints'
+                }
             },
             {
                 path: 'audit-log',

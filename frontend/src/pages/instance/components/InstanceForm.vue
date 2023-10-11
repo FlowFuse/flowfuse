@@ -501,7 +501,7 @@ export default {
 
         const projectTypes = (await projectTypesPromise).types
         this.templates = (await templateListPromise).templates.filter(template => template.active)
-        this.flowBlueprints = await flowBlueprintsPromise
+        this.flowBlueprints = (await flowBlueprintsPromise).blueprints
 
         this.activeProjectTypeCount = projectTypes.length
         if (this.billingEnabled) {
