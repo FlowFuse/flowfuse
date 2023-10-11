@@ -50,7 +50,7 @@ module.exports = fp(async function (app, _opts, next) {
         }
     }
 
-    function reportTaskComplete (checkInId, name) {
+    function reportTaskComplete (checkInId) {
         if (!checkInId) {
             return
         }
@@ -58,7 +58,6 @@ module.exports = fp(async function (app, _opts, next) {
         try {
             captureCheckIn({
                 checkInId,
-                monitorSlug: name,
                 status: 'ok'
             })
         } catch (error) {
@@ -66,17 +65,16 @@ module.exports = fp(async function (app, _opts, next) {
         }
     }
 
-    function reportTaskFailure (checkInId, name, errorMessage) {
-        if (checkInId) {
+    function reportTaskFailure (checkInId, errorMessage) {
+        if (!checkInId) {
             try {
                 captureCheckIn({
                     checkInId,
-                    monitorSlug: name,
                     status: 'error',
                     errorMessage
                 })
             } catch (error) {
-                app.log.warn('Failed to report task failure to Sentry', error)
+                app.log.warn('Failed to report task failure exception to Sentry', error)
             }
         }
 
@@ -114,13 +112,13 @@ module.exports = fp(async function (app, _opts, next) {
 
                 task
                     .run(app)
-                    .then(reportTaskComplete.bind(this, checkInId, task.name))
+                    .then(reportTaskComplete.bind(this, checkInId))
                     .catch(err => {
                         const errorMessage = `Error running task '${task.name}: ${err.toString()}`
 
                         app.log.error(errorMessage)
 
-                        reportTaskFailure(checkInId, task.name, errorMessage)
+                        reportTaskFailure(checkInId, errorMessage)
                     })
             })
         }
