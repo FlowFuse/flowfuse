@@ -67,7 +67,7 @@ module.exports = fp(async function (app, _opts, next) {
     }
 
     function reportTaskFailure (checkInId, name, errorMessage) {
-        if (!checkInId) {
+        if (checkInId) {
             try {
                 captureCheckIn({
                     checkInId,
