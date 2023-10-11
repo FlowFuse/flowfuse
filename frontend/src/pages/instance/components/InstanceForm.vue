@@ -205,7 +205,7 @@
                         v-model="copyParts"
                     />
                 </template>
-                <div v-else-if="creatingNew && flowBlueprints.length > 1">
+                <div v-else-if="creatingNew && flowBlueprintsEnabled && flowBlueprints.length > 1">
                     <div class="flex flex-wrap gap-1 items-stretch">
                         <label class="w-full block text-sm font-medium text-gray-700 mb-1">Flow Blueprint</label>
                         <label class="text-sm text-gray-400">
@@ -316,10 +316,18 @@ export default {
             required: true,
             type: Object
         },
+
+        // EE Features
         billingEnabled: {
             default: false,
             type: Boolean
         },
+        flowBlueprintsEnabled: {
+            default: false,
+            type: Boolean
+        },
+
+        // Instance
         instance: {
             default: null,
             type: Object
@@ -483,7 +491,13 @@ export default {
     async created () {
         const projectTypesPromise = instanceTypesApi.getInstanceTypes()
         const templateListPromise = templatesApi.getTemplates()
-        const flowBlueprintsPromise = flowBlueprintsApi.getFlowBlueprints()
+
+        let flowBlueprintsPromise
+        if (this.flowBlueprintsEnabled) {
+            flowBlueprintsPromise = flowBlueprintsApi.getFlowBlueprints()
+        } else {
+            flowBlueprintsPromise = Promise.resolve([])
+        }
 
         const projectTypes = (await projectTypesPromise).types
         this.templates = (await templateListPromise).templates.filter(template => template.active)
