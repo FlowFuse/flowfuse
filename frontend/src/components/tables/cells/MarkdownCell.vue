@@ -1,22 +1,22 @@
 <template>
     <!-- eslint-disable-next-line vue/no-v-html -->
-    <div class="list-disc " v-html="renderedDescription" />
+    <div class="list-disc " v-html="renderedMarkdown" />
 </template>
 <script>
 
 const marked = require('marked')
 
 export default {
-    name: 'InstanceTypeDescriptionCell',
+    name: 'MarkdownCell',
     props: {
-        description: {
+        markdown: {
             type: String,
             default: ''
         }
     },
     computed: {
-        renderedDescription () {
-            return marked.parse(this.description)
+        renderedMarkdown () {
+            return marked.parse(this.markdown)
         }
     }
 }

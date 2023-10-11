@@ -51,9 +51,9 @@ import { mapState } from 'vuex'
 import instanceTypesApi from '../../../api/instanceTypes.js'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 
+import MarkdownCell from '../../../components/tables/cells/MarkdownCell.vue'
 import Dialog from '../../../services/dialog.js'
 
-import InstanceTypeDescriptionCell from './components/InstanceTypeDescriptionCell.vue'
 import InstanceTypeEditDialog from './dialogs/InstanceTypeEditDialog.vue'
 
 const marked = require('marked')
@@ -73,7 +73,7 @@ export default {
             columns: [
                 { label: 'ID', key: 'id', sortable: true, class: ['w-32'] },
                 { label: 'Type', key: 'name', sortable: true },
-                { label: 'Description', key: 'description', sortable: true, component: { is: markRaw(InstanceTypeDescriptionCell) } },
+                { label: 'Description', key: 'description', sortable: true, component: { is: markRaw(MarkdownCell), map: { markdown: 'description' } } },
                 { label: 'Default Stack', class: ['w-48'], key: 'defaultStack', sortable: true },
                 { label: 'Application Instances', class: ['w-32', 'text-center'], key: 'instanceCount', sortable: true },
                 { label: 'Stacks', class: ['w-32', 'text-center'], key: 'stackCount', sortable: true }
