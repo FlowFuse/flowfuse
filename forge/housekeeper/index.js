@@ -50,7 +50,7 @@ module.exports = fp(async function (app, _opts, next) {
         }
     }
 
-    function reportTaskComplete (checkInId) {
+    function reportTaskComplete (checkInId, name) {
         if (!checkInId) {
             return
         }
@@ -58,6 +58,7 @@ module.exports = fp(async function (app, _opts, next) {
         try {
             captureCheckIn({
                 checkInId,
+                monitorSlug: name,
                 status: 'ok'
             })
         } catch (error) {
@@ -65,11 +66,12 @@ module.exports = fp(async function (app, _opts, next) {
         }
     }
 
-    function reportTaskFailure (checkInId, errorMessage) {
+    function reportTaskFailure (checkInId, name, errorMessage) {
         if (!checkInId) {
             try {
                 captureCheckIn({
                     checkInId,
+                    monitorSlug: name,
                     status: 'error',
                     errorMessage
                 })
@@ -112,13 +114,13 @@ module.exports = fp(async function (app, _opts, next) {
 
                 task
                     .run(app)
-                    .then(reportTaskComplete.bind(this, checkInId))
+                    .then(reportTaskComplete.bind(this, checkInId, task.name))
                     .catch(err => {
                         const errorMessage = `Error running task '${task.name}: ${err.toString()}`
 
                         app.log.error(errorMessage)
 
-                        reportTaskFailure(checkInId, errorMessage)
+                        reportTaskFailure(checkInId, task.name, errorMessage)
                     })
             })
         }
