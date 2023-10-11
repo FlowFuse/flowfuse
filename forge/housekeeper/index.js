@@ -1,3 +1,4 @@
+const { captureCheckIn, captureException } = require('@sentry/node')
 const { scheduleTask } = require('cronosjs')
 const fp = require('fastify-plugin')
 
@@ -29,6 +30,61 @@ module.exports = fp(async function (app, _opts, next) {
         })
     })
 
+    function reportTask (name, schedule) {
+        try {
+            return captureCheckIn({
+                monitorSlug: name,
+                status: 'in_progress'
+            },
+            {
+                schedule: {
+                    type: 'crontab',
+                    value: schedule
+                },
+                checkinMargin: 5,
+                maxRuntime: 5,
+                timezone: 'Etc/UTC'
+            })
+        } catch (error) {
+            app.log.warn('Failed to report to Sentry', error)
+        }
+    }
+
+    function reportTaskComplete (checkInId) {
+        if (!checkInId) {
+            return
+        }
+
+        try {
+            captureCheckIn({
+                checkInId,
+                status: 'ok'
+            })
+        } catch (error) {
+            app.log.warn('Failed to report task complete to Sentry', error)
+        }
+    }
+
+    function reportTaskFailure (checkInId, errorMessage) {
+        if (!checkInId) {
+            try {
+                captureCheckIn({
+                    checkInId,
+                    status: 'error',
+                    errorMessage
+                })
+            } catch (error) {
+                app.log.warn('Failed to report task failure exception to Sentry', error)
+            }
+        }
+
+        try {
+            captureException(new Error(errorMessage))
+        } catch (error) {
+            app.log.warn('Failed to report task failure exception to Sentry', error)
+        }
+    }
+
     // Register a task to be run on a particular schedule
     async function registerTask (task) {
         // Allow the housekeeper to be disabled - this allows the tests
@@ -51,9 +107,19 @@ module.exports = fp(async function (app, _opts, next) {
         if (task.schedule) {
             task.job = scheduleTask(task.schedule, (timestamp) => {
                 app.log.trace(`Running task '${task.name}'`)
-                task.run(app).catch(err => {
-                    app.log.error(`Error running task '${task.name}: ${err.toString()}`)
-                })
+
+                const checkInId = reportTask(task.name, task.schedule)
+
+                task
+                    .run(app)
+                    .then(reportTaskComplete.bind(this, checkInId))
+                    .catch(err => {
+                        const errorMessage = `Error running task '${task.name}: ${err.toString()}`
+
+                        app.log.error(errorMessage)
+
+                        reportTaskFailure(checkInId, errorMessage)
+                    })
             })
         }
     }
