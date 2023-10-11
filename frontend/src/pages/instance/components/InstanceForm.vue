@@ -208,7 +208,6 @@
                 <!-- Billing details -->
                 <div v-if="showBilling">
                     <InstanceChargesTable
-                        v-model:confirmed="submitEnabled"
                         :project-type="selectedProjectType"
                         :subscription="subscription"
                         :trialMode="isTrialProjectSelected"
