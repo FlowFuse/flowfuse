@@ -76,7 +76,7 @@ module.exports = fp(async function (app, _opts, next) {
                     errorMessage
                 })
             } catch (error) {
-                app.log.warn('Failed to report task failure exception to Sentry', error)
+                app.log.warn('Failed to report task failure to Sentry', error)
             }
         }
 
