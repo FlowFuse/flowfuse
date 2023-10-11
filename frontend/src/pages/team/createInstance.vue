@@ -132,7 +132,7 @@ export default {
 
             this.loading = false
         },
-        createInstance (applicationId, instanceDetails, copyParts) {
+        createInstance (applicationId, instanceDetails) {
             const createPayload = { ...instanceDetails, applicationId }
 
             return instanceApi.create(createPayload)
