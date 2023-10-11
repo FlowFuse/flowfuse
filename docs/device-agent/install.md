@@ -7,12 +7,7 @@ navOrder: 2
 
 ## Prerequisites
 
- - NodeJS v14 or later
-
-Note that NodeJS v14 is no longer maintained by the Node project. It is not recommended
-for new installations.
- 
-## Supported Operating Systems
+NodeJS of version 20 or later is recommended, through the device agent supports NodeJS v14 or later.
 
 The Device Agent can be installed on most Linux distributions, Windows, and MacOS.
 
