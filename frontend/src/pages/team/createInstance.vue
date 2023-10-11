@@ -27,6 +27,7 @@
                 :applicationSelection="true"
                 :applications="applications"
                 :billing-enabled="!!features.billing"
+                :flow-blueprints-enabled="!!features.flowBlueprints"
                 :submit-errors="errors"
                 @on-submit="handleFormSubmit"
             />

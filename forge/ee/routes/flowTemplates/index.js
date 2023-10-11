@@ -4,6 +4,8 @@ const { Roles } = require('../../../lib/roles.js')
 const hasValueChanged = (requestProp, existingProp) => (requestProp !== undefined && existingProp !== requestProp)
 
 module.exports = async function (app) {
+    app.config.features.register('flowBlueprints', true, true)
+
     registerPermissions({
         'flow-template:create': { description: 'Create a Flow Template', role: Roles.Admin },
         'flow-template:list': { description: 'List all Flow Templates' },
