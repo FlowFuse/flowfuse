@@ -170,7 +170,7 @@ module.exports = async function (app) {
         // Read in any source to copy from
         let sourceProject
         if (request.body.sourceProject?.id) {
-            if (!flowTemplate) {
+            if (flowTemplate) {
                 reply.code(400).send({ code: 'invalid_request', error: 'Cannot use both sourceProject and flowTemplate' })
                 return
             }
