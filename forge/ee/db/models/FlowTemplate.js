@@ -15,6 +15,34 @@ module.exports = {
         category: { type: DataTypes.STRING, defaultValue: '' },
         flows: {
             type: DataTypes.TEXT,
+            validate: {
+                isValidFlow (value) {
+                    if (value) {
+                        let parsedValue
+                        try {
+                            parsedValue = JSON.parse(value)
+                        } catch (err) {
+                            throw new Error('Invalid flow json')
+                        }
+                        if (!parsedValue.flows) {
+                            throw new Error('Flow json missing \'flows\' property')
+                        }
+                        if (!Array.isArray(parsedValue.flows)) {
+                            throw new Error('Flow json \'flows\' property not an Array')
+                        }
+                        // .credentials are optional, but if present, must be an object
+                        // and not appear encrypted
+                        if (parsedValue.credentials) {
+                            if (typeof parsedValue.credentials !== 'object' || Array.isArray(parsedValue.credentials)) {
+                                throw new Error('Flow json \'credentials\' property must be an object')
+                            }
+                            if (parsedValue.credentials.$) {
+                                throw new Error('Flow json \'credentials\' property must not be encrypted - found $ property')
+                            }
+                        }
+                    }
+                }
+            },
             set (value) {
                 this.setDataValue('flows', JSON.stringify(value))
             },
