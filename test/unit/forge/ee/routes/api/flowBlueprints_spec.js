@@ -298,10 +298,6 @@ describe('Flow Blueprints API', function () {
             resp6.should.have.property('code', 'unexpected_error')
             statusCode6.should.equal(400)
         })
-
-
-
-
     })
 
     describe('Delete Flow Blueprints', function () {
