@@ -79,7 +79,7 @@
         "bcrypt": "^5.1.0",
         "cronosjs": "^1.7.1",
         "dotenv": "^16.3.1",
-        "fastify": "4.23.2",
+        "fastify": "^4.24.0",
         "fastify-metrics": "^10.3.2",
         "fastify-plugin": "^4.5.0",
         "handlebars": "^4.7.7",
