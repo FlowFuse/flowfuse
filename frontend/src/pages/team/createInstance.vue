@@ -20,18 +20,14 @@
                 v-if="loading"
                 message="Creating instance..."
             />
-            <ff-loading
-                v-else-if="sourceInstanceId && !sourceInstance"
-                message="Loading instance to Copy From..."
-            />
             <InstanceForm
                 v-else
                 :instance="instanceDetails"
-                :source-instance="sourceInstance"
                 :team="team"
                 :applicationSelection="true"
                 :applications="applications"
                 :billing-enabled="!!features.billing"
+                :flow-blueprints-enabled="!!features.flowBlueprints"
                 :submit-errors="errors"
                 @on-submit="handleFormSubmit"
             />
@@ -88,13 +84,6 @@ export default {
         ...mapState('account', ['features', 'team'])
     },
     async created () {
-        if (this.sourceInstanceId) {
-            instanceApi.getInstance(this.sourceInstanceId).then(instance => {
-                this.sourceInstance = instance
-            }).catch(err => {
-                console.error('Failed to load source instance', err)
-            })
-        }
         const data = await teamApi.getTeamApplications(this.team.id)
         this.applications = data.applications.map((a) => {
             return {
@@ -144,14 +133,8 @@ export default {
 
             this.loading = false
         },
-        createInstance (applicationId, instanceDetails, copyParts) {
+        createInstance (applicationId, instanceDetails) {
             const createPayload = { ...instanceDetails, applicationId }
-            if (this.sourceInstance?.id) {
-                createPayload.sourceProject = {
-                    id: this.sourceInstanceId,
-                    options: { ...copyParts }
-                }
-            }
 
             return instanceApi.create(createPayload)
         }

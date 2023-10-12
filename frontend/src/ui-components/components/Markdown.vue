@@ -14,7 +14,7 @@ export default {
     },
     computed: {
         markdownToHtml () {
-            return this.md(this.content)
+            return this.md(this.content, { breaks: true })
         }
     }
 }

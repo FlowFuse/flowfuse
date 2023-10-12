@@ -70,6 +70,7 @@
                 This will create an instance of Node-RED that will be managed in your new Application.
             </template>
         </FormRow>
+
         <div v-if="!creatingApplication || input.createInstance" :class="creatingApplication ? 'ml-6' : ''" class="space-y-6">
             <!-- Instance Name -->
             <div>
@@ -204,11 +205,41 @@
                         v-model="copyParts"
                     />
                 </template>
+                <div v-else-if="creatingNew && flowBlueprintsEnabled && flowBlueprints.length > 0">
+                    <div class="flex flex-wrap gap-1 items-stretch">
+                        <label class="w-full block text-sm font-medium text-gray-700 mb-1">Flow Blueprint</label>
+                        <label class="text-sm text-gray-400">
+                            We have a collection of pre-built flow templates that you can use as a starting point.
+                        </label>
+                        <label v-if="errors.flowBlueprint" class="text-sm text-gray-400 mb-1">
+                            {{ errors.flowBlueprint }}
+                        </label>
+                        <ff-tile-selection
+                            v-model="input.flowBlueprintId"
+                            data-form="flow-template"
+                            class="mt-3"
+                        >
+                            <!-- Later this will be grouped by flowBlueprint.category -->
+                            <ff-tile-selection-option
+                                value=""
+                                label="Blank"
+                                description="An empty flow"
+                            />
+
+                            <ff-tile-selection-option
+                                v-for="(flowBlueprint, index) in flowBlueprints"
+                                :key="index"
+                                :value="flowBlueprint.id"
+                                :label="flowBlueprint.name"
+                                :description="flowBlueprint.description"
+                            />
+                        </ff-tile-selection>
+                    </div>
+                </div>
 
                 <!-- Billing details -->
                 <div v-if="showBilling">
                     <InstanceChargesTable
-                        v-model:confirmed="submitEnabled"
                         :project-type="selectedProjectType"
                         :subscription="subscription"
                         :trialMode="isTrialProjectSelected"
@@ -254,6 +285,7 @@ import { RefreshIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
 import billingApi from '../../../api/billing.js'
+import flowBlueprintsApi from '../../../api/flowBlueprints.js'
 import instanceTypesApi from '../../../api/instanceTypes.js'
 import stacksApi from '../../../api/stacks.js'
 import templatesApi from '../../../api/templates.js'
@@ -284,10 +316,18 @@ export default {
             required: true,
             type: Object
         },
+
+        // EE Features
         billingEnabled: {
             default: false,
             type: Boolean
         },
+        flowBlueprintsEnabled: {
+            default: false,
+            type: Boolean
+        },
+
+        // Instance
         instance: {
             default: null,
             type: Object
@@ -334,6 +374,7 @@ export default {
         return {
             stacks: [],
             templates: [],
+            flowBlueprints: [],
             projectTypes: [],
             activeProjectTypeCount: 0,
             subscription: null,
@@ -350,7 +391,9 @@ export default {
                 // Handle both full instance objects and short-form instance details
                 projectType: instance?.projectType?.id || instance?.projectType || '',
                 stack: instance?.stack?.id || instance?.stack || '',
-                template: instance?.template?.id || instance?.template || ''
+                template: instance?.template?.id || instance?.template || '',
+
+                flowBlueprintId: '' // always defaults to blank, not currently available on edit
             },
             errors: {
                 name: '',
@@ -449,8 +492,16 @@ export default {
         const projectTypesPromise = instanceTypesApi.getInstanceTypes()
         const templateListPromise = templatesApi.getTemplates()
 
+        let flowBlueprintsPromise
+        if (this.flowBlueprintsEnabled) {
+            flowBlueprintsPromise = flowBlueprintsApi.getFlowBlueprints()
+        } else {
+            flowBlueprintsPromise = Promise.resolve([])
+        }
+
         const projectTypes = (await projectTypesPromise).types
         this.templates = (await templateListPromise).templates.filter(template => template.active)
+        this.flowBlueprints = await flowBlueprintsPromise
 
         this.activeProjectTypeCount = projectTypes.length
         if (this.billingEnabled) {

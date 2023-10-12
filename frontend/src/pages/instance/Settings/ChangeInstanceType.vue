@@ -1,7 +1,13 @@
 <template>
     <div class="w-full max-w-4xl" data-el="change-project">
         <ff-loading v-if="saving" message="Updating Instance..." />
-        <InstanceForm v-else :instance="instanceDetails || instance" :team="team" :billingEnabled="!!features.billing" @on-submit="changeInstanceDefinition" />
+        <InstanceForm
+            v-else :instance="instanceDetails || instance"
+            :team="team"
+            :billing-enabled="!!features.billing"
+            :flow-blueprints-enabled="false"
+            @on-submit="changeInstanceDefinition"
+        />
     </div>
 </template>
 
