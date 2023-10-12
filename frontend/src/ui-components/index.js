@@ -9,8 +9,8 @@ import './index.scss'
 
 const markedMixin = {
     methods: {
-        md: function (content) {
-            return marked.parse(content)
+        md: function (content, options = {}) {
+            return marked.parse(content, options)
         }
     }
 }
