@@ -950,7 +950,7 @@ describe('Project API', function () {
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
                         stack: TestObjects.stack1.hashid,
-                        flowTemplate: flowTemplate.hashid
+                        flowTemplateId: flowTemplate.hashid
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -993,7 +993,7 @@ describe('Project API', function () {
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
                         stack: TestObjects.stack1.hashid,
-                        flowTemplate: 'does-not-exist'
+                        flowTemplateId: 'does-not-exist'
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -1013,7 +1013,7 @@ describe('Project API', function () {
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
                         stack: TestObjects.stack1.hashid,
-                        flowTemplate: flowTemplate.hashid,
+                        flowTemplateId: flowTemplate.hashid,
                         sourceProject: {
                             id: TestObjects.project1.id,
                             options: {

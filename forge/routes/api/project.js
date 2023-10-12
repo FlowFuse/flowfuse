@@ -128,7 +128,7 @@ module.exports = async function (app) {
                     applicationId: { type: 'string' },
                     projectType: { type: 'string' },
                     stack: { type: 'string' },
-                    flowTemplate: { type: 'string' },
+                    flowTemplateId: { type: 'string' },
                     template: { type: 'string' },
                     sourceProject: {
                         type: 'object',
@@ -160,8 +160,8 @@ module.exports = async function (app) {
         const projectTemplate = await app.db.models.ProjectTemplate.byId(request.body.template)
 
         let flowTemplate
-        if (request.body.flowTemplate) {
-            flowTemplate = await app.db.models.FlowTemplate.byId(request.body.flowTemplate)
+        if (request.body.flowTemplateId) {
+            flowTemplate = await app.db.models.FlowTemplate.byId(request.body.flowTemplateId)
             if (!flowTemplate) {
                 reply.code(400).send({ code: 'invalid_flow_template', error: 'Flow Template not found' })
                 return
