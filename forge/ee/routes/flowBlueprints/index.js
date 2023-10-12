@@ -7,18 +7,18 @@ module.exports = async function (app) {
     app.config.features.register('flowBlueprints', true, true)
 
     registerPermissions({
-        'flow-template:create': { description: 'Create a Flow Template', role: Roles.Admin },
-        'flow-template:list': { description: 'List all Flow Templates' },
-        'flow-template:read': { description: 'View a Flow Template' },
-        'flow-template:delete': { description: 'Delete a Flow Template', role: Roles.Admin },
-        'flow-template:edit': { description: 'Edit a Flow Template', role: Roles.Admin }
+        'flow-blueprint:create': { description: 'Create a Flow Blueprint', role: Roles.Admin },
+        'flow-blueprint:list': { description: 'List all Flow Blueprints' },
+        'flow-blueprint:read': { description: 'View a Flow Blueprint' },
+        'flow-blueprint:delete': { description: 'Delete a Flow Blueprint', role: Roles.Admin },
+        'flow-blueprint:edit': { description: 'Edit a Flow Blueprint', role: Roles.Admin }
     })
 
     app.get('/', {
-        preHandler: app.needsPermission('flow-template:list'),
+        preHandler: app.needsPermission('flow-blueprint:list'),
         schema: {
-            summary: 'Get a list of the available flow templates',
-            tags: ['Flow Templates'],
+            summary: 'Get a list of the available flow blueprints',
+            tags: ['Flow Blueprints'],
             query: { $ref: 'PaginationParams' },
             response: {
                 200: {
@@ -26,7 +26,7 @@ module.exports = async function (app) {
                     properties: {
                         meta: { $ref: 'PaginationMeta' },
                         count: { type: 'number' },
-                        templates: { $ref: 'FlowTemplateSummaryList' }
+                        blueprints: { $ref: 'FlowBlueprintSummaryList' }
                     }
                 },
                 '4xx': {
@@ -46,24 +46,24 @@ module.exports = async function (app) {
             filter = { active: false }
         }
         const flowTemplates = await app.db.models.FlowTemplate.getAll(paginationOptions, filter)
-        flowTemplates.templates = flowTemplates.templates.map(ft => app.db.views.FlowTemplate.flowTemplateSummary(ft))
+        flowTemplates.blueprints = flowTemplates.templates.map(ft => app.db.views.FlowTemplate.flowBlueprintSummary(ft))
         reply.send(flowTemplates)
     })
 
-    app.get('/:flowTemplateId', {
-        preHandler: app.needsPermission('flow-template:read'),
+    app.get('/:flowBlueprintId', {
+        preHandler: app.needsPermission('flow-blueprint:read'),
         schema: {
-            summary: 'Get full details of a flow template',
-            tags: ['Flow Templates'],
+            summary: 'Get full details of a flow blueprint',
+            tags: ['Flow Blueprints'],
             params: {
                 type: 'object',
                 properties: {
-                    flowTemplateId: { type: 'string' }
+                    flowBlueprintId: { type: 'string' }
                 }
             },
             response: {
                 200: {
-                    $ref: 'FlowTemplate'
+                    $ref: 'FlowBlueprint'
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -71,24 +71,24 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const flowTemplate = await app.db.models.FlowTemplate.byId(request.params.flowTemplateId)
+        const flowTemplate = await app.db.models.FlowTemplate.byId(request.params.flowBlueprintId)
         if (!flowTemplate) {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             return
         }
-        const response = app.db.views.FlowTemplate.flowTemplate(flowTemplate)
+        const response = app.db.views.FlowTemplate.flowBlueprint(flowTemplate)
         reply.send(response)
     })
 
-    app.delete('/:flowTemplateId', {
-        preHandler: app.needsPermission('flow-template:delete'),
+    app.delete('/:flowBlueprintId', {
+        preHandler: app.needsPermission('flow-blueprint:delete'),
         schema: {
-            summary: 'Delete a flow template - admin-only',
-            tags: ['Flow Templates'],
+            summary: 'Delete a flow blueprint - admin-only',
+            tags: ['Flow Blueprints'],
             params: {
                 type: 'object',
                 properties: {
-                    flowTemplateId: { type: 'string' }
+                    flowBlueprintId: { type: 'string' }
                 }
             },
             response: {
@@ -101,7 +101,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const flowTemplate = await app.db.models.FlowTemplate.byId(request.params.flowTemplateId)
+        const flowTemplate = await app.db.models.FlowTemplate.byId(request.params.flowBlueprintId)
         if (!flowTemplate) {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             return
@@ -111,10 +111,10 @@ module.exports = async function (app) {
     })
 
     app.post('/', {
-        preHandler: app.needsPermission('flow-template:create'),
+        preHandler: app.needsPermission('flow-blueprint:create'),
         schema: {
-            summary: 'Create a flow template - admin-only',
-            tags: ['Flow Templates'],
+            summary: 'Create a flow blueprint - admin-only',
+            tags: ['Flow Blueprints'],
             body: {
                 type: 'object',
                 required: ['name'],
@@ -129,7 +129,7 @@ module.exports = async function (app) {
             },
             response: {
                 200: {
-                    $ref: 'FlowTemplateSummary'
+                    $ref: 'FlowBlueprintSummary'
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -137,7 +137,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        // Only admins can create a Flow Template
+        // Only admins can create a Flow Blueprint
         const properties = {
             name: request.body.name,
             description: request.body.description,
@@ -148,7 +148,7 @@ module.exports = async function (app) {
         }
         try {
             const flowTemplate = await app.db.models.FlowTemplate.create(properties)
-            const response = app.db.views.FlowTemplate.flowTemplateSummary(flowTemplate, true)
+            const response = app.db.views.FlowTemplate.flowBlueprintSummary(flowTemplate, true)
             reply.send(response)
         } catch (err) {
             let responseMessage
@@ -162,15 +162,15 @@ module.exports = async function (app) {
         }
     })
 
-    app.put('/:flowTemplateId', {
-        preHandler: app.needsPermission('flow-template:edit'),
+    app.put('/:flowBlueprintId', {
+        preHandler: app.needsPermission('flow-blueprint:edit'),
         schema: {
-            summary: 'Update a flow template - admin-only',
-            tags: ['Flow Templates'],
+            summary: 'Update a flow blueprint - admin-only',
+            tags: ['Flow Blueprints'],
             params: {
                 type: 'object',
                 properties: {
-                    flowTemplateId: { type: 'string' }
+                    flowBlueprintId: { type: 'string' }
                 }
             },
             body: {
@@ -186,7 +186,7 @@ module.exports = async function (app) {
             },
             response: {
                 200: {
-                    $ref: 'FlowTemplateSummary'
+                    $ref: 'FlowBlueprintSummary'
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -194,8 +194,8 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        // Only admins can modify a Flow Template
-        const flowTemplate = await app.db.models.FlowTemplate.byId(request.params.flowTemplateId)
+        // Only admins can modify a Flow Blueprint
+        const flowTemplate = await app.db.models.FlowTemplate.byId(request.params.flowBlueprintId)
         if (!flowTemplate) {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             return
@@ -224,7 +224,7 @@ module.exports = async function (app) {
         try {
             await flowTemplate.save()
             await flowTemplate.reload()
-            const response = app.db.views.FlowTemplate.flowTemplateSummary(flowTemplate, true)
+            const response = app.db.views.FlowTemplate.flowBlueprintSummary(flowTemplate, true)
             reply.send(response)
         } catch (err) {
             let responseMessage

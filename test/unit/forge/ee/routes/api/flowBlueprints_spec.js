@@ -3,9 +3,9 @@ const sinon = require('sinon')
 
 const TestModelFactory = require('../../../../../lib/TestModelFactory.js')
 
-const setup = require('../../setup')
+const setup = require('../../setup.js')
 
-describe('Flow Templates API', function () {
+describe('Flow Blueprints API', function () {
     const sandbox = sinon.createSandbox()
 
     const TestObjects = { tokens: {} }
@@ -46,10 +46,10 @@ describe('Flow Templates API', function () {
         sandbox.restore()
     })
 
-    async function createTemplate (body, token) {
+    async function createBlueprint (body, token) {
         const response = await app.inject({
             method: 'POST',
-            url: '/api/v1/flow-templates',
+            url: '/api/v1/flow-blueprints',
             body,
             cookies: { sid: token }
         })
@@ -59,10 +59,10 @@ describe('Flow Templates API', function () {
     let objectCount = 0
     const generateName = (prefix = 'object') => `${prefix}-${objectCount++}`
 
-    describe('Create Flow Templates', function () {
-        it('Admin can create a flow template', async function () {
-            const name = generateName('flow template')
-            const [statusCode, result] = await createTemplate({
+    describe('Create Flow Blueprints', function () {
+        it('Admin can create a flow blueprint', async function () {
+            const name = generateName('flow blueprint')
+            const [statusCode, result] = await createBlueprint({
                 name,
                 description: 'a flow',
                 active: true,
@@ -78,9 +78,9 @@ describe('Flow Templates API', function () {
             result.should.not.have.property('modules')
         })
 
-        it('Non-admin cannot create a flow template', async function () {
-            const [statusCode] = await createTemplate({
-                name: generateName('flow template'),
+        it('Non-admin cannot create a flow blueprint', async function () {
+            const [statusCode] = await createBlueprint({
+                name: generateName('flow blueprint'),
                 description: 'a flow',
                 active: true,
                 category: 'starter',
@@ -92,10 +92,10 @@ describe('Flow Templates API', function () {
     })
 
     describe('Get Flow Template', function () {
-        it('User can get flow template details', async function () {
-            const name = generateName('flow template')
-            const description = generateName('a flow template description')
-            const [statusCode, result] = await createTemplate({
+        it('User can get flow blueprint details', async function () {
+            const name = generateName('flow blueprint')
+            const description = generateName('a flow blueprint description')
+            const [statusCode, result] = await createBlueprint({
                 name,
                 description,
                 active: true,
@@ -107,7 +107,7 @@ describe('Flow Templates API', function () {
 
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/flow-templates/${result.id}`,
+                url: `/api/v1/flow-blueprints/${result.id}`,
                 cookies: { sid: TestObjects.tokens.bob }
             })
             response.should.have.property('statusCode', 200)
@@ -122,42 +122,42 @@ describe('Flow Templates API', function () {
         })
     })
 
-    describe('List Flow Templates', function () {
+    describe('List Flow Blueprints', function () {
         before(async function () {
             // Clean up anything created by other tests so we have a known base line
             await app.db.models.FlowTemplate.destroy({ where: {} })
 
             for (let i = 0; i < 10; i++) {
-                await createTemplate({
-                    name: 'flowTemplate-' + i,
-                    // Only mark even-numbered templates as active
+                await createBlueprint({
+                    name: 'flowBlueprint-' + i,
+                    // Only mark even-numbered blueprints as active
                     active: (i % 2) === 0
                 }, TestObjects.tokens.alice)
             }
         })
 
-        it('Lists all active templates by default', async function () {
+        it('Lists all active blueprints by default', async function () {
             const response = await app.inject({
                 method: 'GET',
-                url: '/api/v1/flow-templates',
+                url: '/api/v1/flow-blueprints',
                 cookies: { sid: TestObjects.tokens.bob }
             })
             const result = response.json()
 
             result.should.have.property('count', 5)
-            const incorrectTemplates = result.templates.filter(template => {
-                // Get the number from the name ('flowTemplate-X')
+            const incorrectTemplates = result.blueprints.filter(template => {
+                // Get the number from the name ('flowBlueprint-X')
                 const index = parseInt(template.name.split('-')[1])
-                // Only even-number templates are active - return any that add odd
+                // Only even-number blueprints are active - return any that add odd
                 return (index % 2) !== 0
             })
             incorrectTemplates.should.have.length(0)
         })
 
-        it('Lists all templates when filter set to all', async function () {
+        it('Lists all blueprints when filter set to all', async function () {
             const response = await app.inject({
                 method: 'GET',
-                url: '/api/v1/flow-templates?filter=all',
+                url: '/api/v1/flow-blueprints?filter=all',
                 cookies: { sid: TestObjects.tokens.bob }
             })
             const result = response.json()
@@ -167,9 +167,9 @@ describe('Flow Templates API', function () {
     })
 
     describe('Update Flow Template', function () {
-        it('Admin can update a flow template', async function () {
-            const name = generateName('flow template')
-            const [statusCode, result] = await createTemplate({ name }, TestObjects.tokens.alice)
+        it('Admin can update a flow blueprint', async function () {
+            const name = generateName('flow blueprint')
+            const [statusCode, result] = await createBlueprint({ name }, TestObjects.tokens.alice)
             statusCode.should.equal(200)
             const templateId = result.id
 
@@ -182,7 +182,7 @@ describe('Flow Templates API', function () {
                     flows: { flows: [1, 2, 3] },
                     modules: { a: 1 }
                 },
-                url: `/api/v1/flow-templates/${templateId}`,
+                url: `/api/v1/flow-blueprints/${templateId}`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
@@ -199,7 +199,7 @@ describe('Flow Templates API', function () {
 
             const fullTemplate = (await app.inject({
                 method: 'GET',
-                url: `/api/v1/flow-templates/${templateId}`,
+                url: `/api/v1/flow-blueprints/${templateId}`,
                 cookies: { sid: TestObjects.tokens.alice }
             })).json()
 
@@ -207,9 +207,9 @@ describe('Flow Templates API', function () {
             fullTemplate.should.have.property('modules')
         })
 
-        it('Non-admin cannot update a flow template', async function () {
-            const name = generateName('flow template')
-            const [statusCode, result] = await createTemplate({ name }, TestObjects.tokens.alice)
+        it('Non-admin cannot update a flow blueprint', async function () {
+            const name = generateName('flow blueprint')
+            const [statusCode, result] = await createBlueprint({ name }, TestObjects.tokens.alice)
             statusCode.should.equal(200)
             const templateId = result.id
 
@@ -222,37 +222,37 @@ describe('Flow Templates API', function () {
                     flows: { flows: [1, 2, 3] },
                     modules: { a: 1 }
                 },
-                url: `/api/v1/flow-templates/${templateId}`,
+                url: `/api/v1/flow-blueprints/${templateId}`,
                 cookies: { sid: TestObjects.tokens.bob }
             })
             response.statusCode.should.equal(403)
         })
     })
 
-    describe('Delete Flow Templates', function () {
-        it('Admin can delete a flow template', async function () {
-            const [statusCode, result] = await createTemplate({
-                name: generateName('flow template')
+    describe('Delete Flow Blueprints', function () {
+        it('Admin can delete a flow blueprint', async function () {
+            const [statusCode, result] = await createBlueprint({
+                name: generateName('flow blueprint')
             }, TestObjects.tokens.alice)
             statusCode.should.equal(200)
 
             const response = await app.inject({
                 method: 'DELETE',
-                url: `/api/v1/flow-templates/${result.id}`,
+                url: `/api/v1/flow-blueprints/${result.id}`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.should.have.property('statusCode', 200)
         })
 
-        it('Non-admin cannot create a flow template', async function () {
-            const [statusCode, result] = await createTemplate({
-                name: generateName('flow template')
+        it('Non-admin cannot create a flow blueprint', async function () {
+            const [statusCode, result] = await createBlueprint({
+                name: generateName('flow blueprint')
             }, TestObjects.tokens.alice)
             statusCode.should.equal(200)
 
             const response = await app.inject({
                 method: 'DELETE',
-                url: `/api/v1/flow-templates/${result.id}`,
+                url: `/api/v1/flow-blueprints/${result.id}`,
                 cookies: { sid: TestObjects.tokens.bob }
             })
             response.should.have.property('statusCode', 403)

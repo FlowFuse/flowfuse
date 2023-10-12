@@ -128,7 +128,7 @@ module.exports = async function (app) {
                     applicationId: { type: 'string' },
                     projectType: { type: 'string' },
                     stack: { type: 'string' },
-                    flowTemplateId: { type: 'string' },
+                    flowBlueprintId: { type: 'string' },
                     template: { type: 'string' },
                     sourceProject: {
                         type: 'object',
@@ -159,19 +159,19 @@ module.exports = async function (app) {
         const projectStack = await app.db.models.ProjectStack.byId(request.body.stack)
         const projectTemplate = await app.db.models.ProjectTemplate.byId(request.body.template)
 
-        let flowTemplate
-        if (request.body.flowTemplateId) {
-            flowTemplate = await app.db.models.FlowTemplate.byId(request.body.flowTemplateId)
-            if (!flowTemplate) {
-                reply.code(400).send({ code: 'invalid_flow_template', error: 'Flow Template not found' })
+        let flowBlueprint
+        if (request.body.flowBlueprintId) {
+            flowBlueprint = await app.db.models.FlowTemplate.byId(request.body.flowBlueprintId)
+            if (!flowBlueprint) {
+                reply.code(400).send({ code: 'invalid_flow_blueprint', error: 'Flow Blueprint not found' })
                 return
             }
         }
         // Read in any source to copy from
         let sourceProject
         if (request.body.sourceProject?.id) {
-            if (flowTemplate) {
-                reply.code(400).send({ code: 'invalid_request', error: 'Cannot use both sourceProject and flowTemplate' })
+            if (flowBlueprint) {
+                reply.code(400).send({ code: 'invalid_request', error: 'Cannot use both sourceProject and flowBlueprintId' })
                 return
             }
             sourceProject = await app.db.models.Project.byId(request.body.sourceProject.id)
@@ -196,7 +196,7 @@ module.exports = async function (app) {
                     ha: request.body.ha,
                     sourceProject,
                     sourceProjectOptions: request.body.sourceProject?.options,
-                    flowTemplate
+                    flowBlueprint
                 }
             )
         } catch (err) {

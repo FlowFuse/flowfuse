@@ -927,12 +927,12 @@ describe('Project API', function () {
         })
 
         describe('Apply Flow Blueprint', function () {
-            let flowTemplate
+            let flowBlueprint
             before(async function () {
                 const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
                 await app.close()
                 await setupApp(license)
-                flowTemplate = await app.db.models.FlowTemplate.create({ name: 'Test Blueprint', description: 'This is a test blueprint\\n - with markdown\\n - formatted *description*', category: 'blueprint', active: true, flows: { flows: [{ id: '0959734f594cf1b7', type: 'tab', label: 'Example Flow', disabled: false, info: '', env: [] }, { id: '99a085239a033276', type: 'inject', z: '0959734f594cf1b7', name: '', props: [{ p: 'payload' }, { p: 'topic', vt: 'str' }], repeat: '', crontab: '', once: false, onceDelay: 0.1, topic: '', payload: '', payloadType: 'date', x: 160, y: 100, wires: [['5fbc411997c05334']] }, { id: '5fbc411997c05334', type: 'debug', z: '0959734f594cf1b7', name: 'debug 1', active: true, tosidebar: true, console: false, tostatus: false, complete: 'false', statusVal: '', statusType: 'auto', x: 410, y: 120, wires: [] }] }, modules: { '@flowforge/node-red-dashboard': '0.6.1' } })
+                flowBlueprint = await app.db.models.FlowTemplate.create({ name: 'Test Blueprint', description: 'This is a test blueprint\\n - with markdown\\n - formatted *description*', category: 'blueprint', active: true, flows: { flows: [{ id: '0959734f594cf1b7', type: 'tab', label: 'Example Flow', disabled: false, info: '', env: [] }, { id: '99a085239a033276', type: 'inject', z: '0959734f594cf1b7', name: '', props: [{ p: 'payload' }, { p: 'topic', vt: 'str' }], repeat: '', crontab: '', once: false, onceDelay: 0.1, topic: '', payload: '', payloadType: 'date', x: 160, y: 100, wires: [['5fbc411997c05334']] }, { id: '5fbc411997c05334', type: 'debug', z: '0959734f594cf1b7', name: 'debug 1', active: true, tosidebar: true, console: false, tostatus: false, complete: 'false', statusVal: '', statusType: 'auto', x: 410, y: 120, wires: [] }] }, modules: { '@flowforge/node-red-dashboard': '0.6.1' } })
             })
             after(async function () {
                 // After this set of tests, close the app and recreate (ie remove the license)
@@ -950,7 +950,7 @@ describe('Project API', function () {
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
                         stack: TestObjects.stack1.hashid,
-                        flowTemplateId: flowTemplate.hashid
+                        flowBlueprintId: flowBlueprint.hashid
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -993,16 +993,16 @@ describe('Project API', function () {
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
                         stack: TestObjects.stack1.hashid,
-                        flowTemplateId: 'does-not-exist'
+                        flowBlueprintId: 'does-not-exist'
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
                 response.statusCode.should.equal(400)
                 const result = response.json()
-                result.should.have.property('code', 'invalid_flow_template')
+                result.should.have.property('code', 'invalid_flow_blueprint')
             })
 
-            it('Create a project fails with source-project and blueprint', async function () {
+            it('Create a project fails with source-project and flowBlueprintId', async function () {
                 const projectName = generateProjectName()
                 const response = await app.inject({
                     method: 'POST',
@@ -1013,7 +1013,7 @@ describe('Project API', function () {
                         projectType: TestObjects.projectType1.hashid,
                         template: TestObjects.template1.hashid,
                         stack: TestObjects.stack1.hashid,
-                        flowTemplateId: flowTemplate.hashid,
+                        flowBlueprintId: flowBlueprint.hashid,
                         sourceProject: {
                             id: TestObjects.project1.id,
                             options: {
