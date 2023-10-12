@@ -43,7 +43,11 @@ module.exports = {
             static: {
                 byId: async function (id) {
                     if (typeof id === 'string') {
-                        id = M.FlowTemplate.decodeHashid(id)
+                        try {
+                            id = M.FlowTemplate.decodeHashid(id)
+                        } catch (err) {
+                            return null
+                        }
                     }
                     return self.findOne({
                         where: { id },

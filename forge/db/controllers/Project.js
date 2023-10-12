@@ -299,7 +299,7 @@ module.exports = {
      * @param {ProjectType} type
      * @param {ProjectStack} stack
      * @param {ProjectTemplate} template
-     * @param {{name: string, ha: {}, sourceProject: Project, sourceProjectOptions: {}}} properties Props of the project to create
+     * @param {{name: string, ha: {}, sourceProject: Project, sourceProjectOptions: {}, flowTemplate: FlowTemplate}} properties Props of the project to create
      * @returns
      */
     create: async function (
@@ -314,7 +314,8 @@ module.exports = {
             name = '',
             ha = null,
             sourceProject = null,
-            sourceProjectOptions = {}
+            sourceProjectOptions = {},
+            flowTemplate = null
         } = {}
     ) {
         if (!user) {
@@ -336,6 +337,10 @@ module.exports = {
         // This will perform all checks needed to ensure this instance type can be created for this team.
         // Throws an exception if not allowed
         await team.checkInstanceTypeCreateAllowed(type)
+
+        if (sourceProject && flowTemplate) {
+            throw new ControllerError('invalid_request', 'Source Project and Flow Template cannot both be used')
+        }
 
         if (sourceProject) {
             if (sourceProject.Team.id !== team.id) {
@@ -416,6 +421,9 @@ module.exports = {
             }
             await instance.updateSetting(KEY_SETTINGS, newProjectSettings)
             await instance.updateSetting('credentialSecret', app.db.models.Project.generateCredentialSecret())
+            if (flowTemplate) {
+                await app.db.controllers.Project.applyFlowTemplate(instance, flowTemplate)
+            }
         }
 
         await app.containers.start(instance)
@@ -624,6 +632,30 @@ module.exports = {
             currentProjectSettings.palette = currentProjectSettings.palette || {}
             currentProjectSettings.palette.modules = newProjectModuleList
             await project.updateSetting('settings', currentProjectSettings)
+        }
+    },
+    /**
+     * Applies the contents of a FlowTemplate to an Instance. We assume this
+     * is being invoked when the Instance is being created - so it will overwrite
+     * any existing flows and will merge any modules with those provided by the ProjectTemplate.
+     * @param {*} app
+     * @param {*} instance
+     * @param {*} flowTemplate
+     */
+    applyFlowTemplate: async function (app, instance, flowTemplate) {
+        const flows = flowTemplate.flows || { flows: [], credentials: {} }
+        if (flows.flows) {
+            await app.db.controllers.StorageFlows.updateOrCreateForProject(instance, JSON.stringify(flows.flows))
+        }
+        if (flows.credentials) {
+            const projectSecret = await instance.getCredentialSecret()
+            const encryptedCreds = app.db.controllers.Project.exportCredentials(flows.credentials, null, projectSecret)
+            await app.db.controllers.StorageCredentials.updateOrCreateForProject(instance, encryptedCreds)
+        }
+
+        const modules = flowTemplate.modules || {}
+        for (const [moduleName, version] of Object.entries(modules)) {
+            await app.db.controllers.Project.addProjectModule(instance, moduleName, version)
         }
     }
 }
