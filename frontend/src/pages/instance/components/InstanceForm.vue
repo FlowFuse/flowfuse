@@ -205,7 +205,7 @@
                         v-model="copyParts"
                     />
                 </template>
-                <div v-else-if="creatingNew && flowBlueprintsEnabled && flowBlueprints.length > 1">
+                <div v-else-if="creatingNew && flowBlueprintsEnabled && flowBlueprints.length > 0">
                     <div class="flex flex-wrap gap-1 items-stretch">
                         <label class="w-full block text-sm font-medium text-gray-700 mb-1">Flow Blueprint</label>
                         <label class="text-sm text-gray-400">
