@@ -5,7 +5,7 @@
             v-else :instance="instanceDetails || instance"
             :team="team"
             :billing-enabled="!!features.billing"
-            :flow-blueprints-enabled="!!features.flowBlueprints"
+            :flow-blueprints-enabled="false"
             @on-submit="changeInstanceDefinition"
         />
     </div>
