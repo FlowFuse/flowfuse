@@ -17,7 +17,8 @@ const create = async (options) => {
         const props = {
             'created-at': res.data.createdAt,
             'instance-stack': res.data.stack.id,
-            'instance-template': res.data.template.id
+            'instance-template': res.data.template.id,
+            'instance-blueprint': options.flowTemplateId
         }
         product.capture('$ff-instance-created', props, {
             team: res.data.team.id,
