@@ -147,46 +147,48 @@ export default {
     methods: {
         async updateApplication () {
             const applicationId = this.$route.params.id
-            try {
-                this.applicationInstances = []
-                const applicationPromise = ApplicationApi.getApplication(applicationId)
-                const instancesPromise = ApplicationApi.getApplicationInstances(applicationId) // To-do needs to be enriched with instance state
-                const devicesPromise = ApplicationApi.getApplicationDevices(applicationId)
+            if (applicationId) {
+                try {
+                    this.applicationInstances = []
+                    const applicationPromise = ApplicationApi.getApplication(applicationId)
+                    const instancesPromise = ApplicationApi.getApplicationInstances(applicationId) // To-do needs to be enriched with instance state
+                    const devicesPromise = ApplicationApi.getApplicationDevices(applicationId)
 
-                this.application = await applicationPromise
-                const deviceData = await devicesPromise
-                this.applicationDevices = deviceData?.devices
-                const applicationInstances = await instancesPromise
+                    this.application = await applicationPromise
+                    const deviceData = await devicesPromise
+                    this.applicationDevices = deviceData?.devices
+                    const applicationInstances = await instancesPromise
 
-                this.applicationInstances = new Map()
-                applicationInstances.forEach(instance => {
-                    this.applicationInstances.set(instance.id, instance)
-                })
+                    this.applicationInstances = new Map()
+                    applicationInstances.forEach(instance => {
+                        this.applicationInstances.set(instance.id, instance)
+                    })
 
-                // Not waited for, as loading status is slightly slower
-                ApplicationApi
-                    .getApplicationInstancesStatuses(applicationId)
-                    .then((instanceStatuses) => {
-                        instanceStatuses.forEach((instanceStatus) => {
-                            this.applicationInstances.set(instanceStatus.id, {
-                                ...this.applicationInstances.get(instanceStatus.id),
-                                ...instanceStatus
+                    // Not waited for, as loading status is slightly slower
+                    ApplicationApi
+                        .getApplicationInstancesStatuses(applicationId)
+                        .then((instanceStatuses) => {
+                            instanceStatuses.forEach((instanceStatus) => {
+                                this.applicationInstances.set(instanceStatus.id, {
+                                    ...this.applicationInstances.get(instanceStatus.id),
+                                    ...instanceStatus
+                                })
                             })
                         })
-                    })
-                    .catch((err) => {
-                        console.error(err)
-                    })
+                        .catch((err) => {
+                            console.error(err)
+                        })
 
-                this.$store.dispatch('account/setTeam', this.application.team.slug)
-            } catch (err) {
-                this.$router.push({
-                    name: 'PageNotFound',
-                    params: { pathMatch: this.$router.currentRoute.value.path.substring(1).split('/') },
-                    // preserve existing query and hash if any
-                    query: this.$router.currentRoute.value.query,
-                    hash: this.$router.currentRoute.value.hash
-                })
+                    this.$store.dispatch('account/setTeam', this.application.team.slug)
+                } catch (err) {
+                    this.$router.push({
+                        name: 'PageNotFound',
+                        params: { pathMatch: this.$router.currentRoute.value.path.substring(1).split('/') },
+                        // preserve existing query and hash if any
+                        query: this.$router.currentRoute.value.query,
+                        hash: this.$router.currentRoute.value.hash
+                    })
+                }
             }
         },
 
