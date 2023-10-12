@@ -9,15 +9,15 @@ import paginateUrl from '../utils/paginateUrl.js'
 import client from './client.js'
 
 const create = async (options) => {
-    // Backend calls these flow templates, UI refers to it as flow blueprints
-    options.flowTemplateId = options.flowBlueprintId
-    delete options.flowBlueprintId
-
+    if (options.flowBlueprintId === '') {
+        delete options.flowBlueprintId
+    }
     return client.post('/api/v1/projects', options).then(res => {
         const props = {
             'created-at': res.data.createdAt,
             'instance-stack': res.data.stack.id,
-            'instance-template': res.data.template.id
+            'instance-template': res.data.template.id,
+            'instance-blueprint': options.flowBlueprintId
         }
         product.capture('$ff-instance-created', props, {
             team: res.data.team.id,

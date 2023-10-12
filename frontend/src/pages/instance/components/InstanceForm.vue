@@ -11,7 +11,7 @@
         <!-- Form title -->
         <div class="mb-8 text-sm text-gray-500">
             <template v-if="creatingNew">
-                <template v-if="applicationSelection">
+                <template v-if="!creatingApplication || applicationSelection">
                     Let's get your new Node-RED instance setup in no time.
                 </template>
                 <template v-else-if="!isCopyProject">
@@ -209,7 +209,7 @@
                     <div class="flex flex-wrap gap-1 items-stretch">
                         <label class="w-full block text-sm font-medium text-gray-700 mb-1">Flow Blueprint</label>
                         <label class="text-sm text-gray-400">
-                            We have a collection of pre-built flow templates that you can use as a starting point.
+                            We have a collection of pre-built flow blueprints that you can use as a starting point.
                         </label>
                         <label v-if="errors.flowBlueprint" class="text-sm text-gray-400 mb-1">
                             {{ errors.flowBlueprint }}
@@ -222,8 +222,8 @@
                             <!-- Later this will be grouped by flowBlueprint.category -->
                             <ff-tile-selection-option
                                 value=""
-                                label="Blank"
-                                description="An empty flow"
+                                label="Blank Workspace"
+                                description="An empty workspace to create your flows in"
                             />
 
                             <ff-tile-selection-option

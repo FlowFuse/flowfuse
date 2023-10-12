@@ -1,6 +1,6 @@
 module.exports = function (app) {
     app.addSchema({
-        $id: 'FlowTemplateSummary',
+        $id: 'FlowBlueprintSummary',
         type: 'object',
         properties: {
             id: { type: 'string' },
@@ -12,44 +12,44 @@ module.exports = function (app) {
             updatedAt: { type: 'string' }
         }
     })
-    function flowTemplateSummary (flowTemplate) {
+    function flowBlueprintSummary (blueprint) {
         return {
-            id: flowTemplate.hashid,
-            active: flowTemplate.active,
-            name: flowTemplate.name,
-            description: flowTemplate.description,
-            category: flowTemplate.category,
-            createdAt: flowTemplate.createdAt,
-            updatedAt: flowTemplate.updatedAt
+            id: blueprint.hashid,
+            active: blueprint.active,
+            name: blueprint.name,
+            description: blueprint.description,
+            category: blueprint.category,
+            createdAt: blueprint.createdAt,
+            updatedAt: blueprint.updatedAt
         }
     }
 
     app.addSchema({
-        $id: 'FlowTemplate',
+        $id: 'FlowBlueprint',
         type: 'object',
-        allOf: [{ $ref: 'FlowTemplateSummary' }],
+        allOf: [{ $ref: 'FlowBlueprintSummary' }],
         properties: {
             flows: { type: 'object', additionalProperties: true },
             modules: { type: 'object', additionalProperties: true }
         }
     })
-    function flowTemplate (flowTemplate) {
-        const result = flowTemplateSummary(flowTemplate)
-        result.flows = flowTemplate.flows
-        result.modules = flowTemplate.modules
+    function flowBlueprint (blueprint) {
+        const result = flowBlueprintSummary(blueprint)
+        result.flows = blueprint.flows
+        result.modules = blueprint.modules
         return result
     }
 
     app.addSchema({
-        $id: 'FlowTemplateSummaryList',
+        $id: 'FlowBlueprintSummaryList',
         type: 'array',
         items: {
-            $ref: 'FlowTemplateSummary'
+            $ref: 'FlowBlueprintSummary'
         }
     })
 
     return {
-        flowTemplate,
-        flowTemplateSummary
+        flowBlueprint,
+        flowBlueprintSummary
     }
 }

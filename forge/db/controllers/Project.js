@@ -315,7 +315,7 @@ module.exports = {
             ha = null,
             sourceProject = null,
             sourceProjectOptions = {},
-            flowTemplate = null
+            flowBlueprint = null
         } = {}
     ) {
         if (!user) {
@@ -338,8 +338,8 @@ module.exports = {
         // Throws an exception if not allowed
         await team.checkInstanceTypeCreateAllowed(type)
 
-        if (sourceProject && flowTemplate) {
-            throw new ControllerError('invalid_request', 'Source Project and Flow Template cannot both be used')
+        if (sourceProject && flowBlueprint) {
+            throw new ControllerError('invalid_request', 'Source Project and Flow Blueprint cannot both be used')
         }
 
         if (sourceProject) {
@@ -421,8 +421,8 @@ module.exports = {
             }
             await instance.updateSetting(KEY_SETTINGS, newProjectSettings)
             await instance.updateSetting('credentialSecret', app.db.models.Project.generateCredentialSecret())
-            if (flowTemplate) {
-                await app.db.controllers.Project.applyFlowTemplate(instance, flowTemplate)
+            if (flowBlueprint) {
+                await app.db.controllers.Project.applyFlowBlueprint(instance, flowBlueprint)
             }
         }
 
@@ -640,10 +640,10 @@ module.exports = {
      * any existing flows and will merge any modules with those provided by the ProjectTemplate.
      * @param {*} app
      * @param {*} instance
-     * @param {*} flowTemplate
+     * @param {*} flowBlueprint
      */
-    applyFlowTemplate: async function (app, instance, flowTemplate) {
-        const flows = flowTemplate.flows || { flows: [], credentials: {} }
+    applyFlowBlueprint: async function (app, instance, flowBlueprint) {
+        const flows = flowBlueprint.flows || { flows: [], credentials: {} }
         if (flows.flows) {
             await app.db.controllers.StorageFlows.updateOrCreateForProject(instance, JSON.stringify(flows.flows))
         }
@@ -653,7 +653,7 @@ module.exports = {
             await app.db.controllers.StorageCredentials.updateOrCreateForProject(instance, encryptedCreds)
         }
 
-        const modules = flowTemplate.modules || {}
+        const modules = flowBlueprint.modules || {}
         for (const [moduleName, version] of Object.entries(modules)) {
             await app.db.controllers.Project.addProjectModule(instance, moduleName, version)
         }
