@@ -192,6 +192,9 @@ module.exports = async function (app) {
     app.route({
         method: 'GET', // only GET is permitted for WS
         url: '/proxy/*',
+        // By default, fastify adds a HEAD route for each GET route. Given
+        // we want our own HEAD route handler, we tell fastify not to do it here.
+        exposeHeadRoute: false,
         // Set 'allowAnonymous' as we don't want to return the standard API
         // response object. Instead, we will use the preHandler to detect
         // there's no session user and redirect to the device overview
