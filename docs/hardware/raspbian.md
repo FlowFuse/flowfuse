@@ -24,14 +24,6 @@ bash <(curl -sL https://raw.githubusercontent.com/FlowFuse/device-agent/main/ser
 
 You can run the device agent as a service, this means it can run in the background and be enabled to automatically start on boot.
 
-### Creating a Service File
-
-The first step is creating the systemd unit file for your service. You can start by creating a new file in the /etc/systemd/system directory with a .service file extension:
-
-```sudo nano /etc/systemd/system/flowforge-device-agent.service```
-
-The recommended content for the service file can be found here [this Github page](https://github.com/FlowFuse/device-agent/blob/main/service/flowforge-device.service).
-
 ### Starting the service on boot (optional)
 
 If you want Node-RED to run when the device is turned on, or re-booted, you can enable the service to autostart by running the command:
