@@ -22,7 +22,7 @@ bash <(curl -sL https://raw.githubusercontent.com/FlowFuse/device-agent/main/ser
 
 ## Running as a service
 
-You can run the device agent as a service, this means it can run in the background and be enabled to automatically start on boot.
+You can run the device agent as a service, which means it can run in the background and be enabled to automatically start on boot. The install script will automatically set up the FlowFuse Device Agent to run as a service. The following commands can be useful for controlling the service or changing the default service settings.
 
 ### Starting the service on boot (optional)
 
