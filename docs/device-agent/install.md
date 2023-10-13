@@ -90,3 +90,20 @@ the same machine.
 ```bash
 flowforge-device-agent --port=1881
 ```
+
+## Upgrading the agent
+
+To use the latest features on FlowFuse aswell as on the edge device, it's advices to upgrade
+the device agent regularly. 
+
+### Linux/MacOS
+
+```bash
+sudo npm install -g @flowforge/flowforge-device-agent
+```
+
+### Windows
+
+```bash
+npm install -g @flowforge/flowforge-device-agent
+```
