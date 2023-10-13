@@ -93,7 +93,7 @@ flowforge-device-agent --port=1881
 
 ## Upgrading the agent
 
-To use the latest features on FlowFuse aswell as on the edge device, it's advices to upgrade
+To use the latest features on FlowFuse as well as on the edge device, it is advised to upgrade
 the device agent regularly. 
 
 ### Linux/MacOS
