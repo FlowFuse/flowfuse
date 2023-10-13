@@ -147,6 +147,12 @@ export default {
     methods: {
         async updateApplication () {
             const applicationId = this.$route.params.id
+
+            // See https://github.com/FlowFuse/flowfuse/issues/2929
+            if (!applicationId) {
+                return
+            }
+
             try {
                 this.applicationInstances = []
                 const applicationPromise = ApplicationApi.getApplication(applicationId)
