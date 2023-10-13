@@ -186,6 +186,9 @@ export default {
 
         async loadInstance () {
             const instanceId = this.$route.params.id
+            if (!instanceId) {
+                return
+            }
             try {
                 const data = await InstanceApi.getInstance(instanceId)
                 this.instance = { ...{ deviceSettings: {} }, ...this.instance, ...data }
