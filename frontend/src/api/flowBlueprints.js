@@ -40,7 +40,7 @@ const getFlowBlueprints = async (state = 'active', cursor, limit) => {
  * @returns {FlowBlueprint}
  */
 const getFlowBlueprint = async (flowBlueprintId) => {
-    return await client.get(`/api/v1/flow-templates/${flowBlueprintId}`).then(res => res.data)
+    return await client.get(`/api/v1/flow-blueprints/${flowBlueprintId}`).then(res => res.data)
 }
 
 /**
@@ -49,7 +49,7 @@ const getFlowBlueprint = async (flowBlueprintId) => {
  * @returns
  */
 const createFlowBlueprint = async (flowBlueprintProperties) => {
-    return client.post('/api/v1/flow-templates/', flowBlueprintProperties).then(res => {
+    return client.post('/api/v1/flow-blueprints/', flowBlueprintProperties).then(res => {
         return res.data
     })
 }
@@ -59,7 +59,7 @@ const createFlowBlueprint = async (flowBlueprintProperties) => {
  * @param {number} flowBlueprintId
  */
 const deleteFlowBlueprint = async (flowBlueprintId) => {
-    return await client.delete(`/api/v1/flow-templates/${flowBlueprintId}`)
+    return await client.delete(`/api/v1/flow-blueprints/${flowBlueprintId}`)
 }
 
 /**
@@ -69,7 +69,7 @@ const deleteFlowBlueprint = async (flowBlueprintId) => {
  * @returns {FlowBlueprint}
  */
 const updateFlowBlueprint = async (flowBlueprintId, options) => {
-    return client.put(`/api/v1/flow-templates/${flowBlueprintId}`, options).then(res => {
+    return client.put(`/api/v1/flow-blueprints/${flowBlueprintId}`, options).then(res => {
         return res.data
     })
 }
