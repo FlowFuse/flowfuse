@@ -56,6 +56,16 @@ describe('Flow Blueprints API', function () {
         return [response.statusCode, response.json()]
     }
 
+    async function updateBlueprint (id, body, token) {
+        const response = await app.inject({
+            method: 'PUT',
+            url: `/api/v1/flow-blueprints/${id}`,
+            body,
+            cookies: { sid: token }
+        })
+        return [response.statusCode, response.json()]
+    }
+
     let objectCount = 0
     const generateName = (prefix = 'object') => `${prefix}-${objectCount++}`
 
@@ -67,7 +77,7 @@ describe('Flow Blueprints API', function () {
                 description: 'a flow',
                 active: true,
                 category: 'starter',
-                flows: {},
+                flows: { flows: [] },
                 modules: {}
             }, TestObjects.tokens.alice)
             statusCode.should.equal(200)
@@ -84,10 +94,47 @@ describe('Flow Blueprints API', function () {
                 description: 'a flow',
                 active: true,
                 category: 'starter',
-                flows: {},
+                flows: { flows: [] },
                 modules: {}
             }, TestObjects.tokens.bob)
             statusCode.should.equal(403)
+        })
+
+        it('Invalid flow format is rejected', async function () {
+            // flows.flows not present
+            const [statusCode1, resp1] = await createBlueprint({ name: generateName('bp'), flows: {} }, TestObjects.tokens.alice)
+            resp1.should.have.property('code', 'unexpected_error')
+            statusCode1.should.equal(400)
+
+            // flows.flows not an array
+            const [statusCode2, resp2] = await createBlueprint({ name: generateName('bp'), flows: { flows: true } }, TestObjects.tokens.alice)
+            statusCode2.should.equal(400)
+            resp2.should.have.property('code', 'unexpected_error')
+
+            // flows.flows not an array
+            const [statusCode3, resp3] = await createBlueprint({ name: generateName('bp'), flows: { flows: {} } }, TestObjects.tokens.alice)
+            statusCode3.should.equal(400)
+            resp3.should.have.property('code', 'unexpected_error')
+
+            // Flows property not an object
+            const [statusCode4] = await createBlueprint({ name: generateName('bp'), flows: 'invalid' }, TestObjects.tokens.alice)
+            statusCode4.should.equal(400)
+
+            // Credentials set to array
+            const [statusCode5, resp5] = await createBlueprint({ name: generateName('bp'), flows: { flows: [], credentials: [] } }, TestObjects.tokens.alice)
+            resp5.should.have.property('code', 'unexpected_error')
+            statusCode5.should.equal(400)
+
+            // Credentials appears to include encrypted values
+            const [statusCode6, resp6] = await createBlueprint({ name: generateName('bp'), flows: { flows: [], credentials: { $: 'foo' } } }, TestObjects.tokens.alice)
+            resp6.should.have.property('code', 'unexpected_error')
+            statusCode6.should.equal(400)
+        })
+
+        it('Invalid modules format is rejected', async function () {
+            // modules not an object
+            const [statusCode1] = await createBlueprint({ name: generateName('bp'), modules: [] }, TestObjects.tokens.alice)
+            statusCode1.should.equal(400)
         })
     })
 
@@ -171,24 +218,17 @@ describe('Flow Blueprints API', function () {
             const name = generateName('flow blueprint')
             const [statusCode, result] = await createBlueprint({ name }, TestObjects.tokens.alice)
             statusCode.should.equal(200)
-            const templateId = result.id
+            const blueprintId = result.id
+            const [updateStatusCode, template] = await updateBlueprint(blueprintId, {
+                description: 'new desc',
+                active: false,
+                category: 'new cat',
+                flows: { flows: [1, 2, 3] },
+                modules: { a: 1 }
+            }, TestObjects.tokens.alice)
+            updateStatusCode.should.equal(200)
 
-            const response = await app.inject({
-                method: 'PUT',
-                body: {
-                    description: 'new desc',
-                    active: false,
-                    category: 'new cat',
-                    flows: { flows: [1, 2, 3] },
-                    modules: { a: 1 }
-                },
-                url: `/api/v1/flow-blueprints/${templateId}`,
-                cookies: { sid: TestObjects.tokens.alice }
-            })
-            response.statusCode.should.equal(200)
-            const template = response.json()
-
-            template.should.have.property('id', templateId)
+            template.should.have.property('id', blueprintId)
             template.should.have.property('name', name)
             template.should.have.property('description', 'new desc')
             template.should.have.property('active', false)
@@ -199,7 +239,7 @@ describe('Flow Blueprints API', function () {
 
             const fullTemplate = (await app.inject({
                 method: 'GET',
-                url: `/api/v1/flow-blueprints/${templateId}`,
+                url: `/api/v1/flow-blueprints/${blueprintId}`,
                 cookies: { sid: TestObjects.tokens.alice }
             })).json()
 
@@ -211,21 +251,52 @@ describe('Flow Blueprints API', function () {
             const name = generateName('flow blueprint')
             const [statusCode, result] = await createBlueprint({ name }, TestObjects.tokens.alice)
             statusCode.should.equal(200)
-            const templateId = result.id
+            const blueprintId = result.id
 
-            const response = await app.inject({
-                method: 'PUT',
-                body: {
-                    description: 'new desc',
-                    active: false,
-                    category: 'new cat',
-                    flows: { flows: [1, 2, 3] },
-                    modules: { a: 1 }
-                },
-                url: `/api/v1/flow-blueprints/${templateId}`,
-                cookies: { sid: TestObjects.tokens.bob }
-            })
-            response.statusCode.should.equal(403)
+            const [updateStatusCode] = await updateBlueprint(blueprintId, {
+                description: 'new desc',
+                active: false,
+                category: 'new cat',
+                flows: { flows: [1, 2, 3] },
+                modules: { a: 1 }
+            }, TestObjects.tokens.bob)
+            updateStatusCode.should.equal(403)
+        })
+
+        it('Invalid flow format is rejected', async function () {
+            const name = generateName('flow blueprint')
+            const [statusCode, result] = await createBlueprint({ name }, TestObjects.tokens.alice)
+            statusCode.should.equal(200)
+            const blueprintId = result.id
+
+            // flows.flows not present
+            const [statusCode1, resp1] = await updateBlueprint(blueprintId, { flows: {} }, TestObjects.tokens.alice)
+            resp1.should.have.property('code', 'unexpected_error')
+            statusCode1.should.equal(400)
+
+            // flows.flows not an array
+            const [statusCode2, resp2] = await updateBlueprint(blueprintId, { flows: { flows: true } }, TestObjects.tokens.alice)
+            statusCode2.should.equal(400)
+            resp2.should.have.property('code', 'unexpected_error')
+
+            // flows.flows not an array
+            const [statusCode3, resp3] = await updateBlueprint(blueprintId, { flows: { flows: {} } }, TestObjects.tokens.alice)
+            statusCode3.should.equal(400)
+            resp3.should.have.property('code', 'unexpected_error')
+
+            // Flows property not an object
+            const [statusCode4] = await updateBlueprint(blueprintId, { flows: 'invalid' }, TestObjects.tokens.alice)
+            statusCode4.should.equal(400)
+
+            // Credentials set to array
+            const [statusCode5, resp5] = await updateBlueprint(blueprintId, { flows: { flows: [], credentials: [] } }, TestObjects.tokens.alice)
+            resp5.should.have.property('code', 'unexpected_error')
+            statusCode5.should.equal(400)
+
+            // Credentials appears to include encrypted values
+            const [statusCode6, resp6] = await updateBlueprint(blueprintId, { flows: { flows: [], credentials: { $: 'foo' } } }, TestObjects.tokens.alice)
+            resp6.should.have.property('code', 'unexpected_error')
+            statusCode6.should.equal(400)
         })
     })
 
