@@ -216,7 +216,7 @@
                         </label>
                         <ff-tile-selection
                             v-model="input.flowBlueprintId"
-                            data-form="flow-template"
+                            data-form="flow-blueprint"
                             class="mt-3"
                         >
                             <!-- Later this will be grouped by flowBlueprint.category -->
@@ -224,6 +224,7 @@
                                 value=""
                                 label="Blank Workspace"
                                 description="An empty workspace to create your flows in"
+                                data-form="flow-blueprint-blank"
                             />
 
                             <ff-tile-selection-option

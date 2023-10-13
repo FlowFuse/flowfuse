@@ -1,6 +1,6 @@
 <template>
     <div ref="input" class="ff-tile-selection-option" :class="{'editable': editable, 'disabled': disabled, 'active': selected}" tabindex="0" @click="select(false)" @keydown.space.prevent="select(true)">
-        <div class="ff-tile-selection-option--header">
+        <div class="ff-tile-selection-option--header" data-form="tile-selection-option-label">
             <h2>
                 <PencilAltIcon v-if="editable" class="ff-tile-selection-option--edit" @click="select(true)" />
                 <CheckCircleIcon v-else />
@@ -11,7 +11,7 @@
                 <label>{{ priceInterval }}</label>
             </div>
         </div>
-        <div v-if="description" class="ff-tile-selection-option--description">
+        <div v-if="description" class="ff-tile-selection-option--description" data-form="tile-selection-option-description">
             <ff-markdown-viewer :content="description" />
         </div>
         <div v-if="meta" class="ff-tile-selection-option--meta">
