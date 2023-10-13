@@ -1,26 +1,14 @@
 describe('FlowForge - Application - DevOps Pipelines', () => {
     let application
-    function loadApplication (teamName, applicationName) {
-        cy.request('GET', '/api/v1/user/teams')
-            .then((response) => {
-                const team = response.body.teams.find(
-                    (team) => team.name === teamName
-                )
-                return cy.request('GET', `/api/v1/teams/${team.id}/applications`)
-            })
-            .then((response) => {
-                application = response.body.applications.find(
-                    (app) => app.name === applicationName
-                )
-            })
-    }
 
     beforeEach(() => {
         cy.intercept('GET', '/api/*/applications/*').as('getApplication')
 
         cy.login('bob', 'bbPassword')
         cy.home()
-        loadApplication('BTeam', 'application-2')
+        cy.loadApplication('BTeam', 'application-2').then((response) => {
+            application = response
+        })
     })
 
     it('can navigate to the /pipelines page with EE license', () => {

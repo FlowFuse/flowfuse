@@ -127,6 +127,25 @@ Cypress.Commands.add('applyBillingCreditToTeam', (amountInCents) => {
     }).as('getTeamBilling')
 })
 
+Cypress.Commands.add('loadApplication', (teamName, applicationName) => {
+    let application
+
+    return cy.request('GET', '/api/v1/user/teams')
+        .then((response) => {
+            const team = response.body.teams.find(
+                (team) => team.name === teamName
+            )
+            return cy.request('GET', `/api/v1/teams/${team.id}/applications`)
+        })
+        .then((response) => {
+            application = response.body.applications.find(
+                (app) => app.name === applicationName
+            )
+
+            return cy.wrap(application)
+        })
+})
+
 // resets T+Cs.
 // Should be called AFTER cy.login(admin, adminPass)
 Cypress.Commands.add('resetTermsAndCondition', () => {
