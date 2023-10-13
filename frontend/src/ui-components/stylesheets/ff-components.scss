@@ -557,6 +557,7 @@ li.ff-list-item {
 .ff-tile-selection {
   display: flex;
   flex-wrap: wrap;
+  gap: $ff-unit-md;
   .ff-tile-selection-option {
     display: flex;
     flex-direction: column;
@@ -565,8 +566,6 @@ li.ff-list-item {
     border: 2px solid $ff-grey-300;
     border-radius: $ff-unit-sm;
     padding: 12px $ff-unit-lg;
-    margin-right: $ff-unit-md;
-    margin-bottom: $ff-unit-sm;
     width: 275px;
     ul {
       list-style: disc;
