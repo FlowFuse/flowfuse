@@ -2,13 +2,15 @@
 navTitle: Raspberry Pi with Raspbian
 navOrder: 3
 ---
+
 # Raspberry Pi
 
 The Raspberry Pi section provides instructions for installing and setting up the FlowFuse Device Agent on your Raspberry Pi device, enabling seamless integration for efficient device management and automation.
+
 ## Installing the Device Agent
 
-We provide a script to install Node.js, npm and the FlowFuse Device Agent onto a Raspberry Pi. This script won't work on ARMv6 builds as the standard Node.js builds don't support it, as result Pi Zero's are not supported.
-
+FlowFuse provides a script to install Node.JS, npm, and the FlowFuse Device Agent onto a Raspberry Pi.
+This script won't work on ARMv6 builds as the standard Node.JS builds don't support it, as result Pi Zero's are not supported.
 
 ```sh
 bash <(curl -sL https://raw.githubusercontent.com/FlowFuse/device-agent/main/service/raspbian-install-device-agent.sh)
