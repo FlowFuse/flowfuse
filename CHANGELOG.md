@@ -1,3 +1,34 @@
+#### 1.12.4: Release
+
+ - Fix navigating away from instance page (#2946) @knolleary
+ - Guard against refreshing an application page when route is changing (#2940) @knolleary
+ - docs: Upgrade agent (#2943) @ZJvandeWeg
+ - Flow Blueprints: Admin UI for CRUD (#2923) @Pezmc
+ - Fix for ff-tile-selection wrapping issues (#2942) @Pezmc
+ - Device Agent - Raspbian Docu (#2906) @MarianRaphael
+ - Add better validation of blueprint flows (#2939) @knolleary
+ - Flow Blueprints mvp tidy (#2938) @knolleary
+ - Apply a flowTemplate if specified on Instance Create (#2928) @knolleary
+ - Flow Blueprints: Select a flow blueprint during instance creation (#2922) @Pezmc
+ - Add Office365 to email examples (#2936) @hardillb
+ - Unpin fastify (#2935) @knolleary
+ - Revert "Revert "Error Tracking: Include task name when reporting complete or error"" (#2932) @Pezmc
+ - Pin fastify to 4.23.0 due to HEAD bug (#2931) @knolleary
+ - Revert "Error Tracking: Include task name when reporting complete or error" (#2930) @Pezmc
+ - Error Tracking: Include task name when reporting complete or error (#2926) @Pezmc
+ - docs: clean up device install text (#2924) @ZJvandeWeg
+ - Error Reporting: Tracking of Housekeeper Tasks (#2921) @Pezmc
+ - Fix ESM error when device agent version is 1.11.0 or 1.11.1 and device is assigned to an application (#2918) @Steve-Mcl
+ - chore: Remove redirects (#2915) @ZJvandeWeg
+ - Bump @fastify/passport from 2.3.0 to 2.4.0 (#2911) @app/dependabot
+ - Bump mqtt from 4.3.7 to 5.1.1 (#2910) @app/dependabot
+ - Bump nodemailer from 6.9.4 to 6.9.6 (#2909) @app/dependabot
+ - Bump vue-loader from 17.2.2 to 17.3.0 (#2908) @app/dependabot
+ - Add ability to push any snapshot to application owned device (#2835) @Steve-Mcl
+ - Add FlowTemplate model and CRUD api (#2891) @knolleary
+ - Error Tracking: Tweaks (#2903) @Pezmc
+ - Bump marked from 4.3.0 to 9.0.3 (#2869) @app/dependabot
+
 #### 1.12.3: Release
 
  - Remove not null constraint on ProjectSnapshot.ProjectId column (#2899) @knolleary
