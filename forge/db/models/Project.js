@@ -325,45 +325,55 @@ module.exports = {
                         }
                     })
                 },
-                byId: async (id) => {
+                byId: async (id, { includeStorageFlows = false } = {}) => {
+                    const include = [
+                        {
+                            model: M.Team,
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
+                        },
+                        {
+                            model: M.Application,
+                            attributes: ['hashid', 'id', 'name', 'links']
+                        },
+                        {
+                            model: M.ProjectType,
+                            attributes: ['hashid', 'id', 'name']
+                        },
+                        {
+                            model: M.ProjectStack,
+                            attributes: ['hashid', 'id', 'name', 'label', 'links', 'properties', 'replacedBy', 'ProjectTypeId']
+                        },
+                        {
+                            model: M.ProjectTemplate,
+                            attributes: ['hashid', 'id', 'name', 'links', 'settings', 'policy']
+                        },
+                        {
+                            model: M.ProjectSettings,
+                            where: {
+                                [Op.or]: [
+                                    { key: KEY_SETTINGS },
+                                    { key: KEY_HOSTNAME },
+                                    { key: KEY_HA }
+                                ]
+                            },
+                            required: false
+                        }
+                    ]
+
+                    // Used for instance status
+                    if (includeStorageFlows) {
+                        include.push({
+                            model: M.StorageFlow,
+                            attributes: ['id', 'flow', 'updatedAt']
+                        })
+                    }
+
                     return this.findOne({
                         where: { id },
-                        include: [
-                            {
-                                model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
-                            },
-                            {
-                                model: M.Application,
-                                attributes: ['hashid', 'id', 'name', 'links']
-                            },
-                            {
-                                model: M.ProjectType,
-                                attributes: ['hashid', 'id', 'name']
-                            },
-                            {
-                                model: M.ProjectStack,
-                                attributes: ['hashid', 'id', 'name', 'label', 'links', 'properties', 'replacedBy', 'ProjectTypeId']
-                            },
-                            {
-                                model: M.ProjectTemplate,
-                                attributes: ['hashid', 'id', 'name', 'links', 'settings', 'policy']
-                            },
-                            {
-                                model: M.ProjectSettings,
-                                where: {
-                                    [Op.or]: [
-                                        { key: KEY_SETTINGS },
-                                        { key: KEY_HOSTNAME },
-                                        { key: KEY_HA }
-                                    ]
-                                },
-                                required: false
-                            }
-                        ]
+                        include
                     })
                 },
-                byApplication: async (applicationHashId, { includeSettings = false } = {}) => {
+                byApplication: async (applicationHashId, { includeSettings = false, includeStorageFlows = false } = {}) => {
                     const applicationId = M.Application.decodeHashid(applicationHashId)
 
                     const include = [
@@ -398,6 +408,14 @@ module.exports = {
                                 ]
                             },
                             required: false
+                        })
+                    }
+
+                    // Used for instance status
+                    if (includeStorageFlows) {
+                        include.push({
+                            model: M.StorageFlow,
+                            attributes: ['id', 'flow', 'updatedAt']
                         })
                     }
 
