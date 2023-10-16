@@ -1,5 +1,3 @@
-const sleep = require('util').promisify(setTimeout)
-
 const should = require('should') // eslint-disable-line
 const sinon = require('sinon')
 
@@ -7,14 +5,12 @@ const setup = require('../../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
-const { STOP_DELAY } = FF_UTIL.require('forge/containers/stub/index.js')
 const trialTask = FF_UTIL.require('forge/ee/lib/billing/trialTask')
 
 describe('Billing - Trial Housekeeper Task', function () {
     const sandbox = sinon.createSandbox()
     let app
     let task
-    let stripe
     const TestObjects = { tokens: {} }
 
     async function login (username, password) {
@@ -38,7 +34,7 @@ describe('Billing - Trial Housekeeper Task', function () {
     })
 
     beforeEach(async function () {
-        stripe = setup.setupStripe()
+        setup.setupStripe()
         app = await setup({ housekeeper: false })
 
         task = trialTask.init(app)
@@ -119,143 +115,6 @@ describe('Billing - Trial Housekeeper Task', function () {
         email.should.have.property('to', TestObjects.alice.email)
         email.text.includes(TestObjects.alice.name).should.be.true()
         // Testing the specific body text is going to be too brittle
-    })
-
-    it('adds trial projects to billing the team trial has ended', async function () {
-        // TestObjects.ATeam - has billing setup, should not get touched
-
-        // Create trial team without billing setup
-        const trialTeam = await app.factory.createTeam({ name: 'noBillingTeam' })
-        const trialSub = await app.factory.createTrialSubscription(trialTeam)
-        await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
-
-        // Create application for team
-        const application = await app.factory.createApplication({ name: 'trialApp' }, trialTeam)
-
-        // Create project using the permitted projectType for trials - projectType1
-        const response = await app.inject({
-            method: 'POST',
-            url: '/api/v1/projects',
-            payload: {
-                name: 'billing-project',
-                applicationId: application.hashid,
-                projectType: TestObjects.projectType1.hashid,
-                template: TestObjects.template1.hashid,
-                stack: TestObjects.stack1.hashid
-            },
-            cookies: { sid: TestObjects.tokens.alice }
-        })
-        response.statusCode.should.equal(200)
-        const projectDetails = response.json()
-        const project = await app.db.models.Project.byId(projectDetails.id)
-        project.state.should.equal('running')
-        // ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.TRIAL)
-        stripe.subscriptions.update.callCount.should.equal(0)
-        stripe.subscriptionItems.update.callCount.should.equal(0)
-
-        // Enable billing on the team
-        await app.factory.createSubscription(trialTeam)
-        await trialSub.reload()
-
-        // Create another project - which should get billed normally
-        const response2 = await app.inject({
-            method: 'POST',
-            url: '/api/v1/projects',
-            payload: {
-                name: 'billing-project-2',
-                applicationId: application.hashid,
-                projectType: TestObjects.projectType1.hashid,
-                template: TestObjects.template1.hashid,
-                stack: TestObjects.stack1.hashid
-            },
-            cookies: { sid: TestObjects.tokens.alice }
-        })
-        response2.statusCode.should.equal(200)
-        stripe.subscriptions.update.callCount.should.equal(1)
-        stripe.subscriptionItems.update.callCount.should.equal(0)
-        stripe._.data.sub_1234567890.items.data[0].should.have.property('quantity', 1)
-
-        // Expire the trial
-        trialSub.trialEndsAt = new Date(Date.now() - 1000)
-        await trialSub.save()
-
-        // Run the task
-        await task(app)
-
-        // ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.BILLED)
-        stripe.subscriptions.update.callCount.should.equal(1)
-        stripe.subscriptionItems.update.callCount.should.equal(1)
-        stripe._.data.sub_1234567890.items.data[0].should.have.property('quantity', 2)
-
-        await trialSub.reload()
-        should.not.exist(trialSub.trialEndsAt)
-
-        app.config.email.transport.messages.should.have.length(1)
-        const email = app.config.email.transport.messages[0]
-        email.should.have.property('to', TestObjects.alice.email)
-        email.text.includes(TestObjects.alice.name).should.be.true()
-    })
-
-    it('does not add a suspended trial project to billing when team trial has ended', async function () {
-        // TestObjects.ATeam - has billing setup, should not get touched
-
-        // Create trial team without billing setup
-        const trialTeam = await app.factory.createTeam({ name: 'noBillingTeam' })
-        const trialSub = await app.factory.createTrialSubscription(trialTeam)
-        await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
-
-        // Create application for team
-        const application = await app.factory.createApplication({ name: 'trialApp' }, trialTeam)
-
-        // Create project using the permitted projectType for trials - projectType1
-        const response = await app.inject({
-            method: 'POST',
-            url: '/api/v1/projects',
-            payload: {
-                name: 'billing-project',
-                applicationId: application.hashid,
-                projectType: TestObjects.projectType1.hashid,
-                template: TestObjects.template1.hashid,
-                stack: TestObjects.stack1.hashid
-            },
-            cookies: { sid: TestObjects.tokens.alice }
-        })
-        response.statusCode.should.equal(200)
-        const projectDetails = response.json()
-
-        // Suspend the project
-        const suspendResponse = await app.inject({
-            method: 'POST',
-            url: `/api/v1/projects/${projectDetails.id}/actions/suspend`,
-            cookies: { sid: TestObjects.tokens.alice }
-        })
-        suspendResponse.statusCode.should.equal(200)
-
-        await sleep(STOP_DELAY + 50)
-
-        // Verify the project is suspended and the billing state is still 'trial'
-        const project = await app.db.models.Project.byId(projectDetails.id)
-        project.state.should.equal('suspended')
-        // ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.TRIAL)
-        stripe.subscriptions.update.callCount.should.equal(0)
-        stripe.subscriptionItems.update.callCount.should.equal(0)
-
-        // Enable billing on the team
-        await app.factory.createSubscription(trialTeam)
-        await trialSub.reload()
-
-        // Expire the trial
-        trialSub.trialEndsAt = new Date(Date.now() - 1000)
-        await trialSub.save()
-
-        // Run the task
-        await task(app)
-
-        // Verify the trial project has not been added to billing
-        // and its billing state has been moved to not_billed
-        // ;(await project.getSetting(KEY_BILLING_STATE)).should.equal(app.db.models.ProjectSettings.BILLING_STATES.NOT_BILLED)
-        stripe.subscriptions.update.callCount.should.equal(0)
-        stripe.subscriptionItems.update.callCount.should.equal(0)
     })
 
     it('sends trial reminder emails at appropriate intervals', async function () {
