@@ -76,7 +76,7 @@ module.exports = {
                             // Used for instance status
                             include.include.push({
                                 model: M.StorageFlow,
-                                attributes: ['id', 'flow', 'updatedAt']
+                                attributes: ['id', 'updatedAt']
                             })
                         }
 

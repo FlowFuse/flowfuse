@@ -369,7 +369,7 @@ module.exports = {
                     if (includeStorageFlows) {
                         include.push({
                             model: M.StorageFlow,
-                            attributes: ['id', 'flow', 'updatedAt']
+                            attributes: ['id', 'updatedAt']
                         })
                     }
 
@@ -420,7 +420,7 @@ module.exports = {
                     if (includeStorageFlows) {
                         include.push({
                             model: M.StorageFlow,
-                            attributes: ['id', 'flow', 'updatedAt']
+                            attributes: ['id', 'updatedAt']
                         })
                     }
 
