@@ -266,7 +266,12 @@ module.exports = {
                 },
 
                 async liveState () {
-                    const storageFlow = await M.StorageFlow.byProject(this.id)
+                    let storageFlow = this.StorageFlow
+                    if (storageFlow === undefined) {
+                        app.log.warn(`N+1 warning - Requested live state for instance ${this.id} with no storage flow loaded`)
+                        storageFlow = await M.StorageFlow.byProject(this.id)
+                    }
+
                     const inflightState = Controllers.Project.getInflightState(this)
                     const isDeploying = Controllers.Project.isDeploying(this)
 
