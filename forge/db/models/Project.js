@@ -114,6 +114,7 @@ module.exports = {
         this.belongsTo(M.ProjectStack)
         this.belongsTo(M.ProjectTemplate)
         this.hasMany(M.ProjectSnapshot)
+        this.hasOne(M.StorageFlow)
     },
     hooks: function (M, app) {
         return {
