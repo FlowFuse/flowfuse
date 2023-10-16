@@ -317,7 +317,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances: true })
+        const applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances: true, includeInstanceStorageFlow: true })
         if (!applications) {
             return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }

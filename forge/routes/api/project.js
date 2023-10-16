@@ -29,7 +29,8 @@ module.exports = async function (app) {
         if (request.params.instanceId !== undefined) {
             if (request.params.instanceId) {
                 try {
-                    request.project = await app.db.models.Project.byId(request.params.instanceId)
+                    // StorageFlow needed for last updates time (live status)
+                    request.project = await app.db.models.Project.byId(request.params.instanceId, { includeStorageFlows: true })
                     if (!request.project) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return
@@ -88,6 +89,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
+        // Storage flow needed for live status
         const projectPromise = app.db.views.Project.project(request.project)
         const projectStatePromise = request.project.liveState()
 
