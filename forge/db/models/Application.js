@@ -35,7 +35,7 @@ module.exports = {
                         ]
                     })
                 },
-                byTeam: async (teamIdOrHash, { includeInstances = false } = {}) => {
+                byTeam: async (teamIdOrHash, { includeInstances = false, includeInstanceStorageFlow = false } = {}) => {
                     let id = teamIdOrHash
                     if (typeof teamIdOrHash === 'string') {
                         id = M.Team.decodeHashid(teamIdOrHash)
@@ -50,7 +50,7 @@ module.exports = {
                     ]
 
                     if (includeInstances) {
-                        includes.push({
+                        const include = {
                             model: M.Project,
                             as: 'Instances',
                             attributes: ['hashid', 'id', 'name', 'slug', 'links', 'url', 'state'],
@@ -70,7 +70,17 @@ module.exports = {
                                     required: false
                                 }
                             ]
-                        })
+                        }
+
+                        if (includeInstanceStorageFlow) {
+                            // Used for instance status
+                            include.include.push({
+                                model: M.StorageFlow,
+                                attributes: ['id', 'flow', 'updatedAt']
+                            })
+                        }
+
+                        includes.push(include)
                     }
 
                     return this.findAll({
