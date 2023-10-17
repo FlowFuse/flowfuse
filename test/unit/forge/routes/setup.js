@@ -25,6 +25,8 @@ module.exports = async function (config = {}) {
             httpAdminRoot: '',
             codeEditor: '',
             palette: {
+                npmrc: 'example npmrc',
+                catalogue: ['https://example.com/catalog'],
                 modules: [
                     { name: 'node-red-dashboard', version: '3.0.0' },
                     { name: 'node-red-contrib-ping', version: '0.3.0' }
