@@ -278,6 +278,34 @@ describe('Billing routes', function () {
                 should(response).have.property('statusCode', 200)
             })
 
+            it('Ignores events for unrecognised subscription for known customer', async () => {
+                const response = await (app.inject({
+                    method: 'POST',
+                    url: callbackURL,
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    payload: {
+                        id: 'evt_123456790',
+                        object: 'event',
+                        data: {
+                            object: {
+                                id: 'sub_anotherOne',
+                                object: 'subscription',
+                                customer: 'cus_1234567890',
+                                status: 'active'
+                            }
+                        },
+                        type: 'customer.subscription.created'
+                    }
+                }))
+
+                should(app.log.warn.called).equal(true)
+                app.log.warn.firstCall.firstArg.should.equal(`Stripe customer.subscription.created event sub_anotherOne from cus_1234567890 received for team '${app.team.hashid}' for unknown subscription`)
+
+                should(response).have.property('statusCode', 200)
+            })
+
             it('Creates a stripe credit balance against the customer if the free_trial flag is set', async () => {
                 const response = await (app.inject({
                     method: 'POST',
@@ -458,6 +486,37 @@ describe('Billing routes', function () {
 
                 should(response).have.property('statusCode', 200)
 
+                const subscription = await app.db.models.Subscription.byCustomerId('cus_1234567890')
+                should(subscription.status).equal(app.db.models.Subscription.STATUS.ACTIVE)
+            })
+
+            it('Ignores events for unrecognised subscription for known customer', async () => {
+                const response = await (app.inject({
+                    method: 'POST',
+                    url: callbackURL,
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    payload: {
+                        id: 'evt_123456790',
+                        object: 'event',
+                        data: {
+                            object: {
+                                id: 'sub_anotherOne',
+                                object: 'subscription',
+                                customer: 'cus_1234567890',
+                                status: 'past_due'
+                            }
+                        },
+                        type: 'customer.subscription.updated'
+                    }
+                }))
+
+                should(app.log.warn.called).equal(true)
+                app.log.warn.firstCall.firstArg.should.equal(`Stripe customer.subscription.updated event sub_anotherOne from cus_1234567890 received for team '${app.team.hashid}' for unknown subscription`)
+                should(response).have.property('statusCode', 200)
+
+                // Check the known sub hasn't been modified
                 const subscription = await app.db.models.Subscription.byCustomerId('cus_1234567890')
                 should(subscription.status).equal(app.db.models.Subscription.STATUS.ACTIVE)
             })
@@ -648,6 +707,37 @@ describe('Billing routes', function () {
                 app.log.warn.firstCall.firstArg.should.equal('Stripe customer.subscription.deleted event sub_unknown_123 from cus_unknown_123 received for deleted team with orphaned subscription')
 
                 should(response).have.property('statusCode', 200)
+            })
+
+            it('Ignores events for unrecognised subscription for known customer', async () => {
+                const response = await (app.inject({
+                    method: 'POST',
+                    url: callbackURL,
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    payload: {
+                        id: 'evt_123456790',
+                        object: 'event',
+                        data: {
+                            object: {
+                                id: 'sub_anotherOne',
+                                object: 'subscription',
+                                customer: 'cus_1234567890',
+                                status: 'past_due'
+                            }
+                        },
+                        type: 'customer.subscription.deleted'
+                    }
+                }))
+
+                should(app.log.warn.called).equal(true)
+                app.log.warn.firstCall.firstArg.should.equal(`Stripe customer.subscription.deleted event sub_anotherOne from cus_1234567890 received for team '${app.team.hashid}' for unknown subscription`)
+                should(response).have.property('statusCode', 200)
+
+                // Check the known sub hasn't been modified
+                const subscription = await app.db.models.Subscription.byCustomerId('cus_1234567890')
+                should(subscription.status).equal(app.db.models.Subscription.STATUS.ACTIVE)
             })
         })
     })
