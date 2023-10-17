@@ -1,8 +1,8 @@
 <template>
     <form class="space-y-6">
         <TemplateSectionPalette v-model="editableTemplate" :editTemplate="true" />
-        <TemplateSectionCatalogue v-model="editableTemplate" :editTemplate="true" :project="project" />
-        <TemplateSectionNPM v-model="editableTemplate" :editTemplate="true" :project="project" />
+        <TemplateSectionCatalogue v-if="catalogFeatureAvailable" v-model="editableTemplate" :editTemplate="true" :project="project" />
+        <TemplateSectionNPM v-if="catalogFeatureAvailable" v-model="editableTemplate" :editTemplate="true" :project="project" />
         <TemplateSectionPaletteModules
             v-model="editableTemplate" :editTemplate="true" :readOnly="false" :project="project"
             header="Default Modules"
@@ -11,6 +11,8 @@
 </template>
 
 <script>
+
+import { mapState } from 'vuex'
 
 import permissionsMixin from '../../../mixins/Permissions.js'
 
@@ -42,6 +44,10 @@ export default {
     },
     emits: ['update:modelValue'],
     computed: {
+        ...mapState('account', ['features']),
+        catalogFeatureAvailable () {
+            return !!this.features.customCatalogs
+        },
         editableTemplate: {
             get () { return this.modelValue },
             set (localValue) { this.$emit('update:modelValue', localValue) }
