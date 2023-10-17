@@ -1,8 +1,8 @@
 <template>
     <form class="space-y-6">
         <TemplateSettingsPalette v-model="editable" :editTemplate="false" />
-        <TemplateSectionCatalogue v-model="editable" :editTemplate="false" :readOnly="!catalogueEditable" :project="project" />
-        <TemplateSectionNPM v-model="editable" :editTemplate="false" :readOnly="!npmEditable" :project="project" />
+        <TemplateSectionCatalogue v-if="catalogFeatureEnabledForTeam" v-model="editable" :editTemplate="false" :readOnly="!catalogueEditable" :project="project" />
+        <TemplateSectionNPM v-if="catalogFeatureEnabledForTeam" v-model="editable" :editTemplate="false" :readOnly="!npmEditable" :project="project" />
         <TemplatePaletteModulesEditor v-model="editable" :editTemplate="false" :readOnly="!paletteEditable" :project="project" />
         <div class="space-x-4 whitespace-nowrap">
             <ff-button size="small" :disabled="!unsavedChanges && !modulesChanged" @click="saveSettings()">Save settings</ff-button>
@@ -72,7 +72,14 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership']),
+        ...mapState('account', ['team', 'teamMembership', 'features']),
+        catalogFeatureEnabledForTeam () {
+            if (!this.features.customCatalogs) {
+                return false
+            }
+            const flag = this.team.type.properties.features?.customCatalogs
+            return flag === undefined || flag
+        },
         paletteEditable () {
             return this.editable?.settings.palette_allowInstall
         },

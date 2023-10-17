@@ -18,5 +18,8 @@ module.exports = fp(async function (app, opts, done) {
     // Set the DevOps Pipelines
     app.config.features.register('devops-pipelines', true, true)
 
+    // Set the Custom Catalogs Flag
+    app.config.features.register('customCatalogs', true, true)
+
     done()
 })
