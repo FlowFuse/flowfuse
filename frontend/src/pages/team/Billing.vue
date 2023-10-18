@@ -53,7 +53,7 @@
                             During the trial you can only create one application instance in the team. To unlock other features you will need to configure your billing details.
                         </template>
                         <template v-else>
-                            During the trial you can make full use of the features available to your team. To keep things running after the trial ends you will need to configure your billing details.
+                            During the trial you can make full use of the features available to your team. To keep things running you will need to configure your billing details.
                         </template>
                     </div>
                     <div v-else>

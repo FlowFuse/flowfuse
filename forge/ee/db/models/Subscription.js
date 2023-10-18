@@ -91,8 +91,13 @@ module.exports = {
                     // but the trial has not yet expired.
                     //
                     return !this.trialEndsAt || this.trialEndsAt < Date.now()
-                }
+                },
 
+                async clearTrialState () {
+                    this.trialEndsAt = null
+                    this.trialStatus = TRIAL_STATUS.ENDED
+                    return this.save()
+                }
             },
             static: {
                 STATUS,

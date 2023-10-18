@@ -40,16 +40,11 @@ module.exports.init = async function (app) {
     return {
         createSubscriptionSession: async (team, user = null) => {
             const billingIds = await team.getTeamBillingIds()
-            let teamPrice = billingIds.price
+            const teamPrice = billingIds.price
 
             // Use existing Stripe customer
             const existingLocalSubscription = await team.getSubscription()
-            if (existingLocalSubscription && existingLocalSubscription.isTrial()) {
-                // Currently in trial mode. Check for trial billing ids
-                if (billingIds.trialPrice) {
-                    teamPrice = billingIds.trialPrice
-                }
-            }
+
             const sub = {
                 mode: 'subscription',
                 line_items: [{
@@ -395,6 +390,11 @@ module.exports.init = async function (app) {
             // it can change its type
             if (subscription && subscription.isActive()) {
                 if (subscription.isTrial()) {
+                    // This block can be removed in 1.14 as it is a condition
+                    // we no longer support - but may have some lingering teams
+                    // in this mode for the next 2 weeks from the point this
+                    // is deployed to production.
+
                     // If in trial mode, the trial is first ended - you cannot
                     // carry a trial over to a new team type
 
@@ -403,9 +403,7 @@ module.exports.init = async function (app) {
                     // There may be a cleaner refactoring to avoid the duplication, but
                     // that is for another day
                     await app.billing.endTeamTrial(team)
-                    subscription.trialEndsAt = null
-                    subscription.trialStatus = app.db.models.Subscription.TRIAL_STATUS.ENDED
-                    await subscription.save()
+                    await subscription.clearTrialState()
                 }
 
                 // Get the stripe view of the subscription
