@@ -87,7 +87,7 @@ module.exports = async (options = {}) => {
     if (runtimeConfig.telemetry.backend?.sentry?.dsn) {
         server.register(require('@immobiliarelabs/fastify-sentry'), {
             dsn: runtimeConfig.telemetry.backend.sentry.dsn,
-            environment: process.env.SENTRY_ENV ?? process.env.NODE_ENV,
+            environment: process.env.SENTRY_ENV ?? (process.env.NODE_ENV ?? 'unknown'),
             release: `flowfuse@${runtimeConfig.version}`,
             tracesSampleRate: 0.1,
             profilesSampleRate: 0.1,

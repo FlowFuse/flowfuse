@@ -13,10 +13,14 @@ module.exports = async function (app) {
     /** @type {import('stripe').Stripe} */
     const stripe = require('stripe')(app.config.billing.stripe.key)
 
-    function logStripeEvent (/** @type {StripeEvent} */ event, team, subscription, teamId = null, stripeCustomerId = null) {
+    function logStripeEvent (/** @type {StripeEvent} */ event, team, subscription, teamId = null, stripeCustomerId = null, subscriptionUnknown = false) {
         const intro = `Stripe ${event.type} event ${event.data.object.id} from ${stripeCustomerId} received for`
         if (team) {
-            app.log.info(`${intro} team '${team.hashid}'`)
+            if (subscriptionUnknown) {
+                app.log.warn(`${intro} team '${team.hashid}' for unknown subscription`)
+            } else {
+                app.log.info(`${intro} team '${team.hashid}'`)
+            }
         } else if (teamId) {
             app.log.error(`${intro} unknown team by team ID '${teamId}'`)
         } else if (subscription) {
@@ -76,10 +80,18 @@ module.exports = async function (app) {
     async function parseSubscriptionEvent (/** @type {StripeEvent} */ event) {
         const stripeSubscriptionId = event.data.object.id
         const stripeCustomerId = event.data.object.customer
-        const subscription = await app.db.models.Subscription.byCustomerId(stripeCustomerId)
+        let subscription = await app.db.models.Subscription.byCustomerId(stripeCustomerId)
         const team = subscription?.Team
 
-        logStripeEvent(event, team, subscription, null, stripeCustomerId)
+        // Check this event is for the known subscription for this customer.
+        // A customer could have additional subscriptions created manually within
+        // stripe - we must make sure we don't respond to events on those ones.
+        let subscriptionUnknown = false
+        if (subscription && subscription.subscription !== stripeSubscriptionId) {
+            subscription = null
+            subscriptionUnknown = true
+        }
+        logStripeEvent(event, team, subscription, null, stripeCustomerId, subscriptionUnknown)
 
         return {
             stripeSubscriptionId, stripeCustomerId, subscription, team
@@ -184,6 +196,10 @@ module.exports = async function (app) {
             case 'customer.subscription.created': {
                 const { team, stripeCustomerId, subscription } = await parseSubscriptionEvent(event)
                 if (!team) {
+                    response.status(200).send()
+                    return
+                }
+                if (!subscription) {
                     response.status(200).send()
                     return
                 }
