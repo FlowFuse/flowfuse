@@ -71,6 +71,7 @@ module.exports = {
         this.hasMany(M.Project)
         this.hasMany(M.Invitation, { foreignKey: 'teamId' })
         this.hasMany(M.Application)
+        this.hasMany(M.Tag)
     },
     finders: function (M) {
         const self = this

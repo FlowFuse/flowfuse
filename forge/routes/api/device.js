@@ -6,6 +6,7 @@ const { Roles } = require('../../lib/roles')
 
 const DeviceLive = require('./deviceLive')
 const DeviceSnapshots = require('./deviceSnapshots.js')
+const DeviceTags = require('./deviceTags.js')
 
 /**
  * Project Device api routes
@@ -39,6 +40,7 @@ module.exports = async function (app) {
 
     app.register(DeviceLive, { prefix: '/:deviceId/live' })
     app.register(DeviceSnapshots, { prefix: '/:deviceId/snapshots' })
+    app.register(DeviceTags, { prefix: '/:deviceId/tags' })
 
     /**
      * Get a list of all devices

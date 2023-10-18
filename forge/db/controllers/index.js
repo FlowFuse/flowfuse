@@ -27,7 +27,8 @@ const modelTypes = [
     'BrokerClient',
     'StorageCredentials',
     'StorageFlows',
-    'StorageSettings'
+    'StorageSettings',
+    'Tag'
 ]
 
 async function init (app) {

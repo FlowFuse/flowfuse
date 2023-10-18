@@ -76,7 +76,9 @@ const modelTypes = [
     'StorageSession',
     'StorageLibrary',
     'AuditLog',
-    'BrokerClient'
+    'BrokerClient',
+    'Tag',
+    'TagType'
 ]
 
 // A local map of the known models.
@@ -99,6 +101,7 @@ const M = {}
  * @private
  */
 async function init (app) {
+    /** @type {import('sequelize').Sequelize} */
     const sequelize = app.db.sequelize
     /** @type {FFModel[]} */
     const allModels = []

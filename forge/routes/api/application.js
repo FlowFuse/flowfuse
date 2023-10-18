@@ -1,3 +1,5 @@
+const ApplicationTags = require('./applicationTags.js')
+
 module.exports = async function (app) {
     app.addHook('preHandler', async (request, reply) => {
         const applicationId = request.params.applicationId
@@ -25,6 +27,9 @@ module.exports = async function (app) {
             return reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
+
+    // register sub-routes
+    app.register(ApplicationTags, { prefix: '/:applicationId/tags' })
 
     /**
      * Create an application

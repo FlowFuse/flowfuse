@@ -101,6 +101,9 @@ const Permissions = {
     'platform:stats': { description: 'View platform stats information', role: Roles.Admin },
     'platform:stats:token': { description: 'Create/Delete platform stats token', role: Roles.Admin },
     'platform:audit-log': { description: 'View platform audit log', role: Roles.Admin }
+
+    // Tag Actions
+    // TODO: Add tag permissions
 }
 
 module.exports = {

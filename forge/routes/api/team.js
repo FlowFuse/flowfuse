@@ -3,6 +3,7 @@ const { Roles } = require('../../lib/roles')
 const TeamDevices = require('./teamDevices.js')
 const TeamInvitations = require('./teamInvitations.js')
 const TeamMembers = require('./teamMembers.js')
+const TeamTags = require('./teamTags.js')
 
 /**
  * Team api routes
@@ -157,6 +158,7 @@ module.exports = async function (app) {
     app.register(TeamMembers, { prefix: '/:teamId/members' })
     app.register(TeamInvitations, { prefix: '/:teamId/invitations' })
     app.register(TeamDevices, { prefix: '/:teamId/devices' })
+    app.register(TeamTags, { prefix: '/:teamId/tags' })
 
     /**
      * Get the details of a team

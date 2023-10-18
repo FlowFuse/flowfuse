@@ -16,6 +16,7 @@ module.exports = {
         this.hasMany(M.Project)
         this.hasMany(M.Project, { as: 'Instances' })
         this.belongsTo(M.Team, { foreignKey: { allowNull: false } })
+        this.hasMany(M.Tag)
     },
     finders: function (M) {
         return {

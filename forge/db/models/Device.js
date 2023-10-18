@@ -47,6 +47,10 @@ module.exports = {
         this.belongsTo(M.ProjectSnapshot, { as: 'activeSnapshot' })
         this.hasMany(M.DeviceSettings)
         this.hasMany(M.ProjectSnapshot) // associate device at application level with snapshots
+        // Add 'DeviceTags' junction table to permit many-to-many relationship between Devices and Tags
+        // NOTE: Sequelize will automatically create the table for us.
+        // SEE: forge/db/models/Tag.js for the other side of this relationship
+        this.belongsToMany(M.Tag, { through: 'DeviceTags' })
     },
     hooks: function (M, app) {
         return {
@@ -90,6 +94,11 @@ module.exports = {
                     where: {
                         ownerType: 'device',
                         ownerId: '' + device.id
+                    }
+                })
+                await M.DeviceTag.destroy({
+                    where: {
+                        DeviceId: device.id
                     }
                 })
             }
