@@ -8,26 +8,23 @@ navTitle: Introduction
 FlowFuse Cloud is a hosted service allowing users to sign-up and start creating Node-RED instances without having to install and manage their own instance of FlowFuse.
 The [Concepts](../user/concepts.md) remain the same, but we run the platform for you.
 
-## 30-day Free Trial
+## 14-day Free Trial
 
-When users sign-up to FlowFuse Cloud then get a 30-day free trial of the platform.
-During that trial they are able to create one Small Node-RED Instance. This is a great
-way to start using FlowFuse and discover a lot of the value it provides.
+When users sign-up to FlowFuse Cloud then get a 14-day free trial of the platform.
+During that trial they are able to create up to two Small Node-RED Instances and
+connect two devices. This is a great way to start using FlowFuse and discover a
+lot of the value it provides.
 
-Users can setup their billing details at any time during the trial - for example
-if they want to create additional Node-RED instances. Those instances will get charged for,
-but the trial instance will remain free until the end of the trial period.
+Users can end their trial by heading to the Billing page of their team and 
+upgrading to our Starter package at any time.
 
-At the end of the 30-day trial period, if billing has not been setup on the team,
-the trial instance will be suspended. This means it will no longer be running and the
-editor will not be accessible. Once billing has been setup on the team, the instance
-can be resumed by the team owner.
+Otherwise, at the end of the 14-day trial period, any instances created in the team
+will be suspended. This means they will no longer be running and the
+editor will not be accessible. Users will need to add their Billing details at which
+point they will be able to restart their suspended Node-RED isntances.
 
-If billing has been setup with the trial period ends, the trial instance will be
-added to the team's monthly subscription.
-
-The platform will email users about their trial when it is nearing the end to ensure
-they know what is happening and whether they still need to setup billing.
+We will email users about their trial when it is nearing the end to ensure
+they know what is happening.
 
 ## Billing
 
