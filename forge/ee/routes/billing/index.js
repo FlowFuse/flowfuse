@@ -13,19 +13,13 @@ module.exports = async function (app) {
     /** @type {import('stripe').Stripe} */
     const stripe = require('stripe')(app.config.billing.stripe.key)
 
-    function logStripeEvent (/** @type {StripeEvent} */ event, team, subscription, teamId = null, stripeCustomerId = null) {
+    function logStripeEvent (/** @type {StripeEvent} */ event, team, subscription, teamId = null, stripeCustomerId = null, subscriptionUnknown = false) {
         const intro = `Stripe ${event.type} event ${event.data.object.id} from ${stripeCustomerId} received for`
         if (team) {
-            if (subscription ||
-                event.type === 'checkout.session.completed' ||
-                event.type === 'checkout.session.expired'
-            ) {
-                app.log.info(`${intro} team '${team.hashid}'`)
-            } else {
-                // A subscription event for a subscription we don't know about
-                // for this known customer. This can happen if additional
-                // subscriptions were created manually within Stripe for this customer
+            if (subscriptionUnknown) {
                 app.log.warn(`${intro} team '${team.hashid}' for unknown subscription`)
+            } else {
+                app.log.info(`${intro} team '${team.hashid}'`)
             }
         } else if (teamId) {
             app.log.error(`${intro} unknown team by team ID '${teamId}'`)
@@ -92,10 +86,12 @@ module.exports = async function (app) {
         // Check this event is for the known subscription for this customer.
         // A customer could have additional subscriptions created manually within
         // stripe - we must make sure we don't respond to events on those ones.
+        let subscriptionUnknown = false
         if (subscription && subscription.subscription !== stripeSubscriptionId) {
             subscription = null
+            subscriptionUnknown = true
         }
-        logStripeEvent(event, team, subscription, null, stripeCustomerId)
+        logStripeEvent(event, team, subscription, null, stripeCustomerId, subscriptionUnknown)
 
         return {
             stripeSubscriptionId, stripeCustomerId, subscription, team
