@@ -501,6 +501,16 @@
         <span>Nodes have been removed via the "Manage Palette" option inside Node-RED</span>
     </template>
 
+    <template v-else-if="entry.event === 'resource.cpu'">
+        <label>Instance High CPU usage</label>
+        <span>Instance as spent more than 5 minutes at more than 75% of CPU limit</span>
+    </template>
+
+    <template v-else-if="entry.event === 'resource.memory'">
+        <label>Instance High Memory usage</label>
+        <span>Instance as spent more than 5 minutes at more than 75% of Memory limit</span>
+    </template>
+
     <!-- Catch All -->
     <template v-else>
         <label>{{ AuditEvents[entry.event] }}: {{ entry.event }}</label>
