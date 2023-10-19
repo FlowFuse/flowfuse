@@ -124,7 +124,7 @@ module.exports = async function (app) {
                     if (teamOK) {
                         const hasPermission = app.needsPermission('device:provision')
                         try {
-                            hasPermission(request, reply)
+                            await hasPermission(request, reply)
                             return // Request has permission
                         } catch (error) {
                             return // Request does not have permission (error will be sent by needsPermission)
@@ -135,7 +135,7 @@ module.exports = async function (app) {
                     request.teamMembership = await request.session.User.getTeamMembership(request.body.team)
                     const hasPermission = app.needsPermission('device:create')
                     try {
-                        hasPermission(request, reply)
+                        await hasPermission(request, reply)
                         return // Request has permission
                     } catch (error) {
                         return // Request does not have permission (error will be sent by needsPermission)
