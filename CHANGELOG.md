@@ -1,3 +1,19 @@
+#### 1.12.5: Release
+
+ - Update docs on trials (#2969) @knolleary
+ - Ignore subscription events if we don't know the subscription (#2965) @knolleary
+ - Bump @babel/traverse from 7.23.0 to 7.23.2 (#2967) @app/dependabot
+ - Bump @babel/preset-env from 7.22.15 to 7.23.2 (#2957) @app/dependabot
+ - Bump sinon from 16.0.0 to 16.1.0 (#2958) @app/dependabot
+ - Bump eslint from 8.50.0 to 8.51.0 (#2959) @app/dependabot
+ - Bump @fastify/swagger from 8.10.1 to 8.12.0 (#2960) @app/dependabot
+ - Bump @fastify/swagger-ui from 1.9.3 to 1.10.1 (#2961) @app/dependabot
+ - Exit trial when billing setup (#2963) @knolleary
+ - Restrict custom catalogs and npmrc to licensed team types (#2966) @knolleary
+ - Fix liniting and hide npmrc if on old stack (#2956) @hardillb
+ - Fix: N+1 query for StorageFlows for Instance State End Points (#2955) @Pezmc
+ - Fall back to unknown if both SENTRY_ENV and NODE_ENV are unset (#2949) @Pezmc
+
 #### 1.12.4: Release
 
  - Fix navigating away from instance page (#2946) @knolleary
