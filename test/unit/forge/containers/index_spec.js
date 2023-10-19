@@ -325,17 +325,10 @@ describe('Container Wrapper', function () {
                 const result = await app.containers.start(project)
                 await result.started
 
-                // A little artificial to force the model into suspended state - but
-                // it ensure any unexpected inconsistencies get handled properly
-
-                project.state = 'suspended'
-                await project.save()
-
                 await app.db.controllers.Subscription.deleteSubscription(team)
 
                 const promise = app.containers.stop(project)
-                await promise
-                promise.should.be.rejectedWith({ code: 'billing_required' })
+                await promise.should.be.rejectedWith({ code: 'billing_required' })
             })
 
             it('removes the running project from the driver and billing if the subscription is cancelled', async function () {
