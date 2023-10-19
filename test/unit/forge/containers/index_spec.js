@@ -318,7 +318,7 @@ describe('Container Wrapper', function () {
                 app.billing.removeProject.callCount.should.equal(0)
             })
 
-            it('rejects the removal if the team does not have a subscription', async function () {
+            it('handles the removal even if the team does not have a subscription', async function () {
                 const project = await setupProject()
                 const team = await app.db.models.Team.byName('ATeam')
                 await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
@@ -327,8 +327,7 @@ describe('Container Wrapper', function () {
 
                 await app.db.controllers.Subscription.deleteSubscription(team)
 
-                const promise = app.containers.stop(project)
-                await promise.should.be.rejectedWith({ code: 'billing_required' })
+                await app.containers.stop(project)
             })
 
             it('removes the running project from the driver and billing if the subscription is cancelled', async function () {
