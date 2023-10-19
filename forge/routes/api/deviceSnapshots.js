@@ -180,7 +180,7 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const device = request.device
-        if (device.ownerType !== 'application') {
+        if (!device.isApplicationOwned) {
             reply.code(400).send({ code: 'invalid_device', error: 'Device is not associated with an application' })
             return
         }

@@ -93,7 +93,7 @@ module.exports = {
         let snapshotId
         let snapshotName
 
-        if (device.ownerType === 'application') {
+        if (device.isApplicationOwned) {
             snapshotId = device.targetSnapshot ? device.targetSnapshot.hashid : '0' // '0' indicates that the device should start in application mode with starter flows
             snapshotName = device.targetSnapshot ? device.targetSnapshot.name : 'None'
             result.push(makeVar('FF_APPLICATION_ID', device.Application?.hashid || ''))
