@@ -377,90 +377,87 @@ describe('Accounts API', async function () {
                 app.settings.set('user:team:auto-create:teamType', null)
             })
         })
+    })
 
-        describe('licensed instances', function () {
-            before(async function () {
-                // close the default app
-                await app.close()
+    describe('Register User - Licensed', async function () {
+        before(async function () {
+            app = await setup()
+        })
+
+        after(async function () {
+            await app.close()
+        })
+        it('auto-creates personal team if option set - in trial mode', async function () {
+            const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTA4ODAwLCJleHAiOjc5ODY5ODg3OTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjo1LCJ0ZWFtcyI6NTAsInByb2plY3RzIjo1MCwiZGV2aWNlcyI6NTAsImRldiI6dHJ1ZSwiaWF0IjoxNjYyNTQ4NjAyfQ.vvSw6pm-NP5e0NUL7yMOG-w0AgB8H3NRGGN7b5Dw_iW5DiIBbVQ4HVLEi3dyy9fk7WgKnloiCCkIFJvN79fK_g'
+            const TEST_TRIAL_DURATION = 5
+
+            app = await setup({ license, billing: { stripe: {} } })
+            app.settings.set('user:signup', true)
+            app.settings.set('user:team:auto-create', true)
+
+            // Set trial mode options against the default team type
+            const teamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
+            const props = teamType.properties
+            props.trial = {
+                active: true,
+                duration: TEST_TRIAL_DURATION
+            }
+            teamType.properties = props
+            await teamType.save()
+
+            const response = await registerUser({
+                username: 'user',
+                password: '12345678',
+                name: 'user',
+                email: 'user@example.com'
             })
-            afterEach(async function () {
-                await app.close()
+            response.statusCode.should.equal(200)
+
+            // Team is only created once they verify their email.
+            const user = await app.db.models.User.findOne({ where: { username: 'user' } })
+            const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
+            await app.inject({
+                method: 'POST',
+                url: `/account/verify/${verificationToken}`,
+                payload: {},
+                cookies: { sid: TestObjects.tokens.user }
             })
-            after(async function () {
-                app = await setup()
+            await login('user', '12345678')
+
+            const userTeamsResponse = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user/teams',
+                cookies: { sid: TestObjects.tokens.user }
             })
-            it('auto-creates personal team if option set - in trial mode', async function () {
-                const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTA4ODAwLCJleHAiOjc5ODY5ODg3OTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjo1LCJ0ZWFtcyI6NTAsInByb2plY3RzIjo1MCwiZGV2aWNlcyI6NTAsImRldiI6dHJ1ZSwiaWF0IjoxNjYyNTQ4NjAyfQ.vvSw6pm-NP5e0NUL7yMOG-w0AgB8H3NRGGN7b5Dw_iW5DiIBbVQ4HVLEi3dyy9fk7WgKnloiCCkIFJvN79fK_g'
-                const TEST_TRIAL_DURATION = 5
 
-                app = await setup({ license, billing: { stripe: {} } })
-                app.settings.set('user:signup', true)
-                app.settings.set('user:team:auto-create', true)
+            const userTeams = userTeamsResponse.json()
+            userTeams.should.have.property('teams')
+            userTeams.teams.should.have.length(1)
 
-                // Set trial mode options against the default team type
-                const teamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
-                const props = teamType.properties
-                props.trial = {
-                    active: true,
-                    duration: TEST_TRIAL_DURATION
-                }
-                teamType.properties = props
-                await teamType.save()
-
-                const response = await registerUser({
-                    username: 'user',
+            const userTeam = await app.db.models.Team.byId(userTeams.teams[0].id)
+            const subscription = await app.db.models.Subscription.byTeamId(userTeam.id)
+            should.exist(subscription)
+            subscription.isActive().should.be.false()
+            subscription.isTrial().should.be.true()
+            subscription.isTrialEnded().should.be.false()
+            subscription.trialStatus.should.equal(app.db.models.Subscription.TRIAL_STATUS.CREATED)
+        })
+        it('Does not limit how many users can be created when licensed', async function () {
+            // This license has limit of 5 users (1 created by default test setup (test/unit/forge/routes/setup.js))
+            const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTA4ODAwLCJleHAiOjc5ODY5ODg3OTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjo1LCJ0ZWFtcyI6NTAsInByb2plY3RzIjo1MCwiZGV2aWNlcyI6NTAsImRldiI6dHJ1ZSwiaWF0IjoxNjYyNTQ4NjAyfQ.vvSw6pm-NP5e0NUL7yMOG-w0AgB8H3NRGGN7b5Dw_iW5DiIBbVQ4HVLEi3dyy9fk7WgKnloiCCkIFJvN79fK_g'
+            app = await setup({ license })
+            app.settings.set('user:signup', true)
+            // Register 5 more users to breach the limit
+            for (let i = 1; i <= 5; i++) {
+                const resp = await registerUser({
+                    username: `u${i}`,
                     password: '12345678',
-                    name: 'user',
-                    email: 'user@example.com'
+                    name: `u${i}`,
+                    email: `u${i}@example.com`
                 })
-                response.statusCode.should.equal(200)
-
-                // Team is only created once they verify their email.
-                const user = await app.db.models.User.findOne({ where: { username: 'user' } })
-                const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
-                await app.inject({
-                    method: 'POST',
-                    url: `/account/verify/${verificationToken}`,
-                    payload: {},
-                    cookies: { sid: TestObjects.tokens.user }
-                })
-                await login('user', '12345678')
-
-                const userTeamsResponse = await app.inject({
-                    method: 'GET',
-                    url: '/api/v1/user/teams',
-                    cookies: { sid: TestObjects.tokens.user }
-                })
-
-                const userTeams = userTeamsResponse.json()
-                userTeams.should.have.property('teams')
-                userTeams.teams.should.have.length(1)
-
-                const userTeam = await app.db.models.Team.byId(userTeams.teams[0].id)
-                const subscription = await app.db.models.Subscription.byTeamId(userTeam.id)
-                should.exist(subscription)
-                subscription.isActive().should.be.false()
-                subscription.isTrial().should.be.true()
-                subscription.isTrialEnded().should.be.false()
-                subscription.trialStatus.should.equal(app.db.models.Subscription.TRIAL_STATUS.CREATED)
-            })
-            it('Does not limit how many users can be created when licensed', async function () {
-                // This license has limit of 5 users (1 created by default test setup (test/unit/forge/routes/setup.js))
-                const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTA4ODAwLCJleHAiOjc5ODY5ODg3OTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjo1LCJ0ZWFtcyI6NTAsInByb2plY3RzIjo1MCwiZGV2aWNlcyI6NTAsImRldiI6dHJ1ZSwiaWF0IjoxNjYyNTQ4NjAyfQ.vvSw6pm-NP5e0NUL7yMOG-w0AgB8H3NRGGN7b5Dw_iW5DiIBbVQ4HVLEi3dyy9fk7WgKnloiCCkIFJvN79fK_g'
-                app = await setup({ license })
-                app.settings.set('user:signup', true)
-                // Register 5 more users to breach the limit
-                for (let i = 1; i <= 5; i++) {
-                    const resp = await registerUser({
-                        username: `u${i}`,
-                        password: '12345678',
-                        name: `u${i}`,
-                        email: `u${i}@example.com`
-                    })
-                    resp.statusCode.should.equal(200)
-                }
-                // TODO: check user audit logs - expect 'account.xxx-yyy' { code: '', error, '' }
-            })
+                resp.statusCode.should.equal(200)
+            }
+            // TODO: check user audit logs - expect 'account.xxx-yyy' { code: '', error, '' }
         })
     })
 
