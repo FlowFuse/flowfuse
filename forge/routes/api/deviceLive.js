@@ -94,7 +94,6 @@ module.exports = async function (app) {
      */
     app.get('/snapshot', async (request, reply) => {
         const device = request.device || null
-        const isApplicationOwned = device?.ownerType === 'application' // && 'EE'?
         if (!request.device.targetSnapshot) {
             let nodeRedVersion = '3.0.2' // default to older Node-RED
             if (SemVer.satisfies(SemVer.coerce(device.agentVersion), '>=1.11.2')) {
@@ -102,7 +101,7 @@ module.exports = async function (app) {
                 nodeRedVersion = 'latest'
             }
             // determine is device is in application mode? if so, return a default snapshot to permit the user to generate flows
-            if (isApplicationOwned) {
+            if (request.device.isApplicationOwned) {
                 const DEFAULT_APP_SNAPSHOT = {
                     id: '0',
                     name: 'Starter Snapshot',
