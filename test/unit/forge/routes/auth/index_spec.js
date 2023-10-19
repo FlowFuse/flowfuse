@@ -380,13 +380,10 @@ describe('Accounts API', async function () {
     })
 
     describe('Register User - Licensed', async function () {
-        before(async function () {
-            app = await setup()
-        })
-
-        after(async function () {
+        afterEach(async function () {
             await app.close()
         })
+
         it('auto-creates personal team if option set - in trial mode', async function () {
             const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTA4ODAwLCJleHAiOjc5ODY5ODg3OTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjo1LCJ0ZWFtcyI6NTAsInByb2plY3RzIjo1MCwiZGV2aWNlcyI6NTAsImRldiI6dHJ1ZSwiaWF0IjoxNjYyNTQ4NjAyfQ.vvSw6pm-NP5e0NUL7yMOG-w0AgB8H3NRGGN7b5Dw_iW5DiIBbVQ4HVLEi3dyy9fk7WgKnloiCCkIFJvN79fK_g'
             const TEST_TRIAL_DURATION = 5
@@ -442,11 +439,13 @@ describe('Accounts API', async function () {
             subscription.isTrialEnded().should.be.false()
             subscription.trialStatus.should.equal(app.db.models.Subscription.TRIAL_STATUS.CREATED)
         })
+
         it('Does not limit how many users can be created when licensed', async function () {
             // This license has limit of 5 users (1 created by default test setup (test/unit/forge/routes/setup.js))
             const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTA4ODAwLCJleHAiOjc5ODY5ODg3OTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjo1LCJ0ZWFtcyI6NTAsInByb2plY3RzIjo1MCwiZGV2aWNlcyI6NTAsImRldiI6dHJ1ZSwiaWF0IjoxNjYyNTQ4NjAyfQ.vvSw6pm-NP5e0NUL7yMOG-w0AgB8H3NRGGN7b5Dw_iW5DiIBbVQ4HVLEi3dyy9fk7WgKnloiCCkIFJvN79fK_g'
             app = await setup({ license })
             app.settings.set('user:signup', true)
+
             // Register 5 more users to breach the limit
             for (let i = 1; i <= 5; i++) {
                 const resp = await registerUser({
