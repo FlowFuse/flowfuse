@@ -141,15 +141,15 @@ describe('Team model', function () {
             ;(await ATeam.getInstanceTypeLimit(pt3.id)).should.equal(0)
         })
         it('checkInstanceTypeCreateAllowed', async function () {
-            ATeam.checkInstanceTypeCreateAllowed(pt1).should.be.rejected()
-            ATeam.checkInstanceTypeCreateAllowed(pt2).should.be.resolved()
-            ATeam.checkInstanceTypeCreateAllowed(pt3).should.be.resolved()
+            await ATeam.checkInstanceTypeCreateAllowed(pt1).should.be.rejected() // 2 vs 2
+            await ATeam.checkInstanceTypeCreateAllowed(pt2).should.be.resolved() // 1 vs 7
+            await ATeam.checkInstanceTypeCreateAllowed(pt3).should.be.rejected() // 0 vs 0
         })
 
         it('checkInstanceStartAllowed', async function () {
-            ATeam.checkInstanceStartAllowed(pt1).should.be.resolved()
-            ATeam.checkInstanceStartAllowed(pt2).should.be.resolved()
-            ATeam.checkInstanceStartAllowed(pt3).should.be.resolved()
+            await ATeam.checkInstanceStartAllowed(pt1).should.be.resolved()
+            await ATeam.checkInstanceStartAllowed(pt2).should.be.resolved()
+            await ATeam.checkInstanceStartAllowed(pt3).should.be.resolved()
         })
 
         it('checkTeamTypeUpdateAllowed rejects changing type to smaller type', async function () {
