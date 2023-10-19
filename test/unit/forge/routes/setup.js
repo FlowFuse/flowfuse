@@ -2,6 +2,11 @@ const TestModelFactory = require('../../../lib/TestModelFactory')
 
 const FF_UTIL = require('flowforge-test-utils')
 
+process.on('unhandledRejection', (error) => {
+    // Tests should fail if an unhandledRejection occurs
+    throw error
+})
+
 module.exports = async function (config = {}) {
     const forge = await FF_UTIL.setupApp(config)
     await forge.db.models.PlatformSettings.upsert({ key: 'setup:initialised', value: true })
