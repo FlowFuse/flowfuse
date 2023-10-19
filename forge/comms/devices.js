@@ -109,6 +109,11 @@ class DeviceCommsHandler {
                 }
             } catch (err) {
                 // Not a JSON payload - ignore
+                if (err instanceof SyntaxError) {
+                    return
+                }
+
+                throw err
             }
         }
     }
