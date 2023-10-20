@@ -10,7 +10,7 @@ const isObject = (obj) => {
  * @param {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType?, info? } == {}} objects objects to include in body
  * @returns {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType? info? }
  */
-const generateBody = ({ error, team, application, project, sourceProject, targetProject, device, user, stack, billingSession, subscription, license, updates, snapshot, pipeline, pipelineStage, role, projectType, info } = {}) => {
+const generateBody = ({ error, team, application, project, sourceProject, targetProject, device, user, stack, billingSession, subscription, license, updates, snapshot, pipeline, pipelineStage, role, projectType, info, interval, threshold } = {}) => {
     const body = {}
 
     if (isObject(error) || typeof error === 'string') {
@@ -75,6 +75,14 @@ const generateBody = ({ error, team, application, project, sourceProject, target
         body.info = { info }
     }
 
+    if (interval) {
+        body.interval = interval
+    }
+
+    if (threshold) {
+        body.threshold = threshold
+    }
+
     return body
 }
 
@@ -135,7 +143,9 @@ const formatLogEntry = (auditLogDbRow) => {
                 projectType: body?.projectType,
                 info: body?.info,
                 pipeline: body?.pipeline,
-                pipelineStage: body?.pipelineStage
+                pipelineStage: body?.pipelineStage,
+                interval: body?.interval,
+                threshold: body?.threshold
             })
             const roleObj = body?.role && roleObject(body.role)
             if (roleObj) {
