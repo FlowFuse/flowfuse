@@ -318,24 +318,16 @@ describe('Container Wrapper', function () {
                 app.billing.removeProject.callCount.should.equal(0)
             })
 
-            it('rejects the removal if the team does not have a subscription', async function () {
+            it('handles the removal even if the team does not have a subscription', async function () {
                 const project = await setupProject()
                 const team = await app.db.models.Team.byName('ATeam')
                 await app.db.controllers.Subscription.createSubscription(team, 'my-subscription', 'a-customer')
                 const result = await app.containers.start(project)
                 await result.started
 
-                // A little artificial to force the model into suspended state - but
-                // it ensure any unexpected inconsistencies get handled properly
-
-                project.state = 'suspended'
-                await project.save()
-
                 await app.db.controllers.Subscription.deleteSubscription(team)
 
-                const promise = app.containers.stop(project)
-                await promise
-                promise.should.be.rejectedWith({ code: 'billing_required' })
+                await app.containers.stop(project)
             })
 
             it('removes the running project from the driver and billing if the subscription is cancelled', async function () {

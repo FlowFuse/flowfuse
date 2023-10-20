@@ -123,23 +123,15 @@ module.exports = async function (app) {
                     const teamOK = request.body.team && request.body.team === request.session.provisioning.team
                     if (teamOK) {
                         const hasPermission = app.needsPermission('device:provision')
-                        try {
-                            hasPermission(request, reply)
-                            return // Request has permission
-                        } catch (error) {
-                            return // Request does not have permission (error will be sent by needsPermission)
-                        }
+                        await hasPermission(request, reply) // hasPermission sends the error response if required which stops the request
+                        return
                     }
                 } else if (request.body?.team && request.session.User) {
                     // User action: check if the user is in the team and has the required role
                     request.teamMembership = await request.session.User.getTeamMembership(request.body.team)
                     const hasPermission = app.needsPermission('device:create')
-                    try {
-                        hasPermission(request, reply)
-                        return // Request has permission
-                    } catch (error) {
-                        return // Request does not have permission (error will be sent by needsPermission)
-                    }
+                    await hasPermission(request, reply) // hasPermission sends the error response if required which stops the request
+                    return
                 }
                 reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
             }

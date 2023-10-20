@@ -61,7 +61,7 @@ module.exports = {
                 },
                 async unassigned (actionedBy, error, team, projectOrApplication, device) {
                     const bodyData = { error, device }
-                    if (device.ownerType === 'application' || projectOrApplication?.constructor?.name === 'Application') {
+                    if (device.isApplicationOwned || projectOrApplication?.constructor?.name === 'Application') {
                         bodyData.application = projectOrApplication
                     } else {
                         bodyData.project = projectOrApplication
@@ -70,7 +70,7 @@ module.exports = {
                 },
                 async assigned (actionedBy, error, team, projectOrApplication, device) {
                     const bodyData = { error, device }
-                    if (device.ownerType === 'application' || projectOrApplication?.constructor?.name === 'Application') {
+                    if (device.isApplicationOwned || projectOrApplication?.constructor?.name === 'Application') {
                         bodyData.application = projectOrApplication
                     } else {
                         bodyData.project = projectOrApplication
