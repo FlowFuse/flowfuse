@@ -16,7 +16,6 @@ on:
       - 'UI Tests'
     branches: 
       - main
-      - fix-wait-for-upstream-workflows
     types: 
       - completed
 
