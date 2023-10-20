@@ -111,6 +111,7 @@ describe('Device controller', function () {
                 name: 'device1',
                 type: 'PI4',
                 ownerType: 'application',
+                isApplicationOwned: true,
                 applicationId: 1,
                 Application: {
                     name: 'application-name',
