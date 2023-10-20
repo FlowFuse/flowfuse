@@ -24,6 +24,7 @@ on:
       - 'package.json'
       - '.eslintrc'
       - '.github/workflows/build.yml'
+      - '.github/workflows/publish.yml'
 
 jobs:
   build:

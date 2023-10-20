@@ -24,9 +24,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  wait_for_workflows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ahmadnassri/action-workflow-run-wait@v1
+
   publish:
+    needs: wait_for_workflows
     if: |
-      ( github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main' ) ||
+      github.ref == 'refs/heads/main' ||
       ( github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' )
     uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@946077578d8a45c3c945f2c390a39fb17460fab9'
     with:

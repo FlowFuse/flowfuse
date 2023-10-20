@@ -24,6 +24,7 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - '.eslintrc'
+      - '.github/workflows/publish.yml'
 
 jobs:
   cypress-run:
