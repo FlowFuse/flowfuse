@@ -203,4 +203,55 @@ describe('DeviceCommsHandler', function () {
             sockets[1].received().should.have.length(0)
         })
     })
+
+    describe('Device Status', function () {
+        let oldHandler
+        let client
+        before(function () {
+            client = mockSocket()
+            const commsHandler = DeviceCommsHandler(app, client)
+
+            oldHandler = app.comms.devices
+            app.comms.devices = commsHandler
+        })
+
+        after(function () {
+            app.comms.devices = oldHandler
+        })
+
+        it('handles the device is not found', async function () {
+            client.emit('status/device', {
+                id: 'bad-device-id',
+                status: 'online'
+            })
+
+            // Task happens async
+            await sleep(100)
+        })
+
+        it('handles receiving a status payload with unknown objects', async function () {
+            client.emit('status/device', {
+                id: TestObjects.device.hashid,
+                status: JSON.stringify({
+                    state: 'online',
+                    project: 'unknown-project',
+                    application: 'unknown-application',
+                    snapshot: 'unknown-snapshot',
+                    settings: 'incorrect-settings'
+                })
+            })
+
+            // Task happens async
+            await sleep(100)
+
+            // Should have received update command
+            client.received().should.have.length(1)
+
+            const msg = client.received()[0]
+            msg.should.have.property('topic', `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.device.hashid}/command`)
+            msg.should.have.property('payload')
+            const payload = JSON.parse(msg.payload)
+            payload.should.have.property('command', 'update')
+        })
+    })
 })

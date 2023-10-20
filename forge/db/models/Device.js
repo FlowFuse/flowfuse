@@ -26,9 +26,15 @@ module.exports = {
         mode: { type: DataTypes.STRING, allowNull: true, defaultValue: 'autonomous' },
         /** @type {'instance'|'application'|null} a virtual column that signifies the parent type e.g. `"instance"`, `"application"` */
         ownerType: {
-            type: DataTypes.VIRTUAL,
+            type: DataTypes.VIRTUAL(DataTypes.ENUM('instance', 'application', null)),
             get () {
                 return this.Project?.id ? 'instance' : (this.Application?.hashid ? 'application' : null)
+            }
+        },
+        isApplicationOwned: {
+            type: DataTypes.VIRTUAL(DataTypes.BOOLEAN),
+            get () {
+                return this.ownerType === 'application'
             }
         }
     },
