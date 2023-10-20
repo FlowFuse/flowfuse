@@ -503,12 +503,12 @@
 
     <template v-else-if="entry.event === 'resource.cpu'">
         <label>Instance High CPU usage</label>
-        <span>Instance has spent more than {{ entry.body.interval / 60 }} minutes at more than {{ entry.body.threshold }}% of CPU limit</span>
+        <span>Instance has spent more than {{ Math.floor(entry.body.interval / 60) }} minutes at more than {{ entry.body.threshold }}% of CPU limit</span>
     </template>
 
     <template v-else-if="entry.event === 'resource.memory'">
         <label>Instance High Memory usage</label>
-        <span>Instance has spent more than {{ entry.body.interval / 60 }} minutes at more than {{ entry.body.threshold }}% of Memory limit</span>
+        <span>Instance has spent more than {{ Math.floor(entry.body.interval / 60) }} minutes at more than {{ entry.body.threshold }}% of Memory limit</span>
     </template>
 
     <!-- Catch All -->
