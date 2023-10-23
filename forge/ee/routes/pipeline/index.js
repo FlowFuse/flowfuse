@@ -271,13 +271,14 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const team = await request.teamMembership.getTeam()
         const name = request.body.name?.trim() // name of the stage
-        const { instanceId, deployToDevices, action } = request.body
+        const { instanceId, deviceId, deployToDevices, action } = request.body
 
         let stage
         try {
             const options = {
                 name,
                 instanceId,
+                deviceId,
                 deployToDevices,
                 action
             }
@@ -324,6 +325,7 @@ module.exports = async function (app) {
                 properties: {
                     name: { type: 'string' },
                     instanceId: { type: 'string' },
+                    deviceId: { type: 'string' },
                     action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) }
                 }
             },
@@ -358,6 +360,16 @@ module.exports = async function (app) {
                 await stage.addInstanceId(request.body.instanceId)
             }
 
+            if (request.body.deviceId) {
+                // Currently only one instance per stage is supported
+                const devices = await stage.getDevices()
+                for (const device of devices) {
+                    await stage.removeDevice(device)
+                }
+
+                await stage.addDeviceId(request.body.deviceId)
+            }
+
             if (request.body.deployToDevices !== undefined) {
                 stage.deployToDevices = request.body.deployToDevices
             }
@@ -371,6 +383,7 @@ module.exports = async function (app) {
 
             reply.send(await app.db.views.PipelineStage.stage(hydratedStage))
         } catch (err) {
+            console.log(err)
             reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })

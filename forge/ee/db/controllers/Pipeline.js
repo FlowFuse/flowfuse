@@ -13,7 +13,10 @@ module.exports = {
             delete options.source
         }
         const stage = await app.db.models.PipelineStage.create(options)
+
+        // TODO: Add logic to set one or other or both
         await stage.addInstanceId(options.instanceId)
+        await stage.addDeviceId(options.deviceId)
 
         if (source) {
             const sourceStage = await app.db.models.PipelineStage.byId(source)

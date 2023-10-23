@@ -63,11 +63,21 @@ module.exports = {
             instance: {
                 async addInstanceId (instanceId) {
                     const instance = await M.Project.byId(instanceId)
+                    // TODO VALIDATE IS PART OF THE SAME APPLICATION
                     if (!instance) {
-                        throw new Error('instanceId not found')
+                        throw new Error(`instanceId (${instanceId}) not found`)
                     }
 
                     await this.addInstance(instance)
+                },
+                async addDeviceId (deviceId) {
+                    const device = await M.Device.byId(deviceId)
+                    // TODO VALIDATE IS PART OF THE SAME APPLICATION
+                    if (!device) {
+                        throw new Error(`deviceId (${deviceId}) not found`)
+                    }
+
+                    await this.addDevice(device)
                 }
             },
             static: {
