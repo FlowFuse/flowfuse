@@ -31,18 +31,34 @@
             </template>
         </FormRow>
 
-        <!-- Instance -->
-        <FormRow
-            v-model="input.instanceId"
-            :options="instanceOptions"
-            data-form="stage-instance"
-            :placeholder="instanceDropdownPlaceholder"
-            :disabled="instanceDropdownDisabled"
-        >
-            <template #default>
-                Choose Instance
-            </template>
-        </FormRow>
+        <!-- Instance/Device -->
+        <div style="border:1px dashed red;padding:5px">
+            <FormRow
+                v-model="input.instanceId"
+                :options="instanceOptions"
+                data-form="stage-instance"
+                :placeholder="instanceDropdownPlaceholder"
+                :disabled="instanceDropdownDisabled"
+            >
+                <template #default>
+                    Choose Instance
+                </template>
+            </FormRow>
+
+            <h2>AND/OR</h2>
+
+            <FormRow
+                v-model="input.deviceId"
+                :options="deviceOptions"
+                data-form="stage-device"
+                :placeholder="deviceDropdownPlaceholder"
+                :disabled="deviceDropdownDisabled"
+            >
+                <template #default>
+                    Choose Device
+                </template>
+            </FormRow>
+        </div>
 
         <!-- Action -->
         <FormRow
@@ -90,10 +106,14 @@
             v-model="input.deployToDevices"
             type="checkbox"
             data-form="stage-deploy-to-devices"
-            :disabled="!sourceStage"
+            :disabled="!input.instanceId || !sourceStage"
             class="max-w-md"
         >
-            Deploy to Devices <template v-if="!sourceStage">- Not available for first stage in pipeline</template>
+            Deploy to Devices
+            <template v-if="!sourceStage">- Not available for first stage in pipeline</template>
+            <template v-else-if="!input.instanceId">
+                - Only available when an instance is selected
+            </template>
             <template #description>
                 When this stage is deployed to changes will also be be deployed to all devices connected to this stages instance.
             </template>
@@ -137,6 +157,10 @@ export default {
         FormRow
     },
     props: {
+        applicationDevices: {
+            type: Array,
+            required: true
+        },
         instances: {
             type: Array,
             required: true
@@ -167,7 +191,8 @@ export default {
             },
             input: {
                 name: stage?.name,
-                instanceId: stage.instances?.[0].id,
+                instanceId: stage.instances?.[0].id, // API supports multiple instances per stage but UI only exposes one
+                deviceId: stage.devices?.[0].id, // API supports multiple devices per stage but UI only exposes one
                 action: stage?.action,
                 deployToDevices: stage.deployToDevices || false
             },
@@ -186,12 +211,13 @@ export default {
             return (
                 this.input.name !== this.stage.name ||
                 this.input.instanceId !== this.stage.instances?.[0].id ||
+                this.input.deviceId !== this.stage.devices?.[0].id ||
                 this.input.action !== this.stage.action ||
                 this.input.deployToDevices !== this.stage.deployToDevices
             )
         },
         submitEnabled () {
-            return this.formDirty && this.input.instanceId && this.input.name && this.input.action
+            return this.formDirty && (this.input.instanceId || this.input.deviceId) && this.input.name && this.input.action
         },
         instancesNotInUse () {
             const instanceIdsInUse = this.pipeline.stages.reduce((acc, stage) => {
@@ -223,6 +249,38 @@ export default {
             }
 
             return 'Choose Instance'
+        },
+
+        devicesNotInUse () {
+            const deviceIdsInUse = this.pipeline.stages.reduce((acc, stage) => {
+                stage.devices.forEach((device) => {
+                    acc.add(device.id)
+                })
+
+                return acc
+            }, new Set())
+
+            return this.applicationDevices.filter((device) => {
+                return !deviceIdsInUse.has(device.id) || device.id === this.input.deviceId
+            })
+        },
+        deviceOptions () {
+            return this.devicesNotInUse.map((device) => {
+                return {
+                    label: device.name,
+                    value: device.id
+                }
+            })
+        },
+        deviceDropdownDisabled () {
+            return this.devicesNotInUse.length === 0
+        },
+        deviceDropdownPlaceholder () {
+            if (this.devicesNotInUse.length === 0) {
+                return 'No application level devices available'
+            }
+
+            return 'Choose Application Level Device'
         }
     },
     methods: {

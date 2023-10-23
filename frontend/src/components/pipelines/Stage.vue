@@ -34,13 +34,25 @@
             </div>
         </div>
         <div v-if="stage.instance" class="py-3">
-            <div class="ff-pipeline-stage-row">
-                <label>Instance:</label>
-                <span>
-                    <router-link :to="{name: 'Instance', params: { id: stage.instance.id }}">
-                        {{ stage.instance.name }}
-                    </router-link>
-                </span>
+            <div style="border:1px dashed red;margin:5px">
+                <div class="ff-pipeline-stage-row">
+                    <label>Instance:</label>
+                    <span>
+                        <router-link v-if="stage.instance?.id" :to="{name: 'Instance', params: { id: stage.instance.id }}">
+                            {{ stage.instance.name }}
+                        </router-link>
+                        <template v-else>None</template>
+                    </span>
+                </div>
+                <div class="ff-pipeline-stage-row">
+                    <label>Device:</label>
+                    <span>
+                        <router-link v-if="stage.device?.id" :to="{name: 'Device', params: { id: stage.device.id }}">
+                            {{ stage.device.name }}
+                        </router-link>
+                        <template v-else>None</template>
+                    </span>
+                </div>
             </div>
             <div class="ff-pipeline-stage-row">
                 <label>URL:</label>
