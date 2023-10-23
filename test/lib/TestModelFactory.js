@@ -184,6 +184,7 @@ module.exports = class TestModelFactory {
             ...deviceDetails
         })
         await team.addDevice(device)
+        await device.setTeam(team)
         if (project) {
             await device.setProject(project)
         } else if (application) {
