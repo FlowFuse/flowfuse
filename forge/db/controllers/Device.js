@@ -19,7 +19,7 @@ module.exports = {
             // hashid.decode returns an array of values, not the raw value.
             if (snapshotId?.length > 0 && snapshotId !== device.activeSnapshotId) {
                 // Check to see if snapshot exists
-                if (await app.db.models.ProjectSnapshot.byId(state.snapshot)) {
+                if (await app.db.models.ProjectSnapshot.count({ where: { id: snapshotId }, limit: 1 }) > 0) {
                     device.set('activeSnapshotId', snapshotId[0])
                 }
             }
