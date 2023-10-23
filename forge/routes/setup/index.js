@@ -28,7 +28,7 @@ module.exports = async function (app) {
 
         if (app.config.create_admin) {
             if (await app.db.models.User.count() === 0) {
-                const password = generatePassword()
+                const password = process.env.FF_ADMIN_PASSWORD || generatePassword()
                 await app.db.models.User.create({
                     username: 'ff-admin',
                     name: 'Default Admin',
