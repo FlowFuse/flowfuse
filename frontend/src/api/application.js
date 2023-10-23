@@ -143,6 +143,13 @@ const getPipelines = async (applicationId) => {
                 stage.instances = []
             }
 
+            // Again, the backend supports multiple devices per stage but the UI
+            // only exposes connecting one
+            stage.device = stage.devices?.[0]
+            if (!stage.devices) {
+                stage.devices = []
+            }
+
             return stage
         })
 

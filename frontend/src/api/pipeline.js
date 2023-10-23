@@ -14,6 +14,10 @@ const getPipelineStage = async (pipelineId, stageId) => {
             // @see getPipelines in frontend Application API
             res.data.instance = res.data.instances?.[0]
 
+            // Again, the backend supports multiple devices per stage but the UI
+            // only exposes connecting one
+            res.data.device = res.data.devices?.[0]
+
             return res.data
         })
 }
@@ -26,6 +30,7 @@ const addPipelineStage = async (pipelineId, stage) => {
     const options = {
         name: stage.name,
         instanceId: stage.instanceId,
+        deviceId: stage.deviceId,
         deployToDevices: stage.deployToDevices,
         action: stage.action
     }

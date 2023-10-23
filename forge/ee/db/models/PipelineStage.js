@@ -54,6 +54,7 @@ module.exports = {
     associations: function (M) {
         this.belongsTo(M.Pipeline)
         this.belongsToMany(M.Project, { through: M.PipelineStageInstance, as: 'Instances', otherKey: 'InstanceId' })
+        this.belongsToMany(M.Device, { through: 'PipelineStageDevices' })
         this.hasOne(M.PipelineStage, { as: 'NextStage', foreignKey: 'NextStageId', allowNull: true })
     },
     finders: function (M) {
@@ -82,6 +83,10 @@ module.exports = {
                             {
                                 association: 'Instances',
                                 attributes: ['hashid', 'id', 'name', 'url', 'updatedAt']
+                            },
+                            {
+                                association: 'Devices',
+                                attributes: ['hashid', 'id', 'name', 'type', 'links', 'ownerType']
                             }
                         ]
                     })
@@ -98,6 +103,10 @@ module.exports = {
                             {
                                 association: 'Instances',
                                 attributes: ['hashid', 'id', 'name', 'url', 'updatedAt']
+                            },
+                            {
+                                association: 'Devices',
+                                attributes: ['hashid', 'id', 'name', 'type', 'links', 'ownerType']
                             }
                         ]
                     })

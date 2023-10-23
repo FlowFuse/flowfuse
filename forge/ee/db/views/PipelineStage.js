@@ -1,11 +1,20 @@
 module.exports = function (app) {
     app.addSchema({
+        $id: 'DevicesSummaryList'
+
+    })
+
+    app.addSchema({
         $id: 'PipelineStage',
         type: 'object',
         properties: {
             id: { type: 'string' },
             name: { type: 'string' },
-            instances: { type: 'array', items: { ref: 'InstanceSummaryList' } },
+            instances: { $ref: 'InstanceSummaryList' },
+            devices: {
+                type: 'array',
+                $ref: 'InstanceSummary'
+            },
             action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) },
             NextStageId: { type: 'string' }
         }
@@ -22,6 +31,10 @@ module.exports = function (app) {
 
         if (stage.Instances?.length > 0) {
             filtered.instances = await app.db.views.Project.instancesSummaryList(stage.Instances)
+        }
+
+        if (stage.Devices?.length > 0) {
+            filtered.devices = stage.Devices.map(app.db.views.Device.deviceSummary)
         }
 
         if (stage.NextStageId) {
