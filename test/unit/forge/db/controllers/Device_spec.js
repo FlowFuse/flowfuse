@@ -1,5 +1,6 @@
 const sinon = require('sinon')
 const should = require('should') // eslint-disable-line
+
 const snapshotServices = require('../../../../../forge/services/snapshots.js')
 const TestModelFactory = require('../../../../lib/TestModelFactory.js')
 const setup = require('../setup')
@@ -82,6 +83,67 @@ describe('Device controller', function () {
     })
     after(async function () {
         await app.close()
+    })
+
+    describe('updateState', function () {
+        it('updates the activeSnapshot if snapshot matching hashid is found', async function () {
+            const applicationDevice = await factory.createDevice({
+                name: 'device',
+                ownerType: 'application'
+            }, TestObjects.team)
+
+            const knownSnapshot = await snapshotServices.createSnapshot(app, TestObjects.project, TestObjects.alice, {
+                name: 'instance 3 snapshot 1',
+                description: 'snapshot 1 on instance 3'
+            })
+
+            await app.db.controllers.Device.updateState(applicationDevice, {
+                snapshot: knownSnapshot.hashid
+            })
+
+            await applicationDevice.reload()
+
+            applicationDevice.activeSnapshotId.should.equal(knownSnapshot.id)
+        })
+
+        it('does not update activeSnapshot if snapshot matching hashid does not exist', async function () {
+            const applicationDevice = await factory.createDevice({
+                name: 'device',
+                ownerType: 'application'
+            }, TestObjects.team)
+
+            const oldSnapshot = await snapshotServices.createSnapshot(app, TestObjects.project, TestObjects.alice, {
+                name: 'instance 3 snapshot 1',
+                description: 'snapshot 1 on instance 3'
+            })
+
+            const oldSnapshotHashId = oldSnapshot.hashid
+
+            await oldSnapshot.destroy()
+
+            await app.db.controllers.Device.updateState(applicationDevice, {
+                snapshot: oldSnapshotHashId
+            })
+
+            await applicationDevice.reload()
+
+            should(applicationDevice.activeSnapshotId).equal(null)
+        })
+
+        it('does not update activeSnapshot if snapshot hashid is invalid', async function () {
+            const applicationDevice = await factory.createDevice({
+                name: 'device',
+                ownerType: 'application'
+            }, TestObjects.team)
+
+            await app.db.controllers.Device.updateState(applicationDevice, {
+                snapshot: 'invalid-hash-id'
+            })
+
+            await applicationDevice.reload()
+
+            should(applicationDevice.activeSnapshotId).equal(null)
+        })
     })
 
     describe('Platform Specific Environment Variables', function () {

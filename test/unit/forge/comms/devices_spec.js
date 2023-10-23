@@ -43,6 +43,11 @@ describe('DeviceCommsHandler', function () {
             name: 'device1'
         }, TestObjects.ATeam)
 
+        TestObjects.applicationDevice = await app.factory.createDevice({
+            name: 'device2',
+            ownerType: 'application'
+        }, TestObjects.ATeam)
+
         TestObjects.tokens = {}
         await login('alice', 'aaPassword')
     }
@@ -252,6 +257,34 @@ describe('DeviceCommsHandler', function () {
             msg.should.have.property('payload')
             const payload = JSON.parse(msg.payload)
             payload.should.have.property('command', 'update')
+        })
+
+        it('updates the active snapshot ID if it is found in the database', async function () {
+            TestObjects.device.Team = await TestObjects.device.getTeam() // .Team is not loaded in the tests
+
+            const knownSnapshot = await app.db.models.ProjectSnapshot.create({
+                name: 'Test Snapshot',
+                description: 'Test Description',
+                flows: {},
+                ApplicationId: TestObjects.device.ApplicationId,
+                DeviceId: TestObjects.applicationDevice.id,
+                UserId: TestObjects.alice.id
+            })
+
+            client.emit('status/device', {
+                id: TestObjects.applicationDevice.hashid,
+                status: JSON.stringify({
+                    state: 'online',
+                    snapshot: knownSnapshot.hashid
+                })
+            })
+
+            // Task happens async
+            await sleep(100)
+
+            await TestObjects.applicationDevice.reload()
+
+            TestObjects.applicationDevice.activeSnapshotId.should.equal(knownSnapshot.id)
         })
     })
 })
