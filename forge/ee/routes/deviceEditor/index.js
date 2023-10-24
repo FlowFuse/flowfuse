@@ -16,12 +16,11 @@ module.exports = async function (app) {
         'device:editor': { description: 'Access the Device Editor', role: Roles.Member }
     })
 
-
     /**
      * Add wildcard content parser for these routes
      */
     app.addContentTypeParser('*', (req, payload, done) => {
-        var data = ''
+        let data = ''
         payload.on('data', chunk => { data += chunk })
         payload.on('end', () => {
             done(null, data)
