@@ -17,16 +17,19 @@ be pushed out to your devices through FlowFuse.
 ## Install
 
 This plugin can be installed through the Manage Palette option by searching for
-`@flowforge/nr-tools-plugin` in the Node-RED editor, or on the command-line:
+`@flowfuse/nr-tools-plugin` in the Node-RED editor, or on the command-line:
 
 ```bash
 cd ~/.node-red
-npm install @flowforge/nr-tools-plugin
+npm install @flowfuse/nr-tools-plugin
 ```
 
 This assumes the default location of the Node-RED user directory. If you are not
 sure where that is, check the log output when Node-RED starts as it will log the
 full path to the `User directory`.
+
+*Note*: this plugin was previously published under the package `@flowforge/nr-tools-plugin`. That
+package is now deprecated and will no longer receive updates.
 
 ## Usage
 
@@ -41,7 +44,7 @@ Before you can do anything, you need to connect the plugin to a FlowFuse platfor
    icon to open the settings panel.
 
 2. Enter the url of your FlowFuse platform. For example, if you have signed-up
-   to [FlowFuse Cloud](https://app.flowforge.com/) then use the URL `https://app.flowforge.com`.
+   to [FlowFuse Cloud](https://app.flowfuse.com/) then use the URL `https://app.flowfuse.com`.
 
 3. Click connect. This will open another window where you can log in to FlowFuse
    and give permission for the plugin to connect to your account.
