@@ -12,29 +12,6 @@
  */
 const fp = require('fastify-plugin')
 
-const generatePassword = () => {
-    const charList = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz~!@-#$'
-    return Array.from(require('crypto').randomFillSync(new Uint32Array(8))).map(x => charList[x % charList.length]).join('')
-}
-
-async function createAdminUser (app) {
-    if (!await app.db.models.User.count() === 0) return
-
-    const password = process.env.FF_ADMIN_PASSWORD || generatePassword()
-    await app.db.models.User.create({
-        username: 'ff-admin',
-        name: 'Default Admin',
-        email: 'admin@example.com',
-        email_verified: true,
-        password,
-        admin: true,
-        password_expired: true
-    })
-    app.log.info('[SETUP] Created default Admin User')
-    app.log.info('[SETUP] username: ff-admin')
-    app.log.info(`[SETUP] password: ${password}`)
-}
-
 module.exports = fp(async function (app, opts, done) {
     app.decorate('getPaginationOptions', (request, defaults) => {
         const result = { ...defaults, ...request.query }
@@ -43,8 +20,6 @@ module.exports = fp(async function (app, opts, done) {
         }
         return result
     })
-
-    if (app.config.create_admin) await createAdminUser(app)
 
     await app.register(require('./api-docs'))
     await app.register(require('@fastify/websocket'))

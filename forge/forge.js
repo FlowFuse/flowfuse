@@ -1,3 +1,5 @@
+const crypto = require('crypto')
+
 const cookie = require('@fastify/cookie')
 const csrf = require('@fastify/csrf-protection')
 const helmet = require('@fastify/helmet')
@@ -18,6 +20,29 @@ const routes = require('./routes')
 const settings = require('./settings')
 
 require('dotenv').config()
+
+const generatePassword = () => {
+    const charList = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz~!@-#$'
+    return Array.from(crypto.randomFillSync(new Uint32Array(8))).map(x => charList[x % charList.length]).join('')
+}
+
+async function createAdminUser (server) {
+    if (!await server.db.models.User.count() === 0) return
+
+    const password = process.env.FF_ADMIN_PASSWORD || generatePassword()
+    await server.db.models.User.create({
+        username: 'ff-admin',
+        name: 'Default Admin',
+        email: 'admin@example.com',
+        email_verified: true,
+        password,
+        admin: true,
+        password_expired: true
+    })
+    server.log.info('[SETUP] Created default Admin User')
+    server.log.info('[SETUP] username: ff-admin')
+    server.log.info(`[SETUP] password: ${password}`)
+}
 
 // type defs for JSDoc and VSCode Intellisense
 
@@ -186,6 +211,9 @@ module.exports = async (options = {}) => {
 
         // Ensure The defaultTeamType is in place
         await server.db.controllers.TeamType.ensureDefaultTypeExists()
+
+        // Create ff-admin
+        if (server.config.create_admin) await createAdminUser(server)
 
         return server
     } catch (err) {
