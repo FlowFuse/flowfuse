@@ -44,7 +44,7 @@ module.exports = fp(async function (app, opts, done) {
         return result
     })
 
-    if (app.config.create_admin) createAdminUser(app)
+    if (app.config.create_admin) await createAdminUser(app)
 
     await app.register(require('./api-docs'))
     await app.register(require('@fastify/websocket'))
