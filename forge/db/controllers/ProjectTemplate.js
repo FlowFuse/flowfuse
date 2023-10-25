@@ -228,6 +228,9 @@ module.exports = {
             result.httpNodeAuth.user = ''
             result.httpNodeAuth.pass = ''
         }
+        if (result.page?.title === 'FlowForge') {
+            result.page.title = 'FlowFuse'
+        }
         if (settings.env) {
             if (mergeEnvVars) {
                 // As objects for stable merge

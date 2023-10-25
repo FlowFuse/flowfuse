@@ -255,6 +255,9 @@ describe('Project Template controller', function () {
                     allowInstall: true,
                     nodesExcludes: 'ex.js'
                 },
+                page: {
+                    title: 'FlowForge'
+                },
                 modules: {
                     allowInstall: true
                 },
@@ -281,6 +284,9 @@ describe('Project Template controller', function () {
             result.should.have.property('env')
             result.env.should.have.length(1)
             result.env[0].name.should.eql('two')
+            result.should.have.property('page')
+            // Check we patch the branding
+            result.page.should.have.property('title', 'FlowFuse')
         })
 
         it('it clears httpNodeAuth user/pass if auth type set to not-basic', function () {
