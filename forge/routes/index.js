@@ -11,7 +11,6 @@
  * @memberof forge
  */
 const fp = require('fastify-plugin')
-
 module.exports = fp(async function (app, opts, done) {
     app.decorate('getPaginationOptions', (request, defaults) => {
         const result = { ...defaults, ...request.query }

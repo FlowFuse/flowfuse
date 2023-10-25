@@ -55,6 +55,7 @@ driver:
     ## Kubectl conf file to contact the cluster
     # config_file: /opt/share/projects/flowforge/test/config
 
+
 #################################################
 # MQTT Broker Configuration                     #
 #################################################
@@ -65,12 +66,14 @@ driver:
   ## External url used by devices to connect to the broker, if different
   # public_url: ws://localhost:4881
 
+
 #################################################
 # File Server config                            #
 #################################################
 
 # fileStore:
 #   url: http://localhost:3001
+
 
 #################################################
 # Email Configuration                           #
@@ -102,9 +105,9 @@ rate_limits:
   # timeWindow: 60000
   # max: 1000
   # maxAnonymous: 100 # optional (defaults to value of max if not set)
-
+  
 #################################################
 # Create Default Admin                          #
 #################################################
-# create_admin: false
-# create_admin_access_token: false
+create_admin: true
+create_admin_access_token: true
