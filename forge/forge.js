@@ -26,11 +26,18 @@ const generatePassword = () => {
     return Array.from(crypto.randomFillSync(new Uint32Array(8))).map(x => charList[x % charList.length]).join('')
 }
 
+async function createAdminAccessToken (server, userId) {
+    const { token, expiresAt, refreshToken } = await server.db.controllers.AccessToken.createTokenForUser(userId, null, ['all'], true)
+    server.log.info(`[SETUP] token: ${token}`)
+    server.log.info(`[SETUP] refresh token: ${expiresAt}`)
+    server.log.info(`[SETUP] expire at: ${refreshToken}`)
+}
+
 async function createAdminUser (server) {
-    if (!await server.db.models.User.count() === 0) return
+    if (await server.db.models.User.count() !== 0) return
 
     const password = process.env.FF_ADMIN_PASSWORD || generatePassword()
-    await server.db.models.User.create({
+    const { id: userId } = await server.db.models.User.create({
         username: 'ff-admin',
         name: 'Default Admin',
         email: 'admin@example.com',
@@ -42,6 +49,8 @@ async function createAdminUser (server) {
     server.log.info('[SETUP] Created default Admin User')
     server.log.info('[SETUP] username: ff-admin')
     server.log.info(`[SETUP] password: ${password}`)
+
+    if (server.config.create_admin_access_token) await createAdminAccessToken(server, userId)
 }
 
 // type defs for JSDoc and VSCode Intellisense
