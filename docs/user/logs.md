@@ -26,10 +26,15 @@ The events include:
  - Flows being updated
  - Nodes installed
  - Snapshots being created
+ - Resource utilization warnings
 
 This log contains all events since the instance was created. You can view older data using the `Load More...` link at the bottom of the log.
 
 <img src="images/projectactivity.png" width="500" />
+
+### Resource utilization warnings
+
+If the CPU or memory usage exceeds 75% for more than 5 minutes, a warning will be displayed in the Audit Log, indicating that measures such as upgrading the instance are recommended.
 
 ## Team Audit Log
 
