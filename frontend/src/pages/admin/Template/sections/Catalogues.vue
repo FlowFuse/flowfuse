@@ -101,8 +101,7 @@ export default {
             input: {
                 url: '',
                 error: ''
-            },
-            urls: []
+            }
         }
     },
     computed: {
@@ -113,6 +112,9 @@ export default {
             set (localValue) {
                 this.$emit('update:modelValue', localValue)
             }
+        },
+        urls () {
+            return this.editable.settings.palette_catalogue
         },
         projectLauncherCompatible () {
             if (this.editTemplate) {
@@ -143,18 +145,6 @@ export default {
             // whether or not this Template has any third party catalogues enabled
             return this.urls.filter(url => url !== this.defaultCatalogue)
         }
-    },
-    watch: {
-        'editable.settings.palette_catalogue': {
-            deep: true,
-            handler (newValue) {
-                this.urls = newValue
-            }
-        }
-    },
-    mounted () {
-        // deep copy
-        this.urls = JSON.parse(JSON.stringify(this.editable.settings.palette_catalogue))
     },
     methods: {
         addURL () {
