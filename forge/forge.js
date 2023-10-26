@@ -29,8 +29,8 @@ const generatePassword = () => {
 async function createAdminAccessToken (server, userId) {
     const { token, expiresAt, refreshToken } = await server.db.controllers.AccessToken.createTokenForUser(userId, null, ['all'], true)
     server.log.info(`[SETUP] token: ${token}`)
-    server.log.info(`[SETUP] refresh token: ${expiresAt}`)
-    server.log.info(`[SETUP] expire at: ${refreshToken}`)
+    server.log.info(`[SETUP] refresh token: ${refreshToken}`)
+    server.log.info(`[SETUP] expires at: ${expiresAt}`)
 }
 
 async function createAdminUser (server) {
