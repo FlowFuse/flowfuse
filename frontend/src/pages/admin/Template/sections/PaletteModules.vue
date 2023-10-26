@@ -150,6 +150,8 @@
 
 import { CheckIcon, LockClosedIcon, PencilIcon, PlusSmIcon, TrashIcon, XIcon } from '@heroicons/vue/outline'
 
+import { BUILT_IN_MODULES } from '../../../../../../forge/lib/builtInModules.js'
+
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
 import ChangeIndicator from '../components/ChangeIndicator.vue'
@@ -272,9 +274,6 @@ export default {
     },
     methods: {
         validateModuleName (name) {
-            const BUILT_IN_MODULES = [
-                '@flowforge/nr-project-nodes'
-            ]
             return /^(@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/.test(name) && !BUILT_IN_MODULES.includes(name)
         },
         validateModuleVersion (version) {

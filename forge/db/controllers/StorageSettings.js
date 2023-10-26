@@ -1,11 +1,4 @@
-// These are the modules we preinstall that Node-RED will report back in its
-// runtime settings.
-// Pre 1.0, for docker/k8s, they might have been included in the main package.json
-// which means they are flagged as local - but they shouldn't be. We need to explicitly
-// filter them out.
-const BUILT_IN_MODULES = [
-    '@flowforge/nr-project-nodes'
-]
+const { BUILT_IN_MODULES } = require('../../lib/builtInModules')
 
 module.exports = {
     getProjectModules: async function (app, project) {
