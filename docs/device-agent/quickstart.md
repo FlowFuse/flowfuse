@@ -6,7 +6,7 @@ navOrder: 2
 
 
 
-# Develop Flows on Your Device
+# Developing Flows on Your Device
 
 ## Add Device to FlowFuse
 
@@ -24,11 +24,18 @@ flowforge-device-agent -w --ui-user admin --ui-pass password --ui-port 8081
 ```
 Linux:
 ```bash
-mkdir \opt\flowforge-device
-cd \opt\flowforge-device
+mkdir /opt/flowforge-device
+cd /opt\flowforge-device
 npm install -g @flowforge/flowforge-device-agent
 flowforge-device-agent -w --ui-user admin --ui-pass password --ui-port 8081
 ```
+
+Note: The flags used in the command above have the following meanings:
+- -w: Run the device agent in web user interface mode.
+- --ui-user: Specify the username for the web user interface.
+- --ui-pass: Specify the password for the web user interface.
+- --ui-port: Specify the port for the web user interface.
+- You can find more details about these flags [here](https://flowfuse.com/docs/device-agent/running/).
 
 ### Add Device in FlowFuse
 1. Open your web browser and go to your FlowFuse application page.
@@ -44,7 +51,7 @@ flowforge-device-agent -w --ui-user admin --ui-pass password --ui-port 8081
 <img src="images/config_yml.png" width=500 />
 
 2. Open a new browser tab and navigate to localhost:8081 or <<ip of device>>:8081.
-3. Paste the copied device configuration into the **Agent Configuration** field.
+3. Paste the copied device configuration into the **Agent Configuration** field. This configuration contains vital information instructing the device on how to communicate with FlowFuse. It's crucial to keep this information secure and not share it with unauthorized individuals.
 
 <img src="images/device_gui.png" width=500 />
 
