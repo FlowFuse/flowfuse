@@ -1,3 +1,22 @@
+#### 1.13.0: Release
+
+ - billing: Update cancelation docs (#2986) @ZJvandeWeg
+ - Add to Docs - Resource utilization warnings (#3008) @MarianRaphael
+ - Update default values for template (#3007) @knolleary
+ - Add wildcard Content Type parser (#3000) @hardillb
+ - Pin publish workflow to v0.1.0 (#3002) @ppawlowski
+ - Update node-red-tools docs to point at new package name (#2998) @knolleary
+ - Bump @sentry/vue from 7.72.0 to 7.74.1 (#2995) @app/dependabot
+ - Bump vue from 3.3.4 to 3.3.6 (#2994) @app/dependabot
+ - Bump eslint from 8.51.0 to 8.52.0 (#2993) @app/dependabot
+ - Bump eslint-plugin-import from 2.28.1 to 2.29.0 (#2992) @app/dependabot
+ - Bump mqtt from 5.1.1 to 5.1.3 (#2991) @app/dependabot
+ - Fix: Loading project snapshot for every device status update (#2990) @Pezmc
+ - Revert "Temporary change in publish pipeline for testing purposes" (#2985) @ppawlowski
+ - Add Resource Audit Log entries (#2968) @hardillb
+ - Chore: Throw for unhandled promise rejections in tests (#2973) @Pezmc
+ - Temporary change in publish pipeline for testing purposes (#2982) @ppawlowski
+
 #### 1.12.5: Release
 
  - Update docs on trials (#2969) @knolleary
