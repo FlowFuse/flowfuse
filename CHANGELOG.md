@@ -1,3 +1,7 @@
+#### 1.13.1: Release
+
+ - Fix recursion when adding mutating palette catalogue urls (#3012) @Pezmc
+
 #### 1.13.0: Release
 
  - Update built-in module list to include newly scoped packages (#3003) @knolleary
