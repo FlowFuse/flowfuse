@@ -44,7 +44,8 @@ Stripe will retry the payment several times over a number of days. If the card r
 
 ## Cancelling your subscription
 
-When you're on the starter tier you'll need to delete your team to cancel your subscription.
+When you're on the Starter tier you'll need to delete your team to cancel your subscription.
 For the Team and Enterprise tiers you're charged on active cloud instances and edge devices. To stop being charged it suffices
-to suspend all Clou dNode-RED instances, and remove all edge devices from the team.
+to suspend all Cloud Node-RED instances, and remove all edge devices from the team.
+
 If you have outstanding credit you can request a refund via a [support ticket](/support/).
