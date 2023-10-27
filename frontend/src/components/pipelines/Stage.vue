@@ -33,7 +33,7 @@
                 <SpinnerIcon v-if="deploying" class="ff-icon" />
             </div>
         </div>
-        <div v-if="stage.instance" class="py-3">
+        <div v-if="stage.instance || stage.device" class="py-3">
             <div style="border:1px dashed red;margin:5px">
                 <div class="ff-pipeline-stage-row">
                     <label>Instance:</label>
@@ -54,7 +54,7 @@
                     </span>
                 </div>
             </div>
-            <div class="ff-pipeline-stage-row">
+            <div v-if="stage.instance" class="ff-pipeline-stage-row">
                 <label>URL:</label>
                 <a
                     class="ff-link"
@@ -66,7 +66,7 @@
                 <label>Last Deployed:</label>
                 <span>{{ stage.flowLastUpdatedSince ? stage.flowLastUpdatedSince : 'Unknown' }}</span>
             </div>
-            <div class="ff-pipeline-stage-row">
+            <div v-if="stage.instance" class="ff-pipeline-stage-row">
                 <label>Status:</label>
                 <InstanceStatusBadge :status="stage.state" />
             </div>
@@ -85,7 +85,7 @@
                 </span>
             </div>
         </div>
-        <div v-else class="flex justify-center py-6">No Instances Bound</div>
+        <div v-else class="flex justify-center py-6">No Instance or Device Bound</div>
         <DeployStageDialog
             ref="deployStageDialog"
             :stage="stage"

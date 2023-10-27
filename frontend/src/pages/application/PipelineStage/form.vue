@@ -17,7 +17,12 @@
 
         <!-- Form Description -->
         <div class="mb-8 text-sm text-gray-500">
-            Update existing pipeline stage from {{ pipeline?.name }}.
+            <template v-if="isEdit">
+                Update existing pipeline stage from {{ pipeline?.name }}.
+            </template>
+            <template v-else>
+                Create a new pipeline stage for {{ pipeline?.name }}.
+            </template>
         </div>
 
         <!-- Stage Name -->
@@ -34,6 +39,17 @@
         <!-- Instance/Device -->
         <div style="border:1px dashed red;padding:5px">
             <FormRow
+                v-model="input.stageType"
+                :options="[{ label: 'Instance', value: StageType.INSTANCE }, { label: 'Device', value: StageType.DEVICE }]"
+                data-form="stage-type"
+            >
+                <template #default>
+                    Stage Type
+                </template>
+            </FormRow>
+
+            <FormRow
+                v-if="input.stageType === StageType.INSTANCE"
                 v-model="input.instanceId"
                 :options="instanceOptions"
                 data-form="stage-instance"
@@ -45,9 +61,8 @@
                 </template>
             </FormRow>
 
-            <h2>AND/OR</h2>
-
             <FormRow
+                v-else-if="input.stageType === StageType.DEVICE"
                 v-model="input.deviceId"
                 :options="deviceOptions"
                 data-form="stage-device"
@@ -58,6 +73,8 @@
                     Choose Device
                 </template>
             </FormRow>
+
+            <div v-else class="text-sm text-gray-500">Please select a stage type</div>
         </div>
 
         <!-- Action -->
@@ -146,6 +163,8 @@
 <script>
 import { InformationCircleIcon } from '@heroicons/vue/outline'
 
+import { StageType } from '../../../api/pipeline.js'
+
 import FormRow from '../../../components/FormRow.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 
@@ -194,13 +213,9 @@ export default {
                 instanceId: stage.instances?.[0].id, // API supports multiple instances per stage but UI only exposes one
                 deviceId: stage.devices?.[0].id, // API supports multiple devices per stage but UI only exposes one
                 action: stage?.action,
-                deployToDevices: stage.deployToDevices || false
-            },
-            actionOptions: [
-                { value: 'create_snapshot', label: 'Create new snapshot' },
-                { value: 'use_latest_snapshot', label: 'Use latest instance snapshot' },
-                { value: 'prompt', label: 'Prompt to select snapshot' }
-            ]
+                deployToDevices: stage.deployToDevices || false,
+                stageType: stage.stageType || StageType.INSTANCE
+            }
         }
     },
     computed: {
@@ -219,6 +234,7 @@ export default {
         submitEnabled () {
             return this.formDirty && (this.input.instanceId || this.input.deviceId) && this.input.name && this.input.action
         },
+
         instancesNotInUse () {
             const instanceIdsInUse = this.pipeline.stages.reduce((acc, stage) => {
                 stage.instances.forEach((instance) => {
@@ -281,12 +297,34 @@ export default {
             }
 
             return 'Choose Application Level Device'
+        },
+
+        actionOptions () {
+            const options = [
+                { value: 'use_latest_snapshot', label: 'Use latest instance snapshot' },
+                { value: 'prompt', label: 'Prompt to select snapshot' }
+            ]
+
+            if (this.input.stageType == StageType.INSTANCE) {
+                options.unshift({ value: 'create_snapshot', label: 'Create new snapshot' })
+            }
+
+            return options
         }
+    },
+    created () {
+        this.StageType = StageType
     },
     methods: {
         async submit () {
             this.loading.creating = !this.isEdit
             this.loading.updating = this.isEdit
+
+            if (this.input.stageType === StageType.INSTANCE) {
+                this.input.deviceId = null
+            } else if (this.input.stageType === StageType.DEVICE) {
+                this.input.instanceId = null
+            }
 
             this.$emit('submit', this.input)
         }

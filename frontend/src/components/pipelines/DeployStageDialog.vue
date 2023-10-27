@@ -57,18 +57,35 @@
                                 />
                             </ff-dropdown>
                             <div v-else>
-                                There are no snapshots to choose from for this stage's instance
-                                yet!<br>
-                                Snapshots can be managed on the
-                                <router-link
-                                    :to="{
-                                        name: 'InstanceSnapshots',
-                                        params: { id: stage.instance.id },
-                                    }"
-                                >
-                                    Instance Snapshots
-                                </router-link>
-                                page.
+                                There are no snapshots to choose from for this stage's
+                                <template v-if="stage.stageType == StageType.INSTANCE">
+                                    instance yet!<br>
+
+                                    Snapshots can be managed on the
+                                    <router-link
+                                        :to="{
+                                            name: 'InstanceSnapshots',
+                                            params: { id: stage.instance.id },
+                                        }"
+                                    >
+                                        Instance Snapshots
+                                    </router-link>
+                                    page.
+                                </template>
+                                <template v-else-if="stage.stageType === StageType.DEVICE">
+                                    device yet!<br>
+
+                                    Device snapshots can be managed on the
+                                    <router-link
+                                        :to="{
+                                            name: 'DeviceSnapshots',
+                                            params: { id: stage.device.id },
+                                        }"
+                                    >
+                                        Device Snapshots
+                                    </router-link>
+                                    page.
+                                </template>
                             </div>
                         </template>
                     </FormRow>
@@ -83,6 +100,8 @@
 </template>
 
 <script>
+import DeviceApi from '../../api/devices.js'
+import { StageType } from '../../api/pipeline.js'
 import SnapshotApi from '../../api/projectSnapshots.js'
 import FormRow from '../FormRow.vue'
 
@@ -144,6 +163,9 @@ export default {
             })
         }
     },
+    created () {
+        this.StageType = StageType
+    },
     methods: {
         close () {
             this.$refs.dialog.close()
@@ -151,10 +173,19 @@ export default {
         fetchData: async function () {
             this.loadingSnapshots = true
 
-            const data = await SnapshotApi.getInstanceSnapshots(
-                this.stage.instance.id
-            )
-            this.snapshots = data.snapshots
+            if (this.stage.stageType === StageType.DEVICE) {
+                const data = await DeviceApi.getDeviceSnapshots(
+                    this.stage.device.id
+                )
+                this.snapshots = data.snapshots
+            } else if (this.stage.stageType === StageType.INSTANCE) {
+                const data = await SnapshotApi.getInstanceSnapshots(
+                    this.stage.instance.id
+                )
+                this.snapshots = data.snapshots
+            } else {
+                throw Error(`Unknown stage type ${this.stage.stageType}`)
+            }
 
             this.loadingSnapshots = false
         },
