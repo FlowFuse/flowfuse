@@ -50,7 +50,7 @@ Note: The flags used in the command above have the following meanings:
 
 <img src="images/config_yml.png" width=500 />
 
-2. Open a new browser tab and navigate to localhost:8081 or <<ip of device>>:8081.
+2. Open a new browser tab and navigate to the IP address of the device using the port defined when starting up the device agent.  **\<\<ip of device>>:\<\<port>>**, e.g., localhost:8081
 3. Paste the copied device configuration into the **Agent Configuration** field. This configuration contains vital information instructing the device on how to communicate with FlowFuse. It's crucial to keep this information secure and not share it with unauthorized individuals.
 
 <img src="images/device_gui.png" width=500 />
@@ -61,7 +61,7 @@ Note: The flags used in the command above have the following meanings:
 1. Return to the **Devices** section in your FlowFuse application page.
 2. Locate your newly added device and click its menu.
 
-<img src="images/addtoapp.png" width=200 />
+<img src="images/addtoapp.png" width=500 />
 
 3. Choose to add the device to your application and click **Add.**
 
@@ -71,8 +71,8 @@ Note: The flags used in the command above have the following meanings:
 ### Enable Developer Mode
 1. Navigate to **Applications** and select the application your device was added to.
 2. Go to the **Devices** tab within the application.
-3. Locate your newly added device.
-4. Click **Enable Developer Mode.**
+3. Locate your newly added device and **click** on your device.
+4. Then Click **Enable Developer Mode.**
 
 <img src="images/developer.png" width=200 />
 
