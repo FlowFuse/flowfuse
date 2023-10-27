@@ -5,6 +5,8 @@ import paginateUrl from '../utils/paginateUrl.js'
 
 import client from './client.js'
 
+import { StageType } from './pipeline.js'
+
 const createApplication = (options) => {
     return client.post('/api/v1/applications', options).then(res => {
         const props = {
@@ -149,6 +151,8 @@ const getPipelines = async (applicationId) => {
             if (!stage.devices) {
                 stage.devices = []
             }
+
+            stage.stageType = stage.instance ? StageType.INSTANCE : (stage.device ? StageType.DEVICE : null)
 
             return stage
         })

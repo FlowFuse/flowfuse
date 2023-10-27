@@ -2,6 +2,11 @@ import product from '../services/product.js'
 
 import client from './client.js'
 
+const StageType = Object.freeze({
+    INSTANCE: 'instance',
+    DEVICE: 'device'
+})
+
 /**
  * @param {string} pipelineId
  * @param {string} stageId
@@ -17,6 +22,9 @@ const getPipelineStage = async (pipelineId, stageId) => {
             // Again, the backend supports multiple devices per stage but the UI
             // only exposes connecting one
             res.data.device = res.data.devices?.[0]
+
+            // Frontend only supports one type of object per stage
+            res.data.stageType = res.data.instance ? StageType.INSTANCE : (res.data.device ? StageType.DEVICE : null)
 
             return res.data
         })
@@ -88,6 +96,8 @@ const deployPipelineStage = async (pipelineId, sourceStageId, sourceSnapshotId) 
         return res.data
     })
 }
+
+export { StageType }
 
 export default {
     getPipelineStage,
