@@ -350,24 +350,28 @@ module.exports = async function (app) {
                 stage.action = request.body.action
             }
 
-            if (request.body.instanceId) {
+            if (request.body.instanceId !== null) {
                 // Currently only one instance per stage is supported
                 const instances = await stage.getInstances()
                 for (const instance of instances) {
                     await stage.removeInstance(instance)
                 }
 
-                await stage.addInstanceId(request.body.instanceId)
+                if (request.body.instanceId) {
+                    await stage.addInstanceId(request.body.instanceId)
+                }
             }
 
-            if (request.body.deviceId) {
+            if (request.body.deviceId !== null) {
                 // Currently only one instance per stage is supported
                 const devices = await stage.getDevices()
                 for (const device of devices) {
                     await stage.removeDevice(device)
                 }
 
-                await stage.addDeviceId(request.body.deviceId)
+                if (request.body.deviceId) {
+                    await stage.addDeviceId(request.body.deviceId)
+                }
             }
 
             if (request.body.deployToDevices !== undefined) {
@@ -500,66 +504,106 @@ module.exports = async function (app) {
         }
 
         const sourceInstances = await sourceStage.getInstances()
-        if (sourceInstances.length === 0) {
-            return reply.code(400).send({ code: 'invalid_stage', error: 'Source stage must have at least one instance' })
-        } else if (sourceInstances.length > 1) {
-            return reply.code(400).send({ code: 'invalid_stage', error: 'Deployments are currently only supported for source stages with a single instance' })
+        const sourceDevices = await sourceStage.getDevices()
+        const totalSources = sourceInstances.length + sourceDevices.length
+        if (totalSources === 0) {
+            return reply.code(400).send({ code: 'invalid_stage', error: 'Source stage must have at least one instance or device' })
+        } else if (totalSources > 1) {
+            return reply.code(400).send({ code: 'invalid_stage', error: 'Deployments are currently only supported for source stages with a single instance or device' })
         }
 
         const targetInstances = await targetStage.getInstances()
-        if (targetInstances.length === 0) {
-            return reply.code(400).send({ code: 'invalid_stage', error: 'Target stage must have at least one instance' })
+        const targetDevices = await targetStage.getDevices()
+        const totalTargets = targetInstances.length + targetDevices.length
+        if (totalTargets === 0) {
+            return reply.code(400).send({ code: 'invalid_stage', error: 'Target stage must have at least one instance or device' })
         } else if (targetInstances.length > 1) {
-            return reply.code(400).send({ code: 'invalid_stage', error: 'Deployments are currently only supported for target stages with a single instance' })
+            return reply.code(400).send({ code: 'invalid_stage', error: 'Deployments are currently only supported for target stages with a single instance or device' })
         }
 
         const sourceInstance = sourceInstances[0]
         const targetInstance = targetInstances[0]
 
-        if (sourceInstance.TeamId !== targetInstance.TeamId) {
-            return reply.code(403).send({ code: 'invalid_stage', error: 'Source instance and Target instance not in same team' })
+        const sourceDevice = sourceDevices[0]
+        const targetDevice = targetDevices[0]
+
+        const sourceObject = sourceInstance || sourceDevice
+        const targetObject = targetInstance || targetDevice
+
+        if (sourceObject.TeamId !== targetObject.TeamId) {
+            return reply.code(403).send({ code: 'invalid_stage', error: `Source ${sourceInstance ? 'instance' : 'device'} and Target ${targetInstance ? 'instance' : 'device'} not in same team` })
         }
 
-        targetInstance.Team = await app.db.models.Team.byId(targetInstance.TeamId)
-        if (!targetInstance.Team) {
-            return reply.code(404).send({ code: 'invalid_stage', error: 'Instance not associated with a team' })
+        sourceObject.Team = await app.db.models.Team.byId(sourceObject.TeamId)
+        if (!sourceObject.Team) {
+            return reply.code(404).send({ code: 'invalid_stage', error: `Target ${sourceInstance ? 'instance' : 'device'} not associated with a team` })
         }
 
         let sourceSnapshot
         try {
-            if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.USE_LATEST_SNAPSHOT) {
-                sourceSnapshot = await sourceInstance.getLatestSnapshot()
-                if (!sourceSnapshot) {
-                    return reply.code(400).send({ code: 'invalid_source_instance', error: 'No snapshots found for source stages instance but deploy action is set to use latest snapshot' })
-                }
-            } else if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.CREATE_SNAPSHOT) {
-                sourceSnapshot = await createSnapshot(app, sourceInstance, user, {
-                    name: generateDeploySnapshotName(),
-                    description: generateDeploySnapshotDescription(sourceStage, targetStage, request.pipeline),
-                    setAsTarget: false // no need to deploy to devices of the source
-                })
-            } else if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.PROMPT) {
-                const sourceSnapshotId = request.body?.sourceSnapshotId
-                if (!sourceSnapshotId) {
-                    return reply.code(400).send({ code: 'no_source_snapshot', error: 'Source snapshot is required as deploy action is set to prompt for snapshot' })
-                }
+            if (sourceInstance) {
+                if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.USE_LATEST_SNAPSHOT) {
+                    sourceSnapshot = await sourceInstance.getLatestSnapshot()
+                    if (!sourceSnapshot) {
+                        return reply.code(400).send({ code: 'invalid_source_instance', error: 'No snapshots found for source stages instance but deploy action is set to use latest snapshot' })
+                    }
+                } else if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.CREATE_SNAPSHOT) {
+                    sourceSnapshot = await createSnapshot(app, sourceInstance, user, {
+                        name: generateDeploySnapshotName(),
+                        description: generateDeploySnapshotDescription(sourceStage, targetStage, request.pipeline),
+                        setAsTarget: false // no need to deploy to devices of the source
+                    })
+                } else if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.PROMPT) {
+                    const sourceSnapshotId = request.body?.sourceSnapshotId
+                    if (!sourceSnapshotId) {
+                        return reply.code(400).send({ code: 'no_source_snapshot', error: 'Source snapshot is required as deploy action is set to prompt for snapshot' })
+                    }
 
-                sourceSnapshot = await app.db.models.ProjectSnapshot.byId(sourceSnapshotId)
-                if (!sourceSnapshot) {
-                    return reply.code(400).send({ code: 'invalid_source_snapshot', error: 'Source snapshot not found' })
-                }
+                    sourceSnapshot = await app.db.models.ProjectSnapshot.byId(sourceSnapshotId)
+                    if (!sourceSnapshot) {
+                        return reply.code(400).send({ code: 'invalid_source_snapshot', error: 'Source snapshot not found' })
+                    }
 
-                if (sourceSnapshot.ProjectId !== sourceInstance.id) {
-                    return reply.code(400).send({ code: 'invalid_source_snapshot', error: 'Source snapshot not associated with source instance' })
+                    if (sourceSnapshot.ProjectId !== sourceInstance.id) {
+                        return reply.code(400).send({ code: 'invalid_source_snapshot', error: 'Source snapshot not associated with source instance' })
+                    }
+                } else {
+                    return reply.code(400).send({ code: 'invalid_action', error: `Unsupported pipeline deploy action: ${sourceStage.action}` })
+                }
+            } else if (sourceDevice) {
+                if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.USE_LATEST_SNAPSHOT) {
+                    sourceSnapshot = await sourceDevice.getLatestSnapshot()
+                    if (!sourceSnapshot) {
+                        return reply.code(400).send({ code: 'invalid_source_instance', error: 'No snapshots found for source stages device but deploy action is set to use latest snapshot' })
+                    }
+                } else if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.CREATE_SNAPSHOT) {
+                    return reply.code(400).send({ code: 'invalid_source_instance', error: 'When using a device as a source, create snapshot is not yet supported' })
+                } else if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.PROMPT) {
+                    const sourceSnapshotId = request.body?.sourceSnapshotId
+                    if (!sourceSnapshotId) {
+                        return reply.code(400).send({ code: 'no_source_snapshot', error: 'Source snapshot is required as deploy action is set to prompt for snapshot' })
+                    }
+
+                    sourceSnapshot = await app.db.models.ProjectSnapshot.byId(sourceSnapshotId)
+                    if (!sourceSnapshot) {
+                        return reply.code(400).send({ code: 'invalid_source_snapshot', error: 'Source snapshot not found' })
+                    }
+
+                    if (sourceSnapshot.DeviceId !== sourceDevice.id) {
+                        return reply.code(400).send({ code: 'invalid_source_snapshot', error: 'Source snapshot not associated with source device' })
+                    }
+                } else {
+                    return reply.code(400).send({ code: 'invalid_action', error: `Unsupported pipeline deploy action: ${sourceStage.action}` })
                 }
             } else {
-                return reply.code(400).send({ code: 'invalid_action', error: `Unsupported pipeline deploy action: ${sourceStage.action}` })
+                throw Error('No source device or instance found.')
             }
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
             reply.code(500).send(resp)
         }
 
+        // TODO: Only targets INSTANCES right now, not devices
         const restartTargetInstance = targetInstance.state === 'running'
 
         let repliedEarly = false
