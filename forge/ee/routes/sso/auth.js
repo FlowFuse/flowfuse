@@ -171,15 +171,12 @@ module.exports = fp(async function (app, opts, done) {
         }
     )
 
-    app.get('/ee/sso/auth-settings', { preHandler: skipAuthForThisRoute }, async (request, reply) => {
+    app.get('/ee/sso/auth-settings', {
+        config: { allowAnonymous: true }
+    }, async (request, reply) => {
         const provider = await app.sso.getDefaultProvider()
         reply.send({ ssoRedirect: provider.getOptions().defaultLogin, domainFilter: provider.domainFilter })
     })
-
-    function skipAuthForThisRoute (request, reply, done) {
-        // Logic to skip authentication
-        done() // Proceed to the next hook/route handler
-    }
 
     app.post(
         '/ee/sso/login/callback',
