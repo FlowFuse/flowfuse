@@ -61,7 +61,7 @@ Note: The flags used in the command above have the following meanings:
 1. Return to the **Devices** section in your FlowFuse application page.
 2. Locate your newly added device and click its menu.
 
-<img src="images/addtoapp.png" width=500 />
+<img src="images/addtoapp.png" width=200 />
 
 3. Choose to add the device to your application and click **Add.**
 
@@ -74,7 +74,7 @@ Note: The flags used in the command above have the following meanings:
 3. Locate your newly added device.
 4. Click **Enable Developer Mode.**
 
-<img src="images/developer.png" width=500 />
+<img src="images/developer.png" width=200 />
 
 5. Under the **Developer Mode** settings, click **Enable** for **Editor Access.**
 
@@ -82,7 +82,7 @@ Note: The flags used in the command above have the following meanings:
 
 6. Access has now been granted to edit the Node-RED instance.
 
-<img src="images/editorEnabled.png" width=500 />
+<img src="images/editorEnabled.png" width=200 />
 
 7. Clicking Device Editor will navigate you to a window for edits to your Node-Red instance.
 
