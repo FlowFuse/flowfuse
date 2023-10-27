@@ -16,6 +16,9 @@ module.exports = async function (app) {
         if (request.params.snapshotId !== undefined) {
             if (request.params.snapshotId) {
                 try {
+                    // TODO: I don't think `request.snapshot.flows` is ever accessed by
+                    // any of the routes. If that is confirmed, we should add `{ includeFlows: false }`
+                    // to the following call to avoid unncessary work
                     request.snapshot = await app.db.models.ProjectSnapshot.byId(request.params.snapshotId)
                     if (!request.snapshot) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })

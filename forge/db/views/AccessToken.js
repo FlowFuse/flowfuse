@@ -44,7 +44,7 @@ module.exports = function (app) {
                 targetSnapshot: null
             }
             if (project && deviceSettings?.targetSnapshot) {
-                const snapshot = await app.db.models.ProjectSnapshot.byId(deviceSettings.targetSnapshot)
+                const snapshot = await app.db.models.ProjectSnapshot.byId(deviceSettings.targetSnapshot, { includeFlows: false, includeSettings: false })
                 tokenSummary.targetSnapshot = snapshot?.name
             }
         }
