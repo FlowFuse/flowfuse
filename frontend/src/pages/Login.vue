@@ -45,6 +45,8 @@ import Logo from '../components/Logo.vue'
 import SpinnerIcon from '../components/icons/Spinner.js'
 import FFLayoutBox from '../layouts/Box.vue'
 
+const queryParams = new URLSearchParams(window.location.search)
+
 export default {
     name: 'LoginPage',
     components: {
@@ -135,8 +137,9 @@ export default {
                     throw new Error('Network response was not ok ' + response.statusText)
                 }
                 const data = await response.json()
-                console.log(data)
-                if (data.ssoRedirect) {
+                const loginLocal = queryParams.get('login') === 'local'
+
+                if (data.ssoRedirect && !loginLocal) {
                     window.location.href = '/ee/sso/login?u=' + data.domainFilter
                     // this.ssoRedirectUrl = '/ee/sso/login?u=' + data.domainFilter
                 }
