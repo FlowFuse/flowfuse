@@ -100,10 +100,13 @@ module.exports = function (app) {
         return result
     }
 
+    // This view is only used by the 'deprecated' /team/:teamId/projects end point.
+    // However it is still used in a few places from the frontend. None of them
+    // require the full details of the instances - so the settings object can be omitted
     async function instancesList (instancesArray) {
         return Promise.all(instancesArray.map(async (instance) => {
-            // Full settings are not
-            const result = await app.db.views.Project.project(instance, { includeSettings: true })
+            // Full settings are not required for the instance summary list
+            const result = await app.db.views.Project.project(instance, { includeSettings: false })
 
             if (!result.url) {
                 delete result.url
