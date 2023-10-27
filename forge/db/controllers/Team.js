@@ -50,8 +50,7 @@ module.exports = {
     addUser: async function (app, team, user, userRole, samlAdded = false) {
         const existingMembership = await user.getTeamMembership(team.id)
         if (existingMembership !== null) {
-            // eslint-disable-next-line no-console
-            console.log('User already in this team')
+            app.log.info('User already in this team')
             return
             // Don't bomb if user was already added manually
             // throw new Error('User already in this team')

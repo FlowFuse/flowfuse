@@ -19,23 +19,28 @@ module.exports = {
         if (user && !user.suspended) {
             if (user.sso_enabled) {
                 try {
-                    const tmpSamlGroups = new Set(JSON.parse(user.saml_groups))
+                    const tmpSamlGroups = JSON.parse(user.saml_groups)
                     const allTeams = await app.db.models.Team.getAll()
                     const samlAssignedTeams = await user.getSAMLAssignedTeams()
 
                     // Remove all SAML assigned teams
-                    samlAssignedTeams.forEach(async (team) => {
-                        await app.db.controllers.Team.removeUser(team.Team, user)
-                    })
+                    for (const team of samlAssignedTeams) {
+                        app.log.info('Removing user ' + user.email + ' from team ' + team.Team.name)
+                        if (await app.db.controllers.Team.removeUser(team.Team, user)) {
+                            app.log.info('User was removed')
+                        } else {
+                            app.log.info('User was not removed')
+                        }
+                    }
 
-                    allTeams.teams.forEach(async (team, index) => {
+                    for (const team of allTeams.teams) {
                         let owner = false
                         let member = false
                         let viewer = false
                         let dashboard = false
 
                         // First iterate to determine if the user is a member of multiple groups
-                        tmpSamlGroups.forEach(async (group, index) => {
+                        tmpSamlGroups.forEach((group) => {
                             if (team.samlGroupOwner === group) {
                                 owner = true
                             } else if (team.samlGroupMember === group) {
@@ -60,14 +65,13 @@ module.exports = {
                         }
                         if (role) {
                             // Add user with samlAdded set to true
+                            app.log.info('Adding user ' + user.email + ' with role ' + role)
                             await app.db.controllers.Team.addUser(team, user, role, true)
                         }
-                    })
+                    }
                 } catch (e) {
-                    // eslint-disable-next-line no-console
-                    console.log(e)
+                    app.log.info(e)
                 }
-                user.save()
             }
 
             return app.db.models.Session.create({
