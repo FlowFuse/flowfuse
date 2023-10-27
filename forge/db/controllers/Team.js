@@ -47,10 +47,14 @@ module.exports = {
         return { user, team, oldRole, role }
     },
 
-    addUser: async function (app, team, user, userRole) {
+    addUser: async function (app, team, user, userRole, samlAdded = false) {
         const existingMembership = await user.getTeamMembership(team.id)
         if (existingMembership !== null) {
-            throw new Error('User already in this team')
+            // eslint-disable-next-line no-console
+            console.log('User already in this team')
+            return
+            // Don't bomb if user was already added manually
+            // throw new Error('User already in this team')
         }
 
         const currentTeamMemberCount = await team.memberCount()
@@ -64,7 +68,7 @@ module.exports = {
             throw new Error('Team user limit reached')
         }
 
-        await team.addUser(user, { through: { role: userRole } })
+        await team.addUser(user, { through: { role: userRole, samlAdded } })
     },
     /**
      * Remove a user from a team

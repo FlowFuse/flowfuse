@@ -568,6 +568,27 @@ module.exports = async function (app) {
                     updates.push('slug', request.team.slug, request.body.slug)
                     request.team.slug = request.body.slug
                 }
+
+                if (request.body.samlGroupOwner) {
+                    updates.push('samlGroupOwner', request.team.samlGroupOwner, request.body.samlGroupOwner)
+                    request.team.samlGroupOwner = request.body.samlGroupOwner
+                }
+
+                if (request.body.samlGroupMember) {
+                    updates.push('samlGroupMember', request.team.samlGroupMember, request.body.samlGroupMember)
+                    request.team.samlGroupMember = request.body.samlGroupMember
+                }
+
+                if (request.body.samlGroupViewer) {
+                    updates.push('samlGroupViewer', request.team.samlGroupViewer, request.body.samlGroupViewer)
+                    request.team.samlGroupViewer = request.body.samlGroupViewer
+                }
+
+                if (request.body.samlGroupDashboard) {
+                    updates.push('samlGroupDashboard', request.team.samlGroupDashboard, request.body.samlGroupDashboard)
+                    request.team.samlGroupDashboard = request.body.samlGroupDashboard
+                }
+
                 await request.team.save()
             }
             auditLogFunc(request.session.User, null, request.team, updates)

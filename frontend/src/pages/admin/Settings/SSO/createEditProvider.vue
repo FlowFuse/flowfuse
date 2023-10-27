@@ -40,6 +40,23 @@
                         <template #description>Supplied by your Identity Provider</template>
                         <template #input><textarea v-model="input.options.cert" class="font-mono w-full" placeholder="---BEGIN CERTIFICATE---&#10;loremipsumdolorsitamet&#10;consecteturadipiscinge&#10;---END CERTIFICATE---&#10;" rows="6" /></template>
                     </FormRow>
+
+                    <FormRow v-model="input.options.samlUserGroup">
+                        SAML User Group ID
+                        <template #description>SAML Group ID for Standard Users</template>
+                    </FormRow>
+
+                    <FormRow v-model="input.options.samlAdminGroup">
+                        SAML Admin User Group ID
+                        <template #description>SAML Group ID for Admin Users</template>
+                    </FormRow>
+
+                    <FormRow v-model="input.options.allowAllSSO" type="checkbox">Allow All Users for this Provider</FormRow>
+
+                    <FormRow v-model="input.options.defaultLogin" type="checkbox">Use this provider for all logins except admin/ff-admin</FormRow>
+
+                    <FormRow v-model="input.options.autoCreateUser" type="checkbox">Automatically create users if they do not exist</FormRow>
+
                     <FormRow v-model="input.active" type="checkbox">Active</FormRow>
                     <ff-button :disabled="!formValid" @click="updateProvider()">
                         Update configuration

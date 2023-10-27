@@ -16,6 +16,7 @@ module.exports = fp(async function (app, opts, done) {
     })
 
     const fastifyPassport = new Authenticator()
+    let providerOptions = {}
 
     // We don't use @fastify/session, but this is needed to let passport think
     // we are using it
@@ -43,6 +44,7 @@ module.exports = fp(async function (app, opts, done) {
                 const state = JSON.parse(request.body.RelayState)
                 const opts = await app.sso.getProviderOptions(state.provider)
                 if (opts) {
+                    providerOptions = opts
                     done(null, opts)
                 } else {
                     done(new Error(`Unknown SAML provider: ${state.provider}`))
@@ -71,7 +73,19 @@ module.exports = fp(async function (app, opts, done) {
     }, async (req, profile, done) => {
         if (profile.nameID) {
             const user = await app.db.models.User.byUsernameOrEmail(profile.nameID)
+            const userInfo = app.auditLog.formatters.userObject({ email: profile.nameID })
             if (user) {
+                user.saml_groups = JSON.stringify(profile['http://schemas.microsoft.com/ws/2008/06/identity/claims/groups'])
+                user.name = profile['http://schemas.microsoft.com/identity/claims/displayname']
+                if (!providerOptions.allowAllSSO && (!user.saml_groups.includes(providerOptions.samlUserGroup) || !user.saml_groups.includes(providerOptions.samlAdminGroup))) {
+                    done(new Error('Not assigned to a User or Admin group'))
+                }
+                if (user.saml_groups.includes(providerOptions.samlAdminGroup)) {
+                    user.admin = true
+                    await app.auditLog.User.account.samlAdminLogin(userInfo, null)
+                } else {
+                    user.admin = false
+                }
                 done(null, user)
             } else {
                 const unknownError = new Error(`Unknown user: ${profile.nameID}`)

@@ -21,7 +21,8 @@ module.exports = {
                     }
                 }
             }
-        }
+        },
+        samlAdded: { type: DataTypes.BOOLEAN, defaultValue: false }
     },
     scopes: {
         members: {
@@ -42,6 +43,20 @@ module.exports = {
                         where: {
                             UserId: userId,
                             role: Roles.Owner
+                        },
+                        include: {
+                            model: M.Team
+                        }
+                    })
+                },
+                getSAMLAssignedTeamsBy: async (userId) => {
+                    if (typeof userId === 'string') {
+                        userId = M.User.decodeHashid(userId)
+                    }
+                    return this.findAll({
+                        where: {
+                            UserId: userId,
+                            samlAdded: true
                         },
                         include: {
                             model: M.Team

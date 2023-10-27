@@ -14,6 +14,7 @@ module.exports = {
         email: { type: DataTypes.STRING, unique: true, validate: { isEmail: true } },
         email_verified: { type: DataTypes.BOOLEAN, defaultValue: false },
         sso_enabled: { type: DataTypes.BOOLEAN, defaultValue: false },
+        saml_groups: { type: DataTypes.STRING, defaultValue: '' },
         password: {
             type: DataTypes.STRING,
             set (value) {
@@ -254,6 +255,9 @@ module.exports = {
                 },
                 getTeamsOwned: async function () {
                     return M.TeamMember.getTeamsOwnedBy(this.id)
+                },
+                getSAMLAssignedTeams: async function () {
+                    return M.TeamMember.getSAMLAssignedTeamsBy(this.id)
                 },
                 teamCount: async function () {
                     return M.TeamMember.count({
