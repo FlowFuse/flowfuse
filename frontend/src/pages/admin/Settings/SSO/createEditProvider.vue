@@ -53,7 +53,7 @@
 
                     <FormRow v-model="input.options.allowAllSSO" type="checkbox">Allow All Users for this Provider</FormRow>
 
-                    <FormRow v-model="input.options.defaultLogin" type="checkbox">Use this provider for all logins except admin/ff-admin</FormRow>
+                    <FormRow v-model="input.options.defaultLogin" type="checkbox">Automatically redirect to the SSO provider url for authentication</FormRow>
 
                     <FormRow v-model="input.options.autoCreateUser" type="checkbox">Automatically create users if they do not exist</FormRow>
 
