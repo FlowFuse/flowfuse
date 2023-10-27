@@ -121,6 +121,7 @@ module.exports = fp(async function (app, opts, done) {
                                 name: displayName,
                                 email: profile.nameID,
                                 email_verified: true,
+                                sso_enabled: true,
                                 saml_groups: samlGroups,
                                 password: generateRandomString(),
                                 admin: !!admin
@@ -169,6 +170,16 @@ module.exports = fp(async function (app, opts, done) {
             reply.redirect('/')
         }
     )
+
+    app.get('/ee/sso/auth-settings', { preHandler: skipAuthForThisRoute }, async (request, reply) => {
+        const provider = await app.sso.getDefaultProvider()
+        reply.send({ ssoRedirect: provider.getOptions().defaultLogin, domainFilter: provider.domainFilter })
+    })
+
+    function skipAuthForThisRoute (request, reply, done) {
+        // Logic to skip authentication
+        done() // Proceed to the next hook/route handler
+    }
 
     app.post(
         '/ee/sso/login/callback',
