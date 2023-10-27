@@ -52,6 +52,14 @@ can be [upgraded to a later version](../user/changestack.md).
 
 Each Node-RED can install custom modules as advertised in the [Flow Library](https://flows.nodered.org).
 
+## Cloud Instance Sizes
+
+Small 10% of a CPU core - 256mb RAM
+Medium 30% of a CPU core - 768mb RAM
+Large 100% of a CPU core - 3840mb RAM
+
+Medium and Large instance types require the Teams or Enterprise tier.
+
 ## Use of the File System
 
 FlowFuse Cloud provides support for using the standard File nodes in flows with
