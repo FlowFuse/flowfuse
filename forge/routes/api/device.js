@@ -689,6 +689,15 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
+        if (request.device.isApplicationOwned) {
+            reply.code(400).send({ code: 'invalid_device', error: 'Device is not associated with a instance, application owned devices must use the application device snapshot endpoint' })
+            return
+        }
+        if (!request.device.Project) {
+            reply.code(400).send({ code: 'invalid_device', error: 'Device must be associated with a instance to create a snapshot' })
+            return
+        }
+
         const snapshotOptions = {
             name: request.body.name,
             description: request.body.description,
