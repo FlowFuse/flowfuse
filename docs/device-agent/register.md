@@ -1,6 +1,6 @@
 ---
 navTitle: Register your Device
-navOrder: 3
+navOrder: 4
 ---
 
 # Register your Device
