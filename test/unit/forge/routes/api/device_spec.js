@@ -953,6 +953,82 @@ describe('Device API', async function () {
         })
     })
 
+    describe('Create snapshot for instance owned device', async function () {
+        let oldComms
+        before(function () {
+            // Prevent requests to devices hanging the snapshot process
+            oldComms = app.comms
+            app.comms = null
+        })
+
+        after(function () {
+            app.comms = oldComms
+        })
+
+        it('creates a snapshot', async function () {
+            const deviceProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
+            deviceProject.setTeam(TestObjects.ATeam)
+
+            const device = await createDevice({ name: 'device-1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, instance: deviceProject.id })
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.id}/snapshot`,
+                body: {
+                    name: 'new-snapshot',
+                    description: 'snapshot-description',
+                    setAsTarget: false
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            const result = response.json()
+
+            result.should.have.property('name', 'new-snapshot')
+            result.should.have.property('description', 'snapshot-description')
+            result.should.have.property('ownerType', 'instance')
+
+            result.user.should.have.property('username', 'alice')
+
+            response.statusCode.should.equal(200)
+        })
+
+        it('fails gracefully if the device is assigned to neither an application or instance', async function () {
+            const device = await createDevice({ name: 'device-1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.id}/snapshot`,
+                body: {
+                    name: 'new-snapshot',
+                    description: 'snapshot-description',
+                    setAsTarget: false
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            const result = response.json()
+            result.should.have.property('code', 'invalid_device')
+            response.statusCode.should.equal(400)
+        })
+
+        it('fails gracefully if the device is assigned to an application', async function () {
+            const agentVersion = '1.11.2'
+            const device = await createDevice({ name: 'device-1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, application: TestObjects.Application1.hashid, agentVersion })
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.id}/snapshot`,
+                body: {
+                    name: 'new-snapshot',
+                    description: 'snapshot-description',
+                    setAsTarget: false
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            const result = response.json()
+            result.should.have.property('code', 'invalid_device')
+            response.statusCode.should.equal(400)
+        })
+    })
+
     describe('Device Actions', async function () {
         // POST /api/v1/devices/:deviceId/actions/:action
     })
