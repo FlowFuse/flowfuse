@@ -71,11 +71,10 @@ module.exports = {
                             exclude: toExclude
                         }
                     }
-                    const r = await self.findOne({
+                    return self.findOne({
                         where: { id },
                         attributes
                     })
-                    return r
                 },
                 forProject: async (projectId, pagination = {}) => {
                     const limit = parseInt(pagination.limit) || 1000
