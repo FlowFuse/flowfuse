@@ -45,7 +45,7 @@
                     </p>
                 </template>
                 <template v-if="hasPermission('device:snapshot:create')" #actions>
-                    <ff-button kind="primary" :disabled="!developerMode || busyMakingSnapshot || !features.deviceEditor" data-action="create-snapshot" @click="showCreateSnapshotDialog">
+                    <ff-button kind="primary" :disabled="!developerMode || busyMakingSnapshot || !features.deviceEditor || device.ownerType !== 'application'" data-action="create-snapshot" @click="showCreateSnapshotDialog">
                         <template #icon-left><PlusSmIcon /></template>Create Snapshot
                     </ff-button>
                 </template>
