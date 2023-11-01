@@ -1,0 +1,84 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, maintenance ]
+  pull_request:
+
+jobs:
+  check-changes:
+    name: Look for changes
+    runs-on: ubuntu-latest
+    outputs:
+      run_backend_tests: ${{ steps.set-outputs.outputs.backend_tests }}
+      run_postgres_tests: ${{ steps.set-outputs.outputs.postgres_tests }}
+      run_ui_tests: ${{ steps.set-outputs.outputs.ui_tests }}
+    steps:
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v40
+        with:
+          files_yaml: |
+            backend:
+              - 'forge/**'
+              - 'test/unit/**'
+              - 'test/system/**'
+              - 'frontend/**'
+              - 'test/e2e/frontend/**'
+              - 'test/unit/frontend/**'
+              - 'package.json'
+              - 'package-lock.json'
+              - '.eslintrc'
+            postgres:
+              - 'forge/**'
+              - 'test/unit/**'
+              - 'test/system/**'
+              - 'package.json'
+              - 'package-lock.json'
+            ui:
+              - 'forge/**'
+              - 'test/unit/**'
+              - 'test/system/**'
+              - 'frontend/**'
+              - 'test/e2e/frontend/**'
+              - 'test/unit/frontend/**'
+              - 'package.json'
+              - 'package-lock.json'
+              - '.eslintrc'
+      - name: Set outputs
+        id: set-outputs
+        run: |
+          echo "backend_tests=${{ steps.changed-files.outputs.backend_any_changed }}" >> "$GITHUB_OUTPUT"
+          echo "postgres_tests=${{ steps.changed-files.outputs.postgres_any_changed }}" >> "$GITHUB_OUTPUT"
+          echo "ui_tests=${{ steps.changed-files.outputs.ui_any_changed }}" >> "$GITHUB_OUTPUT"
+  backend-tests:
+    needs: check-changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.check-changes.outputs.run_backend_tests == 'true' }}
+    name: Backend tests
+    steps:
+      - name: Run tests
+        run: |
+          echo "Running backend tests"
+
+  postgres-tests:
+    needs: check-changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.check-changes.outputs.run_postgres_tests == 'true' }}
+    name: Postgres tests
+    steps:
+      - name: Run tests
+        run: |
+          echo "Running postgres tests"
+          sleep 15
+
+  ui-tests:
+    needs: check-changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.check-changes.outputs.run_ui_tests == 'true' }}
+    name: UI tests
+    steps:
+      - name: Run tests
+        run: |
+          echo "Running UI tests"
+          sleep 25
