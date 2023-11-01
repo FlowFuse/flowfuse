@@ -33,8 +33,8 @@ export const setupSentry = (app, router) => {
         tracePropagationTargets: [/^https:\/\/forge.flowforge.dev\/api/, /^https:\/\/app.flowforge.com\//],
 
         // Session Replay
-        replaysSessionSampleRate: window.sentryConfig.production ? 0.1 : 0.5,
-        replaysOnErrorSampleRate: 1.0,
+        replaysSessionSampleRate: window.sentryConfig.production ? 0.05 : 0.25,
+        replaysOnErrorSampleRate: 0.5,
 
         // Skip localhost reporting
         beforeSend: (event) => {
