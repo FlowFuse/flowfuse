@@ -242,6 +242,7 @@ export default {
                             if (/name/.test(err.response.data.error)) {
                                 this.errors.name = 'Name unavailable'
                             }
+                            alerts.emit(err.response.data.error, 'warning')
                         }
                     }).finally(() => {
                         this.loading = false
