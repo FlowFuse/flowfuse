@@ -27,7 +27,7 @@ export const setupSentry = (app, router) => {
         environment: window.sentryConfig.environment,
 
         // Performance Monitoring
-        tracesSampleRate: window.sentryConfig.production ? 1.0 : 0.1,
+        tracesSampleRate: window.sentryConfig.production ? 0.5 : 1.0,
 
         // Which URLs distributed tracing should be enabled
         tracePropagationTargets: [/^https:\/\/forge.flowforge.dev\/api/, /^https:\/\/app.flowforge.com\//],
