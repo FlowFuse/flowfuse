@@ -14,13 +14,11 @@ jobs:
       run_postgres_tests: ${{ steps.set-outputs.outputs.postgres_tests }}
       run_ui_tests: ${{ steps.set-outputs.outputs.ui_tests }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v40
         with:
+          since_last_remote_commit: true
           files_yaml: |
             backend:
               - 'forge/**'
