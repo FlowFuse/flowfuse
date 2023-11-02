@@ -7,14 +7,15 @@ on:
 
 jobs:
   check-changes:
-    name: Look for changes
+    name: Verify changes
     runs-on: ubuntu-latest
     outputs:
       run_backend_tests: ${{ steps.set-outputs.outputs.backend_tests }}
       run_postgres_tests: ${{ steps.set-outputs.outputs.postgres_tests }}
       run_ui_tests: ${{ steps.set-outputs.outputs.ui_tests }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Get changed files
