@@ -99,7 +99,7 @@ Details of how to configure this can be found at the following links:
 
 #### MQTT Broker added
 
-This release introduces an MQTT Broker into the FlowForge platform used to communicate
+This release introduces an MQTT Broker into the FlowFuse platform used to communicate
 between devices and the core platform.
 
 For LocalFS users, they will need to manually setup the broker and ensure it is

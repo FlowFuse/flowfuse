@@ -311,7 +311,7 @@ function triggerObject (actionedBy, user, unknownValue = 'unknown') {
         if (id === 0) {
             type = 'system'
             hashid = 'system'
-            name = 'Forge Platform'
+            name = 'FlowFuse Platform'
         } else if (id > 0) {
             type = 'user'
             if (user) {

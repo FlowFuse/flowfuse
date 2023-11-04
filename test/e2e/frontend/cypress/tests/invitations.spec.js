@@ -1,6 +1,6 @@
 // test team invitations in FlowForge
 
-describe('FlowForge platform invitees', () => {
+describe('FlowFuse platform invitees', () => {
     beforeEach(() => {
         cy.login('dave', 'ddPassword')
 
