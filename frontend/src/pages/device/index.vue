@@ -126,17 +126,9 @@ export default {
     },
     mixins: [permissionsMixin],
     data: function () {
-        const navigation = [
-            { label: 'Overview', to: `/device/${this.$route.params.id}/overview`, tag: 'device-overview' },
-            // snapshots - added in mounted, if device is owned by an application,
-            // device logs - added in mounted, if project comms is enabled,
-            { label: 'Settings', to: `/device/${this.$route.params.id}/settings`, tag: 'device-settings' }
-        ]
-
         return {
             mounted: false,
             device: null,
-            navigation,
             agentSupportsDeviceAccess: false
         }
     },
@@ -169,52 +161,55 @@ export default {
             const hasApplication = device?.ownerType === 'application' && device.application
             const hasInstance = device?.ownerType === 'instance' && device.instance
             return !hasApplication && !hasInstance
-        }
-    },
-    watch: {
-        'device.mode': function () {
-            if (this.isDevModeAvailable && this.device.mode === 'developer') {
-                this.navigation.push({
-                    label: 'Developer Mode',
-                    to: `/device/${this.$route.params.id}/developer-mode`,
-                    tag: 'device-devmode'
-                })
-            } else {
-                // check if developer mode in the list of options
-                const index = this.navigation.findIndex((item) => item.tag === 'device-devmode')
-                if (index > -1) {
-                    this.navigation.splice(index, 1)
-                }
-            }
-        }
-    },
-    async mounted () {
-        this.mounted = true
-        await this.loadDevice()
-        this.checkFeatures()
-    },
-    methods: {
-        loadDevice: async function () {
-            this.device = await deviceApi.getDevice(this.$route.params.id)
-            this.agentSupportsDeviceAccess = this.device.agentVersion && semver.gte(this.device.agentVersion, '0.8.0')
-            this.$store.dispatch('account/setTeam', this.device.team.slug)
         },
-        checkFeatures: async function () {
+        navigation () {
+            const navigation = [
+                { label: 'Overview', to: `/device/${this.$route.params.id}/overview`, tag: 'device-overview' }
+            ]
+
+            // snapshots - if device is owned by an application,
+            if (this.device?.ownerType !== 'instance') {
+                navigation.push({
+                    label: 'Snapshots',
+                    to: `/device/${this.$route.params.id}/snapshots`,
+                    tag: 'device-snapshots'
+                })
+            }
+
+            // device logs - if project comms is enabled,
             if (this.features.projectComms) {
-                this.navigation.splice(1, 0, {
+                navigation.push({
                     label: 'Device Logs',
                     to: `/device/${this.$route.params.id}/logs`,
                     tag: 'device-logs',
                     icon: TerminalIcon
                 })
             }
-            if (this.device?.ownerType !== 'instance') {
-                this.navigation.splice(1, 0, {
-                    label: 'Snapshots',
-                    to: `/device/${this.$route.params.id}/snapshots`,
-                    tag: 'device-snapshots'
+
+            // settings - always
+            navigation.push({ label: 'Settings', to: `/device/${this.$route.params.id}/settings`, tag: 'device-settings' })
+
+            // developer mode - if available and device is in developer mode
+            if (this.isDevModeAvailable && this.device.mode === 'developer') {
+                navigation.push({
+                    label: 'Developer Mode',
+                    to: `/device/${this.$route.params.id}/developer-mode`,
+                    tag: 'device-devmode'
                 })
             }
+
+            return navigation
+        }
+    },
+    async mounted () {
+        this.mounted = true
+        await this.loadDevice()
+    },
+    methods: {
+        loadDevice: async function () {
+            this.device = await deviceApi.getDevice(this.$route.params.id)
+            this.agentSupportsDeviceAccess = this.device.agentVersion && semver.gte(this.device.agentVersion, '0.8.0')
+            this.$store.dispatch('account/setTeam', this.device.team.slug)
         },
         showOpenEditorDialog: async function () {
             this.$refs['open-editor-dialog'].show()
