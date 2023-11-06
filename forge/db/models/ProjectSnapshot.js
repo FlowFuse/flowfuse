@@ -51,14 +51,29 @@ module.exports = {
         const self = this
         return {
             static: {
-                byId: async function (id) {
-                    // This returns the full snapshot - including settings and flows
-                    // This should _only_ be used when getting all of that information
+                byId: async function (id, { includeFlows = true, includeSettings = true } = {}) {
+                    // By default, this returns the full snapshot - including settings and flows
+                    // This should _only_ be used when getting all of that information.
+                    // Otherwise use the options to disable retrieving flows/settings
                     if (typeof id === 'string') {
                         id = M.ProjectSnapshot.decodeHashid(id)
                     }
+                    const toExclude = []
+                    if (!includeFlows) {
+                        toExclude.push('flows')
+                    }
+                    if (!includeSettings) {
+                        toExclude.push('settings')
+                    }
+                    let attributes = null
+                    if (toExclude.length > 0) {
+                        attributes = {
+                            exclude: toExclude
+                        }
+                    }
                     return self.findOne({
-                        where: { id }
+                        where: { id },
+                        attributes
                     })
                 },
                 forProject: async (projectId, pagination = {}) => {

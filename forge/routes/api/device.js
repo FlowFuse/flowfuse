@@ -431,7 +431,7 @@ module.exports = async function (app) {
             // ### Modify device properties ###
             if (request.body.targetSnapshot !== undefined && request.body.targetSnapshot !== device.targetSnapshotId) {
                 // get snapshot from db
-                const targetSnapshot = await app.db.models.ProjectSnapshot.byId(request.body.targetSnapshot)
+                const targetSnapshot = await app.db.models.ProjectSnapshot.byId(request.body.targetSnapshot, { includeFlows: false, includeSettings: false })
                 if (!targetSnapshot) {
                     reply.code(400).send({ code: 'invalid_snapshot', error: 'invalid snapshot' })
                     return
