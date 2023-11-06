@@ -91,6 +91,9 @@ forge:
   managementSelector: 
   broker:
     enabled: true
+postgresql:
+  global:
+    storageClass: do-block-storage
 ```
 
 Then we use this to install FlowFuse
