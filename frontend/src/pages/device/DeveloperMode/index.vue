@@ -43,9 +43,11 @@
                 <InfoCardRow property="Device Flows:">
                     <template #value>
                         <ff-button
+                            :disabled="device.ownerType !== 'application'"
                             kind="secondary"
                             class="w-28 whitespace-nowrap"
                             size="small"
+                            data-action="create-snapshot-dialog"
                             @click="showCreateSnapshotDialog"
                         >
                             Create Snapshot
