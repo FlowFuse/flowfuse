@@ -120,7 +120,7 @@ class DeviceCommsHandler {
 
     /**
      * Handle a command response message from a device
-     * Typically this will be a response to a command sent by the forge platform
+     * Typically this will be a response to a command sent by the platform
      * @param {Object} response Reply from the device
      * @returns {Promise<void>}
      * @see sendCommandAwaitReply
