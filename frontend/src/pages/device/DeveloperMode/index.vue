@@ -42,16 +42,19 @@
                 </InfoCardRow>
                 <InfoCardRow property="Device Flows:">
                     <template #value>
-                        <ff-button
-                            :disabled="device.ownerType !== 'application'"
-                            kind="secondary"
-                            class="w-28 whitespace-nowrap"
-                            size="small"
-                            data-action="create-snapshot-dialog"
-                            @click="showCreateSnapshotDialog"
-                        >
-                            Create Snapshot
-                        </ff-button>
+                        <div class="flex items-center">
+                            <ff-button
+                                :disabled="createSnapshotDisabled"
+                                kind="secondary"
+                                class="w-28 whitespace-nowrap"
+                                size="small"
+                                data-action="create-snapshot-dialog"
+                                @click="showCreateSnapshotDialog"
+                            >
+                                Create Snapshot
+                            </ff-button>
+                            <span v-if="createSnapshotDisabled" class="ff-description ml-2">A device must first be assigned to an Application, in order to create snapshots.</span>
+                        </div>
                     </template>
                 </InfoCardRow>
             </template>
@@ -112,6 +115,9 @@ export default {
         },
         editorCanBeEnabled: function () {
             return this.developerMode && this.device.status === 'running'
+        },
+        createSnapshotDisabled () {
+            return this.device.ownerType !== 'application'
         }
     },
     watch: {
