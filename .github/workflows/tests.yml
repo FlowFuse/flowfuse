@@ -2,7 +2,9 @@ name: Tests
 
 on:
   push:
-    branches: [ main, maintenance ]
+    branches:
+      - main
+      - maintenance
   pull_request:
 
 jobs:
@@ -60,17 +62,6 @@ jobs:
           echo "backend_tests=${{ steps.changed-files.outputs.backend_any_changed }}" >> "$GITHUB_OUTPUT"
           echo "postgres_tests=${{ steps.changed-files.outputs.postgres_any_changed }}" >> "$GITHUB_OUTPUT"
           echo "ui_tests=${{ steps.changed-files.outputs.ui_any_changed }}" >> "$GITHUB_OUTPUT"
-  
-  debug:
-    needs: check-changes
-    runs-on: ubuntu-latest
-    name: Debug
-    steps:
-      - name: Debug
-        run: |
-          echo "Run backend tests: ${{ needs.check-changes.outputs.run_backend_tests }}"
-          echo "Run postgres tests: ${{ needs.check-changes.outputs.run_postgres_tests }}"
-          echo "Run UI test: ${{ needs.check-changes.outputs.run_ui_tests }}"
   
   backend-tests:
     if: ${{ needs.check-changes.outputs.run_backend_tests == 'true' }}
