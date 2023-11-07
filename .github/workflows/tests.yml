@@ -35,14 +35,12 @@ jobs:
               - 'package.json'
               - 'package-lock.json'
               - '.eslintrc'
-              - 'backend-tests'
             postgres:
               - 'forge/**'
               - 'test/unit/**'
               - 'test/system/**'
               - 'package.json'
               - 'package-lock.json'
-              - 'postgres-tests'
             ui:
               - 'forge/**'
               - 'test/unit/**'
@@ -53,7 +51,6 @@ jobs:
               - 'package.json'
               - 'package-lock.json'
               - '.eslintrc'
-              - 'ui-tests'
       - name: Set outputs
         id: set-outputs
         shell: bash
