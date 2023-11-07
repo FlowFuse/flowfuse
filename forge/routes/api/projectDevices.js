@@ -119,7 +119,7 @@ module.exports = async function (app) {
             // For now, only care about that - when we add other device settings, this
             // will need to be rewritten
 
-            const targetSnapshot = await app.db.models.ProjectSnapshot.byId(request.body.targetSnapshot)
+            const targetSnapshot = await app.db.models.ProjectSnapshot.byId(request.body.targetSnapshot, { includeFlows: false, includeSettings: false })
 
             if (!targetSnapshot) {
                 reply.code(400).send({ code: 'invalid_snapshot', error: 'Invalid snapshot' })

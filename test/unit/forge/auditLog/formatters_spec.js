@@ -194,7 +194,7 @@ describe('Audit Log > Formatters', async function () {
         // extended tests to ensure no exceptions / stack overflow and that results are consistent
         // common values
         const unknownUnknown = { id: null, hashid: null, name: null, username: null, email: null }
-        const id0SystemUser = { id: 0, hashid: 'system', name: 'Forge Platform', username: 'system', email: null }
+        const id0SystemUser = { id: 0, hashid: 'system', name: 'FlowFuse Platform', username: 'system', email: null }
         const id1NoHashNoName = { id: 1, hashid: null, name: null, username: null, email: null }
         const idNullHashAbc = { id: null, hashid: 'abc', name: null, username: null, email: null }
         // test cases
@@ -365,7 +365,7 @@ describe('Audit Log > Formatters', async function () {
         should(triggerPlatform).have.property('id', 0)
         should(triggerPlatform).have.property('hashid', 'system')
         should(triggerPlatform).have.property('type', 'system')
-        should(triggerPlatform).have.property('name', 'Forge Platform')
+        should(triggerPlatform).have.property('name', 'FlowFuse Platform')
 
         const triggerUserHash = Formatters.triggerObject('<hash>', {
             email: '<email>'
@@ -390,7 +390,7 @@ describe('Audit Log > Formatters', async function () {
         // extended tests to ensure no exceptions / stack overflow and that results are consistent
         // common values
         const unknownUnknown = { id: null, hashid: null, type: 'unknown', name: 'unknown' }
-        const id0SystemUser = { id: 0, hashid: 'system', type: 'system', name: 'Forge Platform' }
+        const id0SystemUser = { id: 0, hashid: 'system', type: 'system', name: 'FlowFuse Platform' }
         const id1NoHashNoName = { id: 1, hashid: null, type: 'user', name: 'unknown' }
         const idNullHashAbc = { id: null, hashid: 'abc', type: 'user', name: 'unknown' }
         // test cases

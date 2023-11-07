@@ -1,6 +1,6 @@
 // test admin rights & access in FlowForge
 
-describe('FlowForge platform admin users', () => {
+describe('FlowFuse platform admin users', () => {
     beforeEach(() => {
         cy.login('alice', 'aaPassword')
         cy.home()
@@ -153,7 +153,7 @@ describe('FlowForge platform admin users', () => {
     })
 })
 
-describe('FlowForge platform non-admin users', () => {
+describe('FlowFuse platform non-admin users', () => {
     beforeEach(() => {
         cy.login('bob', 'bbPassword')
         cy.home()

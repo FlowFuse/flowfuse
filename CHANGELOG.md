@@ -1,3 +1,14 @@
+#### 1.13.2: Release
+
+ - Bump vue-router from 4.2.4 to 4.2.5 (#3027) @app/dependabot
+ - Bump pino-pretty from 10.2.0 to 10.2.3 (#3028) @app/dependabot
+ - Bump webpack from 5.88.2 to 5.89.0 (#3029) @app/dependabot
+ - Bump eslint-plugin-n from 16.1.0 to 16.2.0 (#3030) @app/dependabot
+ - Bump mqtt from 5.1.3 to 5.1.4 (#3031) @app/dependabot
+ - Fix applying pipeline migrations on non-EE platforms (#3033) @knolleary
+ - Quick Start Guide for Devices (#3016) @gdziuba
+ - Avoid needless settings lookup on instance list endpoint (#3023) @knolleary
+ 
 #### 1.13.1: Release
 
  - Fix recursion when adding mutating palette catalogue urls (#3012) @Pezmc
