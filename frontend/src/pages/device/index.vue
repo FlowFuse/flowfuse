@@ -155,7 +155,6 @@ export default {
         return {
             mounted: false,
             device: null,
-            navigation,
             agentSupportsDeviceAccess: false,
             openingTunnel: false,
             closingTunnel: false
