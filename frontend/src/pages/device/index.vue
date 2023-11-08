@@ -119,6 +119,7 @@ import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import permissionsMixin from '../../mixins/Permissions.js'
+import { VueTimersMixin } from '../../mixins/vue-timers.js'
 import Alerts from '../../services/alerts.js'
 
 import DeviceAssignApplicationDialog from '../team/Devices/dialogs/DeviceAssignApplicationDialog.vue'
@@ -129,6 +130,9 @@ import AssignDeviceDialog from './components/AssignDeviceDialog.vue'
 import DeveloperModeBadge from './components/DeveloperModeBadge.vue'
 import DeveloperModeToggle from './components/DeveloperModeToggle.vue'
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
+
+// constants
+const POLL_TIME = 5000
 
 export default {
     name: 'DevicePage',
@@ -146,7 +150,7 @@ export default {
         DeviceAssignApplicationDialog,
         DeviceAssignInstanceDialog
     },
-    mixins: [permissionsMixin],
+    mixins: [permissionsMixin, VueTimersMixin],
     data: function () {
         const navigation = [
             { label: 'Overview', to: `/device/${this.$route.params.id}/overview`, tag: 'device-overview' },
@@ -219,8 +223,24 @@ export default {
         this.mounted = true
         await this.loadDevice()
         this.checkFeatures()
+        this.$timer.start('pollTimer') // vue-timer auto stops when navigating away
+    },
+    timers: {
+        // declare a pollTimer that will call the pollTimer method every POLL_TIME milliseconds
+        // see the documentation in `frontend/src/mixins/vue-timers.js` for more details and examples
+        pollTimer: { time: POLL_TIME, repeat: true, autostart: false } // no autoStart: manually start in mounted()
     },
     methods: {
+        // pollTimer method is called by VueTimersMixin. See the timers property above.
+        pollTimer: async function () {
+            // Only refresh device via the timer if we are on the overview page or the developer mode page
+            // This is to prevent settings pages from refreshing the device state while modifying settings
+            // See `watch: { device: { handler () ...  in pages/device/Settings/General.vue for why that happens
+            const settingsPages = ['DeviceOverview', 'DeviceDeveloperMode']
+            if (settingsPages.includes(this.$route.name)) {
+                this.loadDevice()
+            }
+        },
         loadDevice: async function () {
             this.device = await deviceApi.getDevice(this.$route.params.id)
             this.agentSupportsDeviceAccess = this.device.agentVersion && semver.gte(this.device.agentVersion, '0.8.0')

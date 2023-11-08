@@ -21,7 +21,7 @@ export default [
             title: 'Device - Overview'
         },
         children: [
-            { path: 'overview', component: DeviceOverview },
+            { path: 'overview', component: DeviceOverview, name: 'DeviceOverview' },
             {
                 path: 'settings',
                 component: DeviceSettings,

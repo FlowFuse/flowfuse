@@ -108,16 +108,11 @@ import { mapState } from 'vuex'
 import InfoCard from '../../components/InfoCard.vue'
 import InfoCardRow from '../../components/InfoCardRow.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
-import { VueTimersMixin } from '../../mixins/vue-timers.js'
 
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
 
-// constants
-const POLL_TIME = 5000
-
 export default {
     name: 'DeviceOverview',
-    mixins: [VueTimersMixin],
     emits: ['device-updated', 'device-refresh'],
     props: ['device'],
     components: {
@@ -149,14 +144,8 @@ export default {
             return this.device?.ownerType || ''
         }
     },
-    timers: {
-        // declare a pollTimer that will call the pollTimer method every POLL_TIME milliseconds
-        // see the documentation in `frontend/src/mixins/vue-timers.js` for more details and examples
-        pollTimer: { time: POLL_TIME, repeat: true, autostart: false } // no autoStart: manually start in mounted()
-    },
     mounted () {
         this.refreshDevice()
-        this.$timer.start('pollTimer') // vue-timer auto stops when navigating away
     },
     methods: {
         // pollTimer method is called by VueTimersMixin. See the timers property above.
