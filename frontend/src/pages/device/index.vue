@@ -35,14 +35,8 @@
                 </template>
                 <template v-if="isDevModeAvailable" #tools>
                     <div class="space-x-2 flex align-center">
-                        <a v-if="editorAvailable && !isVisitingAdmin" class="ff-btn ff-btn--secondary" :href="deviceEditorURL" :target="`device-editor-${device.id}`" data-action="device-editor">
+                        <button v-if="editorAvailable && !isVisitingAdmin" data-action="open-editor" class="ff-btn ff-btn--secondary" @click="openTunnel(true)">
                             Device Editor
-                            <span class="ff-btn--icon ff-btn--icon-right">
-                                <ExternalLinkIcon />
-                            </span>
-                        </a>
-                        <button v-else v-ff-tooltip:left="developerMode ? 'Please enable \'Editor Access\' in the \'Developer Mode\' tab' : '\'Developer Mode\' must be enabled'" data-action="open-editor" class="ff-btn ff-btn--secondary" disabled>
-                            Editor Disabled
                             <span class="ff-btn--icon ff-btn--icon-right">
                                 <ExternalLinkIcon />
                             </span>
@@ -57,10 +51,38 @@
                 <div class="ff-banner" data-el="banner-device-as-admin">You are viewing this device as an Administrator</div>
             </Teleport>
             <div class="px-3 pb-3 md:px-6 md:pb-6">
-                <router-view :instance="device.instance" :device="device" @device-updated="loadDevice()" @device-refresh="loadDevice()" @assign-device="openAssignmentDialog" />
+                <router-view :instance="device.instance" :closingTunnel="closingTunnel" :openingTunnel="openingTunnel" :device="device" @device-updated="loadDevice" @close-tunnel="closeTunnel" @open-tunnel="openTunnel" @device-refresh="loadDevice" @assign-device="openAssignmentDialog" />
             </div>
         </div>
         <!-- Dialogs -->
+        <!-- device tunnel connecting -->
+        <ff-dialog ref="dialog" data-el="establish-device-tunnel-dialog" header="Preparing the connection...">
+            <template #default>
+                <div class="flex flex-col ml-6 mr-6">
+                    <div class="mb-4">
+                        <p>Connecting. Please wait...</p>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div class="flex text-center">
+                            <img class="h-16 w-16" src="../../images/pictograms/cloud_teal.png">
+                        </div>
+                        <div class="flex-grow m-4">
+                            <div class="w-full">
+                                <div class="h-1 w-full bg-teal-200 overflow-hidden">
+                                    <div kind="secondary" class="progress w-full h-full bg-teal-800 left-right" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex text-center">
+                            <img class="h-16 w-16" src="../../images/pictograms/devices_red.png">
+                        </div>
+                    </div>
+                </div>
+            </template>
+            <template #actions>
+                <ff-button data-action="tunnel-connect-cancel" kind="secondary" class="ml-4" @click="closeTunnel()">Cancel</ff-button>
+            </template>
+        </ff-dialog>
         <AssignDeviceDialog
             v-if="notAssigned"
             ref="assignment-dialog"
@@ -137,7 +159,9 @@ export default {
             mounted: false,
             device: null,
             navigation,
-            agentSupportsDeviceAccess: false
+            agentSupportsDeviceAccess: false,
+            openingTunnel: false,
+            closingTunnel: false
         }
     },
     computed: {
@@ -157,7 +181,10 @@ export default {
                 this.device &&
                 this.agentSupportsDeviceAccess &&
                 this.developerMode &&
-                this.device.status === 'running' &&
+                this.device.status === 'running'
+        },
+        tunnelReady: function () {
+            return this.editorAvailable &&
                 this.deviceEditorURL &&
                 this.device.editor?.connected
         },
@@ -264,7 +291,74 @@ export default {
             this.device = await deviceApi.updateDevice(device.id, { application: applicationId, instance: null })
 
             Alerts.emit('Device successfully assigned to application.', 'confirmation')
+        },
+        openEditor () {
+            window.open(this.deviceEditorURL, `device-editor-${this.device.id}`)
+        },
+        async openTunnel (launchEditor = false) {
+            if (this.device.status === 'running') {
+                if (this.device.editor?.enabled && this.device.editor?.connected) {
+                    this.openEditor()
+                } else {
+                    this.openingTunnel = true
+                    this.$refs.dialog.show()
+                    try {
+                        // * Enable Device Editor (Step 1) - (browser->frontendApi) User clicks button to "Enable Editor"
+                        const result = await deviceApi.enableEditorTunnel(this.device.id)
+                        this.updateTunnelStatus(result)
+                        setTimeout(() => {
+                            this.loadDevice()
+                            if (launchEditor && this.device.editor?.enabled && this.device.editor?.connected) {
+                                this.openEditor()
+                            }
+                            this.$refs.dialog.close()
+                        }, 500)
+                    } finally {
+                        this.openingTunnel = false
+                    }
+                }
+            } else {
+                Alerts.emit('The device must be in "running" state to access the editor', 'warning', 7500)
+            }
+        },
+        async closeTunnel () {
+            this.closingTunnel = true
+            this.$refs.dialog.close()
+            try {
+                const result = await deviceApi.disableEditorTunnel(this.device.id)
+                this.updateTunnelStatus(result)
+                this.loadDevice(this.loadDevice())
+            } finally {
+                this.closingTunnel = false
+            }
+        },
+        updateTunnelStatus (status) {
+            this.device.editor = this.device.editor || {}
+            this.device.editor.url = status.url
+            this.device.editor.enabled = !!status.enabled
+            this.device.editor.connected = !!status.connected
         }
     }
 }
 </script>
+
+<style scoped>
+.progress {
+    animation: progress 1s infinite linear;
+}
+
+.left-right {
+    transform-origin: 0% 50%;
+}
+    @keyframes progress {
+    0% {
+        transform:  translateX(0) scaleX(0);
+    }
+    40% {
+        transform:  translateX(0) scaleX(0.4);
+    }
+    100% {
+        transform:  translateX(100%) scaleX(0.5);
+    }
+}
+</style>
