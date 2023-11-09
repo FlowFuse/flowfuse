@@ -1,7 +1,8 @@
-const should = require('should')
+const should = require('should') // eslint-disable-line
+
 const FF_UTIL = require('flowforge-test-utils')
 
-describe.only('Check CSP values parsed', async () => {
+describe('Check CSP values parsed', async () => {
     let app
 
     before(async function () {
@@ -12,7 +13,6 @@ describe.only('Check CSP values parsed', async () => {
                 report_uri: 'https://example.com'
             }
         }
-    
         app = await FF_UTIL.setupApp(config)
     })
 
@@ -23,7 +23,7 @@ describe.only('Check CSP values parsed', async () => {
     it('CSP should be enabled', async function () {
         const response = await app.inject({
             method: 'GET',
-            url: '/',
+            url: '/'
         })
 
         const headers = response.headers
