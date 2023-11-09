@@ -14,6 +14,15 @@ const login = (username, password) => {
         return res.data
     })
 }
+
+const verifyMFAToken = (token) => {
+    return client.post('/account/login/token', {
+        token
+    }).then((res) => {
+        return res.data
+    })
+}
+
 const logout = () => {
     return client.post('/account/logout').then((res) => {
         window.posthog?.reset()
@@ -198,6 +207,7 @@ export default {
     registerUser,
     getUser,
     login,
+    verifyMFAToken,
     logout,
     changePassword,
     updateUser,
