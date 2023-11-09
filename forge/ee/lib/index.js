@@ -12,6 +12,9 @@ module.exports = fp(async function (app, opts, done) {
         app.decorate('sso', await require('./sso').init(app))
     }
 
+    // Set the MFA Feature Flag
+    app.config.features.register('mfa', true, true)
+
     // Set the Team Library Feature Flag
     app.config.features.register('shared-library', true, true)
 
