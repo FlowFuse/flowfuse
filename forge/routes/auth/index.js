@@ -66,9 +66,15 @@ async function init (app, opts, done) {
                 const emailVerified = !app.postoffice.enabled() || request.session.User.email_verified || request.routeOptions.config.allowUnverifiedEmail
                 const passwordNotExpired = !request.session.User.password_expired || request.routeOptions.config.allowExpiredPassword
                 const suspended = request.session.User.suspended
-                if (emailVerified && passwordNotExpired && !suspended) {
+                // If the user has mfa_enabled, but the session isn't marked as mfa_verified then
+                // the user has not completed logging in so the session isn't valid
+                const mfaMissing = request.session.User.mfa_enabled && !request.session.mfa_verified
+
+                if (emailVerified && passwordNotExpired && !suspended && !mfaMissing) {
                     return
                 }
+                await request.session.destroy()
+                reply.clearCookie('sid')
             }
         } else if (request.headers && request.headers.authorization) {
             const parts = request.headers.authorization.split(' ')
@@ -221,6 +227,10 @@ async function init (app, opts, done) {
                     // userInfo.email = session.User?.email
                     // userInfo.name = session.User?.name
                     reply.setCookie('sid', sessionInfo.session.sid, sessionInfo.cookieOptions)
+                    if (sessionInfo.session.User.mfa_enabled && !sessionInfo.mfa_verified) {
+                        reply.code(403).send({ code: 'mfa_required', error: 'MFA required' })
+                        return
+                    }
                     await app.auditLog.User.account.login(userInfo, null)
                     reply.send()
                     return
@@ -235,6 +245,39 @@ async function init (app, opts, done) {
             await app.auditLog.User.account.login(userInfo, resp, userInfo)
             reply.code(401).send(resp)
         }
+    })
+    app.post('/account/login/token', {
+        config: {
+            rateLimit: app.config.rate_limits // rate limit this route regardless of global/per-route mode (if enabled)
+        },
+        schema: {
+            summary: 'Verify a users MFA token',
+            tags: ['Authentication', 'X-HIDDEN'],
+            body: {
+                type: 'object',
+                required: ['token'],
+                properties: {
+                    token: { type: 'string' }
+                }
+            }
+        },
+        logLevel: app.config.logging.http
+    }, async (request, reply) => {
+        // We expect there to be a session at this point - but without a verified mfa token
+        if (request.sid) {
+            request.session = await app.db.controllers.Session.getOrExpire(request.sid)
+            if (request.session) {
+                if (await app.db.controllers.User.verifyMFAToken(request.session.User, request.body.token)) {
+                    request.session.mfa_verified = true
+                    await request.session.save()
+                    reply.send()
+                    return
+                }
+                await request.session.destroy()
+            }
+            reply.clearCookie('sid')
+        }
+        reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
     })
 
     /**

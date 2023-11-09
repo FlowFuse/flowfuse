@@ -520,4 +520,101 @@ describe('Accounts API', async function () {
             body.quota.should.have.property('context')
         })
     })
+
+    describe('MFA Tokens', async function () {
+        let mfaToken
+        before(async function () {
+            const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTA4ODAwLCJleHAiOjc5ODY5ODg3OTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjo1LCJ0ZWFtcyI6NTAsInByb2plY3RzIjo1MCwiZGV2aWNlcyI6NTAsImRldiI6dHJ1ZSwiaWF0IjoxNjYyNTQ4NjAyfQ.vvSw6pm-NP5e0NUL7yMOG-w0AgB8H3NRGGN7b5Dw_iW5DiIBbVQ4HVLEi3dyy9fk7WgKnloiCCkIFJvN79fK_g'
+            app = await setup({ license })
+            const user = await app.factory.createUser({
+                admin: true,
+                username: 'mfaUser',
+                name: 'MFA User',
+                email: 'mfa@example.com',
+                password: 'mmPassword'
+            })
+            mfaToken = await app.db.models.MFAToken.createTokenForUser(user)
+        })
+        after(async function () {
+            await app.close()
+        })
+
+        it('prompts for mfa token when enabled', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/account/login',
+                payload: { username: 'mfauser', password: 'mmPassword' }
+            })
+            response.should.have.property('statusCode', 403)
+            response.cookies.should.have.length(1)
+            response.cookies[0].should.have.property('name', 'sid')
+            const result = response.json()
+            result.should.have.property('code', 'mfa_required')
+
+            // Provide a good token - TODO: real token handling
+            const mfaResponse = await app.inject({
+                method: 'POST',
+                url: '/account/login/token',
+                payload: { token: mfaToken.generateToken() },
+                cookies: { sid: response.cookies[0].value }
+            })
+            mfaResponse.should.have.property('statusCode', 200)
+        })
+
+        it('rejects invalid mfa token', async function () {
+            // Do initial login
+            const response = await app.inject({
+                method: 'POST',
+                url: '/account/login',
+                payload: { username: 'mfauser', password: 'mmPassword' }
+            })
+            // Check we got 403'd to prompt for mfa token
+            response.should.have.property('statusCode', 403)
+
+            // Provide a bad token - TODO: real token handling
+            const mfaResponse = await app.inject({
+                method: 'POST',
+                url: '/account/login/token',
+                payload: { token: '000000' },
+                cookies: { sid: response.cookies[0].value }
+            })
+            mfaResponse.should.have.property('statusCode', 401)
+            // Check it clears the old session cookie
+            mfaResponse.cookies.should.have.length(1)
+            mfaResponse.cookies[0].should.have.property('name', 'sid')
+            mfaResponse.cookies[0].should.have.property('value', '')
+        })
+
+        it('rejects access if session does not have mfa verified flag set', async function () {
+            // Do initial login
+            const response = await app.inject({
+                method: 'POST',
+                url: '/account/login',
+                payload: { username: 'mfauser', password: 'mmPassword' }
+            })
+            // Check we got 403'd to prompt for mfa token
+            response.should.have.property('statusCode', 403)
+
+            // Check our session cookie doesn't allow general api access
+            const apiResponse = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user',
+                cookies: { sid: response.cookies[0].value }
+            })
+            apiResponse.should.have.property('statusCode', 401)
+            // Check it clears the old session cookie
+            apiResponse.cookies.should.have.length(1)
+            apiResponse.cookies[0].should.have.property('name', 'sid')
+            apiResponse.cookies[0].should.have.property('value', '')
+
+            // Check we cannot continue the mfa auth flow with this session - TODO: real token handling
+            const mfaResponse = await app.inject({
+                method: 'POST',
+                url: '/account/login/token',
+                payload: { token: mfaToken.generateToken() },
+                cookies: { sid: response.cookies[0].value }
+            })
+            mfaResponse.should.have.property('statusCode', 401)
+        })
+    })
 })
