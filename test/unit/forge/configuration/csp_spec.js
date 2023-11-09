@@ -2,7 +2,7 @@ const should = require('should') // eslint-disable-line
 
 const FF_UTIL = require('flowforge-test-utils')
 
-describe.only('Check CSP values parsed', async () => {
+describe('Check CSP values parsed', async () => {
     let app
 
     afterEach(async function () {
@@ -45,5 +45,7 @@ describe.only('Check CSP values parsed', async () => {
         const headers = response.headers
         headers.should.have.property('content-security-policy')
         const csp = response.headers['content-security-policy']
+        csp.split(';').should.containEql('base-uri \'self\'')
+        csp.split(';').should.containEql('script-src \'self\' \'unsafe-inline\' \'unsafe-eval\'')
     })
 })
