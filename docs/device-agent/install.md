@@ -105,8 +105,8 @@ and DockerHub.
  - Docker: `flowforge/device-agent` -> `flowfuse/device-agent`
 
 For backwards compatibility we will continue to publish to both the old and
-new locations for a period of time, but we strong encourage users to update to the
-new packages to ensure you continue to receive the latest updates.
+new locations for a period of time, but we strongly encourage users to update to the
+new package to ensure you continue to receive the latest updates.
 
 ### Linux/MacOS
 
