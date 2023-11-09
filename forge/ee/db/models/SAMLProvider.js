@@ -60,6 +60,10 @@ module.exports = {
                         where: { id }
                     })
                 },
+                byDefault: async () => {
+                    const provider = await this.findOne()
+                    return provider
+                },
                 forEmail: async (email) => {
                     const emailParts = email.split('@')
                     const domain = '@' + emailParts.pop().toLowerCase()

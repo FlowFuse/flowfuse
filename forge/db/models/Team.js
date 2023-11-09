@@ -13,6 +13,10 @@ module.exports = {
     schema: {
         name: { type: DataTypes.STRING, allowNull: false, validate: { not: /:\/\// } },
         slug: { type: DataTypes.STRING, unique: true, validate: { is: /^[a-z0-9-_]+$/i } },
+        samlGroupOwner: { type: DataTypes.STRING },
+        samlGroupMember: { type: DataTypes.STRING },
+        samlGroupViewer: { type: DataTypes.STRING },
+        samlGroupDashboard: { type: DataTypes.STRING },
         avatar: { type: DataTypes.STRING }
     },
     hooks: function (M, app) {
@@ -173,7 +177,7 @@ module.exports = {
                         },
                         include: {
                             model: M.Team,
-                            attributes: ['hashid', 'links', 'id', 'name', 'avatar', 'slug'],
+                            attributes: ['hashid', 'links', 'id', 'name', 'avatar', 'slug', 'samlGroupOwner', 'samlGroupMember', 'samlGroupViewer', 'samlGroupDashboard'],
                             include: { model: M.TeamType, attributes: ['hashid', 'id', 'name'] }
                         },
                         attributes: {

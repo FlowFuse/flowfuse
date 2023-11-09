@@ -6,6 +6,10 @@ module.exports = function (app) {
             id: { type: 'string' },
             name: { type: 'string' },
             slug: { type: 'string' },
+            samlGroupOwner: { type: 'string' },
+            samlGroupMember: { type: 'string' },
+            samlGroupViewer: { type: 'string' },
+            samlGroupDashboard: { type: 'string' },
             avatar: { type: 'string' },
             links: { $ref: 'LinksMeta' }
         }
@@ -18,6 +22,10 @@ module.exports = function (app) {
             id: team.hashid,
             name: team.name,
             slug: team.slug,
+            samlGroupOwner: team.samlGroupOwner,
+            samlGroupMember: team.samlGroupMember,
+            samlGroupViewer: team.samlGroupViewer,
+            samlGroupDashboard: team.samlGroupDashboard,
             avatar: team.avatar,
             links: team.links
         }
@@ -49,6 +57,10 @@ module.exports = function (app) {
                 name: result.name,
                 type: app.db.views.TeamType.teamType(result.TeamType),
                 slug: result.slug,
+                samlGroupOwner: result.samlGroupOwner,
+                samlGroupMember: result.samlGroupMember,
+                samlGroupViewer: result.samlGroupViewer,
+                samlGroupDashboard: result.samlGroupDashboard,
                 avatar: result.avatar,
                 instanceCount: result.projectCount,
                 memberCount: result.memberCount,

@@ -14,6 +14,9 @@ module.exports = {
             async login (actionedBy, error, user) {
                 await log('account.login', actionedBy, generateBody({ error, user: (error ? user : null) }))
             },
+            async samlAdminLogin (actionedBy, error, user) {
+                await log('account.saml-admin-login', actionedBy, generateBody({ error, user: error ? user : null }))
+            },
             async forgotPassword (actionedBy, error, user) {
                 await log('account.forgot-password', actionedBy, generateBody({ error, user }))
             },

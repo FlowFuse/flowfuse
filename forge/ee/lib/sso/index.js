@@ -11,6 +11,14 @@ module.exports.init = async function (app) {
         return null
     }
 
+    async function getDefaultProvider () {
+        const provider = await app.db.models.SAMLProvider.byDefault()
+        if (provider) {
+            return provider
+        }
+        return null
+    }
+
     async function getProviderForEmail (email) {
         const provider = await app.db.models.SAMLProvider.forEmail(email)
         if (provider) {
@@ -64,6 +72,7 @@ module.exports.init = async function (app) {
         handleLoginRequest,
         isSSOEnabledForEmail,
         getProviderOptions,
+        getDefaultProvider,
         getProviderForEmail
     }
 }

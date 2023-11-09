@@ -30,7 +30,21 @@
                 </div>
             </template>
         </FormRow>
+        <FormRow id="teamSamlGroupOwner" v-model="input.samlGroupOwner" :type="editing ? 'text' : 'uneditable'" :error="errors.samlGroupOwner">
+            <template #default>SAML Group ID Owner</template>
+        </FormRow>
 
+        <FormRow id="teamSamlGroupMember" v-model="input.samlGroupMember" :type="editing ? 'text' : 'uneditable'" :error="errors.samlGroupMember">
+            <template #default>SAML Group ID Member</template>
+        </FormRow>
+
+        <FormRow id="teamSamlGroupOwner" v-model="input.samlGroupViewer" :type="editing ? 'text' : 'uneditable'" :error="errors.samlGroupViewer">
+            <template #default>SAML Group ID Viewer</template>
+        </FormRow>
+
+        <FormRow id="teamSamlGroupOwner" v-model="input.samlGroupDashboard" :type="editing ? 'text' : 'uneditable'" :error="errors.samlGroupDashboard">
+            <template #default>SAML Group ID Dashboard Only</template>
+        </FormRow>
         <div class="space-x-4 whitespace-nowrap">
             <template v-if="!editing">
                 <ff-button kind="primary" @click="editName">Edit team settings</ff-button>
@@ -130,6 +144,26 @@ export default {
                 changed = true
             }
 
+            if (this.input.samlGroupOwner !== this.team.samlGroupOwner) {
+                options.samlGroupOwner = this.input.samlGroupOwner
+                changed = true
+            }
+
+            if (this.input.samlGroupMember !== this.team.samlGroupMember) {
+                options.samlGroupMember = this.input.samlGroupMember
+                changed = true
+            }
+
+            if (this.input.samlGroupViewer !== this.team.samlGroupViewer) {
+                options.samlGroupViewer = this.input.samlGroupViewer
+                changed = true
+            }
+
+            if (this.input.samlGroupDashboard !== this.team.samlGroupDashboard) {
+                options.samlGroupDashboard = this.input.samlGroupDashboard
+                changed = true
+            }
+
             if (!changed) {
                 this.cancelEditName()
                 return
@@ -152,6 +186,10 @@ export default {
             this.editing = false
             this.input.teamName = this.team.name
             this.input.slug = this.team.slug
+            this.input.samlGroupOwner = this.team.samlGroupOwner
+            this.input.samlGroupMember = this.team.samlGroupMember
+            this.input.samlGroupViewer = this.team.samlGroupViewer
+            this.input.samlGroupDashboard = this.team.samlGroupDashboard
             this.input.teamType = this.team.type.name
         },
 

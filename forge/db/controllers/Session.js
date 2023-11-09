@@ -1,3 +1,4 @@
+const { Roles } = require('../../lib/roles')
 const { generateToken } = require('../utils')
 
 const HOUR = 1000 * 60 * 60
@@ -16,6 +17,63 @@ module.exports = {
     createUserSession: async function (app, username) {
         const user = await app.db.models.User.byUsernameOrEmail(username)
         if (user && !user.suspended) {
+            if (user.sso_enabled) {
+                try {
+                    const tmpSamlGroups = JSON.parse(user.saml_groups)
+                    const allTeams = await app.db.models.Team.getAll()
+                    const samlAssignedTeams = await user.getSAMLAssignedTeams()
+
+                    // Remove all SAML assigned teams
+                    for (const team of samlAssignedTeams) {
+                        app.log.info('Removing user ' + user.email + ' from team ' + team.Team.name)
+                        if (await app.db.controllers.Team.removeUser(team.Team, user)) {
+                            app.log.info('User was removed')
+                        } else {
+                            app.log.info('User was not removed')
+                        }
+                    }
+
+                    for (const team of allTeams.teams) {
+                        let owner = false
+                        let member = false
+                        let viewer = false
+                        let dashboard = false
+
+                        // First iterate to determine if the user is a member of multiple groups
+                        tmpSamlGroups.forEach((group) => {
+                            if (team.samlGroupOwner === group) {
+                                owner = true
+                            } else if (team.samlGroupMember === group) {
+                                member = true
+                            } else if (team.samlGroupViewer === group) {
+                                viewer = true
+                            } else if (team.samlGroupDashboard === group) {
+                                dashboard = true
+                            }
+                        })
+
+                        // Add role for the highest capability group
+                        let role = null
+                        if (owner) {
+                            role = Roles.Owner
+                        } else if (member) {
+                            role = Roles.Member
+                        } else if (viewer) {
+                            role = Roles.Viewer
+                        } else if (dashboard) {
+                            role = Roles.Dashboard
+                        }
+                        if (role) {
+                            // Add user with samlAdded set to true
+                            app.log.info('Adding user ' + user.email + ' with role ' + role)
+                            await app.db.controllers.Team.addUser(team, user, role, true)
+                        }
+                    }
+                } catch (e) {
+                    app.log.info(e)
+                }
+            }
+
             return app.db.models.Session.create({
                 sid: generateToken(32, 'ffu'),
                 expiresAt: Date.now() + DEFAULT_WEB_SESSION_EXPIRY,
