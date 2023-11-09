@@ -9,6 +9,24 @@ describe('Check CSP values parsed', async () => {
         await app.close()
     })
 
+    it('CSP Report only should be disabled', async function () {
+        const config = {
+            content_security_policy: {
+                enabled: false
+            }
+        }
+        app = await FF_UTIL.setupApp(config)
+
+        const response = await app.inject({
+            method: 'GET',
+            url: '/'
+        })
+
+        const headers = response.headers
+        headers.should.not.have.property('content-security-policy-report-only')
+        headers.should.not.have.property('content-security-policy')
+    })
+
     it('CSP Report only should be enabled', async function () {
         const config = {
             content_security_policy: {
