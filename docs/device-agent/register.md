@@ -67,7 +67,7 @@ By default, the device agent expects the configuration file to be named `device.
 The agent can then be started with the command: [^global-install]
 
 ```bash
-flowforge-device-agent
+flowfuse-device-agent
 ```
 
 You will see the device start and perform a 'call-home' where it connects back
@@ -112,7 +112,7 @@ until it is assigned to another instance.
 
 ## Assign the device to an Application
 
-The next step is to assign the device to a FlowForge Application
+The next step is to assign the device to a FlowFuse Application
 
 1. Go to your teams's **Devices** page.
 2. Open the dropdown menu to the right of the device you want to assign and
@@ -178,9 +178,9 @@ to provide absolute paths to files containing the certificates/keys.
 
 ```yml
 https:
-   keyPath: /opt/flowforge-device/certs/key.pem
-   certPath: /opt/flowforge-device/certs/cert.pem
-   caPath: /opt/flowforge-device/certs/ca.pem
+   keyPath: /opt/flowfuse-device/certs/key.pem
+   certPath: /opt/flowfuse-device/certs/cert.pem
+   caPath: /opt/flowfuse-device/certs/ca.pem
 ```
 
 ### `httpStatic` configuration
@@ -192,7 +192,7 @@ This option can be used to serve content from a local directory.
 If set to a path, the files in that directory will be served relative to `/`.
 
 ```yml
-httpStatic: /opt/flowforge-device/static-content
+httpStatic: /opt/flowfuse-device/static-content
 ```
 
 It is also possible to configure it with a list of directories and the corresponding
@@ -200,9 +200,9 @@ path they should be served from.
 
 ```yml
 httpStatic:
-  - path: /opt/flowforge-device/static-content/images
+  - path: /opt/flowfuse-device/static-content/images
     root: /images
-  - path: /opt/flowforge-device/static-content/js
+  - path: /opt/flowfuse-device/static-content/js
     root: /js
 ```
 
