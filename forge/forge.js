@@ -168,6 +168,10 @@ module.exports = async (options = {}) => {
                         'upgrade-insecure-requests': null
                     }
                 }
+            } else {
+                contentSecurityPolicy = {
+                    directives: runtimeConfig.content_security_policy.directives
+                }
             }
 
             if (runtimeConfig.content_security_policy.report_only) {
