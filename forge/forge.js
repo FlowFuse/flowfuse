@@ -153,9 +153,52 @@ module.exports = async (options = {}) => {
             secret: server.settings.get('cookieSecret')
         })
         await server.register(csrf, { cookieOpts: { _signed: true, _httpOnly: true } })
+
+        let contentSecurityPolicy = false
+        if (runtimeConfig.content_security_policy?.enabled) {
+            if (!runtimeConfig.content_security_policy.directives) {
+                contentSecurityPolicy = {
+                    directives: {
+                        'base-uri': ["'self'"],
+                        'default-src': ["'self'"],
+                        'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+                        'img-src': ["'self'", 'data:', 'www.gravatar.com'],
+                        'font-src': ["'self'"],
+                        'style-src': ["'self'", 'https:', "'unsafe-inline'"],
+                        'upgrade-insecure-requests': null
+                    }
+                }
+            }
+
+            if (runtimeConfig.content_security_policy.report_only) {
+                contentSecurityPolicy.reportOnly = true
+                if (runtimeConfig.content_security_policy.report_uri) {
+                    contentSecurityPolicy.directives['report-uri'] = runtimeConfig.content_security_policy.report_uri
+                }
+            }
+
+            if (runtimeConfig.telemetry.frontend?.plausible?.domain) {
+                contentSecurityPolicy.directives['script-src'].push('plausible.io')
+            }
+            if (runtimeConfig.telemetry.frontend?.posthog?.apikey) {
+                contentSecurityPolicy.directives['script-src'].push(runtimeConfig.telemetry.frontend.posthog.apiurl || 'https://app.posthog.com')
+            }
+            if (runtimeConfig.support?.enabled && runtimeConfig.support.frontend?.hubspot?.trackingcode) {
+                const hubspotDomains = [
+                    'js-eu1.hs-analytics.com',
+                    'js-eu1.hs-banner.com',
+                    'js-eu1.hs-scripts.com',
+                    'js-eu1.hscollectedforms.net',
+                    'js-eu1.hubspot.com',
+                    'js-eu1.usemessages.com'
+                ]
+                contentSecurityPolicy.directives['script-src'].push(...hubspotDomains)
+            }
+        }
+
         await server.register(helmet, {
             global: true,
-            contentSecurityPolicy: false,
+            contentSecurityPolicy,
             crossOriginEmbedderPolicy: false,
             crossOriginOpenerPolicy: false,
             crossOriginResourcePolicy: false,
