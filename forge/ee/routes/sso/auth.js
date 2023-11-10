@@ -108,6 +108,12 @@ module.exports = fp(async function (app, opts, done) {
             if (sessionInfo) {
                 request.user.sso_enabled = true
                 request.user.email_verified = true
+                if (request.user.mfa_enabled) {
+                    // They are mfa_enabled - but have authenticated via SSO
+                    // so we will let them in without further challenge
+                    sessionInfo.session.mfa_verified = true
+                    await sessionInfo.session.save()
+                }
                 await request.user.save()
                 userInfo.id = sessionInfo.session.UserId
                 reply.setCookie('sid', sessionInfo.session.sid, sessionInfo.cookieOptions)
