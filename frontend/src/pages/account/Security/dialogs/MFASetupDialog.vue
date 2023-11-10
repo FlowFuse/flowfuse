@@ -22,7 +22,7 @@
         <template #actions>
             <ff-button v-if="step < 2" data-action="mfa-setup-cancel" kind="secondary" @click="cancel()">Cancel</ff-button>
             <ff-button v-if="step < 2" data-action="mfa-setup-next" class="ml-4" :disabled="!canContinue" @click="next()">Next</ff-button>
-            <ff-button v-if="step===2" data-action="mfa-setup-done" class="ml-4" @click="close()">Done</ff-button>
+            <ff-button v-if="step===2" data-action="mfa-setup-done" class="ml-4" @click="complete()">Done</ff-button>
             <ff-button v-if="step===3" data-action="mfa-setup-done" class="ml-4" @click="cancel()">Done</ff-button>
         </template>
     </ff-dialog>
@@ -38,6 +38,7 @@ export default {
     components: {
         FormRow
     },
+    emits: ['user-updated'],
     setup () {
         return {
             async show () {
@@ -72,8 +73,13 @@ export default {
         close () {
             this.$refs.dialog.close()
         },
+        complete () {
+            this.$emit('user-updated')
+            this.close()
+        },
         async cancel () {
             await userApi.disableMFA()
+            this.$emit('user-updated')
             this.close()
         },
         async next () {

@@ -18,7 +18,7 @@
             </div>
         </div>
     </form>
-    <MFASetupDialog ref="mfaSetupDialog" />
+    <MFASetupDialog ref="mfaSetupDialog" @user-updated="userUpdated" />
 </template>
 
 <script>
@@ -46,6 +46,10 @@ export default {
         ...mapState('account', ['user', 'features'])
     },
     methods: {
+        async userUpdated () {
+            const user = await userApi.getUser()
+            this.$store.dispatch('account/setUser', user)
+        },
         setupMFA () {
             this.$refs.mfaSetupDialog.show()
         },
@@ -57,6 +61,7 @@ export default {
                 confirmLabel: 'Disable'
             }, async () => {
                 await userApi.disableMFA()
+                return this.userUpdated()
             })
         }
     }
