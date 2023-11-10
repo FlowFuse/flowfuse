@@ -19,11 +19,6 @@ module.exports = {
     },
     hooks: function (M, app) {
         return {
-            afterCreate: async (token, opts) => {
-                const user = await token.getUser()
-                user.mfa_enabled = true
-                return user.save()
-            },
             afterDestroy: async (token, opts) => {
                 const user = await token.getUser()
                 user.mfa_enabled = false
@@ -34,9 +29,13 @@ module.exports = {
     finders: function (M) {
         return {
             instance: {
-                generateQRCode: async function () {
-                    const authURL = speakeasy.otpauthURL({ secret: this.token, label: 'FlowFuse' })
-                    return QRCode.toDataURL(authURL)
+                generateAuthURL: async function () {
+                    const user = await this.getUser()
+                    const authURL = speakeasy.otpauthURL({ secret: this.token, label: `${user.username}@FlowFuse` })
+                    return {
+                        url: authURL,
+                        qrcode: await QRCode.toDataURL(authURL)
+                    }
                 },
                 verifyToken: function (token) {
                     return speakeasy.totp.verify({ secret: this.token, window: 1, token })
@@ -50,7 +49,7 @@ module.exports = {
             static: {
                 createTokenForUser: async (user) => {
                     // There can be only one.
-                    await M.MFAToken.destroy({ where: { UserId: user.id } })
+                    await M.MFAToken.destroy({ where: { UserId: user.id }, individualHooks: true })
                     // Generate a new token
                     const tokens = speakeasy.generateSecret()
                     return M.MFAToken.create({
@@ -67,6 +66,9 @@ module.exports = {
                 verifyTokenForUser: async (user, token) => {
                     const mfaToken = await M.MFAToken.forUser(user)
                     return !!(mfaToken && mfaToken.verifyToken(token))
+                },
+                deleteTokenForUser: async (user) => {
+                    return M.MFAToken.destroy({ where: { UserId: user.id }, individualHooks: true })
                 }
             }
         }
