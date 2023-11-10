@@ -203,6 +203,16 @@ const updatePersonalAccessToken = async (id, scope, expiresAt) => {
     return client.put('/api/v1/user/tokens/' + id, { scope, expiresAt })
 }
 
+const enableMFA = async () => {
+    return client.put('/api/v1/user/mfa', {}).then(res => res.data)
+}
+const disableMFA = async () => {
+    return client.delete('/api/v1/user/mfa').then(res => res.data)
+}
+const verifyMFA = async (token) => {
+    return client.put('/api/v1/user/mfa/verify', { token }).then(res => res.data)
+}
+
 export default {
     registerUser,
     getUser,
@@ -224,5 +234,8 @@ export default {
     getPersonalAccessTokens,
     createPersonalAccessToken,
     deletePersonalAccessToken,
-    updatePersonalAccessToken
+    updatePersonalAccessToken,
+    enableMFA,
+    verifyMFA,
+    disableMFA
 }
