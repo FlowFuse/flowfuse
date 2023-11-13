@@ -182,10 +182,18 @@ module.exports = async (options = {}) => {
             }
 
             if (runtimeConfig.telemetry.frontend?.plausible?.domain) {
-                contentSecurityPolicy.directives['script-src'].push('plausible.io')
+                if (contentSecurityPolicy.directives['script-src'] && Array.isArray(contentSecurityPolicy.directives['script-src'])) {
+                    contentSecurityPolicy.directives['script-src'].push('plausible.io')
+                } else {
+                    contentSecurityPolicy.directives['script-src'] = ['plausible.io']
+                }
             }
             if (runtimeConfig.telemetry.frontend?.posthog?.apikey) {
-                contentSecurityPolicy.directives['script-src'].push(runtimeConfig.telemetry.frontend.posthog.apiurl || 'https://app.posthog.com')
+                if (contentSecurityPolicy.directives['script-src'] && Array.isArray(contentSecurityPolicy.directives['script-src'])) {
+                    contentSecurityPolicy.directives['script-src'].push(runtimeConfig.telemetry.frontend.posthog.apiurl || 'https://app.posthog.com')
+                } else {
+                    contentSecurityPolicy.directives['script-src'] = [runtimeConfig.telemetry.frontend.posthog.apiurl || 'https://app.posthog.com']
+                }
             }
             if (runtimeConfig.support?.enabled && runtimeConfig.support.frontend?.hubspot?.trackingcode) {
                 const hubspotDomains = [
@@ -196,7 +204,11 @@ module.exports = async (options = {}) => {
                     'js-eu1.hubspot.com',
                     'js-eu1.usemessages.com'
                 ]
-                contentSecurityPolicy.directives['script-src'].push(...hubspotDomains)
+                if (contentSecurityPolicy.directives['script-src'] && Array.isArray(contentSecurityPolicy.directives['script-src'])) {
+                    contentSecurityPolicy.directives['script-src'].push(...hubspotDomains)
+                } else {
+                    contentSecurityPolicy.directives['script-src'] = hubspotDomains
+                }
             }
         }
 
