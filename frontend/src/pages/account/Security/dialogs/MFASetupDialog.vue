@@ -1,23 +1,41 @@
 <template>
     <ff-dialog ref="dialog" data-el="mfa-setup" header="Setup two-factor authentication">
         <template #default>
-            <template v-if="step === 0">
-                <div class="text-center">
-                    <img v-if="!!qrcode" :src="qrcode">
-                </div>
-            </template>
-            <template v-if="step === 1">
-                <FormRow v-model="verifyToken" data-form="verify-token" maxlength="6">
-                    Enter a code from your Authenticator app to ensure its working
-                </FormRow>
-            </template>
-            <template v-if="step === 2">
-                Two-factor authentication is now enabled.
-            </template>
-            <template v-if="step === 3">
-                Failed to verify the autentication code. You will need to restart
-                the setup to try again.
-            </template>
+            <div class="space-y-4">
+                <template v-if="step === 0">
+                    <p>
+                        To get started, scan the following QR code into your Authenticator app, then click next to continue.
+                    </p>
+                    <div class="text-center mt-4">
+                        <img v-if="!!qrcode" :src="qrcode" class="m-auto border rounded">
+                    </div>
+                </template>
+                <template v-if="step === 1">
+                    <p>
+                        Enter a code from your Authenticator app to check everything is working.
+                    </p>
+                    <div class="w-32">
+                        <ff-text-input
+                            ref="verify-token"
+                            v-model="verifyToken"
+                            :maxlength="6"
+                            data-form="verify-token"
+                            class=""
+                        />
+                    </div>
+                </template>
+                <template v-if="step === 2">
+                    <p>
+                        Two-factor authentication is now enabled.
+                    </p>
+                    <p>
+                        You will need to provide a code from your Authenticator app each time you login from now on.
+                    </p>
+                </template>
+                <template v-if="step === 3">
+                    Failed to verify the code. You will need to restart the setup to try again.
+                </template>
+            </div>
         </template>
         <template #actions>
             <ff-button v-if="step < 2" data-action="mfa-setup-cancel" kind="secondary" @click="cancel()">Cancel</ff-button>
@@ -29,15 +47,10 @@
 </template>
 
 <script>
-
 import userApi from '../../../../api/user.js'
-import FormRow from '../../../../components/FormRow.vue'
 
 export default {
     name: 'MFASetupDialog',
-    components: {
-        FormRow
-    },
     emits: ['user-updated'],
     setup () {
         return {
@@ -66,7 +79,7 @@ export default {
     computed: {
         canContinue () {
             return this.step === 0 ||
-                (this.step === 1 && this.verifyToken.length === 6)
+                (this.step === 1 && /^\d\d\d\d\d\d$/.test(this.verifyToken))
         }
     },
     methods: {
@@ -85,6 +98,8 @@ export default {
         async next () {
             if (this.step === 0) {
                 this.step = 1
+                await this.$nextTick()
+                this.$refs['verify-token'].focus()
             } else if (this.step === 1) {
                 try {
                     await userApi.verifyMFA(this.verifyToken)

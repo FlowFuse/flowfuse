@@ -13,8 +13,8 @@
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button v-if="!user.mfa_enabled" data-action="enable-mfa" kind="secondary" @click="setupMFA()">Enable two-factor authentication</ff-button>
-                <ff-button v-else data-action="disable-mfa" kind="secondary" @click="disableMFA()">Disable two-factor authentication</ff-button>
+                <ff-button v-if="!user.mfa_enabled" data-action="enable-mfa" kind="primary" @click="setupMFA()">Enable two-factor authentication</ff-button>
+                <ff-button v-else data-action="disable-mfa" kind="danger" @click="disableMFA()">Disable two-factor authentication</ff-button>
             </div>
         </div>
     </form>
