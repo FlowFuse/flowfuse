@@ -3,8 +3,7 @@ const should = require('should') // eslint-disable-line
 const FF_UTIL = require('flowforge-test-utils')
 
 describe('Check HTTP Security Headers set', async () => {
-    describe('CSP Headers', async () =>{
-
+    describe('CSP Headers', async () => {
         let app
 
         afterEach(async function () {
@@ -207,7 +206,7 @@ describe('Check HTTP Security Headers set', async () => {
             await app.close()
         })
 
-        it.only('HTST not set', async function() {
+        it('HTST not set', async function () {
             const config = {
                 base_url: 'http://localhost:9999'
             }
@@ -220,7 +219,7 @@ describe('Check HTTP Security Headers set', async () => {
             headers.should.not.have.property('strict-transport-security')
         })
 
-        it.only('HTST set', async function() {
+        it('HTST set', async function () {
             const config = {
                 base_url: 'https://localhost:9999'
             }
