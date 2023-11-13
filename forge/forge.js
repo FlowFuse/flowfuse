@@ -200,6 +200,15 @@ module.exports = async (options = {}) => {
             }
         }
 
+        let strictTransportSecurity = false
+        if (runtimeConfig.base_url.startsWith('https://')) {
+            strictTransportSecurity = {
+                includeSubDomains: false,
+                preload: true,
+                maxAge: 3600
+            }
+        }
+
         await server.register(helmet, {
             global: true,
             contentSecurityPolicy,
@@ -207,7 +216,7 @@ module.exports = async (options = {}) => {
             crossOriginOpenerPolicy: false,
             crossOriginResourcePolicy: false,
             hidePoweredBy: true,
-            hsts: false,
+            strictTransportSecurity,
             frameguard: {
                 action: 'deny'
             }
