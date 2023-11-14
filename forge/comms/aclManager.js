@@ -25,10 +25,20 @@ module.exports = function (app) {
 
             // Do the simple team id check
             if (requestParts[1] !== ids[1]) {
-                return false
+                return false // not in this team
             }
+
+            // check to see if the device is assigned to an instance?
             const assignedProject = await app.db.models.Device.getDeviceProjectId(ids[2])
-            return !!assignedProject
+            if (assignedProject) {
+                return true
+            }
+            // check to see if the device is assigned to an application
+            const assignedApplication = await app.db.models.Device.getDeviceApplicationId(ids[2])
+            if (assignedApplication) {
+                return true
+            }
+            return false
         },
         checkDeviceAssignedToProject: async function (requestParts, ids) {
             // requestParts = [ _ , <teamid>, <projectid> ]
@@ -64,12 +74,16 @@ module.exports = function (app) {
             }
             // Get the project this device is assigned to
             const assignedProject = await app.db.models.Device.getDeviceProjectId(ids[2])
-            if (!assignedProject) {
-                return false
-            }
-            if (assignedProject === requestParts[2]) {
-                // Access the project we're assigned to - all good
-                return true
+            if (assignedProject) {
+                if (assignedProject === requestParts[2]) {
+                    // Access the project we're assigned to - all good
+                    return true
+                }
+            } else {
+                const assignedApplication = await app.db.models.Device.getDeviceApplicationId(ids[2])
+                if (!assignedApplication) {
+                    return false // Device is not assigned to an application or a project - no access
+                }
             }
 
             // Need to check if this project is in the same team.
@@ -192,6 +206,10 @@ module.exports = function (app) {
                             break
                         } else if (aclList[i].verify && verifyFunctions[aclList[i].verify]) {
                             allowed = await verifyFunctions[aclList[i].verify](m, usernameParts)
+                            // ↓ Useful for debugging ↓
+                            // if (allowed !== true) {
+                            //     console.log('DENIED!', topic, aclList[i])
+                            // }
                         } else {
                             allowed = true
                         }
