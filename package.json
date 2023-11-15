@@ -158,5 +158,15 @@
     },
     "engines": {
         "node": ">=16.x"
-    }
+    },
+    "keywords": [
+        "low-code-platform",
+        "low-code-development",
+        "low-code-development-platform",
+        "visual-programming",
+        "flow-based-programming",
+        "no-code",
+        "low-code",
+        "node-red"
+    ]
 }
