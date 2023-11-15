@@ -9,8 +9,8 @@ very quick and easy to securely send and receive messages between different
 instances in a team.
 
 The nodes act in a similar way to the Node-RED Link nodes, but by allowing the
-links to extended between different instances, they open up a wide range of
-possibilities.
+links to extended between different instances and devices, they open up a wide
+range of possibilities.
 
 For example, a single Node-RED instance may contain a set of utility flows that
 you want to reuse in other instances. Rather than copy the flows around, the
@@ -18,16 +18,18 @@ Project Nodes allow you to easily call those flows and get the result back.
 
 ### Nodes
 
-There are three nodes in the Project Node collection:
+There are three nodes in this collection:
 
  - `Project In` - listens for messages being broadcast by other Node-RED instances, or for
    messages being sent just to this instance
  - `Project Out` - sends messages to other Node-RED instances
- - `Project Call` - sends messages to other instances and waits for a response
+ - `Project Call` - sends messages to other Node-RED instances and waits for a response
 
 The nodes send the whole `msg` object. Due to the way the nodes
 encode messages, there are some data types that do not get sent. For example,
 the `msg.req`/`msg.res` properties used by the core HTTP nodes will not be sent.
+Instead, they are temporarily removed from the message and re-attached when the
+message is received back.
 
 Each node is configured with a topic on which it either sends or receives messages
 on. This is similar in concept to MQTT topics - although the nodes do not currently
