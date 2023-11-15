@@ -78,7 +78,8 @@
         "flows.set": "Flow Deployed",
         "library.set": "Saved to Library",
         "nodes.install": "Third-Party Nodes Installed",
-        "nodes.remove": "Third-Party Nodes Removed"
+        "nodes.remove": "Third-Party Nodes Removed",
+        "context.delete": "Context Key Deleted"
     },
     "platform": {
         "platform.license.applied": "License Applied",
