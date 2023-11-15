@@ -3,7 +3,7 @@ navTitle: Deploying your Flows
 navOrder: 6
 ---
 
-# Deploying Flows to the Device Agent
+# Deploying Flows to the Device Agent - Team and Enterprise tier only
 
 Before you're able to deploy your flows to your device,
 you will have needed to have completed these steps:
