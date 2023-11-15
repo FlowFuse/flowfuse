@@ -60,7 +60,7 @@
             <template #default>
                 <div class="flex flex-col ml-6 mr-6">
                     <div class="mb-4">
-                        <p>Connecting. Please wait...</p>
+                        <p>Connecting to the device</p>
                     </div>
                     <div class="flex justify-between items-center">
                         <div class="flex text-center">
