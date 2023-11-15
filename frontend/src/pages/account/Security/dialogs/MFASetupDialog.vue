@@ -79,7 +79,7 @@ export default {
     computed: {
         canContinue () {
             return this.step === 0 ||
-                (this.step === 1 && /^\d\d\d\d\d\d$/.test(this.verifyToken))
+                (this.step === 1 && /^\d{6}$/.test(this.verifyToken))
         }
     },
     methods: {
