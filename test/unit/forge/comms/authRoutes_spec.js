@@ -600,17 +600,6 @@ describe('Broker Auth API', async function () {
             let deviceCommandTopic
             let deviceStatusTopic
             async function setupDeviceTestObjects () {
-                // await app.inject({
-                //     method: 'POST',
-                //     url: '/api/v1/devices',
-                //     body: {
-                //         name: 'my device',
-                //         type: 'test device',
-                //         team: TestObjects.ATeam.hashid
-                //     },
-                //     cookies: { sid: TestObjects.tokens.alice }
-                // })
-                // create DeviceA
                 TestObjects.DeviceA = await factory.createDevice({ name: 'my device', type: 'test device' }, TestObjects.ATeam, null, null)
                 deviceUsername = `device:${TestObjects.ATeam.hashid}:${TestObjects.DeviceA.hashid}`
                 deviceCommandTopic = `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.DeviceA.hashid}/command`
