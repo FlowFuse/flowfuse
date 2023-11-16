@@ -1,33 +1,33 @@
 <template>
     <ff-loading v-if="loading" message="Loading Logs..." />
     <div v-if="showOfflineBanner" class="ff-banner ff-banner-info my-2 rounded p-2 font-mono">
-      <span>
-        <span>The Node-RED instance cannot be reached at this time. Please wait...</span>
-      </span>
+        <span>
+            <span>The Node-RED instance cannot be reached at this time. Please wait...</span>
+        </span>
     </div>
     <div v-if="!instance.meta || instance.meta.state === 'suspended'" class="flex text-gray-500 justify-center italic mb-4 p-8">
-      Logs unavailable
+        Logs unavailable
     </div>
     <div :class="showOfflineBanner ? 'forge-log-offline-background' : ''" class="mx-auto text-xs border bg-gray-800 text-gray-200 rounded p-2 font-mono">
-      <div v-if="prevCursor" class="flex">
-        <a class="text-center w-full hover:text-blue-400 cursor-pointer pb-1" @click="loadPrevious">Load earlier...</a>
-      </div>
-      <div v-if="filteredLogEntries.length > 0">
-        <p
-          v-for="(item, itemIdx) in filteredLogEntries"
-          :key="itemIdx"
-          class="whitespace-pre-wrap"
-          :class="'forge-log-entry-level-' + item.level"
-        >
-          <span v-if="instance.ha?.replicas !== undefined" class="w-14 flex-shrink-0">[{{ item.src }}]</span>
-          <span class="w-40 flex-shrink-0">{{ item.date }}</span>
-          <span class="ml-5 w-20 flex-shrink-0 align-right">[{{ item.level }}]</span>
-          <span :class="item.level === 'system' ? 'ml-3' : 'ml-7'" class="flex-grow break-all whitespace-pre-wrap inline-flex">{{ item.msg }}</span>
-          <br />
-        </p>
-      </div>
+        <div v-if="prevCursor" class="flex">
+            <a class="text-center w-full hover:text-blue-400 cursor-pointer pb-1" @click="loadPrevious">Load earlier...</a>
+        </div>
+        <div v-if="filteredLogEntries.length > 0">
+            <p
+                v-for="(item, itemIdx) in filteredLogEntries"
+                :key="itemIdx"
+                class="whitespace-pre-wrap"
+                :class="'forge-log-entry-level-' + item.level"
+            >
+                <span v-if="instance.ha?.replicas !== undefined" class="w-14 flex-shrink-0">[{{ item.src }}]</span>
+                <span class="w-40 flex-shrink-0">{{ item.date }}</span>
+                <span class="ml-5 w-20 flex-shrink-0 align-right">[{{ item.level }}]</span>
+                <span :class="item.level === 'system' ? 'ml-3' : 'ml-7'" class="flex-grow break-all whitespace-pre-wrap inline-flex">{{ item.msg }}</span>
+                <br>
+            </p>
+        </div>
     </div>
-  </template>
+</template>
 
 <script>
 import InstanceApi from '../../../api/instances.js'
