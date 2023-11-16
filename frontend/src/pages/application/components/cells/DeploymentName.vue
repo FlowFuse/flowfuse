@@ -2,7 +2,7 @@
     <span
         class="flex items-center"
     >
-        <CloudIcon class="w-6 mr-2 text-gray-500" />
+        <ProjecsIcon class="w-6 mr-2 text-red-800" />
         <div class="flex flex-col space-y-1">
             {{ name }}
         </div>
@@ -10,11 +10,11 @@
 </template>
 
 <script>
-import { CloudIcon } from '@heroicons/vue/outline'
+import ProjecsIcon from '../../../../components/icons/Projects.js'
 
 export default {
     name: 'DeploymentName',
-    components: { CloudIcon },
+    components: { ProjecsIcon },
     inheritAttrs: false,
     props: {
         name: {

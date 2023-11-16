@@ -34,25 +34,33 @@
             </div>
         </div>
         <div v-if="stage.instance || stage.device" class="py-3">
-            <div style="border:1px dashed red;margin:5px">
-                <div class="ff-pipeline-stage-row">
-                    <label>Instance:</label>
-                    <span>
-                        <router-link v-if="stage.instance?.id" :to="{name: 'Instance', params: { id: stage.instance.id }}">
-                            {{ stage.instance.name }}
-                        </router-link>
-                        <template v-else>None</template>
-                    </span>
+            <div>
+                <div v-if="stage.instance?.id" class="ff-pipeline-stage-type">
+                    <IconNodeRedSolid class="ff-icon ff-icon-lg text-red-800" />
+                    <div>
+                        <label class="flex items-center gap-2">Instance:</label>
+                        <span>
+                            <router-link :to="{name: 'Instance', params: { id: stage.instance.id }}">
+                                {{ stage.instance.name }}
+                            </router-link>
+                        </span>
+                    </div>
                 </div>
-                <div class="ff-pipeline-stage-row">
-                    <label>Device:</label>
-                    <span>
-                        <router-link v-if="stage.device?.id" :to="{name: 'Device', params: { id: stage.device.id }}">
-                            {{ stage.device.name }}
-                        </router-link>
-                        <template v-else>None</template>
-                    </span>
+                <div v-if="stage.device?.id" class="ff-pipeline-stage-row">
+                    <IconDeviceSolid class="ff-icon ff-icon-lg text-teal-700" />
+                    <div>
+                        <label>Device:</label>
+                        <span>
+                            <router-link :to="{name: 'Device', params: { id: stage.device.id }}">
+                                {{ stage.device.name }}
+                            </router-link>
+                        </span>
+                    </div>
                 </div>
+            </div>
+            <div class="ff-pipeline-stage-row">
+                <label>Last Deployed:</label>
+                <span>{{ stage.flowLastUpdatedSince ? stage.flowLastUpdatedSince : 'Unknown' }}</span>
             </div>
             <div v-if="stage.instance" class="ff-pipeline-stage-row">
                 <label>URL:</label>
@@ -61,10 +69,6 @@
                     :href="stage.instance.url"
                     :target="stage.instance.name"
                 >{{ stage.instance.url }}</a>
-            </div>
-            <div class="ff-pipeline-stage-row">
-                <label>Last Deployed:</label>
-                <span>{{ stage.flowLastUpdatedSince ? stage.flowLastUpdatedSince : 'Unknown' }}</span>
             </div>
             <div v-if="stage.instance" class="ff-pipeline-stage-row">
                 <label>Status:</label>
@@ -93,7 +97,7 @@
         />
     </div>
     <div v-else class="ff-pipeline-stage ff-pipeline-stage-ghost" data-action="add-stage">
-        <PlusCircleIcon class="ff-icon ff-icon-lg" />
+        <PlusCircleIcon class="ff-icon ff-icon-xl" />
         <label>Add Stage</label>
     </div>
 </template>
@@ -107,6 +111,8 @@ import InstanceStatusBadge from '../../pages/instance/components/InstanceStatusB
 
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
+import IconDeviceSolid from '../icons/DeviceSolid.js'
+import IconNodeRedSolid from '../icons/NodeRedSolid.js'
 
 import SpinnerIcon from '../icons/Spinner.js'
 
@@ -121,7 +127,9 @@ export default {
         PlayIcon,
         PlusCircleIcon,
         SpinnerIcon,
-        TrashIcon
+        TrashIcon,
+        IconDeviceSolid,
+        IconNodeRedSolid
     },
     props: {
         application: {

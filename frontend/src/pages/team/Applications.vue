@@ -48,7 +48,7 @@
                             <label>Instances</label>
                             <li v-for="instance in Array.from(application.instances.values())" :key="instance.id" @click.stop="openInstance(instance)">
                                 <span class="flex justify-center mr-3">
-                                    <ProjectIcon class="ff-icon text-gray-600" />
+                                    <IconNodeRedSolid class="ff-icon ff-icon-lg text-red-800" />
                                 </span>
                                 <div class="ff-applications-list--instance">
                                     <label>{{ instance.name }}</label>
@@ -126,7 +126,7 @@ import { PlusSmIcon, TemplateIcon } from '@heroicons/vue/outline'
 import teamApi from '../../api/team.js'
 import EmptyState from '../../components/EmptyState.vue'
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
-import ProjectIcon from '../../components/icons/Projects.js'
+import IconNodeRedSolid from '../../components/icons/NodeRedSolid.js'
 import permissionsMixin from '../../mixins/Permissions.js'
 import Alerts from '../../services/alerts.js'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
@@ -139,7 +139,7 @@ export default {
         InstanceStatusBadge,
         InstanceStatusPolling,
         PlusSmIcon,
-        ProjectIcon,
+        IconNodeRedSolid,
         TemplateIcon
     },
     mixins: [permissionsMixin],

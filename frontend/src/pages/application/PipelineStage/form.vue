@@ -26,7 +26,7 @@
         </div>
 
         <div>
-            <label class="w-full block text-sm font-medium text-gray-700 mb-1">Stage Type</label>
+            <label class="w-full block text-sm font-medium text-gray-700 mb-2">Stage Type</label>
             <ff-tile-selection v-model="input.stageType">
                 <ff-tile-selection-option
                     label="Instance"
@@ -52,6 +52,7 @@
             v-model="input.name"
             type="text"
             data-form="stage-name"
+            placeholder="e.g. Development, Staging, Production"
         >
             <template #default>
                 Stage name
@@ -322,7 +323,7 @@ export default {
                 { value: 'prompt', label: 'Prompt to select snapshot' }
             ]
 
-            if (this.input.stageType == StageType.INSTANCE) {
+            if (this.input.stageType === StageType.INSTANCE) {
                 options.unshift({ value: 'create_snapshot', label: 'Create new snapshot' })
             }
 
