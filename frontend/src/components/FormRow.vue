@@ -1,5 +1,5 @@
 <template>
-    <div :class="containerClass ? containerClass : 'max-w-sm'">
+    <div :class="containerClass ? containerClass : 'max-w-full'">
         <!-- Checkbox -->
         <template v-if="type==='checkbox'">
             <div class="flex" :class="(wrapperClass ? wrapperClass : 'items-center')">
