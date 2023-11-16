@@ -18,7 +18,7 @@ FlowFuse file nodes replace the core Node-RED file nodes. To make use of these
 nodes, the FlowFuse platform Administrator must ensure the core file nodes are 
 not loaded.
 
-This is done by adding `10-file-js` in the **Exclude nodes by filename** 
+This is done by adding `10-file.js` in the **Exclude nodes by filename** 
 section of your instance settings under the **Palette** section.
 
 This setting is modifiable only by a Team owner and only if it has not been
