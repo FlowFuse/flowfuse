@@ -18,6 +18,7 @@
                 :key="itemIdx"
                 class="whitespace-pre-wrap"
                 :class="'forge-log-entry-level-' + item.level"
+                data-el="instance-log-row"
             >
                 <span v-if="instance.ha?.replicas !== undefined" class="w-14 flex-shrink-0">[{{ item.src }}]</span>
                 <span class="w-40 flex-shrink-0">{{ item.date }}</span>
