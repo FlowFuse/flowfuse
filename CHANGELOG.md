@@ -1,3 +1,33 @@
+#### 1.13.3: Release
+
+ - fix forgot password email input field (#3081) @sumitshinde-84
+ - Fix typo as to which file to exluse (#3083) @hardillb
+ - Add Icon and detail for 'context.delete' audit entry (#3078) @Steve-Mcl
+ - Update deploy.md (#3079) @ZJvandeWeg
+ - New stack version error (#3036) @hardillb
+ - Ensure device provisioning data shown (#3076) @hardillb
+ - Add keywords to strengthen associations (#3077) @Steve-Mcl
+ - Bump fastify from 4.24.0 to 4.24.3 (#3069) @app/dependabot
+ - Bump sequelize from 6.33.0 to 6.35.0 (#3070) @app/dependabot
+ - Bump postcss-preset-env from 9.1.3 to 9.3.0 (#3071) @app/dependabot
+ - Bump @sentry/webpack-plugin from 2.7.1 to 2.10.0 (#3072) @app/dependabot
+ - Bump lru-cache from 10.0.1 to 10.0.2 (#3068) @app/dependabot
+ - Enable CSP in report only mode (#3062) @hardillb
+ - Bump axios from 1.5.0 to 1.6.0 (#3067) @app/dependabot
+ - Update device agent docs to reflect package changes (#3063) @knolleary
+ - Merge test workflows (#3037) @ppawlowski
+ - Refactor array splicing to be a computed property (#3052) @Pezmc
+ - Bump @aws-sdk/credential-provider-node from 3.421.0 to 3.441.0 (#3050) @app/dependabot
+ - Bump marked from 9.0.3 to 9.1.5 (#3051) @app/dependabot
+ - Bump @vitest/coverage-istanbul from 0.34.5 to 0.34.6 (#3053) @app/dependabot
+ - Bump vue-template-compiler from 2.7.14 to 2.7.15 (#3055) @app/dependabot
+ - Bump @babel/core from 7.23.0 to 7.23.2 (#3054) @app/dependabot
+ - Fix URL of FF helm chart (#3046) @hardillb
+ - Avoid unnecessary retrieval of full snapshot contents where possible (#3025) @knolleary
+ - Prevent snapshots of devices without applications / instances (#3026) @Pezmc
+ - rebrand: Rebrand the platform from Forge (#3044) @ZJvandeWeg
+ - Chore: Reduce sentry reporting rate (#3041) @Pezmc
+
 #### 1.13.2: Release
 
  - Bump vue-router from 4.2.4 to 4.2.5 (#3027) @app/dependabot
