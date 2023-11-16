@@ -12,16 +12,16 @@
         <div v-if="prevCursor" class="flex">
             <a class=" text-center w-full hover:text-blue-400 cursor-pointer pb-1" @click="loadPrevious">Load earlier...</a>
         </div>
-        <div
+        <p v-if="filteredLogEntries.length > 0" class="whitespace-pre-wrap"
             v-for="(item, itemIdx) in filteredLogEntries" :key="itemIdx"
-            data-el="instance-log-row"
-            class="flex" :class="'forge-log-entry-level-' + item.level"
-        >
-            <div v-if="instance.ha?.replicas !== undefined" class="w-14 flex-shrink-0">[{{ item.src }}]</div>
-            <div class="w-40 flex-shrink-0">{{ item.date }}</div>
-            <div class="w-20 flex-shrink-0 align-right">[{{ item.level }}]</div>
-            <div class="flex-grow break-all whitespace-pre-wrap">{{ item.msg }}</div>
-        </div>
+            :class="'forge-log-entry-level-' + item.level"
+            >
+                <span v-if="instance.ha?.replicas !== undefined" class="w-14 flex-shrink-0">[{{ item.src }}]</span>
+                <span class=" w-40 flex-shrink-0 ">{{ item.date }}</span>
+                <span  class="ml-5 w-20 flex-shrink-0 align-right">[{{ item.level }}]</span>
+                <span :class="item.level === 'system' ? 'ml-3' : 'ml-7'" class="flex-grow break-all whitespace-pre-wrap inline-flex">{{ item.msg }}</span>
+                <br>
+        </p>
     </div>
 </template>
 
