@@ -28,14 +28,9 @@ module.exports = function (app) {
                 return false // not in this team
             }
 
-            // check to see if the device is assigned to an instance?
-            const assignedProject = await app.db.models.Device.getDeviceProjectId(ids[2])
-            if (assignedProject) {
-                return true
-            }
-            // check to see if the device is assigned to an application
-            const assignedApplication = await app.db.models.Device.getDeviceApplicationId(ids[2])
-            if (assignedApplication) {
+            // check to see if the device is assigned to something?
+            const assignedTo = await app.db.models.Device.getOwnerTypeAndId(ids[2])
+            if (assignedTo && assignedTo.ownerType && assignedTo.ownerId) {
                 return true
             }
             return false
@@ -72,17 +67,16 @@ module.exports = function (app) {
             if (requestParts[1] !== ids[1]) {
                 return false
             }
-            // Get the project this device is assigned to
-            const assignedProject = await app.db.models.Device.getDeviceProjectId(ids[2])
-            if (assignedProject) {
-                if (assignedProject === requestParts[2]) {
+            // check to see if the device is assigned to something?
+            const assignedTo = await app.db.models.Device.getOwnerTypeAndId(ids[2])
+            if (!assignedTo?.ownerType || !assignedTo?.ownerId) {
+                return false
+            }
+            // If the device is assigned to a project and that matches the request project - all good
+            if (assignedTo.ownerType === 'instance') {
+                if (assignedTo.ownerId === requestParts[2]) {
                     // Access the project we're assigned to - all good
                     return true
-                }
-            } else {
-                const assignedApplication = await app.db.models.Device.getDeviceApplicationId(ids[2])
-                if (!assignedApplication) {
-                    return false // Device is not assigned to an application or a project - no access
                 }
             }
 
