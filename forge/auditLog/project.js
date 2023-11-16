@@ -28,8 +28,8 @@ module.exports = {
             async copied (actionedBy, error, project, targetProject) {
                 await log('project.copied', actionedBy, project?.id, generateBody({ error, project, targetProject }))
             },
-            async imported (actionedBy, error, project, sourceProject) {
-                await log('project.imported', actionedBy, project?.id, generateBody({ error, project, sourceProject }))
+            async imported (actionedBy, error, project, sourceProject, sourceDevice) {
+                await log('project.imported', actionedBy, project?.id, generateBody({ error, project, sourceProject, sourceDevice }))
             },
             async flowImported (actionedBy, error, project) {
                 await log('project.flow-imported', actionedBy, project?.id, generateBody({ error, project }))
@@ -81,8 +81,8 @@ module.exports = {
                 async deviceTargetSet (actionedBy, error, project, snapshot) {
                     await log('project.snapshot.device-target-set', actionedBy, project?.id, generateBody({ error, project, snapshot }))
                 },
-                async imported (actionedBy, error, project, sourceProject, snapshot) {
-                    await log('project.snapshot.imported', actionedBy, project?.id, generateBody({ error, project, sourceProject, snapshot }))
+                async imported (actionedBy, error, project, sourceProject, sourceDevice, snapshot) {
+                    await log('project.snapshot.imported', actionedBy, project?.id, generateBody({ error, project, sourceProject, sourceDevice, snapshot }))
                 },
                 async exported (actionedBy, error, project, snapshot) {
                     await log('project.snapshot.exported', actionedBy, project?.id, generateBody({ error, project, snapshot }))

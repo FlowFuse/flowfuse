@@ -3,7 +3,7 @@ const { ValidationError } = require('sequelize')
 const { registerPermissions } = require('../../../lib/permissions')
 const { Roles } = require('../../../lib/roles.js')
 
-const { createSnapshot, copySnapshot, generateDeploySnapshotDescription, generateDeploySnapshotName } = require('../../../services/snapshots')
+const { copySnapshot, generateDeploySnapshotDescription, generateDeploySnapshotName } = require('../../../services/snapshots')
 
 module.exports = async function (app) {
     registerPermissions({
@@ -387,7 +387,6 @@ module.exports = async function (app) {
 
             reply.send(await app.db.views.PipelineStage.stage(hydratedStage))
         } catch (err) {
-            console.log(err)
             reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
@@ -487,164 +486,87 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const user = request.session.User
 
-        const sourceStage = await app.db.models.PipelineStage.byId(request.params.stageId)
-
-        if (!sourceStage) {
-            return reply.code(404).send({ code: 'not_found', error: 'Source stage not found' })
-        } else if (sourceStage.PipelineId !== request.pipeline.id) {
-            return reply.code(400).send({ code: 'invalid_stage', error: 'Source stage must be part of the same pipeline' })
-        }
-
-        const targetStage = await app.db.models.PipelineStage.byId(sourceStage.NextStageId)
-
-        if (!targetStage) {
-            return reply.code(404).send({ code: 'not_found', error: 'Target stage not found' })
-        } else if (targetStage.PipelineId !== request.pipeline.id) {
-            return reply.code(400).send({ code: 'invalid_stage', error: 'Target stage must be part of the same pipeline' })
-        }
-
-        const sourceInstances = await sourceStage.getInstances()
-        const sourceDevices = await sourceStage.getDevices()
-        const totalSources = sourceInstances.length + sourceDevices.length
-        if (totalSources === 0) {
-            return reply.code(400).send({ code: 'invalid_stage', error: 'Source stage must have at least one instance or device' })
-        } else if (totalSources > 1) {
-            return reply.code(400).send({ code: 'invalid_stage', error: 'Deployments are currently only supported for source stages with a single instance or device' })
-        }
-
-        const targetInstances = await targetStage.getInstances()
-        const targetDevices = await targetStage.getDevices()
-        const totalTargets = targetInstances.length + targetDevices.length
-        if (totalTargets === 0) {
-            return reply.code(400).send({ code: 'invalid_stage', error: 'Target stage must have at least one instance or device' })
-        } else if (targetInstances.length > 1) {
-            return reply.code(400).send({ code: 'invalid_stage', error: 'Deployments are currently only supported for target stages with a single instance or device' })
-        }
-
-        const sourceInstance = sourceInstances[0]
-        const targetInstance = targetInstances[0]
-
-        const sourceDevice = sourceDevices[0]
-        const targetDevice = targetDevices[0]
-
-        const sourceObject = sourceInstance || sourceDevice
-        const targetObject = targetInstance || targetDevice
-
-        if (sourceObject.TeamId !== targetObject.TeamId) {
-            return reply.code(403).send({ code: 'invalid_stage', error: `Source ${sourceInstance ? 'instance' : 'device'} and Target ${targetInstance ? 'instance' : 'device'} not in same team` })
-        }
-
-        sourceObject.Team = await app.db.models.Team.byId(sourceObject.TeamId)
-        if (!sourceObject.Team) {
-            return reply.code(404).send({ code: 'invalid_stage', error: `Target ${sourceInstance ? 'instance' : 'device'} not associated with a team` })
-        }
-
-        let sourceSnapshot
-        try {
-            if (sourceInstance) {
-                if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.USE_LATEST_SNAPSHOT) {
-                    sourceSnapshot = await sourceInstance.getLatestSnapshot()
-                    if (!sourceSnapshot) {
-                        return reply.code(400).send({ code: 'invalid_source_instance', error: 'No snapshots found for source stages instance but deploy action is set to use latest snapshot' })
-                    }
-                } else if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.CREATE_SNAPSHOT) {
-                    sourceSnapshot = await createSnapshot(app, sourceInstance, user, {
-                        name: generateDeploySnapshotName(),
-                        description: generateDeploySnapshotDescription(sourceStage, targetStage, request.pipeline),
-                        setAsTarget: false // no need to deploy to devices of the source
-                    })
-                } else if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.PROMPT) {
-                    const sourceSnapshotId = request.body?.sourceSnapshotId
-                    if (!sourceSnapshotId) {
-                        return reply.code(400).send({ code: 'no_source_snapshot', error: 'Source snapshot is required as deploy action is set to prompt for snapshot' })
-                    }
-
-                    sourceSnapshot = await app.db.models.ProjectSnapshot.byId(sourceSnapshotId)
-                    if (!sourceSnapshot) {
-                        return reply.code(400).send({ code: 'invalid_source_snapshot', error: 'Source snapshot not found' })
-                    }
-
-                    if (sourceSnapshot.ProjectId !== sourceInstance.id) {
-                        return reply.code(400).send({ code: 'invalid_source_snapshot', error: 'Source snapshot not associated with source instance' })
-                    }
-                } else {
-                    return reply.code(400).send({ code: 'invalid_action', error: `Unsupported pipeline deploy action: ${sourceStage.action}` })
-                }
-            } else if (sourceDevice) {
-                if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.USE_LATEST_SNAPSHOT) {
-                    sourceSnapshot = await sourceDevice.getLatestSnapshot()
-                    if (!sourceSnapshot) {
-                        return reply.code(400).send({ code: 'invalid_source_instance', error: 'No snapshots found for source stages device but deploy action is set to use latest snapshot' })
-                    }
-                } else if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.CREATE_SNAPSHOT) {
-                    return reply.code(400).send({ code: 'invalid_source_instance', error: 'When using a device as a source, create snapshot is not yet supported' })
-                } else if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.PROMPT) {
-                    const sourceSnapshotId = request.body?.sourceSnapshotId
-                    if (!sourceSnapshotId) {
-                        return reply.code(400).send({ code: 'no_source_snapshot', error: 'Source snapshot is required as deploy action is set to prompt for snapshot' })
-                    }
-
-                    sourceSnapshot = await app.db.models.ProjectSnapshot.byId(sourceSnapshotId)
-                    if (!sourceSnapshot) {
-                        return reply.code(400).send({ code: 'invalid_source_snapshot', error: 'Source snapshot not found' })
-                    }
-
-                    if (sourceSnapshot.DeviceId !== sourceDevice.id) {
-                        return reply.code(400).send({ code: 'invalid_source_snapshot', error: 'Source snapshot not associated with source device' })
-                    }
-                } else {
-                    return reply.code(400).send({ code: 'invalid_action', error: `Unsupported pipeline deploy action: ${sourceStage.action}` })
-                }
-            } else {
-                throw Error('No source device or instance found.')
-            }
-        } catch (err) {
-            const resp = { code: 'unexpected_error', error: err.toString() }
-            reply.code(500).send(resp)
-        }
-
-        // TODO: Only targets INSTANCES right now, not devices
-        const restartTargetInstance = targetInstance.state === 'running'
-
         let repliedEarly = false
         try {
-            app.db.controllers.Project.setInflightState(targetInstance, 'importing')
-            app.db.controllers.Project.setInDeploy(targetInstance)
+            const sourceStage = await app.db.models.PipelineStage.byId(
+                request.params.stageId
+            )
 
-            // Early return, status is loaded async
-            reply.code(200).send({ status: 'importing' })
-            repliedEarly = true
+            const {
+                sourceInstance,
+                targetInstance,
+                sourceDevice,
+                targetDevice,
+                targetStage
+            } = await app.db.controllers.Pipeline.validateSourceStageForDeploy(
+                request.pipeline,
+                sourceStage
+            )
 
-            const setAsTargetForDevices = targetStage.deployToDevices ?? false
-            const targetSnapshot = await copySnapshot(app, sourceSnapshot, targetInstance, {
-                importSnapshot: true, // target instance should import the snapshot
-                setAsTarget: setAsTargetForDevices,
-                decryptAndReEncryptCredentialsSecret: await sourceInstance.getCredentialSecret(),
-                targetSnapshotProperties: {
-                    name: generateDeploySnapshotName(sourceSnapshot),
-                    description: generateDeploySnapshotDescription(sourceStage, targetStage, request.pipeline, sourceSnapshot)
-                }
-            })
-
-            if (restartTargetInstance) {
-                await app.containers.restartFlows(targetInstance)
+            let sourceSnapshot
+            if (sourceInstance) {
+                sourceSnapshot = await app.db.controllers.Pipeline.getOrCreateSnapshotForSourceInstance(
+                    request.pipeline,
+                    sourceStage,
+                    sourceInstance,
+                    request.body?.sourceSnapshotId,
+                    user,
+                    targetStage
+                )
+            } else if (sourceDevice) {
+                sourceSnapshot = await app.db.controllers.Pipeline.getOrCreateSnapshotForSourceDevice(
+                    request.pipeline,
+                    sourceStage,
+                    sourceDevice,
+                    request.body?.sourceSnapshotId
+                )
+            } else {
+                throw new Error('No source device or instance found.')
             }
 
-            await app.auditLog.Project.project.imported(user.id, null, targetInstance, sourceInstance) // technically this isn't a project event
-            await app.auditLog.Project.project.snapshot.imported(user.id, null, targetInstance, sourceInstance, targetSnapshot)
+            if (targetInstance) {
+                const deployPromise = app.db.controllers.Pipeline.deploySnapshotToInstance(
+                    request.pipeline,
+                    sourceStage,
+                    sourceSnapshot,
+                    targetInstance,
+                    sourceInstance,
+                    sourceDevice,
+                    user,
+                    targetStage
+                )
 
-            app.db.controllers.Project.clearInflightState(targetInstance)
+                reply.code(200).send({ status: 'importing' })
+                repliedEarly = true
+
+                await deployPromise
+            } else if (targetDevice) {
+                const deployPromise = app.db.controllers.Pipeline.deploySnapshotToDevice(
+                    request.pipeline,
+                    sourceStage,
+                    sourceSnapshot,
+                    targetDevice,
+                    sourceInstance,
+                    sourceDevice,
+                    user,
+                    targetStage
+                )
+
+                reply.code(200).send({ status: 'importing' })
+                repliedEarly = true
+
+                await deployPromise
+            } else {
+                throw new Error('No target device or instance found.')
+            }
         } catch (err) {
-            app.db.controllers.Project.clearInflightState(targetInstance)
-
-            const resp = { code: 'unexpected_error', error: err.toString() }
-            await app.auditLog.Project.project.imported(user.id, null, targetInstance, sourceInstance) // technically this isn't a project event
-            await app.auditLog.Project.project.snapshot.imported(user.id, resp, targetInstance, sourceInstance, null)
-
             if (repliedEarly) {
                 console.warn('Deploy failed, but response already sent', err)
             } else {
-                reply.code(500).send(resp)
+                return reply.code(err.statusCode || 500).send({
+                    code: err.code || 'unexpected_error',
+                    error: err.error || err.message
+                })
             }
         }
     })
