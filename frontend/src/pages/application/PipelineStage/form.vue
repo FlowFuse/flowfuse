@@ -25,6 +25,28 @@
             </template>
         </div>
 
+        <div>
+            <label class="w-full block text-sm font-medium text-gray-700 mb-1">Stage Type</label>
+            <ff-tile-selection v-model="input.stageType">
+                <ff-tile-selection-option
+                    label="Instance"
+                    :value="StageType.INSTANCE"
+                    description=""
+                    color="#8F0000"
+                >
+                    <template #icon><IconNodeRedSolid /></template>
+                </ff-tile-selection-option>
+                <ff-tile-selection-option
+                    label="Device"
+                    :value="StageType.DEVICE"
+                    description=""
+                    color="#31959A"
+                >
+                    <template #icon><IconDeviceSolid /></template>
+                </ff-tile-selection-option>
+            </ff-tile-selection>
+        </div>
+
         <!-- Stage Name -->
         <FormRow
             v-model="input.name"
@@ -37,17 +59,7 @@
         </FormRow>
 
         <!-- Instance/Device -->
-        <div style="border:1px dashed red;padding:5px">
-            <FormRow
-                v-model="input.stageType"
-                :options="[{ label: 'Instance', value: StageType.INSTANCE }, { label: 'Device', value: StageType.DEVICE }]"
-                data-form="stage-type"
-            >
-                <template #default>
-                    Stage Type
-                </template>
-            </FormRow>
-
+        <div>
             <FormRow
                 v-if="input.stageType === StageType.INSTANCE"
                 v-model="input.instanceId"
@@ -120,6 +132,7 @@
 
         <!-- Deploy to Devices -->
         <FormRow
+            v-if="input.stageType === StageType.INSTANCE"
             v-model="input.deployToDevices"
             type="checkbox"
             data-form="stage-deploy-to-devices"
@@ -167,13 +180,17 @@ import { StageType } from '../../../api/pipeline.js'
 
 import FormRow from '../../../components/FormRow.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import IconDeviceSolid from '../../../components/icons/DeviceSolid.js'
+import IconNodeRedSolid from '../../../components/icons/NodeRedSolid.js'
 
 export default {
     name: 'PipelineForm',
     components: {
         InformationCircleIcon,
         SectionTopMenu,
-        FormRow
+        FormRow,
+        IconDeviceSolid,
+        IconNodeRedSolid
     },
     props: {
         applicationDevices: {
@@ -310,6 +327,14 @@ export default {
             }
 
             return options
+        }
+    },
+    watch: {
+        'input.stageType': function () {
+            // ensure deploy to device is not set with "Device" type stage
+            if (this.input.stageType === StageType.DEVICE) {
+                this.input.deployToDevices = false
+            }
         }
     },
     created () {

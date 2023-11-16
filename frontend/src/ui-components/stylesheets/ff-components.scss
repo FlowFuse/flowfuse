@@ -559,6 +559,7 @@ li.ff-list-item {
   flex-wrap: wrap;
   gap: $ff-unit-md;
   .ff-tile-selection-option {
+    --ff-tile-selection-color: #{$ff-blue-700};
     display: flex;
     flex-direction: column;
     background-color: $ff-white;
@@ -637,12 +638,12 @@ li.ff-list-item {
     }
     &:not(.editable):hover {
       cursor: pointer;
-      border: 2px solid $ff-blue-700;
+      border: 2px solid var(--ff-tile-selection-color);
     }
     &.active {
-      border: 2px solid $ff-blue-700;
+      border: 2px solid var(--ff-tile-selection-color);
       svg {
-        fill: $ff-blue-700;
+        fill: var(--ff-tile-selection-color);
       }
     }
     &.disabled {
