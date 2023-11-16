@@ -80,7 +80,7 @@ export default {
     computed: {
         ...mapState('account', ['settings', 'pending', 'loginError', 'redirectUrlAfterLogin']),
         tokenInvalid () {
-            return this.mfaRequired && this.input.token.length !== 6
+            return this.mfaRequired && !/^\d{6}$/.test(this.input.token)
         }
     },
     watch: {
