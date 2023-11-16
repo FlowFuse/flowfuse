@@ -118,7 +118,8 @@ module.exports = async function (app) {
                     admin: { type: 'boolean' },
                     password_expired: { type: 'boolean' },
                     suspended: { type: 'boolean' },
-                    defaultTeam: { type: 'string' }
+                    defaultTeam: { type: 'string' },
+                    mfa_enabled: { type: 'boolean' }
                 }
             },
             response: {

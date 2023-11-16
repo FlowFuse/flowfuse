@@ -7,6 +7,7 @@ module.exports = function (app) {
             email_verified: { type: 'boolean' },
             defaultTeam: { type: 'string' },
             sso_enabled: { type: 'boolean' },
+            mfa_enabled: { type: 'boolean' },
             free_trial_available: { type: 'boolean' },
             tcs_accepted: { type: 'string' },
             password_expired: { type: 'boolean' },
@@ -28,6 +29,9 @@ module.exports = function (app) {
         }
         if (app.config.features.enabled('sso')) {
             result.sso_enabled = !!user.sso_enabled
+        }
+        if (app.config.features.enabled('mfa')) {
+            result.mfa_enabled = !!user.mfa_enabled
         }
         return result
     }

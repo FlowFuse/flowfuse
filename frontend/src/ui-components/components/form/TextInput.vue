@@ -7,6 +7,7 @@
             :placeholder="placeholder"
             :disabled="disabled"
             :value="modelValue"
+            :maxlength="maxlength"
             @change="$emit('update:modelValue', $event.target.value)"
             @input="$emit('update:modelValue', $event.target.value)"
             @blur="$emit('blur')" @keyup.enter="$emit('enter', $evt)"
@@ -28,6 +29,10 @@ export default {
             default: ''
         },
         placeholder: {
+            type: String,
+            default: ''
+        },
+        maxlength: {
             type: String,
             default: ''
         },

@@ -246,7 +246,11 @@ const actions = {
     async login (state, credentials) {
         try {
             state.commit('setLoginInflight')
-            await userApi.login(credentials.username, credentials.password)
+            if (credentials.username) {
+                await userApi.login(credentials.username, credentials.password)
+            } else if (credentials.token) {
+                await userApi.verifyMFAToken(credentials.token)
+            }
             state.dispatch('checkState', state.getters.redirectUrlAfterLogin)
         } catch (err) {
             if (err.response.status >= 401) {

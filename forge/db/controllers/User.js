@@ -91,7 +91,18 @@ module.exports = {
         }
         throw new Error('Invalid link')
     },
-
+    verifyMFAToken: async function (app, user, token) {
+        if (!app.config.features.enabled('mfa')) {
+            // Feature not enabled
+            return false
+        }
+        if (!user.mfa_enabled) {
+            // User does not have mfa configured
+            return false
+        }
+        // Verify the token for this user
+        return app.db.models.MFAToken.verifyTokenForUser(user, token)
+    },
     generatePendingEmailChangeToken: async function (app, user, newEmailAddress) {
         const TOKEN_EXPIRY = 1000 * 60 * 60 * 24 * 2 // 48 Hours
         const expiresAt = Math.floor((Date.now() + TOKEN_EXPIRY) / 1000) // 48 hours
