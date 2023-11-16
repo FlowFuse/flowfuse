@@ -3,7 +3,7 @@
         <form v-if="!pending" class="px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
             <div v-if="flash" class="font-medium" v-text="flash" />
             <template v-else>
-                <FormRow class="!max-w-full" id="reset_email" v-model="input.email" :error="errors.email">Email address</FormRow>
+                <FormRow id="reset_email" v-model="input.email" class="!max-w-full" :error="errors.email">Email address</FormRow>
                 <ff-button @click="requestPasswordReset">
                     Send reset link
                 </ff-button>
