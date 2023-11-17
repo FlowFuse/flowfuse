@@ -53,7 +53,7 @@
                             >
                                 Create Snapshot
                             </ff-button>
-                            <span v-if="createSnapshotDisabled" class="ff-description ml-2">A device must first be assigned to an Application, in order to create snapshots.</span>
+                            <span v-if="createSnapshotDisabled" class="ff-description ml-2">A device must first be assigned to an Application or Instance in order to create snapshots.</span>
                         </div>
                     </template>
                 </InfoCardRow>
