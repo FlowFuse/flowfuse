@@ -69,9 +69,15 @@
         label {
             color: $ff-grey-500;
         }
+        a.ff-link {
+            text-overflow: ellipsis;
+            overflow-x: hidden;
+        }
     }
     .ff-pipeline-stage-type {
-        padding: 6px 18px 0.75rem;
+        padding: 6px 0px 0.75rem;
+        margin: 0 18px 0.75rem;
+        border-bottom: 1px solid $ff-grey-300;
         display: flex;
         align-items: flex-start;
         gap: 6px;

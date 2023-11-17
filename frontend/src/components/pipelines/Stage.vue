@@ -63,16 +63,16 @@
                 <span>{{ stage.flowLastUpdatedSince ? stage.flowLastUpdatedSince : 'Unknown' }}</span>
             </div>
             <div v-if="stage.instance" class="ff-pipeline-stage-row">
+                <label>Status:</label>
+                <InstanceStatusBadge :status="stage.state" />
+            </div>
+            <div v-if="stage.instance" class="ff-pipeline-stage-row">
                 <label>URL:</label>
                 <a
                     class="ff-link"
                     :href="stage.instance.url"
                     :target="stage.instance.name"
                 >{{ stage.instance.url }}</a>
-            </div>
-            <div v-if="stage.instance" class="ff-pipeline-stage-row">
-                <label>Status:</label>
-                <InstanceStatusBadge :status="stage.state" />
             </div>
             <div v-if="playEnabled" class="ff-pipeline-stage-row">
                 <label>Deploy Action:</label>
