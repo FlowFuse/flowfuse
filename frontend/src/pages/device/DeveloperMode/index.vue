@@ -117,7 +117,7 @@ export default {
             return this.developerMode && this.device.status === 'running'
         },
         createSnapshotDisabled () {
-            return this.device.ownerType !== 'application'
+            return this.device.ownerType !== 'application' && this.device.ownerType !== 'instance'
         }
     },
     watch: {

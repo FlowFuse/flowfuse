@@ -46,7 +46,7 @@ describe('FlowForge - Devices - With Billing', () => {
         cy.url().should('not.include', '/developer-mode')
     })
 
-    it('has the create snapshot disabled if the snapshot is not assigned to an application', () => {
+    it('has the create snapshot disabled if the snapshot is not assigned to an application or instance', () => {
         /// Assigned to nothing
         cy.contains('span', 'team2-unassigned-device').click()
         cy.get('[data-el="device-devmode-toggle"]').click()
@@ -61,7 +61,7 @@ describe('FlowForge - Devices - With Billing', () => {
         cy.get('[data-el="device-devmode-toggle"]').click()
         cy.get('[data-nav="device-devmode"]').click()
 
-        cy.get('[data-action="create-snapshot-dialog"]').should('be.disabled')
+        cy.get('[data-action="create-snapshot-dialog"]').should('not.be.disabled')
         cy.get('[data-el="device-devmode-toggle"]').click() // reset
 
         /// Assigned to application
