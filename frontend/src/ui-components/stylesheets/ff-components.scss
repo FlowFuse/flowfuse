@@ -758,7 +758,8 @@ li.ff-list-item {
           color: $ff-grey-400;
         }
       }
-      .selectable:hover .ff-data-table--cell {
+      .selectable:hover .ff-data-table--cell,
+      .selectable:hover .ff-data-table--cell span svg.ff-icon {
         cursor: pointer;
         color: $ff-blue-600;
         background-color: $ff-grey-50;

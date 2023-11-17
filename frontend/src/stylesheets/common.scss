@@ -137,7 +137,8 @@ label {
 
 // Handle nested buttons in a data table
 
-.ff-data-table--cell a:not(.ff-btn):hover {
+.ff-data-table--cell a:not(.ff-btn):hover,
+.ff-data-table--cell a:hover svg.ff-icon {
     color: $ff-blue-600;
 }
 

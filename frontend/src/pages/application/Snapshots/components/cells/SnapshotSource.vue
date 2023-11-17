@@ -1,18 +1,18 @@
 <template>
-    <div class="flex items-center">
+    <div>
         <template v-if="ownerType==='instance'">
-            <ProjectsIcon class="ff-icon relative top-0.5" />
-            <router-link :to="{ name: 'Instance', params: { id: project.id }}">
-                <div class="flex flex-col space-y-1 ml-3">
-                    <div class="text-base">{{ project.name }}</div>
+            <router-link class="flex items-center" :to="{ name: 'Instance', params: { id: project.id }}">
+                <IconNodeRedSolid class="ff-icon ff-icon-lg text-red-800 relative" />
+                <div class="flex flex-col ml-2">
                     <div class="text-xs text-gray-400">instance</div>
+                    <div class="text-base">{{ project.name }}</div>
                 </div>
             </router-link>
         </template>
         <template v-else-if="ownerType==='device'">
-            <ChipIcon class="ff-icon relative -top-0.5" />
-            <router-link :to="{ name: 'Device', params: { id: device.id }}">
-                <div class="flex flex-col space-y-1 ml-3">
+            <router-link class="flex items-center" :to="{ name: 'Device', params: { id: device.id }}">
+                <IconDeviceSolid class="ff-icon ff-icon-lg text-teal-700 relative" />
+                <div class="flex flex-col ml-2">
                     <div class="text-base">{{ device.name }}</div>
                     <div class="text-xs text-gray-400">{{ device.type }}</div>
                 </div>
@@ -28,13 +28,12 @@
 
 <script>
 
-import { ChipIcon } from '@heroicons/vue/outline'
-
-import ProjectsIcon from '../../../../../components/icons/Projects.js'
+import IconDeviceSolid from '../../../../../components/icons/DeviceSolid.js'
+import IconNodeRedSolid from '../../../../../components/icons/NodeRedSolid.js'
 
 export default {
     name: 'SnapshotSource',
-    components: { ChipIcon, ProjectsIcon },
+    components: { IconNodeRedSolid, IconDeviceSolid },
     inheritAttrs: false,
     props: {
         id: {

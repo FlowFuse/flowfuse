@@ -1,8 +1,8 @@
 <template>
     <span
-        class="flex items-center"
+        class="flex items-center gap-2"
     >
-        <ProjecsIcon class="w-6 mr-2 text-red-800" />
+        <IconNodeRedSolid class="ff-icon ff-icon-lg text-red-800" />
         <div class="flex flex-col space-y-1">
             {{ name }}
         </div>
@@ -10,11 +10,11 @@
 </template>
 
 <script>
-import ProjecsIcon from '../../../../components/icons/Projects.js'
+import IconNodeRedSolid from '../../../../components/icons/NodeRedSolid.js'
 
 export default {
     name: 'DeploymentName',
-    components: { ProjecsIcon },
+    components: { IconNodeRedSolid },
     inheritAttrs: false,
     props: {
         name: {
