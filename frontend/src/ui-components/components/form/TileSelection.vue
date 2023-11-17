@@ -12,6 +12,13 @@ export default {
         modelValue: {
             default: null,
             type: [String, Number]
+        },
+        /**
+         * Allow the selected option to be toggled
+         */
+        allowDeselect: {
+            default: false,
+            type: [Boolean, null]
         }
     },
     emits: ['update:modelValue'],
@@ -46,7 +53,9 @@ export default {
         },
         setSelected (selected) {
             if (selected?.value === this.modelValue) {
-                this.$emit('update:modelValue', null)
+                if (this.allowDeselection) {
+                    this.$emit('update:modelValue', null)
+                }
             } else {
                 this.$emit('update:modelValue', selected.value)
             }
