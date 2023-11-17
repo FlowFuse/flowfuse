@@ -74,7 +74,7 @@ module.exports = function (app) {
         if (device.Application && !filtered.application) {
             filtered.application = app.db.views.Application.applicationSummary(device.Application)
         }
-        if (app.license.active() && result.mode === 'developer') {
+        if (app.license.active() && result.mode === 'developer' && app.comms?.devices?.tunnelManager) {
             /** @type {import("../../ee/lib/deviceEditor/DeviceTunnelManager").DeviceTunnelManager} */
             const tunnelManager = app.comms.devices.tunnelManager
             filtered.editor = tunnelManager.getTunnelStatus(result.hashid) || {}

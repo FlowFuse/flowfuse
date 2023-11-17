@@ -152,13 +152,13 @@ export default {
 
         snapshotOptions () {
             return this.snapshots.map((snapshot) => {
+                const isActive = this.stage.stageType === StageType.INSTANCE
+                    ? this.stage.instance.targetSnapshot?.id === snapshot.id
+                    : (this.stage.stageType === StageType.DEVICE ? this.stage.device.targetSnapshot?.id === snapshot.id : false)
+
                 return {
                     value: snapshot.id,
-                    label: `${snapshot.name}${
-                        this.stage.instance.targetSnapshot?.id === snapshot.id
-                            ? ' (active)'
-                            : ''
-                    }`
+                    label: `${snapshot.name}${isActive ? ' (active)' : ''}`
                 }
             })
         }

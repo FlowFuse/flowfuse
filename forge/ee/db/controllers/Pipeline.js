@@ -10,8 +10,10 @@ class PipelineControllerError extends ControllerError {
 
 module.exports = {
     addPipelineStage: async function (app, pipeline, options) {
-        if (!options.instanceId) {
-            throw new Error('Param instanceId is required when creating a new pipeline stage')
+        if (options.instanceId && options.deviceId) {
+            throw new Error('Cannot add a pipeline stage with both instance and a device')
+        } else if (!options.instanceId && !options.deviceId) {
+            throw new Error('Param instanceId or deviceId is required when creating a new pipeline stage')
         }
 
         let source
@@ -25,8 +27,14 @@ module.exports = {
         const stage = await app.db.models.PipelineStage.create(options)
 
         // TODO: Add logic to set one or other or both
-        await stage.addInstanceId(options.instanceId)
-        await stage.addDeviceId(options.deviceId)
+        if (options.instanceId) {
+            await stage.addInstanceId(options.instanceId)
+        } else if (options.deviceId) {
+            await stage.addDeviceId(options.deviceId)
+        } else {
+            // This should never be reached due to guard at top of function
+            throw new Error('Must provide an instanceId or an deviceId')
+        }
 
         if (source) {
             const sourceStage = await app.db.models.PipelineStage.byId(source)
