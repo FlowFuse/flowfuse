@@ -40,6 +40,10 @@
     border: 1px solid $ff-grey-400;
     min-width: 275px;
     background-color: white;
+    a:hover,
+    a:hover .ff-icon {
+        color: $ff-blue-600;
+    }
     &.ff-pipeline-stage-ghost {
         border-style: dashed;
         padding: 48px 64px;

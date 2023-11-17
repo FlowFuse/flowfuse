@@ -36,26 +36,26 @@
         <div v-if="stage.instance || stage.device" class="py-3">
             <div>
                 <div v-if="stage.instance?.id" class="ff-pipeline-stage-type">
-                    <IconNodeRedSolid class="ff-icon ff-icon-lg text-red-800" />
-                    <div>
-                        <label class="flex items-center gap-2">Instance:</label>
-                        <span>
-                            <router-link :to="{name: 'Instance', params: { id: stage.instance.id }}">
+                    <router-link class="flex gap-2 items-center" :to="{name: 'Instance', params: { id: stage.instance.id }}">
+                        <IconNodeRedSolid class="ff-icon ff-icon-lg text-red-800" />
+                        <div>
+                            <label class="flex items-center gap-2">Instance:</label>
+                            <span>
                                 {{ stage.instance.name }}
-                            </router-link>
-                        </span>
-                    </div>
+                            </span>
+                        </div>
+                    </router-link>
                 </div>
                 <div v-if="stage.device?.id" class="ff-pipeline-stage-row">
-                    <IconDeviceSolid class="ff-icon ff-icon-lg text-teal-700" />
-                    <div>
-                        <label>Device:</label>
-                        <span>
-                            <router-link :to="{name: 'Device', params: { id: stage.device.id }}">
+                    <router-link :to="{name: 'Device', params: { id: stage.device.id }}">
+                        <IconDeviceSolid class="ff-icon ff-icon-lg text-teal-700" />
+                        <div>
+                            <label>Device:</label>
+                            <span>
                                 {{ stage.device.name }}
-                            </router-link>
-                        </span>
-                    </div>
+                            </span>
+                        </div>
+                    </router-link>
                 </div>
             </div>
             <div class="ff-pipeline-stage-row">
