@@ -53,7 +53,7 @@ export default {
         },
         setSelected (selected) {
             if (selected?.value === this.modelValue) {
-                if (this.allowDeselection) {
+                if (this.allowDeselect) {
                     this.$emit('update:modelValue', null)
                 }
             } else {

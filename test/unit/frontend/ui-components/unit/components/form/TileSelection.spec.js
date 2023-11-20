@@ -56,10 +56,11 @@ describe('Form > TileSelection', () => {
         expect(tile.emitted()['update:modelValue']).toBeTruthy()
         expect(tile.emitted()['update:modelValue'][0]).toEqual([1])
     })
-    it('emit updates to the model value - equal to null if different to the existing value', async () => {
+    it('emit updates to the model value - equal to null if different to the existing value and allowDeselect enabled', async () => {
         const tile = mount(TileSelection, {
             props: {
-                modelValue: null
+                modelValue: null,
+                allowDeselect: true
             },
             global: {
                 components: {
@@ -78,6 +79,29 @@ describe('Form > TileSelection', () => {
         // the emission should have occured
         expect(tile.emitted()['update:modelValue']).toBeTruthy()
         expect(tile.emitted()['update:modelValue'][0]).toEqual([null])
+    })
+    it('does not emit updates to the model value - setting to the existing value and allowDeselect disabled', async () => {
+        const tile = mount(TileSelection, {
+            props: {
+                modelValue: null,
+                allowDeselect: false
+            },
+            global: {
+                components: {
+                    TileSelectionOption
+                }
+            }
+        })
+
+        const selected = { value: 1 }
+
+        // set the model value to 1
+        await tile.setProps({ modelValue: 1 })
+        // run the "select" function, to assign to existing value
+        tile.vm.setSelected(selected)
+        await tile.vm.$nextTick()
+        // the emission should not have occured
+        expect(tile.emitted()['update:modelValue']).toBeFalsy()
     })
     it('should update the child "selected" state depending on the controllers model value', async () => {
         const tile = mount(TileSelection, {
