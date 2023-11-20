@@ -68,8 +68,6 @@ import { BeakerIcon } from '@heroicons/vue/outline'
 import semver from 'semver'
 import { mapState } from 'vuex'
 
-import deviceApi from '../../../api/devices.js'
-
 // components
 import InfoCard from '../../../components/InfoCard.vue'
 import InfoCardRow from '../../../components/InfoCardRow.vue'
@@ -88,15 +86,21 @@ export default {
         device: {
             type: Object,
             required: true
+        },
+        closingTunnel: {
+            type: Boolean,
+            default: false
+        },
+        openingTunnel: {
+            type: Boolean,
+            default: false
         }
     },
-    emits: ['device-updated'],
+    emits: ['close-tunnel', 'open-tunnel'],
     data () {
         return {
             agentSupportsDeviceAccess: false,
-            busy: false,
-            openingTunnel: false,
-            closingTunnel: false
+            busy: false
         }
     },
     computed: {
@@ -140,30 +144,13 @@ export default {
         },
         async openTunnel () {
             if (this.device.status === 'running') {
-                this.openingTunnel = true
-                try {
-                    // * Enable Device Editor (Step 1) - (browser->frontendApi) User clicks button to "Enable Editor"
-                    const result = await deviceApi.enableEditorTunnel(this.device.id)
-                    this.updateTunnelStatus(result)
-                    setTimeout(() => {
-                        this.$emit('device-updated')
-                    }, 500)
-                } finally {
-                    this.openingTunnel = false
-                }
+                this.$emit('open-tunnel')
             } else {
                 alerts.emit('The device must be in "running" state to access the editor', 'warning', 7500)
             }
         },
         async closeTunnel () {
-            this.closingTunnel = true
-            try {
-                const result = await deviceApi.disableEditorTunnel(this.device.id)
-                this.updateTunnelStatus(result)
-                this.$emit('device-updated')
-            } finally {
-                this.closingTunnel = false
-            }
+            this.$emit('close-tunnel')
         },
         showCreateSnapshotDialog () {
             this.busy = true
@@ -186,20 +173,6 @@ export default {
             }
             alerts.emit('Failed to create snapshot from the device.', 'warning')
             this.busy = false
-        },
-        updateTunnelStatus (status) {
-            // TODO: this is a hack to get the tunnel URL into the device object
-            //       so that the editor can use it.  This should be refactored
-            //       to use a Vuex store or something.
-            // eslint-disable-next-line vue/no-mutating-props
-            this.device.editor = this.device.editor || {}
-            // eslint-disable-next-line vue/no-mutating-props
-            this.device.editor.url = status.url
-            // eslint-disable-next-line vue/no-mutating-props
-            this.device.editor.enabled = !!status.enabled
-            // eslint-disable-next-line vue/no-mutating-props
-            this.device.editor.connected = !!status.connected
-            // use the tunnel-changed event to notify the parent component
         }
     }
 }
