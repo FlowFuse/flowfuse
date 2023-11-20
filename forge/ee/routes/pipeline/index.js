@@ -506,34 +506,38 @@ module.exports = async function (app) {
             let sourceSnapshot
             if (sourceInstance) {
                 sourceSnapshot = await app.db.controllers.Pipeline.getOrCreateSnapshotForSourceInstance(
-                    request.pipeline,
-                    sourceStage,
-                    sourceInstance,
-                    request.body?.sourceSnapshotId,
-                    user,
-                    targetStage
+                    {
+                        pipeline: request.pipeline,
+                        sourceStage,
+                        sourceInstance,
+                        sourceSnapshotId: request.body?.sourceSnapshotId,
+                        user,
+                        targetStage
+                    }
                 )
             } else if (sourceDevice) {
-                sourceSnapshot = await app.db.controllers.Pipeline.getOrCreateSnapshotForSourceDevice(
-                    request.pipeline,
+                sourceSnapshot = await app.db.controllers.Pipeline.getOrCreateSnapshotForSourceDevice({
+                    pipeline: request.pipeline,
                     sourceStage,
                     sourceDevice,
-                    request.body?.sourceSnapshotId
-                )
+                    sourceSnapshotId: request.body?.sourceSnapshotId
+                })
             } else {
                 throw new Error('No source device or instance found.')
             }
 
             if (targetInstance) {
                 const deployPromise = app.db.controllers.Pipeline.deploySnapshotToInstance(
-                    request.pipeline,
-                    sourceStage,
-                    sourceSnapshot,
-                    targetInstance,
-                    sourceInstance,
-                    sourceDevice,
-                    user,
-                    targetStage
+                    {
+                        pipeline: request.pipeline,
+                        sourceStage,
+                        sourceSnapshot,
+                        targetInstance,
+                        sourceInstance,
+                        sourceDevice,
+                        user,
+                        targetStage
+                    }
                 )
 
                 reply.code(200).send({ status: 'importing' })
@@ -541,16 +545,11 @@ module.exports = async function (app) {
 
                 await deployPromise
             } else if (targetDevice) {
-                const deployPromise = app.db.controllers.Pipeline.deploySnapshotToDevice(
-                    request.pipeline,
-                    sourceStage,
+                const deployPromise = app.db.controllers.Pipeline.deploySnapshotToDevice({
                     sourceSnapshot,
                     targetDevice,
-                    sourceInstance,
-                    sourceDevice,
-                    user,
-                    targetStage
-                )
+                    user
+                })
 
                 reply.code(200).send({ status: 'importing' })
                 repliedEarly = true

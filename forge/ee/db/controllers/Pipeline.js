@@ -106,7 +106,7 @@ module.exports = {
         return { sourceInstance, targetInstance, sourceDevice, targetDevice, targetStage }
     },
 
-    getOrCreateSnapshotForSourceInstance: async function (app, pipeline, sourceStage, sourceInstance, sourceSnapshotId, user, targetStage) {
+    getOrCreateSnapshotForSourceInstance: async function (app, { pipeline, sourceStage, sourceInstance, sourceSnapshotId, user, targetStage }) {
         if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.USE_LATEST_SNAPSHOT) {
             const sourceSnapshot = await sourceInstance.getLatestSnapshot()
             if (!sourceSnapshot) {
@@ -143,7 +143,7 @@ module.exports = {
         throw new PipelineControllerError('invalid_action', `Unsupported pipeline deploy action: ${sourceStage.action}`, 400)
     },
 
-    getOrCreateSnapshotForSourceDevice: async function (app, pipeline, sourceStage, sourceDevice, sourceSnapshotId) {
+    getOrCreateSnapshotForSourceDevice: async function (app, { pipeline, sourceStage, sourceDevice, sourceSnapshotId }) {
         if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.USE_LATEST_SNAPSHOT) {
             const sourceSnapshot = await sourceDevice.getLatestSnapshot()
             if (!sourceSnapshot) {
@@ -176,7 +176,20 @@ module.exports = {
         throw new PipelineControllerError('invalid_action', `Unsupported pipeline deploy action: ${sourceStage.action}`, 400)
     },
 
-    deploySnapshotToInstance: function (app, pipeline, sourceStage, sourceSnapshot, targetInstance, sourceInstance, sourceDevice, user, targetStage) {
+    /**
+     * Deploy a snapshot to an instance
+     * @param {Object} app - The application instance
+     * @param {Object} pipeline - The pipeline
+     * @param {Object} sourceStage - The source stage
+     * @param {Object} sourceSnapshot - The source snapshot object
+     * @param {Object} targetInstance - The target instance object
+     * @param {Object} sourceInstance - The source instance object
+     * @param {Object} sourceDevice - The source device object
+     * @param {Object} user - The user performing the deploy
+     * @param {Object} targetStage - The target stage
+     * @returns {Promise<Function>} - Resolves with the deploy is complete
+     */
+    deploySnapshotToInstance: function (app, { pipeline, sourceStage, sourceSnapshot, targetInstance, sourceInstance, sourceDevice, user, targetStage }) {
         const restartTargetInstance = targetInstance?.state === 'running'
 
         app.db.controllers.Project.setInflightState(targetInstance, 'importing')
