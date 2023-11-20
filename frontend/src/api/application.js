@@ -137,20 +137,28 @@ const getPipelines = async (applicationId) => {
 
     return pipelines.map((pipeline) => {
         pipeline.stages = pipeline.stages.map((stage) => {
-            // For now, in the UI, a pipeline stage can only have one instance/
-            // In the backend, multiple instances per pipeline are supported
-            // @see getPipelineStage in frontend Pipeline API
-            stage.instance = stage.instances?.[0]
+            // Might be null if there are no associated objects
             if (!stage.instances) {
                 stage.instances = []
             }
+            if (!stage.devices) {
+                stage.devices = []
+            }
+
+            // Hydrate all loaded devices
+            stage.devices.map((device) => {
+                device.lastSeenSince = device.lastSeenAt ? elapsedTime(0, device.lastSeenMs) + ' ago' : ''
+                return device
+            })
+
+            // For now, in the UI, a pipeline stage can only have one instance/device
+            // In the backend, multiple instances per pipeline are supported
+            // @see getPipelineStage in frontend Pipeline API
+            stage.instance = stage.instances?.[0]
 
             // Again, the backend supports multiple devices per stage but the UI
             // only exposes connecting one
             stage.device = stage.devices?.[0]
-            if (!stage.devices) {
-                stage.devices = []
-            }
 
             stage.stageType = stage.instance ? StageType.INSTANCE : (stage.device ? StageType.DEVICE : null)
 
