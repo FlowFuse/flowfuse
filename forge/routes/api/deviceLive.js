@@ -94,14 +94,16 @@ module.exports = async function (app) {
      */
     app.get('/snapshot', async (request, reply) => {
         const device = request.device || null
-        if (!request.device.targetSnapshot) {
-            let nodeRedVersion = '3.0.2' // default to older Node-RED
-            if (SemVer.satisfies(SemVer.coerce(device.agentVersion), '>=1.11.2')) {
-                // 1.11.2 includes fix for ESM loading of GOT, so lets use 'latest' as before
-                nodeRedVersion = 'latest'
-            }
-            // determine is device is in application mode? if so, return a default snapshot to permit the user to generate flows
-            if (request.device.isApplicationOwned) {
+        if (!device.targetSnapshot) {
+            // device does not have a target snapshot
+            // if this is an application owned device, return a starter snapshot
+            if (device.isApplicationOwned) {
+                let nodeRedVersion = '3.0.2' // default to older Node-RED
+                if (SemVer.satisfies(SemVer.coerce(device.agentVersion), '>=1.11.2')) {
+                    // 1.11.2 includes fix for ESM loading of GOT, so lets use 'latest' as before
+                    nodeRedVersion = 'latest'
+                }
+                // determine is device is in application mode? if so, return a default snapshot to permit the user to generate flows
                 const DEFAULT_APP_SNAPSHOT = {
                     id: '0',
                     name: 'Starter Snapshot',
@@ -126,17 +128,58 @@ module.exports = async function (app) {
                         FF_APPLICATION_NAME: device.Application.name
                     }
                 }
+                // as of FF v1.14.0, we permit project nodes operate on application owned devices
+                // so long as the device agent is >= 1.14.0
+                if (SemVer.satisfies(SemVer.coerce(device.agentVersion), '>=1.14.0')) {
+                    // device agent 1.13.4 and above supports project nodes for application assigned devices
+                    // @flowfuse/nr-project-nodes > v0.5.0 is required for this to work
+                    DEFAULT_APP_SNAPSHOT.modules['@flowfuse/nr-project-nodes'] = '>0.5.0'
+                }
                 return reply.send(DEFAULT_APP_SNAPSHOT)
             }
             reply.send({})
         } else {
-            const snapshot = await app.db.models.ProjectSnapshot.byId(request.device.targetSnapshot.id)
+            const snapshot = await app.db.models.ProjectSnapshot.byId(device.targetSnapshot.id)
             if (snapshot) {
+                // ensure we have a valid settings object
+                let settings = snapshot.settings
+                if (typeof snapshot.settings === 'string') {
+                    try {
+                        settings = JSON.parse(snapshot.settings)
+                    } catch (_err) {
+                        // ignore
+                    }
+                }
+                if (!settings || typeof settings !== 'object') {
+                    settings = {}
+                }
+
+                // as of FF v1.14.0, we permit project nodes to work on application owned devices
+                // so long as the device agent is >= 1.14.0
+                if (device.isApplicationOwned) {
+                    if (SemVer.satisfies(SemVer.coerce(device.agentVersion), '>=1.14.0')) {
+                        settings.modules = settings.modules || {}
+                        // @flowfuse/nr-project-nodes > v0.5.0 is required for this to work
+                        // if the snapshot does not have the new module specified OR it is a version <= 0.5.0, update it
+                        if (!settings.modules['@flowfuse/nr-project-nodes'] || SemVer.satisfies(SemVer.coerce(settings.modules['@flowfuse/nr-project-nodes']), '<=0.5.0')) {
+                            settings.modules['@flowfuse/nr-project-nodes'] = '>0.5.0'
+                        }
+                        // Belt and braces, remove old module! We don't want to be instructing the device to install both.
+                        // (the old module can be present due to a snapshot applied from an instance or instance owned device)
+                        delete settings.modules['@flowforge/nr-project-nodes']
+                    } else {
+                        // device agent 1.13.x and lower do not support project nodes for application assigned devices
+                        // remove the nr-project-nodes module to prevent agent issues
+                        delete settings.modules['@flowfuse/nr-project-nodes']
+                        delete settings.modules['@flowforge/nr-project-nodes']
+                    }
+                }
+
                 const result = {
-                    id: request.device.targetSnapshot.hashid,
+                    id: device.targetSnapshot.hashid,
                     name: snapshot.name,
                     description: snapshot.description,
-                    ...snapshot.settings,
+                    ...settings,
                     ...snapshot.flows
                 }
                 const getSecret = async () => {
@@ -151,7 +194,7 @@ module.exports = async function (app) {
                     // Need to re-encrypt these credentials from the source secret
                     // to the target Device secret
                     const secret = await getSecret()
-                    const deviceSecret = request.device.credentialSecret
+                    const deviceSecret = device.credentialSecret
                     result.credentials = app.db.controllers.Project.exportCredentials(result.credentials, secret, deviceSecret)
                 }
                 reply.send(result)
