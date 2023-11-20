@@ -226,5 +226,34 @@ module.exports = {
                 throw PipelineControllerError('unexpected_error', `Error during deploy: ${err.toString()}`, 500, { cause: err })
             }
         }
+    },
+
+    /**
+     * Deploy a snapshot to a device
+     * @param {Object} app - The application instance
+     * @param {Object} sourceSnapshot - The source snapshot object
+     * @param {Object} targetDevice - The target device object
+     * @param {Object} user - The user performing the deploy
+     * @returns {Promise<Function>} - Resolves with the deploy is complete
+     */
+    deploySnapshotToDevice: async function (app, { sourceSnapshot, targetDevice, user }) {
+        try {
+            // store original value for later audit log
+            const originalSnapshotId = targetDevice.targetSnapshotId
+
+            // Update the targetSnapshot of the device
+            await targetDevice.update({ targetSnapshotId: sourceSnapshot.id })
+
+            await app.auditLog.Application.application.device.snapshot.deviceTargetSet(user, null, targetDevice.Application, targetDevice, sourceSnapshot)
+
+            const updates = new app.auditLog.formatters.UpdatesCollection()
+            updates.push('targetSnapshotId', originalSnapshotId, targetDevice.targetSnapshotId)
+            await app.auditLog.Team.team.device.updated(user, null, targetDevice.Team, targetDevice, updates)
+
+            const updatedDevice = await app.db.models.Device.byId(targetDevice.id) // fully reload with associations
+            await app.db.controllers.Device.sendDeviceUpdateCommand(updatedDevice)
+        } catch (err) {
+            throw PipelineControllerError('unexpected_error', `Error during deploy: ${err.toString()}`, 500, { cause: err })
+        }
     }
 }
