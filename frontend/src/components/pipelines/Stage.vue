@@ -58,12 +58,17 @@
                     </router-link>
                 </div>
             </div>
-            <div class="ff-pipeline-stage-row">
-                <label>Last Deployed:</label>
-                <span>{{ stage.flowLastUpdatedSince ? stage.flowLastUpdatedSince : 'Unknown' }}</span>
-            </div>
             <div v-if="stage.instance" class="ff-pipeline-stage-row">
-                <label>Status:</label>
+                <label>Last Deployed:</label>
+                <span>{{ stage.flowLastUpdatedSince ?? 'Unknown' }}</span>
+            </div>
+            <div v-else-if="stage.device" class="ff-pipeline-stage-row">
+                <label>Last Seen:</label>
+                <span>{{ stage.lastSeenSince ?? 'Unknown' }}</span>
+            </div>
+            <div v-if="stage.instance || stage.device" class="ff-pipeline-stage-row">
+                <label v-if="stage.device">Last Known Status:</label>
+                <label v-else>Status:</label>
                 <InstanceStatusBadge :status="stage.state" />
             </div>
             <div v-if="stage.instance" class="ff-pipeline-stage-row">

@@ -42,6 +42,7 @@
             :application="application"
             :pipeline="pipeline"
             :instance-status-map="instanceStatusMap"
+            :device-status-map="deviceStatusMap"
             @stage-deploy-starting="stageDeployStarting"
             @stage-deploy-started="startPollingForDeployStatus"
             @pipeline-deleted="loadPipelines"
@@ -121,7 +122,11 @@ export default {
         return {
             pipelines: [],
             instanceStatusMap: new Map(),
-            polling: null
+            deviceStatusMap: new Map(),
+            polling: {
+                instances: null,
+                devices: null
+            }
         }
     },
     computed: {
@@ -137,20 +142,43 @@ export default {
     },
     methods: {
         stageDeployStarting (stage, nextStage) {
-            if (!nextStage.instance?.id) {
-                return console.warn('Deployment starting to stage without an instance.')
+            // Optimistic flagging of deployment in progress
+            if (nextStage.instance?.id) {
+                this.instanceStatusMap.get(nextStage.instance.id).isDeploying = true
+            } else if (nextStage.device?.id) {
+                this.deviceStatusMap.get(nextStage.device.id).isDeploying = true
+            } else {
+                return console.warn('Deployment starting to stage without an instance or device.')
             }
+        },
+        startPollingForDeployStatus (stage, nextStage) {
+            clearInterval(this.polling)
 
-            // Optimistic flagging of deployment in progress for the single instance inside the target stage
-            this.instanceStatusMap.get(nextStage.instance.id).isDeploying = true
+            if (nextStage.instance?.id) {
+                this.startPollingForInstanceDeployStatus()
+            } else if (nextStage.device?.id) {
+                this.startPollingForInstanceDeployStatus()
+            } else {
+                return console.warn('Polling started for stage without an instance or device.')
+            }
         },
-        startPollingForDeployStatus (stage) {
-            clearInterval(this.polling)
-            this.polling = setInterval(this.loadInstanceStatus, 5000)
+        startPollingForInstanceDeployStatus () {
+            clearInterval(this.polling.instances)
+            this.polling.instances = setInterval(this.loadInstanceStatus, 5000)
         },
-        stageDeployCompleted () {
-            clearInterval(this.polling)
-            this.polling = null
+        startPollingForDeviceDeployStatus () {
+            clearInterval(this.polling.devices)
+            this.polling.devices = setInterval(this.loadDeviceStatus, 5000)
+        },
+        stageInstanceDeployCompleted () {
+            clearInterval(this.polling.instances)
+            this.polling.instances = null
+
+            Alerts.emit('Deployment of stage successful.', 'confirmation')
+        },
+        stageDeviceDeployCompleted () {
+            clearInterval(this.polling.devices)
+            this.polling.devices = null
 
             Alerts.emit('Deployment of stage successful.', 'confirmation')
         },
@@ -166,7 +194,10 @@ export default {
             }
         },
         async loadPipelines () {
+            // getPipelines doesn't include full instance status information, kick this off async
+            // Not needed for devices as device status is returned as part of pipelines API
             this.loadInstanceStatus()
+
             ApplicationAPI.getPipelines(this.application.id)
                 .then((pipelines) => {
                     this.pipelines = pipelines
@@ -182,22 +213,55 @@ export default {
                         return instance.meta.isDeploying
                     })
 
-                    if (this.polling) {
+                    if (this.polling.instance) {
                         // We were polling for status (triggered by deploy start) and all instances have finished deploying
                         if (!deployingInstances) {
-                            this.stageDeployCompleted()
+                            this.stageInstanceDeployCompleted()
                         }
                     } else {
                         // Some instances are deploying, so we need to start polling for status
                         if (deployingInstances) {
-                            this.startPollingForDeployStatus()
+                            this.startPollingForInstanceDeployStatus()
                         }
                     }
 
                     this.instanceStatusMap = new Map(
-                        instances.map((obj) => {
-                            const previousStatus = this.instanceStatusMap.get(obj.id)
-                            return [obj.id, { ...previousStatus, ...obj.meta, flowLastUpdatedSince: obj.flowLastUpdatedSince }]
+                        instances.map((instance) => {
+                            const previousStatus = this.instanceStatusMap.get(instance.id)
+                            return [instance.id, { ...previousStatus, ...instance.meta, flowLastUpdatedSince: instance.flowLastUpdatedSince }]
+                        })
+                    )
+                })
+                .catch((err) => {
+                    console.error(err)
+                })
+        },
+
+        async loadDeviceStatus () {
+            ApplicationAPI.getApplicationDevices(this.application.id, null, null, null, { statusOnly: true })
+                .then((result) => {
+                    const devices = result?.devices || []
+
+                    const deployingDevices = devices.some((device) => {
+                        return device.isDeploying
+                    })
+
+                    if (this.polling.devices) {
+                        // We were polling for status (triggered by deploy start) and all devices have finished deploying
+                        if (!deployingDevices) {
+                            this.stageDeviceDeployCompleted()
+                        }
+                    } else {
+                        // Some instances are deploying, so we need to start polling for status
+                        if (deployingDevices) {
+                            this.startPollingForDeviceDeployStatus()
+                        }
+                    }
+
+                    this.deviceStatusMap = new Map(
+                        devices.map((device) => {
+                            const previousStatus = this.deviceStatusMap.get(device.id)
+                            return [device.id, { ...previousStatus, ...device }]
                         })
                     )
                 })
