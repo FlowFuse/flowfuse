@@ -56,39 +56,24 @@
             </template>
             <template #header>Setup Team Billing</template>
             <template #message>
-                <p v-if="trialMode">
-                    You have <span class="font-bold" v-text="trialEndsIn" /> left of your trial.
-                </p>
-                <p>
-                    During the trial you can make full use of the features available to your team. To keep things running you will need to setup your billing details.
-                </p>
+                <template v-if="!trialHasEnded">
+                    <p v-if="trialMode">
+                        You have <span class="font-bold" v-text="trialEndsIn" /> left of your trial.
+                    </p>
+                    <p>
+                        During the trial you can make full use of the features available to your team. To keep things running you will need to setup your billing details.
+                    </p>
+                </template>
+                <template v-else>
+                    <p>
+                        You trial has ended. You will need to setup billing to continuing using this team.
+                    </p>
+                </template>
             </template>
             <template #actions>
                 <ff-button data-action="change-team-type" :to="{name: 'TeamChangeType'}">Setup Billing</ff-button>
-                <!-- <ff-button data-action="setup-payment-details" class="mx-auto mt-3" @click="setupBilling()">
-                    <template #icon-right><ExternalLinkIcon /></template>
-                    Setup Payment Details
-                </ff-button> -->
             </template>
         </EmptyState>
-        <!-- <div v-else class="ff-no-data ff-no-data-large">
-            <div class="max-w-lg mx-auto">
-                <div v-if="trialMode">
-                    You are currently in a free trial.
-                    <template v-if="isRestrictedTrial">
-                        During the trial you can only create one application instance in the team. To unlock other features you will need to configure your billing details.
-                    </template>
-                    <template v-else>
-                        During the trial you can make full use of the features available to your team. To keep things running you will need to configure your billing details.
-                    </template>
-                </div>
-                <div v-else>
-                    Billing has not yet been configured for this team. Before proceeding further, you must continue to Stripe and complete this.
-                </div>
-            </div>
-            <div class="mt-6">
-            </div>
-        </div> -->
     </ff-page>
 </template>
 
@@ -189,6 +174,9 @@ export default {
         },
         trialMode () {
             return this.team.billing?.trial
+        },
+        trialHasEnded () {
+            return this.team.billing?.trialEnded
         },
         isRestrictedTrial () {
             return !!this.team.type?.properties?.trial?.instanceType

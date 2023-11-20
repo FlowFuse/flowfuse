@@ -20,12 +20,12 @@
                         Change your team type
                     </template>
                     <template v-else>
-                        Select you team type
+                        Select your team type
                     </template>
                 </FormHeading>
                 <!-- TeamType Type -->
                 <div class="flex flex-wrap gap-1 items-stretch">
-                    <ff-tile-selection v-model="input.teamTypeId">
+                    <ff-tile-selection v-model="input.teamTypeId" data-form="team-type">
                         <ff-tile-selection-option
                             v-for="(teamType, index) in teamTypes" :key="index"
                             :disabled="isTypeChange && team.type.id === teamType.id"
@@ -38,17 +38,17 @@
                 </div>
                 <template v-if="billingEnabled">
                     <div class="mb-8 text-sm text-gray-500 space-y-2">
-                        <template v-if="trialMode">
+                        <template v-if="trialMode && !trialHasEnded">
                             <p>Setting up billing will bring your free trial to an end</p>
                         </template>
                         <p v-if="isTypeChange">Your billing subscription will be updated to reflect the new costs</p>
                     </div>
                 </template>
 
-                <ff-button v-if="isTypeChange" :disabled="!formValid" @click="updateTeam()">
+                <ff-button v-if="isTypeChange" :disabled="!formValid" data-action="change-team-type" @click="updateTeam()">
                     Change team type
                 </ff-button>
-                <ff-button v-else :disabled="!formValid" @click="setupBilling()">
+                <ff-button v-else :disabled="!formValid" data-action="setup-team-billing" @click="setupBilling()">
                     Setup Payment Details
                 </ff-button>
             </form>
@@ -101,6 +101,9 @@ export default {
         },
         trialMode () {
             return this.team.billing?.trial
+        },
+        trialHasEnded () {
+            return this.team.billing?.trialEnded
         },
         billingSetup () {
             return this.billingEnabled && this.team.billing?.active
