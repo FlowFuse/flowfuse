@@ -334,7 +334,7 @@ export default {
                     }
                 }
             } else {
-                Alerts.emit('The device must be in "running" state to access the editor', 'warning', 7500)
+                Alerts.emit('Unable to establish a connection to the device. Please check it is connected and running then try again', 'warning', 7500)
             }
         },
         async closeTunnel () {
