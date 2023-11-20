@@ -144,8 +144,14 @@ export default {
         stageDeployStarting (stage, nextStage) {
             // Optimistic flagging of deployment in progress
             if (nextStage.instance?.id) {
+                if (!this.instanceStatusMap.has(nextStage.instance.id)) {
+                    this.instanceStatusMap.set(nextStage.instance.id, {})
+                }
                 this.instanceStatusMap.get(nextStage.instance.id).isDeploying = true
             } else if (nextStage.device?.id) {
+                if (!this.deviceStatusMap.has(nextStage.device.id)) {
+                    this.deviceStatusMap.set(nextStage.device.id, {})
+                }
                 this.deviceStatusMap.get(nextStage.device.id).isDeploying = true
             } else {
                 return console.warn('Deployment starting to stage without an instance or device.')
@@ -157,7 +163,7 @@ export default {
             if (nextStage.instance?.id) {
                 this.startPollingForInstanceDeployStatus()
             } else if (nextStage.device?.id) {
-                this.startPollingForInstanceDeployStatus()
+                this.startPollingForDeviceDeployStatus()
             } else {
                 return console.warn('Polling started for stage without an instance or device.')
             }

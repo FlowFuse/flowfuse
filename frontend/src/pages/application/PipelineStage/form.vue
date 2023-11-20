@@ -110,15 +110,26 @@
             <template #default>
                 <div class="flex gap-8">
                     <slot name="pictogram"><img src="../../../images/pictograms/snapshot_red.png"></slot>
-                    <div>
+                    <div v-if="input.stageType === StageType.INSTANCE">
                         <p>
-                            When a Pipeline stage is triggered an Instance Snapshot is deployed to the next stage. You can configure how this stage picks what snapshot to deploy.
+                            When a instance Pipeline stage type is triggered an Instance Snapshot is deployed to the next stage. You can configure how this stage picks what snapshot to deploy.
                         </p>
                         <p>
                             Create New Snapshot: Creates a new snapshot using the current flows and settings.
                         </p>
                         <p>
                             Use Latest Instance Snapshot: Uses the most recent existing snapshot of the instance. The deploy will fail if no snapshot exists.
+                        </p>
+                        <p>
+                            Prompt to Select Snapshot: Will ask at deploy time, which snapshot from the source stage should be copied to the next stage.
+                        </p>
+                    </div>
+                    <div v-else-if="input.stageType === StageType.DEVICE">
+                        <p>
+                            When a device Pipeline stage type is triggered an Device Snapshot is deployed to the next stage. You can configure how this stage picks what snapshot to deploy.
+                        </p>
+                        <p>
+                            Use Latest Device Snapshot: Uses the most recent existing snapshot of the device. The deploy will fail if no snapshot exists.
                         </p>
                         <p>
                             Prompt to Select Snapshot: Will ask at deploy time, which snapshot from the source stage should be copied to the next stage.

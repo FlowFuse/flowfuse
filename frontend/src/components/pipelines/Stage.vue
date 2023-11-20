@@ -35,7 +35,7 @@
         </div>
         <div v-if="stage.instance || stage.device" class="py-3">
             <div>
-                <div v-if="stage.instance?.id" class="ff-pipeline-stage-type">
+                <div v-if="stage.stageType == StageType.INSTANCE" class="ff-pipeline-stage-type">
                     <router-link class="flex gap-2 items-center" :to="{name: 'Instance', params: { id: stage.instance.id }}">
                         <IconNodeRedSolid class="ff-icon ff-icon-lg text-red-800" />
                         <div>
@@ -46,7 +46,7 @@
                         </div>
                     </router-link>
                 </div>
-                <div v-if="stage.device?.id" class="ff-pipeline-stage-row">
+                <div v-if="stage.stageType == StageType.DEVICE" class="ff-pipeline-stage-row">
                     <router-link :to="{name: 'Device', params: { id: stage.device.id }}">
                         <IconDeviceSolid class="ff-icon ff-icon-lg text-teal-700" />
                         <div>
@@ -58,20 +58,20 @@
                     </router-link>
                 </div>
             </div>
-            <div v-if="stage.instance" class="ff-pipeline-stage-row">
+            <div v-if="stage.stageType == StageType.INSTANCE" class="ff-pipeline-stage-row">
                 <label>Last Deployed:</label>
                 <span>{{ stage.flowLastUpdatedSince ?? 'Unknown' }}</span>
             </div>
-            <div v-else-if="stage.device" class="ff-pipeline-stage-row">
+            <div v-else-if="stage.stageType == StageType.DEVICE" class="ff-pipeline-stage-row">
                 <label>Last Seen:</label>
                 <span>{{ stage.lastSeenSince ?? 'Unknown' }}</span>
             </div>
-            <div v-if="stage.instance || stage.device" class="ff-pipeline-stage-row">
-                <label v-if="stage.device">Last Known Status:</label>
+            <div class="ff-pipeline-stage-row">
+                <label v-if="stage.stageType == StageType.DEVICE">Last Known Status:</label>
                 <label v-else>Status:</label>
                 <InstanceStatusBadge :status="stage.state" />
             </div>
-            <div v-if="stage.instance" class="ff-pipeline-stage-row">
+            <div v-if="stage.stageType == StageType.INSTANCE" class="ff-pipeline-stage-row">
                 <label>URL:</label>
                 <a
                     class="ff-link"
@@ -86,7 +86,7 @@
                         Create new snapshot
                     </template>
                     <template v-else-if="stage.action === 'use_latest_snapshot'">
-                        Use latest instance snapshot
+                        Use latest {{ stage.stageType === StageType.INSTANCE ? 'instance' : 'device' }} snapshot
                     </template>
                     <template v-else-if="stage.action==='prompt'">
                         Prompt to select snapshot
@@ -110,7 +110,7 @@
 <script>
 import { PencilAltIcon, PlayIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/outline'
 
-import PipelineAPI from '../../api/pipeline.js'
+import PipelineAPI, { StageType } from '../../api/pipeline.js'
 
 import InstanceStatusBadge from '../../pages/instance/components/InstanceStatusBadge.vue'
 
@@ -163,6 +163,9 @@ export default {
         deploying () {
             return this.stage.isDeploying
         }
+    },
+    created () {
+        this.StageType = StageType
     },
     methods: {
         runStage: async function () {
@@ -222,6 +225,10 @@ export default {
                 messageParts.push(', and all its devices')
             }
             messageParts.push('has started.')
+
+            if (target.device?.id) {
+                messageParts.push('The connected device has been requested to update, but the time to deploy is dependent on its current status.')
+            }
 
             Alerts.emit(
                 messageParts.join(' '),
