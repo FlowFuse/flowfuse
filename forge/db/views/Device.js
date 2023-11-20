@@ -19,6 +19,7 @@ module.exports = function (app) {
                 nullable: true,
                 allOf: [{ $ref: 'SnapshotSummary' }]
             },
+            isDeploying: { type: 'boolean' },
             status: { type: 'string' },
             agentVersion: { type: 'string' },
             mode: { type: 'string' },
@@ -42,7 +43,8 @@ module.exports = function (app) {
                 id: result.hashid,
                 lastSeenAt: result.lastSeenAt,
                 lastSeenMs: result.lastSeenAt ? (Date.now() - new Date(result.lastSeenAt).valueOf()) : null,
-                status: result.state || 'offline'
+                status: result.state || 'offline',
+                isDeploying: app.db.controllers.Device.isDeploying(device)
             }
         }
 
@@ -60,7 +62,8 @@ module.exports = function (app) {
             status: result.state || 'offline',
             agentVersion: result.agentVersion,
             mode: result.mode || 'autonomous',
-            ownerType: result.ownerType
+            ownerType: result.ownerType,
+            isDeploying: app.db.controllers.Device.isDeploying(device)
         }
         if (device.Team) {
             filtered.team = app.db.views.Team.teamSummary(device.Team)
