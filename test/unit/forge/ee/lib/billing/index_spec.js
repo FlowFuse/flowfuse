@@ -42,6 +42,7 @@ describe('Billing', function () {
 
             result.should.have.property('mode', 'subscription')
             result.should.have.property('client_reference_id', newTeam.hashid)
+            result.metadata.should.have.property('teamTypeId', defaultTeamType.hashid)
             result.should.have.property('success_url', 'http://localhost:3000/team/new-team/applications?billing_session={CHECKOUT_SESSION_ID}')
             result.should.have.property('cancel_url', 'http://localhost:3000/team/new-team/applications')
             result.should.have.property('subscription_data')
@@ -106,6 +107,83 @@ describe('Billing', function () {
 
             result.should.have.property('customer', 'existing-customer')
             result.customer_update.should.have.property('name', 'auto')
+        })
+
+        it('creates a session the specified teamType', async function () {
+            app = await setup({
+                billing: {
+                    stripe: {
+                        key: 1234,
+                        team_product: 'defaultteamprod',
+                        team_price: 'defaultteamprice'
+                    }
+                }
+            })
+
+            const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
+
+            // Create a new team type with billing codes
+            const newTeamType = await app.db.models.TeamType.create({
+                name: 'second-team-type',
+                description: 'team type description',
+                active: true,
+                order: 1,
+                properties: {
+                    instances: {
+                        [app.projectType.hashid]: {
+                            active: true,
+                            productId: 'secondInstanceProd',
+                            priceId: 'secondInstancePrice'
+                        }
+                    },
+                    devices: {
+                        productId: 'secondDeviceProd',
+                        priceId: 'secondDevicePrice'
+                    },
+                    users: { },
+                    features: { },
+                    billing: {
+                        productId: 'secondTeamProd',
+                        priceId: 'secondTeamPrice'
+                    }
+                }
+            })
+
+            const newTeam = await app.db.models.Team.create({ name: 'new-team', TeamTypeId: defaultTeamType.id })
+
+            // Create an application, instance and device
+            const application = await app.factory.createApplication({ name: 'application-2' }, newTeam)
+            await app.factory.createInstance(
+                { name: 'project-subscription-test' },
+                application,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+            await app.factory.createDevice({ name: 'project-sub-device-test' }, newTeam)
+
+            const result = await app.billing.createSubscriptionSession(newTeam, null, newTeamType.hashid)
+
+            // Check the session has picked up the billing codes from the target type, not
+            // the current team type
+            result.should.have.property('mode', 'subscription')
+            result.should.have.property('client_reference_id', newTeam.hashid)
+            result.should.have.property('metadata')
+            result.metadata.should.have.property('teamTypeId', newTeamType.hashid)
+            result.should.have.property('success_url', 'http://localhost:3000/team/new-team/applications?billing_session={CHECKOUT_SESSION_ID}')
+            result.should.have.property('cancel_url', 'http://localhost:3000/team/new-team/applications')
+            result.should.have.property('subscription_data')
+            result.subscription_data.should.have.property('metadata')
+            result.subscription_data.metadata.should.have.property('team', newTeam.hashid)
+            result.should.have.property('line_items')
+            result.line_items.should.have.length(3)
+            result.line_items[0].should.have.property('price', 'secondTeamPrice')
+            result.line_items[0].should.have.property('quantity', 1)
+            result.line_items[1].should.have.property('price', 'secondDevicePrice')
+            result.line_items[1].should.have.property('quantity', 1)
+            result.line_items[2].should.have.property('price', 'secondInstancePrice')
+            result.line_items[2].should.have.property('quantity', 1)
         })
 
         describe('with free trials', function () {
