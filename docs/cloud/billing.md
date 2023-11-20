@@ -11,8 +11,8 @@ provider. All payments are processed in US Dollars.
 
 ## Team Billing
 
-Each team has a separate billing account and a free subscription for the team. Each Node-RED instance under the team is added to that subscription.
-For each team you will need to setup the billing details for each time, though you can use the same card.
+Each team has its own billing subscription that includes charges for the Node-RED
+instances and Devices owned by the team.
 
 ## Billing Cycle
 
