@@ -19,8 +19,8 @@ module.exports = function (app) {
                 nullable: true,
                 allOf: [{ $ref: 'SnapshotSummary' }]
             },
-            isDeploying: { type: 'boolean' },
             status: { type: 'string' },
+            isDeploying: { type: 'boolean' },
             agentVersion: { type: 'string' },
             mode: { type: 'string' },
             links: { $ref: 'LinksMeta' },
@@ -93,10 +93,14 @@ module.exports = function (app) {
             ownerType: { type: 'string' },
             name: { type: 'string' },
             type: { type: 'string' },
+            lastSeenAt: { nullable: true, type: 'string' },
+            lastSeenMs: { nullable: true, type: 'number' },
+            status: { type: 'string' },
+            isDeploying: { type: 'boolean' },
             links: { $ref: 'LinksMeta' }
         }
     })
-    function deviceSummary (device) {
+    function deviceSummary (device, { includeSnapshotIds = false } = {}) {
         if (device) {
             const result = device.toJSON()
             const filtered = {
@@ -104,6 +108,10 @@ module.exports = function (app) {
                 ownerType: result.ownerType,
                 name: result.name,
                 type: result.type,
+                lastSeenAt: result.lastSeenAt,
+                lastSeenMs: result.lastSeenAt ? (Date.now() - new Date(result.lastSeenAt).valueOf()) : null,
+                status: result.state || 'offline',
+                isDeploying: app.db.controllers.Device.isDeploying(device),
                 links: result.links
             }
             return filtered

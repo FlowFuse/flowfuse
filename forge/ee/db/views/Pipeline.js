@@ -11,6 +11,7 @@ module.exports = function (app) {
     async function pipeline (pipeline) {
         if (pipeline) {
             const result = pipeline.toJSON()
+            // TODO: This is an N+1 query
             const stages = await app.db.models.PipelineStage.byPipeline(result.id)
             const filtered = {
                 id: result.hashid,
