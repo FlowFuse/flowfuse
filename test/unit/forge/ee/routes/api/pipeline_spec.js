@@ -57,6 +57,8 @@ describe('Pipelines API', function () {
         TestObjects.projectType = app.projectType
         TestObjects.user = app.user
 
+        TestObjects.device = await TestObjects.factory.createDevice({ name: 'device-a', type: 'type2' }, app.team, null, app.application)
+
         const userPez = await TestObjects.factory.createUser({
             admin: false,
             username: 'pez',
@@ -80,37 +82,18 @@ describe('Pipelines API', function () {
     beforeEach(async function () {
         TestObjects.pipeline = await app.factory.createPipeline({ name: 'new-pipeline' }, app.application)
         TestObjects.stageOne = await app.factory.createPipelineStage({ name: 'stage-one', instanceId: app.instance.id }, TestObjects.pipeline)
+
+        TestObjects.pipelineDevices = await app.factory.createPipeline({ name: 'new-pipeline-devices' }, app.application)
+        TestObjects.pipelineDevicesStageOne = await app.factory.createPipelineStage({ name: 'stage-one-devices', deviceId: TestObjects.device.id }, TestObjects.pipeline)
     })
     afterEach(async function () {
         await app.db.models.PipelineStage.destroy({ where: {} })
         await app.db.models.Pipeline.destroy({ where: {} })
     })
+
     describe('Create Pipeline Stage', function () {
-        it('Should create a new pipeline stage', async function () {
-            const pipelineId = TestObjects.pipeline.hashid
-
-            const response = await app.inject({
-                method: 'POST',
-                url: `/api/v1/pipelines/${pipelineId}/stages`,
-                payload: {
-                    name: 'stage-two',
-                    instanceId: TestObjects.instanceTwo.id
-                },
-                cookies: { sid: TestObjects.tokens.alice }
-            })
-
-            const body = await response.json()
-
-            body.should.have.property('id')
-            body.should.have.property('name', 'stage-two')
-            body.should.have.property('instances')
-            body.instances[0].should.have.property('name', 'instance-two')
-
-            response.statusCode.should.equal(200)
-        })
-
-        describe('When a previous stage is passed', function () {
-            it('Should set the previous stages nextStage to the newly created pipeline stage', async function () {
+        describe('With instance', function () {
+            it('Should create a new pipeline stage', async function () {
                 const pipelineId = TestObjects.pipeline.hashid
 
                 const response = await app.inject({
@@ -118,8 +101,7 @@ describe('Pipelines API', function () {
                     url: `/api/v1/pipelines/${pipelineId}/stages`,
                     payload: {
                         name: 'stage-two',
-                        instanceId: TestObjects.instanceTwo.id,
-                        source: TestObjects.stageOne.hashid
+                        instanceId: TestObjects.instanceTwo.id
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
@@ -128,62 +110,102 @@ describe('Pipelines API', function () {
 
                 body.should.have.property('id')
                 body.should.have.property('name', 'stage-two')
-
-                const stageOne = await TestObjects.stageOne.reload()
-                const stageTwo = await app.db.models.PipelineStage.byId(body.id)
-
-                stageOne.NextStageId.should.equal(stageTwo.id)
+                body.should.have.property('instances')
+                body.instances[0].should.have.property('name', 'instance-two')
 
                 response.statusCode.should.equal(200)
             })
+
+            describe('Validates that the pipeline is correct', function () {
+                it('Rejects a pipeline stage without an instance', async function () {
+                    const pipelineId = TestObjects.pipeline.hashid
+
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/pipelines/${pipelineId}/stages`,
+                        payload: {
+                            name: 'stage-two'
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
+                    const body = await response.json()
+
+                    body.should.have.property('code', 'unexpected_error')
+                    body.should.have.property('error').match(/instanceId/)
+
+                    response.statusCode.should.equal(500)
+                })
+
+                it('Rejects a pipeline stage if the instance is already in use', async function () {
+                    const pipelineId = TestObjects.pipeline.hashid
+
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/pipelines/${pipelineId}/stages`,
+                        payload: {
+                            name: 'stage-two',
+                            instanceId: TestObjects.instanceOne.hashid // in use
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
+                    const body = await response.json()
+
+                    body.should.have.property('code', 'unexpected_error')
+                    body.should.have.property('error').match(/instanceId/)
+
+                    response.statusCode.should.equal(500)
+                })
+            })
         })
 
-        describe('Validates that the pipeline is correct', function () {
-            it('Rejects a pipeline stage without an instance', async function () {
-                const pipelineId = TestObjects.pipeline.hashid
-
-                const response = await app.inject({
-                    method: 'POST',
-                    url: `/api/v1/pipelines/${pipelineId}/stages`,
-                    payload: {
-                        name: 'stage-two'
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-
-                const body = await response.json()
-
-                body.should.have.property('code', 'unexpected_error')
-                body.should.have.property('error').match(/instanceId/)
-
-                response.statusCode.should.equal(500)
+        describe('With device', function () {
+            it('Should create a pipeline stage')
+            describe('Validates that the pipeline is correct', function () {
+                it('Rejects a pipeline stage without an device')
+                it('Rejects a pipeline stage if the device is already in use')
             })
+        })
 
-            it('Rejects a pipeline stage if the instance is already in use', async function () {
-                const pipelineId = TestObjects.pipeline.hashid
+        describe('With either device or instance', function () {
+            describe('When a previous stage is passed', function () {
+                it('Should set the previous stages nextStage to the newly created pipeline stage', async function () {
+                    const pipelineId = TestObjects.pipeline.hashid
 
-                const response = await app.inject({
-                    method: 'POST',
-                    url: `/api/v1/pipelines/${pipelineId}/stages`,
-                    payload: {
-                        name: 'stage-two',
-                        instanceId: TestObjects.instanceOne.hashid // in use
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/pipelines/${pipelineId}/stages`,
+                        payload: {
+                            name: 'stage-two',
+                            instanceId: TestObjects.instanceTwo.id,
+                            source: TestObjects.stageOne.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
+                    const body = await response.json()
+
+                    body.should.have.property('id')
+                    body.should.have.property('name', 'stage-two')
+
+                    const stageOne = await TestObjects.stageOne.reload()
+                    const stageTwo = await app.db.models.PipelineStage.byId(body.id)
+
+                    stageOne.NextStageId.should.equal(stageTwo.id)
+
+                    response.statusCode.should.equal(200)
                 })
-
-                const body = await response.json()
-
-                body.should.have.property('code', 'unexpected_error')
-                body.should.have.property('error').match(/instanceId/)
-
-                response.statusCode.should.equal(500)
             })
+        })
+
+        describe('With both device and instance', function () {
+            it('Rejects the request gracefully')
         })
     })
 
     describe('Get Pipeline Stage', function () {
-        it('Should return a single pipeline stage', async function () {
+        it('Should return a single pipeline stage with an instance', async function () {
             const pipelineId = TestObjects.pipeline.hashid
             const stageId = TestObjects.stageOne.hashid
 
@@ -202,6 +224,8 @@ describe('Pipelines API', function () {
 
             response.statusCode.should.equal(200)
         })
+
+        it('Should return a single pipeline stage with a device')
     })
 
     describe('Update Pipeline Stage', function () {
@@ -309,10 +333,10 @@ describe('Pipelines API', function () {
 
                 const body = await response.json()
 
-                body.should.have.property('code', 'unexpected_error')
+                body.should.have.property('code', 'invalid_instancesHaveSameApplication')
                 body.should.have.property('error').match(/not a member of application/)
 
-                response.statusCode.should.equal(500)
+                response.statusCode.should.equal(400)
             })
 
             it('Should require the instance to be owned by the same team', async function () {
@@ -364,16 +388,24 @@ describe('Pipelines API', function () {
 
                 const body = await response.json()
 
-                body.should.have.property('code', 'unexpected_error')
+                body.should.have.property('code', 'invalid_instancesHaveSameApplication')
                 body.should.have.property('error').match(/not a member of application/)
 
-                response.statusCode.should.equal(500)
+                response.statusCode.should.equal(400)
             })
+
+            it('Should unassign the old device')
+        })
+
+        describe('With a new device', function () {
+            it('Should unassign the old device and assign the new one')
+            it('Should require the device to be part of the same application')
+            it('Should unassign the old instance')
         })
     })
 
     describe('Delete Pipeline Stage', function () {
-        it('should destroy the pipeline stage', async function () {
+        it('should destroy the pipeline stage, but not touch the assigned instance', async function () {
             const pipelineId = TestObjects.pipeline.hashid
             const stageId = TestObjects.stageOne.hashid
 
@@ -390,23 +422,16 @@ describe('Pipelines API', function () {
             should(await app.db.models.PipelineStage.byId(stageId)).equal(null)
         })
 
+        it('should destroy the pipeline stage, but not touch the assigned device')
+
         describe('When there is a pipeline before and after', function () {
             it('should re-connect the previous to the next pipeline', async function () {
                 const pipelineId = TestObjects.pipeline.hashid
 
-                const instanceThree = await TestObjects.factory.createInstance(
-                    { name: 'instance-three' },
-                    TestObjects.application,
-                    TestObjects.stack,
-                    TestObjects.template,
-                    TestObjects.projectType,
-                    { start: false }
-                )
-
                 // 1 -> 2 -> 3 delete 2
                 TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
                 await TestObjects.stageOne.reload()
-                TestObjects.stageThree = await TestObjects.factory.createPipelineStage({ name: 'stage-three', instanceId: instanceThree.id, source: TestObjects.stageTwo.hashid }, TestObjects.pipeline)
+                TestObjects.stageThree = await TestObjects.factory.createPipelineStage({ name: 'stage-three', deviceId: TestObjects.device.id, source: TestObjects.stageTwo.hashid }, TestObjects.pipeline)
                 await TestObjects.stageTwo.reload()
 
                 should(TestObjects.stageOne.NextStageId).equal(TestObjects.stageTwo.id)
@@ -435,7 +460,7 @@ describe('Pipelines API', function () {
                 const pipelineId = TestObjects.pipeline.hashid
 
                 // 1 -> 2 delete 2
-                TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
+                TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceId: TestObjects.device.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
                 await TestObjects.stageOne.reload()
 
                 should(TestObjects.stageOne.NextStageId).equal(TestObjects.stageTwo.id)
@@ -648,7 +673,7 @@ describe('Pipelines API', function () {
 
                 const stages = await TestObjects.pipeline.stages()
 
-                stages.length.should.equal(2, 'should start with two pipeline stages')
+                stages.length.should.equal(3, 'should start with three pipeline stages')
 
                 const response = await app.inject({
                     method: 'DELETE',
@@ -819,103 +844,122 @@ describe('Pipelines API', function () {
     })
 
     describe('Deploy Pipeline Stage', function () {
+        async function isDeployComplete (instance) {
+            const instanceStatusResponse = (await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${instance.id}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })).json()
+
+            return instanceStatusResponse?.meta?.isDeploying === false
+        }
+
+        function waitForDeployToComplete (instance) {
+            return new Promise((resolve, reject) => {
+                const refreshIntervalId = setInterval(async () => {
+                    if (await isDeployComplete(instance)) {
+                        clearInterval(refreshIntervalId)
+                        resolve()
+                    }
+                }, 250)
+            })
+        }
+
         beforeEach(async function () {
             TestObjects.tokens.instanceOne = (await TestObjects.instanceOne.refreshAuthTokens()).token
         })
 
         describe('With action=create_snapshot', function () {
             describe('With valid input', function () {
-                it('Creates a snapshot of the pipeline stage, and copies to the next stage', async function () {
+                describe('For instance=>instance', function () {
+                    it('Creates a snapshot of the source instance, and copies to the target instance', async function () {
                     // Setup an initial configuration
-                    const setupResult = await addFlowsToProject(app,
-                        TestObjects.instanceOne.id,
-                        TestObjects.tokens.instanceOne,
-                        TestObjects.tokens.alice,
-                        [{ id: 'node1' }], // flows
-                        { testCreds: 'abc' }, // credentials
-                        'key1', // key
-                        // settings
-                        {
-                            httpAdminRoot: '/test-red',
-                            dashboardUI: '/test-dash',
-                            palette: {
-                                modules: [
-                                    { name: 'module1', version: '1.0.0' }
+                        const setupResult = await addFlowsToProject(app,
+                            TestObjects.instanceOne.id,
+                            TestObjects.tokens.instanceOne,
+                            TestObjects.tokens.alice,
+                            [{ id: 'node1' }], // flows
+                            { testCreds: 'abc' }, // credentials
+                            'key1', // key
+                            // settings
+                            {
+                                httpAdminRoot: '/test-red',
+                                dashboardUI: '/test-dash',
+                                palette: {
+                                    modules: [
+                                        { name: 'module1', version: '1.0.0' }
+                                    ]
+                                },
+                                env: [
+                                    { name: 'one', value: 'a' },
+                                    { name: 'two', value: 'b' }
                                 ]
-                            },
-                            env: [
-                                { name: 'one', value: 'a' },
-                                { name: 'two', value: 'b' }
-                            ]
-                        }
-                    )
-
-                    // ensure setup was successful before generating a snapshot & performing rollback
-                    setupResult.flowsAddResponse.statusCode.should.equal(200)
-                    setupResult.credentialsCreateResponse.statusCode.should.equal(200)
-                    setupResult.storageSettingsResponse.statusCode.should.equal(200)
-                    setupResult.updateProjectSettingsResponse.statusCode.should.equal(200)
-
-                    // 1 -> 2
-                    TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
-
-                    const response = await app.inject({
-                        method: 'PUT',
-                        url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageOne.hashid}/deploy`,
-                        cookies: { sid: TestObjects.tokens.alice }
-                    })
-
-                    const body = await response.json()
-                    body.should.have.property('status', 'importing')
-
-                    async function isDeployComplete () {
-                        const instanceStatusResponse = (await app.inject({
-                            method: 'GET',
-                            url: `/api/v1/projects/${TestObjects.instanceTwo.id}`,
-                            cookies: { sid: TestObjects.tokens.alice }
-                        })).json()
-
-                        return !instanceStatusResponse.isDeploying
-                    }
-
-                    await new Promise((resolve, reject) => {
-                        const refreshIntervalId = setInterval(async () => {
-                            if (await isDeployComplete()) {
-                                clearInterval(refreshIntervalId)
-                                resolve()
                             }
-                        }, 250)
+                        )
+
+                        // ensure setup was successful before generating a snapshot & performing rollback
+                        setupResult.flowsAddResponse.statusCode.should.equal(200)
+                        setupResult.credentialsCreateResponse.statusCode.should.equal(200)
+                        setupResult.storageSettingsResponse.statusCode.should.equal(200)
+                        setupResult.updateProjectSettingsResponse.statusCode.should.equal(200)
+
+                        // 1 -> 2
+                        TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
+
+                        const response = await app.inject({
+                            method: 'PUT',
+                            url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageOne.hashid}/deploy`,
+                            cookies: { sid: TestObjects.tokens.alice }
+                        })
+
+                        const body = await response.json()
+                        body.should.have.property('status', 'importing')
+
+                        // Wait for the deploy to complete
+                        await waitForDeployToComplete(TestObjects.instanceTwo)
+
+                        // Now actually check things worked
+                        // Snapshot created in stage 1
+                        // Snapshot created in stage 2, flows created, and set as target
+                        const sourceStageSnapshots = await TestObjects.instanceOne.getProjectSnapshots()
+                        sourceStageSnapshots.should.have.lengthOf(1)
+                        sourceStageSnapshots[0].name.should.match(/Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
+                        sourceStageSnapshots[0].description.should.match(/Snapshot created for pipeline deployment from stage-one to stage-two as part of pipeline new-pipeline/)
+
+                        // Get the snapshot for instance 2 post deploy
+                        const targetStageSnapshots = await TestObjects.instanceTwo.getProjectSnapshots()
+                        targetStageSnapshots.should.have.lengthOf(1)
+
+                        const targetSnapshot = targetStageSnapshots[0]
+
+                        targetSnapshot.name.should.match(/Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
+                        targetSnapshot.description.should.match(/Snapshot created for pipeline deployment from stage-one to stage-two as part of pipeline new-pipeline/)
+
+                        targetSnapshot.flows.should.have.property('flows')
+                        targetSnapshot.flows.flows.should.have.lengthOf(1)
+                        targetSnapshot.flows.flows[0].should.have.property('id', 'node1')
+                        targetSnapshot.flows.should.have.property('credentials')
+                        targetSnapshot.flows.credentials.should.have.property('$')
+                        targetSnapshot.settings.should.have.property('settings')
+                        targetSnapshot.settings.settings.should.have.property('httpAdminRoot', '/test-red')
+                        targetSnapshot.settings.settings.should.have.property('dashboardUI', '/test-dash')
+                        targetSnapshot.settings.should.have.property('env')
+                        targetSnapshot.settings.env.should.have.property('one', 'a')
+                        targetSnapshot.settings.env.should.have.property('two', 'b')
+                        targetSnapshot.settings.should.have.property('modules')
                     })
+                })
 
-                    // Now actually check things worked
-                    // Snapshot created in stage 1
-                    // Snapshot created in stage 2, flows created, and set as target
-                    const sourceStageSnapshots = await TestObjects.instanceOne.getProjectSnapshots()
-                    sourceStageSnapshots.should.have.lengthOf(1)
-                    sourceStageSnapshots[0].name.should.match(/Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
-                    sourceStageSnapshots[0].description.should.match(/Snapshot created for pipeline deployment from stage-one to stage-two as part of pipeline new-pipeline/)
+                describe('For device=>instance', function () {
+                    it('Should fail gracefully as creating snapshots of devices at deploy time is not supported')
+                })
 
-                    // Get the snapshot for instance 2 post deploy
-                    const targetStageSnapshots = await TestObjects.instanceTwo.getProjectSnapshots()
-                    targetStageSnapshots.should.have.lengthOf(1)
+                describe('For device=>device', function () {
+                    it('Should fail gracefully as creating snapshots of devices at deploy time is not supported')
+                })
 
-                    const targetSnapshot = targetStageSnapshots[0]
-
-                    targetSnapshot.name.should.match(/Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
-                    targetSnapshot.description.should.match(/Snapshot created for pipeline deployment from stage-one to stage-two as part of pipeline new-pipeline/)
-
-                    targetSnapshot.flows.should.have.property('flows')
-                    targetSnapshot.flows.flows.should.have.lengthOf(1)
-                    targetSnapshot.flows.flows[0].should.have.property('id', 'node1')
-                    targetSnapshot.flows.should.have.property('credentials')
-                    targetSnapshot.flows.credentials.should.have.property('$')
-                    targetSnapshot.settings.should.have.property('settings')
-                    targetSnapshot.settings.settings.should.have.property('httpAdminRoot', '/test-red')
-                    targetSnapshot.settings.settings.should.have.property('dashboardUI', '/test-dash')
-                    targetSnapshot.settings.should.have.property('env')
-                    targetSnapshot.settings.env.should.have.property('one', 'a')
-                    targetSnapshot.settings.env.should.have.property('two', 'b')
-                    targetSnapshot.settings.should.have.property('modules')
+                describe('For instance=>device', function () {
+                    it('Creates a snapshot of the source instance, and copies to the target device')
                 })
             })
 
@@ -977,161 +1021,163 @@ describe('Pipelines API', function () {
                 })
             })
 
-            it('Should require the user passing in a snapshot ID to copy to the target instance', async function () {
+            describe('With invalid input', function () {
+                it('Should require the user passing in a snapshot ID to copy to the target instance', async function () {
                 // 1 -> 2
-                TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
+                    TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
 
-                const response = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageOne.hashid}/deploy`,
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-
-                const body = await response.json()
-                body.should.have.property('code', 'no_source_snapshot')
-                response.statusCode.should.equal(400)
-            })
-
-            it('Should fail gracefully if the passed in snapshot ID is not from the correct pipeline stage', async function () {
-                // 1 -> 2
-                TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
-
-                const snapshotFromOtherInstance = await createSnapshot(app, TestObjects.instanceTwo, TestObjects.user, {
-                    name: 'Oldest Existing Snapshot Created In Test',
-                    description: 'This was the first snapshot created as part of the test process',
-                    setAsTarget: false // no need to deploy to devices of the source
-                })
-
-                const response = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageOne.hashid}/deploy`,
-                    cookies: { sid: TestObjects.tokens.alice },
-                    payload: {
-                        sourceSnapshotId: snapshotFromOtherInstance.hashid
-                    }
-                })
-
-                const body = await response.json()
-                body.should.have.property('code', 'invalid_source_snapshot')
-                response.statusCode.should.equal(400)
-            })
-
-            it('Should copy the existing selected snapshot to the target instance', async function () {
-                // Setup an initial configuration
-                const setupResult = await addFlowsToProject(app,
-                    TestObjects.instanceOne.id,
-                    TestObjects.tokens.instanceOne,
-                    TestObjects.tokens.alice,
-                    [{ id: 'node1' }], // flows
-                    { testCreds: 'abc' }, // credentials
-                    'key1', // key
-                    // settings
-                    {
-                        httpAdminRoot: '/test-red',
-                        dashboardUI: '/test-dash',
-                        palette: {
-                            modules: [
-                                { name: 'module1', version: '1.0.0' }
-                            ]
-                        },
-                        env: [
-                            { name: 'one', value: 'a' },
-                            { name: 'two', value: 'b' }
-                        ]
-                    }
-                )
-
-                // Ensure setup was successful
-                setupResult.flowsAddResponse.statusCode.should.equal(200)
-                setupResult.credentialsCreateResponse.statusCode.should.equal(200)
-                setupResult.storageSettingsResponse.statusCode.should.equal(200)
-                setupResult.updateProjectSettingsResponse.statusCode.should.equal(200)
-
-                // 1 -> 2
-                TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
-
-                await createSnapshot(app, TestObjects.instanceOne, TestObjects.user, {
-                    name: 'Oldest Existing Snapshot Created In Test',
-                    description: 'This was the first snapshot created as part of the test process',
-                    setAsTarget: false // no need to deploy to devices of the source
-                })
-
-                // This one has custom props to validate against
-                const existingSnapshot = await createSnapshot(app, TestObjects.instanceOne, TestObjects.user, {
-                    name: 'Existing Snapshot Created In Test',
-                    description: 'This was the second snapshot created as part of the test process',
-                    setAsTarget: false, // no need to deploy to devices of the source
-                    flows: { custom: 'custom-flows' },
-                    credentials: { custom: 'custom-creds' },
-                    settings: {
-                        modules: { custom: 'custom-module' },
-                        env: { custom: 'custom-env' }
-                    }
-                })
-
-                await createSnapshot(app, TestObjects.instanceOne, TestObjects.user, {
-                    name: 'Another Existing Snapshot Created In Test',
-                    description: 'This was the last snapshot created as part of the test process',
-                    setAsTarget: false // no need to deploy to devices of the source
-                })
-
-                const response = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageOne.hashid}/deploy`,
-                    cookies: { sid: TestObjects.tokens.alice },
-                    payload: {
-                        sourceSnapshotId: existingSnapshot.hashid
-                    }
-                })
-
-                const body = await response.json()
-                body.should.have.property('status', 'importing')
-
-                // Wait for the deploy to complete
-                async function isDeployComplete () {
-                    const instanceStatusResponse = (await app.inject({
-                        method: 'GET',
-                        url: `/api/v1/projects/${TestObjects.instanceTwo.id}`,
+                    const response = await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageOne.hashid}/deploy`,
                         cookies: { sid: TestObjects.tokens.alice }
-                    })).json()
+                    })
 
-                    return !instanceStatusResponse.isDeploying
-                }
-
-                await new Promise((resolve, reject) => {
-                    const refreshIntervalId = setInterval(async () => {
-                        if (await isDeployComplete()) {
-                            clearInterval(refreshIntervalId)
-                            resolve()
-                        }
-                    }, 250)
+                    const body = await response.json()
+                    body.should.have.property('code', 'no_source_snapshot')
+                    response.statusCode.should.equal(400)
                 })
 
-                // No new snapshot should have been created in stage 1
-                const sourceInstanceSnapshots = await TestObjects.instanceOne.getProjectSnapshots()
-                sourceInstanceSnapshots.should.have.lengthOf(3)
+                it('Should fail gracefully if the passed in instance snapshot ID is not from the correct pipeline stage', async function () {
+                // 1 -> 2
+                    TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
 
-                // Snapshot created in stage 2, flows created, and set as target
+                    const snapshotFromOtherInstance = await createSnapshot(app, TestObjects.instanceTwo, TestObjects.user, {
+                        name: 'Oldest Existing Snapshot Created In Test',
+                        description: 'This was the first snapshot created as part of the test process',
+                        setAsTarget: false // no need to deploy to devices of the source
+                    })
 
-                // Get the snapshot for instance 2 post deploy
-                const snapshots = await TestObjects.instanceTwo.getProjectSnapshots()
-                snapshots.should.have.lengthOf(1)
+                    const response = await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageOne.hashid}/deploy`,
+                        cookies: { sid: TestObjects.tokens.alice },
+                        payload: {
+                            sourceSnapshotId: snapshotFromOtherInstance.hashid
+                        }
+                    })
 
-                const targetSnapshot = snapshots[0]
+                    const body = await response.json()
+                    body.should.have.property('code', 'invalid_source_snapshot')
+                    response.statusCode.should.equal(400)
+                })
 
-                targetSnapshot.name.should.match(/Existing Snapshot Created In Test - Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
-                targetSnapshot.description.should.match(/Snapshot created for pipeline deployment from stage-one to stage-two as part of pipeline new-pipeline/)
-                targetSnapshot.description.should.match(/This was the second snapshot created as part of the test process/)
+                it('Should fail gracefully if the passed in device snapshot ID is not from the correct pipeline stage')
+            })
 
-                targetSnapshot.flows.should.have.property('flows')
-                targetSnapshot.flows.flows.should.match({ custom: 'custom-flows' })
+            describe('For instance=>instance', function () {
+                it('Should copy the existing selected instance snapshot to the target instance', async function () {
+                // Setup an initial configuration
 
-                targetSnapshot.flows.should.have.property('credentials')
-                targetSnapshot.flows.credentials.should.have.property('$')
+                    const setupResult = await addFlowsToProject(app,
+                        TestObjects.instanceOne.id,
+                        TestObjects.tokens.instanceOne,
+                        TestObjects.tokens.alice,
+                        [{ id: 'node1' }], // flows
+                        { testCreds: 'abc' }, // credentials
+                        'key1', // key
+                        // settings
+                        {
+                            httpAdminRoot: '/test-red',
+                            dashboardUI: '/test-dash',
+                            palette: {
+                                modules: [
+                                    { name: 'module1', version: '1.0.0' }
+                                ]
+                            },
+                            env: [
+                                { name: 'one', value: 'a' },
+                                { name: 'two', value: 'b' }
+                            ]
+                        }
+                    )
 
-                targetSnapshot.settings.should.have.property('settings')
-                targetSnapshot.settings.modules.should.have.property('custom', 'custom-module')
-                targetSnapshot.settings.env.should.have.property('custom', 'custom-env')
+                    // Ensure setup was successful
+                    setupResult.flowsAddResponse.statusCode.should.equal(200)
+                    setupResult.credentialsCreateResponse.statusCode.should.equal(200)
+                    setupResult.storageSettingsResponse.statusCode.should.equal(200)
+                    setupResult.updateProjectSettingsResponse.statusCode.should.equal(200)
+
+                    // 1 -> 2
+                    TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
+
+                    await createSnapshot(app, TestObjects.instanceOne, TestObjects.user, {
+                        name: 'Oldest Existing Snapshot Created In Test',
+                        description: 'This was the first snapshot created as part of the test process',
+                        setAsTarget: false // no need to deploy to devices of the source
+                    })
+
+                    // This one has custom props to validate against
+                    const existingSnapshot = await createSnapshot(app, TestObjects.instanceOne, TestObjects.user, {
+                        name: 'Existing Snapshot Created In Test',
+                        description: 'This was the second snapshot created as part of the test process',
+                        setAsTarget: false, // no need to deploy to devices of the source
+                        flows: { custom: 'custom-flows' },
+                        credentials: { custom: 'custom-creds' },
+                        settings: {
+                            modules: { custom: 'custom-module' },
+                            env: { custom: 'custom-env' }
+                        }
+                    })
+
+                    await createSnapshot(app, TestObjects.instanceOne, TestObjects.user, {
+                        name: 'Another Existing Snapshot Created In Test',
+                        description: 'This was the last snapshot created as part of the test process',
+                        setAsTarget: false // no need to deploy to devices of the source
+                    })
+
+                    const response = await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageOne.hashid}/deploy`,
+                        cookies: { sid: TestObjects.tokens.alice },
+                        payload: {
+                            sourceSnapshotId: existingSnapshot.hashid
+                        }
+                    })
+
+                    const body = await response.json()
+                    body.should.have.property('status', 'importing')
+
+                    // Wait for the deploy to complete
+                    await waitForDeployToComplete(TestObjects.instanceTwo)
+
+                    // No new snapshot should have been created in stage 1
+                    const sourceInstanceSnapshots = await TestObjects.instanceOne.getProjectSnapshots()
+                    sourceInstanceSnapshots.should.have.lengthOf(3)
+
+                    // Snapshot created in stage 2, flows created, and set as target
+
+                    // Get the snapshot for instance 2 post deploy
+                    const snapshots = await TestObjects.instanceTwo.getProjectSnapshots()
+                    snapshots.should.have.lengthOf(1)
+
+                    const targetSnapshot = snapshots[0]
+
+                    targetSnapshot.name.should.match(/Existing Snapshot Created In Test - Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
+                    targetSnapshot.description.should.match(/Snapshot created for pipeline deployment from stage-one to stage-two as part of pipeline new-pipeline/)
+                    targetSnapshot.description.should.match(/This was the second snapshot created as part of the test process/)
+
+                    targetSnapshot.flows.should.have.property('flows')
+                    targetSnapshot.flows.flows.should.match({ custom: 'custom-flows' })
+
+                    targetSnapshot.flows.should.have.property('credentials')
+                    targetSnapshot.flows.credentials.should.have.property('$')
+
+                    targetSnapshot.settings.should.have.property('settings')
+                    targetSnapshot.settings.modules.should.have.property('custom', 'custom-module')
+                    targetSnapshot.settings.env.should.have.property('custom', 'custom-env')
+                })
+            })
+
+            describe('For device=>instance', function () {
+                it('Should copy the existing selected device snapshot to the target instance')
+            })
+
+            describe('For device=>device', function () {
+                it('Should copy the existing selected device snapshot to the target device')
+            })
+
+            describe('For instance=>device', function () {
+                it('Should copy the existing selected instance snapshot to the target instance')
             })
         })
 
@@ -1148,115 +1194,112 @@ describe('Pipelines API', function () {
                 })
             })
 
-            it('Copies the existing snapshot to the next stage', async function () {
-                // Setup an initial configuration
-                const setupResult = await addFlowsToProject(app,
-                    TestObjects.instanceOne.id,
-                    TestObjects.tokens.instanceOne,
-                    TestObjects.tokens.alice,
-                    [{ id: 'node1' }], // flows
-                    { testCreds: 'abc' }, // credentials
-                    'key1', // key
-                    // settings
-                    {
-                        httpAdminRoot: '/test-red',
-                        dashboardUI: '/test-dash',
-                        palette: {
-                            modules: [
-                                { name: 'module1', version: '1.0.0' }
+            describe('For instance=>instance', function () {
+                it('Copies the existing instance snapshot to the next stages instance', async function () {
+                    // Setup an initial configuration
+                    const setupResult = await addFlowsToProject(app,
+                        TestObjects.instanceOne.id,
+                        TestObjects.tokens.instanceOne,
+                        TestObjects.tokens.alice,
+                        [{ id: 'node1' }], // flows
+                        { testCreds: 'abc' }, // credentials
+                        'key1', // key
+                        // settings
+                        {
+                            httpAdminRoot: '/test-red',
+                            dashboardUI: '/test-dash',
+                            palette: {
+                                modules: [
+                                    { name: 'module1', version: '1.0.0' }
+                                ]
+                            },
+                            env: [
+                                { name: 'one', value: 'a' },
+                                { name: 'two', value: 'b' }
                             ]
-                        },
-                        env: [
-                            { name: 'one', value: 'a' },
-                            { name: 'two', value: 'b' }
-                        ]
-                    }
-                )
-
-                // Ensure setup was successful
-                setupResult.flowsAddResponse.statusCode.should.equal(200)
-                setupResult.credentialsCreateResponse.statusCode.should.equal(200)
-                setupResult.storageSettingsResponse.statusCode.should.equal(200)
-                setupResult.updateProjectSettingsResponse.statusCode.should.equal(200)
-
-                await TestObjects.stageOne.update({ action: 'use_latest_snapshot' })
-
-                // 1 -> 2
-                TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
-
-                await createSnapshot(app, TestObjects.instanceOne, TestObjects.user, {
-                    name: 'Oldest Snapshot Created In Test',
-                    description: 'This was the first snapshot created as part of the test process',
-                    setAsTarget: false // no need to deploy to devices of the source
-                })
-
-                // This one has custom props to validate against
-                await createSnapshot(app, TestObjects.instanceOne, TestObjects.user, {
-                    name: 'Latest Snapshot Created In Test',
-                    description: 'This was the second snapshot created as part of the test process',
-                    setAsTarget: false, // no need to deploy to devices of the source
-                    flows: { custom: 'custom-flows' },
-                    credentials: { custom: 'custom-creds' },
-                    settings: {
-                        modules: { custom: 'custom-module' },
-                        env: { custom: 'custom-env' }
-                    }
-                })
-
-                const response = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageOne.hashid}/deploy`,
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-
-                const body = await response.json()
-                body.should.have.property('status', 'importing')
-
-                // Wait for the deploy to complete
-                async function isDeployComplete () {
-                    const instanceStatusResponse = (await app.inject({
-                        method: 'GET',
-                        url: `/api/v1/projects/${TestObjects.instanceTwo.id}`,
-                        cookies: { sid: TestObjects.tokens.alice }
-                    })).json()
-
-                    return !instanceStatusResponse.isDeploying
-                }
-
-                await new Promise((resolve, reject) => {
-                    const refreshIntervalId = setInterval(async () => {
-                        if (await isDeployComplete()) {
-                            clearInterval(refreshIntervalId)
-                            resolve()
                         }
-                    }, 250)
+                    )
+
+                    // Ensure setup was successful
+                    setupResult.flowsAddResponse.statusCode.should.equal(200)
+                    setupResult.credentialsCreateResponse.statusCode.should.equal(200)
+                    setupResult.storageSettingsResponse.statusCode.should.equal(200)
+                    setupResult.updateProjectSettingsResponse.statusCode.should.equal(200)
+
+                    await TestObjects.stageOne.update({ action: 'use_latest_snapshot' })
+
+                    // 1 -> 2
+                    TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
+
+                    await createSnapshot(app, TestObjects.instanceOne, TestObjects.user, {
+                        name: 'Oldest Snapshot Created In Test',
+                        description: 'This was the first snapshot created as part of the test process',
+                        setAsTarget: false // no need to deploy to devices of the source
+                    })
+
+                    // This one has custom props to validate against
+                    await createSnapshot(app, TestObjects.instanceOne, TestObjects.user, {
+                        name: 'Latest Snapshot Created In Test',
+                        description: 'This was the second snapshot created as part of the test process',
+                        setAsTarget: false, // no need to deploy to devices of the source
+                        flows: { custom: 'custom-flows' },
+                        credentials: { custom: 'custom-creds' },
+                        settings: {
+                            modules: { custom: 'custom-module' },
+                            env: { custom: 'custom-env' }
+                        }
+                    })
+
+                    const response = await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageOne.hashid}/deploy`,
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
+                    const body = await response.json()
+                    body.should.have.property('status', 'importing')
+
+                    // Wait for the deploy to complete
+                    await waitForDeployToComplete(TestObjects.instanceTwo)
+
+                    // No new snapshot should have been created in stage 1
+                    const sourceInstanceSnapshots = await TestObjects.instanceOne.getProjectSnapshots()
+                    sourceInstanceSnapshots.should.have.lengthOf(2)
+
+                    // Snapshot created in stage 2, flows created, and set as target
+
+                    // Get the snapshot for instance 2 post deploy
+                    const snapshots = await TestObjects.instanceTwo.getProjectSnapshots()
+                    snapshots.should.have.lengthOf(1)
+
+                    const targetSnapshot = snapshots[0]
+
+                    targetSnapshot.name.should.match(/Latest Snapshot Created In Test - Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
+                    targetSnapshot.description.should.match(/Snapshot created for pipeline deployment from stage-one to stage-two as part of pipeline new-pipeline/)
+                    targetSnapshot.description.should.match(/This was the second snapshot created as part of the test process/)
+
+                    targetSnapshot.flows.should.have.property('flows')
+                    targetSnapshot.flows.flows.should.match({ custom: 'custom-flows' })
+
+                    targetSnapshot.flows.should.have.property('credentials')
+                    targetSnapshot.flows.credentials.should.have.property('$')
+
+                    targetSnapshot.settings.should.have.property('settings')
+                    targetSnapshot.settings.modules.should.have.property('custom', 'custom-module')
+                    targetSnapshot.settings.env.should.have.property('custom', 'custom-env')
                 })
+            })
 
-                // No new snapshot should have been created in stage 1
-                const sourceInstanceSnapshots = await TestObjects.instanceOne.getProjectSnapshots()
-                sourceInstanceSnapshots.should.have.lengthOf(2)
+            describe('For device=>instance', function () {
+                it('Copies the existing device snapshot to the next stages instance')
+            })
 
-                // Snapshot created in stage 2, flows created, and set as target
+            describe('For device=>device', function () {
+                it('Copies the existing device snapshot to the next stages device')
+            })
 
-                // Get the snapshot for instance 2 post deploy
-                const snapshots = await TestObjects.instanceTwo.getProjectSnapshots()
-                snapshots.should.have.lengthOf(1)
-
-                const targetSnapshot = snapshots[0]
-
-                targetSnapshot.name.should.match(/Latest Snapshot Created In Test - Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
-                targetSnapshot.description.should.match(/Snapshot created for pipeline deployment from stage-one to stage-two as part of pipeline new-pipeline/)
-                targetSnapshot.description.should.match(/This was the second snapshot created as part of the test process/)
-
-                targetSnapshot.flows.should.have.property('flows')
-                targetSnapshot.flows.flows.should.match({ custom: 'custom-flows' })
-
-                targetSnapshot.flows.should.have.property('credentials')
-                targetSnapshot.flows.credentials.should.have.property('$')
-
-                targetSnapshot.settings.should.have.property('settings')
-                targetSnapshot.settings.modules.should.have.property('custom', 'custom-module')
-                targetSnapshot.settings.env.should.have.property('custom', 'custom-env')
+            describe('For instance=>device', function () {
+                it('Copies the existing instance snapshot to the next stages device')
             })
 
             it('Fails gracefully if the source instance has no snapshots', async function () {
@@ -1274,10 +1317,8 @@ describe('Pipelines API', function () {
                 body.should.have.property('code', 'invalid_source_instance')
                 response.statusCode.should.equal(400)
             })
-        })
 
-        describe('With instances that are on different teams', function () {
-            it('Should fail gracefully')
+            it('Fails gracefully if the source device has no snapshots')
         })
     })
 })
