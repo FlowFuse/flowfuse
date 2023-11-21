@@ -54,7 +54,7 @@ module.exports = {
     associations: function (M) {
         this.belongsTo(M.Pipeline)
         this.belongsToMany(M.Project, { through: M.PipelineStageInstance, as: 'Instances', otherKey: 'InstanceId' })
-        this.belongsToMany(M.Device, { through: 'PipelineStageDevices' })
+        this.belongsToMany(M.Device, { through: M.PipelineStageDevice, as: 'Devices' })
         this.hasOne(M.PipelineStage, { as: 'NextStage', foreignKey: 'NextStageId', allowNull: true })
     },
     finders: function (M) {
