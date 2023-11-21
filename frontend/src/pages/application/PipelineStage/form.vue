@@ -329,24 +329,18 @@ export default {
         },
 
         actionOptions () {
+            const type = this.input.stageType === StageType.DEVICE ? 'device' : 'instance'
+
             const options = [
-                { value: 'use_latest_snapshot', label: 'Use latest instance snapshot' },
-                { value: 'prompt', label: 'Prompt to select snapshot' }
+                { value: 'use_latest_snapshot', label: `Use latest ${type} snapshot` },
+                { value: 'prompt', label: `Prompt to select ${type} snapshot` }
             ]
 
             if (this.input.stageType === StageType.INSTANCE) {
-                options.unshift({ value: 'create_snapshot', label: 'Create new snapshot' })
+                options.unshift({ value: 'create_snapshot', label: `Create new ${type} snapshot` })
             }
 
             return options
-        }
-    },
-    watch: {
-        'input.stageType': function () {
-            // ensure deploy to device is not set with "Device" type stage
-            if (this.input.stageType === StageType.DEVICE) {
-                this.input.deployToDevices = false
-            }
         }
     },
     created () {
@@ -361,6 +355,11 @@ export default {
                 this.input.deviceId = null
             } else if (this.input.stageType === StageType.DEVICE) {
                 this.input.instanceId = null
+            }
+
+            // Ensure deploy to device is not set with "Device" type stage
+            if (this.input.stageType === StageType.DEVICE) {
+                this.input.deployToDevices = false
             }
 
             this.$emit('submit', this.input)

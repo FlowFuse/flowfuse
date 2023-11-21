@@ -60,11 +60,11 @@
             </div>
             <div v-if="stage.stageType == StageType.INSTANCE" class="ff-pipeline-stage-row">
                 <label>Last Deployed:</label>
-                <span>{{ stage.flowLastUpdatedSince ?? 'Unknown' }}</span>
+                <span>{{ stage.flowLastUpdatedSince ? stage.flowLastUpdatedSince : 'Unknown' }}</span>
             </div>
             <div v-else-if="stage.stageType == StageType.DEVICE" class="ff-pipeline-stage-row">
                 <label>Last Seen:</label>
-                <span>{{ stage.lastSeenSince ?? 'Unknown' }}</span>
+                <span>{{ stage.lastSeenSince ? stage.lastSeenSince : 'Unknown' }}</span>
             </div>
             <div class="ff-pipeline-stage-row">
                 <label v-if="stage.stageType == StageType.DEVICE">Last Known Status:</label>

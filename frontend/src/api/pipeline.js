@@ -3,9 +3,15 @@ import elapsedTime from '../utils/elapsedTime.js'
 
 import client from './client.js'
 
-const StageType = Object.freeze({
+export const StageType = Object.freeze({
     INSTANCE: 'instance',
     DEVICE: 'device'
+})
+
+export const StageAction = Object.freeze({
+    CREATE_SNAPSHOT: 'create_snapshot',
+    USE_LATEST_SNAPSHOT: 'use_latest_snapshot',
+    PROMPT: 'prompt'
 })
 
 /**
@@ -100,8 +106,6 @@ const deployPipelineStage = async (pipelineId, sourceStageId, sourceSnapshotId) 
         return res.data
     })
 }
-
-export { StageType }
 
 export default {
     getPipelineStage,
