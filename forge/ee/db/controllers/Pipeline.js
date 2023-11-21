@@ -26,7 +26,6 @@ module.exports = {
         }
         const stage = await app.db.models.PipelineStage.create(options)
 
-        // TODO: Add logic to set one or other or both
         if (options.instanceId) {
             await stage.addInstanceId(options.instanceId)
         } else if (options.deviceId) {
@@ -196,7 +195,7 @@ module.exports = {
         app.db.controllers.Project.setInDeploy(targetInstance)
 
         // Complete heavy work async
-        return async function () {
+        return (async function () {
             try {
                 const setAsTargetForDevices = targetStage.deployToDevices ?? false
                 const targetSnapshot = await copySnapshot(app, sourceSnapshot, targetInstance, {
@@ -225,7 +224,7 @@ module.exports = {
 
                 throw PipelineControllerError('unexpected_error', `Error during deploy: ${err.toString()}`, 500, { cause: err })
             }
-        }
+        })()
     },
 
     /**
