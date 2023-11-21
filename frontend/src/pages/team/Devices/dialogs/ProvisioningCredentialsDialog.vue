@@ -7,7 +7,7 @@
                     configuration. Make a note of it as this is the only
                     time you will see it.
                 </p>
-                <pre class="overflow-auto text-sm p-4 border rounded bg-gray-800 text-gray-200">{{ configuration }}</pre>
+                <pre class="overflow-auto text-sm p-4 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
             </form>
         </template>
         <template #actions>

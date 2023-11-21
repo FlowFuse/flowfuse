@@ -5,7 +5,7 @@
         class="forge-badge"
         :class="['forge-status-' + status, pendingChange ? 'opacity-40' : '']"
     >
-        <ExclamationCircleIcon v-if="status === 'error'" class="w-4 h-4" />
+        <ExclamationCircleIcon v-if="status === 'error' || status === 'crashed'" class="w-4 h-4" />
         <ExclamationIcon v-if="status === 'suspended'" class="w-4 h-4" />
         <PlayIcon v-if="status === 'running'" class="w-4 h-4" />
         <StopIcon v-if="status === 'stopping' || status === 'suspending'" class="w-4 h-4" />

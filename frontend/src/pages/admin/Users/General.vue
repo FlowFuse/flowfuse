@@ -56,8 +56,10 @@ export default {
             nextCursor: null,
             columns: [
                 { label: 'User', class: ['flex-grow'], key: 'name', component: { is: markRaw(UserCell) }, sortable: true },
-                { label: 'Password Expired', class: ['w-56', 'text-center'], key: 'password_expired', sortable: true },
-                { label: 'Email Verified', class: ['w-56', 'text-center'], key: 'email_verified', sortable: true },
+                { label: 'Password Expired', class: ['w-32', 'text-center'], key: 'password_expired', sortable: true },
+                { label: 'Email Verified', class: ['w-32', 'text-center'], key: 'email_verified', sortable: true },
+                { label: 'SSO', class: ['w-32', 'text-center'], key: 'sso_enabled', sortable: true },
+                { label: 'MFA', class: ['w-32', 'text-center'], key: 'mfa_enabled', sortable: true },
                 { label: 'Admin', class: ['w-32', 'text-center'], key: 'admin', sortable: true },
                 { label: 'Suspended', class: ['w-32', 'text-center'], key: 'suspended', sortable: true }
             ]

@@ -147,6 +147,14 @@ const formatLogEntry = (auditLogDbRow) => {
                 interval: body?.interval,
                 threshold: body?.threshold
             })
+
+            // if body has the keys:  `key`, `scope`, and `store` AND `store` === 'memory' or 'persistent'
+            // this is a Node-RED context store event
+            if (body?.key && body?.scope && body?.store && (body.store === 'memory' || body.store === 'persistent')) {
+                formatted.body = formatted.body || {}
+                formatted.body.context = { key: body.key, scope: body.scope, store: body.store }
+            }
+
             const roleObj = body?.role && roleObject(body.role)
             if (roleObj) {
                 if (formatted.body?.user) {

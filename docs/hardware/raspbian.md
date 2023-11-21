@@ -30,22 +30,22 @@ You can run the device agent as a service, which means it can run in the backgro
 
 If you want Node-RED to run when the device is turned on, or re-booted, you can enable the service to autostart by running the command:
 
-```sudo systemctl enable flowforge-device-agent.service```
+```sudo systemctl enable flowfuse-device-agent.service```
 
 To disable the service, run the command:
 
-```sudo systemctl disable flowforge-device-agent.service```
+```sudo systemctl disable flowfuse-device-agent.service```
 
 ### Controlling the service
 
 You can start the service with the command:
 
-```sudo systemctl start flowforge-device-agent```
+```sudo systemctl start flowfuse-device-agent```
 
 You can check the current status with the command:
 
-```sudo systemctl status flowforge-device-agent```
+```sudo systemctl status flowfuse-device-agent```
 
 You can stop your with the command:
 
-```sudo systemctl stop flowforge-device-agent```
+```sudo systemctl stop flowfuse-device-agent```

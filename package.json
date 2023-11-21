@@ -1,6 +1,6 @@
 {
     "name": "@flowforge/flowforge",
-    "version": "1.13.2",
+    "version": "1.13.3",
     "description": "An open source low-code development platform",
     "homepage": "https://flowfuse.com",
     "bugs": {
@@ -66,10 +66,11 @@
         "@fastify/swagger": "^8.10.1",
         "@fastify/swagger-ui": "^1.9.0",
         "@fastify/websocket": "^8.1.0",
-        "@flowforge/localfs": "^1.13.0",
+        "@flowforge/localfs": "^1.13.3",
         "@headlessui/vue": "1.7.16",
         "@heroicons/vue": "1.0.6",
         "@immobiliarelabs/fastify-sentry": "^7.1.1",
+        "@levminer/speakeasy": "^1.4.2",
         "@node-saml/passport-saml": "^4.0.4",
         "@sentry/node": "^7.73.0",
         "@sentry/profiling-node": "^1.2.1",
@@ -93,6 +94,7 @@
         "pg": "^8.11.3",
         "pino": "^8.15.1",
         "pino-pretty": "^10.0.0",
+        "qrcode": "^1.5.3",
         "semver": "~7.5.4",
         "sequelize": "^6.33.0",
         "sqlite3": "^5.1.6",
@@ -158,5 +160,15 @@
     },
     "engines": {
         "node": ">=16.x"
-    }
+    },
+    "keywords": [
+        "low-code-platform",
+        "low-code-development",
+        "low-code-development-platform",
+        "visual-programming",
+        "flow-based-programming",
+        "no-code",
+        "low-code",
+        "node-red"
+    ]
 }

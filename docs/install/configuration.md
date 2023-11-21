@@ -214,3 +214,12 @@ can access the File server.
 Option        | Description
 --------------|------------
 `fileStore.url`  | The URL of the FlowFuse File Server to use. Default: not set
+
+## Content Security Policy
+
+Option        | Description
+--------------|------------
+`content_security_policy.enabled` | Enabled `Content-Security-Policy` headers. Default: `false`
+`content_security_policy.directives` | Overrides the default set of directives, supplied as a JSON object defined by HelmetJS [here](https://helmetjs.github.io/#content-security-policy)
+`content_security_policy.report_only` | Enables reporting only mode. Default: `false`
+`content_security_policy.report_uri` |  Provides at URI for reporting to be sent to if enabled

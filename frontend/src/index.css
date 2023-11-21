@@ -142,8 +142,9 @@
         @apply inline-flex;
         @apply items-center;
     }
-    .forge-status-error {
-        @apply bg-red-200;
+    .forge-status-error,
+    .forge-status-crashed {
+        @apply bg-red-100;
         @apply border-red-400;
         @apply text-red-600;
     }

@@ -49,7 +49,8 @@ const iconMap = {
         'flows.set',
         'library.set',
         'nodes.install',
-        'nodes.remove'
+        'nodes.remove',
+        'context.delete'
     ],
     template: [
         'application.created',

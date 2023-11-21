@@ -49,6 +49,8 @@ import stacksApi from '../../../../api/stacks.js'
 
 import FormRow from '../../../../components/FormRow.vue'
 
+import Alerts from '../../../../services/alerts.js'
+
 export default {
     name: 'AdminStackCreateDialog',
     components: {
@@ -240,6 +242,7 @@ export default {
                             if (/name/.test(err.response.data.error)) {
                                 this.errors.name = 'Name unavailable'
                             }
+                            Alerts.emit(err.response.data.error, 'warning')
                         }
                     }).finally(() => {
                         this.loading = false
@@ -257,6 +260,7 @@ export default {
                             if (/name/.test(err.response.data.error)) {
                                 this.errors.name = 'Name unavailable'
                             }
+                            Alerts.emit(err.response.data.error, 'warning')
                         }
                     }).finally(() => {
                         this.loading = false

@@ -18,7 +18,7 @@ import permissionsMixin from '../../../mixins/Permissions.js'
 export default {
     name: 'DeviceSettins',
     props: ['device'],
-    emits: ['device-updated', 'assign-device'],
+    emits: ['device-updated', 'device-refresh', 'assign-device'],
     mixins: [permissionsMixin],
     data: function () {
         return {
@@ -29,13 +29,17 @@ export default {
         ...mapState('account', ['teamMembership', 'team'])
     },
     mounted () {
-        this.checkAccess()
+        if (this.checkAccess()) {
+            // device state polling is disabled on settings pages (in ../index.vue:pollTimer())
+            // so we need to manually refresh the device upon mounting
+            this.$emit('device-refresh')
+        }
     },
     methods: {
         checkAccess: async function () {
             if (!this.teamMembership) {
                 useRouter().push({ replace: true, path: 'overview' })
-                return
+                return false
             }
             this.sideNavigation = [
                 { name: 'General', path: './general' },
@@ -44,6 +48,7 @@ export default {
             if (this.hasPermission('device:edit')) {
                 this.sideNavigation.push({ name: 'Danger', path: './danger' })
             }
+            return true
         }
     },
     components: {
