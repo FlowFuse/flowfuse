@@ -83,16 +83,19 @@ module.exports = async function (app) {
                 name,
                 ApplicationId: request.application.id
             })
-        } catch (err) {
-            if (err instanceof ValidationError) {
-                if (err.errors[0]) {
-                    return reply.status(400).type('application/json').send({ code: `invalid_${err.errors[0].path}`, error: err.errors[0].message })
+        } catch (error) {
+            if (error instanceof ValidationError) {
+                if (error.errors[0]) {
+                    return reply.status(400).type('application/json').send({ code: `invalid_${error.errors[0].path}`, error: error.errors[0].message })
                 }
 
-                return reply.status(400).type('application/json').send({ code: 'invalid_input', error: err.message })
+                return reply.status(400).type('application/json').send({ code: 'invalid_input', error: error.message })
             }
 
-            return reply.status(500).send({ code: 'unexpected_error', error: err.toString() })
+            app.log.error('Error while creating pipeline:')
+            app.log.error(error)
+
+            return reply.status(500).send({ code: 'unexpected_error', error: error.toString() })
         }
 
         await app.auditLog.Team.application.pipeline.created(request.session.User, null, team, request.application, pipeline)
@@ -285,16 +288,19 @@ module.exports = async function (app) {
                 request.pipeline,
                 options
             )
-        } catch (err) {
-            if (err instanceof ValidationError) {
-                if (err.errors[0]) {
-                    return reply.status(400).type('application/json').send({ code: `invalid_${err.errors[0].path}`, error: err.errors[0].message })
+        } catch (error) {
+            if (error instanceof ValidationError) {
+                if (error.errors[0]) {
+                    return reply.status(400).type('application/json').send({ code: `invalid_${error.errors[0].path}`, error: error.errors[0].message })
                 }
 
-                return reply.status(400).type('application/json').send({ code: 'invalid_input', error: err.message })
+                return reply.status(400).type('application/json').send({ code: 'invalid_input', error: error.message })
             }
 
-            return reply.status(500).send({ code: 'unexpected_error', error: err.toString() })
+            app.log.error('Error while creating pipeline stage:')
+            app.log.error(error)
+
+            return reply.status(500).send({ code: 'unexpected_error', error: error.toString() })
         }
         await app.auditLog.Team.application.pipeline.stageAdded(request.session.User, null, team, request.application, request.pipeline, stage)
 
