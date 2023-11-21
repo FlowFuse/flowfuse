@@ -116,7 +116,10 @@ module.exports = async function (app) {
                         { id: 'FFDBG00000000001', type: 'debug', z: 'FFF0000000000001', name: 'Info', active: true, tosidebar: true, console: true, tostatus: true, complete: 'payload', targetType: 'msg', statusVal: 'payload', statusType: 'auto', x: 490, y: 160 }
                     ],
                     modules: {
-                        'node-red': nodeRedVersion // TODO: get this from the "somewhere!?!?" - this is where TAGs might work well.
+                        'node-red': nodeRedVersion, // TODO: get this from the "somewhere!?!?" - this is where TAGs might work well.
+                        // as of FF v1.14.0, we permit project nodes to work on application owned devices
+                        // the support for this is in @flowfuse/nr-project-nodes > v0.5.0
+                        '@flowfuse/nr-project-nodes': '>0.5.0' // TODO: get this from the "settings" (future)
                     },
                     env: {
                         FF_SNAPSHOT_ID: '0',
@@ -127,13 +130,6 @@ module.exports = async function (app) {
                         FF_APPLICATION_ID: device.Application.hashid,
                         FF_APPLICATION_NAME: device.Application.name
                     }
-                }
-                // as of FF v1.14.0, we permit project nodes operate on application owned devices
-                // so long as the device agent is >= 1.14.0
-                if (SemVer.satisfies(SemVer.coerce(device.agentVersion), '>=1.14.0')) {
-                    // device agent 1.13.4 and above supports project nodes for application assigned devices
-                    // @flowfuse/nr-project-nodes > v0.5.0 is required for this to work
-                    DEFAULT_APP_SNAPSHOT.modules['@flowfuse/nr-project-nodes'] = '>0.5.0'
                 }
                 return reply.send(DEFAULT_APP_SNAPSHOT)
             }
@@ -155,24 +151,16 @@ module.exports = async function (app) {
                 }
 
                 // as of FF v1.14.0, we permit project nodes to work on application owned devices
-                // so long as the device agent is >= 1.14.0
                 if (device.isApplicationOwned) {
-                    if (SemVer.satisfies(SemVer.coerce(device.agentVersion), '>=1.14.0')) {
-                        settings.modules = settings.modules || {}
-                        // @flowfuse/nr-project-nodes > v0.5.0 is required for this to work
-                        // if the snapshot does not have the new module specified OR it is a version <= 0.5.0, update it
-                        if (!settings.modules['@flowfuse/nr-project-nodes'] || SemVer.satisfies(SemVer.coerce(settings.modules['@flowfuse/nr-project-nodes']), '<=0.5.0')) {
-                            settings.modules['@flowfuse/nr-project-nodes'] = '>0.5.0'
-                        }
-                        // Belt and braces, remove old module! We don't want to be instructing the device to install both.
-                        // (the old module can be present due to a snapshot applied from an instance or instance owned device)
-                        delete settings.modules['@flowforge/nr-project-nodes']
-                    } else {
-                        // device agent 1.13.x and lower do not support project nodes for application assigned devices
-                        // remove the nr-project-nodes module to prevent agent issues
-                        delete settings.modules['@flowfuse/nr-project-nodes']
-                        delete settings.modules['@flowforge/nr-project-nodes']
+                    settings.modules = settings.modules || {} // snapshot might not have any modules
+                    // @flowfuse/nr-project-nodes > v0.5.0 is required for this to work
+                    // if the snapshot does not have the new module specified OR it is a version <= 0.5.0, update it
+                    if (!settings.modules['@flowfuse/nr-project-nodes'] || SemVer.satisfies(SemVer.coerce(settings.modules['@flowfuse/nr-project-nodes']), '<=0.5.0')) {
+                        settings.modules['@flowfuse/nr-project-nodes'] = '>0.5.0'
                     }
+                    // Belt and braces, remove old module! We don't want to be instructing the device to install the old version.
+                    // (the old module can be present due to a snapshot applied from an instance or instance owned device)
+                    delete settings.modules['@flowforge/nr-project-nodes']
                 }
 
                 const result = {
