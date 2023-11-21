@@ -416,7 +416,7 @@ module.exports = {
                         if (device.ProjectId) {
                             return {
                                 ownerType: 'instance',
-                                ownerId: M.Project.encodeHashid(device.ProjectId)
+                                ownerId: device.ProjectId
                             }
                         } else if (device.ApplicationId) {
                             return {
