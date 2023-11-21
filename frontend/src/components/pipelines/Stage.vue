@@ -46,11 +46,11 @@
                         </div>
                     </router-link>
                 </div>
-                <div v-if="stage.stageType == StageType.DEVICE" class="ff-pipeline-stage-row">
-                    <router-link :to="{name: 'Device', params: { id: stage.device.id }}">
+                <div v-if="stage.stageType == StageType.DEVICE" class="ff-pipeline-stage-type">
+                    <router-link class="flex gap-2 items-center" :to="{name: 'Device', params: { id: stage.device.id }}">
                         <IconDeviceSolid class="ff-icon ff-icon-lg text-teal-700" />
                         <div>
-                            <label>Device:</label>
+                            <label class="flex items-center gap-2">Device:</label>
                             <span>
                                 {{ stage.device.name }}
                             </span>
