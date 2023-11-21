@@ -101,10 +101,20 @@ module.exports = {
                         ]
                     })
                 },
-                byPipeline: async function (pipelineId) {
+                byPipeline: async function (pipelineId, { includeDeviceStatus = false } = {}) {
                     if (typeof pipelineId === 'string') {
                         pipelineId = M.Pipeline.decodeHashid(pipelineId)
                     }
+
+                    const devicesInclude = {
+                        association: 'Devices',
+                        attributes: ['hashid', 'id', 'name', 'type', 'ownerType', 'links']
+                    }
+
+                    if (includeDeviceStatus) {
+                        devicesInclude.attributes.push('targetSnapshotId', 'activeSnapshotId', 'lastSeenAt', 'state')
+                    }
+
                     return await self.findAll({
                         where: {
                             PipelineId: pipelineId
@@ -114,10 +124,7 @@ module.exports = {
                                 association: 'Instances',
                                 attributes: ['hashid', 'id', 'name', 'url', 'updatedAt']
                             },
-                            {
-                                association: 'Devices',
-                                attributes: ['hashid', 'id', 'name', 'type', 'ownerType', 'targetSnapshotId', 'activeSnapshotId', 'lastSeenAt', 'state', 'links']
-                            }
+                            devicesInclude
                         ]
                     })
                 },
