@@ -124,7 +124,7 @@ module.exports = {
 
         if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.PROMPT) {
             if (!sourceSnapshotId) {
-                throw new PipelineControllerError('no_source_snapshot', 'Source snapshot is required as deploy action is set to prompt for snapshot', 400)
+                throw new PipelineControllerError('invalid_source_snapshot', 'Source snapshot is required as deploy action is set to prompt for snapshot', 400)
             }
 
             const sourceSnapshot = await app.db.models.ProjectSnapshot.byId(sourceSnapshotId)
@@ -146,18 +146,18 @@ module.exports = {
         if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.USE_LATEST_SNAPSHOT) {
             const sourceSnapshot = await sourceDevice.getLatestSnapshot()
             if (!sourceSnapshot) {
-                throw new PipelineControllerError('invalid_source_instance', 'No snapshots found for source stages device but deploy action is set to use latest snapshot', 400)
+                throw new PipelineControllerError('invalid_source_device', 'No snapshots found for source stages device but deploy action is set to use latest snapshot', 400)
             }
             return sourceSnapshot
         }
 
         if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.CREATE_SNAPSHOT) {
-            throw new PipelineControllerError('invalid_source_instance', 'When using a device as a source, create snapshot is not yet supported', 400)
+            throw new PipelineControllerError('invalid_source_action', 'When using a device as a source, create snapshot is not yet supported', 400)
         }
 
         if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.PROMPT) {
             if (!sourceSnapshotId) {
-                throw new PipelineControllerError('no_source_snapshot', 'Source snapshot is required as deploy action is set to prompt for snapshot', 400)
+                throw new PipelineControllerError('invalid_source_snapshot', 'Source snapshot is required as deploy action is set to prompt for snapshot', 400)
             }
 
             const sourceSnapshot = await app.db.models.ProjectSnapshot.byId(sourceSnapshotId)
