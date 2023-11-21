@@ -798,43 +798,49 @@ describe('Broker Auth API', async function () {
                             cookies: { sid: TestObjects.tokens.alice }
                         })
                     })
-                    it('can subscribe to application command if assigned', async function () {
+                    it('can subscribe to application command', async function () {
                         await allowRead({
                             username: deviceUsername,
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/a/${TestObjects.ApplicationA.hashid}/command`
                         })
                     })
-                    it('can subscribe to project inbox if assigned', async function () {
+                    it('can subscribe to project inbox', async function () {
                         await allowRead({
                             username: deviceUsername,
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectA.id}/in/foo`
                         })
                     })
-                    it('can subscribe to project broadcast if assigned', async function () {
+                    it('can subscribe to project broadcast', async function () {
                         await allowRead({
                             username: deviceUsername,
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectB.id}/out/foo`
                         })
                     })
-                    it('can subscribe to all broadcast if assigned', async function () {
+                    it('can subscribe to all broadcast', async function () {
                         await allowRead({
                             username: deviceUsername,
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/out/foo`
                         })
                     })
-                    it('can publish to project inbox if assigned', async function () {
+                    it('can publish to project inbox', async function () {
                         await allowWrite({
                             username: deviceUsername,
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectB.id}/in/foo`
                         })
                     })
-                    it('can publish to project output if assigned', async function () {
-                        await allowWrite({
+                    it('can not publish broadcast without `app:` topic prefix', async function () {
+                        await denyWrite({
                             username: deviceUsername,
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ApplicationA.hashid}/out/foo`
                         })
                     })
-                    it('can publish to project response if assigned', async function () {
+                    it('can publish broadcast with `app:` topic prefix', async function () {
+                        await allowWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/app:${TestObjects.ApplicationA.hashid}/out/foo`
+                        })
+                    })
+                    it('can publish to project response', async function () {
                         await allowWrite({
                             username: deviceUsername,
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectB.id}/res/foo`
