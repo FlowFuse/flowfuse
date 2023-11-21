@@ -13,19 +13,24 @@
             <a class="text-center w-full hover:text-blue-400 cursor-pointer pb-1" @click="loadPrevious">Load earlier...</a>
         </div>
         <div v-if="filteredLogEntries.length > 0">
-            <p
+            <span
                 v-for="(item, itemIdx) in filteredLogEntries"
                 :key="itemIdx"
                 class="whitespace-pre-wrap"
                 :class="'forge-log-entry-level-' + item.level"
                 data-el="instance-log-row"
             >
-                <span v-if="instance.ha?.replicas !== undefined" class="w-14 flex-shrink-0">[{{ item.src }}]</span>
-                <span class="w-40 flex-shrink-0">{{ item.date }}</span>
-                <span class="ml-5 w-20 flex-shrink-0 align-right">[{{ item.level }}]</span>
-                <span :class="item.level === 'system' ? 'ml-3' : 'ml-7'" class="flex-grow break-all whitespace-pre-wrap inline-flex">{{ item.msg }}</span>
-                <br>
-            </p>
+                <template v-if="instance.ha?.replicas !== undefined">
+                    [{{ item.src }}]
+                </template>
+                <span>{{ item.date }}</span>
+                <span>{{ "  " }}</span>
+                <span>[{{ item.level }}]</span>
+                <span v-if="item.level !=='system'">{{ "   " }}</span>
+                <span v-else>{{ " " }}</span>
+                <span class="flex-grow break-all whitespace-pre-wrap inline-flex">{{ item.msg }}</span>
+                <br v-if="itemIdx !== filteredLogEntries.length - 1">
+            </span>
         </div>
     </div>
 </template>
