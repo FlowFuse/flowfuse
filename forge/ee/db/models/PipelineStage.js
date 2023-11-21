@@ -48,6 +48,30 @@ module.exports = {
                         throw new Error(`All instances on a pipeline stage, must be a member of the same application as the pipeline. ${instance.name} is not a member of application ${pipeline.ApplicationId}.`)
                     }
                 })
+            },
+            async devicesHaveSameApplication () {
+                const devicesPromise = this.getDevices()
+                const pipelinePromise = this.getPipeline()
+
+                const devices = await devicesPromise
+                const pipeline = await pipelinePromise
+
+                devices.forEach((device) => {
+                    if (device.ApplicationId !== pipeline.ApplicationId) {
+                        throw new Error(`All devices on a pipeline stage, must be a member of the same application as the pipeline. ${device.name} is not a member of application ${pipeline.ApplicationId}.`)
+                    }
+                })
+            },
+            async devicesOrInstancesNotBoth () {
+                const devicesPromise = this.getDevices()
+                const instancesPromise = this.getInstances()
+
+                const devices = await devicesPromise
+                const instances = await instancesPromise
+
+                if (devices.length > 0 && instances.length > 0) {
+                    throw new Error('A pipeline stage can contain devices or instances, but never both.')
+                }
             }
         }
     },
@@ -63,7 +87,6 @@ module.exports = {
             instance: {
                 async addInstanceId (instanceId) {
                     const instance = await M.Project.byId(instanceId)
-                    // TODO VALIDATE IS PART OF THE SAME APPLICATION
                     if (!instance) {
                         throw new Error(`instanceId (${instanceId}) not found`)
                     }
@@ -72,7 +95,6 @@ module.exports = {
                 },
                 async addDeviceId (deviceId) {
                     const device = await M.Device.byId(deviceId)
-                    // TODO VALIDATE IS PART OF THE SAME APPLICATION
                     if (!device) {
                         throw new Error(`deviceId (${deviceId}) not found`)
                     }

@@ -3,8 +3,6 @@ const { ValidationError } = require('sequelize')
 const { registerPermissions } = require('../../../lib/permissions')
 const { Roles } = require('../../../lib/roles.js')
 
-const { copySnapshot, generateDeploySnapshotDescription, generateDeploySnapshotName } = require('../../../services/snapshots')
-
 module.exports = async function (app) {
     registerPermissions({
         'pipeline:read': { description: 'View a pipeline', role: Roles.Member },
@@ -78,8 +76,6 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const team = await request.teamMembership.getTeam()
         const name = request.body.name?.trim()
-
-        // Security issue here, should check application is same team...
 
         let pipeline
         try {
@@ -290,14 +286,24 @@ module.exports = async function (app) {
                 options
             )
         } catch (err) {
-            app.log.error(err)
+            if (err instanceof ValidationError) {
+                if (err.errors[0]) {
+                    return reply.status(400).type('application/json').send({ code: `invalid_${err.errors[0].path}`, error: err.errors[0].message })
+                }
+
+                return reply.status(400).type('application/json').send({ code: 'invalid_input', error: err.message })
+            }
+
             return reply.status(500).send({ code: 'unexpected_error', error: err.toString() })
         }
-        const instance = await app.db.models.Project.byId(instanceId)
         await app.auditLog.Team.application.pipeline.stageAdded(request.session.User, null, team, request.application, request.pipeline, stage)
-        await app.auditLog.Project.project.assignedToPipelineStage(request.session.User, null, instance, request.pipeline, stage)
 
-        // ById includes related models
+        if (instanceId) {
+            const instance = await app.db.models.Project.byId(instanceId)
+            await app.auditLog.Project.project.assignedToPipelineStage(request.session.User, null, instance, request.pipeline, stage)
+        }
+
+        // PipelineStage.byId includes devices and instance objects
         const hydratedStage = await app.db.models.PipelineStage.byId(stage.id)
 
         reply.send(await app.db.views.PipelineStage.stage(hydratedStage))
@@ -350,26 +356,25 @@ module.exports = async function (app) {
                 stage.action = request.body.action
             }
 
-            if (request.body.instanceId !== null) {
-                // Currently only one instance per stage is supported
+            // Null will remove devices and instances, undefined skips
+            if (request.body.instanceId !== undefined || request.body.deviceId !== undefined) {
+                // Currently only one instance or device per stage is supported
                 const instances = await stage.getInstances()
                 for (const instance of instances) {
                     await stage.removeInstance(instance)
                 }
 
-                if (request.body.instanceId) {
-                    await stage.addInstanceId(request.body.instanceId)
-                }
-            }
-
-            if (request.body.deviceId !== null) {
-                // Currently only one instance per stage is supported
+                // Currently only one device per stage is supported
                 const devices = await stage.getDevices()
                 for (const device of devices) {
                     await stage.removeDevice(device)
                 }
 
-                if (request.body.deviceId) {
+                if (request.body.instanceId && request.body.deviceId) {
+                    return reply.code(400).send({ code: 'invalid_input', error: 'Must provide instanceId or deviceId, not both' })
+                } else if (request.body.instanceId) {
+                    await stage.addInstanceId(request.body.instanceId)
+                } else if (request.body.deviceId) {
                     await stage.addDeviceId(request.body.deviceId)
                 }
             }
@@ -380,14 +385,23 @@ module.exports = async function (app) {
 
             await stage.save()
 
-            // ById includes related models
-            const hydratedStage = await app.db.models.PipelineStage.byId(stage.id)
+            // Load in devices and instance objects from ids
+            await stage.reload()
 
-            // TODO - Audit log entry?
-
-            reply.send(await app.db.views.PipelineStage.stage(hydratedStage))
+            reply.send(await app.db.views.PipelineStage.stage(stage))
         } catch (err) {
-            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
+            if (err instanceof ValidationError) {
+                if (err.errors[0]) {
+                    return reply.status(400).type('application/json').send({ code: `invalid_${err.errors[0].path}`, error: err.errors[0].message })
+                }
+
+                return reply.status(400).type('application/json').send({ code: 'invalid_input', error: err.message })
+            }
+
+            app.log.error('Error while updating pipeline stage:')
+            app.log.error(err)
+
+            return reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 
