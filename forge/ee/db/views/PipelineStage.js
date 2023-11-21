@@ -1,10 +1,5 @@
 module.exports = function (app) {
     app.addSchema({
-        $id: 'DevicesSummaryList'
-
-    })
-
-    app.addSchema({
         $id: 'PipelineStage',
         type: 'object',
         properties: {
@@ -13,7 +8,7 @@ module.exports = function (app) {
             instances: { $ref: 'InstanceSummaryList' },
             devices: {
                 type: 'array',
-                $ref: 'InstanceSummary'
+                $ref: 'DeviceSummary'
             },
             action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) },
             NextStageId: { type: 'string' }
