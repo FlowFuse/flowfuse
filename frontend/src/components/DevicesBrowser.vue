@@ -655,15 +655,28 @@ export default {
                 Dialog.show({
                     header: 'Delete Device',
                     kind: 'danger',
-                    text: 'Are you sure you want to delete this device? Once deleted, there is no going back.',
+                    html: `<p>Are you sure you want to delete this device? Once deleted, there is no going back</p>
+                       <code class="flex w-max h-4 items-center">${device.name}</code>
+                       <br>
+                       <label>Name</label>
+                       <div class="ff-input ff-text-input !w-96">
+                         <input  id="enteredDeviceName" placeholder="Enter your device name to continue" autocomplete="off">
+                       </div>
+                    `,
                     confirmLabel: 'Delete'
                 }, async () => {
-                    try {
-                        await deviceApi.deleteDevice(device.id)
-                        Alerts.emit('Successfully deleted the device', 'confirmation')
-                        this.deleteLocalCopyOfDevice(device)
-                    } catch (err) {
-                        Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
+                    const enteredDeviceName = document.getElementById('enteredDeviceName').value
+
+                    if (enteredDeviceName === device.name) {
+                        try {
+                            await deviceApi.deleteDevice(device.id)
+                            Alerts.emit('Successfully deleted the device', 'confirmation')
+                            this.deleteLocalCopyOfDevice(device)
+                        } catch (err) {
+                            Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
+                        }
+                    } else {
+                        Alerts.emit('Entered device name is incorrect. deletion aborted.", "warning')
                     }
                 })
             } else if (action === 'updateCredentials') {

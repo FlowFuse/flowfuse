@@ -14,11 +14,9 @@
                     <p>
                         Are you sure you want to delete this instance and the application that contains it? Once deleted, there is no going back.
                     </p>
-                    <p class="flex">
-                        Enter the instance name <code>{{ instance?.name }}</code> to continue.
-                    </p>
+                    <code class="flex w-max h-4 items-center">{{ instance?.name }}</code>
                 </div>
-                <FormRow v-model="input.instanceName" data-form="instance-name">Name</FormRow>
+                <FormRow v-model="input.instanceName" data-form="instance-name" placeholder="Enter the instance name to continue">Name</FormRow>
             </form>
         </template>
     </ff-dialog>

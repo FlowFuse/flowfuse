@@ -205,18 +205,31 @@ export default {
                 Dialog.show({
                     header: 'Delete Provisioning Token',
                     kind: 'danger',
-                    text: 'Are you sure you want to delete this provisioning token? Once deleted, it can no longer be used to provision new devices to the team.',
+                    html: `<p>Are you sure you want to delete this provisioning token? Once deleted, there is no going back.</p>
+                       <code class="flex w-max h-4 items-center">${token.name}</code>
+                       <br>
+                       <label class="font-bold">Name</label>
+                       <div class="ff-input ff-text-input !w-96">
+                         <input id="enteredTokenName" placeholder="Enter your token name to continue" autocomplete="off">
+                       </div>
+                    `,
                     confirmLabel: 'Delete'
                 }, async () => {
-                    this.deletingItem = true
-                    try {
-                        await teamApi.deleteTeamDeviceProvisioningToken(this.team.id, token.id)
-                        Alerts.emit('Successfully deleted the token', 'confirmation')
-                        this.tokens.delete(token.id)
-                    } catch (err) {
-                        Alerts.emit('Failed to delete token: ' + err.toString(), 'warning', 7500)
-                    } finally {
-                        this.deletingItem = false
+                    const enteredTokenName = document.getElementById('enteredTokenName').value
+
+                    if (enteredTokenName === token.name) {
+                        this.deletingItem = true
+                        try {
+                            await teamApi.deleteTeamDeviceProvisioningToken(this.team.id, token.id)
+                            Alerts.emit('Successfully deleted the token', 'confirmation')
+                            this.tokens.delete(token.id)
+                        } catch (err) {
+                            Alerts.emit('Failed to delete token: ' + err.toString(), 'warning', 7500)
+                        } finally {
+                            this.deletingItem = false
+                        }
+                    } else {
+                        Alerts.emit('Entered token name is incorrect. Deletion aborted.", "warning')
                     }
                 })
             } else if (action === 'updateCredentials') {

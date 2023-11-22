@@ -203,18 +203,29 @@ export default {
             dialog.show({
                 header: 'Delete Account',
                 kind: 'danger',
-                html: `<p>Are you sure you want to delete your account?</p>
-                       <p>This action cannot be undone.</p>`,
+                html: `<p>Are you sure you want to delete your account? Once deleted, there is no going back.</p>
+                       <code class="flex w-max h-4 items-center">${this.user.username}</code>
+                       <br>
+                       <label class="font-bold">Username</label>
+                       <div class="ff-input ff-text-input !w-96">
+                         <input id="enteredUsername" placeholder="Enter your username to continue" autocomplete="off">
+                       </div>
+                    `,
                 confirmLabel: 'Delete'
             }, async () => {
-                try {
-                    await userApi.deleteUser()
-                    // this.$store.dispatch('account/logout')
-                    this.$store.dispatch('account/checkState')
-                    this.$router.push({ name: 'login' })
-                } catch (error) {
-                    const msg = error.response?.data?.error || 'Error deleting account'
-                    alerts.emit(msg, 'warning')
+                const enteredUsername = document.getElementById('enteredUsername').value
+
+                if (enteredUsername === this.user.username) {
+                    try {
+                        await userApi.deleteUser()
+                        this.$store.dispatch('account/checkState')
+                        this.$router.push({ name: 'login' })
+                    } catch (error) {
+                        const msg = error.response?.data?.error || 'Error deleting account'
+                        alerts.emit(msg, 'warning')
+                    }
+                } else {
+                    alerts.emit('Entered username is incorrect. Deletion aborted.", "warning')
                 }
             })
         }

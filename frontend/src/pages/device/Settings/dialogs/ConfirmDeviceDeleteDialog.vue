@@ -6,12 +6,9 @@
                     <p>
                         Are you sure you want to delete this device? Once deleted, there is no going back.
                     </p>
-                    <p>
-                        Enter the device name to continue.
-                        <code class="block">{{ device?.name }}</code>
-                    </p>
+                    <code class="flex w-max h-4 items-center">{{ device?.name }}</code>
                 </div>
-                <FormRow v-model="input.deviceName" id="deviceName">Name</FormRow>
+                <FormRow v-model="input.deviceName" id="deviceName" placeholder="Enter device name to continue">Name</FormRow>
             </form>
         </template>
     </ff-dialog>
