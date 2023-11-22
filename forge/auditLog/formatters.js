@@ -7,10 +7,10 @@ const isObject = (obj) => {
 /**
  * Generate a standard format body for the audit log display and database.
  * Any items null or missing must not generate a property in the body
- * @param {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType?, info? } == {}} objects objects to include in body
+ * @param {{ error?, team?, project?, sourceProject?, targetProject?, device?, sourceDevice?, targetDevice?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType?, info? } == {}} objects objects to include in body
  * @returns {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType? info? }
  */
-const generateBody = ({ error, team, application, project, sourceProject, targetProject, device, user, stack, billingSession, subscription, license, updates, snapshot, pipeline, pipelineStage, role, projectType, info, interval, threshold } = {}) => {
+const generateBody = ({ error, team, application, project, sourceProject, targetProject, device, sourceDevice, targetDevice, user, stack, billingSession, subscription, license, updates, snapshot, pipeline, pipelineStage, role, projectType, info, interval, threshold } = {}) => {
     const body = {}
 
     if (isObject(error) || typeof error === 'string') {
@@ -33,6 +33,12 @@ const generateBody = ({ error, team, application, project, sourceProject, target
     }
     if (isObject(device)) {
         body.device = deviceObject(device)
+    }
+    if (isObject(sourceDevice)) {
+        body.sourceDevice = deviceObject(sourceDevice)
+    }
+    if (isObject(targetDevice)) {
+        body.targetDevice = deviceObject(targetDevice)
     }
     if (isObject(user)) {
         body.user = userObject(user)
@@ -140,6 +146,8 @@ const formatLogEntry = (auditLogDbRow) => {
                 snapshot: body?.snapshot,
                 updates: body?.updates,
                 device: body?.device,
+                sourceDevice: body?.sourceDevice,
+                targetDevice: body?.targetDevice,
                 projectType: body?.projectType,
                 info: body?.info,
                 pipeline: body?.pipeline,

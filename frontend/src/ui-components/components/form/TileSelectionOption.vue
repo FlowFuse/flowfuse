@@ -1,9 +1,13 @@
 <template>
-    <div ref="input" class="ff-tile-selection-option" :class="{'editable': editable, 'disabled': disabled, 'active': selected}" tabindex="0" @click="select(false)" @keydown.space.prevent="select(true)">
+    <div ref="input" class="ff-tile-selection-option"
+         :class="{'editable': editable, 'disabled': disabled, 'active': selected}"
+         :style="{'--ff-tile-selection-color': color || null}"
+         tabindex="0" @click="select(false)" @keydown.space.prevent="select(true)"
+    >
         <div class="ff-tile-selection-option--header">
             <h2>
                 <PencilAltIcon v-if="editable" class="ff-tile-selection-option--edit" @click="select(true)" />
-                <CheckCircleIcon v-else />
+                <slot v-else name="icon"><CheckCircleIcon /></slot>
                 {{ label }}
             </h2>
             <div class="ff-tile-selection-option--price">
@@ -53,6 +57,10 @@ export default {
         },
         description: {
             default: '',
+            type: String
+        },
+        color: {
+            default: null,
             type: String
         },
         price: {

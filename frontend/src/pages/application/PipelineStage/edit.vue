@@ -5,6 +5,7 @@
         />
         <PipelineStageForm
             v-else
+            :applicationDevices="applicationDevices"
             :instances="instances"
             :pipeline="pipeline"
             :stage="stage"
@@ -31,6 +32,10 @@ export default {
     props: {
         application: {
             type: Object,
+            required: true
+        },
+        applicationDevices: {
+            type: Array,
             required: true
         },
         instances: {
@@ -71,6 +76,7 @@ export default {
             const options = {
                 name: input.name,
                 instanceId: input.instanceId,
+                deviceId: input.deviceId,
                 deployToDevices: input.deployToDevices,
                 action: input.action
             }

@@ -10,6 +10,7 @@ const modelTypes = [
     'Pipeline',
     'PipelineStage',
     'PipelineStageInstance',
+    'PipelineStageDevice',
     'FlowTemplate',
     'MFAToken'
 ]

@@ -219,7 +219,8 @@ module.exports = class TestModelFactory {
     async createPipelineStage (pipelineStageDetails, pipeline) {
         const defaultPipelineStageDetails = {
             name: 'unnamed-pipeline-stage',
-            instanceId: null
+            instanceId: null,
+            deviceId: null
         }
 
         return await this.forge.db.controllers.Pipeline.addPipelineStage(

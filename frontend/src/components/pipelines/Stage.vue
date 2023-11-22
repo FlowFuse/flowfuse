@@ -33,30 +33,51 @@
                 <SpinnerIcon v-if="deploying" class="ff-icon" />
             </div>
         </div>
-        <div v-if="stage.instance" class="py-3">
-            <div class="ff-pipeline-stage-row">
-                <label>Instance:</label>
-                <span>
-                    <router-link :to="{name: 'Instance', params: { id: stage.instance.id }}">
-                        {{ stage.instance.name }}
+        <div v-if="stage.instance || stage.device" class="py-3">
+            <div>
+                <div v-if="stage.stageType == StageType.INSTANCE" class="ff-pipeline-stage-type">
+                    <router-link class="flex gap-2 items-center" :to="{name: 'Instance', params: { id: stage.instance.id }}">
+                        <IconNodeRedSolid class="ff-icon ff-icon-lg text-red-800" />
+                        <div>
+                            <label class="flex items-center gap-2">Instance:</label>
+                            <span>
+                                {{ stage.instance.name }}
+                            </span>
+                        </div>
                     </router-link>
-                </span>
+                </div>
+                <div v-if="stage.stageType == StageType.DEVICE" class="ff-pipeline-stage-type">
+                    <router-link class="flex gap-2 items-center" :to="{name: 'Device', params: { id: stage.device.id }}">
+                        <IconDeviceSolid class="ff-icon ff-icon-lg text-teal-700" />
+                        <div>
+                            <label class="flex items-center gap-2">Device:</label>
+                            <span>
+                                {{ stage.device.name }}
+                            </span>
+                        </div>
+                    </router-link>
+                </div>
+            </div>
+            <div v-if="stage.stageType == StageType.INSTANCE" class="ff-pipeline-stage-row">
+                <label>Last Deployed:</label>
+                <span>{{ stage.flowLastUpdatedSince ? stage.flowLastUpdatedSince : 'Unknown' }}</span>
+            </div>
+            <div v-else-if="stage.stageType == StageType.DEVICE" class="ff-pipeline-stage-row">
+                <label>Last Seen:</label>
+                <span>{{ stage.lastSeenSince ? stage.lastSeenSince : 'Unknown' }}</span>
             </div>
             <div class="ff-pipeline-stage-row">
+                <label v-if="stage.stageType == StageType.DEVICE">Last Known Status:</label>
+                <label v-else>Status:</label>
+                <InstanceStatusBadge :status="stage.state" />
+            </div>
+            <div v-if="stage.stageType == StageType.INSTANCE" class="ff-pipeline-stage-row">
                 <label>URL:</label>
                 <a
                     class="ff-link"
                     :href="stage.instance.url"
                     :target="stage.instance.name"
                 >{{ stage.instance.url }}</a>
-            </div>
-            <div class="ff-pipeline-stage-row">
-                <label>Last Deployed:</label>
-                <span>{{ stage.flowLastUpdatedSince ? stage.flowLastUpdatedSince : 'Unknown' }}</span>
-            </div>
-            <div class="ff-pipeline-stage-row">
-                <label>Status:</label>
-                <InstanceStatusBadge :status="stage.state" />
             </div>
             <div v-if="playEnabled" class="ff-pipeline-stage-row">
                 <label>Deploy Action:</label>
@@ -65,7 +86,7 @@
                         Create new snapshot
                     </template>
                     <template v-else-if="stage.action === 'use_latest_snapshot'">
-                        Use latest instance snapshot
+                        Use latest {{ stage.stageType === StageType.INSTANCE ? 'instance' : 'device' }} snapshot
                     </template>
                     <template v-else-if="stage.action==='prompt'">
                         Prompt to select snapshot
@@ -73,7 +94,7 @@
                 </span>
             </div>
         </div>
-        <div v-else class="flex justify-center py-6">No Instances Bound</div>
+        <div v-else class="flex justify-center py-6">No Instance or Device Bound</div>
         <DeployStageDialog
             ref="deployStageDialog"
             :stage="stage"
@@ -81,7 +102,7 @@
         />
     </div>
     <div v-else class="ff-pipeline-stage ff-pipeline-stage-ghost" data-action="add-stage">
-        <PlusCircleIcon class="ff-icon ff-icon-lg" />
+        <PlusCircleIcon class="ff-icon ff-icon-xl" />
         <label>Add Stage</label>
     </div>
 </template>
@@ -89,12 +110,14 @@
 <script>
 import { PencilAltIcon, PlayIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/outline'
 
-import PipelineAPI from '../../api/pipeline.js'
+import PipelineAPI, { StageType } from '../../api/pipeline.js'
 
 import InstanceStatusBadge from '../../pages/instance/components/InstanceStatusBadge.vue'
 
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
+import IconDeviceSolid from '../icons/DeviceSolid.js'
+import IconNodeRedSolid from '../icons/NodeRedSolid.js'
 
 import SpinnerIcon from '../icons/Spinner.js'
 
@@ -109,7 +132,9 @@ export default {
         PlayIcon,
         PlusCircleIcon,
         SpinnerIcon,
-        TrashIcon
+        TrashIcon,
+        IconDeviceSolid,
+        IconNodeRedSolid
     },
     props: {
         application: {
@@ -138,6 +163,9 @@ export default {
         deploying () {
             return this.stage.isDeploying
         }
+    },
+    created () {
+        this.StageType = StageType
     },
     methods: {
         runStage: async function () {
@@ -197,6 +225,10 @@ export default {
                 messageParts.push(', and all its devices')
             }
             messageParts.push('has started.')
+
+            if (target.device?.id) {
+                messageParts.push('The connected device has been requested to update, but the time to deploy is dependent on its current status.')
+            }
 
             Alerts.emit(
                 messageParts.join(' '),

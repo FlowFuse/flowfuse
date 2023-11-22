@@ -173,6 +173,13 @@ module.exports = {
                         return result.value
                     }
                     return undefined
+                },
+                async getLatestSnapshot () {
+                    const snapshots = await this.getProjectSnapshots({
+                        order: [['createdAt', 'DESC']],
+                        limit: 1
+                    })
+                    return snapshots[0]
                 }
             },
             static: {

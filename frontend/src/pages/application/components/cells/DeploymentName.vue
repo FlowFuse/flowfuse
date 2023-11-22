@@ -1,8 +1,8 @@
 <template>
     <span
-        class="flex items-center"
+        class="flex items-center gap-2"
     >
-        <CloudIcon class="w-6 mr-2 text-gray-500" />
+        <IconNodeRedSolid class="ff-icon ff-icon-lg text-red-800" />
         <div class="flex flex-col space-y-1">
             {{ name }}
         </div>
@@ -10,11 +10,11 @@
 </template>
 
 <script>
-import { CloudIcon } from '@heroicons/vue/outline'
+import IconNodeRedSolid from '../../../../components/icons/NodeRedSolid.js'
 
 export default {
     name: 'DeploymentName',
-    components: { CloudIcon },
+    components: { IconNodeRedSolid },
     inheritAttrs: false,
     props: {
         name: {

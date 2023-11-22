@@ -1,6 +1,18 @@
 import product from '../services/product.js'
+import elapsedTime from '../utils/elapsedTime.js'
 
 import client from './client.js'
+
+export const StageType = Object.freeze({
+    INSTANCE: 'instance',
+    DEVICE: 'device'
+})
+
+export const StageAction = Object.freeze({
+    CREATE_SNAPSHOT: 'create_snapshot',
+    USE_LATEST_SNAPSHOT: 'use_latest_snapshot',
+    PROMPT: 'prompt'
+})
 
 /**
  * @param {string} pipelineId
@@ -14,6 +26,16 @@ const getPipelineStage = async (pipelineId, stageId) => {
             // @see getPipelines in frontend Application API
             res.data.instance = res.data.instances?.[0]
 
+            // Again, the backend supports multiple devices per stage but the UI
+            // only exposes connecting one
+            res.data.device = res.data.devices?.[0]
+            if (res.data.device) {
+                res.data.device.lastSeenSince = res.data.device.lastSeenAt ? elapsedTime(0, res.data.device.lastSeenMs) + ' ago' : ''
+            }
+
+            // Frontend only supports one type of object per stage
+            res.data.stageType = res.data.instance ? StageType.INSTANCE : (res.data.device ? StageType.DEVICE : null)
+
             return res.data
         })
 }
@@ -26,6 +48,7 @@ const addPipelineStage = async (pipelineId, stage) => {
     const options = {
         name: stage.name,
         instanceId: stage.instanceId,
+        deviceId: stage.deviceId,
         deployToDevices: stage.deployToDevices,
         action: stage.action
     }

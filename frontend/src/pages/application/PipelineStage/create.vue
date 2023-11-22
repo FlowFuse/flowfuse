@@ -1,6 +1,7 @@
 <template>
     <main>
         <PipelineStageForm
+            :applicationDevices="applicationDevices"
             :instances="instances"
             :pipeline="pipeline"
             :stage="{}"
@@ -30,6 +31,10 @@ export default {
             type: Object,
             required: true
         },
+        applicationDevices: {
+            type: Array,
+            required: true
+        },
         instances: {
             type: Array,
             required: true
@@ -55,6 +60,7 @@ export default {
             const options = {
                 name: input.name,
                 instanceId: input.instanceId,
+                deviceId: input.deviceId,
                 deployToDevices: input.deployToDevices,
                 action: input.action
             }

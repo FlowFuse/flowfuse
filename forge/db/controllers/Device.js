@@ -1,6 +1,15 @@
 const { literal } = require('sequelize')
 
 module.exports = {
+    isDeploying: function (app, device) {
+        // Needs to have a target to be considered deploying
+        if (!device.targetSnapshotId) {
+            return false
+        }
+
+        // Active snapshot does not match target, consider this device deploying
+        return device.activeSnapshotId !== device.targetSnapshotId
+    },
     updateState: async function (app, device, state) {
         if (state.state) {
             device.set('state', state.state)

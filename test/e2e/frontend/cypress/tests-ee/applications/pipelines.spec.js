@@ -157,7 +157,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-instance"] .ff-dropdown-selected').should('contain', 'instance-2-with-devices')
 
-        cy.get('[data-form="stage-action"] .ff-dropdown-selected').should('contain', 'Prompt to select snapshot')
+        cy.get('[data-form="stage-action"] .ff-dropdown-selected').should('contain', 'Prompt to select instance snapshot')
 
         cy.get('[data-action="add-stage"]').click()
 
