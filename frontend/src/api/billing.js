@@ -13,7 +13,7 @@ const getSubscriptionInfo = async (teamId) => {
 }
 
 // Create a new subscription for a team
-const createSubscription = async (teamId, teamTypeId) => {
+const createSubscription = async (teamId, teamTypeId = undefined) => {
     const options = {}
     if (teamTypeId !== undefined) {
         options.teamTypeId = teamTypeId
