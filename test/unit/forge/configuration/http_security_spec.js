@@ -197,7 +197,7 @@ describe('Check HTTP Security Headers set', async () => {
             const csp = response.headers['content-security-policy']
             csp.split(';').should.containEql('script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' app.posthog.com js-eu1.hs-analytics.com js-eu1.hs-banner.com js-eu1.hs-scripts.com js-eu1.hscollectedforms.net js-eu1.hubspot.com js-eu1.usemessages.com')
         })
-        it('CSP with sentry.io', async function (){
+        it('CSP with sentry.io', async function () {
             const config = {
                 telemetry: {
                     sentry: 'foo'
