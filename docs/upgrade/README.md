@@ -15,6 +15,51 @@ for each version you are upgrading across.
 Note that we do not support downgrading FlowFuse to previous levels once an upgrade
 has been performed.
 
+### Upgrading to 1.14
+
+Together with new application features, this release updates the Helm sub-chart, Bitnami's Postgresql, version.
+If local PostgreSQL database instance is used, upgrading to this version, using our Helm chart, requires additional steps.
+
+1. Backup the database
+
+   For linux:
+      
+      ```bash
+      kubectl run -it --rm db-backup --env=“PGPASSWORD=$putPasswordHere” --image ubuntu/postgres:14-22.04_edge -- bash -c “pg_dump -h flowforge-postgresql -U forge flowforge” | head -n -2 > db.sql
+      ```
+
+   For macOS/BSD:
+
+      ```bash
+      kubectl run -it --rm db-backup --env=“PGPASSWORD=$putPasswordHere --image ubuntu/postgres:14-22.04_edge -- bash -c “pg_dump -h flowforge-postgresql -U forge flowforge” | ghead -n -2 > db.sql
+      ```
+
+2. Obtain the PVC name which stores the database data
+
+   ```bash
+   export POSTGRESQL_PVC=$(kubectl --namespace default get pvc -l app.kubernetes.io/name=postgresql,role=primary -o jsonpath="{.items[0].metadata.name}")
+   ```
+
+3. Delete postgresql statefulset and secret
+
+   ```bash
+   kubectl --namespace default delete statefulset.app flowforge-postgresql
+   kubectl --namespace default delete secret flowforge-postgresql
+   ```
+
+4. Get database image version and perform the upgrade  
+
+   ```bash
+   CURRENT_VERSION=$(kubectl --namespace defualt exec postgresql-postgresql-0 -- bash -c 'echo $BITNAMI_IMAGE_VERSION')
+
+   helm upgrade --install --atomic \
+      --namespace default  \ 
+      --values $path/to/your/values.yaml \
+      --set postgresql.primary.persistance.existingClaim=$POSTGRESQL_PVC \
+      --set postgresql.image.tag=$CURRENT_VERSION \
+      flowforge flowforge/flowforge
+   ``` 
+
 ### Upgrading to 1.10
 
 Endpoint Rate Limiting is now available to FlowFuse. This is disabled by default, but can be enabled by setting the `rate_limits.enabled` config setting to `true`.
