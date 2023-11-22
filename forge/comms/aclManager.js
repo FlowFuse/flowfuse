@@ -19,13 +19,19 @@ module.exports = function (app) {
             // ids = [ 'project', <teamid>, <projectid> ]
             return requestParts[1] === ids[1]
         },
-        checkDeviceIsAssigned: async function (requestParts, ids) {
-            // requestParts = [ _ , <teamid>, <projectid> ]
+        checkDeviceIsAssigned: async function (requestParts, ids, acl) {
+            // requestParts = [ _ , <teamid>, <projectid> ] or [ _ , <teamid>, <deviceid> ]
             // ids = [ 'device', <teamid>, <deviceid> ]
 
             // Do the simple team id check
             if (requestParts[1] !== ids[1]) {
                 return false // not in this team
+            }
+
+            if (acl.deviceOwnerType === 'application') {
+                if (requestParts[2] !== ids[2]) {
+                    return false // not owned by this application
+                }
             }
 
             // check to see if the device is assigned to something?
@@ -48,8 +54,8 @@ module.exports = function (app) {
             return assignedProject && assignedProject === requestParts[2]
         },
         checkDeviceAssignedToApplication: async function (requestParts, ids) {
-            // requestParts = [ _ , <teamid>, <applicationid> ]
-            // ids = [ 'device', <teamid>, <deviceid> ]
+            // requestParts = [ _ , <teamid>, <deviceid> ]
+            // ids = [ 'device', <teamid>, <applicationid> ]
 
             // Do the simple team id check
             if (requestParts[1] !== ids[1]) {
@@ -193,16 +199,17 @@ module.exports = function (app) {
                     }
                 }
                 for (let i = 0; i < l; i++) {
-                    const m = aclList[i].topic.exec(topic)
+                    const acl = aclList[i]
+                    const m = acl.topic.exec(topic)
                     if (m) {
-                        if (isSharedSub && !aclList[i].shared) {
+                        if (isSharedSub && !acl.shared) {
                             // This isn't allowed to be a sharedSub
                             break
-                        } else if (aclList[i].verify && verifyFunctions[aclList[i].verify]) {
-                            allowed = await verifyFunctions[aclList[i].verify](m, usernameParts)
+                        } else if (acl.verify && verifyFunctions[acl.verify]) {
+                            allowed = await verifyFunctions[acl.verify](m, usernameParts, acl)
                             // ↓ Useful for debugging ↓
                             // if (allowed !== true) {
-                            //     console.log('DENIED!', topic, aclList[i])
+                            //     console.log('DENIED!', topic, acl)
                             // }
                         } else {
                             allowed = true

@@ -828,16 +828,28 @@ describe('Broker Auth API', async function () {
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectB.id}/in/foo`
                         })
                     })
-                    it('can not publish broadcast without `app:` topic prefix', async function () {
+                    it('can not publish broadcast without `dev:` topic prefix', async function () {
                         await denyWrite({
                             username: deviceUsername,
-                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ApplicationA.hashid}/out/foo`
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.DeviceA.hashid}/out/foo`
                         })
                     })
-                    it('can publish broadcast with `app:` topic prefix', async function () {
+                    it('can not publish broadcast with missing device id `dev:`', async function () {
+                        await denyWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/dev:/out/foo`
+                        })
+                    })
+                    it('can not publish broadcast with bad device id `dev:invalid dev id `', async function () {
+                        await denyWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/dev:invalid dev id/out/foo`
+                        })
+                    })
+                    it('can publish broadcast with `dev:` topic prefix', async function () {
                         await allowWrite({
                             username: deviceUsername,
-                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/app:${TestObjects.ApplicationA.hashid}/out/foo`
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/dev:${TestObjects.DeviceA.hashid}/out/foo`
                         })
                     })
                     it('can publish to project response', async function () {

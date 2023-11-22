@@ -73,42 +73,42 @@ module.exports.init = function (app) {
         app.comms.aclManager.addACL(
             'device',
             'sub',
-            { topic: /^ff\/v1\/([^/]+)\/p\/(?!app:)([^/]+)\/res\/[^/]+($|\/.*$)$/, verify: 'checkDeviceCanAccessProject' }
+            { topic: /^ff\/v1\/([^/]+)\/p\/(?!dev:)([^/]+)\/res\/[^/]+($|\/.*$)$/, verify: 'checkDeviceCanAccessProject', deviceOwnerType: 'instance' }
         )
         // Receive link-call response messages sent to this device (app owned)
-        // - ff/v1/<team>/p/app:<appid>/res/+/#
+        // - ff/v1/<team>/p/dev:<deviceid>/res/+/#
         app.comms.aclManager.addACL(
             'device',
             'sub',
-            { topic: /^ff\/v1\/([^/]+)\/p\/app:([^/]+)\/res\/[^/]+($|\/.*$)$/, verify: 'checkDeviceAssignedToApplication' }
+            { topic: /^ff\/v1\/([^/]+)\/p\/dev:([^/]+)\/res\/[^/]+($|\/.*$)$/, verify: 'checkDeviceIsAssigned', deviceOwnerType: 'application' }
         )
         // Send message to specific project
         // - ff/v1/<team>/p/<project>/in/+/#
         app.comms.aclManager.addACL(
             'device',
             'pub',
-            { topic: /^ff\/v1\/([^/]+)\/p\/(?!app:)([^/]+)\/in\/[^/]+($|\/.*$)/, verify: 'checkDeviceCanAccessProject' }
+            { topic: /^ff\/v1\/([^/]+)\/p\/(?!dev:)([^/]+)\/in\/[^/]+($|\/.*$)/, verify: 'checkDeviceCanAccessProject', deviceOwnerType: 'instance' }
         )
         // Send broadcast messages (from instance owned devices in the team)
         // - ff/v1/<team>/p/<project>/out/+/#
         app.comms.aclManager.addACL(
             'device',
             'pub',
-            { topic: /^ff\/v1\/([^/]+)\/p\/(?!app:)([^/]+)\/out\/[^/]+($|\/.*$)/, verify: 'checkDeviceCanAccessProject' }
+            { topic: /^ff\/v1\/([^/]+)\/p\/(?!dev:)([^/]+)\/out\/[^/]+($|\/.*$)/, verify: 'checkDeviceCanAccessProject', deviceOwnerType: 'instance' }
         )
         // Send broadcast messages (from app owned devices in the team)
-        // - ff/v1/<team>/p/app:<appid>/out/+/#
+        // - ff/v1/<team>/p/dev:<deviceid>/out/+/#
         app.comms.aclManager.addACL(
             'device',
             'pub',
-            { topic: /^ff\/v1\/([^/]+)\/p\/app:([^/]+)\/out\/[^/]+($|\/.*$)/, verify: 'checkDeviceAssignedToApplication' }
+            { topic: /^ff\/v1\/([^/]+)\/p\/dev:([^/]+)\/out\/[^/]+($|\/.*$)/, verify: 'checkDeviceIsAssigned', deviceOwnerType: 'application' }
         )
         // Send link-call response messages back to source instance
         // - ff/v1/<team>/p/+/res/+/#
         app.comms.aclManager.addACL(
             'device',
             'pub',
-            { topic: /^ff\/v1\/([^/]+)\/p\/(?!app:)([^/]+)\/res\/[^/]+($|\/.*$)/, verify: 'checkDeviceCanAccessProject' }
+            { topic: /^ff\/v1\/([^/]+)\/p\/(?!dev:)([^/]+)\/res\/[^/]+($|\/.*$)/, verify: 'checkDeviceCanAccessProject', deviceOwnerType: 'instance' }
         )
     }
 }
