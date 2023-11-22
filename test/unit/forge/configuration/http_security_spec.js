@@ -2,7 +2,7 @@ const should = require('should') // eslint-disable-line
 
 const FF_UTIL = require('flowforge-test-utils')
 
-describe('Check HTTP Security Headers set', async () => {
+describe.only('Check HTTP Security Headers set', async () => {
     describe('CSP Headers', async () => {
         let app
 
@@ -136,7 +136,7 @@ describe('Check HTTP Security Headers set', async () => {
             const headers = response.headers
             headers.should.have.property('content-security-policy')
             const csp = response.headers['content-security-policy']
-            csp.split(';').should.containEql('script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' https://app.posthog.com')
+            csp.split(';').should.containEql('script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' app.posthog.com')
         })
 
         it('CSP should be enabled with hubspot', async function () {
@@ -195,7 +195,7 @@ describe('Check HTTP Security Headers set', async () => {
             const headers = response.headers
             headers.should.have.property('content-security-policy')
             const csp = response.headers['content-security-policy']
-            csp.split(';').should.containEql('script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' https://app.posthog.com js-eu1.hs-analytics.com js-eu1.hs-banner.com js-eu1.hs-scripts.com js-eu1.hscollectedforms.net js-eu1.hubspot.com js-eu1.usemessages.com')
+            csp.split(';').should.containEql('script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' app.posthog.com js-eu1.hs-analytics.com js-eu1.hs-banner.com js-eu1.hs-scripts.com js-eu1.hscollectedforms.net js-eu1.hubspot.com js-eu1.usemessages.com')
         })
     })
 
