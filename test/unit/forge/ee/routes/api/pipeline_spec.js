@@ -1033,7 +1033,7 @@ describe('Pipelines API', function () {
                     })
 
                     const body = await response.json()
-                    body.should.have.property('code', 'no_source_snapshot')
+                    body.should.have.property('code', 'invalid_source_snapshot')
                     response.statusCode.should.equal(400)
                 })
 
