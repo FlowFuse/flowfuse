@@ -189,10 +189,14 @@ module.exports = async (options = {}) => {
                 }
             }
             if (runtimeConfig.telemetry.frontend?.posthog?.apikey) {
+                let posthogHost = 'app.posthog.com'
+                if (runtimeConfig.telemetry.frontend.posthog.apiurl) {
+                    posthogHost = new URL(runtimeConfig.telemetry.frontend.posthog.apiurl).host
+                }
                 if (contentSecurityPolicy.directives['script-src'] && Array.isArray(contentSecurityPolicy.directives['script-src'])) {
-                    contentSecurityPolicy.directives['script-src'].push(runtimeConfig.telemetry.frontend.posthog.apiurl || 'https://app.posthog.com')
+                    contentSecurityPolicy.directives['script-src'].push(posthogHost)
                 } else {
-                    contentSecurityPolicy.directives['script-src'] = [runtimeConfig.telemetry.frontend.posthog.apiurl || 'https://app.posthog.com']
+                    contentSecurityPolicy.directives['script-src'] = [posthogHost]
                 }
             }
             if (runtimeConfig.support?.enabled && runtimeConfig.support.frontend?.hubspot?.trackingcode) {
