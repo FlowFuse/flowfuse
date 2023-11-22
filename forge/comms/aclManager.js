@@ -86,9 +86,15 @@ module.exports = function (app) {
                 }
             }
 
-            // Need to check if this project is in the same team.
-            const projectTeamId = await app.db.models.Project.getProjectTeamId(requestParts[2])
-            return projectTeamId && app.db.models.Team.encodeHashid(projectTeamId) === requestParts[1]
+            try {
+                // Need to check if this project is in the same team.
+                const projectTeamId = await app.db.models.Project.getProjectTeamId(requestParts[2])
+                return projectTeamId && app.db.models.Team.encodeHashid(projectTeamId) === requestParts[1]
+            } catch (err) {
+                // Any error likely means requestParts[2] isn't a valid uuid - which
+                // postgres with throw over, unlike sqlite that returns no results.
+                return false
+            }
         }
     }
 
