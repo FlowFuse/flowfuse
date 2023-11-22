@@ -28,7 +28,6 @@
                     <ff-tile-selection v-model="input.teamTypeId" data-form="team-type">
                         <ff-tile-selection-option
                             v-for="(teamType, index) in teamTypes" :key="index"
-                            :disabled="isTypeChange && team.type.id === teamType.id"
                             :label="teamType.name" :description="teamType.description"
                             :price="billingEnabled ? teamType.billingPrice : ''"
                             :price-interval="billingEnabled ? teamType.billingInterval : ''"
@@ -44,13 +43,17 @@
                         <p v-if="isTypeChange">Your billing subscription will be updated to reflect the new costs</p>
                     </div>
                 </template>
-
-                <ff-button v-if="isTypeChange" :disabled="!formValid" data-action="change-team-type" @click="updateTeam()">
-                    Change team type
-                </ff-button>
-                <ff-button v-else :disabled="!formValid" data-action="setup-team-billing" @click="setupBilling()">
-                    Setup Payment Details
-                </ff-button>
+                <div class="flex gap-x-4">
+                    <ff-button v-if="isTypeChange" :disabled="!formValid" data-action="change-team-type" @click="updateTeam()">
+                        Change team type
+                    </ff-button>
+                    <ff-button v-else :disabled="!formValid" data-action="setup-team-billing" @click="setupBilling()">
+                        Setup Payment Details
+                    </ff-button>
+                    <ff-button kind="secondary" data-action="cancel-change-team-type" @click="$router.back()">
+                        Cancel
+                    </ff-button>
+                </div>
             </form>
         </div>
     </ff-page>
