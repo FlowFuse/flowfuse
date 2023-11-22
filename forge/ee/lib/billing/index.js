@@ -38,8 +38,17 @@ module.exports.init = async function (app) {
     }
 
     return {
-        createSubscriptionSession: async (team, user = null) => {
-            const billingIds = await team.getTeamBillingIds()
+        createSubscriptionSession: async (team, user = null, teamTypeId = null) => {
+            // When setting up the initial subscription we'll default to the billing
+            // ids of current team type. However, the subscription setup could be done
+            // in conjunction with changing the team type. We do *not* modify
+            // the team type here - because the user could abandon the stripe checkout
+            // and they will expect to remain in their current trial/type
+
+            // Get the specified TeamType, or default to the team's existing type
+            const teamType = await (teamTypeId ? app.db.models.TeamType.byId(teamTypeId) : team.getTeamType())
+
+            const billingIds = await teamType.getTeamBillingIds()
             const teamPrice = billingIds.price
 
             // Use existing Stripe customer
@@ -47,6 +56,9 @@ module.exports.init = async function (app) {
 
             const sub = {
                 mode: 'subscription',
+                metadata: {
+                    teamTypeId: teamType.hashid
+                },
                 line_items: [{
                     price: teamPrice,
                     quantity: 1
@@ -68,6 +80,50 @@ module.exports.init = async function (app) {
                 payment_method_types: ['card'],
                 success_url: `${app.config.base_url}/team/${team.slug}/applications?billing_session={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${app.config.base_url}/team/${team.slug}/applications`
+            }
+
+            // Need to ensure the subscription contains all of the expected items
+            // to correlate with the teamType. This includes:
+            // - Team Plan item - already added above
+            // - Device item
+            // - An item for each instance type
+
+            // Check if a device item is required
+            const deviceBillingIds = await teamType.getDeviceBillingIds()
+            if (deviceBillingIds.product) {
+                const deviceCount = await team.deviceCount()
+                if (deviceCount > 0) {
+                    const deviceFreeAllocation = teamType.getProperty('devices.free', 0)
+                    const billableCount = Math.max(0, deviceCount - deviceFreeAllocation)
+                    if (billableCount > 0) {
+                        // We have devices to include in the subscription
+                        sub.line_items.push({
+                            price: deviceBillingIds.price,
+                            quantity: billableCount
+                        })
+                    }
+                }
+            }
+            const instanceCounts = await team.instanceCountByType({ state: { [Op.notIn]: ['suspended', 'deleting'] } })
+            const instanceTypes = await app.db.models.ProjectType.findAll()
+            for (const instanceType of instanceTypes) {
+                // Get the stripe ids to use for this instance type in this team type
+                const instanceBillingIds = await teamType.getInstanceBillingIds(instanceType)
+                const count = instanceCounts[instanceType.hashid]
+                if (count) {
+                    // The team has one or more instances of this type.
+                    // Calculate the billableCount based on how many free
+                    // instances of this type are allowed for this teamType
+                    const freeAllowance = teamType.getInstanceTypeProperty(instanceType, 'free', 0)
+                    const billableCount = Math.max(0, count - freeAllowance)
+                    if (billableCount > 0) {
+                        // Need to add an item for this instance type
+                        sub.line_items.push({
+                            price: instanceBillingIds.price,
+                            quantity: billableCount
+                        })
+                    }
+                }
             }
 
             let userBillingCode

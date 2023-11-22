@@ -169,6 +169,9 @@ export default {
         this.fetchData()
         if ('billing_session' in this.$route.query) {
             this.$nextTick(() => {
+                // Clear the query param so a reload of the page does retrigger
+                // the notification
+                this.$router.replace({ query: '' })
                 // allow the Alerts servcie to have subscription by wrapping in nextTick
                 Alerts.emit('Thanks for signing up to FlowFuse!', 'confirmation')
             })

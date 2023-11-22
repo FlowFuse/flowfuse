@@ -46,4 +46,35 @@ describe('FlowForge - Trial Users', () => {
 
         cy.url().should('include', 'team/tteam/billing')
     })
+
+    it('setup billing redirects to team type selection', () => {
+        let teamType
+        cy.intercept('GET', '/api/*/team-types*').as('getTeamTypes')
+        cy.get('[data-nav="team-billing"]').click()
+        cy.url().should('include', 'team/tteam/billing')
+        cy.get('[data-action="change-team-type"]').click()
+        cy.url().should('include', 'team/tteam/settings/change-type')
+        cy.wait('@getTeamTypes').then(response => {
+            teamType = response.response.body.types[1]
+        })
+
+        cy.get('[data-form="team-type"] > div:nth-child(2)').click({
+            scrollBehavior: false
+        })
+
+        // Stub response to redirect to the static api page rather than stripe
+        // to avoid depending on external urls to run the test
+        cy.intercept('POST', '/ee/billing/teams/*', (req) => {
+            expect(req.body.teamTypeId).to.equal(teamType.id)
+            req.reply({ body: { billingURL: '/api/' } })
+        }).as('setupBilling')
+
+        cy.get('[data-action="setup-team-billing"]').click({
+            scrollBehavior: false
+        })
+        cy.wait('@setupBilling')
+
+        // Check we are redirected to the url provided in the api response
+        cy.url().should('include', '/api/static/index.html')
+    })
 })

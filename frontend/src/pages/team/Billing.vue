@@ -16,58 +16,64 @@
     <ff-page>
         <template #header>
             <ff-page-header title="Team Billing">
+                <template #context>
+                    Manage your team's billing subscription
+                </template>
                 <template #tools>
-                    <ff-button v-if="subscription" @click="customerPortal()">
-                        <template #icon-right><ExternalLinkIcon /></template>
-                        Stripe Customer Portal
-                    </ff-button>
+                    <div class="flex flex-row gap-x-4">
+                        <ff-button v-if="subscription" data-action="change-team-type" :to="{name: 'TeamChangeType'}">Upgrade Team</ff-button>
+                        <ff-button v-if="subscription" @click="customerPortal()">
+                            <template #icon-right><ExternalLinkIcon /></template>
+                            Stripe Customer Portal
+                        </ff-button>
+                    </div>
                 </template>
             </ff-page-header>
         </template>
-        <form class="pt-4">
-            <Loading v-if="loading" size="small" />
-            <div v-else-if="billingSetUp">
-                <FormHeading v-if="trialMode" class="mb-6">Trial Ends:  <span class="font-normal">{{ formatDate(team.billing.trialEndsAt) }}</span></FormHeading>
-                <FormHeading class="mb-6">Next Payment: <span v-if="subscription && !subscriptionExpired" class="font-normal">{{ formatDate(subscription.next_billing_date) }}</span></FormHeading>
-                <div v-if="subscriptionExpired" class="ff-no-data ff-no-data-large">
-                    Your subscription has expired. Please renew it to continue using FlowFuse.
+        <Loading v-if="loading" size="small" />
+        <div v-else-if="billingSetUp">
+            <FormHeading v-if="trialMode" class="mb-6">Trial Ends:  <span class="font-normal">{{ formatDate(team.billing.trialEndsAt) }}</span></FormHeading>
+            <FormHeading class="mb-6">Next Payment: <span v-if="subscription && !subscriptionExpired" class="font-normal">{{ formatDate(subscription.next_billing_date) }}</span></FormHeading>
+            <div v-if="subscriptionExpired" class="ff-no-data ff-no-data-large">
+                Your subscription has expired. Please renew it to continue using FlowFuse.
 
-                    <ff-button data-action="renew-subscription" class="mx-auto mt-3" @click="setupBilling()">
-                        <template #icon-right><ExternalLinkIcon /></template>
-                        Renew Subscription
-                    </ff-button>
-                </div>
-                <div v-else-if="subscription">
-                    <ff-data-table :columns="columns" :rows="subscription.items" />
-                    <div v-if="hasTrialProject" class="text-gray-400 mt-1 pl-2 text-sm">Your trial instance will be automatically added to your subscription when the trial ends</div>
-                </div>
-                <div v-else class="ff-no-data ff-no-data-large">
-                    Something went wrong loading your subscription information, please try again.
-                </div>
+                <ff-button data-action="renew-subscription" class="mx-auto mt-3" @click="setupBilling()">
+                    <template #icon-right><ExternalLinkIcon /></template>
+                    Renew Subscription
+                </ff-button>
+            </div>
+            <div v-else-if="subscription">
+                <ff-data-table :columns="columns" :rows="subscription.items" />
+                <div v-if="hasTrialProject" class="text-gray-400 mt-1 pl-2 text-sm">Your trial instance will be automatically added to your subscription when the trial ends</div>
             </div>
             <div v-else class="ff-no-data ff-no-data-large">
-                <div class="max-w-lg mx-auto">
-                    <div v-if="trialMode">
-                        You are currently in a free trial.
-                        <template v-if="isRestrictedTrial">
-                            During the trial you can only create one application instance in the team. To unlock other features you will need to configure your billing details.
-                        </template>
-                        <template v-else>
-                            During the trial you can make full use of the features available to your team. To keep things running you will need to configure your billing details.
-                        </template>
-                    </div>
-                    <div v-else>
-                        Billing has not yet been configured for this team. Before proceeding further, you must continue to Stripe and complete this.
-                    </div>
-                </div>
-                <div class="mt-6">
-                    <ff-button data-action="setup-payment-details" class="mx-auto mt-3" @click="setupBilling()">
-                        <template #icon-right><ExternalLinkIcon /></template>
-                        Setup Payment Details
-                    </ff-button>
-                </div>
+                Something went wrong loading your subscription information, please try again.
             </div>
-        </form>
+        </div>
+        <EmptyState v-else>
+            <template #img>
+                <img src="../../images/empty-states/team-instances.png">
+            </template>
+            <template #header>Setup Team Billing</template>
+            <template #message>
+                <template v-if="!trialHasEnded">
+                    <p v-if="trialMode">
+                        You have <span class="font-bold" v-text="trialEndsIn" /> left of your trial.
+                    </p>
+                    <p>
+                        During the trial you can make full use of the features available to your team. To keep things running you will need to setup your billing details.
+                    </p>
+                </template>
+                <template v-else>
+                    <p>
+                        You trial has ended. You will need to setup billing to continuing using this team.
+                    </p>
+                </template>
+            </template>
+            <template #actions>
+                <ff-button data-action="change-team-type" :to="{name: 'TeamChangeType'}">Setup Billing</ff-button>
+            </template>
+        </EmptyState>
     </ff-page>
 </template>
 
@@ -78,6 +84,7 @@ import { markRaw } from 'vue'
 
 import billingApi from '../../api/billing.js'
 
+import EmptyState from '../../components/EmptyState.vue'
 import FormHeading from '../../components/FormHeading.vue'
 import Loading from '../../components/Loading.vue'
 import formatCurrency from '../../mixins/Currency.js'
@@ -113,14 +120,11 @@ export default {
     components: {
         Loading,
         FormHeading,
-        ExternalLinkIcon
+        ExternalLinkIcon,
+        EmptyState
     },
     mixins: [formatDateMixin, formatCurrency, permissionsMixin],
     props: {
-        billingUrl: {
-            type: String,
-            required: true
-        },
         team: {
             type: Object,
             required: true
@@ -171,6 +175,9 @@ export default {
         trialMode () {
             return this.team.billing?.trial
         },
+        trialHasEnded () {
+            return this.team.billing?.trialEnded
+        },
         isRestrictedTrial () {
             return !!this.team.type?.properties?.trial?.instanceType
         },
@@ -179,6 +186,14 @@ export default {
             return this.trialMode && // !this.team.billing.trialProjectAllowed
                 this.isRestrictedTrial &&
                 this.team.instanceCountByType[this.team.type?.properties?.trial?.instanceType] > 0
+        },
+        trialEndsIn () {
+            if (this.team.billing?.trialEndsAt) {
+                const trialEndDate = new Date(this.team.billing.trialEndsAt)
+                const daysLeft = Math.ceil((trialEndDate.getTime() - Date.now()) / 86400000)
+                return daysLeft + ' day' + (daysLeft !== 1 ? 's' : '')
+            }
+            return ''
         }
     },
     watch: { },

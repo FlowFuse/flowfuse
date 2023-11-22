@@ -46,6 +46,14 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
     await trialTeam.addUser(userTerry, { through: { role: Roles.Owner } })
     // assign user to the trial team
 
+    await factory.createTeamType({
+        name: 'Second Team Type',
+        description: 'team type description',
+        active: true,
+        order: 2,
+        properties: { instances: {}, devices: {}, users: {}, features: {} }
+    })
+
     flowforge.listen({ port: PORT }, function (err, address) {
         console.info(`EE Environment running at http://localhost:${PORT}`)
         if (err) {

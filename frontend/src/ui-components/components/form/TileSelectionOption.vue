@@ -98,7 +98,11 @@ export default {
                     description: this.description,
                     price: this.price
                 })
-                this.selected = !this.selected
+                if (this.$parent.allowDeselect) {
+                    this.selected = !this.selected
+                } else {
+                    this.selected = true
+                }
             } else if (allowEdit) {
                 this.$emit('edit')
             }
