@@ -2,7 +2,7 @@ const should = require('should') // eslint-disable-line
 
 const FF_UTIL = require('flowforge-test-utils')
 
-describe.only('Check HTTP Security Headers set', async () => {
+describe('Check HTTP Security Headers set', async () => {
     describe('CSP Headers', async () => {
         let app
 
