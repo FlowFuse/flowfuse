@@ -343,6 +343,17 @@ export default {
             return options
         }
     },
+    watch: {
+        'input.stageType' (newStageType, oldStageType) {
+            // Check if selected action is still available
+            if (this.actionOptions.some((option) => option.value === this.input.action)) {
+                return
+            }
+
+            // If not, reset to the stages original action (if available)
+            this.input.action = this.stage?.action && this.actionOptions.some((option) => option.value === this.stage.action) ? this.stage.action : null
+        }
+    },
     created () {
         this.StageType = StageType
     },
