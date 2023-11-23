@@ -162,7 +162,7 @@ module.exports = async (options = {}) => {
                         'base-uri': ["'self'"],
                         'default-src': ["'self'"],
                         'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-                        'worker-src': ["'self'", "'blob'"],
+                        'worker-src': ["'self'", 'blob:'],
                         'connect-src': ["'self'"],
                         'img-src': ["'self'", 'data:', 'www.gravatar.com'],
                         'font-src': ["'self'"],
@@ -226,6 +226,34 @@ module.exports = async (options = {}) => {
                     contentSecurityPolicy.directives['script-src'].push(...hubspotDomains)
                 } else {
                     contentSecurityPolicy.directives['script-src'] = hubspotDomains
+                }
+                const hubspotImageDomains = [
+                    'forms-eu1.hsforms.com',
+                    'track-eu1.hubspot.com',
+                    'perf-eu1.hsforms.com'
+                ]
+                if (contentSecurityPolicy.directives['img-src'] && Array.isArray(contentSecurityPolicy.directives['img-src'])) {
+                    contentSecurityPolicy.directives['img-src'].push(...hubspotImageDomains)
+                } else {
+                    contentSecurityPolicy.directives['img-src'] = hubspotImageDomains
+                }
+                const hubspotConnectDomains = [
+                    'api-eu1.hubspot.com',
+                    'cta-eu1.hubspot.com',
+                    'forms-eu1.hscollectedforms.net'
+                ]
+                if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
+                    contentSecurityPolicy.directives['connect-src'].push(...hubspotConnectDomains)
+                } else {
+                    contentSecurityPolicy.directives['connect-src'] = hubspotConnectDomains
+                }
+                const hubspotFrameDomains = [
+                    'app-eu1.hubspot.com'
+                ]
+                if (contentSecurityPolicy.directives['frame-src'] && Array.isArray(contentSecurityPolicy.directives['frame-src'])) {
+                    contentSecurityPolicy.directives['frame-src'].push(...hubspotFrameDomains)
+                } else {
+                    contentSecurityPolicy.directives['frame-src'] = hubspotFrameDomains
                 }
             }
         }
