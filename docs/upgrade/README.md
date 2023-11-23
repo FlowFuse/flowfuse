@@ -15,6 +15,16 @@ for each version you are upgrading across.
 Note that we do not support downgrading FlowFuse to previous levels once an upgrade
 has been performed.
 
+## General guideline
+
+Details of how to upgrade can be found for each deployment model:
+
+- [LocalFS](../install/local/README.md#upgrade)
+- [Docker](../install/docker/README.md#upgrade)
+- [Kubernetes](../install/kubernetes/README.md#upgrade)
+
+## Specific requirements for a given target version
+
 ### Upgrading to 1.10
 
 Endpoint Rate Limiting is now available to FlowFuse. This is disabled by default, but can be enabled by setting the `rate_limits.enabled` config setting to `true`.
@@ -36,38 +46,11 @@ as a way to group individual [Node-RED instances](../user/concepts.md#instance) 
 The term 'Project' is being phased out. You may still see it crop up, such as
 in some of the external APIs, but we're working our way through removing it.
 
-Details of how to upgrade can be found for each deployment model:
-
-- [LocalFS](../install/local/README.md#upgrade)
-- [Docker](../install/docker/README.md#upgrade)
-- [Kubernetes](../install/kubernetes/README.md#upgrade)
-
-### Upgrading to 1.4
-
-Details of how to upgrade can be found for each deployment model:
-
-- [LocalFS](../install/local/README.md#upgrade)
-- [Docker](../install/docker/README.md#upgrade)
-- [Kubernetes](../install/kubernetes/README.md#upgrade)
-
 ### Upgrading to 1.3
 
-Details of how to upgrade can be found for each deployment model:
-
-- [LocalFS](../install/local/README.md#upgrade)
-- [Docker](../install/docker/README.md#upgrade)
-- [Kubernetes](../install/kubernetes/README.md#upgrade)
 
 To enable the Team Library and FlowFuse-based Authentication of HTTP routes each
 Node-RED instance will need to be updated to the [latest Stack](../user/changestack.md).
-
-### Upgrading to 1.2
-
-Details of how to upgrade can be found for each deployment model:
-
-- [LocalFS](../install/local/README.md#upgrade)
-- [Docker](../install/docker/README.md#upgrade)
-- [Kubernetes](../install/kubernetes/README.md#upgrade)
 
 #### Persistent Context added
 
