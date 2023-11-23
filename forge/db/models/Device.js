@@ -408,6 +408,32 @@ module.exports = {
                         return M.Application.encodeHashid(device.ApplicationId)
                     }
                 },
+                getOwnerTypeAndId: async (id) => {
+                    if (typeof id === 'string') {
+                        id = M.Device.decodeHashid(id)
+                    }
+                    const device = await this.findOne({
+                        where: { id },
+                        attributes: [
+                            'ProjectId',
+                            'ApplicationId'
+                        ]
+                    })
+                    if (device) {
+                        if (device.ProjectId) {
+                            return {
+                                ownerType: 'instance',
+                                ownerId: device.ProjectId
+                            }
+                        } else if (device.ApplicationId) {
+                            return {
+                                ownerType: 'application',
+                                ownerId: M.Application.encodeHashid(device.ApplicationId)
+                            }
+                        }
+                    }
+                    return null
+                },
                 /**
                  * Recalculate the `settingsHash` for all devices
                  * @param {boolean} [all=false] If `false` (or omitted), only devices where `settingsHash` == `null` will be recalculated. If `true`, all devices are updated.
