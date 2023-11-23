@@ -105,7 +105,10 @@ module.exports = {
         return { sourceInstance, targetInstance, sourceDevice, targetDevice, targetStage }
     },
 
-    getOrCreateSnapshotForSourceInstance: async function (app, { pipeline, sourceStage, sourceInstance, sourceSnapshotId, user, targetStage }) {
+    getOrCreateSnapshotForSourceInstance: async function (app, sourceStage, sourceInstance, sourceSnapshotId, deployMeta = { pipeline: null, user: null, targetStage: null }) {
+        // Only used for reporting and logging, should not be used for any logic
+        const { pipeline, targetStage, user } = deployMeta
+
         if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.USE_LATEST_SNAPSHOT) {
             const sourceSnapshot = await sourceInstance.getLatestSnapshot()
             if (!sourceSnapshot) {
@@ -139,10 +142,14 @@ module.exports = {
             return sourceSnapshot
         }
 
-        throw new PipelineControllerError('invalid_action', `Unsupported pipeline deploy action: ${sourceStage.action}`, 400)
+        if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.USE_ACTIVE_SNAPSHOT) {
+            throw new PipelineControllerError('invalid_source_action', 'When using an instance as a source, use active snapshot is not supported', 400)
+        }
+
+        throw new PipelineControllerError('invalid_action', `Unsupported pipeline deploy action for instances: ${sourceStage.action}`, 400)
     },
 
-    getOrCreateSnapshotForSourceDevice: async function (app, { pipeline, sourceStage, sourceDevice, sourceSnapshotId }) {
+    getOrCreateSnapshotForSourceDevice: async function (app, sourceStage, sourceDevice, sourceSnapshotId) {
         if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.USE_LATEST_SNAPSHOT) {
             const sourceSnapshot = await sourceDevice.getLatestSnapshot()
             if (!sourceSnapshot) {
@@ -152,7 +159,7 @@ module.exports = {
         }
 
         if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.CREATE_SNAPSHOT) {
-            throw new PipelineControllerError('invalid_source_action', 'When using a device as a source, create snapshot is not yet supported', 400)
+            throw new PipelineControllerError('invalid_source_action', 'When using a device as a source, create snapshot is not supported', 400)
         }
 
         if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.PROMPT) {
@@ -172,7 +179,15 @@ module.exports = {
             return sourceSnapshot
         }
 
-        throw new PipelineControllerError('invalid_action', `Unsupported pipeline deploy action: ${sourceStage.action}`, 400)
+        if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.USE_ACTIVE_SNAPSHOT) {
+            const sourceSnapshot = await sourceDevice.getActiveSnapshot()
+            if (!sourceSnapshot) {
+                throw new PipelineControllerError('invalid_source_device', 'No active snapshot found for source stages device but deploy action is set to use active snapshot', 400)
+            }
+            return sourceSnapshot
+        }
+
+        throw new PipelineControllerError('invalid_action', `Unsupported pipeline deploy action for devices: ${sourceStage.action}`, 400)
     },
 
     /**
@@ -238,7 +253,10 @@ module.exports = {
      * @param {Object} user - The user performing the deploy
      * @returns {Promise<Function>} - Resolves with the deploy is complete
      */
-    deploySnapshotToDevice: async function (app, { sourceSnapshot, targetDevice, user }) {
+    deploySnapshotToDevice: async function (app, sourceSnapshot, targetDevice, deployMeta = { user: null }) {
+        // Only used for reporting and logging, should not be used for any logic
+        const { user } = deployMeta
+
         try {
             // store original value for later audit log
             const originalSnapshotId = targetDevice.targetSnapshotId
