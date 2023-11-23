@@ -215,8 +215,13 @@ export default {
                 // sourceSnapshot can be undefined if "create new snapshot" was chosen
                 await PipelineAPI.deployPipelineStage(this.pipeline.id, this.stage.id, sourceSnapshot?.id)
             } catch (error) {
-                Alerts.emit(error.message, 'warning')
-                return
+                this.$emit('stage-deploy-failed')
+
+                if (error.response?.data?.error) {
+                    return Alerts.emit(error.response.data.error, 'warning')
+                }
+
+                return Alerts.emit('Deployment of stage has failed for an unknown reason.', 'warning')
             }
 
             this.$emit('stage-deploy-started')
