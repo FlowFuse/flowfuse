@@ -2,7 +2,7 @@ const should = require('should') // eslint-disable-line
 
 const FF_UTIL = require('flowforge-test-utils')
 
-describe('Check HTTP Security Headers set', async () => {
+describe.only('Check HTTP Security Headers set', async () => {
     describe('CSP Headers', async () => {
         let app
 
@@ -196,6 +196,40 @@ describe('Check HTTP Security Headers set', async () => {
             headers.should.have.property('content-security-policy')
             const csp = response.headers['content-security-policy']
             csp.split(';').should.containEql('script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' app.posthog.com js-eu1.hs-analytics.com js-eu1.hs-banner.com js-eu1.hs-scripts.com js-eu1.hscollectedforms.net js-eu1.hubspot.com js-eu1.usemessages.com')
+        })
+        it('CSP should be enabled with hubspot and posthog empty directive', async function () {
+            const config = {
+                support: {
+                    enabled: true,
+                    frontend: {
+                        hubspot: {
+                            trackingcode: 'abcde1234'
+                        }
+                    }
+                },
+                telemetry: {
+                    frontend: {
+                        posthog: {
+                            apikey: 'abcde1234'
+                        }
+                    }
+                },
+                content_security_policy: {
+                    enabled: true,
+                    directives: {}
+                }
+            }
+            app = await FF_UTIL.setupApp(config)
+            const response = await app.inject({
+                method: 'GET',
+                url: '/'
+            })
+
+            const headers = response.headers
+            headers.should.have.property('content-security-policy')
+            const csp = response.headers['content-security-policy']
+            csp.split(';').should.containEql('script-src app.posthog.com js-eu1.hs-analytics.com js-eu1.hs-banner.com js-eu1.hs-scripts.com js-eu1.hscollectedforms.net js-eu1.hubspot.com js-eu1.usemessages.com',
+  'connect-src app.posthog.com api-eu1.hubspot.com cta-eu1.hubspot.com forms-eu1.hscollectedforms.net')
         })
         it('CSP with sentry.io', async function () {
             const config = {
