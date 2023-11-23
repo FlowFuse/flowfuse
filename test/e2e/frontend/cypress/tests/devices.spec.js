@@ -57,13 +57,18 @@ describe('FlowForge - Team Devices', () => {
             cy.get('[data-el="devices-browser"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').contains('Delete Device').click()
 
             cy.get('.ff-dialog-box').should('be.visible')
-            cy.get('.ff-dialog-header').contains('Delete Device')
 
-            // Click "Delete"
-            cy.get('.ff-dialog-box button.ff-btn.ff-btn--danger').contains('Delete').click()
+            cy.get('code').then(($deviceName) => {
+                const deviceNameText = $deviceName.text().trim()
 
-            cy.wait('@deleteDevice')
+                cy.get('.ff-dialog-header').contains('Delete Device')
 
+                cy.get('#enteredDeviceName').type(deviceNameText)
+                // Click "Delete"
+                cy.get('.ff-dialog-box button.ff-btn.ff-btn--danger').contains('Delete').click()
+
+                cy.wait('@deleteDevice')
+            })
             cy.get('main').contains('Connect your First Device')
         })
 
