@@ -178,14 +178,16 @@ module.exports = {
     /**
      * Deploy a snapshot to an instance
      * @param {Object} app - The application instance
-     * @param {Object} pipeline - The pipeline
-     * @param {Object} sourceStage - The source stage
      * @param {Object} sourceSnapshot - The source snapshot object
      * @param {Object} targetInstance - The target instance object
-     * @param {Object} sourceInstance - The source instance object
-     * @param {Object} sourceDevice - The source device object
-     * @param {Object} user - The user performing the deploy
-     * @param {Object} targetStage - The target stage
+     * @param {Boolean} deployToDevices - Whether to deploy to devices of the source instance
+     * @param {Object} deployMeta - Details about the deploy used for logging
+     * @param {Object} deployMeta.pipeline - The pipeline
+     * @param {Object} deployMeta.sourceStage - The source stage
+     * @param {Object} deployMeta.sourceInstance - The source instance object
+     * @param {Object} deployMeta.sourceDevice - The source device object
+     * @param {Object} deployMeta.targetStage - The target stage
+     * @param {Object} deployMeta.user - The user performing the deploy
      * @returns {Promise<Function>} - Resolves with the deploy is complete
      */
     deploySnapshotToInstance: function (app, sourceSnapshot, targetInstance, deployToDevices, deployMeta = { pipeline: undefined, sourceStage: undefined, sourceInstance: undefined, sourceDevice: undefined, targetStage: undefined, user: undefined }) {
