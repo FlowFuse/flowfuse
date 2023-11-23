@@ -129,6 +129,9 @@
                             When a device Pipeline stage type is triggered an Device Snapshot is deployed to the next stage. You can configure how this stage picks what snapshot to deploy.
                         </p>
                         <p>
+                            Use Active Snapshot: Will use the snapshot currently active on the device. The deploy will fail is there is no active snapshot.
+                        </p>
+                        <p>
                             Use Latest Device Snapshot: Uses the most recent existing snapshot of the device. The deploy will fail if no snapshot exists.
                         </p>
                         <p>
@@ -188,7 +191,7 @@
 <script>
 import { InformationCircleIcon } from '@heroicons/vue/outline'
 
-import { StageType } from '../../../api/pipeline.js'
+import { StageAction, StageType } from '../../../api/pipeline.js'
 
 import FormRow from '../../../components/FormRow.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
@@ -332,12 +335,14 @@ export default {
             const type = this.input.stageType === StageType.DEVICE ? 'device' : 'instance'
 
             const options = [
-                { value: 'use_latest_snapshot', label: `Use latest ${type} snapshot` },
-                { value: 'prompt', label: `Prompt to select ${type} snapshot` }
+                { value: StageAction.USE_LATEST_SNAPSHOT, label: `Use latest ${type} snapshot` },
+                { value: StageAction.PROMPT, label: `Prompt to select ${type} snapshot` }
             ]
 
             if (this.input.stageType === StageType.INSTANCE) {
-                options.unshift({ value: 'create_snapshot', label: `Create new ${type} snapshot` })
+                options.unshift({ value: StageAction.CREATE_SNAPSHOT, label: 'Create new instance snapshot' })
+            } else if (this.input.stageType === StageType.DEVICE) {
+                options.unshift({ value: StageAction.USE_ACTIVE_SNAPSHOT, label: 'Use active device snapshot' })
             }
 
             return options

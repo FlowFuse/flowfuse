@@ -5,6 +5,7 @@ const {
 const SNAPSHOT_ACTIONS = {
     // Any changes to this list *must* be made via migration.
     CREATE_SNAPSHOT: 'create_snapshot',
+    USE_ACTIVE_SNAPSHOT: 'use_active_snapshot',
     USE_LATEST_SNAPSHOT: 'use_latest_snapshot',
     PROMPT: 'prompt'
 }
