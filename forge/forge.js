@@ -162,7 +162,7 @@ module.exports = async (options = {}) => {
                         'base-uri': ["'self'"],
                         'default-src': ["'self'"],
                         'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-                        'worker-src': ["'self'", "'blob'"],
+                        'worker-src': ["'self'", 'blob'],
                         'connect-src': ["'self'"],
                         'img-src': ["'self'", 'data:', 'www.gravatar.com'],
                         'font-src': ["'self'"],
