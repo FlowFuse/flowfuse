@@ -30,6 +30,7 @@
                     :editEnabled="true"
                     @stage-deploy-starting="stageDeployStarting(stage)"
                     @stage-deploy-started="stageDeployStarted(stage)"
+                    @stage-deploy-failed="stageDeployFailed(stage)"
                     @stage-deleted="stageDeleted($index)"
                 />
                 <Transition name="fade">
@@ -87,7 +88,7 @@ export default {
             type: Map
         }
     },
-    emits: ['pipeline-deleted', 'stage-deleted', 'deploy-starting', 'deploy-started', 'stage-deploy-starting', 'stage-deploy-started'],
+    emits: ['pipeline-deleted', 'stage-deleted', 'deploy-starting', 'deploy-started', 'stage-deploy-starting', 'stage-deploy-started', 'stage-deploy-failed'],
     data () {
         const pipeline = this.pipeline
         return {
@@ -162,6 +163,10 @@ export default {
             this.$emit('stage-deploy-starting', stage, nextStage)
         },
         stageDeployStarted (stage) {
+            const nextStage = this.pipeline.stages.find((s) => s.id === stage.NextStageId)
+            this.$emit('stage-deploy-started', stage, nextStage)
+        },
+        stageDeployFailed (stage) {
             const nextStage = this.pipeline.stages.find((s) => s.id === stage.NextStageId)
             this.$emit('stage-deploy-started', stage, nextStage)
         },

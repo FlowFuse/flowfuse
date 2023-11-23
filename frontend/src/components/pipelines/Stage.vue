@@ -161,7 +161,7 @@ export default {
             type: Boolean
         }
     },
-    emits: ['stage-deleted', 'stage-deploy-starting', 'stage-deploy-started'],
+    emits: ['stage-deleted', 'stage-deploy-starting', 'stage-deploy-started', 'stage-deploy-failed'],
     computed: {
         deploying () {
             return this.stage.isDeploying
