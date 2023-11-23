@@ -162,6 +162,8 @@ module.exports = async (options = {}) => {
                         'base-uri': ["'self'"],
                         'default-src': ["'self'"],
                         'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+                        'worker-src': ["'self'"],
+                        'connect-src': ["'self'"],
                         'img-src': ["'self'", 'data:', 'www.gravatar.com'],
                         'font-src': ["'self'"],
                         'style-src': ["'self'", 'https:', "'unsafe-inline'"],
@@ -188,11 +190,27 @@ module.exports = async (options = {}) => {
                     contentSecurityPolicy.directives['script-src'] = ['plausible.io']
                 }
             }
-            if (runtimeConfig.telemetry.frontend?.posthog?.apikey) {
+            if (runtimeConfig.telemetry?.frontend?.posthog?.apikey) {
+                let posthogHost = 'app.posthog.com'
+                if (runtimeConfig.telemetry.frontend.posthog.apiurl) {
+                    posthogHost = new URL(runtimeConfig.telemetry.frontend.posthog.apiurl).host
+                }
                 if (contentSecurityPolicy.directives['script-src'] && Array.isArray(contentSecurityPolicy.directives['script-src'])) {
-                    contentSecurityPolicy.directives['script-src'].push(runtimeConfig.telemetry.frontend.posthog.apiurl || 'https://app.posthog.com')
+                    contentSecurityPolicy.directives['script-src'].push(posthogHost)
                 } else {
-                    contentSecurityPolicy.directives['script-src'] = [runtimeConfig.telemetry.frontend.posthog.apiurl || 'https://app.posthog.com']
+                    contentSecurityPolicy.directives['script-src'] = [posthogHost]
+                }
+                if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
+                    contentSecurityPolicy.directives['connect-src'].push(posthogHost)
+                } else {
+                    contentSecurityPolicy.directives['connect-src'] = [posthogHost]
+                }
+            }
+            if (runtimeConfig.telemetry?.sentry) {
+                if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
+                    contentSecurityPolicy.directives['connect-src'].push('*.ingest.sentry.io')
+                } else {
+                    contentSecurityPolicy.directives['connect-src'] = ['*.ingest.sentry.io']
                 }
             }
             if (runtimeConfig.support?.enabled && runtimeConfig.support.frontend?.hubspot?.trackingcode) {

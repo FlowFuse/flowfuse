@@ -136,7 +136,7 @@ describe('Check HTTP Security Headers set', async () => {
             const headers = response.headers
             headers.should.have.property('content-security-policy')
             const csp = response.headers['content-security-policy']
-            csp.split(';').should.containEql('script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' https://app.posthog.com')
+            csp.split(';').should.containEql('script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' app.posthog.com')
         })
 
         it('CSP should be enabled with hubspot', async function () {
@@ -195,7 +195,27 @@ describe('Check HTTP Security Headers set', async () => {
             const headers = response.headers
             headers.should.have.property('content-security-policy')
             const csp = response.headers['content-security-policy']
-            csp.split(';').should.containEql('script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' https://app.posthog.com js-eu1.hs-analytics.com js-eu1.hs-banner.com js-eu1.hs-scripts.com js-eu1.hscollectedforms.net js-eu1.hubspot.com js-eu1.usemessages.com')
+            csp.split(';').should.containEql('script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' app.posthog.com js-eu1.hs-analytics.com js-eu1.hs-banner.com js-eu1.hs-scripts.com js-eu1.hscollectedforms.net js-eu1.hubspot.com js-eu1.usemessages.com')
+        })
+        it('CSP with sentry.io', async function () {
+            const config = {
+                telemetry: {
+                    sentry: 'foo'
+                },
+                content_security_policy: {
+                    enabled: true
+                }
+            }
+            app = await FF_UTIL.setupApp(config)
+            const response = await app.inject({
+                method: 'GET',
+                url: '/'
+            })
+
+            const headers = response.headers
+            headers.should.have.property('content-security-policy')
+            const csp = response.headers['content-security-policy']
+            csp.split(';').should.containEql('connect-src \'self\' *.ingest.sentry.io')
         })
     })
 
