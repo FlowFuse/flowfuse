@@ -82,13 +82,16 @@
             <div v-if="playEnabled" class="ff-pipeline-stage-row">
                 <label>Deploy Action:</label>
                 <span>
-                    <template v-if="stage.action === 'create_snapshot'">
+                    <template v-if="stage.action === StageAction.CREATE_SNAPSHOT">
                         Create new snapshot
                     </template>
-                    <template v-else-if="stage.action === 'use_latest_snapshot'">
+                    <template v-else-if="stage.action === StageAction.USE_ACTIVE_SNAPSHOT">
+                        Use active snapshot
+                    </template>
+                    <template v-else-if="stage.action== StageAction.USE_LATEST_SNAPSHOT">
                         Use latest {{ stage.stageType === StageType.INSTANCE ? 'instance' : 'device' }} snapshot
                     </template>
-                    <template v-else-if="stage.action==='prompt'">
+                    <template v-else-if="stage.action== StageAction.PROMPT">
                         Prompt to select snapshot
                     </template>
                 </span>
@@ -110,7 +113,7 @@
 <script>
 import { PencilAltIcon, PlayIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/outline'
 
-import PipelineAPI, { StageType } from '../../api/pipeline.js'
+import PipelineAPI, { StageAction, StageType } from '../../api/pipeline.js'
 
 import InstanceStatusBadge from '../../pages/instance/components/InstanceStatusBadge.vue'
 
@@ -165,7 +168,9 @@ export default {
         }
     },
     created () {
+        // Expose enums to template
         this.StageType = StageType
+        this.StageAction = StageAction
     },
     methods: {
         runStage: async function () {
