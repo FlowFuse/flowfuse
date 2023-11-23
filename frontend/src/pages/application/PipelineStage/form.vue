@@ -343,6 +343,16 @@ export default {
             return options
         }
     },
+    watch: {
+        'input.stageType': {
+            handler (stageType) {
+                // if the stage type is changed, ensure the action is NOT "create_snapshot" when the stage type is "device"
+                if (this.input.stageType === StageType.DEVICE && this.input.action === 'create_snapshot') {
+                    this.input.action = 'use_latest_snapshot' // set default action for device stage
+                }
+            }
+        }
+    },
     created () {
         this.StageType = StageType
     },
