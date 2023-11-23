@@ -26,7 +26,39 @@ module.exports = {
         action: {
             type: DataTypes.ENUM(Object.values(SNAPSHOT_ACTIONS)),
             defaultValue: SNAPSHOT_ACTIONS.CREATE_SNAPSHOT,
-            allowNull: false
+            allowNull: false,
+            validate: {
+                isIn: [Object.values(SNAPSHOT_ACTIONS)],
+                async validActionForStageType () {
+                    const devicesPromise = this.getDevices()
+                    const instancesPromise = this.getInstances()
+
+                    const devices = await devicesPromise
+                    const instances = await instancesPromise
+
+                    if (devices.length > 0) {
+                        const validActionsForDevices = [
+                            SNAPSHOT_ACTIONS.USE_ACTIVE_SNAPSHOT,
+                            SNAPSHOT_ACTIONS.USE_LATEST_SNAPSHOT,
+                            SNAPSHOT_ACTIONS.PROMPT
+                        ]
+
+                        if (!validActionsForDevices.includes(this.action)) {
+                            throw new Error(`Device stages only support the following actions: ${validActionsForDevices.join(', ')}.`)
+                        }
+                    } else if (instances.length > 0) {
+                        const validActionsForInstances = [
+                            SNAPSHOT_ACTIONS.CREATE_SNAPSHOT,
+                            SNAPSHOT_ACTIONS.USE_LATEST_SNAPSHOT,
+                            SNAPSHOT_ACTIONS.PROMPT
+                        ]
+
+                        if (!validActionsForInstances.includes(this.action)) {
+                            throw new Error(`Instance stages only support the following actions: ${validActionsForInstances.join(', ')}.`)
+                        }
+                    }
+                }
+            }
         },
 
         // relations
