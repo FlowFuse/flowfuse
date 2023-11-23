@@ -350,8 +350,8 @@ export default {
                 return
             }
 
-            // If not, reset selection
-            this.input.action = null
+            // If not, reset to the stages original action (if available)
+            this.input.action = this.stage?.action && this.actionOptions.some((option) => option.value === this.stage.action) ? this.stage.action : null
         }
     },
     created () {
