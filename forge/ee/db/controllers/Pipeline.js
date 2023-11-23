@@ -142,7 +142,11 @@ module.exports = {
             return sourceSnapshot
         }
 
-        throw new PipelineControllerError('invalid_action', `Unsupported pipeline deploy action: ${sourceStage.action}`, 400)
+        if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.USE_ACTIVE_SNAPSHOT) {
+            throw new PipelineControllerError('invalid_source_action', 'When using an instance as a source, use active snapshot is not supported', 400)
+        }
+
+        throw new PipelineControllerError('invalid_action', `Unsupported pipeline deploy action for instances: ${sourceStage.action}`, 400)
     },
 
     getOrCreateSnapshotForSourceDevice: async function (app, sourceStage, sourceDevice, sourceSnapshotId) {
@@ -175,7 +179,15 @@ module.exports = {
             return sourceSnapshot
         }
 
-        throw new PipelineControllerError('invalid_action', `Unsupported pipeline deploy action: ${sourceStage.action}`, 400)
+        if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.USE_ACTIVE_SNAPSHOT) {
+            const sourceSnapshot = await sourceDevice.getActiveSnapshot()
+            if (!sourceSnapshot) {
+                throw new PipelineControllerError('invalid_source_device', 'No active snapshot found for source stages device but deploy action is set to use active snapshot', 400)
+            }
+            return sourceSnapshot
+        }
+
+        throw new PipelineControllerError('invalid_action', `Unsupported pipeline deploy action for devices: ${sourceStage.action}`, 400)
     },
 
     /**
