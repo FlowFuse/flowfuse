@@ -225,7 +225,7 @@ module.exports = {
                 await app.auditLog.Project.project.imported(user.id, null, targetInstance, sourceInstance, sourceDevice) // technically this isn't a project event
                 await app.auditLog.Project.project.snapshot.imported(user.id, err, targetInstance, sourceInstance, sourceDevice, null)
 
-                throw PipelineControllerError('unexpected_error', `Error during deploy: ${err.toString()}`, 500, { cause: err })
+                throw new PipelineControllerError('unexpected_error', `Error during deploy: ${err.toString()}`, 500, { cause: err })
             }
         })()
     },
@@ -255,7 +255,7 @@ module.exports = {
             const updatedDevice = await app.db.models.Device.byId(targetDevice.id) // fully reload with associations
             await app.db.controllers.Device.sendDeviceUpdateCommand(updatedDevice)
         } catch (err) {
-            throw PipelineControllerError('unexpected_error', `Error during deploy: ${err.toString()}`, 500, { cause: err })
+            throw new PipelineControllerError('unexpected_error', `Error during deploy: ${err.toString()}`, 500, { cause: err })
         }
     }
 }
