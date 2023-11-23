@@ -350,8 +350,8 @@ export default {
                 return
             }
 
-            // If not, set default action
-            this.input.action = this.actionOptions[0].value
+            // If not, reset selection
+            this.input.action = null
         }
     },
     created () {
