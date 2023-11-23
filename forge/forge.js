@@ -162,7 +162,7 @@ module.exports = async (options = {}) => {
                         'base-uri': ["'self'"],
                         'default-src': ["'self'"],
                         'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-                        'worker-src': ["'self'"],
+                        'worker-src': ["'self'", "'blob'"],
                         'connect-src': ["'self'"],
                         'img-src': ["'self'", 'data:', 'www.gravatar.com'],
                         'font-src': ["'self'"],
@@ -206,7 +206,7 @@ module.exports = async (options = {}) => {
                     contentSecurityPolicy.directives['connect-src'] = [posthogHost]
                 }
             }
-            if (runtimeConfig.telemetry?.sentry) {
+            if (runtimeConfig.telemetry?.frontend?.sentry) {
                 if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
                     contentSecurityPolicy.directives['connect-src'].push('*.ingest.sentry.io')
                 } else {

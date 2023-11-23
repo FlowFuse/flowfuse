@@ -200,7 +200,9 @@ describe('Check HTTP Security Headers set', async () => {
         it('CSP with sentry.io', async function () {
             const config = {
                 telemetry: {
-                    sentry: 'foo'
+                    frontend: {
+                        sentry: 'foo'
+                    }
                 },
                 content_security_policy: {
                     enabled: true
