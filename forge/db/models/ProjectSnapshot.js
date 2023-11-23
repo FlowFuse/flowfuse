@@ -175,6 +175,16 @@ module.exports = {
                         snapshots: rows
                     }
                 }
+            },
+            instance: {
+                getCredentialSecret: async function () {
+                    // default to project in the absence of ownerType
+                    if (this.ownerType === 'instance' || !this.ownerType) {
+                        return await (await this.getProject()).getCredentialSecret()
+                    } else {
+                        return (await this.getDevice()).credentialSecret
+                    }
+                }
             }
         }
     }
