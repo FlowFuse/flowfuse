@@ -115,13 +115,13 @@
                             When a instance Pipeline stage type is triggered an Instance Snapshot is deployed to the next stage. You can configure how this stage picks what snapshot to deploy.
                         </p>
                         <p>
-                            Create New Snapshot: Creates a new snapshot using the current flows and settings.
+                            <b>Create New Snapshot:</b> Creates a new snapshot using the current flows and settings.
                         </p>
                         <p>
-                            Use Latest Instance Snapshot: Uses the most recent existing snapshot of the instance. The deploy will fail if no snapshot exists.
+                            <b>Use Latest Instance Snapshot:</b> Uses the most recent existing snapshot of the instance. The deploy will fail if no snapshot exists.
                         </p>
                         <p>
-                            Prompt to Select Snapshot: Will ask at deploy time, which snapshot from the source stage should be copied to the next stage.
+                            <b>Prompt to Select Snapshot:</b> Will ask at deploy time, which snapshot from the source stage should be copied to the next stage.
                         </p>
                     </div>
                     <div v-else-if="input.stageType === StageType.DEVICE">
@@ -129,13 +129,13 @@
                             When a device Pipeline stage type is triggered an Device Snapshot is deployed to the next stage. You can configure how this stage picks what snapshot to deploy.
                         </p>
                         <p>
-                            Use Active Snapshot: Will use the snapshot currently active on the device. The deploy will fail is there is no active snapshot.
+                            <b>Use Active Snapshot:</b> Will use the snapshot currently active on the device. The deploy will fail is there is no active snapshot.
                         </p>
                         <p>
-                            Use Latest Device Snapshot: Uses the most recent existing snapshot of the device. The deploy will fail if no snapshot exists.
+                            <b>Use Latest Device Snapshot:</b> Uses the most recent snapshot created from the device. The deploy will fail if no snapshot exists.
                         </p>
                         <p>
-                            Prompt to Select Snapshot: Will ask at deploy time, which snapshot from the source stage should be copied to the next stage.
+                            <b>Prompt to Select Snapshot:</b> Will ask at deploy time, which snapshot from the source stage should be copied to the next stage.
                         </p>
                     </div>
                 </div>
@@ -342,7 +342,7 @@ export default {
             if (this.input.stageType === StageType.INSTANCE) {
                 options.unshift({ value: StageAction.CREATE_SNAPSHOT, label: 'Create new instance snapshot' })
             } else if (this.input.stageType === StageType.DEVICE) {
-                options.unshift({ value: StageAction.USE_ACTIVE_SNAPSHOT, label: 'Use active device snapshot' })
+                options.unshift({ value: StageAction.USE_ACTIVE_SNAPSHOT, label: 'Use active snapshot' })
             }
 
             return options

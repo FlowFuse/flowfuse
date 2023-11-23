@@ -86,7 +86,7 @@
                         Create new snapshot
                     </template>
                     <template v-else-if="stage.action === StageAction.USE_ACTIVE_SNAPSHOT">
-                        Use currently active device snapshot
+                        Use active snapshot
                     </template>
                     <template v-else-if="stage.action== StageAction.USE_LATEST_SNAPSHOT">
                         Use latest {{ stage.stageType === StageType.INSTANCE ? 'instance' : 'device' }} snapshot
