@@ -168,7 +168,7 @@ export default {
         },
         stageDeployFailed (stage) {
             const nextStage = this.pipeline.stages.find((s) => s.id === stage.NextStageId)
-            this.$emit('stage-deploy-started', stage, nextStage)
+            this.$emit('stage-deploy-failed', stage, nextStage)
         },
         stageDeleted (stageIndex) {
             this.$emit('stage-deleted', stageIndex)
