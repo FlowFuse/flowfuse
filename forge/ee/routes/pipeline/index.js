@@ -548,15 +548,16 @@ module.exports = async function (app) {
 
             if (targetInstance) {
                 const deployPromise = app.db.controllers.Pipeline.deploySnapshotToInstance(
+                    sourceSnapshot,
+                    targetInstance,
+                    targetStage.deployToDevices ?? false,
                     {
                         pipeline: request.pipeline,
                         sourceStage,
-                        sourceSnapshot,
-                        targetInstance,
                         sourceInstance,
                         sourceDevice,
-                        user,
-                        targetStage
+                        targetStage,
+                        user
                     }
                 )
 

@@ -188,7 +188,10 @@ module.exports = {
      * @param {Object} targetStage - The target stage
      * @returns {Promise<Function>} - Resolves with the deploy is complete
      */
-    deploySnapshotToInstance: function (app, { pipeline, sourceStage, sourceSnapshot, targetInstance, sourceInstance, sourceDevice, user, targetStage }) {
+    deploySnapshotToInstance: function (app, sourceSnapshot, targetInstance, deployToDevices, deployMeta = { pipeline: undefined, sourceStage: undefined, sourceInstance: undefined, sourceDevice: undefined, targetStage: undefined, user: undefined }) {
+        // Only used for reporting and logging, should not be used for any logic
+        const { pipeline, sourceStage, sourceInstance, sourceDevice, targetStage, user } = deployMeta
+
         const restartTargetInstance = targetInstance?.state === 'running'
 
         app.db.controllers.Project.setInflightState(targetInstance, 'importing')
@@ -197,11 +200,11 @@ module.exports = {
         // Complete heavy work async
         return (async function () {
             try {
-                const setAsTargetForDevices = targetStage.deployToDevices ?? false
+                const setAsTargetForDevices = deployToDevices ?? false
                 const targetSnapshot = await copySnapshot(app, sourceSnapshot, targetInstance, {
                     importSnapshot: true, // target instance should import the snapshot
                     setAsTarget: setAsTargetForDevices,
-                    decryptAndReEncryptCredentialsSecret: await sourceInstance.getCredentialSecret(),
+                    decryptAndReEncryptCredentialsSecret: await sourceSnapshot.getCredentialSecret(),
                     targetSnapshotProperties: {
                         name: generateDeploySnapshotName(sourceSnapshot),
                         description: generateDeploySnapshotDescription(sourceStage, targetStage, pipeline, sourceSnapshot)
@@ -222,7 +225,7 @@ module.exports = {
                 await app.auditLog.Project.project.imported(user.id, null, targetInstance, sourceInstance, sourceDevice) // technically this isn't a project event
                 await app.auditLog.Project.project.snapshot.imported(user.id, err, targetInstance, sourceInstance, sourceDevice, null)
 
-                throw PipelineControllerError('unexpected_error', `Error during deploy: ${err.toString()}`, 500, { cause: err })
+                throw new PipelineControllerError('unexpected_error', `Error during deploy: ${err.toString()}`, 500, { cause: err })
             }
         })()
     },
@@ -252,7 +255,7 @@ module.exports = {
             const updatedDevice = await app.db.models.Device.byId(targetDevice.id) // fully reload with associations
             await app.db.controllers.Device.sendDeviceUpdateCommand(updatedDevice)
         } catch (err) {
-            throw PipelineControllerError('unexpected_error', `Error during deploy: ${err.toString()}`, 500, { cause: err })
+            throw new PipelineControllerError('unexpected_error', `Error during deploy: ${err.toString()}`, 500, { cause: err })
         }
     }
 }
