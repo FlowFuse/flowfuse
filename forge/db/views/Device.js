@@ -44,6 +44,7 @@ module.exports = function (app) {
                 lastSeenAt: result.lastSeenAt,
                 lastSeenMs: result.lastSeenAt ? (Date.now() - new Date(result.lastSeenAt).valueOf()) : null,
                 status: result.state || 'offline',
+                mode: result.mode || 'autonomous',
                 isDeploying: app.db.controllers.Device.isDeploying(device)
             }
         }
@@ -96,11 +97,13 @@ module.exports = function (app) {
             lastSeenAt: { nullable: true, type: 'string' },
             lastSeenMs: { nullable: true, type: 'number' },
             status: { type: 'string' },
+            mode: { type: 'string' },
             isDeploying: { type: 'boolean' },
             links: { $ref: 'LinksMeta' }
         }
     })
     function deviceSummary (device, { includeSnapshotIds = false } = {}) {
+        console.log('deviceSummary', device)
         if (device) {
             const result = device.toJSON()
             const filtered = {
@@ -111,6 +114,7 @@ module.exports = function (app) {
                 lastSeenAt: result.lastSeenAt,
                 lastSeenMs: result.lastSeenAt ? (Date.now() - new Date(result.lastSeenAt).valueOf()) : null,
                 status: result.state || 'offline',
+                mode: result.mode || 'autonomous',
                 isDeploying: app.db.controllers.Device.isDeploying(device),
                 links: result.links
             }
