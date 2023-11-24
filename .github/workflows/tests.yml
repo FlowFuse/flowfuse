@@ -90,6 +90,15 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         flags: backend
+    - name: Notify Slack
+      if: always()
+      uses: ravsamhq/notify-slack-action@v2
+      with:
+        status: ${{ job.status }}
+        notify_when: 'failure'
+        mention_users: ${{ github.actor }}
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.GH_CUSTOM_BOT_WEBHOOK }}
 
   postgres-tests:
     if: ${{ needs.check-changes.outputs.run_postgres_tests == 'true' }}
