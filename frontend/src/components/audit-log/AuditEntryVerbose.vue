@@ -316,6 +316,11 @@
         <span v-if="!error && entry.body?.pipeline">DevOps Pipeline '{{ entry.body.pipeline?.name }}' has been created {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }}</span>
         <span v-else-if="!error">Pipeline data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'application.pipeline.updated'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.pipeline">DevOps Pipeline '{{ entry.body.pipeline?.name }}' was updated {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }} with the following changes: <AuditEntryUpdates :updates="entry.body.updates" /></span>
+        <span v-else-if="!error">Pipeline data not found in audit entry.</span>
+    </template>
     <template v-else-if="entry.event === 'application.pipeline.deleted'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.pipeline">DevOps Pipeline '{{ entry.body.pipeline?.name }}' was deleted {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }}</span>
