@@ -48,7 +48,10 @@
                 </div>
                 <div v-if="stage.stageType == StageType.DEVICE" class="ff-pipeline-stage-type">
                     <router-link class="flex gap-2 items-center" :to="{name: 'Device', params: { id: stage.device.id }}">
-                        <IconDeviceSolid class="ff-icon ff-icon-lg text-teal-700" />
+                        <span v-if="stage.device.mode === 'developer'" v-ff-tooltip="'Device in Developer Mode'">
+                            <BeakerIcon class="text-purple-600 w-6 mr-2 flex-auto" />
+                        </span>
+                        <IconDeviceSolid v-else class="ff-icon ff-icon-lg text-teal-700" />
                         <div>
                             <label class="flex items-center gap-2">Device:</label>
                             <span>
@@ -112,6 +115,7 @@
 
 <script>
 import { PencilAltIcon, PlayIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/outline'
+import { BeakerIcon } from '@heroicons/vue/solid'
 
 import PipelineAPI, { StageAction, StageType } from '../../api/pipeline.js'
 
@@ -129,15 +133,16 @@ import DeployStageDialog from './DeployStageDialog.vue'
 export default {
     name: 'PipelineStage',
     components: {
-        InstanceStatusBadge,
+        BeakerIcon,
         DeployStageDialog,
+        IconDeviceSolid,
+        IconNodeRedSolid,
+        InstanceStatusBadge,
         PencilAltIcon,
         PlayIcon,
         PlusCircleIcon,
         SpinnerIcon,
-        TrashIcon,
-        IconDeviceSolid,
-        IconNodeRedSolid
+        TrashIcon
     },
     props: {
         application: {
