@@ -180,10 +180,11 @@ jobs:
   notify-slack:
     name: Notify on failure
     needs: [backend-tests, postgres-tests, ui-tests]
-    if: |
-      needs.backend-tests.result == 'failure' ||
-      needs.postgres-tests.result == 'failure' ||
-      needs.ui-tests.result == 'failure'
+    if: failure()
+    # if: |
+    #   needs.backend-tests.result == 'failure' ||
+    #   needs.postgres-tests.result == 'failure' ||
+    #   needs.ui-tests.result == 'failure'
     runs-on: ubuntu-latest
 
     steps:
