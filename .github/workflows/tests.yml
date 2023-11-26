@@ -178,10 +178,14 @@ jobs:
       #     flags: frontend
 
   notify-slack:
-    name: Notify Slack
-    if: always()
+    name: Notify on failure
     needs: [backend-tests, postgres-tests, ui-tests]
+    if: |
+      needs.backend-tests.result == 'failure' ||
+      needs.postgres-tests.result == 'failure' ||
+      needs.ui-tests.result == 'failure'
     runs-on: ubuntu-latest
+
     steps:
     - name: Map users  
       id: map-actor-to-slack
@@ -195,8 +199,7 @@ jobs:
     - name: Send notification
       uses: ravsamhq/notify-slack-action@v2
       with:
-        status: ${{ join(needs.*.result, ' ') }}
-        notify_when: failure
+        status: 'failure'
         mention_users: ${{ steps.map-actor-to-slack.outputs.actor-mapping }}
     env:
       SLACK_WEBHOOK_URL: ${{ secrets.GH_CUSTOM_BOT_WEBHOOK }}
