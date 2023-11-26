@@ -90,15 +90,6 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         flags: backend
-    - name: Notify Slack
-      if: always()
-      uses: ravsamhq/notify-slack-action@v2
-      with:
-        status: ${{ job.status }}
-        notify_when: 'failure'
-        mention_users: ${{ github.actor }}
-      env:
-        SLACK_WEBHOOK_URL: ${{ secrets.GH_CUSTOM_BOT_WEBHOOK }}
 
   postgres-tests:
     if: ${{ needs.check-changes.outputs.run_postgres_tests == 'true' }}
@@ -185,3 +176,27 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: frontend
+
+  notify-slack:
+    name: Notify Slack
+    if: always()
+    needs: [backend-tests, postgres-tests, ui-tests]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Map isers  
+      id: map-actor-to-slack
+      uses: icalia-actions/map-github-actor@v0.0.1
+      with:
+        actor-map: '{"Piotr":"U05F21MRZQU"}'
+        default-mapping: C066RS1AMF1
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.GH_CUSTOM_BOT_WEBHOOK }}
+
+    - name: Notify Slack
+      uses: ravsamhq/notify-slack-action@v2
+      with:
+        status: ${{ job.status }}
+        notify_when: 'failure'
+        mention_users: ${{ steps.map-actor-to-slack.outputs.actor-mapping }}
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.GH_CUSTOM_BOT_WEBHOOK }}
