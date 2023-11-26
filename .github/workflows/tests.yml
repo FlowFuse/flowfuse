@@ -183,16 +183,16 @@ jobs:
     needs: [backend-tests, postgres-tests, ui-tests]
     runs-on: ubuntu-latest
     steps:
-    - name: Map isers  
+    - name: Map users  
       id: map-actor-to-slack
-      uses: icalia-actions/map-github-actor@v0.0.1
+      uses: icalia-actions/map-github-actor@v0.0.2
       with:
         actor-map: '{"Piotr":"U05F21MRZQU"}'
         default-mapping: C066RS1AMF1
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.GH_CUSTOM_BOT_WEBHOOK }}
 
-    - name: Notify Slack
+    - name: Send notification
       uses: ravsamhq/notify-slack-action@v2
       with:
         status: ${{ job.status }}
