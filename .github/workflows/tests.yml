@@ -123,8 +123,6 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Install Dependencies
         run: npm ci
-      - name: break
-        run: exit 5
       - name: Build the forge
         run: npm run build
       - name: Test the forge (with PostgreSQL)
@@ -183,10 +181,6 @@ jobs:
     name: Notify on failure
     needs: [backend-tests, postgres-tests, ui-tests]
     if: failure()
-    # if: |
-    #   needs.backend-tests.result == 'failure' ||
-    #   needs.postgres-tests.result == 'failure' ||
-    #   needs.ui-tests.result == 'failure'
     runs-on: ubuntu-latest
 
     steps:
@@ -196,7 +190,11 @@ jobs:
       with:
         actor-map: '{
           "ppawlowski":"U05F21MRZQU",
-          "hardillb":"U021T9TT2SV"
+          "hardillb":"U021T9TT2SV",
+          "knolleary":"U02248XSR32",
+          "joepavitt":"U031G1H5QPR",
+          "Pezmc":"U0465FK1ULR",
+          "Steve-Mcl":"U02UQG3RYQ5"
           }'
         default-mapping: C066RS1AMF1
       env:
