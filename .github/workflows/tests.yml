@@ -192,7 +192,10 @@ jobs:
       id: map-actor-to-slack
       uses: icalia-actions/map-github-actor@v0.0.2
       with:
-        actor-map: '{"ppawlowski":"U05F21MRZQU"}'
+        actor-map: '{
+          "ppawlowski":"U05F21MRZQU",
+          "hardillb":"U021T9TT2SV"
+          }'
         default-mapping: C066RS1AMF1
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.GH_CUSTOM_BOT_WEBHOOK }}
