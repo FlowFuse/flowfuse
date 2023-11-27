@@ -123,6 +123,8 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Install Dependencies
         run: npm ci
+      - name: break
+        run: exit 5
       - name: Build the forge
         run: npm run build
       - name: Test the forge (with PostgreSQL)
