@@ -184,6 +184,7 @@ module.exports = class TestModelFactory {
             ...deviceDetails
         })
         await team.addDevice(device)
+        await device.setTeam(team)
         if (project) {
             await device.setProject(project)
         } else if (application) {
@@ -218,7 +219,8 @@ module.exports = class TestModelFactory {
     async createPipelineStage (pipelineStageDetails, pipeline) {
         const defaultPipelineStageDetails = {
             name: 'unnamed-pipeline-stage',
-            instanceId: null
+            instanceId: null,
+            deviceId: null
         }
 
         return await this.forge.db.controllers.Pipeline.addPipelineStage(

@@ -1,5 +1,5 @@
 name: 🐜 Report a bug
-description: File a bug on the FlowForge platform
+description: File a bug on the FlowFuse platform
 labels: [needs-triage]
 body:
 - type: textarea

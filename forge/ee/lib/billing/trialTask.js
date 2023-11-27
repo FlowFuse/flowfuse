@@ -15,6 +15,11 @@ module.exports.init = function (app) {
             try {
                 if (subscription.Team) {
                     if (subscription.isActive()) {
+                        // This scenario can be removed in 1.14. Trials now end
+                        // when billing is setup. However we need to handle any
+                        // trials already in this state when the billing change
+                        // was applied. Given trials last 14 days, this is a short-term
+                        // condition to cater for.
                         app.log.info(`Team ${subscription.Team.hashid} ending trial - billing setup`)
                         // Ensure device count is updated (if device billing enabled)
                         await subscription.Team.reload({ include: [app.db.models.TeamType] })
@@ -31,9 +36,7 @@ module.exports.init = function (app) {
                     }
 
                     // We have dealt with this team
-                    subscription.trialEndsAt = null
-                    subscription.trialStatus = app.db.models.Subscription.TRIAL_STATUS.ENDED
-                    await subscription.save()
+                    await subscription.clearTrialState()
                 } else {
                     // Team has been deleted
                     subscription.destroy()

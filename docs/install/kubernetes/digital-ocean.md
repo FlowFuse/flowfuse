@@ -73,7 +73,7 @@ You will need to update the entry in your DNS server to point
 Then setup the FlowFuse Helm repository
 
 ```bash
-helm repo add flowforge https://flowforge.github.io/helm
+helm repo add flowforge https://flowfuse.github.io/helm
 helm repo update
 ```
 
@@ -91,6 +91,9 @@ forge:
   managementSelector: 
   broker:
     enabled: true
+postgresql:
+  global:
+    storageClass: do-block-storage
 ```
 
 Then we use this to install FlowFuse

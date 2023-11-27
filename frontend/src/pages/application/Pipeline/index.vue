@@ -5,6 +5,7 @@
     <div v-else class="flex flex-col sm:flex-row">
         <router-view
             :application="application"
+            :applicationDevices="devices"
             :instances="instances"
             :pipeline="pipeline"
         />
@@ -24,6 +25,10 @@ export default {
         },
         instances: {
             type: Object,
+            required: true
+        },
+        devices: {
+            type: Array,
             required: true
         }
     },

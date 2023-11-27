@@ -3,8 +3,6 @@ const { ValidationError } = require('sequelize')
 const { registerPermissions } = require('../../../lib/permissions')
 const { Roles } = require('../../../lib/roles.js')
 
-const { createSnapshot, copySnapshot, generateDeploySnapshotDescription, generateDeploySnapshotName } = require('../../../services/snapshots')
-
 module.exports = async function (app) {
     registerPermissions({
         'pipeline:read': { description: 'View a pipeline', role: Roles.Member },
@@ -79,24 +77,25 @@ module.exports = async function (app) {
         const team = await request.teamMembership.getTeam()
         const name = request.body.name?.trim()
 
-        // Security issue here, should check application is same team...
-
         let pipeline
         try {
             pipeline = await app.db.models.Pipeline.create({
                 name,
                 ApplicationId: request.application.id
             })
-        } catch (err) {
-            if (err instanceof ValidationError) {
-                if (err.errors[0]) {
-                    return reply.status(400).type('application/json').send({ code: `invalid_${err.errors[0].path}`, error: err.errors[0].message })
+        } catch (error) {
+            if (error instanceof ValidationError) {
+                if (error.errors[0]) {
+                    return reply.status(400).type('application/json').send({ code: `invalid_${error.errors[0].path}`, error: error.errors[0].message })
                 }
 
-                return reply.status(400).type('application/json').send({ code: 'invalid_input', error: err.message })
+                return reply.status(400).type('application/json').send({ code: 'invalid_input', error: error.message })
             }
 
-            return reply.status(500).send({ code: 'unexpected_error', error: err.toString() })
+            app.log.error('Error while creating pipeline:')
+            app.log.error(error)
+
+            return reply.status(500).send({ code: 'unexpected_error', error: error.toString() })
         }
 
         await app.auditLog.Team.application.pipeline.created(request.session.User, null, team, request.application, pipeline)
@@ -271,13 +270,14 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const team = await request.teamMembership.getTeam()
         const name = request.body.name?.trim() // name of the stage
-        const { instanceId, deployToDevices, action } = request.body
+        const { instanceId, deviceId, deployToDevices, action } = request.body
 
         let stage
         try {
             const options = {
                 name,
                 instanceId,
+                deviceId,
                 deployToDevices,
                 action
             }
@@ -288,15 +288,28 @@ module.exports = async function (app) {
                 request.pipeline,
                 options
             )
-        } catch (err) {
-            app.log.error(err)
-            return reply.status(500).send({ code: 'unexpected_error', error: err.toString() })
-        }
-        const instance = await app.db.models.Project.byId(instanceId)
-        await app.auditLog.Team.application.pipeline.stageAdded(request.session.User, null, team, request.application, request.pipeline, stage)
-        await app.auditLog.Project.project.assignedToPipelineStage(request.session.User, null, instance, request.pipeline, stage)
+        } catch (error) {
+            if (error instanceof ValidationError) {
+                if (error.errors[0]) {
+                    return reply.status(400).type('application/json').send({ code: `invalid_${error.errors[0].path}`, error: error.errors[0].message })
+                }
 
-        // ById includes related models
+                return reply.status(400).type('application/json').send({ code: 'invalid_input', error: error.message })
+            }
+
+            app.log.error('Error while creating pipeline stage:')
+            app.log.error(error)
+
+            return reply.status(500).send({ code: 'unexpected_error', error: error.toString() })
+        }
+        await app.auditLog.Team.application.pipeline.stageAdded(request.session.User, null, team, request.application, request.pipeline, stage)
+
+        if (instanceId) {
+            const instance = await app.db.models.Project.byId(instanceId)
+            await app.auditLog.Project.project.assignedToPipelineStage(request.session.User, null, instance, request.pipeline, stage)
+        }
+
+        // PipelineStage.byId includes devices and instance objects
         const hydratedStage = await app.db.models.PipelineStage.byId(stage.id)
 
         reply.send(await app.db.views.PipelineStage.stage(hydratedStage))
@@ -324,6 +337,7 @@ module.exports = async function (app) {
                 properties: {
                     name: { type: 'string' },
                     instanceId: { type: 'string' },
+                    deviceId: { type: 'string' },
                     action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) }
                 }
             },
@@ -348,14 +362,27 @@ module.exports = async function (app) {
                 stage.action = request.body.action
             }
 
-            if (request.body.instanceId) {
-                // Currently only one instance per stage is supported
+            // Null will remove devices and instances, undefined skips
+            if (request.body.instanceId !== undefined || request.body.deviceId !== undefined) {
+                // Currently only one instance or device per stage is supported
                 const instances = await stage.getInstances()
                 for (const instance of instances) {
                     await stage.removeInstance(instance)
                 }
 
-                await stage.addInstanceId(request.body.instanceId)
+                // Currently only one device per stage is supported
+                const devices = await stage.getDevices()
+                for (const device of devices) {
+                    await stage.removeDevice(device)
+                }
+
+                if (request.body.instanceId && request.body.deviceId) {
+                    return reply.code(400).send({ code: 'invalid_input', error: 'Must provide instanceId or deviceId, not both' })
+                } else if (request.body.instanceId) {
+                    await stage.addInstanceId(request.body.instanceId)
+                } else if (request.body.deviceId) {
+                    await stage.addDeviceId(request.body.deviceId)
+                }
             }
 
             if (request.body.deployToDevices !== undefined) {
@@ -364,14 +391,23 @@ module.exports = async function (app) {
 
             await stage.save()
 
-            // ById includes related models
-            const hydratedStage = await app.db.models.PipelineStage.byId(stage.id)
+            // Load in devices and instance objects from ids
+            await stage.reload()
 
-            // TODO - Audit log entry?
-
-            reply.send(await app.db.views.PipelineStage.stage(hydratedStage))
+            reply.send(await app.db.views.PipelineStage.stage(stage))
         } catch (err) {
-            reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
+            if (err instanceof ValidationError) {
+                if (err.errors[0]) {
+                    return reply.status(400).type('application/json').send({ code: `invalid_${err.errors[0].path}`, error: err.errors[0].message })
+                }
+
+                return reply.status(400).type('application/json').send({ code: 'invalid_input', error: err.message })
+            }
+
+            app.log.error('Error while updating pipeline stage:')
+            app.log.error(err)
+
+            return reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
 
@@ -470,124 +506,88 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const user = request.session.User
 
-        const sourceStage = await app.db.models.PipelineStage.byId(request.params.stageId)
-
-        if (!sourceStage) {
-            return reply.code(404).send({ code: 'not_found', error: 'Source stage not found' })
-        } else if (sourceStage.PipelineId !== request.pipeline.id) {
-            return reply.code(400).send({ code: 'invalid_stage', error: 'Source stage must be part of the same pipeline' })
-        }
-
-        const targetStage = await app.db.models.PipelineStage.byId(sourceStage.NextStageId)
-
-        if (!targetStage) {
-            return reply.code(404).send({ code: 'not_found', error: 'Target stage not found' })
-        } else if (targetStage.PipelineId !== request.pipeline.id) {
-            return reply.code(400).send({ code: 'invalid_stage', error: 'Target stage must be part of the same pipeline' })
-        }
-
-        const sourceInstances = await sourceStage.getInstances()
-        if (sourceInstances.length === 0) {
-            return reply.code(400).send({ code: 'invalid_stage', error: 'Source stage must have at least one instance' })
-        } else if (sourceInstances.length > 1) {
-            return reply.code(400).send({ code: 'invalid_stage', error: 'Deployments are currently only supported for source stages with a single instance' })
-        }
-
-        const targetInstances = await targetStage.getInstances()
-        if (targetInstances.length === 0) {
-            return reply.code(400).send({ code: 'invalid_stage', error: 'Target stage must have at least one instance' })
-        } else if (targetInstances.length > 1) {
-            return reply.code(400).send({ code: 'invalid_stage', error: 'Deployments are currently only supported for target stages with a single instance' })
-        }
-
-        const sourceInstance = sourceInstances[0]
-        const targetInstance = targetInstances[0]
-
-        if (sourceInstance.TeamId !== targetInstance.TeamId) {
-            return reply.code(403).send({ code: 'invalid_stage', error: 'Source instance and Target instance not in same team' })
-        }
-
-        targetInstance.Team = await app.db.models.Team.byId(targetInstance.TeamId)
-        if (!targetInstance.Team) {
-            return reply.code(404).send({ code: 'invalid_stage', error: 'Instance not associated with a team' })
-        }
-
-        let sourceSnapshot
-        try {
-            if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.USE_LATEST_SNAPSHOT) {
-                sourceSnapshot = await sourceInstance.getLatestSnapshot()
-                if (!sourceSnapshot) {
-                    return reply.code(400).send({ code: 'invalid_source_instance', error: 'No snapshots found for source stages instance but deploy action is set to use latest snapshot' })
-                }
-            } else if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.CREATE_SNAPSHOT) {
-                sourceSnapshot = await createSnapshot(app, sourceInstance, user, {
-                    name: generateDeploySnapshotName(),
-                    description: generateDeploySnapshotDescription(sourceStage, targetStage, request.pipeline),
-                    setAsTarget: false // no need to deploy to devices of the source
-                })
-            } else if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.PROMPT) {
-                const sourceSnapshotId = request.body?.sourceSnapshotId
-                if (!sourceSnapshotId) {
-                    return reply.code(400).send({ code: 'no_source_snapshot', error: 'Source snapshot is required as deploy action is set to prompt for snapshot' })
-                }
-
-                sourceSnapshot = await app.db.models.ProjectSnapshot.byId(sourceSnapshotId)
-                if (!sourceSnapshot) {
-                    return reply.code(400).send({ code: 'invalid_source_snapshot', error: 'Source snapshot not found' })
-                }
-
-                if (sourceSnapshot.ProjectId !== sourceInstance.id) {
-                    return reply.code(400).send({ code: 'invalid_source_snapshot', error: 'Source snapshot not associated with source instance' })
-                }
-            } else {
-                return reply.code(400).send({ code: 'invalid_action', error: `Unsupported pipeline deploy action: ${sourceStage.action}` })
-            }
-        } catch (err) {
-            const resp = { code: 'unexpected_error', error: err.toString() }
-            reply.code(500).send(resp)
-        }
-
-        const restartTargetInstance = targetInstance.state === 'running'
-
         let repliedEarly = false
         try {
-            app.db.controllers.Project.setInflightState(targetInstance, 'importing')
-            app.db.controllers.Project.setInDeploy(targetInstance)
+            const sourceStage = await app.db.models.PipelineStage.byId(
+                request.params.stageId
+            )
 
-            // Early return, status is loaded async
-            reply.code(200).send({ status: 'importing' })
-            repliedEarly = true
+            const {
+                sourceInstance,
+                targetInstance,
+                sourceDevice,
+                targetDevice,
+                targetStage
+            } = await app.db.controllers.Pipeline.validateSourceStageForDeploy(
+                request.pipeline,
+                sourceStage
+            )
 
-            const setAsTargetForDevices = targetStage.deployToDevices ?? false
-            const targetSnapshot = await copySnapshot(app, sourceSnapshot, targetInstance, {
-                importSnapshot: true, // target instance should import the snapshot
-                setAsTarget: setAsTargetForDevices,
-                decryptAndReEncryptCredentialsSecret: await sourceInstance.getCredentialSecret(),
-                targetSnapshotProperties: {
-                    name: generateDeploySnapshotName(sourceSnapshot),
-                    description: generateDeploySnapshotDescription(sourceStage, targetStage, request.pipeline, sourceSnapshot)
-                }
-            })
-
-            if (restartTargetInstance) {
-                await app.containers.restartFlows(targetInstance)
+            let sourceSnapshot
+            if (sourceInstance) {
+                sourceSnapshot = await app.db.controllers.Pipeline.getOrCreateSnapshotForSourceInstance(
+                    sourceStage,
+                    sourceInstance,
+                    request.body?.sourceSnapshotId,
+                    {
+                        pipeline: request.pipeline,
+                        user,
+                        targetStage
+                    }
+                )
+            } else if (sourceDevice) {
+                sourceSnapshot = await app.db.controllers.Pipeline.getOrCreateSnapshotForSourceDevice(
+                    sourceStage,
+                    sourceDevice,
+                    request.body?.sourceSnapshotId
+                )
+            } else {
+                throw new Error('No source device or instance found.')
             }
 
-            await app.auditLog.Project.project.imported(user.id, null, targetInstance, sourceInstance) // technically this isn't a project event
-            await app.auditLog.Project.project.snapshot.imported(user.id, null, targetInstance, sourceInstance, targetSnapshot)
+            if (targetInstance) {
+                const deployPromise = app.db.controllers.Pipeline.deploySnapshotToInstance(
+                    sourceSnapshot,
+                    targetInstance,
+                    targetStage.deployToDevices ?? false,
+                    {
+                        pipeline: request.pipeline,
+                        sourceStage,
+                        sourceInstance,
+                        sourceDevice,
+                        targetStage,
+                        user
+                    }
+                )
 
-            app.db.controllers.Project.clearInflightState(targetInstance)
+                reply.code(200).send({ status: 'importing' })
+                repliedEarly = true
+
+                await deployPromise
+            } else if (targetDevice) {
+                const deployPromise = app.db.controllers.Pipeline.deploySnapshotToDevice(
+                    sourceSnapshot,
+                    targetDevice,
+                    {
+                        user
+
+                    })
+
+                reply.code(200).send({ status: 'importing' })
+                repliedEarly = true
+
+                await deployPromise
+            } else {
+                throw new Error('No target device or instance found.')
+            }
         } catch (err) {
-            app.db.controllers.Project.clearInflightState(targetInstance)
-
-            const resp = { code: 'unexpected_error', error: err.toString() }
-            await app.auditLog.Project.project.imported(user.id, null, targetInstance, sourceInstance) // technically this isn't a project event
-            await app.auditLog.Project.project.snapshot.imported(user.id, resp, targetInstance, sourceInstance, null)
-
             if (repliedEarly) {
                 console.warn('Deploy failed, but response already sent', err)
             } else {
-                reply.code(500).send(resp)
+                return reply.code(err.statusCode || 500).send({
+                    code: err.code || 'unexpected_error',
+                    error: err.error || err.message
+                })
             }
         }
     })

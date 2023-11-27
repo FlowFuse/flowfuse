@@ -50,6 +50,27 @@ describe('Subscription controller', function () {
             subscription.customer.should.equal('customer')
             subscription.subscription.should.equal('new-subscription')
         })
+
+        it('updates a trial mode subscription to no longer be trial', async function () {
+            const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
+            const team = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: defaultTeamType.id })
+            await app.db.controllers.Subscription.createTrialSubscription(team, Date.now() + 86400000)
+
+            const subscription = await app.db.models.Subscription.byTeamId(team.id)
+            should.exist(subscription.trialEndsAt)
+            subscription.trialStatus.should.equal(app.db.models.Subscription.TRIAL_STATUS.CREATED)
+
+            await app.db.controllers.Subscription.createSubscription(team, 'new-subscription', 'customer')
+
+            await subscription.reload()
+
+            subscription.Team.id.should.match(team.id)
+            subscription.Team.name.should.match(team.name)
+            subscription.customer.should.equal('customer')
+            subscription.subscription.should.equal('new-subscription')
+            should.not.exist(subscription.trialEndsAt)
+            subscription.trialStatus.should.equal(app.db.models.Subscription.TRIAL_STATUS.ENDED)
+        })
     })
 
     describe('deleteSubscription', function () {

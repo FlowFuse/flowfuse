@@ -5,6 +5,10 @@ module.exports = {
         if (existingSub) {
             existingSub.customer = customer
             existingSub.subscription = subscription
+            if (existingSub.status === app.db.models.Subscription.STATUS.TRIAL) {
+                existingSub.trialEndsAt = null
+                existingSub.trialStatus = app.db.models.Subscription.TRIAL_STATUS.ENDED
+            }
             existingSub.status = app.db.models.Subscription.STATUS.ACTIVE
             await existingSub.save()
 

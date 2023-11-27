@@ -81,6 +81,10 @@ export default {
         instanceStatusMap: {
             required: true,
             type: Map
+        },
+        deviceStatusMap: {
+            required: true,
+            type: Map
         }
     },
     emits: ['pipeline-deleted', 'stage-deleted', 'deploy-starting', 'deploy-started', 'stage-deploy-starting', 'stage-deploy-started'],
@@ -103,20 +107,18 @@ export default {
         },
         stagesWithStates () {
             return this.pipeline.stages.map((stage) => {
-                // For now, each stage contains only one instance, so read state from that instance
-                const stageInstance = this.instanceStatusMap.get(stage.instance?.id)
+                // For now, each stage contains only one instance or one device, so read state from that object
+                // Falls back to the summary object on the stage if the status has not loaded yet
+                const stageInstance = this.instanceStatusMap.get(stage.instance?.id) || stage.instance
+                const stageDevice = this.deviceStatusMap.get(stage.device?.id) || stage.device
 
-                // Instance statuses might not have finished loading yet
-                if (!stageInstance) {
-                    return stage
-                }
+                // Relay state to the stage
+                stage.state = stageInstance?.state || stageDevice?.status
+                stage.flowLastUpdatedSince = stageInstance?.flowLastUpdatedSince
+                stage.lastSeenSince = stageDevice?.lastSeenSince
 
-                // Relay stage instances state to the stage
-                stage.state = stageInstance.state
-                stage.flowLastUpdatedSince = stageInstance.flowLastUpdatedSince
-
-                // If any instances inside the stage are deploying, this stage is deploying
-                stage.isDeploying = !!stageInstance?.isDeploying
+                // If any devices or instances inside the stage are deploying, this stage is deploying
+                stage.isDeploying = stageDevice?.isDeploying || stageInstance?.isDeploying
 
                 return stage
             })
@@ -160,7 +162,8 @@ export default {
             this.$emit('stage-deploy-starting', stage, nextStage)
         },
         stageDeployStarted (stage) {
-            this.$emit('stage-deploy-started', stage)
+            const nextStage = this.pipeline.stages.find((s) => s.id === stage.NextStageId)
+            this.$emit('stage-deploy-started', stage, nextStage)
         },
         stageDeleted (stageIndex) {
             this.$emit('stage-deleted', stageIndex)

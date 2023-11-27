@@ -813,6 +813,11 @@ module.exports = async function (app) {
                 settings.ha = ha
             }
         }
+        const customCatalogsEnabledForTeam = app.config.features.enabled('customCatalogs') && teamType.getFeatureProperty('customCatalogs', false)
+        if (!customCatalogsEnabledForTeam) {
+            delete settings.settings?.palette?.npmrc
+            delete settings.settings?.palette?.catalogue
+        }
         settings.features = {
             'shared-library': app.config.features.enabled('shared-library') && teamType.getFeatureProperty('shared-library', true),
             projectComms: app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true)

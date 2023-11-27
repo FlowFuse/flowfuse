@@ -1,5 +1,6 @@
 const crypto = require('crypto')
 
+const { ControllerError } = require('../../lib/errors')
 const { KEY_SETTINGS } = require('../models/ProjectSettings')
 
 /**
@@ -10,27 +11,6 @@ const { KEY_SETTINGS } = require('../models/ProjectSettings')
 const inflightProjectState = { }
 
 const inflightDeploys = new Set()
-
-class ControllerError extends Error {
-    /**
-     * ControllerError
-     * @param {string} code
-     * @param {string} message
-     * @param {number} statusCode
-     */
-    constructor (code, message, statusCode = null, options = null) {
-        super(message, options)
-
-        this.name = 'ControllerError'
-
-        this.code = code
-        this.error = message
-
-        if (statusCode) {
-            this.statusCode = statusCode
-        }
-    }
-}
 
 module.exports = {
     /**

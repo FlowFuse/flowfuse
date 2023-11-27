@@ -5,6 +5,7 @@ const {
 const SNAPSHOT_ACTIONS = {
     // Any changes to this list *must* be made via migration.
     CREATE_SNAPSHOT: 'create_snapshot',
+    USE_ACTIVE_SNAPSHOT: 'use_active_snapshot',
     USE_LATEST_SNAPSHOT: 'use_latest_snapshot',
     PROMPT: 'prompt'
 }
@@ -25,7 +26,39 @@ module.exports = {
         action: {
             type: DataTypes.ENUM(Object.values(SNAPSHOT_ACTIONS)),
             defaultValue: SNAPSHOT_ACTIONS.CREATE_SNAPSHOT,
-            allowNull: false
+            allowNull: false,
+            validate: {
+                isIn: [Object.values(SNAPSHOT_ACTIONS)],
+                async validActionForStageType () {
+                    const devicesPromise = this.getDevices()
+                    const instancesPromise = this.getInstances()
+
+                    const devices = await devicesPromise
+                    const instances = await instancesPromise
+
+                    if (devices.length > 0) {
+                        const validActionsForDevices = [
+                            SNAPSHOT_ACTIONS.USE_ACTIVE_SNAPSHOT,
+                            SNAPSHOT_ACTIONS.USE_LATEST_SNAPSHOT,
+                            SNAPSHOT_ACTIONS.PROMPT
+                        ]
+
+                        if (!validActionsForDevices.includes(this.action)) {
+                            throw new Error(`Device stages only support the following actions: ${validActionsForDevices.join(', ')}.`)
+                        }
+                    } else if (instances.length > 0) {
+                        const validActionsForInstances = [
+                            SNAPSHOT_ACTIONS.CREATE_SNAPSHOT,
+                            SNAPSHOT_ACTIONS.USE_LATEST_SNAPSHOT,
+                            SNAPSHOT_ACTIONS.PROMPT
+                        ]
+
+                        if (!validActionsForInstances.includes(this.action)) {
+                            throw new Error(`Instance stages only support the following actions: ${validActionsForInstances.join(', ')}.`)
+                        }
+                    }
+                }
+            }
         },
 
         // relations
@@ -48,12 +81,37 @@ module.exports = {
                         throw new Error(`All instances on a pipeline stage, must be a member of the same application as the pipeline. ${instance.name} is not a member of application ${pipeline.ApplicationId}.`)
                     }
                 })
+            },
+            async devicesHaveSameApplication () {
+                const devicesPromise = this.getDevices()
+                const pipelinePromise = this.getPipeline()
+
+                const devices = await devicesPromise
+                const pipeline = await pipelinePromise
+
+                devices.forEach((device) => {
+                    if (device.ApplicationId !== pipeline.ApplicationId) {
+                        throw new Error(`All devices on a pipeline stage, must be a member of the same application as the pipeline. ${device.name} is not a member of application ${pipeline.ApplicationId}.`)
+                    }
+                })
+            },
+            async devicesOrInstancesNotBoth () {
+                const devicesPromise = this.getDevices()
+                const instancesPromise = this.getInstances()
+
+                const devices = await devicesPromise
+                const instances = await instancesPromise
+
+                if (devices.length > 0 && instances.length > 0) {
+                    throw new Error('A pipeline stage can contain devices or instances, but never both.')
+                }
             }
         }
     },
     associations: function (M) {
         this.belongsTo(M.Pipeline)
         this.belongsToMany(M.Project, { through: M.PipelineStageInstance, as: 'Instances', otherKey: 'InstanceId' })
+        this.belongsToMany(M.Device, { through: M.PipelineStageDevice, as: 'Devices' })
         this.hasOne(M.PipelineStage, { as: 'NextStage', foreignKey: 'NextStageId', allowNull: true })
     },
     finders: function (M) {
@@ -63,10 +121,18 @@ module.exports = {
                 async addInstanceId (instanceId) {
                     const instance = await M.Project.byId(instanceId)
                     if (!instance) {
-                        throw new Error('instanceId not found')
+                        throw new Error(`instanceId (${instanceId}) not found`)
                     }
 
                     await this.addInstance(instance)
+                },
+                async addDeviceId (deviceId) {
+                    const device = await M.Device.byId(deviceId)
+                    if (!device) {
+                        throw new Error(`deviceId (${deviceId}) not found`)
+                    }
+
+                    await this.addDevice(device)
                 }
             },
             static: {
@@ -82,14 +148,28 @@ module.exports = {
                             {
                                 association: 'Instances',
                                 attributes: ['hashid', 'id', 'name', 'url', 'updatedAt']
+                            },
+                            {
+                                association: 'Devices',
+                                attributes: ['hashid', 'id', 'name', 'type', 'links', 'ownerType']
                             }
                         ]
                     })
                 },
-                byPipeline: async function (pipelineId) {
+                byPipeline: async function (pipelineId, { includeDeviceStatus = false } = {}) {
                     if (typeof pipelineId === 'string') {
                         pipelineId = M.Pipeline.decodeHashid(pipelineId)
                     }
+
+                    const devicesInclude = {
+                        association: 'Devices',
+                        attributes: ['hashid', 'id', 'name', 'type', 'ownerType', 'links']
+                    }
+
+                    if (includeDeviceStatus) {
+                        devicesInclude.attributes.push('targetSnapshotId', 'activeSnapshotId', 'lastSeenAt', 'state')
+                    }
+
                     return await self.findAll({
                         where: {
                             PipelineId: pipelineId
@@ -98,7 +178,8 @@ module.exports = {
                             {
                                 association: 'Instances',
                                 attributes: ['hashid', 'id', 'name', 'url', 'updatedAt']
-                            }
+                            },
+                            devicesInclude
                         ]
                     })
                 },

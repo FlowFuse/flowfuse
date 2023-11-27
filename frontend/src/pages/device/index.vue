@@ -35,14 +35,8 @@
                 </template>
                 <template v-if="isDevModeAvailable" #tools>
                     <div class="space-x-2 flex align-center">
-                        <a v-if="editorAvailable && !isVisitingAdmin" class="ff-btn ff-btn--secondary" :href="deviceEditorURL" :target="`device-editor-${device.id}`" data-action="device-editor">
+                        <button v-if="editorAvailable && !isVisitingAdmin" data-action="open-editor" class="ff-btn ff-btn--secondary" @click="openTunnel(true)">
                             Device Editor
-                            <span class="ff-btn--icon ff-btn--icon-right">
-                                <ExternalLinkIcon />
-                            </span>
-                        </a>
-                        <button v-else v-ff-tooltip:left="developerMode ? 'Please enable \'Editor Access\' in the \'Developer Mode\' tab' : '\'Developer Mode\' must be enabled'" data-action="open-editor" class="ff-btn ff-btn--secondary" disabled>
-                            Editor Disabled
                             <span class="ff-btn--icon ff-btn--icon-right">
                                 <ExternalLinkIcon />
                             </span>
@@ -57,10 +51,38 @@
                 <div class="ff-banner" data-el="banner-device-as-admin">You are viewing this device as an Administrator</div>
             </Teleport>
             <div class="px-3 pb-3 md:px-6 md:pb-6">
-                <router-view :instance="device.instance" :device="device" @device-updated="loadDevice()" @device-refresh="loadDevice()" @assign-device="openAssignmentDialog" />
+                <router-view :instance="device.instance" :closingTunnel="closingTunnel" :openingTunnel="openingTunnel" :device="device" @device-updated="loadDevice" @close-tunnel="closeTunnel" @open-tunnel="openTunnel" @device-refresh="loadDevice" @assign-device="openAssignmentDialog" />
             </div>
         </div>
         <!-- Dialogs -->
+        <!-- device tunnel connecting -->
+        <ff-dialog ref="dialog" data-el="establish-device-tunnel-dialog" header="Preparing the connection...">
+            <template #default>
+                <div class="flex flex-col ml-6 mr-6">
+                    <div class="mb-4">
+                        <p>Connecting to the device</p>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div class="flex text-center">
+                            <img class="h-16 w-16" src="../../images/pictograms/cloud_teal.png">
+                        </div>
+                        <div class="flex-grow m-4">
+                            <div class="w-full">
+                                <div class="h-1 w-full bg-teal-200 overflow-hidden">
+                                    <div kind="secondary" class="progress w-full h-full bg-teal-800 left-right" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex text-center">
+                            <img class="h-16 w-16" src="../../images/pictograms/devices_red.png">
+                        </div>
+                    </div>
+                </div>
+            </template>
+            <template #actions>
+                <ff-button data-action="tunnel-connect-cancel" kind="secondary" class="ml-4" @click="closeTunnel()">Cancel</ff-button>
+            </template>
+        </ff-dialog>
         <AssignDeviceDialog
             v-if="notAssigned"
             ref="assignment-dialog"
@@ -97,6 +119,7 @@ import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import permissionsMixin from '../../mixins/Permissions.js'
+import { VueTimersMixin } from '../../mixins/vue-timers.js'
 import Alerts from '../../services/alerts.js'
 
 import DeviceAssignApplicationDialog from '../team/Devices/dialogs/DeviceAssignApplicationDialog.vue'
@@ -107,6 +130,9 @@ import AssignDeviceDialog from './components/AssignDeviceDialog.vue'
 import DeveloperModeBadge from './components/DeveloperModeBadge.vue'
 import DeveloperModeToggle from './components/DeveloperModeToggle.vue'
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
+
+// constants
+const POLL_TIME = 5000
 
 export default {
     name: 'DevicePage',
@@ -124,20 +150,14 @@ export default {
         DeviceAssignApplicationDialog,
         DeviceAssignInstanceDialog
     },
-    mixins: [permissionsMixin],
+    mixins: [permissionsMixin, VueTimersMixin],
     data: function () {
-        const navigation = [
-            { label: 'Overview', to: `/device/${this.$route.params.id}/overview`, tag: 'device-overview' },
-            // snapshots - added in mounted, if device is owned by an application,
-            // device logs - added in mounted, if project comms is enabled,
-            { label: 'Settings', to: `/device/${this.$route.params.id}/settings`, tag: 'device-settings' }
-        ]
-
         return {
             mounted: false,
             device: null,
-            navigation,
-            agentSupportsDeviceAccess: false
+            agentSupportsDeviceAccess: false,
+            openingTunnel: false,
+            closingTunnel: false
         }
     },
     computed: {
@@ -157,7 +177,10 @@ export default {
                 this.device &&
                 this.agentSupportsDeviceAccess &&
                 this.developerMode &&
-                this.device.status === 'running' &&
+                this.device.status === 'running'
+        },
+        tunnelReady: function () {
+            return this.editorAvailable &&
                 this.deviceEditorURL &&
                 this.device.editor?.connected
         },
@@ -169,52 +192,72 @@ export default {
             const hasApplication = device?.ownerType === 'application' && device.application
             const hasInstance = device?.ownerType === 'instance' && device.instance
             return !hasApplication && !hasInstance
-        }
-    },
-    watch: {
-        'device.mode': function () {
-            if (this.isDevModeAvailable && this.device.mode === 'developer') {
-                this.navigation.push({
-                    label: 'Developer Mode',
-                    to: `/device/${this.$route.params.id}/developer-mode`,
-                    tag: 'device-devmode'
-                })
-            } else {
-                // check if developer mode in the list of options
-                const index = this.navigation.findIndex((item) => item.tag === 'device-devmode')
-                if (index > -1) {
-                    this.navigation.splice(index, 1)
-                }
-            }
-        }
-    },
-    async mounted () {
-        this.mounted = true
-        await this.loadDevice()
-        this.checkFeatures()
-    },
-    methods: {
-        loadDevice: async function () {
-            this.device = await deviceApi.getDevice(this.$route.params.id)
-            this.agentSupportsDeviceAccess = this.device.agentVersion && semver.gte(this.device.agentVersion, '0.8.0')
-            this.$store.dispatch('account/setTeam', this.device.team.slug)
         },
-        checkFeatures: async function () {
+        navigation () {
+            const navigation = [
+                { label: 'Overview', to: `/device/${this.$route.params.id}/overview`, tag: 'device-overview' }
+            ]
+
+            // snapshots - if device is owned by an application,
+            if (this.device?.ownerType !== 'instance') {
+                navigation.push({
+                    label: 'Snapshots',
+                    to: `/device/${this.$route.params.id}/snapshots`,
+                    tag: 'device-snapshots'
+                })
+            }
+
+            // device logs - if project comms is enabled,
             if (this.features.projectComms) {
-                this.navigation.splice(1, 0, {
+                navigation.push({
                     label: 'Device Logs',
                     to: `/device/${this.$route.params.id}/logs`,
                     tag: 'device-logs',
                     icon: TerminalIcon
                 })
             }
-            if (this.device?.ownerType !== 'instance') {
-                this.navigation.splice(1, 0, {
-                    label: 'Snapshots',
-                    to: `/device/${this.$route.params.id}/snapshots`,
-                    tag: 'device-snapshots'
+
+            // settings - always
+            navigation.push({ label: 'Settings', to: `/device/${this.$route.params.id}/settings`, tag: 'device-settings' })
+
+            // developer mode - if available and device is in developer mode
+            if (this.isDevModeAvailable && this.device.mode === 'developer') {
+                navigation.push({
+                    label: 'Developer Mode',
+                    to: `/device/${this.$route.params.id}/developer-mode`,
+                    tag: 'device-devmode'
                 })
             }
+
+            return navigation
+        }
+    },
+    async mounted () {
+        this.mounted = true
+        await this.loadDevice()
+        this.checkFeatures()
+        this.$timer.start('pollTimer') // vue-timer auto stops when navigating away
+    },
+    timers: {
+        // declare a pollTimer that will call the pollTimer method every POLL_TIME milliseconds
+        // see the documentation in `frontend/src/mixins/vue-timers.js` for more details and examples
+        pollTimer: { time: POLL_TIME, repeat: true, autostart: false } // no autoStart: manually start in mounted()
+    },
+    methods: {
+        // pollTimer method is called by VueTimersMixin. See the timers property above.
+        pollTimer: async function () {
+            // Only refresh device via the timer if we are on the overview page or the developer mode page
+            // This is to prevent settings pages from refreshing the device state while modifying settings
+            // See `watch: { device: { handler () ...  in pages/device/Settings/General.vue for why that happens
+            const settingsPages = ['DeviceOverview', 'DeviceDeveloperMode']
+            if (settingsPages.includes(this.$route.name)) {
+                this.loadDevice()
+            }
+        },
+        loadDevice: async function () {
+            this.device = await deviceApi.getDevice(this.$route.params.id)
+            this.agentSupportsDeviceAccess = this.device.agentVersion && semver.gte(this.device.agentVersion, '0.8.0')
+            this.$store.dispatch('account/setTeam', this.device.team.slug)
         },
         showOpenEditorDialog: async function () {
             this.$refs['open-editor-dialog'].show()
@@ -264,7 +307,74 @@ export default {
             this.device = await deviceApi.updateDevice(device.id, { application: applicationId, instance: null })
 
             Alerts.emit('Device successfully assigned to application.', 'confirmation')
+        },
+        openEditor () {
+            window.open(this.deviceEditorURL, `device-editor-${this.device.id}`)
+        },
+        async openTunnel (launchEditor = false) {
+            if (this.device.status === 'running') {
+                if (this.device.editor?.enabled && this.device.editor?.connected) {
+                    this.openEditor()
+                } else {
+                    this.openingTunnel = true
+                    this.$refs.dialog.show()
+                    try {
+                        // * Enable Device Editor (Step 1) - (browser->frontendApi) User clicks button to "Enable Editor"
+                        const result = await deviceApi.enableEditorTunnel(this.device.id)
+                        this.updateTunnelStatus(result)
+                        setTimeout(() => {
+                            this.loadDevice()
+                            if (launchEditor && this.device.editor?.enabled && this.device.editor?.connected) {
+                                this.openEditor()
+                            }
+                            this.$refs.dialog.close()
+                        }, 500)
+                    } finally {
+                        this.openingTunnel = false
+                    }
+                }
+            } else {
+                Alerts.emit('Unable to establish a connection to the device. Please check it is connected and running then try again', 'warning', 7500)
+            }
+        },
+        async closeTunnel () {
+            this.closingTunnel = true
+            this.$refs.dialog.close()
+            try {
+                const result = await deviceApi.disableEditorTunnel(this.device.id)
+                this.updateTunnelStatus(result)
+                this.loadDevice(this.loadDevice())
+            } finally {
+                this.closingTunnel = false
+            }
+        },
+        updateTunnelStatus (status) {
+            this.device.editor = this.device.editor || {}
+            this.device.editor.url = status.url
+            this.device.editor.enabled = !!status.enabled
+            this.device.editor.connected = !!status.connected
         }
     }
 }
 </script>
+
+<style scoped>
+.progress {
+    animation: progress 1s infinite linear;
+}
+
+.left-right {
+    transform-origin: 0% 50%;
+}
+    @keyframes progress {
+    0% {
+        transform:  translateX(0) scaleX(0);
+    }
+    40% {
+        transform:  translateX(0) scaleX(0.4);
+    }
+    100% {
+        transform:  translateX(100%) scaleX(0.5);
+    }
+}
+</style>

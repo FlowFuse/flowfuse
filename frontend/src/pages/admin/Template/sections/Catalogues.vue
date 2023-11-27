@@ -1,53 +1,55 @@
 <template>
-    <FormHeading>
-        Node Catalogues
-        <ChangeIndicator class="!inline-block ml-4 mt-0" :value="editable.changed.settings.palette_catalogue" />
-    </FormHeading>
-    <form class="space-y-4 max-w-2xl" @submit.prevent>
-        <div v-if="!projectLauncherCompatible" class="text-red-400 space-y-1">
-            <p>You will need to update your Project Stack to use this feature.</p>
-            <div v-if="project.stack.replacedBy">
-                <ff-button size="small" to="./settings/danger">Update</ff-button>
+    <div>
+        <FormHeading>
+            Node Catalogues
+            <ChangeIndicator class="!inline-block ml-4 mt-0" :value="editable.changed.settings.palette_catalogue" />
+        </FormHeading>
+        <form class="space-y-4 max-w-2xl" @submit.prevent>
+            <div v-if="!projectLauncherCompatible" class="text-red-400 space-y-1">
+                <p>You will need to update your Project Stack to use this feature.</p>
+                <div v-if="project.stack.replacedBy">
+                    <ff-button size="small" to="./settings/danger">Update</ff-button>
+                </div>
             </div>
-        </div>
 
-        <div v-else>
-            <div class="flex flex-col sm:flex-row" />
-            <div class="w-full flex flex-col sm:flex-row">
-                <div class="w-full sm:mr-8 space-y-2">
-                    <div class="w-full flex items-center">
-                        <div class="flex-grow" :class="{'opacity-20': !defaultEnabled}">{{ defaultCatalogue }}</div>
-                        <!-- Default is enabled, allow for removal -->
-                        <ff-button v-if="!defaultEnabled" v-ff-tooltip:left="'Restore Default Catalogue'" kind="tertiary" size="small" :disabled="readOnly" @click="addDefault()">
-                            <template #icon><UndoIcon /></template>
-                        </ff-button>
-                        <!-- Default is disabled, allow for restoration -->
-                        <ff-button v-else kind="tertiary" size="small" :disabled="readOnly" @click="removeURL(defaultCatalogue)">
-                            <template #icon><XIcon /></template>
-                        </ff-button>
-                    </div>
-                    <div v-for="(url, index) in thirdPartyUrls" :key="index" class="w-full flex items-center">
-                        <div class="flex-grow">{{ url }}</div>
-                        <ff-button kind="tertiary" size="small" :disabled="readOnly" @click="removeURL(url)">
-                            <template #icon><XIcon /></template>
-                        </ff-button>
-                    </div>
-                    <FormRow v-model="input.url" class="w-full sm:mr-8" :error="input.error" :disabled="readOnly" containerClass="none" appendClass="ml-2 relative">
-                        <template #append>
-                            <ff-button kind="secondary" size="small" :disabled="readOnly" @click="addURL()">
-                                <template #icon>
-                                    <PlusSmIcon />
-                                </template>
+            <div v-else>
+                <div class="flex flex-col sm:flex-row" />
+                <div class="w-full flex flex-col sm:flex-row">
+                    <div class="w-full sm:mr-8 space-y-2">
+                        <div class="w-full flex items-center">
+                            <div class="flex-grow" :class="{'opacity-20': !defaultEnabled}">{{ defaultCatalogue }}</div>
+                            <!-- Default is enabled, allow for removal -->
+                            <ff-button v-if="!defaultEnabled" v-ff-tooltip:left="'Restore Default Catalogue'" kind="tertiary" size="small" :disabled="readOnly" @click="addDefault()">
+                                <template #icon><UndoIcon /></template>
                             </ff-button>
-                        </template>
-                    </FormRow>
-                </div>
-                <div class="max-w-sm w-24">
-                    <LockSetting v-model="editable.policy.palette_catalogue" :editTemplate="editTemplate" :changed="editable.changed.policy.palette_catalogue" />
+                            <!-- Default is disabled, allow for restoration -->
+                            <ff-button v-else kind="tertiary" size="small" :disabled="readOnly" @click="removeURL(defaultCatalogue)">
+                                <template #icon><XIcon /></template>
+                            </ff-button>
+                        </div>
+                        <div v-for="(url, index) in thirdPartyUrls" :key="index" class="w-full flex items-center">
+                            <div class="flex-grow">{{ url }}</div>
+                            <ff-button kind="tertiary" size="small" :disabled="readOnly" @click="removeURL(url)">
+                                <template #icon><XIcon /></template>
+                            </ff-button>
+                        </div>
+                        <FormRow v-model="input.url" class="w-full sm:mr-8" :error="input.error" :disabled="readOnly" containerClass="none" appendClass="ml-2 relative">
+                            <template #append>
+                                <ff-button kind="secondary" size="small" :disabled="readOnly" @click="addURL()">
+                                    <template #icon>
+                                        <PlusSmIcon />
+                                    </template>
+                                </ff-button>
+                            </template>
+                        </FormRow>
+                    </div>
+                    <div class="max-w-sm w-24">
+                        <LockSetting v-model="editable.policy.palette_catalogue" :editTemplate="editTemplate" :changed="editable.changed.policy.palette_catalogue" />
+                    </div>
                 </div>
             </div>
-        </div>
-    </form>
+        </form>
+    </div>
 </template>
 
 <script>
@@ -99,8 +101,7 @@ export default {
             input: {
                 url: '',
                 error: ''
-            },
-            urls: []
+            }
         }
     },
     computed: {
@@ -111,6 +112,9 @@ export default {
             set (localValue) {
                 this.$emit('update:modelValue', localValue)
             }
+        },
+        urls () {
+            return this.editable.settings.palette_catalogue
         },
         projectLauncherCompatible () {
             if (this.editTemplate) {
@@ -141,18 +145,6 @@ export default {
             // whether or not this Template has any third party catalogues enabled
             return this.urls.filter(url => url !== this.defaultCatalogue)
         }
-    },
-    watch: {
-        'editable.settings.palette_catalogue': {
-            deep: true,
-            handler (newValue) {
-                this.urls = newValue
-            }
-        }
-    },
-    mounted () {
-        // deep copy
-        this.urls = JSON.parse(JSON.stringify(this.editable.settings.palette_catalogue))
     },
     methods: {
         addURL () {

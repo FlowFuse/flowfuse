@@ -125,23 +125,15 @@ module.exports = async function (app) {
                     const teamOK = request.body.team && request.body.team === request.session.provisioning.team
                     if (teamOK) {
                         const hasPermission = app.needsPermission('device:provision')
-                        try {
-                            hasPermission(request, reply)
-                            return // Request has permission
-                        } catch (error) {
-                            return // Request does not have permission (error will be sent by needsPermission)
-                        }
+                        await hasPermission(request, reply) // hasPermission sends the error response if required which stops the request
+                        return
                     }
                 } else if (request.body?.team && request.session.User) {
                     // User action: check if the user is in the team and has the required role
                     request.teamMembership = await request.session.User.getTeamMembership(request.body.team)
                     const hasPermission = app.needsPermission('device:create')
-                    try {
-                        hasPermission(request, reply)
-                        return // Request has permission
-                    } catch (error) {
-                        return // Request does not have permission (error will be sent by needsPermission)
-                    }
+                    await hasPermission(request, reply) // hasPermission sends the error response if required which stops the request
+                    return
                 }
                 reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
             }
@@ -441,7 +433,7 @@ module.exports = async function (app) {
             // ### Modify device properties ###
             if (request.body.targetSnapshot !== undefined && request.body.targetSnapshot !== device.targetSnapshotId) {
                 // get snapshot from db
-                const targetSnapshot = await app.db.models.ProjectSnapshot.byId(request.body.targetSnapshot)
+                const targetSnapshot = await app.db.models.ProjectSnapshot.byId(request.body.targetSnapshot, { includeFlows: false, includeSettings: false })
                 if (!targetSnapshot) {
                     reply.code(400).send({ code: 'invalid_snapshot', error: 'invalid snapshot' })
                     return
@@ -699,6 +691,15 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
+        if (request.device.isApplicationOwned) {
+            reply.code(400).send({ code: 'invalid_device', error: 'Device is not associated with a instance, application owned devices must use the application device snapshot endpoint' })
+            return
+        }
+        if (!request.device.Project) {
+            reply.code(400).send({ code: 'invalid_device', error: 'Device must be associated with a instance to create a snapshot' })
+            return
+        }
+
         const snapshotOptions = {
             name: request.body.name,
             description: request.body.description,

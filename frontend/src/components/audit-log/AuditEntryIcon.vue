@@ -21,6 +21,7 @@
     <TicketIcon v-if="icon === 'token'" class="ff-icon text-blue-500" />
     <TemplateIcon v-if="icon === 'template'" class="ff-icon text-red-700" />
     <PipelineIcon v-if="icon === 'pipeline'" class="ff-icon text-indigo-600" />
+    <ExclamationIcon v-if="icon === 'resource'" class="ff-icon text-yellow-500" />
 </template>
 
 <script>
@@ -28,8 +29,8 @@
 import {
     BeakerIcon, ChipIcon, ClockIcon, CogIcon,
     ColorSwatchIcon, CurrencyDollarIcon, DesktopComputerIcon,
-    ExclamationCircleIcon, IdentificationIcon, KeyIcon, LockClosedIcon,
-    LoginIcon, LogoutIcon, MailIcon,
+    ExclamationCircleIcon, ExclamationIcon, IdentificationIcon,
+    KeyIcon, LockClosedIcon, LoginIcon, LogoutIcon, MailIcon,
     TemplateIcon, TicketIcon, UserGroupIcon, UserIcon
 } from '@heroicons/vue/outline'
 
@@ -48,7 +49,8 @@ const iconMap = {
         'flows.set',
         'library.set',
         'nodes.install',
-        'nodes.remove'
+        'nodes.remove',
+        'context.delete'
     ],
     template: [
         'application.created',
@@ -197,6 +199,10 @@ const iconMap = {
         'application.pipeline.deleted',
         'application.pipeline.stage-added',
         'project.assigned-to-pipeline-stage'
+    ],
+    resource: [
+        'resource.cpu',
+        'resource.memory'
     ]
 }
 
@@ -241,6 +247,7 @@ export default {
         LogoutIcon,
         CurrencyDollarIcon,
         ExclamationCircleIcon,
+        ExclamationIcon,
         TicketIcon
     }
 }

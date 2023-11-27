@@ -377,90 +377,86 @@ describe('Accounts API', async function () {
                 app.settings.set('user:team:auto-create:teamType', null)
             })
         })
+    })
 
-        describe('licensed instances', function () {
-            before(async function () {
-                // close the default app
-                await app.close()
+    describe('Register User - Licensed', async function () {
+        afterEach(async function () {
+            await app.close()
+        })
+
+        it('auto-creates personal team if option set - in trial mode', async function () {
+            const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTA4ODAwLCJleHAiOjc5ODY5ODg3OTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjo1LCJ0ZWFtcyI6NTAsInByb2plY3RzIjo1MCwiZGV2aWNlcyI6NTAsImRldiI6dHJ1ZSwiaWF0IjoxNjYyNTQ4NjAyfQ.vvSw6pm-NP5e0NUL7yMOG-w0AgB8H3NRGGN7b5Dw_iW5DiIBbVQ4HVLEi3dyy9fk7WgKnloiCCkIFJvN79fK_g'
+            const TEST_TRIAL_DURATION = 5
+
+            app = await setup({ license, billing: { stripe: {} } })
+            app.settings.set('user:signup', true)
+            app.settings.set('user:team:auto-create', true)
+
+            // Set trial mode options against the default team type
+            const teamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
+            const props = teamType.properties
+            props.trial = {
+                active: true,
+                duration: TEST_TRIAL_DURATION
+            }
+            teamType.properties = props
+            await teamType.save()
+
+            const response = await registerUser({
+                username: 'user',
+                password: '12345678',
+                name: 'user',
+                email: 'user@example.com'
             })
-            afterEach(async function () {
-                await app.close()
+            response.statusCode.should.equal(200)
+
+            // Team is only created once they verify their email.
+            const user = await app.db.models.User.findOne({ where: { username: 'user' } })
+            const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
+            await app.inject({
+                method: 'POST',
+                url: `/account/verify/${verificationToken}`,
+                payload: {},
+                cookies: { sid: TestObjects.tokens.user }
             })
-            after(async function () {
-                app = await setup()
+            await login('user', '12345678')
+
+            const userTeamsResponse = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user/teams',
+                cookies: { sid: TestObjects.tokens.user }
             })
-            it('auto-creates personal team if option set - in trial mode', async function () {
-                const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTA4ODAwLCJleHAiOjc5ODY5ODg3OTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjo1LCJ0ZWFtcyI6NTAsInByb2plY3RzIjo1MCwiZGV2aWNlcyI6NTAsImRldiI6dHJ1ZSwiaWF0IjoxNjYyNTQ4NjAyfQ.vvSw6pm-NP5e0NUL7yMOG-w0AgB8H3NRGGN7b5Dw_iW5DiIBbVQ4HVLEi3dyy9fk7WgKnloiCCkIFJvN79fK_g'
-                const TEST_TRIAL_DURATION = 5
 
-                app = await setup({ license, billing: { stripe: {} } })
-                app.settings.set('user:signup', true)
-                app.settings.set('user:team:auto-create', true)
+            const userTeams = userTeamsResponse.json()
+            userTeams.should.have.property('teams')
+            userTeams.teams.should.have.length(1)
 
-                // Set trial mode options against the default team type
-                const teamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
-                const props = teamType.properties
-                props.trial = {
-                    active: true,
-                    duration: TEST_TRIAL_DURATION
-                }
-                teamType.properties = props
-                await teamType.save()
+            const userTeam = await app.db.models.Team.byId(userTeams.teams[0].id)
+            const subscription = await app.db.models.Subscription.byTeamId(userTeam.id)
+            should.exist(subscription)
+            subscription.isActive().should.be.false()
+            subscription.isTrial().should.be.true()
+            subscription.isTrialEnded().should.be.false()
+            subscription.trialStatus.should.equal(app.db.models.Subscription.TRIAL_STATUS.CREATED)
+        })
 
-                const response = await registerUser({
-                    username: 'user',
+        it('Does not limit how many users can be created when licensed', async function () {
+            // This license has limit of 5 users (1 created by default test setup (test/unit/forge/routes/setup.js))
+            const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTA4ODAwLCJleHAiOjc5ODY5ODg3OTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjo1LCJ0ZWFtcyI6NTAsInByb2plY3RzIjo1MCwiZGV2aWNlcyI6NTAsImRldiI6dHJ1ZSwiaWF0IjoxNjYyNTQ4NjAyfQ.vvSw6pm-NP5e0NUL7yMOG-w0AgB8H3NRGGN7b5Dw_iW5DiIBbVQ4HVLEi3dyy9fk7WgKnloiCCkIFJvN79fK_g'
+            app = await setup({ license })
+            app.settings.set('user:signup', true)
+
+            // Register 5 more users to breach the limit
+            for (let i = 1; i <= 5; i++) {
+                const resp = await registerUser({
+                    username: `u${i}`,
                     password: '12345678',
-                    name: 'user',
-                    email: 'user@example.com'
+                    name: `u${i}`,
+                    email: `u${i}@example.com`
                 })
-                response.statusCode.should.equal(200)
-
-                // Team is only created once they verify their email.
-                const user = await app.db.models.User.findOne({ where: { username: 'user' } })
-                const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
-                await app.inject({
-                    method: 'POST',
-                    url: `/account/verify/${verificationToken}`,
-                    payload: {},
-                    cookies: { sid: TestObjects.tokens.user }
-                })
-                await login('user', '12345678')
-
-                const userTeamsResponse = await app.inject({
-                    method: 'GET',
-                    url: '/api/v1/user/teams',
-                    cookies: { sid: TestObjects.tokens.user }
-                })
-
-                const userTeams = userTeamsResponse.json()
-                userTeams.should.have.property('teams')
-                userTeams.teams.should.have.length(1)
-
-                const userTeam = await app.db.models.Team.byId(userTeams.teams[0].id)
-                const subscription = await app.db.models.Subscription.byTeamId(userTeam.id)
-                should.exist(subscription)
-                subscription.isActive().should.be.false()
-                subscription.isTrial().should.be.true()
-                subscription.isTrialEnded().should.be.false()
-                subscription.trialStatus.should.equal(app.db.models.Subscription.TRIAL_STATUS.CREATED)
-            })
-            it('Does not limit how many users can be created when licensed', async function () {
-                // This license has limit of 5 users (1 created by default test setup (test/unit/forge/routes/setup.js))
-                const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTA4ODAwLCJleHAiOjc5ODY5ODg3OTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjo1LCJ0ZWFtcyI6NTAsInByb2plY3RzIjo1MCwiZGV2aWNlcyI6NTAsImRldiI6dHJ1ZSwiaWF0IjoxNjYyNTQ4NjAyfQ.vvSw6pm-NP5e0NUL7yMOG-w0AgB8H3NRGGN7b5Dw_iW5DiIBbVQ4HVLEi3dyy9fk7WgKnloiCCkIFJvN79fK_g'
-                app = await setup({ license })
-                app.settings.set('user:signup', true)
-                // Register 5 more users to breach the limit
-                for (let i = 1; i <= 5; i++) {
-                    const resp = await registerUser({
-                        username: `u${i}`,
-                        password: '12345678',
-                        name: `u${i}`,
-                        email: `u${i}@example.com`
-                    })
-                    resp.statusCode.should.equal(200)
-                }
-                // TODO: check user audit logs - expect 'account.xxx-yyy' { code: '', error, '' }
-            })
+                resp.statusCode.should.equal(200)
+            }
+            // TODO: check user audit logs - expect 'account.xxx-yyy' { code: '', error, '' }
         })
     })
 
@@ -522,6 +518,261 @@ describe('Accounts API', async function () {
             body.should.have.property('quota')
             body.quota.should.have.property('file')
             body.quota.should.have.property('context')
+        })
+    })
+
+    describe('MFA Tokens', async function () {
+        let mfaToken
+        before(async function () {
+            const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTA4ODAwLCJleHAiOjc5ODY5ODg3OTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjo1LCJ0ZWFtcyI6NTAsInByb2plY3RzIjo1MCwiZGV2aWNlcyI6NTAsImRldiI6dHJ1ZSwiaWF0IjoxNjYyNTQ4NjAyfQ.vvSw6pm-NP5e0NUL7yMOG-w0AgB8H3NRGGN7b5Dw_iW5DiIBbVQ4HVLEi3dyy9fk7WgKnloiCCkIFJvN79fK_g'
+            app = await setup({ license })
+            const user = await app.factory.createUser({
+                admin: true,
+                username: 'mfaUser',
+                name: 'MFA User',
+                email: 'mfa@example.com',
+                password: 'mmPassword',
+                mfa_enabled: 'true'
+            })
+            mfaToken = await app.db.models.MFAToken.createTokenForUser(user)
+        })
+        after(async function () {
+            await app.close()
+        })
+        describe('login', function () {
+            it('prompts for mfa token when enabled', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/account/login',
+                    payload: { username: 'mfauser', password: 'mmPassword' }
+                })
+                response.should.have.property('statusCode', 403)
+                response.cookies.should.have.length(1)
+                response.cookies[0].should.have.property('name', 'sid')
+                const result = response.json()
+                result.should.have.property('code', 'mfa_required')
+
+                // Provide a good token - TODO: real token handling
+                const mfaResponse = await app.inject({
+                    method: 'POST',
+                    url: '/account/login/token',
+                    payload: { token: mfaToken.generateToken() },
+                    cookies: { sid: response.cookies[0].value }
+                })
+                mfaResponse.should.have.property('statusCode', 200)
+            })
+
+            it('rejects invalid mfa token', async function () {
+                // Do initial login
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/account/login',
+                    payload: { username: 'mfauser', password: 'mmPassword' }
+                })
+                // Check we got 403'd to prompt for mfa token
+                response.should.have.property('statusCode', 403)
+
+                // Provide a bad token - TODO: real token handling
+                const mfaResponse = await app.inject({
+                    method: 'POST',
+                    url: '/account/login/token',
+                    payload: { token: '000000' },
+                    cookies: { sid: response.cookies[0].value }
+                })
+                mfaResponse.should.have.property('statusCode', 401)
+                // Check it clears the old session cookie
+                mfaResponse.cookies.should.have.length(1)
+                mfaResponse.cookies[0].should.have.property('name', 'sid')
+                mfaResponse.cookies[0].should.have.property('value', '')
+            })
+
+            it('rejects access if session does not have mfa verified flag set', async function () {
+                // Do initial login
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/account/login',
+                    payload: { username: 'mfauser', password: 'mmPassword' }
+                })
+                // Check we got 403'd to prompt for mfa token
+                response.should.have.property('statusCode', 403)
+
+                // Check our session cookie doesn't allow general api access
+                const apiResponse = await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/user',
+                    cookies: { sid: response.cookies[0].value }
+                })
+                apiResponse.should.have.property('statusCode', 401)
+                // Check it clears the old session cookie
+                apiResponse.cookies.should.have.length(1)
+                apiResponse.cookies[0].should.have.property('name', 'sid')
+                apiResponse.cookies[0].should.have.property('value', '')
+
+                // Check we cannot continue the mfa auth flow with this session - TODO: real token handling
+                const mfaResponse = await app.inject({
+                    method: 'POST',
+                    url: '/account/login/token',
+                    payload: { token: mfaToken.generateToken() },
+                    cookies: { sid: response.cookies[0].value }
+                })
+                mfaResponse.should.have.property('statusCode', 401)
+            })
+        })
+
+        describe('setup', function () {
+            let userCount = 0
+            async function createUser () {
+                userCount++
+                const user = await app.factory.createUser({
+                    admin: true,
+                    username: `mfaUser${userCount}`,
+                    name: 'MFA User',
+                    email: `mfa${userCount}@example.com`,
+                    password: 'mmPassword'
+                })
+                await login(`mfaUser${userCount}`, 'mmPassword')
+                return user
+            }
+
+            it('setup mfa returns qrcode that needs to be verified', async function () {
+                const user = await createUser()
+                const mfaResponse = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/user/mfa',
+                    payload: { },
+                    cookies: { sid: TestObjects.tokens[user.username] }
+                })
+                mfaResponse.statusCode.should.equal(200)
+                const reply = mfaResponse.json()
+                reply.should.have.property('url').match(/\/mfaUser1@FlowFuse\?/)
+                reply.should.have.property('qrcode')
+
+                // Check the mfa_* flags are set properly on user and token
+                await user.reload()
+                user.mfa_enabled.should.be.false()
+                const token = await app.db.models.MFAToken.forUser(user)
+                token.verified.should.be.false()
+
+                // Generate a valid code and use it to verify the mfa setup
+                const goodToken = token.generateToken()
+                const verifyResponse = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/user/mfa/verify',
+                    payload: { token: goodToken },
+                    cookies: { sid: TestObjects.tokens[user.username] }
+                })
+                verifyResponse.statusCode.should.equal(200)
+
+                // Verify the mfa_* flags are set properly on user and token
+                await user.reload()
+                user.mfa_enabled.should.be.true()
+                await token.reload()
+                token.verified.should.be.true()
+            })
+
+            it('resets mfa if verification step fails', async function () {
+                const user = await createUser()
+                const mfaResponse = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/user/mfa',
+                    payload: { },
+                    cookies: { sid: TestObjects.tokens[user.username] }
+                })
+                mfaResponse.statusCode.should.equal(200)
+
+                // Check the mfa_* flags are set properly on user and token
+                await user.reload()
+                user.mfa_enabled.should.be.false()
+                const token = await app.db.models.MFAToken.forUser(user)
+                token.verified.should.be.false()
+
+                // Submit an invalid code
+                const verifyResponse = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/user/mfa/verify',
+                    payload: { token: '000000' },
+                    cookies: { sid: TestObjects.tokens[user.username] }
+                })
+                verifyResponse.statusCode.should.equal(400)
+                const reply = verifyResponse.json()
+                reply.should.have.property('code', 'mfa_failed')
+
+                // Verify the mfa_* flags are set properly on user and token
+                await user.reload()
+                user.mfa_enabled.should.be.false()
+                // Check there's no pending token for this user
+                const token2 = await app.db.models.MFAToken.forUser(user)
+                should.not.exist(token2)
+            })
+
+            it('user can delete mfa token', async function () {
+                const user = await createUser(true)
+                const mfaResponse = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/user/mfa',
+                    payload: { },
+                    cookies: { sid: TestObjects.tokens[user.username] }
+                })
+                mfaResponse.statusCode.should.equal(200)
+
+                const token = await app.db.models.MFAToken.forUser(user)
+                const goodToken = token.generateToken()
+                const verifyResponse = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/user/mfa/verify',
+                    payload: { token: goodToken },
+                    cookies: { sid: TestObjects.tokens[user.username] }
+                })
+                verifyResponse.statusCode.should.equal(200)
+
+                // Now we can finally delete the mfa setup
+                const deleteResponse = await app.inject({
+                    method: 'DELETE',
+                    url: '/api/v1/user/mfa',
+                    cookies: { sid: TestObjects.tokens[user.username] }
+                })
+                deleteResponse.statusCode.should.equal(200)
+
+                // Verify the mfa_* flags are set properly on user and token
+                await user.reload()
+                user.mfa_enabled.should.be.false()
+                // Check there's no pending token for this user
+                const token2 = await app.db.models.MFAToken.forUser(user)
+                should.not.exist(token2)
+            })
+
+            it('user cannot modify mfa without deleting', async function () {
+                // Setup MFA
+                const user = await createUser(true)
+                const mfaResponse = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/user/mfa',
+                    payload: { },
+                    cookies: { sid: TestObjects.tokens[user.username] }
+                })
+                mfaResponse.statusCode.should.equal(200)
+
+                const token = await app.db.models.MFAToken.forUser(user)
+                const goodToken = token.generateToken()
+                const verifyResponse = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/user/mfa/verify',
+                    payload: { token: goodToken },
+                    cookies: { sid: TestObjects.tokens[user.username] }
+                })
+                verifyResponse.statusCode.should.equal(200)
+
+                // Now we try to setup mfa again
+                const mfaResponse2 = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/user/mfa',
+                    payload: { },
+                    cookies: { sid: TestObjects.tokens[user.username] }
+                })
+                mfaResponse2.statusCode.should.equal(400)
+                const reply = mfaResponse2.json()
+                reply.should.have.property('code', 'mfa_enabled')
+            })
         })
     })
 })

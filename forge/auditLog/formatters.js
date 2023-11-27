@@ -7,10 +7,10 @@ const isObject = (obj) => {
 /**
  * Generate a standard format body for the audit log display and database.
  * Any items null or missing must not generate a property in the body
- * @param {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType?, info? } == {}} objects objects to include in body
+ * @param {{ error?, team?, project?, sourceProject?, targetProject?, device?, sourceDevice?, targetDevice?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType?, info? } == {}} objects objects to include in body
  * @returns {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType? info? }
  */
-const generateBody = ({ error, team, application, project, sourceProject, targetProject, device, user, stack, billingSession, subscription, license, updates, snapshot, pipeline, pipelineStage, role, projectType, info } = {}) => {
+const generateBody = ({ error, team, application, project, sourceProject, targetProject, device, sourceDevice, targetDevice, user, stack, billingSession, subscription, license, updates, snapshot, pipeline, pipelineStage, role, projectType, info, interval, threshold } = {}) => {
     const body = {}
 
     if (isObject(error) || typeof error === 'string') {
@@ -33,6 +33,12 @@ const generateBody = ({ error, team, application, project, sourceProject, target
     }
     if (isObject(device)) {
         body.device = deviceObject(device)
+    }
+    if (isObject(sourceDevice)) {
+        body.sourceDevice = deviceObject(sourceDevice)
+    }
+    if (isObject(targetDevice)) {
+        body.targetDevice = deviceObject(targetDevice)
     }
     if (isObject(user)) {
         body.user = userObject(user)
@@ -73,6 +79,14 @@ const generateBody = ({ error, team, application, project, sourceProject, target
         body.info = info
     } else if (isStringWithLength(info)) {
         body.info = { info }
+    }
+
+    if (interval) {
+        body.interval = interval
+    }
+
+    if (threshold) {
+        body.threshold = threshold
     }
 
     return body
@@ -132,11 +146,23 @@ const formatLogEntry = (auditLogDbRow) => {
                 snapshot: body?.snapshot,
                 updates: body?.updates,
                 device: body?.device,
+                sourceDevice: body?.sourceDevice,
+                targetDevice: body?.targetDevice,
                 projectType: body?.projectType,
                 info: body?.info,
                 pipeline: body?.pipeline,
-                pipelineStage: body?.pipelineStage
+                pipelineStage: body?.pipelineStage,
+                interval: body?.interval,
+                threshold: body?.threshold
             })
+
+            // if body has the keys:  `key`, `scope`, and `store` AND `store` === 'memory' or 'persistent'
+            // this is a Node-RED context store event
+            if (body?.key && body?.scope && body?.store && (body.store === 'memory' || body.store === 'persistent')) {
+                formatted.body = formatted.body || {}
+                formatted.body.context = { key: body.key, scope: body.scope, store: body.store }
+            }
+
             const roleObj = body?.role && roleObject(body.role)
             if (roleObj) {
                 if (formatted.body?.user) {
@@ -301,7 +327,7 @@ function triggerObject (actionedBy, user, unknownValue = 'unknown') {
         if (id === 0) {
             type = 'system'
             hashid = 'system'
-            name = 'Forge Platform'
+            name = 'FlowFuse Platform'
         } else if (id > 0) {
             type = 'user'
             if (user) {

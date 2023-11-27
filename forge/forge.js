@@ -85,12 +85,13 @@ module.exports = async (options = {}) => {
     }
 
     if (runtimeConfig.telemetry.backend?.sentry?.dsn) {
+        const environment = process.env.SENTRY_ENV ?? (process.env.NODE_ENV ?? 'unknown')
         server.register(require('@immobiliarelabs/fastify-sentry'), {
             dsn: runtimeConfig.telemetry.backend.sentry.dsn,
-            environment: process.env.SENTRY_ENV ?? process.env.NODE_ENV,
+            environment,
             release: `flowfuse@${runtimeConfig.version}`,
-            tracesSampleRate: 0.1,
-            profilesSampleRate: 0.1,
+            tracesSampleRate: environment === 'production' ? 0.05 : 0.1,
+            profilesSampleRate: environment === 'production' ? 0.05 : 0.1,
             integrations: [
                 new ProfilingIntegration()
             ],
@@ -152,14 +153,100 @@ module.exports = async (options = {}) => {
             secret: server.settings.get('cookieSecret')
         })
         await server.register(csrf, { cookieOpts: { _signed: true, _httpOnly: true } })
+
+        let contentSecurityPolicy = false
+        if (runtimeConfig.content_security_policy?.enabled) {
+            if (!runtimeConfig.content_security_policy.directives) {
+                contentSecurityPolicy = {
+                    directives: {
+                        'base-uri': ["'self'"],
+                        'default-src': ["'self'"],
+                        'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+                        'worker-src': ["'self'", 'blob'],
+                        'connect-src': ["'self'"],
+                        'img-src': ["'self'", 'data:', 'www.gravatar.com'],
+                        'font-src': ["'self'"],
+                        'style-src': ["'self'", 'https:', "'unsafe-inline'"],
+                        'upgrade-insecure-requests': null
+                    }
+                }
+            } else {
+                contentSecurityPolicy = {
+                    directives: runtimeConfig.content_security_policy.directives
+                }
+            }
+
+            if (runtimeConfig.content_security_policy.report_only) {
+                contentSecurityPolicy.reportOnly = true
+                if (runtimeConfig.content_security_policy.report_uri) {
+                    contentSecurityPolicy.directives['report-uri'] = runtimeConfig.content_security_policy.report_uri
+                }
+            }
+
+            if (runtimeConfig.telemetry.frontend?.plausible?.domain) {
+                if (contentSecurityPolicy.directives['script-src'] && Array.isArray(contentSecurityPolicy.directives['script-src'])) {
+                    contentSecurityPolicy.directives['script-src'].push('plausible.io')
+                } else {
+                    contentSecurityPolicy.directives['script-src'] = ['plausible.io']
+                }
+            }
+            if (runtimeConfig.telemetry?.frontend?.posthog?.apikey) {
+                let posthogHost = 'app.posthog.com'
+                if (runtimeConfig.telemetry.frontend.posthog.apiurl) {
+                    posthogHost = new URL(runtimeConfig.telemetry.frontend.posthog.apiurl).host
+                }
+                if (contentSecurityPolicy.directives['script-src'] && Array.isArray(contentSecurityPolicy.directives['script-src'])) {
+                    contentSecurityPolicy.directives['script-src'].push(posthogHost)
+                } else {
+                    contentSecurityPolicy.directives['script-src'] = [posthogHost]
+                }
+                if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
+                    contentSecurityPolicy.directives['connect-src'].push(posthogHost)
+                } else {
+                    contentSecurityPolicy.directives['connect-src'] = [posthogHost]
+                }
+            }
+            if (runtimeConfig.telemetry?.frontend?.sentry) {
+                if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
+                    contentSecurityPolicy.directives['connect-src'].push('*.ingest.sentry.io')
+                } else {
+                    contentSecurityPolicy.directives['connect-src'] = ['*.ingest.sentry.io']
+                }
+            }
+            if (runtimeConfig.support?.enabled && runtimeConfig.support.frontend?.hubspot?.trackingcode) {
+                const hubspotDomains = [
+                    'js-eu1.hs-analytics.com',
+                    'js-eu1.hs-banner.com',
+                    'js-eu1.hs-scripts.com',
+                    'js-eu1.hscollectedforms.net',
+                    'js-eu1.hubspot.com',
+                    'js-eu1.usemessages.com'
+                ]
+                if (contentSecurityPolicy.directives['script-src'] && Array.isArray(contentSecurityPolicy.directives['script-src'])) {
+                    contentSecurityPolicy.directives['script-src'].push(...hubspotDomains)
+                } else {
+                    contentSecurityPolicy.directives['script-src'] = hubspotDomains
+                }
+            }
+        }
+
+        let strictTransportSecurity = false
+        if (runtimeConfig.base_url.startsWith('https://')) {
+            strictTransportSecurity = {
+                includeSubDomains: false,
+                preload: true,
+                maxAge: 3600
+            }
+        }
+
         await server.register(helmet, {
             global: true,
-            contentSecurityPolicy: false,
+            contentSecurityPolicy,
             crossOriginEmbedderPolicy: false,
             crossOriginOpenerPolicy: false,
             crossOriginResourcePolicy: false,
             hidePoweredBy: true,
-            hsts: false,
+            strictTransportSecurity,
             frameguard: {
                 action: 'deny'
             }

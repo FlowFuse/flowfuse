@@ -14,6 +14,15 @@ const login = (username, password) => {
         return res.data
     })
 }
+
+const verifyMFAToken = (token) => {
+    return client.post('/account/login/token', {
+        token
+    }).then((res) => {
+        return res.data
+    })
+}
+
 const logout = () => {
     return client.post('/account/logout').then((res) => {
         window.posthog?.reset()
@@ -194,10 +203,21 @@ const updatePersonalAccessToken = async (id, scope, expiresAt) => {
     return client.put('/api/v1/user/tokens/' + id, { scope, expiresAt })
 }
 
+const enableMFA = async () => {
+    return client.put('/api/v1/user/mfa', {}).then(res => res.data)
+}
+const disableMFA = async () => {
+    return client.delete('/api/v1/user/mfa').then(res => res.data)
+}
+const verifyMFA = async (token) => {
+    return client.put('/api/v1/user/mfa/verify', { token }).then(res => res.data)
+}
+
 export default {
     registerUser,
     getUser,
     login,
+    verifyMFAToken,
     logout,
     changePassword,
     updateUser,
@@ -214,5 +234,8 @@ export default {
     getPersonalAccessTokens,
     createPersonalAccessToken,
     deletePersonalAccessToken,
-    updatePersonalAccessToken
+    updatePersonalAccessToken,
+    enableMFA,
+    verifyMFA,
+    disableMFA
 }

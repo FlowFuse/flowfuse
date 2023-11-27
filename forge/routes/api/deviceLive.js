@@ -94,15 +94,16 @@ module.exports = async function (app) {
      */
     app.get('/snapshot', async (request, reply) => {
         const device = request.device || null
-        const isApplicationOwned = device?.ownerType === 'application' // && 'EE'?
-        if (!request.device.targetSnapshot) {
-            let nodeRedVersion = '3.0.2' // default to older Node-RED
-            if (SemVer.satisfies(SemVer.coerce(device.agentVersion), '>=1.11.2')) {
-                // 1.11.2 includes fix for ESM loading of GOT, so lets use 'latest' as before
-                nodeRedVersion = 'latest'
-            }
-            // determine is device is in application mode? if so, return a default snapshot to permit the user to generate flows
-            if (isApplicationOwned) {
+        if (!device.targetSnapshot) {
+            // device does not have a target snapshot
+            // if this is an application owned device, return a starter snapshot
+            if (device.isApplicationOwned) {
+                let nodeRedVersion = '3.0.2' // default to older Node-RED
+                if (SemVer.satisfies(SemVer.coerce(device.agentVersion), '>=1.11.2')) {
+                    // 1.11.2 includes fix for ESM loading of GOT, so lets use 'latest' as before
+                    nodeRedVersion = 'latest'
+                }
+                // determine is device is in application mode? if so, return a default snapshot to permit the user to generate flows
                 const DEFAULT_APP_SNAPSHOT = {
                     id: '0',
                     name: 'Starter Snapshot',
@@ -115,7 +116,10 @@ module.exports = async function (app) {
                         { id: 'FFDBG00000000001', type: 'debug', z: 'FFF0000000000001', name: 'Info', active: true, tosidebar: true, console: true, tostatus: true, complete: 'payload', targetType: 'msg', statusVal: 'payload', statusType: 'auto', x: 490, y: 160 }
                     ],
                     modules: {
-                        'node-red': nodeRedVersion // TODO: get this from the "somewhere!?!?" - this is where TAGs might work well.
+                        'node-red': nodeRedVersion, // TODO: get this from the "somewhere!?!?" - this is where TAGs might work well.
+                        // as of FF v1.14.0, we permit project nodes to work on application owned devices
+                        // the support for this is in @flowfuse/nr-project-nodes > v0.5.0
+                        '@flowfuse/nr-project-nodes': '>0.5.0' // TODO: get this from the "settings" (future)
                     },
                     env: {
                         FF_SNAPSHOT_ID: '0',
@@ -131,28 +135,47 @@ module.exports = async function (app) {
             }
             reply.send({})
         } else {
-            const snapshot = await app.db.models.ProjectSnapshot.byId(request.device.targetSnapshot.id)
+            const snapshot = await app.db.models.ProjectSnapshot.byId(device.targetSnapshot.id)
             if (snapshot) {
-                const result = {
-                    id: request.device.targetSnapshot.hashid,
-                    name: snapshot.name,
-                    description: snapshot.description,
-                    ...snapshot.settings,
-                    ...snapshot.flows
-                }
-                const getSecret = async () => {
-                    // default to project in the absence of ownerType
-                    if (snapshot.ownerType === 'instance' || !snapshot.ownerType) {
-                        return await (await snapshot.getProject()).getCredentialSecret()
-                    } else {
-                        return (await snapshot.getDevice()).credentialSecret
+                // ensure we have a valid settings object
+                let settings = snapshot.settings
+                if (typeof snapshot.settings === 'string') {
+                    try {
+                        settings = JSON.parse(snapshot.settings)
+                    } catch (_err) {
+                        // ignore
                     }
                 }
+                if (!settings || typeof settings !== 'object') {
+                    settings = {}
+                }
+
+                // as of FF v1.14.0, we permit project nodes to work on application owned devices
+                if (device.isApplicationOwned) {
+                    settings.modules = settings.modules || {} // snapshot might not have any modules
+                    // @flowfuse/nr-project-nodes > v0.5.0 is required for this to work
+                    // if the snapshot does not have the new module specified OR it is a version <= 0.5.0, update it
+                    if (!settings.modules['@flowfuse/nr-project-nodes'] || SemVer.satisfies(SemVer.coerce(settings.modules['@flowfuse/nr-project-nodes']), '<=0.5.0')) {
+                        settings.modules['@flowfuse/nr-project-nodes'] = '>0.5.0'
+                    }
+                    // Belt and braces, remove old module! We don't want to be instructing the device to install the old version.
+                    // (the old module can be present due to a snapshot applied from an instance or instance owned device)
+                    delete settings.modules['@flowforge/nr-project-nodes']
+                }
+
+                const result = {
+                    id: device.targetSnapshot.hashid,
+                    name: snapshot.name,
+                    description: snapshot.description,
+                    ...settings,
+                    ...snapshot.flows
+                }
+
                 if (result.credentials) {
                     // Need to re-encrypt these credentials from the source secret
                     // to the target Device secret
-                    const secret = await getSecret()
-                    const deviceSecret = request.device.credentialSecret
+                    const secret = await snapshot.getCredentialSecret()
+                    const deviceSecret = device.credentialSecret
                     result.credentials = app.db.controllers.Project.exportCredentials(result.credentials, secret, deviceSecret)
                 }
                 reply.send(result)

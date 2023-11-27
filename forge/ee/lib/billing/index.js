@@ -38,20 +38,27 @@ module.exports.init = async function (app) {
     }
 
     return {
-        createSubscriptionSession: async (team, user = null) => {
-            const billingIds = await team.getTeamBillingIds()
-            let teamPrice = billingIds.price
+        createSubscriptionSession: async (team, user = null, teamTypeId = null) => {
+            // When setting up the initial subscription we'll default to the billing
+            // ids of current team type. However, the subscription setup could be done
+            // in conjunction with changing the team type. We do *not* modify
+            // the team type here - because the user could abandon the stripe checkout
+            // and they will expect to remain in their current trial/type
+
+            // Get the specified TeamType, or default to the team's existing type
+            const teamType = await (teamTypeId ? app.db.models.TeamType.byId(teamTypeId) : team.getTeamType())
+
+            const billingIds = await teamType.getTeamBillingIds()
+            const teamPrice = billingIds.price
 
             // Use existing Stripe customer
             const existingLocalSubscription = await team.getSubscription()
-            if (existingLocalSubscription && existingLocalSubscription.isTrial()) {
-                // Currently in trial mode. Check for trial billing ids
-                if (billingIds.trialPrice) {
-                    teamPrice = billingIds.trialPrice
-                }
-            }
+
             const sub = {
                 mode: 'subscription',
+                metadata: {
+                    teamTypeId: teamType.hashid
+                },
                 line_items: [{
                     price: teamPrice,
                     quantity: 1
@@ -73,6 +80,50 @@ module.exports.init = async function (app) {
                 payment_method_types: ['card'],
                 success_url: `${app.config.base_url}/team/${team.slug}/applications?billing_session={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${app.config.base_url}/team/${team.slug}/applications`
+            }
+
+            // Need to ensure the subscription contains all of the expected items
+            // to correlate with the teamType. This includes:
+            // - Team Plan item - already added above
+            // - Device item
+            // - An item for each instance type
+
+            // Check if a device item is required
+            const deviceBillingIds = await teamType.getDeviceBillingIds()
+            if (deviceBillingIds.product) {
+                const deviceCount = await team.deviceCount()
+                if (deviceCount > 0) {
+                    const deviceFreeAllocation = teamType.getProperty('devices.free', 0)
+                    const billableCount = Math.max(0, deviceCount - deviceFreeAllocation)
+                    if (billableCount > 0) {
+                        // We have devices to include in the subscription
+                        sub.line_items.push({
+                            price: deviceBillingIds.price,
+                            quantity: billableCount
+                        })
+                    }
+                }
+            }
+            const instanceCounts = await team.instanceCountByType({ state: { [Op.notIn]: ['suspended', 'deleting'] } })
+            const instanceTypes = await app.db.models.ProjectType.findAll()
+            for (const instanceType of instanceTypes) {
+                // Get the stripe ids to use for this instance type in this team type
+                const instanceBillingIds = await teamType.getInstanceBillingIds(instanceType)
+                const count = instanceCounts[instanceType.hashid]
+                if (count) {
+                    // The team has one or more instances of this type.
+                    // Calculate the billableCount based on how many free
+                    // instances of this type are allowed for this teamType
+                    const freeAllowance = teamType.getInstanceTypeProperty(instanceType, 'free', 0)
+                    const billableCount = Math.max(0, count - freeAllowance)
+                    if (billableCount > 0) {
+                        // Need to add an item for this instance type
+                        sub.line_items.push({
+                            price: instanceBillingIds.price,
+                            quantity: billableCount
+                        })
+                    }
+                }
             }
 
             let userBillingCode
@@ -395,6 +446,11 @@ module.exports.init = async function (app) {
             // it can change its type
             if (subscription && subscription.isActive()) {
                 if (subscription.isTrial()) {
+                    // This block can be removed in 1.14 as it is a condition
+                    // we no longer support - but may have some lingering teams
+                    // in this mode for the next 2 weeks from the point this
+                    // is deployed to production.
+
                     // If in trial mode, the trial is first ended - you cannot
                     // carry a trial over to a new team type
 
@@ -403,9 +459,7 @@ module.exports.init = async function (app) {
                     // There may be a cleaner refactoring to avoid the duplication, but
                     // that is for another day
                     await app.billing.endTeamTrial(team)
-                    subscription.trialEndsAt = null
-                    subscription.trialStatus = app.db.models.Subscription.TRIAL_STATUS.ENDED
-                    await subscription.save()
+                    await subscription.clearTrialState()
                 }
 
                 // Get the stripe view of the subscription

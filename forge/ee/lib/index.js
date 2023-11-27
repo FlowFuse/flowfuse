@@ -10,6 +10,8 @@ module.exports = fp(async function (app, opts, done) {
     if (app.license.get('tier') === 'enterprise') {
         require('./ha').init(app)
         app.decorate('sso', await require('./sso').init(app))
+        // Set the MFA Feature Flag
+        app.config.features.register('mfa', true, true)
     }
 
     // Set the Team Library Feature Flag
@@ -17,6 +19,9 @@ module.exports = fp(async function (app, opts, done) {
 
     // Set the DevOps Pipelines
     app.config.features.register('devops-pipelines', true, true)
+
+    // Set the Custom Catalogs Flag
+    app.config.features.register('customCatalogs', true, true)
 
     done()
 })

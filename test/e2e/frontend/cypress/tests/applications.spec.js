@@ -45,11 +45,6 @@ describe('FlowForge - Applications', () => {
 
                 cy.wait('@loadStacks')
 
-                cy.get('[data-form="instance-stack"]').contains('stack1').click() // de-select
-                cy.get('[data-action="create-project"]').should('be.disabled')
-
-                cy.get('[data-form="instance-stack"]').contains('stack1').click() // re-select
-
                 cy.get('[data-form="project-template"]').should('exist') // template section visible for create
 
                 cy.get('[data-action="create-project"]').should('not.be.disabled').click()

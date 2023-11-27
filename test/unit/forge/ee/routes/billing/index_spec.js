@@ -160,6 +160,73 @@ describe('Billing routes', function () {
                 should(team.name).equal('ATeam')
             })
 
+            it('Updates team type if subscription was for new type', async function () {
+                const newTeamType = await app.db.models.TeamType.create({
+                    name: 'second-team-type',
+                    description: 'team type description',
+                    active: true,
+                    order: 1,
+                    properties: {
+                        instances: {
+                            [app.projectType.hashid]: {
+                                active: true,
+                                productId: 'secondInstanceProd',
+                                priceId: 'secondInstancePrice'
+                            }
+                        },
+                        devices: {
+                            productId: 'secondDeviceProd',
+                            priceId: 'secondDevicePrice'
+                        },
+                        users: { },
+                        features: { },
+                        billing: {
+                            productId: 'secondTeamProd',
+                            priceId: 'secondTeamPrice'
+                        }
+                    }
+                })
+
+                const response = await (app.inject({
+                    method: 'POST',
+                    url: callbackURL,
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    payload: {
+                        id: 'evt_123456790',
+                        object: 'event',
+                        data: {
+                            object: {
+                                id: 'cs_1234567890',
+                                object: 'checkout.session',
+                                customer: 'cus_0987654321',
+                                subscription: 'sub_0987654321',
+                                client_reference_id: app.team.hashid,
+                                // Set a new teamTypeId to apply
+                                metadata: { teamTypeId: newTeamType.hashid }
+                            }
+                        },
+                        type: 'checkout.session.completed'
+                    }
+                }))
+                should(app.log.info.called).equal(true)
+                app.log.info.firstCall.firstArg.should.equal(`Stripe checkout.session.completed event cs_1234567890 from cus_0987654321 received for team '${app.team.hashid}'`)
+
+                should(response).have.property('statusCode', 200)
+                const sub = await app.db.models.Subscription.byCustomerId('cus_0987654321')
+                should(sub.customer).equal('cus_0987654321')
+                should(sub.subscription).equal('sub_0987654321')
+                // Reload the subscription Team object to have all its properties
+                const team = await sub.Team.reload()
+                should(team.name).equal('ATeam')
+                team.TeamTypeId.should.equal(newTeamType.id)
+
+                // Restore teamType for future tests
+                team.TeamTypeId = app.defaultTeamType.id
+                await team.save()
+            })
+
             it('Warns but still returns 200 if the team can not be found', async function () {
                 const response = await (app.inject({
                     method: 'POST',
@@ -274,6 +341,34 @@ describe('Billing routes', function () {
 
                 should(app.log.error.called).equal(true)
                 app.log.error.firstCall.firstArg.should.equal('Stripe customer.subscription.created event sub_unknown from cus_unknown received for unknown team by Stripe Customer ID')
+
+                should(response).have.property('statusCode', 200)
+            })
+
+            it('Ignores events for unrecognised subscription for known customer', async () => {
+                const response = await (app.inject({
+                    method: 'POST',
+                    url: callbackURL,
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    payload: {
+                        id: 'evt_123456790',
+                        object: 'event',
+                        data: {
+                            object: {
+                                id: 'sub_anotherOne',
+                                object: 'subscription',
+                                customer: 'cus_1234567890',
+                                status: 'active'
+                            }
+                        },
+                        type: 'customer.subscription.created'
+                    }
+                }))
+
+                should(app.log.warn.called).equal(true)
+                app.log.warn.firstCall.firstArg.should.equal(`Stripe customer.subscription.created event sub_anotherOne from cus_1234567890 received for team '${app.team.hashid}' for unknown subscription`)
 
                 should(response).have.property('statusCode', 200)
             })
@@ -458,6 +553,37 @@ describe('Billing routes', function () {
 
                 should(response).have.property('statusCode', 200)
 
+                const subscription = await app.db.models.Subscription.byCustomerId('cus_1234567890')
+                should(subscription.status).equal(app.db.models.Subscription.STATUS.ACTIVE)
+            })
+
+            it('Ignores events for unrecognised subscription for known customer', async () => {
+                const response = await (app.inject({
+                    method: 'POST',
+                    url: callbackURL,
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    payload: {
+                        id: 'evt_123456790',
+                        object: 'event',
+                        data: {
+                            object: {
+                                id: 'sub_anotherOne',
+                                object: 'subscription',
+                                customer: 'cus_1234567890',
+                                status: 'past_due'
+                            }
+                        },
+                        type: 'customer.subscription.updated'
+                    }
+                }))
+
+                should(app.log.warn.called).equal(true)
+                app.log.warn.firstCall.firstArg.should.equal(`Stripe customer.subscription.updated event sub_anotherOne from cus_1234567890 received for team '${app.team.hashid}' for unknown subscription`)
+                should(response).have.property('statusCode', 200)
+
+                // Check the known sub hasn't been modified
                 const subscription = await app.db.models.Subscription.byCustomerId('cus_1234567890')
                 should(subscription.status).equal(app.db.models.Subscription.STATUS.ACTIVE)
             })
@@ -648,6 +774,37 @@ describe('Billing routes', function () {
                 app.log.warn.firstCall.firstArg.should.equal('Stripe customer.subscription.deleted event sub_unknown_123 from cus_unknown_123 received for deleted team with orphaned subscription')
 
                 should(response).have.property('statusCode', 200)
+            })
+
+            it('Ignores events for unrecognised subscription for known customer', async () => {
+                const response = await (app.inject({
+                    method: 'POST',
+                    url: callbackURL,
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    payload: {
+                        id: 'evt_123456790',
+                        object: 'event',
+                        data: {
+                            object: {
+                                id: 'sub_anotherOne',
+                                object: 'subscription',
+                                customer: 'cus_1234567890',
+                                status: 'past_due'
+                            }
+                        },
+                        type: 'customer.subscription.deleted'
+                    }
+                }))
+
+                should(app.log.warn.called).equal(true)
+                app.log.warn.firstCall.firstArg.should.equal(`Stripe customer.subscription.deleted event sub_anotherOne from cus_1234567890 received for team '${app.team.hashid}' for unknown subscription`)
+                should(response).have.property('statusCode', 200)
+
+                // Check the known sub hasn't been modified
+                const subscription = await app.db.models.Subscription.byCustomerId('cus_1234567890')
+                should(subscription.status).equal(app.db.models.Subscription.STATUS.ACTIVE)
             })
         })
     })

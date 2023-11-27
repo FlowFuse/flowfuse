@@ -572,6 +572,92 @@ describe('Device API', async function () {
                 result.should.have.property('modules').and.be.an.Object()
                 result.modules.should.have.property('node-red', 'latest')
             })
+            it('`@flowfuse/nr-project-nodes` dependency is included in the starter snapshot', async function () {
+                const agentVersion = '1.11.0' // min agent version required for application assignment
+                const device = await createDevice({ name: 'Ad1a-dep-test', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion })
+                // assign the new device to application
+                await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: {
+                        application: TestObjects.Application1.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                // get the snapshot for this device
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${device.id}/live/snapshot`,
+                    headers: {
+                        authorization: `Bearer ${device.credentials.token}`
+                    }
+                })
+                const result = response.json()
+                result.should.have.property('id')
+                result.should.have.property('name', 'Starter Snapshot')
+                result.should.have.property('modules').and.be.an.Object()
+                result.modules.should.have.property('@flowfuse/nr-project-nodes', '>0.5.0')
+                // // ensure old flowforge module is not present
+                // result.modules.should.not.have.property('@flowforge/nr-project-nodes')
+            })
+            it('old `@flowforge/nr-project-nodes` dependency is replaced with @flowfuse dependency in an existing snapshot', async function () {
+                const agentVersion = '1.11.0' // min agent version required for application assignment
+                const device = await createDevice({ name: 'Ad1a-dep-test2', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion })
+                // assign the new device to application
+                await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: {
+                        application: TestObjects.Application1.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                // get the db model of the device
+                const dbDevice = await app.db.models.Device.byId(device.id)
+                // create a snapshot for this device with the old flowforge nr-project-nodes module
+                // by entering it straight into the database
+                const snapshot = await app.db.models.ProjectSnapshot.create({
+                    name: 'app-device-snap-test-' + Date.now(),
+                    description: 'App Device Snapshot Description',
+                    flows: {},
+                    settings: {
+                        settings: {},
+                        env: {},
+                        modules: {
+                            'node-red': '1.2.3',
+                            '@flowforge/nr-project-nodes': '0.5.0'
+                        }
+                    },
+                    DeviceId: dbDevice.id,
+                    UserId: TestObjects.bob.id
+                })
+                snapshot.save()
+
+                // set this snapshot as the target snapshot for the device
+                await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/devices/${device.id}/settings`,
+                    body: {
+                        targetSnapshot: snapshot.id
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+
+                // get the snapshot for this device
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${device.id}/live/snapshot`,
+                    headers: {
+                        authorization: `Bearer ${device.credentials.token}`
+                    }
+                })
+
+                const result = response.json()
+                result.should.have.property('modules').and.be.an.Object()
+                result.modules.should.have.property('@flowfuse/nr-project-nodes', '>0.5.0')
+                // ensure old flowforge module is not present
+                result.modules.should.not.have.property('@flowforge/nr-project-nodes')
+            })
             it('cannot assign to an application if device agent version is not present', async function () {
                 const device = await createDevice({ name: 'Ad1b', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
                 const response = await app.inject({
@@ -950,6 +1036,82 @@ describe('Device API', async function () {
                 cookies: { sid: TestObjects.tokens.chris }
             })
             response.statusCode.should.equal(403)
+        })
+    })
+
+    describe('Create snapshot for instance owned device', async function () {
+        let oldComms
+        before(function () {
+            // Prevent requests to devices hanging the snapshot process
+            oldComms = app.comms
+            app.comms = null
+        })
+
+        after(function () {
+            app.comms = oldComms
+        })
+
+        it('creates a snapshot', async function () {
+            const deviceProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
+            deviceProject.setTeam(TestObjects.ATeam)
+
+            const device = await createDevice({ name: 'device-1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, instance: deviceProject.id })
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.id}/snapshot`,
+                body: {
+                    name: 'new-snapshot',
+                    description: 'snapshot-description',
+                    setAsTarget: false
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            const result = response.json()
+
+            result.should.have.property('name', 'new-snapshot')
+            result.should.have.property('description', 'snapshot-description')
+            result.should.have.property('ownerType', 'instance')
+
+            result.user.should.have.property('username', 'alice')
+
+            response.statusCode.should.equal(200)
+        })
+
+        it('fails gracefully if the device is assigned to neither an application or instance', async function () {
+            const device = await createDevice({ name: 'device-1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.id}/snapshot`,
+                body: {
+                    name: 'new-snapshot',
+                    description: 'snapshot-description',
+                    setAsTarget: false
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            const result = response.json()
+            result.should.have.property('code', 'invalid_device')
+            response.statusCode.should.equal(400)
+        })
+
+        it('fails gracefully if the device is assigned to an application', async function () {
+            const agentVersion = '1.11.2'
+            const device = await createDevice({ name: 'device-1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, application: TestObjects.Application1.hashid, agentVersion })
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.id}/snapshot`,
+                body: {
+                    name: 'new-snapshot',
+                    description: 'snapshot-description',
+                    setAsTarget: false
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            const result = response.json()
+            result.should.have.property('code', 'invalid_device')
+            response.statusCode.should.equal(400)
         })
     })
 

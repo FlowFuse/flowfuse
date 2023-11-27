@@ -16,6 +16,9 @@ module.exports = async function (app) {
         if (request.params.snapshotId !== undefined) {
             if (request.params.snapshotId) {
                 try {
+                    // TODO: I don't think `request.snapshot.flows` is ever accessed by
+                    // any of the routes. If that is confirmed, we should add `{ includeFlows: false }`
+                    // to the following call to avoid unncessary work
                     request.snapshot = await app.db.models.ProjectSnapshot.byId(request.params.snapshotId)
                     if (!request.snapshot) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
@@ -180,7 +183,7 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const device = request.device
-        if (device.ownerType !== 'application') {
+        if (!device.isApplicationOwned) {
             reply.code(400).send({ code: 'invalid_device', error: 'Device is not associated with an application' })
             return
         }

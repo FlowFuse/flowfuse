@@ -49,7 +49,7 @@ describe('Audit Log > User', async function () {
         await userLogger.account.verify.autoCreateTeam(0, null, TEAM)
         // check log stored
         const logEntry = await getLog()
-        logEntry.should.have.property('trigger', { id: 'system', type: 'system', name: 'Forge Platform' })
+        logEntry.should.have.property('trigger', { id: 'system', type: 'system', name: 'FlowFuse Platform' })
         logEntry.should.have.property('body').and.be.an.Object()
         logEntry.body.should.not.have.property('trigger')
     })

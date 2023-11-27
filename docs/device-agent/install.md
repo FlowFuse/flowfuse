@@ -1,6 +1,6 @@
 ---
 navTitle: Installation
-navOrder: 2
+navOrder: 3
 ---
 
 # Installing Device Agent
@@ -13,7 +13,9 @@ The Device Agent can be installed on most Linux distributions, Windows, and MacO
 
 ## Installing the Device Agent
 
-The Device Agent is published to the public npm repository as [@flowforge/flowforge-device-agent](https://www.npmjs.com/package/@flowforge/flowforge-device-agent).
+The Device Agent is published to the public npm repository as [@flowfuse/device-agent](https://www.npmjs.com/package/@flowfuse/device-agent).
+
+Note: since the 1.13 release, the package name was updated. See the [updating](#upgrading-the-agent) section for details if you are using the `flowforge` scoped package.
 
 It can be installed as a global npm module. This will ensure the agent
 command is on the path:
@@ -21,13 +23,13 @@ command is on the path:
 ### Linux/MacOS
 
 ```bash
-sudo npm install -g @flowforge/flowforge-device-agent
+sudo npm install -g @flowfuse/device-agent
 ```
 
 ### Windows
 
 ```bash
-npm install -g @flowforge/flowforge-device-agent
+npm install -g @flowfuse/device-agent
 ```
 
 ### Docker
@@ -36,7 +38,7 @@ Or you can chose to run the Docker container. When you do, you'll need to mount
 the `device.yml` obtained when [Registering the device](./register.md):
 
 ```bash
-docker run --mount type=bind,src=/path/to/device.yml,target=/opt/flowforge-device/device.yml -p 1880:1880 flowforge/device-agent:latest
+docker run --mount type=bind,src=/path/to/device.yml,target=/opt/flowfuse-device/device.yml -p 1880:1880 flowfuse/device-agent:latest
 ```
 
 Or you can chose to run the Docker-Compose via a docker-compose.yml file. When you do, you'll need to mount
@@ -47,11 +49,11 @@ version: '3.9'
 
 services:
   device:
-    image: flowforge/device-agent:latest
+    image: flowfuse/device-agent:latest
     ports:
       - "1880:1880"
     volumes:
-      - /path/to/device.yml:/opt/flowforge-device/device.yml
+      - /path/to/device.yml:/opt/flowfuse-device/device.yml
 ```
 
 ## Configuration
@@ -61,7 +63,7 @@ directory.
 
 ### Working directory
 
-By default the agent uses `/opt/flowforge-device` or `c:\opt\flowforge-device` as
+By default the agent uses `/opt/flowfuse-device` or `c:\opt\flowfuse-device` as
 its working directory. This can be overridden with the `-d/--dir` option.
 
 The directory must exist and be accessible to the user that will be
@@ -70,14 +72,14 @@ running the agent.
 #### Linux/MacOS
 
 ```bash
-sudo mkdir /opt/flowforge-device
-sudo chown -R $USER /opt/flowforge-device
+sudo mkdir /opt/flowfuse-device
+sudo chown -R $USER /opt/flowfuse-device
 ```
 
 #### Windows (run elevated)
 
 ```bash
-mkdir c:\opt\flowforge-device
+mkdir c:\opt\flowfuse-device
 ```
 
 ### Listen Port
@@ -88,7 +90,7 @@ be useful for custom firewall rules, or when running multiple device agents on
 the same machine.
 
 ```bash
-flowforge-device-agent --port=1881
+flowfuse-device-agent --port=1881
 ```
 
 ## Upgrading the agent
@@ -96,14 +98,24 @@ flowforge-device-agent --port=1881
 To use the latest features on FlowFuse as well as on the edge device, it is advised to upgrade
 the device agent regularly. 
 
+With the 1.13 release of the Device Agent, it has moved to a new package on the npm repository
+and DockerHub.
+
+ - npm: `@flowforge/flowforge-device-agent` -> `@flowfuse/device-agent`
+ - Docker: `flowforge/device-agent` -> `flowfuse/device-agent`
+
+For backwards compatibility we will continue to publish to both the old and
+new locations for a period of time, but we strongly encourage users to update to the
+new package to ensure you continue to receive the latest updates.
+
 ### Linux/MacOS
 
 ```bash
-sudo npm install -g @flowforge/flowforge-device-agent
+sudo npm install -g @flowfuse/device-agent
 ```
 
 ### Windows
 
 ```bash
-npm install -g @flowforge/flowforge-device-agent
+npm install -g @flowfuse/device-agent
 ```

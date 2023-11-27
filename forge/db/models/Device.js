@@ -26,9 +26,15 @@ module.exports = {
         mode: { type: DataTypes.STRING, allowNull: true, defaultValue: 'autonomous' },
         /** @type {'instance'|'application'|null} a virtual column that signifies the parent type e.g. `"instance"`, `"application"` */
         ownerType: {
-            type: DataTypes.VIRTUAL,
+            type: DataTypes.VIRTUAL(DataTypes.ENUM('instance', 'application', null)),
             get () {
                 return this.Project?.id ? 'instance' : (this.Application?.hashid ? 'application' : null)
+            }
+        },
+        isApplicationOwned: {
+            type: DataTypes.VIRTUAL(DataTypes.BOOLEAN),
+            get () {
+                return this.ownerType === 'application'
             }
         }
     },
@@ -176,6 +182,13 @@ module.exports = {
                         return result.value
                     }
                     return undefined
+                },
+                async getLatestSnapshot () {
+                    const snapshots = await this.getProjectSnapshots({
+                        order: [['createdAt', 'DESC']],
+                        limit: 1
+                    })
+                    return snapshots[0]
                 }
             },
             static: {
@@ -403,6 +416,32 @@ module.exports = {
                     if (device && device.ApplicationId) {
                         return M.Application.encodeHashid(device.ApplicationId)
                     }
+                },
+                getOwnerTypeAndId: async (id) => {
+                    if (typeof id === 'string') {
+                        id = M.Device.decodeHashid(id)
+                    }
+                    const device = await this.findOne({
+                        where: { id },
+                        attributes: [
+                            'ProjectId',
+                            'ApplicationId'
+                        ]
+                    })
+                    if (device) {
+                        if (device.ProjectId) {
+                            return {
+                                ownerType: 'instance',
+                                ownerId: device.ProjectId
+                            }
+                        } else if (device.ApplicationId) {
+                            return {
+                                ownerType: 'application',
+                                ownerId: M.Application.encodeHashid(device.ApplicationId)
+                            }
+                        }
+                    }
+                    return null
                 },
                 /**
                  * Recalculate the `settingsHash` for all devices

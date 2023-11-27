@@ -333,7 +333,11 @@ module.exports = async function (app) {
 
     /**
      * @deprecated Use /:teamId/applications, or /:applicationId/instances
-     * This end-point is still used by the project nodes and nr-tools plugin.
+     * This end-point is still used by:
+     *  - the project nodes and nr-tools plugin.
+     *  - the Team Instances view
+     *  - team/Devices/dialogs/CreateProvisionTokenDialog.vue
+     *  - team/Settings/Devices.vue
      */
     app.get('/:teamId/projects', {
         preHandler: app.needsPermission('team:projects:list')

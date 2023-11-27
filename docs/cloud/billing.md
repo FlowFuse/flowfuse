@@ -11,8 +11,8 @@ provider. All payments are processed in US Dollars.
 
 ## Team Billing
 
-Each team has a separate billing account and a free subscription for the team. Each Node-RED instance under the team is added to that subscription.
-For each team you will need to setup the billing details for each time, though you can use the same card.
+Each team has its own billing subscription that includes charges for the Node-RED
+instances and Devices owned by the team.
 
 ## Billing Cycle
 
@@ -44,4 +44,8 @@ Stripe will retry the payment several times over a number of days. If the card r
 
 ## Cancelling your subscription
 
-If you want to cancel your subscription with FlowFuse Cloud you will need to remove all Node-RED instances and then delete all teams from your account. If you have outstanding credit you can request a refund via a [support ticket](https://flowfuse.com/contact-us/).
+When you're on the Starter tier you'll need to delete your team to cancel your subscription.
+For the Team and Enterprise tiers you're charged on active cloud instances and edge devices. To stop being charged it suffices
+to suspend all Cloud Node-RED instances, and remove all edge devices from the team.
+
+If you have outstanding credit you can request a refund via a [support ticket](/support/).

@@ -66,7 +66,6 @@ class DeviceCommsHandler {
         if (status.id && status.status) {
             const deviceId = status.id
             const device = await this.app.db.models.Device.byId(deviceId)
-            const isApplicationOwned = device.ownerType === 'application' && device.Application?.id
             if (!device) {
                 // TODO: log invalid device
                 return
@@ -91,11 +90,11 @@ class DeviceCommsHandler {
                 if (Object.hasOwn(payload, 'snapshot')) {
                     // load the full snapshot (as specified by the device) from the db so we can check the snapshots
                     // `ProjectId` is "something" (not orphaned) and matches the device's project
-                    const targetSnapshot = (await this.app.db.models.ProjectSnapshot.byId(payload.snapshot))
+                    const targetSnapshot = (await this.app.db.models.ProjectSnapshot.byId(payload.snapshot, { includeFlows: false, includeSettings: false }))
                     if (payload.snapshot !== (targetSnapshot?.hashid || null)) {
                         // The Snapshot is incorrect
                         sendUpdateCommand = true
-                    } else if (targetSnapshot && !isApplicationOwned && payload.project !== (targetSnapshot?.ProjectId || null)) {
+                    } else if (targetSnapshot && !device.isApplicationOwned && payload.project !== (targetSnapshot?.ProjectId || null)) {
                         // The project the device is reporting it belongs to does not match the target Snapshot parent project
                         sendUpdateCommand = true
                     }
@@ -110,13 +109,18 @@ class DeviceCommsHandler {
                 }
             } catch (err) {
                 // Not a JSON payload - ignore
+                if (err instanceof SyntaxError) {
+                    return
+                }
+
+                throw err
             }
         }
     }
 
     /**
      * Handle a command response message from a device
-     * Typically this will be a response to a command sent by the forge platform
+     * Typically this will be a response to a command sent by the platform
      * @param {Object} response Reply from the device
      * @returns {Promise<void>}
      * @see sendCommandAwaitReply

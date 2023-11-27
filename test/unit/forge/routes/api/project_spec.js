@@ -371,6 +371,9 @@ describe('Project API', function () {
             runtimeSettings.settings.palette.modules.should.have.property('node-red-dashboard', '3.0.0')
             runtimeSettings.settings.palette.modules.should.have.property('node-red-contrib-ping', '0.3.0')
 
+            runtimeSettings.settings.palette.should.not.have.property('npmrc')
+            runtimeSettings.settings.palette.should.not.have.property('catalogue')
+
             runtimeSettings.should.have.property('env').which.have.property('FF_PROJECT_ID', result.id) // depreciated in favour of FF_INSTANCE_ID as of V1.6.0
             runtimeSettings.should.have.property('env').which.have.property('FF_PROJECT_NAME', projectName) // depreciated in favour of FF_INSTANCE_NAME as of V1.6.0
             runtimeSettings.should.have.property('env').which.have.property('FF_INSTANCE_ID', result.id)
@@ -840,7 +843,7 @@ describe('Project API', function () {
             })
         })
 
-        describe('HA Options', function () {
+        describe('EE Options', function () {
             before(async function () {
                 const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
                 await app.close()
@@ -887,7 +890,7 @@ describe('Project API', function () {
                 result2.should.have.property('code', 'invalid_ha')
             })
 
-            it('Creates project with ha settings applied', async function () {
+            it('Creates project with ee settings applied', async function () {
                 const response = await app.inject({
                     method: 'POST',
                     url: '/api/v1/projects',
@@ -907,7 +910,12 @@ describe('Project API', function () {
                 result.ha.should.have.property('replicas', 2)
             })
 
-            it('Check Project Settings have ha key', async function () {
+            it('Check Project Settings have ee properties', async function () {
+                const existingTeamTypeProps = app.defaultTeamType.properties
+                existingTeamTypeProps.features.customCatalogs = true
+                app.defaultTeamType.properties = existingTeamTypeProps
+                await app.defaultTeamType.save()
+
                 const project = await createInstance()
                 await project.updateHASettings({
                     replicas: 2
@@ -923,6 +931,34 @@ describe('Project API', function () {
                 })).json()
                 runtimeSettings.should.have.property('ha')
                 runtimeSettings.ha.should.have.property('replicas', 2)
+                runtimeSettings.settings.palette.should.have.property('npmrc', 'example npmrc')
+                runtimeSettings.settings.palette.should.have.property('catalogue')
+                runtimeSettings.settings.palette.catalogue.should.have.length(1)
+                runtimeSettings.settings.palette.catalogue[0].should.equal('https://example.com/catalog')
+            })
+            it('Check Project Settings do not have TeamType disabled properties', async function () {
+                const existingTeamTypeProps = app.defaultTeamType.properties
+                existingTeamTypeProps.features.customCatalogs = false
+                app.defaultTeamType.properties = existingTeamTypeProps
+                await app.defaultTeamType.save()
+
+                const project = await createInstance()
+                await project.updateHASettings({
+                    replicas: 2
+                })
+                const newAccessToken = (await project.refreshAuthTokens()).token
+
+                const runtimeSettings = (await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/projects/${project.id}/settings`,
+                    headers: {
+                        authorization: `Bearer ${newAccessToken}`
+                    }
+                })).json()
+                runtimeSettings.should.have.property('ha')
+                runtimeSettings.ha.should.have.property('replicas', 2)
+                runtimeSettings.settings.palette.should.not.have.property('npmrc')
+                runtimeSettings.settings.palette.should.not.have.property('catalogue')
             })
         })
 

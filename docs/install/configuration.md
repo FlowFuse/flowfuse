@@ -109,7 +109,7 @@ inviting new users to join.
 Option        | Description
 --------------|------------
 `email.enabled` | Enables the email sending functionality of the platform. Default: `false`
-`email.from` | Sets the address email will appear from. Default: `"FlowForge Platform" <donotreply@flowforge.com>`
+`email.from` | Sets the address email will appear from. Default: `"FlowFuse" <donotreply@flowforge.com>`
 `email.smtp.host` | Hostname of the SMTP server to send email through. Default: `localhost`
 `email.smtp.port` | Port of the SMTP server to send email through. Default: `587` if `secure` is `false`, `465` otherwise
 `email.smtp.secure` | Whether to use TLS to connect to the SMTP server. Default: `false`
@@ -214,3 +214,12 @@ can access the File server.
 Option        | Description
 --------------|------------
 `fileStore.url`  | The URL of the FlowFuse File Server to use. Default: not set
+
+## Content Security Policy
+
+Option        | Description
+--------------|------------
+`content_security_policy.enabled` | Enabled `Content-Security-Policy` headers. Default: `false`
+`content_security_policy.directives` | Overrides the default set of directives, supplied as a JSON object defined by HelmetJS [here](https://helmetjs.github.io/#content-security-policy)
+`content_security_policy.report_only` | Enables reporting only mode. Default: `false`
+`content_security_policy.report_uri` |  Provides at URI for reporting to be sent to if enabled

@@ -500,6 +500,21 @@
         <label>{{ AuditEvents[entry.event] }}</label>
         <span>Nodes have been removed via the "Manage Palette" option inside Node-RED</span>
     </template>
+    <template v-else-if="entry.event === 'context.delete'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="entry.body?.context?.scope && entry.body?.context?.store && entry.body?.context?.key">Context key '{{ entry.body.context.scope }}.{{ entry.body.context.key }}' was deleted from context store '{{ entry.body.context.store }}' inside Node-RED.</span>
+        <span v-else>A Context data entry was deleted inside Node-RED. {{ JSON.stringify(entry.body || {}) }} </span>
+    </template>
+
+    <template v-else-if="entry.event === 'resource.cpu'">
+        <label>Instance High CPU usage</label>
+        <span>Instance has spent more than {{ Math.floor(entry.body.interval / 60) }} minutes at more than {{ entry.body.threshold }}% of CPU limit</span>
+    </template>
+
+    <template v-else-if="entry.event === 'resource.memory'">
+        <label>Instance High Memory usage</label>
+        <span>Instance has spent more than {{ Math.floor(entry.body.interval / 60) }} minutes at more than {{ entry.body.threshold }}% of Memory limit</span>
+    </template>
 
     <!-- Catch All -->
     <template v-else>

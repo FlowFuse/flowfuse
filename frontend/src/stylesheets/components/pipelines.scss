@@ -29,7 +29,7 @@
         border-bottom-left-radius: 6px;
         border-bottom-right-radius: 6px;
         display: flex;
-        align-items: flex-start;
+        align-items: stretch;
         gap: 16px;
         overflow-x: auto;
     }
@@ -38,8 +38,12 @@
 .ff-pipeline-stage {
     border-radius: 6px;
     border: 1px solid $ff-grey-400;
-    min-width: 200px;
+    min-width: 275px;
     background-color: white;
+    a:hover,
+    a:hover .ff-icon {
+        color: $ff-blue-600;
+    }
     &.ff-pipeline-stage-ghost {
         border-style: dashed;
         padding: 48px 64px;
@@ -64,6 +68,24 @@
         font-size: 0.9rem;    
         label {
             color: $ff-grey-500;
+        }
+        a.ff-link {
+            text-overflow: ellipsis;
+            overflow-x: hidden;
+        }
+    }
+    .ff-pipeline-stage-type {
+        padding: 6px 0px 0.75rem;
+        margin: 0 18px 0.75rem;
+        border-bottom: 1px solid $ff-grey-300;
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        font-size: 0.9rem;    
+        label {
+            color: $ff-grey-500;
+            font-size: 0.75em;
+            line-height: 0.825em;
         }
     }
 }

@@ -20,6 +20,7 @@ module.exports = function (app) {
                 allOf: [{ $ref: 'SnapshotSummary' }]
             },
             status: { type: 'string' },
+            isDeploying: { type: 'boolean' },
             agentVersion: { type: 'string' },
             mode: { type: 'string' },
             links: { $ref: 'LinksMeta' },
@@ -42,7 +43,8 @@ module.exports = function (app) {
                 id: result.hashid,
                 lastSeenAt: result.lastSeenAt,
                 lastSeenMs: result.lastSeenAt ? (Date.now() - new Date(result.lastSeenAt).valueOf()) : null,
-                status: result.state || 'offline'
+                status: result.state || 'offline',
+                isDeploying: app.db.controllers.Device.isDeploying(device)
             }
         }
 
@@ -60,7 +62,8 @@ module.exports = function (app) {
             status: result.state || 'offline',
             agentVersion: result.agentVersion,
             mode: result.mode || 'autonomous',
-            ownerType: result.ownerType
+            ownerType: result.ownerType,
+            isDeploying: app.db.controllers.Device.isDeploying(device)
         }
         if (device.Team) {
             filtered.team = app.db.views.Team.teamSummary(device.Team)
@@ -74,7 +77,7 @@ module.exports = function (app) {
         if (device.Application && !filtered.application) {
             filtered.application = app.db.views.Application.applicationSummary(device.Application)
         }
-        if (app.license.active() && result.mode === 'developer') {
+        if (app.license.active() && result.mode === 'developer' && app.comms?.devices?.tunnelManager) {
             /** @type {import("../../ee/lib/deviceEditor/DeviceTunnelManager").DeviceTunnelManager} */
             const tunnelManager = app.comms.devices.tunnelManager
             filtered.editor = tunnelManager.getTunnelStatus(result.hashid) || {}
@@ -90,10 +93,14 @@ module.exports = function (app) {
             ownerType: { type: 'string' },
             name: { type: 'string' },
             type: { type: 'string' },
+            lastSeenAt: { nullable: true, type: 'string' },
+            lastSeenMs: { nullable: true, type: 'number' },
+            status: { type: 'string' },
+            isDeploying: { type: 'boolean' },
             links: { $ref: 'LinksMeta' }
         }
     })
-    function deviceSummary (device) {
+    function deviceSummary (device, { includeSnapshotIds = false } = {}) {
         if (device) {
             const result = device.toJSON()
             const filtered = {
@@ -101,6 +108,10 @@ module.exports = function (app) {
                 ownerType: result.ownerType,
                 name: result.name,
                 type: result.type,
+                lastSeenAt: result.lastSeenAt,
+                lastSeenMs: result.lastSeenAt ? (Date.now() - new Date(result.lastSeenAt).valueOf()) : null,
+                status: result.state || 'offline',
+                isDeploying: app.db.controllers.Device.isDeploying(device),
                 links: result.links
             }
             return filtered

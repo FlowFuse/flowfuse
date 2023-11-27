@@ -34,6 +34,7 @@
                         :name="name"
                         :placeholder="placeholder"
                         :disabled="disabled"
+                        :maxlength="maxlength"
                         @change="$emit('update:modelValue', { obj: $event.target, val: $event.target.value})"
                     >
                 </div>
@@ -69,6 +70,7 @@
                         :placeholder="placeholder"
                         :disabled="disabled"
                         :type="type"
+                        :maxlength="maxlength"
                         @enter="$emit('enter')"
                         @blur="$emit('blur')"
                     />
@@ -86,7 +88,7 @@ import { ref } from 'vue'
 let instanceCount = 0
 export default {
     name: 'FormRow',
-    props: ['id', 'type', 'name', 'value', 'disabled', 'modelValue', 'valueEmptyText', 'error', 'options', 'placeholder', 'containerClass', 'wrapperClass', 'inputClass', 'appendClass', 'accept'],
+    props: ['id', 'type', 'name', 'value', 'disabled', 'modelValue', 'valueEmptyText', 'error', 'options', 'placeholder', 'containerClass', 'wrapperClass', 'inputClass', 'appendClass', 'accept', 'maxlength'],
     emits: ['update:modelValue', 'blur', 'enter'],
     computed: {
         inputId () {

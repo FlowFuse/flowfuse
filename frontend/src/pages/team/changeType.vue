@@ -15,13 +15,19 @@
         <ff-loading v-if="loading" message="Updating Team..." />
         <div v-else class="max-w-2xl m-auto">
             <form class="space-y-6">
-                <FormHeading>Change your team type</FormHeading>
+                <FormHeading>
+                    <template v-if="isTypeChange">
+                        Change your team type
+                    </template>
+                    <template v-else>
+                        Select your team type
+                    </template>
+                </FormHeading>
                 <!-- TeamType Type -->
                 <div class="flex flex-wrap gap-1 items-stretch">
-                    <ff-tile-selection v-model="input.teamTypeId">
+                    <ff-tile-selection v-model="input.teamTypeId" data-form="team-type">
                         <ff-tile-selection-option
                             v-for="(teamType, index) in teamTypes" :key="index"
-                            :disabled="team.type.id === teamType.id"
                             :label="teamType.name" :description="teamType.description"
                             :price="billingEnabled ? teamType.billingPrice : ''"
                             :price-interval="billingEnabled ? teamType.billingInterval : ''"
@@ -31,24 +37,33 @@
                 </div>
                 <template v-if="billingEnabled">
                     <div class="mb-8 text-sm text-gray-500 space-y-2">
-                        <template v-if="trialMode">
-                            <p><ExclamationCircleIcon class="ff-icon mr-1" /> Updating the team type will bring your free trial to an end</p>
+                        <template v-if="trialMode && !trialHasEnded">
+                            <p>Setting up billing will bring your free trial to an end</p>
                         </template>
-                        <p>Your billing subscription will be updated to reflect the new costs</p>
+                        <p v-if="isTypeChange">Your billing subscription will be updated to reflect the new costs</p>
                     </div>
                 </template>
-                <ff-button :disabled="!formValid" @click="updateTeam()">
-                    Change team type
-                </ff-button>
+                <div class="flex gap-x-4">
+                    <ff-button v-if="isTypeChange" :disabled="!formValid" data-action="change-team-type" @click="updateTeam()">
+                        Change team type
+                    </ff-button>
+                    <ff-button v-else :disabled="!formValid" data-action="setup-team-billing" @click="setupBilling()">
+                        Setup Payment Details
+                    </ff-button>
+                    <ff-button kind="secondary" data-action="cancel-change-team-type" @click="$router.back()">
+                        Cancel
+                    </ff-button>
+                </div>
             </form>
         </div>
     </ff-page>
 </template>
 
 <script>
-import { ChevronLeftIcon, ExclamationCircleIcon } from '@heroicons/vue/outline'
+import { ChevronLeftIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
+import billingApi from '../../api/billing.js'
 import teamApi from '../../api/team.js'
 import teamTypesApi from '../../api/teamTypes.js'
 import FormHeading from '../../components/FormHeading.vue'
@@ -62,8 +77,7 @@ export default {
     components: {
         FormHeading,
         SideNavigation,
-        NavItem,
-        ExclamationCircleIcon
+        NavItem
     },
     data () {
         return {
@@ -83,13 +97,22 @@ export default {
     computed: {
         ...mapState('account', ['user', 'team', 'features']),
         formValid () {
-            return this.input.teamTypeId && this.input.teamTypeId !== this.team.type.id
+            return this.input.teamTypeId && (!this.isTypeChange || this.input.teamTypeId !== this.team.type.id)
         },
         billingEnabled () {
             return this.features.billing
         },
         trialMode () {
             return this.team.billing?.trial
+        },
+        trialHasEnded () {
+            return this.team.billing?.trialEnded
+        },
+        billingSetup () {
+            return this.billingEnabled && this.team.billing?.active
+        },
+        isTypeChange () {
+            return !this.billingEnabled || this.billingSetup
         }
     },
     watch: {
@@ -105,7 +128,7 @@ export default {
         const teamTypesPromise = await teamTypesApi.getTeamTypes()
 
         this.teamTypes = (await teamTypesPromise).types.map(teamType => {
-            if (teamType.id === this.team.type.id) {
+            if (this.isTypeChange && teamType.id === this.team.type.id) {
                 teamType.name = `${teamType.name} (current)`
             }
             return teamType
@@ -113,7 +136,6 @@ export default {
         this.input.teamTypeId = this.team.type.id
     },
     async mounted () {
-        await this.checkBilling()
         this.mounted = true
     },
     methods: {
@@ -133,13 +155,10 @@ export default {
                 this.loading = false
             })
         },
-        checkBilling: async function () {
-            // Team Billing
-            if (this.features.billing && !this.team.billing?.active) {
-                this.$router.push({
-                    path: `/team/${this.team.slug}/billing`
-                })
-            }
+        setupBilling: async function () {
+            this.loading = true
+            const response = await billingApi.createSubscription(this.team.id, this.input.teamTypeId)
+            window.open(response.billingURL, '_self')
         }
     }
 }

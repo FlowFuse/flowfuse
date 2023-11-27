@@ -13,10 +13,14 @@ module.exports = async function (app) {
     /** @type {import('stripe').Stripe} */
     const stripe = require('stripe')(app.config.billing.stripe.key)
 
-    function logStripeEvent (/** @type {StripeEvent} */ event, team, subscription, teamId = null, stripeCustomerId = null) {
+    function logStripeEvent (/** @type {StripeEvent} */ event, team, subscription, teamId = null, stripeCustomerId = null, subscriptionUnknown = false) {
         const intro = `Stripe ${event.type} event ${event.data.object.id} from ${stripeCustomerId} received for`
         if (team) {
-            app.log.info(`${intro} team '${team.hashid}'`)
+            if (subscriptionUnknown) {
+                app.log.warn(`${intro} team '${team.hashid}' for unknown subscription`)
+            } else {
+                app.log.info(`${intro} team '${team.hashid}'`)
+            }
         } else if (teamId) {
             app.log.error(`${intro} unknown team by team ID '${teamId}'`)
         } else if (subscription) {
@@ -57,6 +61,7 @@ module.exports = async function (app) {
     async function parseCheckoutEvent (/** @type {StripeEvent} */ event) {
         const stripeCustomerId = event.data.object.customer
         const stripeSubscriptionId = event.data.object.subscription
+        const metadata = event.data.object.metadata || {}
         const teamId = event.data.object?.client_reference_id
 
         let team, subscription
@@ -69,17 +74,25 @@ module.exports = async function (app) {
         logStripeEvent(event, team, subscription, teamId, stripeCustomerId)
 
         return {
-            stripeSubscriptionId, stripeCustomerId, team
+            stripeSubscriptionId, stripeCustomerId, team, metadata
         }
     }
 
     async function parseSubscriptionEvent (/** @type {StripeEvent} */ event) {
         const stripeSubscriptionId = event.data.object.id
         const stripeCustomerId = event.data.object.customer
-        const subscription = await app.db.models.Subscription.byCustomerId(stripeCustomerId)
+        let subscription = await app.db.models.Subscription.byCustomerId(stripeCustomerId)
         const team = subscription?.Team
 
-        logStripeEvent(event, team, subscription, null, stripeCustomerId)
+        // Check this event is for the known subscription for this customer.
+        // A customer could have additional subscriptions created manually within
+        // stripe - we must make sure we don't respond to events on those ones.
+        let subscriptionUnknown = false
+        if (subscription && subscription.subscription !== stripeSubscriptionId) {
+            subscription = null
+            subscriptionUnknown = true
+        }
+        logStripeEvent(event, team, subscription, null, stripeCustomerId, subscriptionUnknown)
 
         return {
             stripeSubscriptionId, stripeCustomerId, subscription, team
@@ -159,16 +172,29 @@ module.exports = async function (app) {
             }
 
             case 'checkout.session.completed': {
-                const { team, stripeSubscriptionId, stripeCustomerId } = await parseCheckoutEvent(event)
+                const { team, stripeSubscriptionId, stripeCustomerId, metadata } = await parseCheckoutEvent(event)
                 if (!team) {
                     response.status(200).send()
                     return
                 }
-
+                let currentTeamType = team.TeamType
+                if (metadata.teamTypeId) {
+                    const [teamTypeId] = app.db.models.TeamType.decodeHashid(metadata.teamTypeId)
+                    if (teamTypeId !== team.TeamTypeId) {
+                        const newTeamType = await app.db.models.TeamType.byId(teamTypeId)
+                        const auditUpdates = {
+                            old: { id: team.TeamType.hashid, name: team.TeamType.name },
+                            new: { id: newTeamType.hashid, name: newTeamType.name }
+                        }
+                        team.TeamTypeId = teamTypeId
+                        await team.save()
+                        currentTeamType = newTeamType
+                        await app.auditLog.Team.team.type.changed(request.session?.User || 'system', null, team, auditUpdates)
+                    }
+                }
                 await app.db.controllers.Subscription.createSubscription(team, stripeSubscriptionId, stripeCustomerId)
                 await app.auditLog.Team.billing.session.completed(request.session?.User || 'system', null, team, event.data.object)
-
-                app.log.info(`Created Subscription for team '${team.hashid}' with Stripe Customer ID '${stripeCustomerId}'`)
+                app.log.info(`Created Subscription for team '${team.hashid}' (${currentTeamType.name}) with Stripe Customer ID '${stripeCustomerId}'`)
 
                 break
             }
@@ -184,6 +210,10 @@ module.exports = async function (app) {
             case 'customer.subscription.created': {
                 const { team, stripeCustomerId, subscription } = await parseSubscriptionEvent(event)
                 if (!team) {
+                    response.status(200).send()
+                    return
+                }
+                if (!subscription) {
                     response.status(200).send()
                     return
                 }
@@ -329,7 +359,7 @@ module.exports = async function (app) {
     }, async (request, response) => {
         const team = request.team
         try {
-            const session = await app.billing.createSubscriptionSession(team, request.session.User)
+            const session = await app.billing.createSubscriptionSession(team, request.session.User, request.body?.teamTypeId)
             await app.auditLog.Team.billing.session.created(request.session.User, null, team, session)
             response.code(200).type('application/json').send({ billingURL: session.url })
         } catch (err) {
