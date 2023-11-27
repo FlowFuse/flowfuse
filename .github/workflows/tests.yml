@@ -77,8 +77,6 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - name: Install Dependencies
       run: npm ci
-    - name: Fail on purpose
-      run: exit 1
     - name: Build the forge
       run: npm run build
     - name: Run forge unit tests
