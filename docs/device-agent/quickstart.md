@@ -23,7 +23,7 @@ Linux:
 ```bash
 mkdir /opt/flowfuse-device
 cd /opt/flowfuse-device
-npm install -g @flowfuse/flowfuse-device-agent
+npm install -g @flowfuse/device-agent
 flowfuse-device-agent -w --ui-user admin --ui-pass password --ui-port 8081
 ```
 
