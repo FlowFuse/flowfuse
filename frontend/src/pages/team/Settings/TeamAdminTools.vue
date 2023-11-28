@@ -1,5 +1,5 @@
 <template>
-    <div v-if="features.billing" class="space-y-6">
+    <div v-if="features.billing && trialMode" class="space-y-6">
         <FormHeading class="text-red-700">Admin Only Tools</FormHeading>
 
         <div v-if="trialMode" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
