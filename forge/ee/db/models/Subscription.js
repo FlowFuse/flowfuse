@@ -13,7 +13,7 @@ const STATUS = {
     PAST_DUE: 'past_due',
     // Local only status, not from Stripe
     TRIAL: 'trial',
-    // Local only - means this team's subscription on stripeon strip is not
+    // Local only - means this team's subscription on stripe is not
     // managed by the platform
     UNMANAGED: 'unmanaged'
 }
