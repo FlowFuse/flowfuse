@@ -139,6 +139,7 @@ module.exports = async function (app) {
             const subscription = await team.getSubscription()
             if (subscription) {
                 result.billing.active = subscription.isActive()
+                result.billing.unmanaged = subscription.isUnmanaged()
                 result.billing.canceled = subscription.isCanceled()
                 result.billing.pastDue = subscription.isPastDue()
                 if (subscription.isTrial()) {

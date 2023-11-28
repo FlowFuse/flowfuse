@@ -12,7 +12,10 @@ const STATUS = {
     CANCELED: 'canceled',
     PAST_DUE: 'past_due',
     // Local only status, not from Stripe
-    TRIAL: 'trial'
+    TRIAL: 'trial',
+    // Local only - means this team's subscription on stripeon strip is not
+    // managed by the platform
+    UNMANAGED: 'unmanaged'
 }
 
 Object.freeze(STATUS)
@@ -67,6 +70,7 @@ module.exports = {
             instance: {
                 // States:
                 //  isActive : Billing details setup
+                //  isUnmanaged : The subscription on stripe is manually managed - no further setup required
                 //  isTrial  : In trial mode, no billing details setup, trial might have ended (isTrialEnded)
                 //  isActive && !isTrialEnded : Started as a trial, added billing, still in trial period
                 //  isActive && isTrialEnded  : Started as trial, added billing, trial ended
@@ -74,6 +78,9 @@ module.exports = {
                 // Should this subscription be treated as active/usable
                 isActive () {
                     return this.status === STATUS.ACTIVE || this.status === STATUS.PAST_DUE
+                },
+                isUnmanaged () {
+                    return this.status === STATUS.UNMANAGED
                 },
                 isCanceled () {
                     return this.status === STATUS.CANCELED
