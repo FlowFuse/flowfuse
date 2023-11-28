@@ -39,6 +39,7 @@ const getTeam = (team) => {
         if ('billing' in res.data) {
             props['billing-active'] = res.data.billing.active
             props['billing-canceled'] = res.data.billing.canceled
+            props['billing-unmanaged'] = res.data.billing.unmanaged
 
             if ('trial' in res.data.billing) {
                 props['billing-trial'] = res.data.billing.trial

@@ -21,10 +21,13 @@
                 <ConfirmTeamDeleteDialog ref="confirmTeamDeleteDialog" @delete-team="deleteTeam" />
             </div>
         </div>
+        <TeamAdminTools v-if="isAdmin" :team="team" />
     </div>
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import teamApi from '../../../api/team.js'
 import teamTypesApi from '../../../api/teamTypes.js'
 
@@ -32,11 +35,14 @@ import FormHeading from '../../../components/FormHeading.vue'
 
 import ConfirmTeamDeleteDialog from '../dialogs/ConfirmTeamDeleteDialog.vue'
 
+import TeamAdminTools from './TeamAdminTools.vue'
+
 export default {
     name: 'TeamSettingsDanger',
     components: {
         FormHeading,
-        ConfirmTeamDeleteDialog
+        ConfirmTeamDeleteDialog,
+        TeamAdminTools
     },
     props: {
         team: {
@@ -51,6 +57,10 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['user']),
+        isAdmin: function () {
+            return this.user.admin
+        },
         deleteActive () {
             return this.applicationCount === 0
         },
