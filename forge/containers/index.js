@@ -38,7 +38,7 @@ const wrapper = require('./wrapper.js')
 const DRIVER_MODULES = {
     stub: './stub/index.js',
     localfs: '@flowfuse/driver-localfs',
-    docker: '@flowforge/docker',
+    docker: '@flowfuse/driver-docker',
     kubernetes: '@flowforge/kubernetes'
 }
 
