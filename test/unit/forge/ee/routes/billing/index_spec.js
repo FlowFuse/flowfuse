@@ -1480,5 +1480,94 @@ describe('Billing routes', function () {
                 })
             })
         })
+        describe('Unmanaged Subscription', function () {
+            let unmanagedSubTargetTeamType
+            before(async function () {
+                unmanagedSubTargetTeamType = await app.factory.createTeamType({
+                    name: 'unmanaged-subscription-target-type',
+                    properties: {
+                        instances: {
+                            [TestObjects.projectType1.hashid]: { active: true }
+                        }
+                    }
+                })
+            })
+            it('Admin can put team into unmanaged subscription mode', async function () {
+                // Create trial team
+                const trialTeam = await app.factory.createTeam({ name: generateName('unmanagedSubTeam') })
+                await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+                await app.factory.createTrialSubscription(trialTeam, -1)
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/ee/billing/teams/${trialTeam.hashid}/manual`,
+                    payload: {
+                        teamTypeId: unmanagedSubTargetTeamType.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                // Check the team type has been updated to the target type
+                await trialTeam.reload()
+                trialTeam.TeamTypeId.should.equal(unmanagedSubTargetTeamType.id)
+
+                // Check the team subscription is flagged as unmanaged
+                const sub = await trialTeam.getSubscription()
+                sub.isActive().should.be.false()
+                sub.isUnmanaged().should.be.true()
+                sub.isCanceled().should.be.false()
+                sub.isPastDue().should.be.false()
+                sub.isTrial().should.be.false()
+                sub.isTrialEnded().should.be.true()
+            })
+            it('Non-admin cannot make team unmanaged', async function () {
+                // Create non-admin user
+                const userBob = await app.factory.createUser({
+                    admin: false,
+                    username: 'bob',
+                    name: 'Bob Skywalker',
+                    email: 'bob@example.com',
+                    password: 'bbPassword'
+                })
+                await login('bob', 'bbPassword')
+
+                // Create trial team
+                const trialTeam = await app.factory.createTeam({ name: generateName('unmanagedSubTeam') })
+                await trialTeam.addUser(userBob, { through: { role: Roles.Owner } })
+                await app.factory.createTrialSubscription(trialTeam, -1)
+
+                // Bob tries to make it unmanaged
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/ee/billing/teams/${trialTeam.hashid}/manual`,
+                    payload: {
+                        teamTypeId: unmanagedSubTargetTeamType.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(403)
+            })
+            it('Cannot make non-trial team unmanaged', async function () {
+                // Create team
+                const nonTrialTeam = await app.factory.createTeam({ name: generateName('unmanagedSubTeam') })
+                await nonTrialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+                // Create active subscription
+                await app.factory.createSubscription(nonTrialTeam)
+
+                // Attempt to make unmanaged
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/ee/billing/teams/${nonTrialTeam.hashid}/manual`,
+                    payload: {
+                        teamTypeId: unmanagedSubTargetTeamType.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(500)
+                const result = response.json()
+                result.should.have.property('code', 'invalid_request')
+            })
+        })
     })
 })

@@ -508,6 +508,29 @@ module.exports.init = async function (app) {
                 err.code = 'billing_required'
                 throw err
             }
+        },
+        /**
+         * Flags the subscription as being unmanaged. This disables all interaction
+         * with Stripe for this team.
+         *
+         * This can only be done with teams that are currently in trial mode
+         *
+         * @param {*} team
+         * @param {*} targetTeamType
+         */
+        enableManualBilling: async (team) => {
+            const subscription = await team.getSubscription()
+            if (!subscription.isTrial()) {
+                // For first iteration, only teams in trial mode can be put into
+                // manual billing mode
+                const err = new Error('Team not in trial mode')
+                err.code = 'invalid_request'
+                throw err
+            }
+            subscription.status = app.db.models.Subscription.STATUS.UNMANAGED
+            subscription.trialEndsAt = null
+            subscription.trialStatus = app.db.models.Subscription.TRIAL_STATUS.ENDED
+            await subscription.save()
         }
     }
 }
