@@ -57,7 +57,8 @@ describe('Pipelines API', function () {
         TestObjects.projectType = app.projectType
         TestObjects.user = app.user
 
-        TestObjects.device = await TestObjects.factory.createDevice({ name: 'device-a', type: 'type2' }, app.team, null, app.application)
+        TestObjects.deviceOne = await TestObjects.factory.createDevice({ name: 'device-a', type: 'dog' }, app.team, null, app.application)
+        TestObjects.deviceTwo = await TestObjects.factory.createDevice({ name: 'device-b', type: 'robot' }, app.team, null, app.application)
 
         const userPez = await TestObjects.factory.createUser({
             admin: false,
@@ -84,7 +85,7 @@ describe('Pipelines API', function () {
         TestObjects.stageOne = await app.factory.createPipelineStage({ name: 'stage-one', instanceId: app.instance.id }, TestObjects.pipeline)
 
         TestObjects.pipelineDevices = await app.factory.createPipeline({ name: 'new-pipeline-devices' }, app.application)
-        TestObjects.pipelineDevicesStageOne = await app.factory.createPipelineStage({ name: 'stage-one-devices', deviceId: TestObjects.device.id }, TestObjects.pipeline)
+        TestObjects.pipelineDevicesStageOne = await app.factory.createPipelineStage({ name: 'stage-one-devices', deviceId: TestObjects.deviceOne.id }, TestObjects.pipelineDevices)
     })
     afterEach(async function () {
         await app.db.models.PipelineStage.destroy({ where: {} })
@@ -117,26 +118,6 @@ describe('Pipelines API', function () {
             })
 
             describe('Validates that the pipeline is correct', function () {
-                it('Rejects a pipeline stage without an instance', async function () {
-                    const pipelineId = TestObjects.pipeline.hashid
-
-                    const response = await app.inject({
-                        method: 'POST',
-                        url: `/api/v1/pipelines/${pipelineId}/stages`,
-                        payload: {
-                            name: 'stage-two'
-                        },
-                        cookies: { sid: TestObjects.tokens.alice }
-                    })
-
-                    const body = await response.json()
-
-                    body.should.have.property('code', 'unexpected_error')
-                    body.should.have.property('error').match(/instanceId/)
-
-                    response.statusCode.should.equal(500)
-                })
-
                 it('Rejects a pipeline stage if the instance is already in use', async function () {
                     const pipelineId = TestObjects.pipeline.hashid
 
@@ -145,26 +126,67 @@ describe('Pipelines API', function () {
                         url: `/api/v1/pipelines/${pipelineId}/stages`,
                         payload: {
                             name: 'stage-two',
-                            instanceId: TestObjects.instanceOne.hashid // in use
+                            instanceId: TestObjects.instanceOne.id // in use
                         },
                         cookies: { sid: TestObjects.tokens.alice }
                     })
 
                     const body = await response.json()
 
-                    body.should.have.property('code', 'unexpected_error')
+                    body.should.have.property('code', 'invalid_input')
                     body.should.have.property('error').match(/instanceId/)
+                    body.should.have.property('error').match(/already in use in this pipeline/)
 
-                    response.statusCode.should.equal(500)
+                    response.statusCode.should.equal(400)
                 })
             })
         })
 
         describe('With device', function () {
-            it('Should create a pipeline stage')
+            it('Should create a pipeline stage', async function () {
+                const pipelineId = TestObjects.pipelineDevices.hashid
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/pipelines/${pipelineId}/stages`,
+                    payload: {
+                        name: 'stage-two',
+                        deviceId: TestObjects.deviceTwo.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const body = await response.json()
+
+                body.should.have.property('id')
+                body.should.have.property('name', 'stage-two')
+                body.should.have.property('devices')
+
+                body.devices[0].should.have.property('name', 'device-b')
+
+                response.statusCode.should.equal(200)
+            })
+
             describe('Validates that the pipeline is correct', function () {
-                it('Rejects a pipeline stage without an device')
-                it('Rejects a pipeline stage if the device is already in use')
+                it('Rejects a pipeline stage if the device is already in use', async function () {
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/pipelines/${TestObjects.pipelineDevices.hashid}/stages`,
+                        payload: {
+                            name: 'stage-two',
+                            deviceId: TestObjects.deviceOne.hashid // in use
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
+                    const body = await response.json()
+
+                    body.should.have.property('code', 'invalid_input')
+                    body.should.have.property('error').match(/deviceId/)
+                    body.should.have.property('error').match(/already in use in this pipeline/)
+
+                    response.statusCode.should.equal(400)
+                })
             })
         })
 
@@ -200,7 +222,50 @@ describe('Pipelines API', function () {
         })
 
         describe('With both device and instance', function () {
-            it('Rejects the request gracefully')
+            it('Rejects the request gracefully', async function () {
+                const pipelineId = TestObjects.pipeline.hashid
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/pipelines/${pipelineId}/stages`,
+                    payload: {
+                        name: 'stage-two',
+                        deviceId: TestObjects.deviceTwo.hashid,
+                        instanceId: TestObjects.instanceTwo.id
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const body = await response.json()
+
+                body.should.have.property('code', 'invalid_input')
+                body.should.have.property('error').match(/both instance and a device/)
+
+                response.statusCode.should.equal(400)
+            })
+        })
+
+        describe('With neither device or instance', function () {
+            it('Fails gracefully with a clear error', async function () {
+                const pipelineId = TestObjects.pipeline.hashid
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/pipelines/${pipelineId}/stages`,
+                    payload: {
+                        name: 'stage-two'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const body = await response.json()
+
+                body.should.have.property('code', 'invalid_input')
+                body.should.have.property('error').match(/instanceId/)
+                body.should.have.property('error').match(/deviceId/)
+
+                response.statusCode.should.equal(400)
+            })
         })
     })
 
@@ -221,11 +286,47 @@ describe('Pipelines API', function () {
             body.should.have.property('name', 'stage-one')
             body.should.have.property('instances')
             body.instances[0].should.have.property('name', 'project1')
+            body.instances.should.have.length(1)
 
             response.statusCode.should.equal(200)
         })
 
-        it('Should return a single pipeline stage with a device')
+        it('Should return a single pipeline stage with a device', async function () {
+            const pipelineId = TestObjects.pipelineDevices.hashid
+            const stageId = TestObjects.pipelineDevicesStageOne.hashid
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            const body = await response.json()
+
+            body.should.have.property('id')
+            body.should.have.property('name', 'stage-one-devices')
+            body.should.have.property('devices')
+            body.devices[0].should.have.property('name', 'device-a')
+            body.devices.should.have.length(1)
+
+            response.statusCode.should.equal(200)
+        })
+
+        it('Should fail if the pipeline  does not contain the request stage', async function () {
+            const pipelineId = TestObjects.pipelineDevices.hashid
+            const stageId = TestObjects.stageOne.hashid
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            const body = await response.json()
+            body.should.have.property('code', 'not_found')
+
+            response.statusCode.should.equal(404)
+        })
     })
 
     describe('Update Pipeline Stage', function () {
@@ -298,10 +399,10 @@ describe('Pipelines API', function () {
 
                 const body = await response.json()
 
-                body.should.have.property('code', 'unexpected_error')
+                body.should.have.property('code', 'invalid_input')
                 body.should.have.property('error').match(/instanceId/)
 
-                response.statusCode.should.equal(500)
+                response.statusCode.should.equal(400)
             })
 
             it('Should require the instance to be part of the same application', async function () {
@@ -394,13 +495,110 @@ describe('Pipelines API', function () {
                 response.statusCode.should.equal(400)
             })
 
-            it('Should unassign the old device')
+            it('Should unassign the old device', async function () {
+                const pipelineId = TestObjects.pipelineDevices.hashid
+                const stageId = TestObjects.pipelineDevicesStageOne.hashid
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                    payload: {
+                        instanceId: TestObjects.instanceOne.id
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+
+                })
+
+                const body = await response.json()
+
+                body.should.have.property('id')
+                body.should.have.property('instances')
+                body.instances.should.have.length(1)
+                body.instances[0].should.have.property('name', 'project1');
+                (body.devices || []).should.have.length(0)
+
+                response.statusCode.should.equal(200)
+            })
         })
 
         describe('With a new device', function () {
-            it('Should unassign the old device and assign the new one')
-            it('Should require the device to be part of the same application')
-            it('Should unassign the old instance')
+            it('Should unassign the old device and assign the new one', async function () {
+                const pipelineId = TestObjects.pipelineDevices.hashid
+                const stageId = TestObjects.pipelineDevicesStageOne.hashid
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                    payload: {
+                        deviceId: TestObjects.deviceTwo.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+
+                })
+
+                const body = await response.json()
+
+                body.should.have.property('id')
+                body.should.have.property('devices')
+                body.devices.should.have.length(1)
+                body.devices[0].should.have.property('name', 'device-b');
+                (body.instances || []).should.have.length(0)
+
+                response.statusCode.should.equal(200)
+            })
+
+            it('Should require the device to be part of the same application', async function () {
+                const pipelineId = TestObjects.pipelineDevices.hashid
+                const stageId = TestObjects.pipelineDevicesStageOne.hashid
+
+                const otherApplication = await TestObjects.factory.createApplication({
+                    name: 'other-application'
+                }, TestObjects.team)
+
+                const deviceFromOtherApplication = await TestObjects.factory.createDevice({ name: 'device-b', type: 'robot' }, TestObjects.team, null, otherApplication)
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                    payload: {
+                        deviceId: deviceFromOtherApplication.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+
+                })
+
+                const body = await response.json()
+
+                body.should.have.property('code', 'invalid_devicesHaveSameApplication')
+                body.should.have.property('error').match(/not a member of application/)
+
+                response.statusCode.should.equal(400)
+            })
+
+            it('Should unassign the old instance', async function () {
+                const pipelineId = TestObjects.pipeline.hashid
+                const stageId = TestObjects.stageOne.hashid
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                    payload: {
+                        deviceId: TestObjects.deviceOne.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+
+                })
+
+                const body = await response.json()
+
+                body.should.have.property('id')
+                body.should.have.property('devices')
+                body.devices.should.have.length(1)
+                body.devices[0].should.have.property('name', 'device-a');
+                (body.instances || []).should.have.length(0)
+
+                response.statusCode.should.equal(200)
+            })
         })
     })
 
@@ -431,7 +629,7 @@ describe('Pipelines API', function () {
                 // 1 -> 2 -> 3 delete 2
                 TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
                 await TestObjects.stageOne.reload()
-                TestObjects.stageThree = await TestObjects.factory.createPipelineStage({ name: 'stage-three', deviceId: TestObjects.device.id, source: TestObjects.stageTwo.hashid }, TestObjects.pipeline)
+                TestObjects.stageThree = await TestObjects.factory.createPipelineStage({ name: 'stage-three', deviceId: TestObjects.deviceOne.id, source: TestObjects.stageTwo.hashid }, TestObjects.pipeline)
                 await TestObjects.stageTwo.reload()
 
                 should(TestObjects.stageOne.NextStageId).equal(TestObjects.stageTwo.id)
@@ -460,7 +658,7 @@ describe('Pipelines API', function () {
                 const pipelineId = TestObjects.pipeline.hashid
 
                 // 1 -> 2 delete 2
-                TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceId: TestObjects.device.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
+                TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceId: TestObjects.deviceOne.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
                 await TestObjects.stageOne.reload()
 
                 should(TestObjects.stageOne.NextStageId).equal(TestObjects.stageTwo.id)
@@ -673,7 +871,7 @@ describe('Pipelines API', function () {
 
                 const stages = await TestObjects.pipeline.stages()
 
-                stages.length.should.equal(3, 'should start with three pipeline stages')
+                stages.length.should.equal(2, 'should start with two pipeline stages')
 
                 const response = await app.inject({
                     method: 'DELETE',

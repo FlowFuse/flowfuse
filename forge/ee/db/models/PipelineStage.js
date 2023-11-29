@@ -1,5 +1,5 @@
 const {
-    DataTypes
+    DataTypes, ValidationError
 } = require('sequelize')
 
 const SNAPSHOT_ACTIONS = {
@@ -121,7 +121,15 @@ module.exports = {
                 async addInstanceId (instanceId) {
                     const instance = await M.Project.byId(instanceId)
                     if (!instance) {
-                        throw new Error(`instanceId (${instanceId}) not found`)
+                        throw new ValidationError(`instanceId (${instanceId}) not found`)
+                    }
+
+                    if (await this.hasInstance(instance)) {
+                        throw new ValidationError(`instanceId (${instanceId}) is already in use in this stage`)
+                    }
+
+                    if (await (await this.getPipeline()).hasInstance(instance)) {
+                        throw new ValidationError(`instanceId (${instanceId}) is already in use in this pipeline`)
                     }
 
                     await this.addInstance(instance)
@@ -129,7 +137,15 @@ module.exports = {
                 async addDeviceId (deviceId) {
                     const device = await M.Device.byId(deviceId)
                     if (!device) {
-                        throw new Error(`deviceId (${deviceId}) not found`)
+                        throw new ValidationError(`deviceId (${deviceId}) not found`)
+                    }
+
+                    if (await this.hasDevice(device)) {
+                        throw new ValidationError(`deviceId (${deviceId}) is already in use in this stage`)
+                    }
+
+                    if (await (await this.getPipeline()).hasDevice(device)) {
+                        throw new ValidationError(`deviceId (${deviceId}) is already in use in this pipeline`)
                     }
 
                     await this.addDevice(device)

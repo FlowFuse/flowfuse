@@ -1,5 +1,6 @@
 const { ValidationError } = require('sequelize')
 
+const { ControllerError } = require('../../../lib/errors.js')
 const { registerPermissions } = require('../../../lib/permissions')
 const { Roles } = require('../../../lib/roles.js')
 
@@ -230,6 +231,10 @@ module.exports = async function (app) {
             return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
 
+        if (stage.PipelineId !== request.pipeline.id) {
+            return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+
         reply.send(await app.db.views.PipelineStage.stage(stage))
     })
 
@@ -254,6 +259,7 @@ module.exports = async function (app) {
                 properties: {
                     name: { type: 'string' },
                     instanceId: { type: 'string' },
+                    deviceId: { type: 'string' },
                     source: { type: 'string' },
                     action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) }
                 }
@@ -291,10 +297,19 @@ module.exports = async function (app) {
         } catch (error) {
             if (error instanceof ValidationError) {
                 if (error.errors[0]) {
-                    return reply.status(400).type('application/json').send({ code: `invalid_${error.errors[0].path}`, error: error.errors[0].message })
+                    return reply.code(400).type('application/json').send({ code: `invalid_${error.errors[0].path}`, error: error.errors[0].message })
                 }
 
-                return reply.status(400).type('application/json').send({ code: 'invalid_input', error: error.message })
+                return reply.code(400).type('application/json').send({ code: 'invalid_input', error: error.message })
+            }
+
+            if (error instanceof ControllerError) {
+                return reply
+                    .code(error.statusCode || 400)
+                    .send({
+                        code: error.code || 'unexpected_error',
+                        error: error.error || error.message
+                    })
             }
 
             app.log.error('Error while creating pipeline stage:')
@@ -584,6 +599,15 @@ module.exports = async function (app) {
             if (repliedEarly) {
                 console.warn('Deploy failed, but response already sent', err)
             } else {
+                if (err instanceof ControllerError) {
+                    return reply
+                        .code(err.statusCode || 400)
+                        .send({
+                            code: err.code || 'unexpected_error',
+                            error: err.error || err.message
+                        })
+                }
+
                 return reply.code(err.statusCode || 500).send({
                     code: err.code || 'unexpected_error',
                     error: err.error || err.message
