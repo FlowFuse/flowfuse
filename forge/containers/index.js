@@ -39,7 +39,7 @@ const DRIVER_MODULES = {
     stub: './stub/index.js',
     localfs: '@flowfuse/driver-localfs',
     docker: '@flowfuse/driver-docker',
-    kubernetes: '@flowforge/kubernetes'
+    kubernetes: '@flowfuse/driver-kubernetes'
 }
 
 module.exports = fp(async function (app, _opts, next) {
