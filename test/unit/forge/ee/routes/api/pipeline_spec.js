@@ -606,6 +606,7 @@ describe('Pipelines API', function () {
         it('should destroy the pipeline stage, but not touch the assigned instance', async function () {
             const pipelineId = TestObjects.pipeline.hashid
             const stageId = TestObjects.stageOne.hashid
+            const instanceId = TestObjects.instanceOne.id
 
             const response = await app.inject({
                 method: 'DELETE',
@@ -618,9 +619,57 @@ describe('Pipelines API', function () {
             response.statusCode.should.equal(200)
 
             should(await app.db.models.PipelineStage.byId(stageId)).equal(null)
+            should(await app.db.models.Project.byId(instanceId)).not.equal(null)
         })
 
-        it('should destroy the pipeline stage, but not touch the assigned device')
+        it('should destroy the pipeline stage, but not touch the assigned device', async function () {
+            const pipelineId = TestObjects.pipelineDevices.hashid
+            const stageId = TestObjects.pipelineDevicesStageOne.hashid
+            const deviceId = TestObjects.deviceOne.hashid
+
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            const body = await response.json()
+            body.should.have.property('status', 'okay')
+            response.statusCode.should.equal(200)
+
+            should(await app.db.models.PipelineStage.byId(stageId)).equal(null)
+            should(await app.db.models.Device.byId(deviceId)).not.equal(null)
+        })
+
+        it('should fail if the pipeline stage is not on this pipeline', async function () {
+            const pipelineId = TestObjects.pipelineDevices.hashid
+            const stageId = TestObjects.stageOne.hashid
+
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            const body = await response.json()
+            body.should.have.property('code', 'not_found')
+            response.statusCode.should.equal(404)
+        })
+
+        it('should fail if the pipeline stage not found', async function () {
+            const pipelineId = TestObjects.pipelineDevices.hashid
+            const stageId = 'X82nTt' // fake ID
+
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            const body = await response.json()
+            body.should.have.property('code', 'not_found')
+            response.statusCode.should.equal(404)
+        })
 
         describe('When there is a pipeline before and after', function () {
             it('should re-connect the previous to the next pipeline', async function () {

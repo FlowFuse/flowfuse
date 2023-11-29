@@ -460,6 +460,13 @@ module.exports = async function (app) {
             const stageId = request.params.stageId
 
             const stage = await app.db.models.PipelineStage.byId(stageId)
+            if (!stage) {
+                return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+            }
+
+            if (stage.PipelineId !== request.pipeline.id) {
+                return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+            }
 
             // Update the previous stage to point to the next stage when this model is deleted
             // e.g. A -> B -> C to A -> C when B is deleted
