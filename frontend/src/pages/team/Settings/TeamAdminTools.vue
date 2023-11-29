@@ -15,7 +15,7 @@
             </div>
         </div>
     </div>
-    <ConfirmTeamManualBillingDialog ref="confirmTeamManualBillingDialog" @setup-manual-billing="setupManualBilling" />
+    <ConfirmTeamManualBillingDialog v-if="trialMode" ref="confirmTeamManualBillingDialog" @setup-manual-billing="setupManualBilling" />
 </template>
 
 <script>
