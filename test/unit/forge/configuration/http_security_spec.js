@@ -229,7 +229,7 @@ describe('Check HTTP Security Headers set', async () => {
             headers.should.have.property('content-security-policy')
             const csp = response.headers['content-security-policy']
             csp.split(';').should.containEql('script-src app.posthog.com js-eu1.hs-analytics.com js-eu1.hs-banner.com js-eu1.hs-scripts.com js-eu1.hscollectedforms.net js-eu1.hubspot.com js-eu1.usemessages.com',
-  'connect-src app.posthog.com api-eu1.hubspot.com cta-eu1.hubspot.com forms-eu1.hscollectedforms.net')
+                'connect-src app.posthog.com api-eu1.hubspot.com cta-eu1.hubspot.com forms-eu1.hscollectedforms.net')
         })
         it('CSP with sentry.io', async function () {
             const config = {
