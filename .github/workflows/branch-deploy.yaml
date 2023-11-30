@@ -117,7 +117,7 @@ jobs:
           cluster-role-arn: arn:aws:iam::${{ steps.aws-config.outputs.aws-account-id }}:role/K8sAdmin
           namespace: "pr-${{ env.PR_NUMBER }}"
           name: my-mongodb
-          chart-repository: oci://registry-1.docker.io/
+          chart-repository: oci://registry-1.docker.io
           chart-path: bitnamicharts/mongodb
           config-files: ci/ci-values.yaml
           version: 14.3.2
