@@ -34,11 +34,6 @@ jobs:
           npm install --no-audit --no-fund @flowforge/kubernetes@^1.14.0 && \    
           npm run build
 
-      - name: Debug
-        run: |
-          echo "current dir: $PWD"
-          ls -la
-
       - name: Set variables
         run: | 
           echo "repository_owner_lower=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
