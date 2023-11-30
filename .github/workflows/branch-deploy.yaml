@@ -58,6 +58,30 @@ jobs:
         with:
           context: .
           file: "./docker/Dockerfile"
-          tags: "ghcr.io/${{ env.repository_owner_lower }}/${{ env.IMAGE_NAME }}:pr-${{ env.PR_NUMBER}}"
-          push: true
-          provenance: false
+          tags: "${{ env.IMAGE_NAME }}:pr-${{ env.PR_NUMBER}}"
+          push: false
+          outputs: type=docker,dest=/tmp/k8s-forge.tar
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: k8s-forge
+          path: /tmp/k8s-forge.tar
+
+  deploy:
+    runs-on: ubuntu-latest
+    # environment: staging
+    permissions:
+      packages: read
+      contents: read
+    steps:     
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: k8s-forge
+          path: /tmp
+
+      - name: Load image
+        run: |
+          docker load --input /tmp/myimage.tar
+          docker image ls -a 
