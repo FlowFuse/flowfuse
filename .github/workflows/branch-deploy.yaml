@@ -72,6 +72,9 @@ jobs:
       IMAGE_NAME: 'forge-k8s'
       PR_NUMBER: ${{ github.event.number }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
       - name: Set variables
         run: | 
           echo "tagged_image=${{ env.IMAGE_NAME }}:pr-${{ env.PR_NUMBER}}" >> $GITHUB_ENV
@@ -85,7 +88,12 @@ jobs:
       - name: Load image
         run: |
           docker load --input /tmp/k8s-forge.tar
-          docker image ls -a 
+          docker image ls -a
+
+      - name: Delete artifact
+        uses: geekyeggo/delete-artifact@v2
+        with:
+            name: k8s-forge
 
       - name: Configure AWS credentials
         id: aws-config
