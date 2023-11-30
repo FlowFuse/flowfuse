@@ -34,6 +34,11 @@ jobs:
           npm install --no-audit --no-fund @flowforge/kubernetes@^1.14.0 && \    
           npm run build
 
+      - name: Debug
+        run: |
+          echo "current dir: $PWD"
+          ls -la
+
       - name: Set variables
         run: | 
           echo "repository_owner_lower=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
@@ -56,6 +61,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v5
         with:
+          context: .
           file: "./docker/Dockerfile"
           tags: "ghcr.io/${{ env.repository_owner_lower }}/${{ env.IMAGE_NAME }}:${{ env.PR_NUMBER}}"
           push: true
