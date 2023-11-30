@@ -130,7 +130,7 @@ jobs:
           chart-path: bitnamicharts/mongodb
           config-files: ci/ci-values.yaml
           version: 14.3.2
-          timeout: 300
+          timeout: 300s
           atomic: true
           dry-run: false
           helm-wait: true
