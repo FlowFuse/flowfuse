@@ -1120,7 +1120,7 @@ describe('Pipelines API', function () {
             describe('With valid input', function () {
                 describe('For instance=>instance', function () {
                     it('Creates a snapshot of the source instance, and copies to the target instance', async function () {
-                    // Setup an initial configuration
+                        // Setup an initial configuration
                         const setupResult = await addFlowsToProject(app,
                             TestObjects.instanceOne.id,
                             TestObjects.tokens.instanceOne,
@@ -1198,15 +1198,70 @@ describe('Pipelines API', function () {
                 })
 
                 describe('For device=>instance', function () {
-                    it('Should fail gracefully as creating snapshots of devices at deploy time is not supported')
+                    it('Should fail gracefully as creating snapshots of devices at deploy time is not supported', async function () {
+                        // 1 -> 2
+                        TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceOne.id, source: TestObjects.pipelineDevicesStageOne.hashid }, TestObjects.pipelineDevices)
+
+                        const response = await app.inject({
+                            method: 'PUT',
+                            url: `/api/v1/pipelines/${TestObjects.pipelineDevices.hashid}/stages/${TestObjects.pipelineDevicesStageOne.hashid}/deploy`,
+                            cookies: { sid: TestObjects.tokens.alice }
+                        })
+
+                        const body = await response.json()
+
+                        body.should.have.property('code', 'invalid_source_action')
+                        body.error.should.match(/not supported/)
+
+                        response.statusCode.should.equal(400)
+                    })
                 })
 
                 describe('For device=>device', function () {
-                    it('Should fail gracefully as creating snapshots of devices at deploy time is not supported')
+                    it('Should fail gracefully as creating snapshots of devices at deploy time is not supported', async function () {
+                        // 1 -> 2
+                        TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceId: TestObjects.deviceTwo.id, source: TestObjects.pipelineDevicesStageOne.hashid }, TestObjects.pipelineDevices)
+
+                        const response = await app.inject({
+                            method: 'PUT',
+                            url: `/api/v1/pipelines/${TestObjects.pipelineDevices.hashid}/stages/${TestObjects.pipelineDevicesStageOne.hashid}/deploy`,
+                            cookies: { sid: TestObjects.tokens.alice }
+                        })
+
+                        const body = await response.json()
+
+                        body.should.have.property('code', 'invalid_source_action')
+                        body.error.should.match(/not supported/)
+
+                        response.statusCode.should.equal(400)
+                    })
                 })
 
                 describe('For instance=>device', function () {
-                    it('Creates a snapshot of the source instance, and copies to the target device')
+                    it('Creates a snapshot of the source instance and sets it at the target snapshot on the target device', async function () {
+                        // No snapshot yet
+                        const latestSnapshot = await TestObjects.instanceOne.getLatestSnapshot()
+                        should(latestSnapshot).equal(undefined)
+
+                        // 1 -> 2
+                        TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceId: TestObjects.deviceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
+
+                        const response = await app.inject({
+                            method: 'PUT',
+                            url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageOne.hashid}/deploy`,
+                            cookies: { sid: TestObjects.tokens.alice }
+                        })
+
+                        const body = await response.json()
+                        body.should.have.property('status', 'importing')
+
+                        await TestObjects.deviceTwo.reload()
+
+                        const createdSnapshot = await TestObjects.instanceOne.getLatestSnapshot()
+                        should(createSnapshot).should.not.equal(undefined)
+
+                        TestObjects.deviceTwo.targetSnapshotId.should.equal(createdSnapshot.id)
+                    })
                 })
             })
 
