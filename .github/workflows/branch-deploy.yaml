@@ -93,7 +93,8 @@ jobs:
       - name: Delete artifact
         uses: geekyeggo/delete-artifact@v2
         with:
-            name: k8s-forge
+          name: k8s-forge
+          failOnError: false
 
       - name: Configure AWS credentials
         id: aws-config
@@ -115,7 +116,7 @@ jobs:
           docker tag ${{ env.tagged_image }} ${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}
           docker push ${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}
 
-      - name: Deploy Helm
+      - name: Deploy forge app
         uses: bitovi/github-actions-deploy-eks-helm@v1.2.8
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -130,4 +131,5 @@ jobs:
           config-files: ci/ci-values.yaml
           version: 14.3.2
           atomic: true
-          dry-run: true
+          dry-run: false
+          helm-wait: true
