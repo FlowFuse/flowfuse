@@ -58,6 +58,6 @@ jobs:
         with:
           context: .
           file: "./docker/Dockerfile"
-          tags: "ghcr.io/${{ env.repository_owner_lower }}/${{ env.IMAGE_NAME }}:${{ env.PR_NUMBER}}"
+          tags: "ghcr.io/${{ env.repository_owner_lower }}/${{ env.IMAGE_NAME }}:pr-${{ env.PR_NUMBER}}"
           push: true
           provenance: false
