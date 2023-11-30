@@ -30,6 +30,7 @@ jobs:
   
   build_image:
     name: Build container image
+    needs: build_app
     runs-on: ubuntu-latest
     permissions:
       packages: write
