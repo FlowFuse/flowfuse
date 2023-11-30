@@ -67,6 +67,7 @@ jobs:
         with:
           name: k8s-forge
           path: /tmp/k8s-forge.tar
+          retention-days: 7
 
   deploy:
     runs-on: ubuntu-latest
@@ -84,5 +85,5 @@ jobs:
 
       - name: Load image
         run: |
-          docker load --input /tmp/myimage.tar
+          docker load --input /tmp/k8s-forge.tar
           docker image ls -a 
