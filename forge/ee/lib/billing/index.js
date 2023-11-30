@@ -1,5 +1,3 @@
-const { Op } = require('sequelize')
-
 module.exports.init = async function (app) {
     // Set the billing feature flag
     app.config.features.register('billing', true, true)
@@ -104,7 +102,7 @@ module.exports.init = async function (app) {
                     }
                 }
             }
-            const instanceCounts = await team.instanceCountByType({ state: { [Op.notIn]: ['suspended', 'deleting'] } })
+            const instanceCounts = await team.getBillableInstanceCountByType()
             const instanceTypes = await app.db.models.ProjectType.findAll()
             for (const instanceType of instanceTypes) {
                 // Get the stripe ids to use for this instance type in this team type
@@ -224,8 +222,13 @@ module.exports.init = async function (app) {
          * @param {Team} team
          */
         updateTeamInstanceCount: async (team) => {
-            const counts = await team.instanceCountByType({ state: { [Op.notIn]: ['suspended', 'deleting'] } })
+            const counts = await team.getBillableInstanceCountByType()
             const subscription = await team.getSubscription()
+            if (subscription && subscription.isUnmanaged()) {
+                // Unmanaged subscription means the platform is not responsible
+                // for managing the stripe configuration
+                return
+            }
             if (subscription && subscription.isActive()) {
                 const prorationBehavior = await team.getBillingProrationBehavior()
                 const stripeSubscription = await stripe.subscriptions.retrieve(subscription.subscription)
@@ -328,6 +331,11 @@ module.exports.init = async function (app) {
                 return
             }
             const subscription = await team.getSubscription()
+            if (subscription && subscription.isUnmanaged()) {
+                // Unmanaged subscription means the platform is not responsible
+                // for managing the stripe configuration
+                return
+            }
             if (subscription && subscription.isActive()) {
                 const deviceCount = await team.deviceCount()
                 const deviceFreeAllocation = await team.getDeviceFreeAllowance()
@@ -442,8 +450,13 @@ module.exports.init = async function (app) {
          */
         updateTeamType: async (team, targetTeamType) => {
             const subscription = await team.getSubscription()
-            // The team must have billing setup with an active subscription before
+            // The team must have billing setup with an active or unmanaged subscription before
             // it can change its type
+            if (subscription && subscription.isUnmanaged()) {
+                // Unmanaged subscription means the platform is not responsible
+                // for managing the stripe configuration
+                return
+            }
             if (subscription && subscription.isActive()) {
                 if (subscription.isTrial()) {
                     // This block can be removed in 1.14 as it is a condition
@@ -495,6 +508,29 @@ module.exports.init = async function (app) {
                 err.code = 'billing_required'
                 throw err
             }
+        },
+        /**
+         * Flags the subscription as being unmanaged. This disables all interaction
+         * with Stripe for this team.
+         *
+         * This can only be done with teams that are currently in trial mode
+         *
+         * @param {*} team
+         * @param {*} targetTeamType
+         */
+        enableManualBilling: async (team) => {
+            const subscription = await team.getSubscription()
+            if (!subscription.isTrial()) {
+                // For first iteration, only teams in trial mode can be put into
+                // manual billing mode
+                const err = new Error('Team not in trial mode')
+                err.code = 'invalid_request'
+                throw err
+            }
+            subscription.status = app.db.models.Subscription.STATUS.UNMANAGED
+            subscription.trialEndsAt = null
+            subscription.trialStatus = app.db.models.Subscription.TRIAL_STATUS.ENDED
+            await subscription.save()
         }
     }
 }

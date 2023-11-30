@@ -1,3 +1,5 @@
+const { Op } = require('sequelize')
+
 /**
  * Augments the Team model will billing-specific instance functions
  * @param {*} app
@@ -109,7 +111,7 @@ module.exports = function (app) {
         // for trial mode.
         const subscription = await this.getSubscription()
         if (subscription) {
-            if (subscription.isActive()) {
+            if (subscription.isActive() || subscription.isUnmanaged()) {
                 // Billing setup - allowed to create projects
                 return
             }
@@ -151,7 +153,7 @@ module.exports = function (app) {
 
         const subscription = await this.getSubscription()
         if (subscription) {
-            if (subscription.isActive()) {
+            if (subscription.isActive() || subscription.isUnmanaged()) {
                 return
             }
             if (subscription.isTrial() && !subscription.isTrialEnded()) {
@@ -189,5 +191,14 @@ module.exports = function (app) {
     app.db.models.Team.prototype.getBillingProrationBehavior = async function () {
         await this.ensureTeamTypeExists()
         return this.TeamType.getProperty('billing.proration', 'always_invoice')
+    }
+
+    /**
+     * Gets counts of instance types in this team that are billable
+     * @returns object
+     */
+
+    app.db.models.Team.prototype.getBillableInstanceCountByType = async function () {
+        return await this.instanceCountByType({ state: { [Op.notIn]: ['suspended', 'deleting'] } })
     }
 }

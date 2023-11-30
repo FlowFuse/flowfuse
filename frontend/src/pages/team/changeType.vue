@@ -23,6 +23,14 @@
                         Select your team type
                     </template>
                 </FormHeading>
+                <div v-if="isUnmanaged" class="space-y-2">
+                    <p>
+                        Your team type cannot currently be managed from the dashboard.
+                    </p>
+                    <p>
+                        Please contact <a href="https://flowfuse.com/support/" class="underline" target="_blank">Support</a> for help.
+                    </p>
+                </div>
                 <!-- TeamType Type -->
                 <div class="flex flex-wrap gap-1 items-stretch">
                     <ff-tile-selection v-model="input.teamTypeId" data-form="team-type">
@@ -32,6 +40,7 @@
                             :price="billingEnabled ? teamType.billingPrice : ''"
                             :price-interval="billingEnabled ? teamType.billingInterval : ''"
                             :value="teamType.id"
+                            :disabled="isUnmanaged"
                         />
                     </ff-tile-selection>
                 </div>
@@ -97,7 +106,7 @@ export default {
     computed: {
         ...mapState('account', ['user', 'team', 'features']),
         formValid () {
-            return this.input.teamTypeId && (!this.isTypeChange || this.input.teamTypeId !== this.team.type.id)
+            return !this.isUnmanaged && this.input.teamTypeId && (!this.isTypeChange || this.input.teamTypeId !== this.team.type.id)
         },
         billingEnabled () {
             return this.features.billing
@@ -113,6 +122,9 @@ export default {
         },
         isTypeChange () {
             return !this.billingEnabled || this.billingSetup
+        },
+        isUnmanaged () {
+            return this.team.billing?.unmanaged
         }
     },
     watch: {

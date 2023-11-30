@@ -504,7 +504,7 @@ export default {
         this.flowBlueprints = (await flowBlueprintsPromise).blueprints
 
         this.activeProjectTypeCount = projectTypes.length
-        if (this.billingEnabled) {
+        if (this.billingEnabled && !this.team.billing?.unmanaged) {
             try {
                 this.subscription = await billingApi.getSubscriptionInfo(this.team.id)
             } catch (err) {
@@ -557,7 +557,6 @@ export default {
                         pt.currency = ''
                         pt.cost = 0
                     }
-
                     if (this.team.billing?.trial) {
                         if (this.team.type.properties?.trial?.instanceType) {
                             const isTrialProjectType = pt.id === this.team.type.properties?.trial?.instanceType
@@ -606,11 +605,12 @@ export default {
         }
 
         // Team must not have billing set up
-        if (this.team.billing?.active ?? true) {
+        if ((this.team.billing?.active || this.team.billing?.unmanaged) ?? true) {
             return
         }
 
         // Redirect to billing if:
+        //   - subscription is not unmanaged
         //   - team has cancelled their subscription
         //   - team is not a trial team, or:
         //   - team is a trial team and:
