@@ -36,7 +36,7 @@ jobs:
 
       - name: Set variables
         run: | 
-          echo "repository_owner_lower=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+          echo "tagged_image=${{ env.IMAGE_NAME }}:pr-${{ env.PR_NUMBER}}" >> $GITHUB_ENV
 
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v3
@@ -50,7 +50,7 @@ jobs:
         with:
           context: .
           file: "./docker/Dockerfile"
-          tags: "${{ env.IMAGE_NAME }}:pr-${{ env.PR_NUMBER}}"
+          tags: ${{ env.tagged_image }}
           push: false
           outputs: type=docker,dest=/tmp/k8s-forge.tar
       
@@ -64,18 +64,42 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    # environment: staging
+    environment: staging
     permissions:
       packages: read
       contents: read
-    steps:     
+    env:
+      IMAGE_NAME: 'forge-k8s'
+      PR_NUMBER: ${{ github.event.number }}
+    steps:
+      - name: Set variables
+        run: | 
+          echo "tagged_image=${{ env.IMAGE_NAME }}:pr-${{ env.PR_NUMBER}}" >> $GITHUB_ENV
+
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
           name: k8s-forge
           path: /tmp
 
-      - name: Load image
-        run: |
-          docker load --input /tmp/k8s-forge.tar
-          docker image ls -a 
+      - name: Configure AWS credentials
+        id: aws-config
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+          aws-region: eu-west-1
+          mask-aws-account-id: true
+        
+      - name: Login to AWS ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          mask-password: true
+
+      - name: Push image to ECR
+        uses: akhilerm/tag-push-action@v2.1.0
+        with:
+          src: "${{ env.tagged_image }}"
+          dst: ${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}
+
