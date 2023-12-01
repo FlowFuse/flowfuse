@@ -96,7 +96,7 @@ jobs:
           name: k8s-forge
           failOnError: false
 
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials for ECR interaction
         id: aws-config
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -116,21 +116,44 @@ jobs:
           docker tag ${{ env.tagged_image }} ${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}
           docker push ${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}
 
-      - name: Deploy forge app
-        uses: bitovi/github-actions-deploy-eks-helm@v1.2.8
+      - name: Configure AWS credentials for EKS interaction
+        uses: aws-actions/configure-aws-credentials@v3
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
           aws-region: eu-west-1
-          cluster-name: ${{ secrets.EKS_CLUSTER_NAME }}
-          cluster-role-arn: arn:aws:iam::${{ steps.aws-config.outputs.aws-account-id }}:role/K8sAdmin
-          namespace: "pr-${{ env.PR_NUMBER }}"
-          name: my-mongodb
-          chart-repository: oci://registry-1.docker.io
-          chart-path: bitnamicharts/mongodb
-          config-files: ci/ci-values.yaml
-          version: 14.3.2
-          timeout: 300s
-          atomic: true
-          dry-run: false
-          helm-wait: true
+          role-to-assume: arn:aws:iam::${{ steps.aws-config.outputs.aws-account-id }}:role/K8sAdmin
+          role-duration-seconds: 1200
+
+      - name: Deploy forge app
+        run: |
+          helm repo add flowforge https://flowfuse.github.io/helm
+          helm repo update
+          helm upgrade --install \
+            --create-namespace \
+            --namespace "pr-${{ env.PR_NUMBER }}" \
+            --timeout 300s \
+            --wait \
+            --atomic \
+            --values ci/ci-values.yaml \
+            --set forge.image=${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }} \
+            --set forge.entryPoint=${{ env.PR_NUMBER }}.flowfuse.dev \
+            --dry-run=server \
+            flowfuse-pr-${{ env.PR_NUMBER }} flowforge/flowforge
+
+      # - name: Deploy forge app
+      #   uses: bitovi/github-actions-deploy-eks-helm@v1.2.8
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+      #     aws-region: eu-west-1
+      #     cluster-name: ${{ secrets.EKS_CLUSTER_NAME }}
+      #     cluster-role-arn: arn:aws:iam::${{ steps.aws-config.outputs.aws-account-id }}:role/K8sAdmin
+      #     namespace: "pr-${{ env.PR_NUMBER }}"
+      #     name: flowfuse-pr-${{ env.PR_NUMBER }}
+      #     chart-repository: https://flowfuse.github.io/helm
+      #     config-files: ci/ci-values.yaml
+      #     timeout: 300s
+      #     atomic: true
+      #     dry-run: true
+      #     helm-wait: true
