@@ -3,7 +3,7 @@
         <div class="ff-pipeline-stage-banner">
             <div class="ff-pipeline-stage-banner-name">
                 <label>{{ stage.name }}</label>
-                <span v-if="error" class="ff-pipelines-stage-banner-error">
+                <span v-if="error" class="ff-pipelines-stage-banner-error" data-el="stage-banner-error">
                     <ExclamationIcon class="ff-icon-sm" />
                     {{ error }}
                 </span>
