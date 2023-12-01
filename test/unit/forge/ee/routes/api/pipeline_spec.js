@@ -29,6 +29,28 @@ describe('Pipelines API', function () {
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
+    async function createDeviceSnapshot (device, options) {
+        // Only stub once if called multiple times
+        if (!app.comms.devices.sendCommandAwaitReply.restore) {
+            sinon.stub(app.comms.devices, 'sendCommandAwaitReply').resolves({
+                flows: [{ custom: 'custom-flows' }],
+                credentials: {
+                    $: {
+                        key: 'value'
+                    }
+                },
+                package: {
+                    modules: {
+                        custom: 'custom-module'
+                    }
+                }
+            })
+        }
+
+        device.Team = TestObjects.team
+        return await app.db.controllers.ProjectSnapshot.createDeviceSnapshot(TestObjects.application, device, TestObjects.user, options)
+    }
+
     before(async function () {
         app = await setup()
         sandbox.stub(app.log, 'info')
@@ -1314,6 +1336,7 @@ describe('Pipelines API', function () {
         describe('With action=prompt', function () {
             beforeEach(async function () {
                 await TestObjects.stageOne.update({ action: 'prompt' })
+                await TestObjects.pipelineDevicesStageOne.update({ action: 'prompt' })
             })
 
             afterEach(async function () {
@@ -1341,7 +1364,7 @@ describe('Pipelines API', function () {
                 })
 
                 it('Should fail gracefully if the passed in instance snapshot ID is not from the correct pipeline stage', async function () {
-                // 1 -> 2
+                    // 1 -> 2
                     TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
 
                     const snapshotFromOtherInstance = await createSnapshot(app, TestObjects.instanceTwo, TestObjects.user, {
@@ -1361,16 +1384,38 @@ describe('Pipelines API', function () {
 
                     const body = await response.json()
                     body.should.have.property('code', 'invalid_source_snapshot')
+                    body.error.should.match(/not associated with source instance/)
                     response.statusCode.should.equal(400)
                 })
 
-                it('Should fail gracefully if the passed in device snapshot ID is not from the correct pipeline stage')
+                it('Should fail gracefully if the passed in device snapshot ID is not from the correct pipeline stage', async function () {
+                    // 1 -> 2
+                    TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two-devices', deviceId: TestObjects.deviceTwo.id, source: TestObjects.pipelineDevicesStageOne.hashid }, TestObjects.pipelineDevices)
+
+                    const snapshotFromOtherDevice = await createDeviceSnapshot(TestObjects.deviceTwo, {
+                        name: 'snapshot1',
+                        description: 'a snapshot'
+                    })
+
+                    const response = await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/pipelines/${TestObjects.pipelineDevices.hashid}/stages/${TestObjects.pipelineDevicesStageOne.hashid}/deploy`,
+                        cookies: { sid: TestObjects.tokens.alice },
+                        payload: {
+                            sourceSnapshotId: snapshotFromOtherDevice.hashid
+                        }
+                    })
+
+                    const body = await response.json()
+                    body.should.have.property('code', 'invalid_source_snapshot')
+                    body.error.should.match(/not associated with source device/)
+                    response.statusCode.should.equal(400)
+                })
             })
 
             describe('For instance=>instance', function () {
                 it('Should copy the existing selected instance snapshot to the target instance', async function () {
-                // Setup an initial configuration
-
+                    // Setup an initial configuration
                     const setupResult = await addFlowsToProject(app,
                         TestObjects.instanceOne.id,
                         TestObjects.tokens.instanceOne,
@@ -1472,11 +1517,129 @@ describe('Pipelines API', function () {
             })
 
             describe('For device=>instance', function () {
-                it('Should copy the existing selected device snapshot to the target instance')
+                it('Should copy the existing selected device snapshot to the target instance', async function () {
+                    await createDeviceSnapshot(TestObjects.deviceOne, {
+                        name: 'old-snapshot',
+                        description: 'a snapshot created first'
+                    })
+
+                    const snapshotToSetAsTarget = await createDeviceSnapshot(TestObjects.deviceOne, {
+                        name: 'device-snapshot-to-set-as-target',
+                        description: 'a snapshot that will become the target'
+                    })
+
+                    await createDeviceSnapshot(TestObjects.deviceOne, {
+                        name: 'latest-snapshot',
+                        description: 'a snapshot crated last'
+                    })
+
+                    // 1 -> 2
+                    TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.pipelineDevicesStageOne.hashid }, TestObjects.pipelineDevices)
+
+                    const response = await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/pipelines/${TestObjects.pipelineDevices.hashid}/stages/${TestObjects.pipelineDevicesStageOne.hashid}/deploy`,
+                        cookies: { sid: TestObjects.tokens.alice },
+                        payload: {
+                            sourceSnapshotId: snapshotToSetAsTarget.hashid
+                        }
+                    })
+
+                    const body = await response.json()
+                    body.should.have.property('status', 'importing')
+
+                    // Wait for the deploy to complete
+                    await waitForDeployToComplete(TestObjects.instanceTwo)
+
+                    // No new snapshot should have been created in stage 1
+                    const sourceDeviceSnapshots = await TestObjects.deviceOne.getProjectSnapshots()
+                    sourceDeviceSnapshots.should.have.lengthOf(3)
+
+                    // Snapshot created in stage 2, flows created, and set as target
+
+                    // Get the snapshot for instance 2 post deploy
+                    const snapshots = await TestObjects.instanceTwo.getProjectSnapshots()
+                    snapshots.should.have.lengthOf(1)
+
+                    const targetSnapshot = snapshots[0]
+
+                    targetSnapshot.name.should.match(/device-snapshot-to-set-as-target - Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
+                    targetSnapshot.description.should.match(/Snapshot created for pipeline deployment from stage-one-devices to stage-two as part of pipeline new-pipeline-devices/)
+                    targetSnapshot.description.should.match(/a snapshot that will become the target/)
+
+                    targetSnapshot.flows.should.have.property('flows')
+                    targetSnapshot.flows.flows.should.match([{ custom: 'custom-flows' }])
+
+                    targetSnapshot.flows.should.have.property('credentials')
+                    targetSnapshot.flows.credentials.should.have.property('$')
+
+                    targetSnapshot.settings.should.have.property('settings')
+                    targetSnapshot.settings.modules.should.have.property('custom', 'custom-module')
+                })
             })
 
             describe('For device=>device', function () {
-                it('Should copy the existing selected device snapshot to the target device')
+                it('Should set the selected device snapshot as the target snapshot of the target', function () {
+                    t('Should copy the existing selected device snapshot to the target instance', async function () {
+                        await createDeviceSnapshot(TestObjects.deviceOne, {
+                            name: 'old-snapshot',
+                            description: 'a snapshot created first'
+                        })
+    
+                        const snapshotToSetAsTarget = await createDeviceSnapshot(TestObjects.deviceOne, {
+                            name: 'device-snapshot-to-set-as-target',
+                            description: 'a snapshot that will become the target'
+                        })
+    
+                        await createDeviceSnapshot(TestObjects.deviceOne, {
+                            name: 'latest-snapshot',
+                            description: 'a snapshot crated last'
+                        })
+    
+                        // 1 -> 2
+                        TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.pipelineDevicesStageOne.hashid }, TestObjects.pipelineDevices)
+    
+                        const response = await app.inject({
+                            method: 'PUT',
+                            url: `/api/v1/pipelines/${TestObjects.pipelineDevices.hashid}/stages/${TestObjects.pipelineDevicesStageOne.hashid}/deploy`,
+                            cookies: { sid: TestObjects.tokens.alice },
+                            payload: {
+                                sourceSnapshotId: snapshotToSetAsTarget.hashid
+                            }
+                        })
+    
+                        const body = await response.json()
+                        body.should.have.property('status', 'importing')
+    
+                        // Wait for the deploy to complete
+                        await waitForDeployToComplete(TestObjects.instanceTwo)
+    
+                        // No new snapshot should have been created in stage 1
+                        const sourceDeviceSnapshots = await TestObjects.deviceOne.getProjectSnapshots()
+                        sourceDeviceSnapshots.should.have.lengthOf(3)
+    
+                        // Snapshot created in stage 2, flows created, and set as target
+    
+                        // Get the snapshot for instance 2 post deploy
+                        const snapshots = await TestObjects.instanceTwo.getProjectSnapshots()
+                        snapshots.should.have.lengthOf(1)
+    
+                        const targetSnapshot = snapshots[0]
+    
+                        targetSnapshot.name.should.match(/device-snapshot-to-set-as-target - Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
+                        targetSnapshot.description.should.match(/Snapshot created for pipeline deployment from stage-one-devices to stage-two as part of pipeline new-pipeline-devices/)
+                        targetSnapshot.description.should.match(/a snapshot that will become the target/)
+    
+                        targetSnapshot.flows.should.have.property('flows')
+                        targetSnapshot.flows.flows.should.match([{ custom: 'custom-flows' }])
+    
+                        targetSnapshot.flows.should.have.property('credentials')
+                        targetSnapshot.flows.credentials.should.have.property('$')
+    
+                        targetSnapshot.settings.should.have.property('settings')
+                        targetSnapshot.settings.modules.should.have.property('custom', 'custom-module')
+                    })
+                })
             })
 
             describe('For instance=>device', function () {
