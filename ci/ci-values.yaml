@@ -1,3 +1,4 @@
 forge:
+  domain: flowfuse.dev
   https: false
   localPostgresql: true
