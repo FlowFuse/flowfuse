@@ -44,7 +44,8 @@
             :instance-status-map="instanceStatusMap"
             :device-status-map="deviceStatusMap"
             @stage-deploy-starting="stageDeployStarting"
-            @stage-deploy-started="startPollingForDeployStatus"
+            @stage-deploy-started="stageDeployFailed"
+            @stage-deploy-failed="stageDeployStarting"
             @pipeline-deleted="loadPipelines"
             @stage-deleted="(stageIndex) => stageDeleted(pipeline, stageIndex)"
         />
@@ -157,9 +158,18 @@ export default {
                 return console.warn('Deployment starting to stage without an instance or device.')
             }
         },
-        startPollingForDeployStatus (stage, nextStage) {
-            clearInterval(this.polling)
+        stageDeployFailed (stage, nextStage) {
+            if (this.instanceStatusMap.has(nextStage.instance.id)) {
+                clearInterval(this.polling.instances)
+                this.instanceStatusMap.get(nextStage.instance.id).isDeploying = false
+            }
 
+            if (this.deviceStatusMap.has(nextStage.device.id)) {
+                clearInterval(this.polling.devices)
+                this.deviceStatusMap.get(nextStage.device.id).isDeploying = false
+            }
+        },
+        startPollingForDeployStatus (stage, nextStage) {
             if (nextStage.instance?.id) {
                 this.startPollingForInstanceDeployStatus()
             } else if (nextStage.device?.id) {
