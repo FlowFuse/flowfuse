@@ -125,6 +125,10 @@ jobs:
           role-to-assume: arn:aws:iam::${{ steps.aws-config.outputs.aws-account-id }}:role/K8sAdmin
           role-duration-seconds: 1200
 
+      - name: Configure kubeconfig
+        run: |
+          aws eks update-kubeconfig --region eu-west-1 --name ${{ secrets.EKS_CLUSTER_NAME }}
+
       - name: Deploy forge app
         run: |
           helm repo add flowforge https://flowfuse.github.io/helm
