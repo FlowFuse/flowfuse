@@ -27,7 +27,7 @@
 
         <div>
             <label class="w-full block text-sm font-medium text-gray-700 mb-2">Stage Type</label>
-            <ff-tile-selection v-model="input.stageType">
+            <ff-tile-selection v-model="input.stageType" data-form="stage-type">
                 <ff-tile-selection-option
                     label="Instance"
                     :value="StageType.INSTANCE"

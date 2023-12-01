@@ -27,11 +27,15 @@
                         class="ff-icon ff-clickable"
                     />
                 </span>
-                <PlayIcon
+                <span
                     data-action="stage-run"
-                    class="ff-icon ff-clickable" :class="{'ff-disabled': !playEnabled || !pipeline?.id || deploying || inDeveloperMode}"
+                    :class="{'ff-disabled': !playEnabled || !pipeline?.id || deploying || inDeveloperMode}"
                     @click="runStage"
-                />
+                >
+                    <PlayIcon
+                        class="ff-icon ff-clickable"
+                    />
+                </span>
                 <SpinnerIcon v-if="deploying" class="ff-icon" />
             </div>
         </div>

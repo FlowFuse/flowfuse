@@ -182,9 +182,7 @@ export default {
             return false
         },
         nextStageAvailable (stage, $index) {
-            console.log(stage, $index)
             const endofPipeline = ($index >= this.pipeline.stages.length - 1)
-            console.log(endofPipeline)
             if (!endofPipeline) {
                 // we are mid-pipeline
                 const nextStage = this.pipeline.stages[$index + 1]
