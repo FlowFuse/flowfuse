@@ -126,18 +126,7 @@
                     </template>
                 </div>
             </template>
-            <div v-if="selectedSnapshot" class="info-banner">
-                <h3>Will deploy the following snapshot:</h3>
-                <h4>{{ selectedSnapshot.name }}</h4>
-                <template v-if="selectedSnapshot.description">
-                    {{ selectedSnapshot.description }}
-                </template>
-                <template v-else>
-                    <i>No description</i>
-                </template>
-            </div>
         </template>
-
         <template #actions>
             <ff-button kind="secondary" @click="close">Cancel</ff-button>
             <ff-button :disabled="!formValid" @click="confirm">Confirm</ff-button>
@@ -216,35 +205,6 @@ export default {
 
         hasSnapshots () {
             return this.snapshots.length > 0
-        },
-
-        selectedSnapshot () {
-            if (this.stage.action === StageAction.PROMPT) {
-                return this.snapshots.find(
-                    (snapshot) => snapshot.id === this.input.selectedSnapshotId
-                )
-            }
-
-            if (this.stage.action === StageAction.USE_LATEST_SNAPSHOT) {
-                return this.snapshots[0]
-            }
-
-            if (this.stage.action === StageAction.USE_ACTIVE_SNAPSHOT) {
-                // Get the active device snapshot somehow
-                return {
-                    name: 'Active Snapshot',
-                    description: 'From the device'
-                }
-            }
-
-            if (this.stage.action === StageAction.CREATE_SNAPSHOT) {
-                return {
-                    name: 'New Snapshot',
-                    description: 'Created by Flow Director'
-                }
-            }
-
-            return null
         }
     },
     created () {
@@ -273,8 +233,6 @@ export default {
                 throw Error(`Unknown stage type ${this.stage.stageType}`)
             }
 
-            debugger
-
             this.loadingSnapshots = false
         },
         confirm () {
@@ -297,21 +255,11 @@ export default {
 <style lang="scss" scoped>
     @import '../../ui-components/stylesheets/ff-colors.scss';
 
-    h4 {
-        font-weight: 500;
-    }
     .error-banner {
         padding: 9px;
         background-color: $ff-red-50;
         border: 1px solid $ff-red-300;
         border-radius: 3px;
         color: $ff-red-600;
-    }
-    .info-banner {
-        padding: 9px;
-        background-color: $ff-blue-50;
-        border: 1px solid $ff-blue-300;
-        border-radius: 3px;
-        color: $ff-blue-600;
     }
 </style>
