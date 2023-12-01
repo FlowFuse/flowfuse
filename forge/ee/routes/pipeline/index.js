@@ -130,12 +130,7 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const team = await request.teamMembership.getTeam()
-        const pipelineId = request.params.pipelineId
-        const pipeline = await app.db.models.Pipeline.byId(pipelineId)
-
-        if (!pipeline) {
-            return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-        }
+        const pipeline = request.pipeline
 
         const stages = await pipeline.stages()
         if (stages.length > 0) {
