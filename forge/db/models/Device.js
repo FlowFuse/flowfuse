@@ -176,7 +176,7 @@ module.exports = {
                 },
                 async getLatestSnapshot () {
                     const snapshots = await this.getProjectSnapshots({
-                        order: [['createdAt', 'DESC']],
+                        order: [['createdAt', 'DESC'], ['id', 'DESC']],
                         limit: 1
                     })
                     return snapshots[0]
