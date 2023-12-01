@@ -2128,4 +2128,38 @@ describe('Pipelines API', function () {
             })
         })
     })
+
+    describe('List Application Pipelines', function () {
+        it('should list all the pipelines within an application including stages, instances and devices', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            const body = await response.json()
+
+            body.should.have.property('count', 2)
+            body.pipelines.should.have.length(2)
+
+            body.pipelines[0].should.have.property('name', 'new-pipeline')
+            body.pipelines[0].should.have.property('stages')
+
+            body.pipelines[0].stages.should.have.length(1)
+            body.pipelines[0].stages[0].should.have.property('name', 'stage-one')
+
+            body.pipelines[0].stages[0].instances.should.have.length(1)
+            body.pipelines[0].stages[0].instances[0].should.have.property('name', 'project1')
+
+            body.pipelines[1].should.have.property('name', 'new-pipeline-devices')
+
+            body.pipelines[1].stages.should.have.length(1)
+            body.pipelines[1].stages[0].should.have.property('name', 'stage-one-devices')
+
+            body.pipelines[1].stages[0].devices.should.have.length(1)
+            body.pipelines[1].stages[0].devices[0].should.have.property('name', 'device-a')
+
+            response.statusCode.should.equal(200)
+        })
+    })
 })
