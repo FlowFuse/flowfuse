@@ -73,6 +73,9 @@ async function init (app, opts, done) {
                 if (emailVerified && passwordNotExpired && !suspended && !mfaMissing) {
                     return
                 }
+                if (request.routeOptions.config.allowAnonymous) {
+                    return
+                }
                 await request.session.destroy()
                 reply.clearCookie('sid')
             }
