@@ -1946,5 +1946,139 @@ describe('Pipelines API', function () {
                 response.statusCode.should.equal(400)
             })
         })
+
+        describe('With action=use_active_snapshot', function () {
+            beforeEach(async function () {
+                await TestObjects.pipelineDevicesStageOne.update({ action: 'use_active_snapshot' })
+            })
+
+            afterEach(async function () {
+                await app.db.models.ProjectSnapshot.destroy({
+                    where: {
+                        [Op.or]: [
+                            { ProjectId: TestObjects.instanceOne.id },
+                            { DeviceId: TestObjects.deviceOne.id }
+                        ]
+                    }
+                })
+            })
+
+            describe('For instance=>instance', function () {
+                it('Fails validation', async function () {
+                    await TestObjects.stageOne.update({ action: 'use_active_snapshot' }).should.be.rejectedWith(/Validation error/)
+                })
+            })
+
+            describe('For device=>instance', function () {
+                it('Copies the target device snapshot to the next stages instance', async function () {
+                    const activeSnapshot = await createDeviceSnapshot(TestObjects.deviceOne, {
+                        name: 'active-snapshot',
+                        description: 'the active snapshot of the device'
+                    })
+
+                    await createDeviceSnapshot(TestObjects.deviceOne, {
+                        name: 'latest-snapshot',
+                        description: 'a snapshot created last'
+                    })
+
+                    await TestObjects.deviceOne.update({ targetSnapshotId: activeSnapshot.id, activeSnapshotId: activeSnapshot.id })
+
+                    // 1 -> 2
+                    TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.pipelineDevicesStageOne.hashid }, TestObjects.pipelineDevices)
+
+                    const response = await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/pipelines/${TestObjects.pipelineDevices.hashid}/stages/${TestObjects.pipelineDevicesStageOne.hashid}/deploy`,
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
+                    const body = await response.json()
+                    body.should.have.property('status', 'importing')
+
+                    // Wait for the deploy to complete
+                    await waitForDeployToComplete(TestObjects.instanceTwo)
+
+                    // No new snapshot should have been created in stage 1
+                    const sourceDeviceSnapshots = await TestObjects.deviceOne.getProjectSnapshots()
+                    sourceDeviceSnapshots.should.have.lengthOf(2)
+
+                    // Get the snapshot for instance 2 post deploy
+                    const snapshots = await TestObjects.instanceTwo.getProjectSnapshots()
+                    snapshots.should.have.lengthOf(1)
+
+                    const targetSnapshot = snapshots[0]
+
+                    targetSnapshot.name.should.match(/active-snapshot - Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
+                    targetSnapshot.description.should.match(/Snapshot created for pipeline deployment from stage-one-devices to stage-two as part of pipeline new-pipeline-devices/)
+                    targetSnapshot.description.should.match(/the active snapshot of the device/)
+                })
+            })
+
+            describe('For device=>device', function () {
+                it('Copies the existing device snapshot to the next stages device', async function () {
+                    const activeSnapshot = await createDeviceSnapshot(TestObjects.deviceOne, {
+                        name: 'active-snapshot',
+                        description: 'the active snapshot of the device'
+                    })
+
+                    await createDeviceSnapshot(TestObjects.deviceOne, {
+                        name: 'latest-snapshot',
+                        description: 'a snapshot created last'
+                    })
+
+                    await TestObjects.deviceOne.update({ targetSnapshotId: activeSnapshot.id, activeSnapshotId: activeSnapshot.id })
+
+                    // 1 device -> 2 device
+                    TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceId: TestObjects.deviceTwo.id, source: TestObjects.pipelineDevicesStageOne.hashid }, TestObjects.pipelineDevices)
+
+                    const response = await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/pipelines/${TestObjects.pipelineDevices.hashid}/stages/${TestObjects.pipelineDevicesStageOne.hashid}/deploy`,
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
+                    const body = await response.json()
+                    body.should.have.property('status', 'importing')
+
+                    // Wait for the deploy to complete
+                    await waitForDeployToComplete(TestObjects.instanceTwo)
+
+                    // No new snapshot should have been created in stage 1
+                    const sourceDeviceSnapshots = await TestObjects.deviceOne.getProjectSnapshots()
+                    sourceDeviceSnapshots.should.have.lengthOf(2)
+
+                    // No snapshot created on the target device
+                    const snapshots = await TestObjects.deviceTwo.getProjectSnapshots()
+                    snapshots.should.have.lengthOf(0)
+
+                    await TestObjects.deviceTwo.reload()
+                    TestObjects.deviceTwo.targetSnapshotId.should.equal(activeSnapshot.id)
+                })
+            })
+
+            describe('For instance=>device', function () {
+                it('Fails validation', async function () {
+                    await TestObjects.stageOne.update({ action: 'use_active_snapshot' }).should.be.rejectedWith(/Validation error/)
+                })
+            })
+
+            it('Fails gracefully if the source device does not have an active snapshot', async function () {
+                // 1 -> 2
+                TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.pipelineDevicesStageOne.hashid }, TestObjects.pipelineDevices)
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${TestObjects.pipelineDevices.hashid}/stages/${TestObjects.pipelineDevicesStageOne.hashid}/deploy`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const body = await response.json()
+
+                body.should.have.property('code', 'invalid_source_device')
+                body.error.should.match(/No active snapshot found/)
+
+                response.statusCode.should.equal(400)
+            })
+        })
     })
 })
