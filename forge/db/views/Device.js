@@ -103,7 +103,6 @@ module.exports = function (app) {
         }
     })
     function deviceSummary (device, { includeSnapshotIds = false } = {}) {
-        console.log('deviceSummary', device)
         if (device) {
             const result = device.toJSON()
             const filtered = {

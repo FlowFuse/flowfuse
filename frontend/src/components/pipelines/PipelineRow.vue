@@ -26,7 +26,7 @@
                     :application="application"
                     :pipeline="pipeline"
                     :stage="stage"
-                    :playEnabled="$index < pipeline.stages.length - 1"
+                    :playEnabled="nextStageAvailable(stage, $index)"
                     :editEnabled="true"
                     @stage-deploy-starting="stageDeployStarting(stage)"
                     @stage-deploy-started="stageDeployStarted(stage)"
@@ -39,6 +39,7 @@
                         class="ff-icon mt-4 flex-shrink-0"
                         :class="{
                             'animate-deploying': nextStageDeploying($index),
+                            'ff-disabled': !nextStageAvailable(stage, $index)
                         }"
                     />
                 </Transition>
@@ -179,6 +180,23 @@ export default {
             }
 
             return false
+        },
+        nextStageAvailable (stage, $index) {
+            console.log(stage, $index)
+            const endofPipeline = ($index >= this.pipeline.stages.length - 1)
+            console.log(endofPipeline)
+            if (!endofPipeline) {
+                // we are mid-pipeline
+                const nextStage = this.pipeline.stages[$index + 1]
+                if (nextStage.device?.mode === 'developer') {
+                    // cannot push to a device in Developer Mode
+                    return false
+                }
+                return true
+            } else {
+                // end of pipeline - nothing to deploy to
+                return false
+            }
         },
         deletePipeline () {
             const msg = {

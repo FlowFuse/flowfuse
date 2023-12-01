@@ -4,10 +4,12 @@
     width: 100%;
     border: 1px solid $ff-grey-300;
     border-radius: 6px;
+    .ff-pipeline-banner {
+        height: 46px;
+    }
     .ff-pipeline-banner,
     .ff-pipeline-stage-banner {
-        padding: 0 18px;
-        height: 46px;
+        padding: 0px 18px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -18,7 +20,19 @@
         gap: 48px;
     }
     .ff-pipeline-stage-banner {
+        height: 54px;
         background-color: $ff-grey-50;
+        label {
+            font-weight: 500;
+        }
+    }
+    .ff-pipelines-stage-banner-error {
+        color: $ff-red-600;
+        font-size: 0.725rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 2px;
     }
     .ff-pipeline-actions {
         display: flex;
@@ -61,7 +75,7 @@
         }
     }
     .ff-pipeline-stage-row {
-        padding: 6px 18px;
+        padding: 9px 18px;
         display: flex;
         justify-content: space-between;
         gap: 24px;
@@ -75,7 +89,7 @@
         }
     }
     .ff-pipeline-stage-type {
-        padding: 6px 0px 0.75rem;
+        padding: 9px 0px 0.75rem;
         margin: 0 18px 0.75rem;
         border-bottom: 1px solid $ff-grey-300;
         display: flex;
@@ -87,6 +101,14 @@
             font-size: 0.75em;
             line-height: 0.825em;
         }
+    }
+}
+
+.ff-pipeline-stage--error {
+    border-color: $ff-red-600;
+    .ff-pipeline-stage-banner {
+        background-color: $ff-red-50;
+        border-bottom: 1px solid $ff-red-600;
     }
 }
 
