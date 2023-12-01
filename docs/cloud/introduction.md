@@ -54,9 +54,11 @@ Each Node-RED can install custom modules as advertised in the [Flow Library](htt
 
 ## Cloud Instance Sizes
 
-Small 10% of a CPU core - 256mb RAM
-Medium 30% of a CPU core - 768mb RAM
-Large 100% of a CPU core - 3840mb RAM
+| Size | Memory (RAM) |
+|--------|--------|
+| Small | 256MB |
+| Medium | 768MB |
+| Large | 3840MB |
 
 Medium and Large instance types require the Teams or Enterprise tier.
 
