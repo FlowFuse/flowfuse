@@ -95,5 +95,18 @@ module.exports = {
         }
 
         return false
+    },
+
+    suspendTeam: async function (app, team, user = null) {
+        // Suspend all projects of that team
+        const projects = await app.db.models.Project.byTeam(team.hashid)
+        await Promise.all(projects.map(async (project) => {
+            app.log.info(`Stopping project ${project.id} from team ${team.hashid}`)
+            if (await app.containers.stop(project)) {
+                await app.auditLog.Project.project.suspended(user || 'system', null, project)
+            }
+        }))
+
+        app.log.info(`Suspended all projects for team ${team.hashid}`)
     }
 }
