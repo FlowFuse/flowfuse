@@ -90,6 +90,7 @@ describe('Pipelines API', function () {
     afterEach(async function () {
         await app.db.models.PipelineStage.destroy({ where: {} })
         await app.db.models.Pipeline.destroy({ where: {} })
+        await app.db.models.ProjectSnapshot.destroy({ where: {} })
     })
 
     describe('Create Pipeline Stage', function () {
@@ -1240,8 +1241,8 @@ describe('Pipelines API', function () {
                 describe('For instance=>device', function () {
                     it('Creates a snapshot of the source instance and sets it at the target snapshot on the target device', async function () {
                         // No snapshot yet
-                        const latestSnapshot = await TestObjects.instanceOne.getLatestSnapshot()
-                        should(latestSnapshot).equal(undefined)
+                        const latestSnapshot = await TestObjects.instanceOne.getProjectSnapshots()
+                        latestSnapshot.should.have.length(0)
 
                         // 1 -> 2
                         TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceId: TestObjects.deviceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
