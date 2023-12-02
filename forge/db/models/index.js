@@ -48,6 +48,7 @@
 const { Model, DataTypes } = require('sequelize')
 
 const { getHashId } = require('../utils')
+const DeviceGroup = require('./DeviceGroup')
 
 // The models that should be loaded
 const modelTypes = [
@@ -76,7 +77,8 @@ const modelTypes = [
     'StorageSession',
     'StorageLibrary',
     'AuditLog',
-    'BrokerClient'
+    'BrokerClient',
+    'DeviceGroup'
 ]
 
 // A local map of the known models.
