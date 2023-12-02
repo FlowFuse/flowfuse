@@ -1,3 +1,5 @@
+const applicationDeviceGroup = require('./applicationDeviceGroup.js')
+
 module.exports = async function (app) {
     app.addHook('preHandler', async (request, reply) => {
         const applicationId = request.params.applicationId
@@ -25,6 +27,8 @@ module.exports = async function (app) {
             return reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
+
+    app.register(applicationDeviceGroup, { prefix: '/:applicationId/devicegroups' })
 
     /**
      * Create an application

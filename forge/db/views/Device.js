@@ -36,7 +36,7 @@ module.exports = function (app) {
             return null
         }
 
-        const result = device.toJSON()
+        const result = device.toJSON ? device.toJSON() : device
 
         if (statusOnly) {
             return {
@@ -102,7 +102,7 @@ module.exports = function (app) {
     })
     function deviceSummary (device, { includeSnapshotIds = false } = {}) {
         if (device) {
-            const result = device.toJSON()
+            const result = device.toJSON ? device.toJSON() : device
             const filtered = {
                 id: result.hashid,
                 ownerType: result.ownerType,
