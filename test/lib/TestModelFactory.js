@@ -165,6 +165,30 @@ module.exports = class TestModelFactory {
     }
 
     /**
+     * Create a device group and add it to an application.
+     * @param {Object} deviceGroupDetails - device group details to override defaults
+     * @param {String} deviceGroupDetails.name - device group name
+     * @param {String} deviceGroupDetails.description - device group description
+     * @param {Object} application - application that this device group will belong to
+     * @returns {Object} - the created device group
+     * @example
+     * const deviceGroup = await factory.createApplicationDeviceGroup({ name: 'my-device-group' }, application)
+     * // deviceGroup.name === 'my-device-group'
+     */
+    async createApplicationDeviceGroup (deviceGroupDetails, application) {
+        const defaultApplicationDetails = {
+            name: 'unnamed-application-device-group',
+            model: 'device'
+        }
+
+        return await this.forge.db.models.DeviceGroup.create({
+            ...defaultApplicationDetails,
+            ...deviceGroupDetails,
+            ApplicationId: application.id
+        })
+    }
+
+    /**
      * Create a device and add it to a team. Optionally, add it to a project instance or application.
      * @param {Object} deviceDetails - device details to override defaults
      * @param {Object} team - team that this device will belong to
