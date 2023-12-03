@@ -48,7 +48,6 @@
 const { Model, DataTypes } = require('sequelize')
 
 const { getHashId } = require('../utils')
-const DeviceGroup = require('./DeviceGroup')
 
 // The models that should be loaded
 const modelTypes = [
