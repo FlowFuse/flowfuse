@@ -178,7 +178,7 @@ module.exports = class TestModelFactory {
     async createApplicationDeviceGroup (deviceGroupDetails, application) {
         const defaultApplicationDetails = {
             name: 'unnamed-application-device-group',
-            model: 'device'
+            description: 'an unnamed device group'
         }
 
         return await this.forge.db.models.DeviceGroup.create({
