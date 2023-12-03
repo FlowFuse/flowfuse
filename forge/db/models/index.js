@@ -70,6 +70,7 @@ const modelTypes = [
     'AccessToken',
     'AuthClient',
     'Device',
+    'DeviceGroup',
     'DeviceSettings',
     'StorageFlow',
     'StorageCredentials',
@@ -77,8 +78,7 @@ const modelTypes = [
     'StorageSession',
     'StorageLibrary',
     'AuditLog',
-    'BrokerClient',
-    'DeviceGroup'
+    'BrokerClient'
 ]
 
 // A local map of the known models.
