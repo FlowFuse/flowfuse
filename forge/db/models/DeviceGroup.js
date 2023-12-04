@@ -15,7 +15,7 @@ module.exports = {
         description: { type: DataTypes.TEXT }
     },
     associations: function (M) {
-        this.belongsTo(M.Application)
+        this.belongsTo(M.Application, { onDelete: 'CASCADE' })
         this.hasMany(M.Device)
     },
     finders: function (M) {

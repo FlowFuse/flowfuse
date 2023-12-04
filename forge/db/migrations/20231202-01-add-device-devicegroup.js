@@ -39,8 +39,8 @@ module.exports = {
                     model: 'Applications',
                     key: 'id'
                 },
-                onUpdate: 'CASCADE',
-                onDelete: 'SET NULL'
+                onDelete: 'CASCADE',
+                onUpdate: 'CASCADE'
             }
         })
 
