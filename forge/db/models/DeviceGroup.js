@@ -20,6 +20,14 @@ module.exports = {
     },
     finders: function (M) {
         const self = this
+        const deviceCountLiteral = literal(`(
+            SELECT COUNT(*)
+            FROM "Devices" AS "device"
+            WHERE
+            "device"."DeviceGroupId" = "DeviceGroup"."id"
+            AND
+            "device"."ApplicationId" = "DeviceGroup"."ApplicationId"    
+        )`)
         return {
             static: {
                 byId: async function (id) {
@@ -43,14 +51,7 @@ module.exports = {
                         attributes: {
                             include: [
                                 [
-                                    literal(`(
-                                        SELECT COUNT(*)
-                                        FROM "Devices" AS "device"
-                                        WHERE
-                                        "device"."DeviceGroupId" = "DeviceGroup"."id"
-                                        AND
-                                        "device"."ApplicationId" = "DeviceGroup"."ApplicationId"
-                                    )`),
+                                    deviceCountLiteral,
                                     'deviceCount'
                                 ]
                             ]
@@ -71,12 +72,7 @@ module.exports = {
                             attributes: {
                                 include: [
                                     [
-                                        literal(`(
-                                            SELECT COUNT(*)
-                                            FROM "Devices" AS "device"
-                                            WHERE
-                                            "device"."DeviceGroupId" = "DeviceGroup"."id"
-                                        )`),
+                                        deviceCountLiteral,
                                         'deviceCount'
                                     ]
                                 ]
