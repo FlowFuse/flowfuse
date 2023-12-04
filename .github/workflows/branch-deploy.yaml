@@ -24,13 +24,14 @@ jobs:
         with:
           node-version: '16'
           registry-url: 'registry.npmjs.org'
+          scope: '@flowfuse'
           always-auth: true
 
       - name: Build package
         run: |
           npm install --no-audit --no-fund && \
           npm install --no-audit --no-fund pg-hstore@^2.3.4 && \
-          npm install --no-audit --no-fund @flowfuse/driver-kubernetes@^1.14.0 && \    
+          npm install --no-audit --no-fund @flowfuse/driver-kubernetes@latest && \    
           npm run build
 
       - name: Set variables
