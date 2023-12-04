@@ -24,6 +24,7 @@ const modelTypes = [
     'ProjectTemplate',
     'ProjectSnapshot',
     'Device',
+    'DeviceGroup',
     'BrokerClient',
     'StorageCredentials',
     'StorageFlows',
