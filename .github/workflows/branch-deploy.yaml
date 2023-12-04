@@ -129,6 +129,14 @@ jobs:
         run: |
           aws eks update-kubeconfig --region eu-west-1 --name ${{ secrets.EKS_CLUSTER_NAME }}
 
+      - name: Check out FlowFuse/helm repository (to access latest helm chart)
+        uses: actions/checkout@v3
+        with:
+          repository: 'FlowFuse/helm'
+          ref: 'feat-custom-clusterrole-name'
+          path: 'helm-repo'
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Deploy forge app
         run: |
           helm repo add flowforge https://flowfuse.github.io/helm
@@ -143,8 +151,9 @@ jobs:
             --set forge.image=${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }} \
             --set forge.entryPoint=${{ env.PR_NUMBER }}.flowfuse.dev \
             --set forge.projectNamespace=pr-${{ env.PR_NUMBER }} \
+            --set forge.clusterRole.name=pr-${{ env.PR_NUMBER }}-clusterrole \
             --dry-run=server \
-            flowfuse-pr-${{ env.PR_NUMBER }} flowforge/flowforge
+            flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowforge
 
       # - name: Deploy forge app
       #   uses: bitovi/github-actions-deploy-eks-helm@v1.2.8
