@@ -19,7 +19,7 @@
         "flowforge": "./forge/app.js"
     },
     "scripts": {
-        "start": "node forge/app.js --loglevel-verbose",
+        "start": "node forge/app.js --loglevel=verbose",
         "repl": "node forge/app.js --repl",
         "build": "webpack -c ./config/webpack.config.js",
         "serve": "npm-run-all --parallel build-watch start-watch",
