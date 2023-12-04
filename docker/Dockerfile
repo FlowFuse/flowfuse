@@ -11,4 +11,5 @@ ENV FLOWFORGE_HOME=/app
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+# CMD ["npm", "start"]
+CMD ["sleep", "infinity"]
