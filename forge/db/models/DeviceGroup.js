@@ -16,7 +16,6 @@ module.exports = {
     },
     associations: function (M) {
         this.belongsTo(M.Application)
-        // this.belongsTo(M.ProjectSnapshot, { as: 'targetSnapshot' })
         this.hasMany(M.Device)
     },
     finders: function (M) {
