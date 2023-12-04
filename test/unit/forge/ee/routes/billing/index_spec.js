@@ -714,7 +714,7 @@ describe('Billing routes', function () {
                 // Two projects suspended - check they got logged
                 log[0].event.should.equal('project.suspended')
                 log[1].event.should.equal('project.suspended')
-                // 
+                // Third event is the billing.sub.updated event
                 log[2].event.should.equal('billing.subscription.updated')
                 log[2].body.updates.should.have.length(1)
                 log[2].body.updates[0].key.should.equal('status')
