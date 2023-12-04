@@ -133,7 +133,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: 'FlowFuse/helm'
-          ref: 'feat-custom-clusterrole-name'
+          ref: 'main'
           path: 'helm-repo'
           token: ${{ secrets.GITHUB_TOKEN }}
 
