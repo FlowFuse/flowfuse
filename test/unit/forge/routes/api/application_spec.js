@@ -807,6 +807,25 @@ describe('Application API', function () {
                 result.groups[0].should.have.property('description', deviceGroup.description)
             })
 
+            it('Paginates device groups', async function () {
+                const sid = await login('bob', 'bbPassword')
+                const application = await factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
+                await factory.createApplicationDeviceGroup({ name: generateName('device-group'), description: 'a description' }, application)
+                await factory.createApplicationDeviceGroup({ name: generateName('device-group'), description: 'a description' }, application)
+
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/applications/${application.hashid}/devicegroups?limit=1`,
+                    cookies: { sid }
+                })
+
+                response.statusCode.should.equal(200)
+
+                const result = response.json()
+                result.should.have.property('groups')
+                result.groups.should.have.length(1)
+            })
+
             it('Non Owner can read device groups', async function () {
                 const sid = await login('chris', 'ccPassword')
                 const application = await factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
@@ -851,6 +870,22 @@ describe('Application API', function () {
                 // ensure one of the 2 devices matches device2.hashid
                 const device2Result = result.devices.find((device) => device.id === device2.hashid)
                 should(device2Result).be.an.Object().and.not.be.null()
+            })
+
+            it('404s when getting a specific group that does not exist', async function () {
+                const sid = await login('chris', 'ccPassword')
+                const application = await factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
+
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/applications/${application.hashid}/devicegroups/doesNotExist`,
+                    cookies: { sid }
+                })
+
+                response.statusCode.should.equal(404)
+                const result = response.json()
+                result.should.have.property('error')
+                result.should.have.property('code', 'not_found')
             })
 
             it('Non Member can not read device groups', async function () {
