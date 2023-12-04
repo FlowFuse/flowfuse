@@ -1,3 +1,25 @@
+#### 1.14.1: Release
+
+ - Fix login failure for generated admin (#3153) @hardillb
+ - Fix width of setup fields (#3147) @hardillb
+ - Coverage of creating and updating stages with devices (#3143) @Pezmc
+ - docs: Where to find billing details (#3149) @ZJvandeWeg
+ - Add canonical link to current base_url (#3146) @hardillb
+ - Add UI for pipeline update audit entry (#3124) @Steve-Mcl
+ - DevOps Pipeline: Clearer error messages (#3118) @Pezmc
+ - Update introduction.md (#3019) @zackwasli
+ - Bump @vue/test-utils from 2.4.1 to 2.4.2 (#3133) @app/dependabot
+ - Bump @babel/core from 7.23.2 to 7.23.3 (#3132) @app/dependabot
+ - Bump marked from 9.1.5 to 10.0.0 (#3131) @app/dependabot
+ - Bump mqtt from 5.1.4 to 5.3.0 (#3134) @app/dependabot
+ - Bump @sentry/webpack-plugin from 2.10.0 to 2.10.1 (#3135) @app/dependabot
+ - Allow a trial team to be put into unmanaged mode to bypass billing (#3138) @knolleary
+ - Update container loading for new module scopes (#3141) @knolleary
+ - Fix blob and add more Hubspot domains (#3121) @hardillb
+ - Add tunnel recreation unit test (#3126) @Steve-Mcl
+ - Notify developers on failed tests pipeline (#3122) @ppawlowski
+ - Fix linux version of install instructions (#3129) @hardillb
+
 #### 1.14.0: Release
 
  - Doc upgrading #3082 (#3085) @hyamanieu

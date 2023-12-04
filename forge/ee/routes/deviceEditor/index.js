@@ -235,6 +235,7 @@ module.exports = async function (app) {
                 }
             }
         },
+        helmet: false,
         handler: (request, reply) => {
             // Handle HTTP GET requests from the device
             const tunnelManager = getTunnelManager()
@@ -287,6 +288,7 @@ module.exports = async function (app) {
                 }
             }
         },
+        helmet: false,
         handler: (request, reply) => {
             const tunnelManager = getTunnelManager()
             if (tunnelManager.handleHTTP(request.params.deviceId, request, reply)) {

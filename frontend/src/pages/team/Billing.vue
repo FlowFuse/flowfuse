@@ -50,7 +50,7 @@
                 Something went wrong loading your subscription information, please try again.
             </div>
         </div>
-        <EmptyState v-else>
+        <EmptyState v-else-if="!isUnmanaged">
             <template #img>
                 <img src="../../images/empty-states/team-instances.png">
             </template>
@@ -72,6 +72,20 @@
             </template>
             <template #actions>
                 <ff-button data-action="change-team-type" :to="{name: 'TeamChangeType'}">Setup Billing</ff-button>
+            </template>
+        </EmptyState>
+        <EmptyState v-else>
+            <template #img>
+                <img src="../../images/empty-states/team-instances.png">
+            </template>
+            <template #header>Team Billing</template>
+            <template #message>
+                <p>
+                    Your team billing cannot currently be managed from the dashboard.
+                </p>
+                <p>
+                    Please contact <a href="https://flowfuse.com/support/" class="underline" target="_blank">Support</a> for help.
+                </p>
             </template>
         </EmptyState>
     </ff-page>
@@ -172,6 +186,9 @@ export default {
         subscriptionExpired () {
             return this.team.billing?.canceled
         },
+        isUnmanaged () {
+            return this.team.billing?.unmanaged
+        },
         trialMode () {
             return this.team.billing?.trial
         },
@@ -198,14 +215,12 @@ export default {
     },
     watch: { },
     async mounted () {
-        if (!this.billingSetUp) {
+        if (!this.billingSetUp && !this.isUnmanaged) {
             return
         }
-
         if (!this.hasPermission('team:edit')) {
             return this.$router.push({ path: `/team/${this.team.slug}/overview` })
         }
-
         this.loading = true
         try {
             const billingSubscription = await billingApi.getSubscriptionInfo(this.team.id)

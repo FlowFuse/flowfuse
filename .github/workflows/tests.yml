@@ -174,3 +174,34 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: frontend
+
+  notify-slack:
+    name: Notify on failure
+    needs: [backend-tests, postgres-tests, ui-tests]
+    if: failure()
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Map users  
+      id: map-actor-to-slack
+      uses: icalia-actions/map-github-actor@v0.0.2
+      with:
+        actor-map: '{
+          "ppawlowski":"U05F21MRZQU",
+          "hardillb":"U021T9TT2SV",
+          "knolleary":"U02248XSR32",
+          "joepavitt":"U031G1H5QPR",
+          "Pezmc":"U0465FK1ULR",
+          "Steve-Mcl":"U02UQG3RYQ5"
+          }'
+        default-mapping: C067BD0377F
+
+    - name: Send notification
+      uses: ravsamhq/notify-slack-action@v2
+      with:
+        status: 'failure'
+        notification_title: 'FlowFuse Tests Pipeline'
+        footer: "<{run_url}|View Run>"
+        mention_users: ${{ steps.map-actor-to-slack.outputs.actor-mapping }}
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.GH_WORKFLOWS_WEBHOOK }}

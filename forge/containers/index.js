@@ -35,12 +35,16 @@ const fp = require('fastify-plugin')
 
 const wrapper = require('./wrapper.js')
 
+const DRIVER_MODULES = {
+    stub: './stub/index.js',
+    localfs: '@flowfuse/driver-localfs',
+    docker: '@flowfuse/driver-docker',
+    kubernetes: '@flowfuse/driver-kubernetes'
+}
+
 module.exports = fp(async function (app, _opts, next) {
     const containerDialect = app.config.driver.type
-    const containerModule = containerDialect === 'stub'
-        ? './stub/index.js'
-        : `@flowforge/${containerDialect}`
-
+    const containerModule = DRIVER_MODULES[containerDialect]
     try {
         const driver = require(containerModule)
         await wrapper.init(app, driver, {
@@ -58,7 +62,7 @@ module.exports = fp(async function (app, _opts, next) {
             await wrapper.shutdown()
         })
     } catch (err) {
-        app.log.error('Failed to load the container driver')
+        app.log.error(`Failed to load the container driver: ${containerDialect}`)
         throw err
     }
 

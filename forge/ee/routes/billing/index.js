@@ -4,12 +4,21 @@
  * @namespace api
  * @memberof forge.ee.billing
  */
+
 const { Readable } = require('stream')
+
+const { registerPermissions } = require('../../../lib/permissions')
+const { Roles } = require('../../../lib/roles.js')
+
 /**
  * @typedef {import('stripe').Stripe.Event} StripeEvent
  */
 
 module.exports = async function (app) {
+    registerPermissions({
+        'team:billing:manual': { description: 'Setups up manual billing on a team', role: Roles.Admin }
+    })
+
     /** @type {import('stripe').Stripe} */
     const stripe = require('stripe')(app.config.billing.stripe.key)
 
@@ -308,10 +317,12 @@ module.exports = async function (app) {
     }, async (request, response) => {
         const team = request.team
         const sub = await team.getSubscription()
-        if (!sub || !sub.isActive()) {
+        if (!sub || (!sub.isActive() && !sub.isUnmanaged())) {
             return response.code(404).send({ code: 'not_found', error: 'Team does not have a subscription' })
         }
-
+        if (sub.isUnmanaged()) {
+            return response.code(403).send({ code: 'billing_unmanaged', error: 'Team does not have a managed subscription' })
+        }
         try {
             const stripeSubscriptionPromise = stripe.subscriptions.retrieve(
                 sub.subscription,
@@ -373,6 +384,41 @@ module.exports = async function (app) {
 
             // Catch all
             response.code(500).type('application/json').send({ code: 'unexpected_error', error: responseMessage })
+        }
+    })
+
+    /**
+     * Set up manual billing for a team
+     * Admin only
+     * @name /ee/billing/teams/:team/manual
+     * @static
+     * @memberof forge.ee.billing
+     */
+    app.post('/teams/:teamId/manual', {
+        preHandler: app.needsPermission('team:billing:manual')
+    }, async (request, response) => {
+        const team = request.team
+        try {
+            await app.billing.enableManualBilling(team)
+            if (request.body?.teamTypeId) {
+                const teamType = await app.db.models.TeamType.byId(request.body.teamTypeId)
+                if (teamType) {
+                    team.setTeamType(teamType)
+                    await team.save()
+                }
+            }
+            response.code(200).send({})
+        } catch (err) {
+            // Standard errors
+            let responseMessage
+            if (err.errors) {
+                responseMessage = err.errors.map(err => err.message).join(',')
+            } else {
+                responseMessage = err.toString()
+            }
+
+            // Catch all
+            response.code(500).type('application/json').send({ code: err.code || 'unexpected_error', error: responseMessage })
         }
     })
 
