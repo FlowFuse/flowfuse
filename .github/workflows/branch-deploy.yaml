@@ -152,7 +152,6 @@ jobs:
             --set forge.entryPoint=${{ env.PR_NUMBER }}.flowfuse.dev \
             --set forge.projectNamespace=pr-${{ env.PR_NUMBER }} \
             --set forge.clusterRole.name=pr-${{ env.PR_NUMBER }}-clusterrole \
-            --dry-run=server \
             flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowforge
 
       # - name: Deploy forge app
