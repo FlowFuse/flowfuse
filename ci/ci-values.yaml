@@ -2,3 +2,13 @@ forge:
   domain: flowfuse.dev
   https: false
   localPostgresql: true
+
+postgresql:
+  global:
+    storageClass: gp2
+  primary:
+    nodeAffinityPreset:
+      type: "hard"
+      key: "role"
+      values:
+        - "management"
