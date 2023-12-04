@@ -7,7 +7,7 @@ COPY forge /app/forge/
 COPY node_modules /app/node_modules/
 COPY frontend /app/frontend/
 
-ENV FLOWFORGE_HOME=/usr/src/forge
+ENV FLOWFORGE_HOME=/app
 
 EXPOSE 3000
 
