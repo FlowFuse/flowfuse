@@ -821,6 +821,38 @@ describe('Application API', function () {
                 response.statusCode.should.equal(200)
             })
 
+            it('Can get a specific group and associated devices', async function () {
+                const sid = await login('chris', 'ccPassword')
+                const application = await factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
+                await factory.createApplicationDeviceGroup({ name: generateName('device-group') }, application)
+                const deviceGroup = await factory.createApplicationDeviceGroup({ name: generateName('device-group') }, application)
+                const device1 = await factory.createDevice({ name: generateName('device-1') }, TestObjects.BTeam, null, application)
+                const device2 = await factory.createDevice({ name: generateName('device-2') }, TestObjects.BTeam, null, application)
+                await app.db.controllers.DeviceGroup.updateDeviceGroupMembership(deviceGroup, { addDevices: [device1, device2] })
+
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/applications/${application.hashid}/devicegroups/${deviceGroup.hashid}`,
+                    cookies: { sid }
+                })
+
+                response.statusCode.should.equal(200)
+
+                // check the response
+                const result = response.json()
+                result.should.have.property('id', deviceGroup.hashid)
+                result.should.have.property('name', deviceGroup.name)
+                result.should.have.property('description', deviceGroup.description)
+                result.should.have.property('devices')
+                result.devices.should.have.length(2)
+                // ensure one of the 2 devices matches device1.hashid
+                const device1Result = result.devices.find((device) => device.id === device1.hashid)
+                should(device1Result).be.an.Object().and.not.be.null()
+                // ensure one of the 2 devices matches device2.hashid
+                const device2Result = result.devices.find((device) => device.id === device2.hashid)
+                should(device2Result).be.an.Object().and.not.be.null()
+            })
+
             it('Non Member can not read device groups', async function () {
                 const sid = await login('dave', 'ddPassword')
                 const application = await factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)

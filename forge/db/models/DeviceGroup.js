@@ -58,27 +58,13 @@ module.exports = {
                         }
                     })
                 },
-                forApplication: async function (pagination = {}, applicationIdOrHash) {
-                    let id = applicationIdOrHash
-                    if (typeof applicationIdOrHash === 'string') {
-                        id = M.Application.decodeHashid(applicationIdOrHash)
-                    }
-                    return self.getAll(pagination || {}, { ApplicationId: id })
-                },
-                getAll: async (pagination = {}, where = {}, { includeApplication = false } = {}) => {
+                getAll: async (pagination = {}, where = {}) => {
                     const limit = parseInt(pagination.limit) || 1000
                     if (pagination.cursor) {
                         pagination.cursor = M.DeviceGroup.decodeHashid(pagination.cursor)
                     }
                     if (where.ApplicationId && typeof where.ApplicationId === 'string') {
                         where.ApplicationId = M.Application.decodeHashid(where.ApplicationId)
-                    }
-                    const include = []
-                    if (includeApplication) {
-                        include.push({
-                            model: M.Application,
-                            attributes: ['hashid', 'id', 'name', 'TeamId']
-                        })
                     }
                     const [rows, count] = await Promise.all([
                         this.findAll({
@@ -96,7 +82,6 @@ module.exports = {
                                     ]
                                 ]
                             },
-                            include,
                             order: [['id', 'ASC']],
                             limit
                         }),
