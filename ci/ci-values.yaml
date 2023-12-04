@@ -4,8 +4,8 @@ forge:
   localPostgresql: true
 
 postgresql:
-  global:
-    storageClass: gp2
+  persistence:
+    enabled: false
   primary:
     nodeAffinityPreset:
       type: "hard"
