@@ -14,24 +14,6 @@ const { Roles } = require('../../lib/roles.js')
  * @param {import('../../forge.js').ForgeApplication} app The application instance
  */
 module.exports = async function (app) {
-    // ### Routes in this file
-    // GET   /api/v1/applications/:applicationId/devicegroups
-    //       - get a list of devicegroups in this application
-    // POST  /api/v1/applications/:applicationId/devicegroups
-    //       - add a new Device Group to an Application
-    //       > body: { name, [description] }
-    // PUT   /api/v1/applications/:applicationId/devicegroups/:groupId
-    //       - update a device group settings
-    //       > body: { name, [description] }
-    // GET   /api/v1/applications/:applicationId/devicegroups/:groupId
-    //       - get a specific deviceGroup (must be assigned to this application)
-    // PATCH /api/v1/applications/:applicationId/devicegroups/:groupId
-    //       - update Device Group membership
-    //       > OPTION1: body: { add: [deviceIds], remove: [deviceIds] }
-    //       > OPTION2: body: { set: [deviceIds] }
-    // DELETE /api/v1/applications/:applicationId/devicegroups/:groupId
-    //       - delete app owned deviceGroup
-
     registerPermissions({
         'application:devicegroup:create': { description: 'Create a device group', role: Roles.Owner },
         'application:devicegroup:list': { description: 'List device groups', role: Roles.Member },
