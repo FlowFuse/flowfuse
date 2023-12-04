@@ -98,15 +98,23 @@ module.exports = {
     },
 
     suspendTeam: async function (app, team, user = null) {
+        app.log.info(`Suspending all instances for team ${team.hashid}`)
         // Suspend all projects of that team
         const projects = await app.db.models.Project.byTeam(team.hashid)
         await Promise.all(projects.map(async (project) => {
-            app.log.info(`Stopping project ${project.id} from team ${team.hashid}`)
-            if (await app.containers.stop(project)) {
+            app.log.info(`Suspending instance ${project.id} from team ${team.hashid}`)
+            try {
+                app.db.controllers.Project.setInflightState(project, 'suspending')
+                await app.containers.stop(project)
+                app.db.controllers.Project.clearInflightState(project)
                 await app.auditLog.Project.project.suspended(user || 'system', null, project)
+            } catch (err) {
+                app.log.warn(`Failed to suspend instance ${project.id} from team ${team.hashid}: ${err.toString()}`)
+                app.db.controllers.Project.clearInflightState(project)
+                const resp = { code: 'unexpected_error', error: err.toString() }
+                await app.auditLog.Project.project.suspended(null, resp, project)
             }
         }))
-
-        app.log.info(`Suspended all projects for team ${team.hashid}`)
+        app.log.info(`Suspended all instances for team ${team.hashid}`)
     }
 }
