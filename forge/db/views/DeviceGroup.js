@@ -1,15 +1,14 @@
 module.exports = function (app) {
-    // TODO: add schema for DeviceGroupSummary when mature
-    // app.addSchema({
-    //     $id: 'DeviceGroupSummary',
-    //     type: 'object',
-    //     properties: {
-    //         id: { type: 'string' },
-    //         name: { type: 'string' },
-    //         description: { type: 'string' },
-    //         model: { type: 'string' }
-    //     }
-    // })
+    app.addSchema({
+        $id: 'DeviceGroupSummary',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            description: { type: 'string' },
+            model: { type: 'string' }
+        }
+    })
     function deviceGroupSummary (group) {
         // if (Object.hasOwn(group, 'get')) {
         //     group = group.get({ plain: true })
@@ -26,18 +25,17 @@ module.exports = function (app) {
         return result
     }
 
-    // TODO: add schema for DeviceGroup when mature
-    // app.addSchema({
-    //     $id: 'DeviceGroup',
-    //     type: 'object',
-    //     allOf: [{ $ref: 'DeviceGroupSummary' }],
-    //     properties: {
-    //         createdAt: { type: 'string' },
-    //         updatedAt: { type: 'string' },
-    //         DeviceGroup: { type: 'object', additionalProperties: true }
-    //     },
-    //     additionalProperties: true
-    // })
+    app.addSchema({
+        $id: 'DeviceGroup',
+        type: 'object',
+        allOf: [{ $ref: 'DeviceGroupSummary' }],
+        properties: {
+            createdAt: { type: 'string' },
+            updatedAt: { type: 'string' },
+            DeviceGroup: { type: 'object', additionalProperties: true }
+        },
+        additionalProperties: true
+    })
     function deviceGroup (group) {
         if (group) {
             let item = group

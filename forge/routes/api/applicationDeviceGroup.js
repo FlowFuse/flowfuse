@@ -60,32 +60,31 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.application
      */
     app.get('/', {
-        preHandler: app.needsPermission('application:devicegroup:list')
-        // TODO: When mature and ready to be exposed
-        // schema: {
-        //     summary: 'Get a list of device groups in an application',
-        //     tags: ['Applications'],
-        //     query: { $ref: 'PaginationParams' },
-        //     params: {
-        //         type: 'object',
-        //         properties: {
-        //             applicationId: { type: 'string' }
-        //         }
-        //     },
-        //     response: {
-        //         200: {
-        //             type: 'object',
-        //             properties: {
-        //                 meta: { $ref: 'PaginationMeta' },
-        //                 count: { type: 'number' },
-        //                 groups: { type: 'array', items: { $ref: 'DeviceGroup' } }
-        //             }
-        //         },
-        //         '4xx': {
-        //             $ref: 'APIError'
-        //         }
-        //     }
-        // }
+        preHandler: app.needsPermission('application:devicegroup:list'),
+        schema: {
+            summary: 'Get a list of device groups in an application',
+            tags: ['Applications'],
+            query: { $ref: 'PaginationParams' },
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        groups: { type: 'array', items: { $ref: 'DeviceGroupSummary' } }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const paginationOptions = app.db.controllers.Device.getDevicePaginationOptions(request)
 
@@ -109,38 +108,33 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.application
      */
     app.post('/', {
-        preHandler: app.needsPermission('application:devicegroup:create')
-        // TODO: When mature and ready to be exposed
-        // schema: {
-        //     summary: 'Add a new Device Group to an Application',
-        //     tags: ['Applications'],
-        //     body: {
-        //         type: 'object',
-        //         properties: {
-        //             name: { type: 'string' },
-        //             description: { type: 'string' },
-        //             devices: { type: 'array', items: { type: 'DeviceGroup' } }
-        //         },
-        //         required: ['name']
-        //     },
-        //     params: {
-        //         type: 'object',
-        //         properties: {
-        //             applicationId: { type: 'string' }
-        //         }
-        //     },
-        //     response: {
-        //         201: {
-        //             type: 'object',
-        //             properties: {
-        //                 group: { $ref: 'DeviceGroup' }
-        //             }
-        //         },
-        //         '4xx': {
-        //             $ref: 'APIError'
-        //         }
-        //     }
-        // }
+        preHandler: app.needsPermission('application:devicegroup:create'),
+        schema: {
+            summary: 'Add a new Device Group to an Application',
+            tags: ['Applications'],
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    description: { type: 'string' }
+                },
+                required: ['name']
+            },
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' }
+                }
+            },
+            response: {
+                201: {
+                    $ref: 'DeviceGroupSummary'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const application = request.application
         const name = request.body.name
@@ -158,39 +152,34 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.application
      */
     app.put('/:groupId', {
-        preHandler: app.needsPermission('application:devicegroup:update')
-        // TODO: When mature and ready to be exposed
-        // schema: {
-        //     summary: 'Update a Device Group',
-        //     tags: ['Applications'],
-        //     body: {
-        //         type: 'object',
-        //         properties: {
-        //             name: { type: 'string' },
-        //             description: { type: 'string' },
-        //             color: { type: 'string' },
-        //             icon: { type: 'string' }
-        //         }
-        //     },
-        //     params: {
-        //         type: 'object',
-        //         properties: {
-        //             applicationId: { type: 'string' },
-        //             groupId: { type: 'string' }
-        //         }
-        //     },
-        //     response: {
-        //         200: {
-        //             type: 'object',
-        //             properties: {
-        //                 group: { $ref: 'DeviceGroup' }
-        //             }
-        //         },
-        //         '4xx': {
-        //             $ref: 'APIError'
-        //         }
-        //     }
-        // }
+        preHandler: app.needsPermission('application:devicegroup:update'),
+        schema: {
+            summary: 'Update a Device Group',
+            tags: ['Applications'],
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    description: { type: 'string' }
+                }
+            },
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' },
+                    groupId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    additionalProperties: false
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const group = request.deviceGroup
         const name = request.body.name
@@ -207,30 +196,26 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.application
      */
     app.get('/:groupId', {
-        preHandler: app.needsPermission('application:devicegroup:read')
-        // TODO: When mature and ready to be exposed
-        // schema: {
-        //     summary: 'Get a specific deviceGroup',
-        //     tags: ['Applications'],
-        //     params: {
-        //         type: 'object',
-        //         properties: {
-        //             applicationId: { type: 'string' },
-        //             groupId: { type: 'string' }
-        //         }
-        //     },
-        //     response: {
-        //         200: {
-        //             type: 'object',
-        //             properties: {
-        //                 group: { $ref: 'DeviceGroup' }
-        //             }
-        //         },
-        //         '4xx': {
-        //             $ref: 'APIError'
-        //         }
-        //     }
-        // }
+        preHandler: app.needsPermission('application:devicegroup:read'),
+        schema: {
+            summary: 'Get a specific deviceGroup',
+            tags: ['Applications'],
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' },
+                    groupId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'DeviceGroup'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const group = request.deviceGroup // already loaded in preHandler
         const groupView = app.db.views.DeviceGroup.deviceGroup(group)
@@ -244,38 +229,35 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.application
      */
     app.patch('/:groupId', {
-        preHandler: app.needsPermission('application:devicegroup:membership:update')
-        // TODO: When mature and ready to be exposed
-        // schema: {
-        //     summary: 'Update Device Group membership',
-        //     tags: ['Applications'],
-        //     body: {
-        //         type: 'object',
-        //         properties: {
-        //             add: { type: 'array', items: { type: 'string' } },
-        //             remove: { type: 'array', items: { type: 'string' } },
-        //             set: { type: 'array', items: { type: 'string' } }
-        //         }
-        //     },
-        //     params: {
-        //         type: 'object',
-        //         properties: {
-        //             applicationId: { type: 'string' },
-        //             groupId: { type: 'string' }
-        //         }
-        //     },
-        //     response: {
-        //         200: {
-        //             type: 'object',
-        //             properties: {
-        //                 group: { $ref: 'DeviceGroup' }
-        //             }
-        //         },
-        //         '4xx': {
-        //             $ref: 'APIError'
-        //         }
-        //     }
-        // }
+        preHandler: app.needsPermission('application:devicegroup:membership:update'),
+        schema: {
+            summary: 'Update Device Group membership',
+            tags: ['Applications'],
+            body: {
+                type: 'object',
+                properties: {
+                    add: { type: 'array', items: { type: 'string' } },
+                    remove: { type: 'array', items: { type: 'string' } },
+                    set: { type: 'array', items: { type: 'string' } }
+                }
+            },
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' },
+                    groupId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    additionalProperties: false
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const group = request.deviceGroup
         const addDevices = request.body.add
@@ -299,30 +281,27 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.application
      */
     app.delete('/:groupId', {
-        preHandler: app.needsPermission('application:devicegroup:delete')
-        // TODO: When mature and ready to be exposed
-        // schema: {
-        //     summary: 'Delete a Device Group',
-        //     tags: ['Applications'],
-        //     params: {
-        //         type: 'object',
-        //         properties: {
-        //             applicationId: { type: 'string' },
-        //             groupId: { type: 'string' }
-        //         }
-        //     },
-        //     response: {
-        //         200: {
-        //             type: 'object',
-        //             properties: {
-        //                 group: { $ref: 'DeviceGroup' }
-        //             }
-        //         },
-        //         '4xx': {
-        //             $ref: 'APIError'
-        //         }
-        //     }
-        // }
+        preHandler: app.needsPermission('application:devicegroup:delete'),
+        schema: {
+            summary: 'Delete a Device Group',
+            tags: ['Applications'],
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' },
+                    groupId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    additionalProperties: false
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const group = request.deviceGroup
         await group.destroy()
