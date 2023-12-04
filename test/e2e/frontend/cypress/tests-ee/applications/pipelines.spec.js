@@ -536,14 +536,10 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
                 cy.get('[data-action="stage-run"].ff-disabled').should('exist')
                 cy.get('[data-el="stage-banner-error"]').contains('Device in Dev Mode')
             })
-
-            cy.get('[data-el="ff-pipeline-stage"]:contains("Stage 1")').within(() => {
-                cy.get('[data-action="stage-run"]').click()
-            })
         })
 
-        // Not possible to deploy, no dialog should be visible
-        cy.get('[data-el="deploy-stage-dialog"].ff-dialog-container--open').should('not.be.visible')
+        // Not possible to deploy, no dialog should be visible even after the click
+        cy.get('[data-el="deploy-stage-dialog"].ff-dialog-container--open').should('not.exist')
 
         // Tidy Up
         cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {

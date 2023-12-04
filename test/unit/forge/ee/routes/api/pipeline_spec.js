@@ -1385,7 +1385,7 @@ describe('Pipelines API', function () {
                     const deviceInDeveloperMode = await TestObjects.factory.createDevice({ name: 'device-in-developer-mode', mode: 'developer' }, app.team, null, app.application)
 
                     // 1 -> 2
-                    TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceId: deviceInDeveloperMode.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
+                    TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceId: deviceInDeveloperMode.id, source: TestObjects.stageOne.hashid, action: 'prompt' }, TestObjects.pipeline)
 
                     const response = await app.inject({
                         method: 'PUT',
