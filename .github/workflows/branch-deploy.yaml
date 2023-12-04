@@ -22,16 +22,16 @@ jobs:
       - name: Configure node
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '16'
           registry-url: 'registry.npmjs.org'
-          scope: '@flowfuse'
+          scope: '@flowforge'
           always-auth: true
 
       - name: Build package
         run: |
           npm install --no-audit --no-fund && \
           npm install --no-audit --no-fund pg-hstore@^2.3.4 && \
-          npm install --no-audit --no-fund @flowforge/kubernetes@latest && \    
+          npm install --no-audit --no-fund @flowforge/kubernetes && \    
           npm run build
 
       - name: Set variables
