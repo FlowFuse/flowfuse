@@ -86,12 +86,12 @@ module.exports = async (options = {}) => {
 
     if (runtimeConfig.telemetry.backend?.sentry?.dsn) {
         const environment = process.env.SENTRY_ENV ?? (process.env.NODE_ENV ?? 'unknown')
+        const sentrySampleRate = environment === 'production' ? 0.1 : 0.5
         server.register(require('@immobiliarelabs/fastify-sentry'), {
             dsn: runtimeConfig.telemetry.backend.sentry.dsn,
             environment,
             release: `flowfuse@${runtimeConfig.version}`,
-            tracesSampleRate: environment === 'production' ? 0.05 : 0.1,
-            profilesSampleRate: environment === 'production' ? 0.05 : 0.1,
+            profilesSampleRate: sentrySampleRate, // relative to output from tracesSampler
             integrations: [
                 new ProfilingIntegration()
             ],
@@ -108,6 +108,41 @@ module.exports = async (options = {}) => {
                 }
 
                 return extractedUser
+            },
+            tracesSampler: (samplingContext) => {
+                // Adjust sample rates for routes with high volumes, sorted descending by volume
+
+                // Used for mosquitto auth
+                if (samplingContext?.transactionContext?.name === 'POST /api/comms/auth/client' || samplingContext?.transactionContext?.name === 'POST /api/comms/auth/acl') {
+                    return 0.001
+                }
+
+                // Used by nr-launcher and for flowforge-nr-auth
+                if (samplingContext?.transactionContext?.name === 'GET POST /account/token') {
+                    return 0.01
+                }
+
+                // Common endpoints in app (list devices by team, list devices by project)
+                if (samplingContext?.transactionContext?.name === 'GET /api/v1/teams/:teamId/devices' || samplingContext?.transactionContext?.name === 'GET /api/v1/projects/:instanceId/devices') {
+                    return 0.01
+                }
+
+                // Used by device editor device tunnel
+                if (samplingContext?.transactionContext?.name === 'GET /api/v1/devices/:deviceId/editor/proxy/*') {
+                    return 0.01
+                }
+
+                // Prometheus scraping
+                if (samplingContext?.transactionContext?.name === 'GET /metrics') {
+                    return 0.01
+                }
+
+                // OAuth check
+                if (samplingContext?.transactionContext?.name === 'GET /account/check/:ownerType/:ownerId') {
+                    return 0.01
+                }
+
+                return sentrySampleRate
             }
         })
     }
