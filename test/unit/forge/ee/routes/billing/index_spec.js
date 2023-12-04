@@ -67,6 +67,8 @@ describe('Billing routes', function () {
 
         beforeEach(async function () {
             sandbox.stub(app.billing)
+            // Do not stub this one function
+            app.billing.updateSubscriptionStatus.restore()
             sandbox.stub(app.log, 'info')
             sandbox.stub(app.log, 'warn')
             sandbox.stub(app.log, 'error')
