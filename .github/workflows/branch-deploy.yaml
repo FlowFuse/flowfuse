@@ -24,7 +24,6 @@ jobs:
         with:
           node-version: '16'
           registry-url: 'registry.npmjs.org'
-          scope: '@flowforge'
           always-auth: true
 
       - name: Build package
