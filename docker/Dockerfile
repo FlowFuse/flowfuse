@@ -8,6 +8,7 @@ COPY node_modules /usr/src/forge/node_modules/
 COPY frontend /usr/src/forge/frontend/
 
 ENV FLOWFORGE_HOME=/usr/src/forge
+RUN mkdir -p /home/node/.npm && chown -R node:node /home/node/.npm
 
 EXPOSE 3000
 
