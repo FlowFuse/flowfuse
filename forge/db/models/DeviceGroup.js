@@ -43,7 +43,7 @@ module.exports = {
                                 model: M.Device,
                                 attributes: ['hashid', 'id', 'name', 'TeamId', 'ApplicationId', 'ProjectId', 'ownerType'],
                                 where: {
-                                    ApplicationId: literal('"Devices"."ApplicationId" = "DeviceGroup"."ApplicationId"')
+                                    ApplicationId: literal('"Devices"."ApplicationId" = "Application"."id"')
                                 },
                                 required: false
                             }
