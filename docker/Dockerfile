@@ -12,6 +12,5 @@ RUN mkdir -p /home/node/.npm/_logs && mkdir -p /home/node/.npm/_cacache/tmp && c
 
 EXPOSE 3000
 
-# CMD ["npm", "start"]
 # CMD ["sleep", "infinity"]
 CMD [ "node", "forge/app.js", "--loglevel=verbose" ]
