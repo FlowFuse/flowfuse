@@ -16,7 +16,6 @@ describe('Billing', function () {
             app = null
         }
         setup.resetStripe()
-        delete require.cache[require.resolve('stripe')]
     })
 
     describe('createSubscriptionSession', async function () {
@@ -288,7 +287,9 @@ describe('Billing', function () {
     })
 
     describe('enableManualBilling', async function () {
+        let stripe
         beforeEach(async function () {
+            stripe = setup.setupStripe()
             app = await setup({
                 billing: {
                     stripe: {
@@ -326,6 +327,38 @@ describe('Billing', function () {
             sub.isPastDue().should.be.false()
             sub.isTrial().should.be.false()
             sub.isTrialEnded().should.be.true()
+        })
+        it('puts team with subscription into unmanaged mode', async function () {
+            const team1 = await app.factory.createTeam({ name: 'UnmanagedTeam2' })
+            await team1.addUser(app.user, { through: { role: Roles.Owner } })
+            await app.db.controllers.Subscription.createSubscription(
+                team1,
+                'sub_1234',
+                'cus_1234'
+            )
+
+            let sub = await team1.getSubscription()
+            // Check the default states for a trial subscription are correct
+            sub.isActive().should.be.true()
+            sub.isUnmanaged().should.be.false()
+            sub.isTrial().should.be.false()
+            sub.isTrialEnded().should.be.true()
+            sub.subscription.should.equal('sub_1234')
+            sub.customer.should.equal('cus_1234')
+
+            await app.billing.enableManualBilling(team1)
+
+            sub = await team1.getSubscription()
+            // Check the updated states for an unmanaged subscription are correct
+            sub.isActive().should.be.false()
+            sub.isUnmanaged().should.be.true()
+            sub.isTrial().should.be.false()
+            sub.isTrialEnded().should.be.true()
+            sub.subscription.should.equal('')
+            sub.customer.should.equal('cus_1234')
+
+            // Check we asked stripe to delete/cancel the subscription
+            stripe.subscriptions.del.called.should.be.true()
         })
     })
 
