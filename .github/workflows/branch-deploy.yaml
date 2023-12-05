@@ -31,8 +31,8 @@ jobs:
         run: |
           echo "Installing pg-hstore@^2.3.4" \
           npm install --no-audit --no-fund pg-hstore@^2.3.4 && \
-          echo "Installing @flowforge/kubernetes" \
-          npm install --no-audit --no-fund @flowforge/kubernetes && \
+          # echo "Installing @flowforge/kubernetes" \
+          # npm install --no-audit --no-fund @flowforge/kubernetes && \
           echo "Installing @flowforge/driver-kubernetes" \    
           npm install --no-audit --no-fund @flowfuse/driver-kubernetes && \
           echo "Installing all other dependencies" \
