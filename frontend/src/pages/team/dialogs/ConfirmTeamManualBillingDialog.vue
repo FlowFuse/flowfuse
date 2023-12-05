@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" data-el="delete-team-dialog" header="Setup Manual Billing" kind="danger" confirm-label="Setup manual billing" @confirm="confirm()">
+    <ff-dialog ref="dialog" data-el="manual-billing-dialog" header="Setup Manual Billing" kind="danger" confirm-label="Setup manual billing" @confirm="confirm()">
         <template #default>
             <form v-if="team" class="space-y-6" @submit.prevent>
                 <div class="space-y-6">
