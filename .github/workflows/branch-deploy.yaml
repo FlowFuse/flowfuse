@@ -29,10 +29,15 @@ jobs:
 
       - name: Build package
         run: |
-          npm install --no-audit --no-fund && \
+          echo "Installing pg-hstore@^2.3.4" \
           npm install --no-audit --no-fund pg-hstore@^2.3.4 && \
-          npm install --no-audit --no-fund @flowforge/kubernetes && \    
-          npm install --no-audit --no-fund @flowfuse/driver-kubernetes && \    
+          echo "Installing @flowforge/kubernetes" \
+          npm install --no-audit --no-fund @flowforge/kubernetes && \
+          echo "Installing @flowforge/driver-kubernetes" \    
+          npm install --no-audit --no-fund @flowfuse/driver-kubernetes && \
+          echo "Installing all other dependencies" \
+          npm install --no-audit --no-fund && \
+          echo "Building package" \ 
           npm run build
 
       - name: Set variables
