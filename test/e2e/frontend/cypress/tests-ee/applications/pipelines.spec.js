@@ -363,4 +363,199 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
                 })
         })
     })
+
+    it('can push from one stage containing a device to an instance with use_active_snapshot', () => {
+        cy.intercept('GET', '/api/v1/applications/*/pipelines').as('getPipelines')
+        cy.intercept('POST', '/api/v1/pipelines').as('createPipeline')
+
+        /// Create stages ready to push between
+        cy.visit(`/application/${application.id}/pipelines`)
+        cy.wait('@getPipelines')
+
+        const PIPELINE_NAME = `My New Pipeline - ${Math.random().toString(36).substring(2, 7)}`
+
+        // Add pipeline
+        cy.get('[data-action="pipeline-add"]').click()
+        cy.get('[data-form="pipeline-form"]').should('be.visible')
+
+        cy.get('[data-form="pipeline-name"] input').type(PIPELINE_NAME)
+        cy.get('[data-action="create-pipeline"]').click()
+
+        cy.wait('@createPipeline')
+
+        // Add stage 1
+        cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
+            cy.get('[data-action="add-stage"]').click()
+        })
+
+        cy.get('[data-form="stage-type"]').find('.ff-tile-selection-option:contains("Device")').click()
+
+        cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 1')
+
+        cy.get('[data-form="stage-device"] .ff-dropdown').click()
+        cy.get('[data-form="stage-device"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="stage-device"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+
+        cy.get('[data-form="stage-action"] .ff-dropdown').click()
+        cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:contains("active")').click() // Use active snapshot
+
+        cy.get('[data-action="add-stage"]').click()
+
+        // Add stage 2
+        cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
+            cy.get('[data-action="add-stage"]').click()
+        })
+
+        cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 2')
+
+        cy.get('[data-form="stage-instance"] .ff-dropdown').click()
+        cy.get('[data-form="stage-instance"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="stage-instance"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+
+        cy.get('[data-form="stage-action"] .ff-dropdown').click()
+        cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+
+        cy.get('[data-action="add-stage"]').click()
+
+        /// Push from stage 1 to stage 2
+        cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
+            cy.get('[data-el="ff-pipeline-stage"]:contains("Stage 1")').within(() => {
+                cy.get('[data-action="stage-run"]').click()
+            })
+        })
+
+        cy.get('[data-el="deploy-stage-dialog"].ff-dialog-container--open').should('be.visible')
+        cy.get('[data-el="deploy-stage-dialog"].ff-dialog-container--open').within(() => {
+            /* eslint-disable cypress/require-data-selectors */
+            cy.get('button.ff-btn.ff-btn--primary').click()
+            /* eslint-enable */
+        })
+
+        // Tidy Up
+        cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
+            cy.contains('Stage 1')
+            cy.contains('Stage 2')
+
+            cy.get('[data-action="delete-pipeline"]').click()
+        })
+
+        cy.get('[data-el="platform-dialog"]')
+            .should('be.visible')
+            .within(() => {
+                /* eslint-disable cypress/require-data-selectors */
+                cy.get('.ff-dialog-header').contains('Delete Pipeline')
+                cy.get('button.ff-btn.ff-btn--danger').click()
+                /* eslint-enable */
+            })
+    })
+
+    it('cannot push to a device in development mode', () => {
+        cy.intercept('GET', '/api/v1/applications/*/pipelines', function (req) {
+            req.continue((res) => {
+                res.body.pipelines.forEach((pipeline) => {
+                    pipeline.stages.forEach((stage) => {
+                        stage.devices?.forEach((device) => {
+                            device.mode = 'developer'
+                            device.isDeploying = false
+                        })
+                    })
+                })
+            })
+        }).as('getPipelines')
+        cy.intercept('POST', '/api/v1/pipelines').as('createPipeline')
+        cy.intercept('GET', '/api/v1/applications/*/devices', function (req) {
+            req.continue((res) => {
+                res.body.devices = res.body.devices.map((device) => {
+                    device.mode = 'developer'
+                    device.isDeploying = false
+                    return device
+                })
+            })
+        }).as('getDevice')
+
+        /// Create stages ready to push between
+        cy.visit(`/application/${application.id}/pipelines`)
+        cy.wait('@getPipelines')
+
+        const PIPELINE_NAME = `My New Pipeline - ${Math.random().toString(36).substring(2, 7)}`
+
+        // Add pipeline
+        cy.get('[data-action="pipeline-add"]').click()
+        cy.get('[data-form="pipeline-form"]').should('be.visible')
+
+        cy.get('[data-form="pipeline-name"] input').type(PIPELINE_NAME)
+        cy.get('[data-action="create-pipeline"]').click()
+
+        cy.wait('@createPipeline')
+
+        // Add stage 1
+        cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
+            cy.get('[data-action="add-stage"]').click()
+        })
+
+        cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 1')
+
+        cy.get('[data-form="stage-instance"] .ff-dropdown').click()
+        cy.get('[data-form="stage-instance"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="stage-instance"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+
+        cy.get('[data-form="stage-action"] .ff-dropdown').click()
+        cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+
+        cy.get('[data-action="add-stage"]').click()
+
+        // Add stage 2
+        cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
+            cy.get('[data-action="add-stage"]').click()
+        })
+
+        cy.get('[data-form="stage-type"]').find('.ff-tile-selection-option:contains("Device")').click()
+
+        cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 2')
+
+        cy.get('[data-form="stage-device"] .ff-dropdown').click()
+        cy.get('[data-form="stage-device"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="stage-device"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+
+        cy.get('[data-form="stage-action"] .ff-dropdown').click()
+        cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:contains("active")').click() // Use active snapshot
+
+        cy.get('[data-action="add-stage"]').click()
+
+        /// Push from stage 1 to stage 2
+        cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
+            cy.get('[data-el="ff-pipeline-stage"]:contains("Stage 1")').within(() => {
+                cy.get('[data-action="stage-run"].ff-disabled').should('exist')
+            })
+
+            cy.get('[data-el="ff-pipeline-stage"]:contains("Stage 2")').within(() => {
+                cy.get('[data-action="stage-run"].ff-disabled').should('exist')
+                cy.get('[data-el="stage-banner-error"]').contains('Device in Dev Mode')
+            })
+        })
+
+        // Not possible to deploy, no dialog should be visible even after the click
+        cy.get('[data-el="deploy-stage-dialog"].ff-dialog-container--open').should('not.exist')
+
+        // Tidy Up
+        cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
+            cy.contains('Stage 1')
+            cy.contains('Stage 2')
+
+            cy.get('[data-action="delete-pipeline"]').click()
+        })
+
+        cy.get('[data-el="platform-dialog"]')
+            .should('be.visible')
+            .within(() => {
+                /* eslint-disable cypress/require-data-selectors */
+                cy.get('.ff-dialog-header').contains('Delete Pipeline')
+                cy.get('button.ff-btn.ff-btn--danger').click()
+                /* eslint-enable */
+            })
+    })
 })

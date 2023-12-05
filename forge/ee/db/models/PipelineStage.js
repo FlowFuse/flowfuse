@@ -195,7 +195,7 @@ module.exports = {
                     }
 
                     if (includeDeviceStatus) {
-                        devicesInclude.attributes.push('targetSnapshotId', 'activeSnapshotId', 'lastSeenAt', 'state')
+                        devicesInclude.attributes.push('targetSnapshotId', 'activeSnapshotId', 'lastSeenAt', 'state', 'mode')
                     }
 
                     return await self.findAll({

@@ -1379,6 +1379,26 @@ describe('Pipelines API', function () {
                     response.statusCode.should.equal(400)
                 })
             })
+
+            describe('With invalid target stage', function () {
+                it('Fails gracefully if the target device is in developer mode', async function () {
+                    const deviceInDeveloperMode = await TestObjects.factory.createDevice({ name: 'device-in-developer-mode', mode: 'developer' }, app.team, null, app.application)
+
+                    // 1 -> 2
+                    TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceId: deviceInDeveloperMode.id, source: TestObjects.stageOne.hashid, action: 'prompt' }, TestObjects.pipeline)
+
+                    const response = await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageOne.hashid}/deploy`,
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
+                    const body = await response.json()
+
+                    body.should.have.property('code', 'invalid_target_stage')
+                    response.statusCode.should.equal(400)
+                })
+            })
         })
 
         describe('With action=prompt', function () {
