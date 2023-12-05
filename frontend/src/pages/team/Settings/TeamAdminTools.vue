@@ -1,13 +1,29 @@
 <template>
-    <div v-if="features.billing && trialMode" class="space-y-6">
+    <div v-if="features.billing" class="space-y-6">
         <FormHeading class="text-red-700">Admin Only Tools</FormHeading>
 
-        <div v-if="trialMode" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+        <div v-if="!isUnmanaged" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
                 <div class="max-w-sm pr-2">
-                    This team is in trial mode. Setting up manual billing will
-                    allow this team to make full use of the platform without
-                    requiring them to configure their billing details.
+                    <template v-if="trialMode">
+                        <b>This team is in trial mode.</b><br>
+                        Setting up manual billing will allow this team to make
+                        full use of the platform without requiring them to
+                        configure their billing details.
+                    </template>
+                    <template v-else-if="billingSetUp">
+                        <b>This team already has billing setup.</b><br>
+                        Setting up manual billing will cancel their existing
+                        subscription and allow this team to make full use of the
+                        platform without requiring them to configure their billing
+                        details.
+                    </template>
+                    <template v-else>
+                        <b>This team does not have billing setup.</b><br>
+                        Enabling manual billing will allow this team to make full
+                        use of the platform without requiring them to configure
+                        their billing details.
+                    </template>
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
@@ -15,7 +31,7 @@
             </div>
         </div>
     </div>
-    <ConfirmTeamManualBillingDialog v-if="trialMode" ref="confirmTeamManualBillingDialog" @setup-manual-billing="setupManualBilling" />
+    <ConfirmTeamManualBillingDialog ref="confirmTeamManualBillingDialog" @setup-manual-billing="setupManualBilling" />
 </template>
 
 <script>

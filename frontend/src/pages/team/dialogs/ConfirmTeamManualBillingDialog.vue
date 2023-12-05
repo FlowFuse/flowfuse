@@ -6,11 +6,31 @@
                     <p>
                         Are you sure you want to setup manual billing for this team?
                     </p>
-                    <p>
-                        This will bring the trial to an end and allow the team to make
-                        full use of the platform without requiring them to configure
-                        their billing details.
-                    </p>
+                    <template v-if="trialMode">
+                        <p><b>This team is in trial mode.</b></p>
+                        <p>
+                            Setting up manual billing will allow this team to make
+                            full use of the platform without requiring them to
+                            configure their billing details.
+                        </p>
+                    </template>
+                    <template v-else-if="billingSetUp">
+                        <p><b>This team already has billing setup.</b></p>
+                        <p>
+                            Setting up manual billing will cancel their existing
+                            subscription and allow this team to make full use of the
+                            platform without requiring them to configure their billing
+                            details.
+                        </p>
+                    </template>
+                    <template v-else>
+                        <p><b>This team does not have billing setup.</b></p>
+                        <p>
+                            Enabling manual billing will allow this team to make full
+                            use of the platform without requiring them to configure
+                            their billing details.
+                        </p>
+                    </template>
                 </div>
 
                 <FormRow id="teamType" v-model="input.teamType" data-form="team-type" :options="teamTypes">Select the team type to apply:</FormRow>
@@ -54,6 +74,23 @@ export default {
             },
             team: null,
             teamTypes: []
+        }
+    },
+    computed: {
+        billingSetUp () {
+            return this.team.billing?.active
+        },
+        subscriptionExpired () {
+            return this.team.billing?.canceled
+        },
+        isUnmanaged () {
+            return this.team.billing?.unmanaged
+        },
+        trialMode () {
+            return this.team.billing?.trial
+        },
+        trialHasEnded () {
+            return this.team.billing?.trialEnded
         }
     },
     methods: {
