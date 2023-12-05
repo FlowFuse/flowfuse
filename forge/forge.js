@@ -12,7 +12,6 @@ const db = require('./db')
 const ee = require('./ee')
 const housekeeper = require('./housekeeper')
 const license = require('./licensing')
-const monitor = require('./monitor')
 const postoffice = require('./postoffice')
 const routes = require('./routes')
 const settings = require('./settings')
@@ -325,9 +324,6 @@ module.exports = async (options = {}) => {
         await server.register(containers)
 
         await server.register(ee)
-
-        // Monitor
-        await server.register(monitor)
 
         await server.ready()
 
