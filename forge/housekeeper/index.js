@@ -29,8 +29,8 @@ module.exports = fp(async function (app, _opts, next) {
                 delete task.job
             }
         })
-        delayedStartupTasks.forEach(task => {
-            clearTimeout(task.startupTimeout)
+        delayedStartupTasks.forEach(startupTimeout => {
+            clearTimeout(startupTimeout)
         })
     })
 
