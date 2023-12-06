@@ -19,29 +19,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      # - name: Configure node
-      #   uses: actions/setup-node@v3
-      #   with:
-      #     node-version: '18'
-      #     registry-url: 'registry.npmjs.org'
-      #     scope: '@flowforge'
-      #     always-auth: true
-
-      # - name: Build package
-      #   run: |
-      #     echo "Installing pg-hstore@^2.3.4" \
-      #     npm install --no-audit --no-fund pg-hstore@^2.3.4 && \
-      #     # echo "Installing @flowforge/kubernetes" \
-      #     # npm install --no-audit --no-fund @flowforge/kubernetes && \
-      #     echo "Installing @flowforge/driver-kubernetes" \    
-      #     npm install --no-audit --no-fund @flowfuse/driver-kubernetes && \
-      #     echo "Installing segfault-handler" && \
-      #     npm install --no-audit --no-fund segfault-handler && \
-      #     echo "Installing all other dependencies" \
-      #     npm install --no-audit --no-fund && \
-      #     echo "Building package" \ 
-      #     npm run build
-
       - name: Set variables
         run: | 
           echo "tagged_image=${{ env.IMAGE_NAME }}:pr-${{ env.PR_NUMBER}}" >> $GITHUB_ENV
@@ -70,12 +47,10 @@ jobs:
           retention-days: 7
 
   deploy:
+    name: Deploy application to staging cluster
     runs-on: ubuntu-latest
     needs: build
     environment: staging
-    permissions:
-      packages: read
-      contents: read
     env:
       IMAGE_NAME: 'forge-k8s'
       PR_NUMBER: ${{ github.event.number }}
@@ -146,10 +121,8 @@ jobs:
           path: 'helm-repo'
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Deploy forge app
+      - name: Deploy
         run: |
-          # helm repo add flowforge https://flowfuse.github.io/helm
-          # helm repo update
           helm upgrade --install \
             --create-namespace \
             --namespace "pr-${{ env.PR_NUMBER }}" \
@@ -163,19 +136,19 @@ jobs:
             --set forge.clusterRole.name=pr-${{ env.PR_NUMBER }}-clusterrole \
             flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowforge
 
-      # - name: Deploy forge app
-      #   uses: bitovi/github-actions-deploy-eks-helm@v1.2.8
-      #   with:
-      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
-      #     aws-region: eu-west-1
-      #     cluster-name: ${{ secrets.EKS_CLUSTER_NAME }}
-      #     cluster-role-arn: arn:aws:iam::${{ steps.aws-config.outputs.aws-account-id }}:role/K8sAdmin
-      #     namespace: "pr-${{ env.PR_NUMBER }}"
-      #     name: flowfuse-pr-${{ env.PR_NUMBER }}
-      #     chart-repository: https://flowfuse.github.io/helm
-      #     config-files: ci/ci-values.yaml
-      #     timeout: 300s
-      #     atomic: true
-      #     dry-run: true
-      #     helm-wait: true
+  destroy:
+    name: Uninstall application from staging cluster
+    runs-on: ubuntu-latest
+    if: | 
+      github.event_name == 'pull_request' && github.event.action == 'closed'
+    environment: staging
+    env:
+      IMAGE_NAME: 'forge-k8s'
+      PR_NUMBER: ${{ github.event.number }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Uninstall
+        run: |
+          echo "Uninstall"
