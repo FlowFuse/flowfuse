@@ -10,17 +10,14 @@
                 </ff-button>
             </template>
         </SectionTopMenu>
-        <ff-tile-selection data-el="active-flow-blueprints">
-            <ff-tile-selection-option
+        <div class="grid grid-cols-3 gap-4 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 max-w-screen-xl">
+            <BlueprintTile
                 v-for="(flowBlueprint, index) in activeFlowBlueprints"
-                :key="index"
+                :key="index" :blueprint="flowBlueprint"
                 :editable="true"
-                :value="flowBlueprint.id"
-                :label="flowBlueprint.name"
-                :description="flowBlueprint.description"
-                @edit="showBlueprintForm(flowBlueprint)"
+                @selected="showBlueprintForm(flowBlueprint)"
             />
-        </ff-tile-selection>
+        </div>
         <div v-if="nextCursor">
             <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
         </div>
@@ -56,6 +53,8 @@ import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import MarkdownCell from '../../../components/tables/cells/MarkdownCell.vue'
 import Dialog from '../../../services/dialog.js'
 
+import BlueprintTile from '../../instance/Blueprints/BlueprintTile.vue'
+
 import FlowBlueprintFormDialog from './dialogs/FlowBlueprintFormDialog.vue'
 
 const marked = require('marked')
@@ -65,7 +64,8 @@ export default {
     components: {
         SectionTopMenu,
         PlusSmIcon,
-        FlowBlueprintFormDialog
+        FlowBlueprintFormDialog,
+        BlueprintTile
     },
     data () {
         return {

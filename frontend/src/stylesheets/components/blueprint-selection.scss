@@ -1,0 +1,61 @@
+@import '../../ui-components/stylesheets/ff-colors.scss';
+@import '../../ui-components/stylesheets/ff-utility.scss';
+
+.ff-blueprint-groups {
+    h4 {
+        border-bottom: 1px solid $ff-grey-200;
+    }
+}
+.ff-blueprint-tile {
+    border: 1px solid $ff-grey-300;
+    border-radius: $ff-unit-sm;
+    display: flex;
+    flex-direction: column;
+    --tile-background: #{$ff-blue-100};
+    --tile-foreground: #{$ff-blue-300};
+}
+
+.ff-blueprint-tile--header {
+    height: 75px;
+    overflow-y: hidden;
+    background-color: var(--tile-background);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    svg {
+        stroke: var(--tile-foreground);
+        transform: scale(4);
+        path {
+            stroke-width: 1px;
+        }
+    }
+}
+
+.ff-blueprint-tile--info {
+    padding: $ff-unit-md $ff-unit-sm;
+    display: flex;
+    flex-direction: column;
+    gap: $ff-unit-sm;
+    flex-grow: 1;
+    label {
+        font-weight: 600;
+        font-size: 1.2rem;
+    }
+}
+
+.ff-blueprint-tile--actions {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    padding: 0 $ff-unit-sm $ff-unit-md;
+}
+
+.ff-blueprint-group--general {
+    --tile-background: #{$ff-blue-100};
+    --tile-foreground: #{$ff-blue-300};
+}
+
+.ff-blueprint-group--manufacturing {
+    --tile-background: #{$ff-teal-100};
+    --tile-foreground: #{$ff-teal-400};
+}
