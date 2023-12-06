@@ -12,5 +12,5 @@ ENV FLOWFORGE_HOME=/usr/src/forge
 
 EXPOSE 3000
 
-# CMD ["sleep", "infinity"]
-CMD [ "node", "forge/app.js", "--loglevel=verbose" ]
+CMD ["sleep", "infinity"]
+# CMD [ "node", "forge/app.js"]

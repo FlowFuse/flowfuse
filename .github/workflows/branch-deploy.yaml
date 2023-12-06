@@ -35,6 +35,8 @@ jobs:
           # npm install --no-audit --no-fund @flowforge/kubernetes && \
           echo "Installing @flowforge/driver-kubernetes" \    
           npm install --no-audit --no-fund @flowfuse/driver-kubernetes && \
+          echo "Installing segfault-handler" && \
+          npm install --no-audit --no-fund segfault-handler && \
           echo "Installing all other dependencies" \
           npm install --no-audit --no-fund && \
           echo "Building package" \ 
