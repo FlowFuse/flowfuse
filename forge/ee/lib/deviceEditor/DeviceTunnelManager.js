@@ -104,7 +104,7 @@ class DeviceTunnelManager {
         const url = this.getTunnelUrl(deviceId)
         const enabled = this.isEnabled(deviceId)
         const connected = this.isConnected(deviceId)
-        return { url, enabled, connected, affinity: this.#getTunnel(deviceId).affinity }
+        return { url, enabled, connected, affinity: this.#getTunnel(deviceId)?.affinity }
     }
 
     closeTunnel (deviceId) {
