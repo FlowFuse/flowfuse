@@ -697,10 +697,10 @@ export default {
             return defineAsyncComponent(async () => {
                 let icon
                 try {
-                    icon = await import(`@heroicons/vue/outline/${importName}`)
+                    icon = await import(`@heroicons/vue/outline/${importName}.js`)
                 } catch (err) {
                     console.warn(`Did not recognise icon name "${iconName}" (imported as "${importName}")`)
-                    icon = await import('@heroicons/vue/outline/QuestionMarkCircleIcon')
+                    icon = await import('@heroicons/vue/outline/QuestionMarkCircleIcon.js')
                 }
                 return icon
             })
