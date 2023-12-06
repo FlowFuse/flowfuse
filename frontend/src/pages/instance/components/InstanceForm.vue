@@ -214,6 +214,7 @@
                         <label v-if="errors.flowBlueprint" class="text-sm text-gray-400 mb-1">
                             {{ errors.flowBlueprint }}
                         </label>
+
                         <ff-tile-selection
                             v-model="input.flowBlueprintId"
                             data-form="flow-template"
@@ -226,13 +227,18 @@
                                 description="An empty workspace to create your flows in"
                             />
 
-                            <ff-tile-selection-option
-                                v-for="(flowBlueprint, index) in flowBlueprints"
-                                :key="index"
-                                :value="flowBlueprint.id"
-                                :label="flowBlueprint.name"
-                                :description="flowBlueprint.description"
-                            />
+                            <div v-for="(groupBlueprints, group) in flowBlueprintsGrouped" :key="group" style="width:100%">
+                                <h2>{{ group }}</h2>
+
+                                <ff-tile-selection-option
+                                    v-for="(flowBlueprint, index) in groupBlueprints"
+                                    :key="index"
+                                    :value="flowBlueprint.id"
+                                    :label="flowBlueprint.name"
+                                    :description="flowBlueprint.description"
+                                >
+                                </ff-tile-selection-option>
+                            </div>
                         </ff-tile-selection>
                     </div>
                 </div>
@@ -470,6 +476,13 @@ export default {
         },
         teamInstanceLimitReached () {
             return this.projectTypes.length > 0 && this.activeProjectTypeCount === 0
+        },
+        flowBlueprintsGrouped () {
+            return this.flowBlueprints.reduce((acc, blueprint) => {
+                const category = blueprint.category || 'Other';
+                (acc[category] = acc[category] || []).push(blueprint)
+                return acc
+            }, {})
         }
     },
     watch: {
