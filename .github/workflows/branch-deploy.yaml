@@ -4,14 +4,14 @@ on:
   pull_request:
     branches:
       - main
+      - poc-deploy-from-branch
 
 jobs:
   build:
     name: Build and contenerize
+    if: |
+      github.event_name == 'pull_request' && github.event.action != 'closed'
     runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
     env:
       IMAGE_NAME: 'forge-k8s'
       PR_NUMBER: ${{ github.event.number }}
@@ -48,8 +48,10 @@ jobs:
 
   deploy:
     name: Deploy application to staging cluster
-    runs-on: ubuntu-latest
     needs: build
+    if: |
+      github.event_name == 'pull_request' && github.event.action != 'closed'
+    runs-on: ubuntu-latest
     environment: staging
     env:
       IMAGE_NAME: 'forge-k8s'
