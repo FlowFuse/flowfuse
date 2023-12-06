@@ -62,7 +62,7 @@ module.exports = {
                 })
                 await M.Application.destroy({
                     where: {
-                        teamId: team.id
+                        TeamId: team.id
                     }
                 })
             }
