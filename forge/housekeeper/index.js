@@ -19,6 +19,7 @@ const fp = require('fastify-plugin')
  */
 module.exports = fp(async function (app, _opts, next) {
     const tasks = {}
+    const delayedStartupTasks = []
 
     // Ensure we stop any scheduled tasks when the app is shutting down
     app.addHook('onClose', async (_) => {
@@ -27,6 +28,9 @@ module.exports = fp(async function (app, _opts, next) {
                 task.job.stop()
                 delete task.job
             }
+        })
+        delayedStartupTasks.forEach(startupTimeout => {
+            clearTimeout(startupTimeout)
         })
     })
 
@@ -98,37 +102,48 @@ module.exports = fp(async function (app, _opts, next) {
 
         tasks[task.name] = task
 
-        // Startup tasks are run instantly
-        if (task.startup) {
-            await task.run(app).catch(err => {
-                app.log.error(`Error running task '${task.name}: ${err.toString()}`)
-            })
-        }
-
         // If the task has a schedule (cron-string), setup the job
         if (task.schedule) {
-            task.job = scheduleTask(task.schedule, (timestamp) => {
-                app.log.trace(`Running task '${task.name}'`)
-
-                const checkInId = reportTask(task.name, task.schedule)
-
-                task
-                    .run(app)
-                    .then(reportTaskComplete.bind(this, checkInId, task.name))
-                    .catch(err => {
-                        const errorMessage = `Error running task '${task.name}: ${err.toString()}`
-
-                        app.log.error(errorMessage)
-
-                        reportTaskFailure(checkInId, task.name, errorMessage)
-                    })
-            })
+            task.job = scheduleTask(task.schedule, (timestamp) => { runTask(task) })
         }
+    }
+
+    function runTask (task) {
+        app.log.trace(`Running task '${task.name}'`)
+
+        const checkInId = reportTask(task.name, task.schedule)
+
+        return task
+            .run(app)
+            .then(reportTaskComplete.bind(this, checkInId, task.name))
+            .catch(err => {
+                const errorMessage = `Error running task '${task.name}: ${err.toString()}`
+
+                app.log.error(errorMessage)
+                reportTaskFailure(checkInId, task.name, errorMessage)
+            }).then(() => {
+                app.log.trace(`Completed task '${task.name}'`)
+                return null
+            })
     }
 
     await registerTask(require('./tasks/expireTokens'))
     await registerTask(require('./tasks/licenseCheck'))
     await registerTask(require('./tasks/licenseOverage'))
+    await registerTask(require('./tasks/telemetryMetrics'))
+
+    app.addHook('onReady', async () => {
+        let promise = Promise.resolve()
+        for (const task of Object.values(tasks)) {
+            if (task.startup === true) {
+                // Schedule startup run immediately (in queue with other tasks)
+                promise = promise.then(() => runTask(task))
+            } else if (typeof task.startup === 'number') {
+                // Schedule startup run after the specified delay
+                delayedStartupTasks.push(setTimeout(() => runTask(task), task.startup))
+            }
+        }
+    })
 
     app.decorate('housekeeper', {
         registerTask
