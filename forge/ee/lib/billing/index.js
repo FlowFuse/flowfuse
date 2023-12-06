@@ -513,24 +513,44 @@ module.exports.init = async function (app) {
          * Flags the subscription as being unmanaged. This disables all interaction
          * with Stripe for this team.
          *
-         * This can only be done with teams that are currently in trial mode
+         * If the team has an active subscription, we will check the subscription
+         * state on stripe and, if necessary, cancel the subscription.
          *
          * @param {*} team
          * @param {*} targetTeamType
          */
         enableManualBilling: async (team) => {
+            app.log.info(`Enabling manual billing for team ${team.hashid}`)
             const subscription = await team.getSubscription()
-            if (!subscription.isTrial()) {
-                // For first iteration, only teams in trial mode can be put into
-                // manual billing mode
-                const err = new Error('Team not in trial mode')
-                err.code = 'invalid_request'
-                throw err
-            }
+            const existingSubscription = subscription.subscription
+            subscription.subscription = ''
             subscription.status = app.db.models.Subscription.STATUS.UNMANAGED
             subscription.trialEndsAt = null
             subscription.trialStatus = app.db.models.Subscription.TRIAL_STATUS.ENDED
             await subscription.save()
+
+            // Now we have marked the local subscription as unmanaged, we need to
+            // check to see if there is a stripe subscription to cancel
+            if (existingSubscription) {
+                try {
+                    const stripeSubscription = await stripe.subscriptions.retrieve(existingSubscription)
+                    if (stripeSubscription && stripeSubscription.status !== 'canceled') {
+                        app.log.info(`Canceling existing subscription ${existingSubscription} for team ${team.hashid}`)
+                        // There is an existing subscription to cancel
+                        try {
+                            // Note: stripe.subscriptions.del is deprecated in the latest
+                            // version of the module - however at our current version there
+                            // is no .cancel to use.
+                            await stripe.subscriptions.del(existingSubscription)
+                        } catch (err) {
+                            app.log.warn(`Error canceling existing subscription ${existingSubscription} for team ${team.hashid}: ${err.toString()}`)
+                        }
+                    }
+                } catch (err) {
+                    // Could not find a matching stripe subscription - that's means
+                    // we have nothing cancel
+                }
+            }
         }
     }
 }

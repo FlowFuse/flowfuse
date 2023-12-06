@@ -148,6 +148,10 @@ module.exports = async function (app) {
                     result.billing.trialEndsAt = subscription.trialEndsAt
                     result.billing.trialProjectAllowed = (await team.instanceCount(app.settings.get('user:team:trial-mode:projectType'))) === 0
                 }
+                if (request.session.User.admin) {
+                    result.billing.customer = subscription.customer
+                    result.billing.subscription = subscription.subscription
+                }
             } else {
                 result.billing.active = false
             }
