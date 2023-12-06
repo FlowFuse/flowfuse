@@ -10,6 +10,10 @@
                     Category
                     <template #description>Freeform (case-sensitive) category</template>
                 </FormRow>
+                <FormRow v-model="input.icon" :error="errors.icon" data-form="icon">
+                    Custom Icon
+                    <template #description>From https://heroicons.com/, falls back to category icon</template>
+                </FormRow>
                 <FormRow v-model="input.description" :error="errors.description" data-form="description">
                     Description
                     <template #description>Use markdown for formatting</template>
@@ -64,6 +68,7 @@ export default {
                     active: flowBlueprint?.active ?? true,
                     category: flowBlueprint?.category ?? '',
                     description: flowBlueprint?.description ?? '',
+                    icon: flowBlueprint?.icon ?? '',
 
                     flows: flowBlueprint?.flows ? JSON.stringify(flowBlueprint.flows) : '',
                     modules: flowBlueprint?.modules ? JSON.stringify(flowBlueprint.modules) : ''
