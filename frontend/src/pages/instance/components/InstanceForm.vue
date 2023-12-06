@@ -237,6 +237,9 @@
                                     :label="flowBlueprint.name"
                                     :description="flowBlueprint.description"
                                 >
+                                    <template #icon>
+                                        <component :is="getIcon(flowBlueprint.icon || 'home-icon')" class="ff-icon" />
+                                    </template>
                                 </ff-tile-selection-option>
                             </div>
                         </ff-tile-selection>
@@ -288,6 +291,7 @@
 
 <script>
 import { RefreshIcon } from '@heroicons/vue/outline'
+import { defineAsyncComponent } from 'vue'
 import { mapState } from 'vuex'
 
 import billingApi from '../../../api/billing.js'
@@ -683,6 +687,22 @@ export default {
 
             // Fallback to first
             this.input.stack = this.stacks[0]?.id
+        },
+        getIcon (iconName) {
+            // Convert kebab-case to pascalCase used for import
+            const camelCase = iconName.replace(/-([a-z])/g, (g) => g[1].toUpperCase())
+            const pascalCase = camelCase.charAt(0).toUpperCase() + camelCase.slice(1)
+
+            return defineAsyncComponent(async () => {
+                let icon
+                try {
+                    icon = await import('@heroicons/vue/outline/' + pascalCase)
+                    console.warn(`Did not recognise icon name "${iconName}"" (imported as "${pascalCase}")`)
+                } catch (err) {
+                    icon = await import('@heroicons/vue/outline/QuestionMarkCircleIcon')
+                }
+                return icon
+            })
         }
     }
 }
