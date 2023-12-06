@@ -9,6 +9,7 @@ module.exports = function (app) {
             description: { type: 'string' },
             category: { type: 'string' },
             icon: { type: 'string' },
+            order: { type: 'number' },
             createdAt: { type: 'string' },
             updatedAt: { type: 'string' }
         }
@@ -21,6 +22,7 @@ module.exports = function (app) {
             description: blueprint.description,
             category: blueprint.category,
             icon: blueprint.icon,
+            order: blueprint.order,
             createdAt: blueprint.createdAt,
             updatedAt: blueprint.updatedAt
         }

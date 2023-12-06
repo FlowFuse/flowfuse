@@ -14,6 +14,10 @@
                     Custom Icon
                     <template #description>From https://heroicons.com/, falls back to category icon</template>
                 </FormRow>
+                <FormRow v-model="input.order" type="number" :error="errors.order" data-form="order">
+                    Custom Order
+                    <template #description>Used to sort blueprints, lowest to highest</template>
+                </FormRow>
                 <FormRow v-model="input.description" :error="errors.description" data-form="description">
                     Description
                     <template #description>Use markdown for formatting</template>
@@ -69,6 +73,7 @@ export default {
                     category: flowBlueprint?.category ?? '',
                     description: flowBlueprint?.description ?? '',
                     icon: flowBlueprint?.icon ?? '',
+                    order: flowBlueprint?.order ?? '',
 
                     flows: flowBlueprint?.flows ? JSON.stringify(flowBlueprint.flows) : '',
                     modules: flowBlueprint?.modules ? JSON.stringify(flowBlueprint.modules) : ''

@@ -4,7 +4,7 @@ const { DataTypes, QueryInterface } = require('sequelize')
 
 module.exports = {
     /**
-     * Add icon to FlowTemplate (renamed FlowBlueprints in the UI)
+     * Add icon and order to FlowTemplate (renamed FlowBlueprints in the UI)
      * @param {QueryInterface} context Sequelize.QueryInterface
      */
     up: async (context) => {
