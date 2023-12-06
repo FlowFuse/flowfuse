@@ -541,13 +541,15 @@ module.exports.init = async function (app) {
             if (subscription.subscription) {
                 try {
                     const stripeSubscription = await stripe.subscriptions.retrieve(subscription.subscription)
-                    if (stripeSubscription.status !== subscription.status) {
+                    if (stripeSubscription?.status !== subscription.status) {
                         // We have got out of sync. We primarily care about being
                         // in the canceled state.
                         // Note: a canceled subscription cannot become uncanceled
                         if (stripeSubscription.status === 'canceled') {
                             await app.billing.updateSubscriptionStatus(subscription, stripeSubscription.status, team)
                             await app.db.controllers.Team.suspendTeam(team)
+                        } else {
+                            app.log.warn(`Subscription status for team ${team.hashid} does not match stripe "${subscription.status}" vs "${stribeSubscription?.status}". Subscription ${subscription.subscription}.`)
                         }
                     }
                 } catch (err) {
