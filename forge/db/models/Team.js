@@ -60,6 +60,11 @@ module.exports = {
                         teamId: null
                     }
                 })
+                await M.Application.destroy({
+                    where: {
+                        teamId: team.id
+                    }
+                })
             }
         }
     },

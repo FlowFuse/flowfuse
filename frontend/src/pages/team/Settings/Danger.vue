@@ -52,6 +52,7 @@ export default {
     },
     data () {
         return {
+            applicationList: {},
             applicationCount: -1,
             teamTypes: []
         }
@@ -62,13 +63,28 @@ export default {
             return this.user.admin
         },
         deleteActive () {
-            return this.applicationCount === 0
+            if (this.applicationCount === 0) {
+                return true
+            } else {
+                for (let i = 0; i < this.applicationList.count; i++) {
+                    if (this.applicationList.applications[i].instances.length !== 0) {
+                        return false
+                    }
+                }
+                return true
+            }
         },
         deleteDescription () {
-            if (this.applicationCount > 0) {
-                return 'You cannot delete a team that still owns applications.'
-            } else {
+            if (this.applicationCount === 0) {
                 return 'Deleting the team cannot be undone. Take care.'
+            } else {
+                for (let i = 0; i < this.applicationList.count; i++) {
+                    if (this.applicationList.applications[i].instances.length !== 0) {
+                        return 'You cannot delete a team that still owns instances.'
+                    }
+                }
+                return 'Deleting the team cannot be undone. Take care.'
+                // return 'You cannot delete a team that still owns instances.'
             }
         }
     },
@@ -97,6 +113,7 @@ export default {
         async fetchData () {
             if (this.team.id) {
                 const applicationList = await teamApi.getTeamApplications(this.team.id)
+                this.applicationList = applicationList
                 this.applicationCount = applicationList.count
             }
         }
