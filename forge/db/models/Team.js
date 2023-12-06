@@ -60,6 +60,9 @@ module.exports = {
                         teamId: null
                     }
                 })
+                // This should only be empty Applications as the
+                // beforeDestroy hook will block deletion of the
+                // Team if any Applications have Instances
                 await M.Application.destroy({
                     where: {
                         TeamId: team.id
