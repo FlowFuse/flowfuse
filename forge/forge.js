@@ -88,6 +88,7 @@ module.exports = async (options = {}) => {
         const sentrySampleRate = environment === 'production' ? 0.1 : 0.5
         server.register(require('@immobiliarelabs/fastify-sentry'), {
             dsn: runtimeConfig.telemetry.backend.sentry.dsn,
+            sendClientReports: true,
             environment,
             release: `flowfuse@${runtimeConfig.version}`,
             profilesSampleRate: sentrySampleRate, // relative to output from tracesSampler
