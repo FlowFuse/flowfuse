@@ -19,28 +19,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Configure node
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          registry-url: 'registry.npmjs.org'
-          scope: '@flowforge'
-          always-auth: true
+      # - name: Configure node
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: '18'
+      #     registry-url: 'registry.npmjs.org'
+      #     scope: '@flowforge'
+      #     always-auth: true
 
-      - name: Build package
-        run: |
-          echo "Installing pg-hstore@^2.3.4" \
-          npm install --no-audit --no-fund pg-hstore@^2.3.4 && \
-          # echo "Installing @flowforge/kubernetes" \
-          # npm install --no-audit --no-fund @flowforge/kubernetes && \
-          echo "Installing @flowforge/driver-kubernetes" \    
-          npm install --no-audit --no-fund @flowfuse/driver-kubernetes && \
-          echo "Installing segfault-handler" && \
-          npm install --no-audit --no-fund segfault-handler && \
-          echo "Installing all other dependencies" \
-          npm install --no-audit --no-fund && \
-          echo "Building package" \ 
-          npm run build
+      # - name: Build package
+      #   run: |
+      #     echo "Installing pg-hstore@^2.3.4" \
+      #     npm install --no-audit --no-fund pg-hstore@^2.3.4 && \
+      #     # echo "Installing @flowforge/kubernetes" \
+      #     # npm install --no-audit --no-fund @flowforge/kubernetes && \
+      #     echo "Installing @flowforge/driver-kubernetes" \    
+      #     npm install --no-audit --no-fund @flowfuse/driver-kubernetes && \
+      #     echo "Installing segfault-handler" && \
+      #     npm install --no-audit --no-fund segfault-handler && \
+      #     echo "Installing all other dependencies" \
+      #     npm install --no-audit --no-fund && \
+      #     echo "Building package" \ 
+      #     npm run build
 
       - name: Set variables
         run: | 
@@ -57,7 +57,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: "./docker/Dockerfile"
+          file: "./docker/Dockerfile-multistage"
           tags: ${{ env.tagged_image }}
           push: false
           outputs: type=docker,dest=/tmp/k8s-forge.tar
