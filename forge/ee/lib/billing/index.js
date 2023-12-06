@@ -549,7 +549,7 @@ module.exports.init = async function (app) {
                             await app.billing.updateSubscriptionStatus(subscription, stripeSubscription.status, team)
                             await app.db.controllers.Team.suspendTeam(team)
                         } else {
-                            app.log.warn(`Subscription status for team ${team.hashid} does not match stripe "${subscription.status}" vs "${stribeSubscription?.status}". Subscription ${subscription.subscription}.`)
+                            app.log.warn(`Subscription status for team ${team.hashid} does not match stripe "${subscription.status}" vs "${stripeSubscription?.status}". Subscription ${subscription.subscription}.`)
                         }
                     }
                 } catch (err) {
