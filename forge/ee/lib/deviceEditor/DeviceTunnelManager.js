@@ -130,7 +130,7 @@ class DeviceTunnelManager {
         return ''
     }
 
-    setTunnelAffinity(deviceId, affinity) {
+    setTunnelAffinity (deviceId, affinity) {
         const tunnel = this.#getTunnel(deviceId)
         if (tunnel) {
             tunnel.affinity = affinity
