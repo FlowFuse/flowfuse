@@ -2,6 +2,11 @@ name: Deploy feature branch to staging
 
 on:
   pull_request:
+    types: 
+      - opened
+      - synchronize
+      - reopened
+      - closed
     branches:
       - main
       - poc-deploy-from-branch
