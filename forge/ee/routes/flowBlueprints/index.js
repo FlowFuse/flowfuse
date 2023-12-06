@@ -124,6 +124,7 @@ module.exports = async function (app) {
                     description: { type: 'string' },
                     category: { type: 'string' },
                     icon: { type: 'string' },
+                    order: { type: 'number' },
                     flows: { type: 'object' },
                     modules: { type: 'object' }
                 }
@@ -145,6 +146,7 @@ module.exports = async function (app) {
             description: request.body.description,
             category: request.body.category,
             icon: request.body.icon,
+            order: request.body.order,
             flows: request.body.flows,
             modules: request.body.modules
         }
@@ -183,6 +185,7 @@ module.exports = async function (app) {
                     description: { type: 'string' },
                     category: { type: 'string' },
                     icon: { type: 'string' },
+                    order: { type: 'number' },
                     flows: { type: 'object' },
                     modules: { type: 'object' }
                 }
@@ -210,7 +213,8 @@ module.exports = async function (app) {
             'description',
             'category',
             'active',
-            'icon'
+            'icon',
+            'order'
         ].forEach(prop => {
             if (hasValueChanged(request.body[prop], flowTemplate[prop])) {
                 flowTemplate[prop] = request.body[prop]

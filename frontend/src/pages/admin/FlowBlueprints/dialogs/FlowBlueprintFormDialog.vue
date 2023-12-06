@@ -91,7 +91,9 @@ export default {
                 active: true,
                 description: '',
                 properties: {},
-                defaultStack: ''
+                defaultStack: '',
+                icon: '',
+                order: 0
             },
             errors: {},
             error: null
