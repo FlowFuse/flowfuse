@@ -13,6 +13,7 @@ module.exports = {
         active: { type: DataTypes.BOOLEAN, defaultValue: true },
         description: { type: DataTypes.TEXT, defaultValue: '' },
         category: { type: DataTypes.STRING, defaultValue: '' },
+        order: { type: DataTypes.INTEGER, defaultValue: 0 },
         icon: { type: DataTypes.STRING, allowNull: true },
         flows: {
             type: DataTypes.TEXT,

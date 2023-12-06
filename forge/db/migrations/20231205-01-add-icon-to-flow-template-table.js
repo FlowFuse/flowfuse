@@ -12,6 +12,10 @@ module.exports = {
             type: DataTypes.STRING,
             allowNull: true
         })
+        await context.addColumn('FlowTemplates', 'order', {
+            type: DataTypes.NUMBER,
+            defaultValue: 0
+        })
     },
     down: async (context) => {
     }
