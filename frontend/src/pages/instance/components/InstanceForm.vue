@@ -238,7 +238,7 @@
                                     :description="flowBlueprint.description"
                                 >
                                     <template #icon>
-                                        <component :is="getIcon(flowBlueprint.icon || 'home-icon')" class="ff-icon" />
+                                        <component :is="getIcon(flowBlueprint.icon)" class="ff-icon" />
                                     </template>
                                 </ff-tile-selection-option>
                             </div>
@@ -692,13 +692,14 @@ export default {
             // Convert kebab-case to pascalCase used for import
             const camelCase = iconName.replace(/-([a-z])/g, (g) => g[1].toUpperCase())
             const pascalCase = camelCase.charAt(0).toUpperCase() + camelCase.slice(1)
+            const importName = `${pascalCase}Icon`
 
             return defineAsyncComponent(async () => {
                 let icon
                 try {
-                    icon = await import('@heroicons/vue/outline/' + pascalCase)
-                    console.warn(`Did not recognise icon name "${iconName}"" (imported as "${pascalCase}")`)
+                    icon = await import(`@heroicons/vue/outline/${importName}`)
                 } catch (err) {
+                    console.warn(`Did not recognise icon name "${iconName}" (imported as "${importName}")`)
                     icon = await import('@heroicons/vue/outline/QuestionMarkCircleIcon')
                 }
                 return icon
