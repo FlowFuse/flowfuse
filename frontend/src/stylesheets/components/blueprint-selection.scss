@@ -6,6 +6,7 @@
         border-bottom: 1px solid $ff-grey-200;
     }
 }
+
 .ff-blueprint-tile {
     border: 1px solid $ff-grey-300;
     border-radius: $ff-unit-sm;
@@ -15,31 +16,59 @@
     --tile-foreground: #{$ff-blue-300};
 }
 
+.ff-blueprint-tile-sm {
+    display: inline-flex;
+    flex-direction: row;
+    border: 1px solid $ff-grey-300;
+    border-radius: $ff-unit-sm;
+    --tile-background: #{$ff-blue-100};
+    --tile-foreground: #{$ff-blue-300};
+}
+
 .ff-blueprint-tile--header {
-    height: 75px;
-    overflow-y: hidden;
-    background-color: var(--tile-background);
     display: flex;
     align-items: center;
     justify-content: center;
+    background-color: var(--tile-background);
     svg {
         stroke: var(--tile-foreground);
-        transform: scale(4);
         path {
             stroke-width: 1px;
         }
     }
 }
 
+.ff-blueprint-tile .ff-blueprint-tile--header {
+    height: 75px;
+    overflow-y: hidden;
+    svg {
+        transform: scale(4);
+    }
+}
+
+.ff-blueprint-tile-sm .ff-blueprint-tile--header {
+    width: 32px;
+    svg {
+        transform: scale(1.5);
+    }
+}
+
 .ff-blueprint-tile--info {
+    padding: $ff-unit-md $ff-unit-xl $ff-unit-md $ff-unit-md;
+    label {
+        font-weight: 500;
+    }
+}
+
+.ff-blueprint-tile .ff-blueprint-tile--info {
     padding: $ff-unit-md $ff-unit-sm;
     display: flex;
     flex-direction: column;
     gap: $ff-unit-sm;
     flex-grow: 1;
     label {
-        font-weight: 600;
         font-size: 1.2rem;
+        font-weight: 600;
     }
 }
 
