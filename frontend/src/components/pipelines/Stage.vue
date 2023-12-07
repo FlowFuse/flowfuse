@@ -1,7 +1,13 @@
 <template>
-    <div v-if="stage" class="ff-pipeline-stage" data-el="ff-pipeline-stage">
+    <div v-if="stage" class="ff-pipeline-stage" data-el="ff-pipeline-stage" :class="{'ff-pipeline-stage--error': inDeveloperMode}">
         <div class="ff-pipeline-stage-banner">
-            <label>{{ stage.name }}</label>
+            <div class="ff-pipeline-stage-banner-name">
+                <label>{{ stage.name }}</label>
+                <span v-if="error" class="ff-pipelines-stage-banner-error" data-el="stage-banner-error">
+                    <ExclamationIcon class="ff-icon-sm" />
+                    {{ error }}
+                </span>
+            </div>
             <div class="ff-pipeline-actions">
                 <span
                     data-action="stage-edit"
@@ -23,10 +29,10 @@
                 </span>
                 <span
                     data-action="stage-run"
+                    :class="{'ff-disabled': !playEnabled || !pipeline?.id || deploying || inDeveloperMode}"
                     @click="runStage"
                 >
                     <PlayIcon
-                        v-if="playEnabled && pipeline?.id && !deploying"
                         class="ff-icon ff-clickable"
                     />
                 </span>
@@ -48,7 +54,11 @@
                 </div>
                 <div v-if="stage.stageType == StageType.DEVICE" class="ff-pipeline-stage-type">
                     <router-link class="flex gap-2 items-center" :to="{name: 'Device', params: { id: stage.device.id }}">
-                        <IconDeviceSolid class="ff-icon ff-icon-lg text-teal-700" />
+                        <span v-if="inDeveloperMode" v-ff-tooltip="'Cannot push to a Device in Developer Mode'">
+                            <IconDeviceSolid class="ff-icon ff-icon-lg text-teal-700" />
+                            <i class="bg-red-600 w-3 h-3 rounded-full absolute block -top-1 -right-1 border-2 border-gray-50" />
+                        </span>
+                        <IconDeviceSolid v-else class="ff-icon ff-icon-lg text-teal-700" />
                         <div>
                             <label class="flex items-center gap-2">Device:</label>
                             <span>
@@ -111,7 +121,7 @@
 </template>
 
 <script>
-import { PencilAltIcon, PlayIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/outline'
+import { ExclamationIcon, PencilAltIcon, PlayIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/outline'
 
 import PipelineAPI, { StageAction, StageType } from '../../api/pipeline.js'
 
@@ -129,15 +139,16 @@ import DeployStageDialog from './DeployStageDialog.vue'
 export default {
     name: 'PipelineStage',
     components: {
-        InstanceStatusBadge,
         DeployStageDialog,
+        IconDeviceSolid,
+        IconNodeRedSolid,
+        InstanceStatusBadge,
         PencilAltIcon,
         PlayIcon,
         PlusCircleIcon,
         SpinnerIcon,
         TrashIcon,
-        IconDeviceSolid,
-        IconNodeRedSolid
+        ExclamationIcon
     },
     props: {
         application: {
@@ -165,6 +176,15 @@ export default {
     computed: {
         deploying () {
             return this.stage.isDeploying
+        },
+        inDeveloperMode () {
+            return this.stage.device?.mode === 'developer'
+        },
+        error () {
+            if (this.inDeveloperMode) {
+                return 'Device in Dev Mode'
+            }
+            return ''
         }
     },
     created () {

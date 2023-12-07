@@ -42,12 +42,12 @@ module.exports = fp(async function (app, _opts, next) {
             aclManager: ACLManager(app)
         })
 
-        app.ready().then(async () => {
-            // Once the whole platform is ready, tell the client to connect
-            return await client.init()
-        }).catch(err => {
-            app.log.info('[comms] problem starting comms client')
-            throw err
+        app.addHook('onReady', async () => {
+            try {
+                await client.init()
+            } catch (err) {
+                app.log.info('[comms] problem starting comms client:', err.toString())
+            }
         })
         app.addHook('onClose', async (_) => {
             app.log.info('Comms shutdown')

@@ -12,7 +12,6 @@ const db = require('./db')
 const ee = require('./ee')
 const housekeeper = require('./housekeeper')
 const license = require('./licensing')
-const monitor = require('./monitor')
 const postoffice = require('./postoffice')
 const routes = require('./routes')
 const settings = require('./settings')
@@ -89,6 +88,7 @@ module.exports = async (options = {}) => {
         const sentrySampleRate = environment === 'production' ? 0.1 : 0.5
         server.register(require('@immobiliarelabs/fastify-sentry'), {
             dsn: runtimeConfig.telemetry.backend.sentry.dsn,
+            sendClientReports: true,
             environment,
             release: `flowfuse@${runtimeConfig.version}`,
             profilesSampleRate: sentrySampleRate, // relative to output from tracesSampler
@@ -325,9 +325,6 @@ module.exports = async (options = {}) => {
         await server.register(containers)
 
         await server.register(ee)
-
-        // Monitor
-        await server.register(monitor)
 
         await server.ready()
 
