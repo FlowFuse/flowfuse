@@ -146,7 +146,7 @@ jobs:
         run: |
           echo "### :rocket: Deployment succeeded" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Deployed commit SHA:** `${{ github.event.pull_request.head.sha }}`" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed commit SHA:** ${{ github.event.pull_request.head.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "**Deployed to:** [https://${{ env.PR_NUMBER }}.flowfuse.dev](https://${{ env.PR_NUMBER }}.flowfuse.dev)" >> $GITHUB_STEP_SUMMARY
 
   destroy:
