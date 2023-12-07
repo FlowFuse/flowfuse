@@ -92,4 +92,4 @@ module.exports = fp(async function (app, opts, done) {
     await app.register(require('./auth'))
 
     done()
-})
+}, { name: 'app.ee.routes.sso' })

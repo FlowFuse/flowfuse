@@ -136,5 +136,5 @@ module.exports = {
             app.log.info(`Config File: ${config.configFile}`)
         }
         next()
-    })
+    }, { name: 'app.config' })
 }

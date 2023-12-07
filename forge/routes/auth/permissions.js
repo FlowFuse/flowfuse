@@ -101,4 +101,4 @@ module.exports = fp(async function (app, opts, done) {
     app.decorate('hasPermission', hasPermission)
     app.decorate('needsPermission', needsPermission)
     done()
-})
+}, { name: 'app.routes.auth.permissions' })

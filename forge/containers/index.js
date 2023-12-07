@@ -67,4 +67,4 @@ module.exports = fp(async function (app, _opts, next) {
     }
 
     next()
-})
+}, { name: 'app.containers' })

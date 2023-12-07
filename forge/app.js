@@ -25,9 +25,9 @@ const forge = require('./forge')
     // but risk someone is on older 16.x without it. So for now, just look for
     // this one flag
     const enableRepl = process.argv.includes('--repl')
-
+    let server
     try {
-        const server = await forge()
+        server = await forge()
 
         // Setup shutdown event handling
         let stopping = false
@@ -77,5 +77,12 @@ const forge = require('./forge')
     } catch (err) {
         console.error(err)
         process.exitCode = 1
+        try {
+            if (server) {
+                await server.close()
+            }
+        } catch (err) {
+            console.log('Error shutting down:', err.toString())
+        }
     }
 })()

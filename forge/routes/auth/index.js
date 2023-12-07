@@ -37,7 +37,7 @@ const SESSION_COOKIE_OPTIONS = {
  * @typedef {import('../../db/controllers/User')} UserController
  */
 
-module.exports = fp(init)
+module.exports = fp(init, { name: 'app.routes.auth' })
 
 /**
  * Initialize the auth plugin

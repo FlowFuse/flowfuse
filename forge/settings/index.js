@@ -56,4 +56,4 @@ module.exports = fp(async function (app, _opts, next) {
 
     app.decorate('settings', settingsApi)
     next()
-})
+}, { name: 'app.settings' })
