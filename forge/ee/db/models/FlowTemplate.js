@@ -14,7 +14,7 @@ module.exports = {
         description: { type: DataTypes.TEXT, defaultValue: '' },
         category: { type: DataTypes.STRING, defaultValue: '' },
         order: { type: DataTypes.INTEGER, defaultValue: 0 },
-        default: { type: DataTypes.STRING, defaultValue: false },
+        default: { type: DataTypes.BOOLEAN, defaultValue: false },
         icon: { type: DataTypes.STRING, allowNull: true },
         flows: {
             type: DataTypes.TEXT,
