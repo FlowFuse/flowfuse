@@ -95,12 +95,12 @@ describe('FlowForge - Team', () => {
 
         it('cannot delete non-empty team', () => {
             // hack to use team with existing instances
-            let team = {
+            const team = {
                 slug: 'ateam'
             }
-            const TEAM_NAME = `new-team-${Math.random().toString(36).substring(2, 7)}`
-            const APP_NAME = `new-app-${Math.random().toString(36).substring(2, 7)}`
-            const PROJ_NAME = `new-proj-${Math.random().toString(36).substring(2, 7)}`
+            // const TEAM_NAME = `new-team-${Math.random().toString(36).substring(2, 7)}`
+            // const APP_NAME = `new-app-${Math.random().toString(36).substring(2, 7)}`
+            // const PROJ_NAME = `new-proj-${Math.random().toString(36).substring(2, 7)}`
             // cy.request('GET', 'api/v1/team-types').then(response => {
             //     teamTypeId = response.body.types[0].id
             //     return cy.request('POST', 'api/v1/teams', {
@@ -125,11 +125,11 @@ describe('FlowForge - Team', () => {
             //         projectType: 'type1'
             //     })
             // }).then(response => {
-                cy.visit(`team/${team.slug}`)
-                cy.visit(`team/${team.slug}/settings/danger`)
-                cy.get('[data-action="delete-team"]').should('be.disabled')
-                cy.wait('@getTeamApplications')
-                cy.get('[data-action="delete-team"]').should('be.disabled')
+            cy.visit(`team/${team.slug}`)
+            cy.visit(`team/${team.slug}/settings/danger`)
+            cy.get('[data-action="delete-team"]').should('be.disabled')
+            cy.wait('@getTeamApplications')
+            cy.get('[data-action="delete-team"]').should('be.disabled')
             // })
         })
     })
