@@ -66,12 +66,7 @@ export default {
             if (this.applicationCount === 0) {
                 return true
             } else {
-                for (let i = 0; i < this.applicationList.count; i++) {
-                    if (this.applicationList.applications[i].instances.length !== 0) {
-                        return false
-                    }
-                }
-                return true
+                return this.applicationList.applications.every((application) => application.instances.length === 0)
             }
         },
         deleteDescription () {
