@@ -19,4 +19,6 @@ module.exports = fp(async function (app, _opts, next) {
     app.decorate('auditLog', loggers)
 
     next()
+}, {
+    name: 'app.auditLog'
 })

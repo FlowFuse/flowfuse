@@ -57,4 +57,6 @@ module.exports = fp(async function (app, _opts, next) {
         app.log.warn('[comms] Broker not configured - comms unavailable')
     }
     next()
+}, {
+    name: 'app.comms'
 })

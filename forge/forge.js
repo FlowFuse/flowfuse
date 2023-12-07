@@ -336,8 +336,14 @@ module.exports = async (options = {}) => {
 
         return server
     } catch (err) {
-        console.error(err)
         server.log.error(`Failed to start: ${err.toString()}`)
+        server.log.error(err.stack)
+        try {
+            await server.close()
+        } catch (err2) {
+            server.log.error(`Failed to shutdown: ${err2.toString()}`)
+            server.log.error(err2.stack)
+        }
         throw err
     }
 }

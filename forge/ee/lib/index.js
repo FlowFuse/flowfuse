@@ -24,4 +24,4 @@ module.exports = fp(async function (app, opts, done) {
     app.config.features.register('customCatalogs', true, true)
 
     done()
-})
+}, { name: 'app.ee.lib' })
