@@ -52,8 +52,8 @@ export default {
     },
     data () {
         return {
+            applicationCount: -1,
             applicationList: {},
-            // applicationCount: -1,
             teamTypes: []
         }
     },
@@ -63,9 +63,7 @@ export default {
             return this.user.admin
         },
         deleteActive () {
-            if (this.applicationCount === 0) {
-                return true
-            } else if (this.applicationCount === -1) {
+            if (this.applicationCount === -1) {
                 return false
             } else {
                 return this.applicationList.applications.every((application) => application.instances.length === 0)
@@ -80,12 +78,6 @@ export default {
                 }
                 return 'Deleting the team cannot be undone. Take care.'
             }
-        },
-        applicationCount () {
-            if (Object.hasOwn(this.applicationList, 'count')) {
-                return this.applicationList.count
-            }
-            return -1
         }
     },
     watch: {
@@ -114,6 +106,7 @@ export default {
             if (this.team.id) {
                 const applicationList = await teamApi.getTeamApplications(this.team.id)
                 this.applicationList = applicationList
+                this.applicationCount = applicationList.count
             }
         }
     }
