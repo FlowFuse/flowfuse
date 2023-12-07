@@ -155,8 +155,6 @@ module.exports = {
                     resolve()
                 }, 250)
             })
-        } else {
-            throw new Error(`${project.id} not found`)
         }
     },
     /**

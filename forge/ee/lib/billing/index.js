@@ -378,12 +378,14 @@ module.exports.init = async function (app) {
         },
 
         closeSubscription: async (subscription) => {
-            app.log.info(`Closing subscription for team ${subscription.Team.hashid}`)
+            if (subscription.subscription) {
+                app.log.info(`Canceling subscription ${subscription.subscription} for team ${subscription.Team.hashid}`)
 
-            await stripe.subscriptions.del(subscription.subscription, {
-                invoice_now: true,
-                prorate: true
-            })
+                await stripe.subscriptions.del(subscription.subscription, {
+                    invoice_now: true,
+                    prorate: true
+                })
+            }
             subscription.status = app.db.models.Subscription.STATUS.CANCELED
             await subscription.save()
         },
@@ -538,10 +540,16 @@ module.exports.init = async function (app) {
                         app.log.info(`Canceling existing subscription ${existingSubscription} for team ${team.hashid}`)
                         // There is an existing subscription to cancel
                         try {
-                            // Note: stripe.subscriptions.del is deprecated in the latest
-                            // version of the module - however at our current version there
-                            // is no .cancel to use.
-                            await stripe.subscriptions.del(existingSubscription)
+                            // We do not use `app.billing.closeSubscription` because
+                            // that expects a Subscription object. However, we've already
+                            // updated the local Subscription object to remove the information
+                            // needed by closeSubscription. This is to ensure when the
+                            // stripe callback arrives we don't trigger a suspension of
+                            // the team resources.
+                            await stripe.subscriptions.del(subscription.subscription, {
+                                invoice_now: true,
+                                prorate: true
+                            })
                         } catch (err) {
                             app.log.warn(`Error canceling existing subscription ${existingSubscription} for team ${team.hashid}: ${err.toString()}`)
                         }
