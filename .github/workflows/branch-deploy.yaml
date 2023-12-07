@@ -7,6 +7,7 @@ on:
       - synchronize
       - reopened
       - closed
+      - labeled
     branches:
       - main
 
@@ -16,7 +17,7 @@ jobs:
     if: |
       github.event_name == 'pull_request' && 
       github.event.action != 'closed' &&
-      contains(github.event.pull_request.labels.*.name, 'deploy')
+      contains(github.event.pull_request.labels.*.name, 'deploy:pr')
     runs-on: ubuntu-latest
     env:
       IMAGE_NAME: 'forge-k8s'
@@ -58,7 +59,7 @@ jobs:
     if: |
       github.event_name == 'pull_request' && 
       github.event.action != 'closed' &&
-      contains(github.event.pull_request.labels.*.name, 'deploy')
+      contains(github.event.pull_request.labels.*.name, 'deploy:pr')
     runs-on: ubuntu-latest
     environment: staging
     env:
@@ -159,7 +160,7 @@ jobs:
     if: | 
       github.event_name == 'pull_request' && 
       github.event.action == 'closed' &&
-      contains(github.event.pull_request.labels.*.name, 'deploy')
+      contains(github.event.pull_request.labels.*.name, 'deploy:pr')
     environment: staging
     env:
       IMAGE_NAME: 'forge-k8s'
