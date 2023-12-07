@@ -65,6 +65,8 @@ export default {
         deleteActive () {
             if (this.applicationCount === 0) {
                 return true
+            } else if (this.applicationCount === -1) {
+                return false
             } else {
                 for (let i = 0; i < this.applicationList.count; i++) {
                     if (this.applicationList.applications[i].instances.length !== 0) {
