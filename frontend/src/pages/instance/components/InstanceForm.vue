@@ -72,16 +72,16 @@
         </FormRow>
 
         <div v-if="!creatingApplication || input.createInstance" :class="creatingApplication ? 'ml-6' : ''" class="space-y-6">
-            <template v-if="creatingNew && flowBlueprintsEnabled && !input.flowBlueprintId">
+            <template v-if="creatingNew && showFlowBlueprintSelection && !input.flowBlueprintId">
                 <!-- Blueprints Selection First -->
-                <BlueprintSelection @selected="selectBlueprint" />
+                <BlueprintSelection :blueprints="blueprints" @selected="selectBlueprint" />
             </template>
             <template v-else>
-                <div v-if="creatingNew && flowBlueprintsEnabled">
+                <div v-if="creatingNew && flowBlueprintsEnabled && atLeastOneFlowBlueprint">
                     <div class="max-w-sm">
                         <label class="block text-sm font-medium text-gray-800 mb-2">Blueprint:</label>
                         <BlueprintTileSmall :blueprint="selectedBlueprint" />
-                        <div class="mt-1" data-action="choose-blueprint">
+                        <div v-if="showFlowBlueprintSelection" class="mt-1" data-action="choose-blueprint">
                             <span class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline inline items-center text-sm" @click="input.flowBlueprintId = ''">Choose a different Blueprint</span>
                         </div>
                     </div>
@@ -364,6 +364,7 @@ export default {
             stacks: [],
             templates: [],
             projectTypes: [],
+            blueprints: [],
             activeProjectTypeCount: 0,
             subscription: null,
             input: {
@@ -395,8 +396,7 @@ export default {
                 nodes: true,
                 envVars: 'all'
             },
-            selectedProjectType: null,
-            selectedBlueprint: null
+            selectedProjectType: null
         }
     },
     computed: {
@@ -459,6 +459,15 @@ export default {
         },
         teamInstanceLimitReached () {
             return this.projectTypes.length > 0 && this.activeProjectTypeCount === 0
+        },
+        atLeastOneFlowBlueprint () {
+            return this.blueprints.length > 0
+        },
+        showFlowBlueprintSelection () {
+            return this.blueprints.length > 1 && this.flowBlueprintsEnabled
+        },
+        selectedBlueprint () {
+            return this.blueprints.find((blueprint) => blueprint.id === this.input.flowBlueprintId)
         }
     },
     watch: {
@@ -480,6 +489,7 @@ export default {
     async created () {
         const projectTypesPromise = instanceTypesApi.getInstanceTypes()
         const templateListPromise = templatesApi.getTemplates()
+        const blueprintsPromise = this.loadBlueprints()
 
         const projectTypes = (await projectTypesPromise).types
         this.templates = (await templateListPromise).templates.filter(template => template.active)
@@ -566,6 +576,7 @@ export default {
             // Only one active type - pre-select it for convenience
             this.input.projectType = this.projectTypes.find(pt => !pt.disabled).id
         }
+
         if (this.creatingNew && this.templates.length === 0) {
             this.errors.template = 'No templates available. Ask an Administrator to create a new template definition'
         }
@@ -577,6 +588,12 @@ export default {
         // Callback loads in related stacks
         if (this.input.projectType) {
             this.updateInstanceType(this.input.projectType)
+        }
+
+        this.blueprints = await blueprintsPromise
+        if (this.blueprints.length === 0) {
+            // Falls back to the default blueprint server side no error needed
+            console.warn('Flow Blueprints enabled but none available')
         }
     },
     async beforeMount () {
@@ -652,19 +669,16 @@ export default {
             // Fallback to first
             this.input.stack = this.stacks[0]?.id
         },
-        loadDefaultBlueprint () {
-            const response = flowBlueprintsApi.getFlowBlueprints({ default: true, state: 'active' })
+        async loadBlueprints () {
+            const response = await flowBlueprintsApi.getFlowBlueprints({ state: 'active' })
             const blueprints = response.blueprints
-            if (blueprints.length > 0) {
-                this.selectedBlueprint = blueprints[0]
-                this.input.flowBlueprintId = blueprints[0].id
-            } else {
-                // no default blueprint found
-                // TODO: Do we arbitrarily pick, or let user decide?
-            }
+
+            const defaultBlueprint = blueprints.find((blueprint) => blueprint.default) || blueprints[0]
+            this.input.flowBlueprintId = defaultBlueprint?.id
+
+            return blueprints
         },
         selectBlueprint (blueprint) {
-            this.selectedBlueprint = blueprint
             this.input.flowBlueprintId = blueprint.id
         }
     }

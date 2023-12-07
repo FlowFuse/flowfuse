@@ -10,6 +10,7 @@
 </template>
 
 <script>
+import { QuestionMarkCircleIcon } from '@heroicons/vue/outline'
 import { defineAsyncComponent } from 'vue'
 
 export default {
@@ -28,6 +29,10 @@ export default {
     },
     methods: {
         getIcon (iconName) {
+            if (!iconName) {
+                return QuestionMarkCircleIcon
+            }
+
             // Convert kebab-case to pascalCase used for import
             const camelCase = iconName.replace(/-([a-z])/g, (g) => g[1].toUpperCase())
             const pascalCase = camelCase.charAt(0).toUpperCase() + camelCase.slice(1)

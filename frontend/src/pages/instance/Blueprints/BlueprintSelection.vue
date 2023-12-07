@@ -3,7 +3,7 @@
         <h3>Select Your Blueprint</h3>
         <p>To get started, we have a collection of pre-built flow templates that you can use as a starting point for your Node-RED Instance.</p>
     </div>
-    <div v-for="(prints, group) in blueprints" :key="group" class="ff-blueprint-groups">
+    <div v-for="(prints, group) in blueprintsGrouped" :key="group" class="ff-blueprint-groups">
         <div>
             <h4>{{ group }}</h4>
         </div>
@@ -23,26 +23,38 @@ export default {
     components: {
         BlueprintTile
     },
+    props: {
+        blueprints: {
+            type: Array,
+            default: null
+        }
+    },
     emits: ['selected'],
     data () {
         return {
-            blueprints: []
+            localBlueprints: []
+        }
+    },
+    computed: {
+        blueprintsGrouped () {
+            return (this.blueprints || this.localBlueprints).reduce((acc, blueprint) => {
+                const category = blueprint.category || 'Other';
+                (acc[category] = acc[category] || []).push(blueprint)
+                return acc
+            }, {})
         }
     },
     mounted () {
-        this.loadBlueprints()
+        if (!this.blueprints) {
+            this.loadBlueprints()
+        }
     },
     methods: {
         async loadBlueprints () {
             const response = await flowBlueprintsApi.getFlowBlueprints()
             const blueprints = response.blueprints
 
-            // group the blueprints by category
-            this.blueprints = blueprints.reduce((acc, blueprint) => {
-                const category = blueprint.category || 'Other';
-                (acc[category] = acc[category] || []).push(blueprint)
-                return acc
-            }, {})
+            this.localBlueprints = blueprints
         }
     }
 }
