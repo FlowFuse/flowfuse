@@ -45,6 +45,26 @@
                                 </span>
                             </td>
                         </tr>
+
+                        <tr class="border-b">
+                            <td class="font-medium">Security</td>
+                            <td class="py-2">
+                                <template v-if="instance.settings.httpNodeAuth">
+                                    <template v-if="instance.settings.httpNodeAuth.type == 'basic'">
+                                        HTTP basic authentication
+                                    </template>
+                                    <template v-else-if="instance.settings.httpNodeAuth.type == 'flowforge-user'">
+                                        FlowFuse User Authentication
+                                    </template>
+                                    <template v-else>
+                                        None
+                                    </template>
+                                </template>
+                                <span v-else class="text-gray-400 italic">
+                                    Unknown
+                                </span>
+                            </td>
+                        </tr>
                     </table>
                 </div>
                 <div class="ff-instance-info">
