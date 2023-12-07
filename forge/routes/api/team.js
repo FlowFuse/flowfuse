@@ -486,8 +486,7 @@ module.exports = async function (app) {
         try {
             if (app.license.active() && app.billing) {
                 const subscription = await request.team.getSubscription()
-                if (subscription && !subscription.isTrial()) {
-                    // const subId = subscription.subscription
+                if (subscription && !subscription.isTrial() && !subscription.isUnmanaged()) {
                     await app.billing.closeSubscription(subscription)
                 }
             }
