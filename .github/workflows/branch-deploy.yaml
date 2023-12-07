@@ -9,7 +9,6 @@ on:
       - closed
     branches:
       - main
-      - poc-deploy-from-branch
 
 jobs:
   build:
@@ -52,7 +51,7 @@ jobs:
           retention-days: 7
 
   deploy:
-    name: Deploy application to staging cluster
+    name: Deploy application
     needs: build
     if: |
       github.event_name == 'pull_request' && github.event.action != 'closed'
@@ -144,7 +143,7 @@ jobs:
             flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowforge
 
   destroy:
-    name: Uninstall application from staging cluster
+    name: Remove application
     runs-on: ubuntu-latest
     if: | 
       github.event_name == 'pull_request' && github.event.action == 'closed'
@@ -155,7 +154,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      
-      - name: Uninstall
+
+      - name: Configure AWS credentials for EKS interaction
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+          aws-region: eu-west-1
+          role-to-assume: arn:aws:iam::${{ steps.aws-config.outputs.aws-account-id }}:role/K8sAdmin
+          role-duration-seconds: 1200
+
+      - name: Configure kubeconfig
         run: |
-          echo "Uninstall"
+          aws eks update-kubeconfig --region eu-west-1 --name ${{ secrets.EKS_CLUSTER_NAME }}
+      
+      - name: Remove resources
+        run: |
+          helm uninstall --namespace "pr-${{ env.PR_NUMBER }}" flowfuse-pr-${{ env.PR_NUMBER }}
+          sleep 15
+          kubectl delete namespace "pr-${{ env.PR_NUMBER }}"
