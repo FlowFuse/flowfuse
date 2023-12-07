@@ -14,7 +14,9 @@ jobs:
   build:
     name: Build and contenerize
     if: |
-      github.event_name == 'pull_request' && github.event.action != 'closed'
+      github.event_name == 'pull_request' && 
+      github.event.action != 'closed' &&
+      contains(github.event.pull_request.labels.*.name, 'deploy')
     runs-on: ubuntu-latest
     env:
       IMAGE_NAME: 'forge-k8s'
@@ -54,7 +56,9 @@ jobs:
     name: Deploy application
     needs: build
     if: |
-      github.event_name == 'pull_request' && github.event.action != 'closed'
+      github.event_name == 'pull_request' && 
+      github.event.action != 'closed' &&
+      contains(github.event.pull_request.labels.*.name, 'deploy')
     runs-on: ubuntu-latest
     environment: staging
     env:
@@ -153,7 +157,9 @@ jobs:
     name: Remove application
     runs-on: ubuntu-latest
     if: | 
-      github.event_name == 'pull_request' && github.event.action == 'closed'
+      github.event_name == 'pull_request' && 
+      github.event.action == 'closed' &&
+      contains(github.event.pull_request.labels.*.name, 'deploy')
     environment: staging
     env:
       IMAGE_NAME: 'forge-k8s'
