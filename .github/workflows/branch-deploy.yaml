@@ -144,9 +144,9 @@ jobs:
 
       - name: Summary
         run: |
-          echo "### :rocket: Deployment from Branch Succeeded :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "### :rocket: Deployment succeeded" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Commit SHA:** `${{ github.sha }}`" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed commit SHA:** `${{ github.event.pull_request.head.sha }}`" >> $GITHUB_STEP_SUMMARY
           echo "**Deployed to:** [https://${{ env.PR_NUMBER }}.flowfuse.dev](https://${{ env.PR_NUMBER }}.flowfuse.dev)" >> $GITHUB_STEP_SUMMARY
 
   destroy:
