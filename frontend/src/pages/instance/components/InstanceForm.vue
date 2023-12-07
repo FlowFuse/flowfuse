@@ -670,6 +670,10 @@ export default {
             this.input.stack = this.stacks[0]?.id
         },
         async loadBlueprints () {
+            if (!this.flowBlueprintsEnabled) {
+                return []
+            }
+
             const response = await flowBlueprintsApi.getFlowBlueprints({ state: 'active' })
             const blueprints = response.blueprints
 
