@@ -77,11 +77,13 @@
                 <BlueprintSelection @selected="selectBlueprint" />
             </template>
             <template v-else>
-                <div>
+                <div v-if="creatingNew && flowBlueprintsEnabled">
                     <div class="max-w-sm">
                         <label class="block text-sm font-medium text-gray-800 mb-2">Blueprint:</label>
-                        <span class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline flex items-center mb-3" @click="input.flowBlueprintId = ''"><ChevronLeftIcon class="ff-icon ff-icon-sm" />Back to Blueprint Selection</span>
                         <BlueprintTileSmall :blueprint="selectedBlueprint" />
+                        <div class="mt-1" data-action="choose-blueprint">
+                            <span class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline inline items-center text-sm" @click="input.flowBlueprintId = ''">Choose a different Blueprint</span>
+                        </div>
                     </div>
                 </div>
                 <!-- Instance Name -->
@@ -263,10 +265,11 @@
 </template>
 
 <script>
-import { ChevronLeftIcon, RefreshIcon } from '@heroicons/vue/outline'
+import { RefreshIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
 import billingApi from '../../../api/billing.js'
+import flowBlueprintsApi from '../../../api/flowBlueprints.js'
 import instanceTypesApi from '../../../api/instanceTypes.js'
 import stacksApi from '../../../api/stacks.js'
 import templatesApi from '../../../api/templates.js'
@@ -287,7 +290,6 @@ import InstanceCreditBanner from './InstanceCreditBanner.vue'
 export default {
     name: 'InstanceForm',
     components: {
-        ChevronLeftIcon,
         ExportInstanceComponents,
         FeatureUnavailableToTeam,
         FormRow,
@@ -649,6 +651,17 @@ export default {
 
             // Fallback to first
             this.input.stack = this.stacks[0]?.id
+        },
+        loadDefaultBlueprint () {
+            const response = flowBlueprintsApi.getFlowBlueprints({ default: true, state: 'active' })
+            const blueprints = response.blueprints
+            if (blueprints.length > 0) {
+                this.selectedBlueprint = blueprints[0]
+                this.input.flowBlueprintId = blueprints[0].id
+            } else {
+                // no default blueprint found
+                // TODO: Do we arbitrarily pick, or let user decide?
+            }
         },
         selectBlueprint (blueprint) {
             this.selectedBlueprint = blueprint

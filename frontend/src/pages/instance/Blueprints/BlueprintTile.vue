@@ -8,7 +8,7 @@
             <p>{{ blueprint.description }}</p>
         </div>
         <div class="ff-blueprint-tile--actions">
-            <ff-button v-if="!editable" @click="$emit('selected', blueprint)">
+            <ff-button v-if="!editable" @click="choose(blueprint)">
                 Select
             </ff-button>
             <ff-button v-else @click="$emit('selected', blueprint)">
@@ -21,6 +21,9 @@
 <script>
 import { QuestionMarkCircleIcon } from '@heroicons/vue/outline'
 import { defineAsyncComponent } from 'vue'
+import { mapState } from 'vuex'
+
+import product from '../../../services/product.js'
 
 export default {
     name: 'BlueprintTile',
@@ -36,6 +39,7 @@ export default {
     },
     emits: ['selected'],
     computed: {
+        ...mapState('account', ['team']),
         categoryClass () {
             // to lower case and strip spaces
             return this.blueprint?.category.toLowerCase().replace(/\s/g, '-')
@@ -62,6 +66,16 @@ export default {
                 }
                 return icon
             })
+        },
+        choose (blueprint) {
+            product.capture('blueprint-selected', {
+                blueprintId: blueprint.id,
+                blueprintName: blueprint.name
+            }, {
+                team: this.team.id,
+                application: this.$route.params.id
+            })
+            this.$emit('selected', blueprint)
         }
     }
 }

@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-blueprint-tile-sm" :class="'ff-blueprint-group--' + categoryClass">
+    <div v-ff-tooltip="blueprint.description" class="ff-blueprint-tile-sm" :class="'ff-blueprint-group--' + categoryClass">
         <div class="ff-blueprint-tile--header">
             <component :is="getIcon(blueprint.icon)" class="ff-icon" />
         </div>
