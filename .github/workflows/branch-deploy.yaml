@@ -41,7 +41,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: "./docker/Dockerfile-multistage"
+          file: "./ci/Dockerfile"
           tags: ${{ env.tagged_image }}
           push: false
           outputs: type=docker,dest=/tmp/k8s-forge.tar
