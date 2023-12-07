@@ -68,12 +68,7 @@ export default {
             } else if (this.applicationCount === -1) {
                 return false
             } else {
-                for (let i = 0; i < this.applicationList.count; i++) {
-                    if (this.applicationList.applications[i].instances.length !== 0) {
-                        return false
-                    }
-                }
-                return true
+                return this.applicationList.applications.every((application) => application.instances.length === 0)
             }
         },
         deleteDescription () {
