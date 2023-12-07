@@ -142,6 +142,10 @@ jobs:
             --set forge.clusterRole.name=pr-${{ env.PR_NUMBER }}-clusterrole \
             flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowforge
 
+      - name: Summary
+        run: |
+          echo "Deployed to https://${{ env.PR_NUMBER }}.flowfuse.dev" >> $GITHUB_STEP_SUMMARY
+
   destroy:
     name: Remove application
     runs-on: ubuntu-latest
