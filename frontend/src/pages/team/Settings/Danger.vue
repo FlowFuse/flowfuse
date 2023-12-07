@@ -82,7 +82,7 @@ export default {
             }
         },
         applicationCount () {
-            if (this.applicationList.hasOwnProperty('count')) {
+            if (Object.hasOwn(this.applicationList, 'count')) {
                 return this.applicationList.count
             }
             return -1
