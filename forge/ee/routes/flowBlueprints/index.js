@@ -116,18 +116,8 @@ module.exports = async function (app) {
             summary: 'Create a flow blueprint - admin-only',
             tags: ['Flow Blueprints'],
             body: {
-                type: 'object',
                 required: ['name'],
-                properties: {
-                    active: { type: 'boolean' },
-                    name: { type: 'string' },
-                    description: { type: 'string' },
-                    category: { type: 'string' },
-                    icon: { type: 'string' },
-                    order: { type: 'number' },
-                    flows: { type: 'object' },
-                    modules: { type: 'object' }
-                }
+                $ref: 'FlowBlueprint'
             },
             response: {
                 200: {
@@ -147,6 +137,7 @@ module.exports = async function (app) {
             category: request.body.category,
             icon: request.body.icon,
             order: request.body.order,
+            default: request.body.default,
             flows: request.body.flows,
             modules: request.body.modules
         }
@@ -178,17 +169,7 @@ module.exports = async function (app) {
                 }
             },
             body: {
-                type: 'object',
-                properties: {
-                    active: { type: 'boolean' },
-                    name: { type: 'string' },
-                    description: { type: 'string' },
-                    category: { type: 'string' },
-                    icon: { type: 'string' },
-                    order: { type: 'number' },
-                    flows: { type: 'object' },
-                    modules: { type: 'object' }
-                }
+                $ref: 'FlowBlueprint'
             },
             response: {
                 200: {
@@ -214,7 +195,8 @@ module.exports = async function (app) {
             'category',
             'active',
             'icon',
-            'order'
+            'order',
+            'default'
         ].forEach(prop => {
             if (hasValueChanged(request.body[prop], flowTemplate[prop])) {
                 flowTemplate[prop] = request.body[prop]

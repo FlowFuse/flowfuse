@@ -5,19 +5,35 @@
                 <div v-if="error" data-el="form-row-error" class="ml-4 text-red-400 text-xs">{{ error }}</div>
 
                 <FormRow v-model="input.name" :error="errors.name" data-form="name">Name</FormRow>
-                <FormRow v-model="input.active" type="checkbox" data-form="active">Active</FormRow>
+                <FormRow v-model="input.active" type="checkbox" data-form="active">
+                    Active
+                    <template #description>
+                        Display this blueprint in the list of available blueprints
+                    </template>
+                </FormRow>
+
+                <FormRow v-model="input.default" type="checkbox" :error="errors.default">
+                    Default Blueprint
+                    <template #description>
+                        Set this as the default blueprint for new instances
+                    </template>
+                </FormRow>
+
                 <FormRow v-model="input.category" :error="errors.category" data-form="category">
                     Category
                     <template #description>Freeform (case-sensitive) category</template>
                 </FormRow>
+
                 <FormRow v-model="input.icon" :error="errors.icon" data-form="icon">
                     Custom Icon
                     <template #description>From https://heroicons.com/, falls back to category icon</template>
                 </FormRow>
+
                 <FormRow v-model="input.order" type="number" :error="errors.order" data-form="order">
                     Custom Order
                     <template #description>Used to sort blueprints, lowest to highest</template>
                 </FormRow>
+
                 <FormRow v-model="input.description" :error="errors.description" data-form="description">
                     Description
                     <template #description>Use markdown for formatting</template>
@@ -74,6 +90,7 @@ export default {
                     description: flowBlueprint?.description ?? '',
                     icon: flowBlueprint?.icon ?? '',
                     order: flowBlueprint?.order ?? '',
+                    default: flowBlueprint?.default ?? false,
 
                     flows: flowBlueprint?.flows ? JSON.stringify(flowBlueprint.flows) : '',
                     modules: flowBlueprint?.modules ? JSON.stringify(flowBlueprint.modules) : ''
@@ -93,6 +110,7 @@ export default {
                 properties: {},
                 defaultStack: '',
                 icon: '',
+                default: false,
                 order: 0
             },
             errors: {},
@@ -114,6 +132,9 @@ export default {
             }
 
             const flowBlueprintProps = { ...this.input }
+            if (flowBlueprintProps.order === '') {
+                delete flowBlueprintProps.order
+            }
 
             // Validation
             try {

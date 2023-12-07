@@ -16,6 +16,10 @@ module.exports = {
             type: DataTypes.NUMBER,
             defaultValue: 0
         })
+        await context.addColumn('FlowTemplates', 'default', {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
+        })
     },
     down: async (context) => {
     }

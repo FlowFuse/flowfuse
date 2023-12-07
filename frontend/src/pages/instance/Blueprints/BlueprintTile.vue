@@ -4,7 +4,7 @@
             <component :is="getIcon(blueprint.icon)" class="ff-icon" />
         </div>
         <div class="ff-blueprint-tile--info">
-            <label>{{ blueprint.name }}</label>
+            <label>{{ blueprint.name }} <template v-if="editable && blueprint.default"> (Default)</template></label>
             <p>{{ blueprint.description }}</p>
         </div>
         <div class="ff-blueprint-tile--actions">
