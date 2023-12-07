@@ -68,22 +68,15 @@ export default {
             } else if (this.applicationCount === -1) {
                 return false
             } else {
-                for (let i = 0; i < this.applicationList.count; i++) {
-                    if (this.applicationList.applications[i].instances.length !== 0) {
-                        return false
-                    }
-                }
-                return true
+                return this.applicationList.applications.every((application) => application.instances.length === 0)
             }
         },
         deleteDescription () {
             if (this.applicationCount === 0) {
                 return 'Deleting the team cannot be undone. Take care.'
             } else {
-                for (let i = 0; i < this.applicationList.count; i++) {
-                    if (this.applicationList.applications[i].instances.length !== 0) {
-                        return 'You cannot delete a team that still owns instances.'
-                    }
+                if (this.applicationList.applications.some((application) => application.instances.length !== 0) {
+                    return 'You cannot delete a team that still owns instances.'
                 }
                 return 'Deleting the team cannot be undone. Take care.'
                 // return 'You cannot delete a team that still owns instances.'
