@@ -497,6 +497,7 @@ module.exports = async function (app) {
                             await app.containers.remove(instance)
                         } catch (err) {
                             if (err?.statusCode !== 404) {
+                                console.log('throwing error', err)
                                 throw err
                             }
                         }
