@@ -209,7 +209,7 @@ module.exports = {
                         ]
                     })
                 },
-                getAll: async (pagination = {}, where = {}, { includeInstanceApplication = false } = {}) => {
+                getAll: async (pagination = {}, where = {}, { includeInstanceApplication = false, includeDeviceGroup = false } = {}) => {
                     // Pagination
                     const limit = Math.min(parseInt(pagination.limit) || 100, 100)
                     if (pagination.cursor) {
@@ -308,6 +308,12 @@ module.exports = {
                         }
                     ]
 
+                    if (includeDeviceGroup) {
+                        includes.push({
+                            model: M.DeviceGroup,
+                            attributes: ['hashid', 'id', 'name', 'description', 'ApplicationId']
+                        })
+                    }
                     const statusOnlyIncludes = projectInclude.include?.where ? [projectInclude] : []
 
                     const [rows, count] = await Promise.all([
