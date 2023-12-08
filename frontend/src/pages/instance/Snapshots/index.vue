@@ -4,7 +4,7 @@
             <template #helptext>
                 <p>Snapshots generate a point-in-time backup of your Node-RED flow, credentials and runtime settings.</p>
                 <p>Snapshots are also required for deploying to devices. In the Deployments page of a Project, you can define your “Target Snapshot”, which will then be deployed to all connected devices.</p>
-                <p>You can also generate Snapshots directly from any instance of Node-RED using the <a target="_blank" href="https://github.com/FlowFuse/flowforge-nr-tools-plugin">FlowFuse NR Tools Plugin.</a></p>
+                <p>You can also generate Snapshots directly from any instance of Node-RED using the <a target="_blank" href="https://github.com/FlowFuse/nr-tools-plugin">FlowFuse NR Tools Plugin.</a></p>
             </template>
         </SectionTopMenu>
     </div>

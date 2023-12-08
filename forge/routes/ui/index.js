@@ -94,7 +94,7 @@ module.exports = async function (app) {
             return
         }
         if (app.config.telemetry?.frontend?.plausible) {
-            app.log.warn('Configuration found for Plausible. Please note that support for Plausible will be deprecated after FlowForge 0.9')
+            app.log.warn('Configuration found for Plausible. Please note that support for Plausible will be deprecated after FlowFuse 0.9')
         }
         // check if we need to inject plausible
         if (app.config.telemetry?.frontend) {

@@ -1,7 +1,7 @@
 const fp = require('fastify-plugin')
 
 /**
- * Loads the FlowForge EE components
+ * Loads the FlowFuse EE components
  */
 module.exports = fp(async function (app, opts, next) {
     // Load ee only if enabled in the license

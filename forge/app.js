@@ -7,7 +7,7 @@ const semver = require('semver')
 const forge = require('./forge')
 
 /**
-  * The main entry point to the FlowForge application.
+  * The main entry point to the FlowFuse application.
   *
   * This creates the Fastify server, registers our plugins and starts it listen
   * on `process.env.PORT`.
@@ -17,7 +17,7 @@ const forge = require('./forge')
 
 ;(async function () {
     if (!semver.satisfies(process.version, '>=16.0.0')) {
-        console.error(`FlowForge requires at least NodeJS v16, ${process.version} found`)
+        console.error(`FlowFuse requires at least NodeJS v16, ${process.version} found`)
         process.exit(1)
     }
 
@@ -34,9 +34,9 @@ const forge = require('./forge')
         async function exitWhenStopped () {
             if (!stopping) {
                 stopping = true
-                server.log.info('Stopping FlowForge platform')
+                server.log.info('Stopping FlowFuse platform')
                 await server.close()
-                server.log.info('FlowForge platform stopped')
+                server.log.info('FlowFuse platform stopped')
                 process.exit(0)
             }
         }
@@ -59,12 +59,12 @@ const forge = require('./forge')
             if (!server.settings.get('setup:initialised')) {
                 const setupURL = server.config.base_url.replace(/\/$/, '') + '/setup'
                 server.log.info('****************************************************')
-                server.log.info('* To finish setting up FlowForge, open this url:   *')
+                server.log.info('* To finish setting up FlowFuse, open this url:   *')
                 server.log.info(`*   ${setupURL.padEnd(47, ' ')}*`)
                 server.log.info('****************************************************')
             } else {
                 server.log.info('****************************************************')
-                server.log.info('* FlowForge is now running and can be accessed at: *')
+                server.log.info('* FlowFuse is now running and can be accessed at: *')
                 server.log.info(`*   ${server.config.base_url.padEnd(47, ' ')}*`)
                 server.log.info('****************************************************')
             }

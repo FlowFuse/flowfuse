@@ -430,7 +430,7 @@ async function init (app, opts, done) {
                 for (let i = 0; i < pendingInvitations.length; i++) {
                     const invite = pendingInvitations[i]
                     // For now we'll auto-accept any invites for this user
-                    // See https://github.com/flowforge/flowforge/issues/275#issuecomment-1040113991
+                    // See https://github.com/FlowFuse/flowfuse/issues/275#issuecomment-1040113991
                     await app.db.controllers.Invitation.acceptInvitation(invite, newUser)
                     // // If we go back to having the user be able to accept invites
                     // // as a secondary step, the following code will convert the external
@@ -529,7 +529,7 @@ async function init (app, opts, done) {
             for (let i = 0; i < pendingInvitations.length; i++) {
                 const invite = pendingInvitations[i]
                 // For now we'll auto-accept any invites for this user
-                // See https://github.com/flowforge/flowforge/issues/275#issuecomment-1040113991
+                // See https://github.com/FlowFuse/flowfuse/issues/275#issuecomment-1040113991
                 await app.db.controllers.Invitation.acceptInvitation(invite, verifiedUser)
                 // // If we go back to having the user be able to accept invites
                 // // as a secondary step, the following code will convert the external
