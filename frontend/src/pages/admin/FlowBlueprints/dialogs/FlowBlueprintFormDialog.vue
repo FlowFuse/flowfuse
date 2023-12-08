@@ -12,7 +12,7 @@
                     </template>
                 </FormRow>
 
-                <FormRow v-model="input.default" type="checkbox" :error="errors.default">
+                <FormRow v-model="input.default" type="checkbox" :error="errors.default" data-form="default">
                     Default Blueprint
                     <template #description>
                         Set this as the default blueprint for new instances
@@ -40,7 +40,7 @@
                     <template #input><textarea v-model="input.description" class="w-full" rows="4" /></template>
                 </FormRow>
 
-                <FormRow v-model="input.flows" :error="errors.flows" data-form="modules">
+                <FormRow v-model="input.flows" :error="errors.flows" data-form="flows">
                     Flows
                     <template #description>JSON representation of the flows for this template</template>
                     <template #input><textarea v-model="input.flows" class="w-full" rows="4" /></template>
@@ -60,7 +60,7 @@
                 </div>
                 <div class="flex">
                     <ff-button kind="secondary" @click="$refs['dialog'].close()">Cancel</ff-button>
-                    <ff-button :disabled="!formValid" @click="confirm">{{ flowBlueprint?.id ? 'Update' : 'Create' }}</ff-button>
+                    <ff-button :disabled="!formValid" data-form="confirm-dialog" @click="confirm">{{ flowBlueprint?.id ? 'Update' : 'Create' }}</ff-button>
                 </div>
             </div>
         </template>
@@ -119,7 +119,7 @@ export default {
     },
     computed: {
         formValid () {
-            return (this.input.name)
+            return this.input.name && this.input.flows && this.input.modules && !this.errors.name && !this.errors.flows && !this.errors.modules
         },
         dialogTitle () {
             return this.flowBlueprint?.id ? 'Edit Flow Blueprint' : 'Create Flow Blueprint'

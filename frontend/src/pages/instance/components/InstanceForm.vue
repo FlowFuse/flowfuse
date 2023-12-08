@@ -78,7 +78,7 @@
             </template>
             <template v-else>
                 <div v-if="creatingNew && flowBlueprintsEnabled && atLeastOneFlowBlueprint">
-                    <div class="max-w-sm">
+                    <div class="max-w-sm" data-form="blueprint">
                         <label class="block text-sm font-medium text-gray-800 mb-2">Blueprint:</label>
                         <BlueprintTileSmall :blueprint="selectedBlueprint" />
                         <div v-if="showFlowBlueprintSelection" class="mt-1" data-action="choose-blueprint">

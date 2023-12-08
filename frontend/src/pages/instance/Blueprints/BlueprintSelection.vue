@@ -3,11 +3,11 @@
         <h3>Select Your Blueprint</h3>
         <p>To get started, we have a collection of pre-built flow templates that you can use as a starting point for your Node-RED Instance.</p>
     </div>
-    <div v-for="(prints, group) in blueprintsGrouped" :key="group" class="ff-blueprint-groups">
+    <div v-for="(prints, group) in blueprintsGrouped" :key="group" class="ff-blueprint-groups" data-form="blueprint-group">
         <div>
             <h4>{{ group }}</h4>
         </div>
-        <div class="grid grid-cols-3 gap-3">
+        <div class="grid grid-cols-3 gap-3" data-form="blueprint-selection">
             <BlueprintTile v-for="print in prints" :key="print.id" :blueprint="print" @selected="$emit('selected', print)" />
         </div>
     </div>

@@ -10,10 +10,11 @@
                 </ff-button>
             </template>
         </SectionTopMenu>
-        <div class="grid grid-cols-3 gap-4 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 max-w-screen-xl">
+        <div data-el="blueprints" class="grid grid-cols-3 gap-4 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 max-w-screen-xl">
             <BlueprintTile
                 v-for="(flowBlueprint, index) in activeFlowBlueprints"
-                :key="index" :blueprint="flowBlueprint"
+                :key="index"
+                :blueprint="flowBlueprint"
                 :editable="true"
                 @selected="showBlueprintForm(flowBlueprint)"
             />
@@ -34,6 +35,7 @@
     </div>
     <FlowBlueprintFormDialog
         ref="adminFlowBlueprintDialog"
+        data-el="create-blueprint-dialog"
         @flow-blueprint-created="flowBlueprintCreated"
         @flow-blueprint-updated="flowBlueprintUpdated"
         @show-delete-dialog="showDeleteBlueprint"

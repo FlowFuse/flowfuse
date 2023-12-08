@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-blueprint-tile" :class="'ff-blueprint-group--' + categoryClass">
+    <div class="ff-blueprint-tile" :class="'ff-blueprint-group--' + categoryClass" data-el="blueprint-tile">
         <div class="ff-blueprint-tile--header">
             <component :is="getIcon(blueprint.icon)" class="ff-icon" />
         </div>
