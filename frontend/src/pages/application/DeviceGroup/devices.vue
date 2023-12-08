@@ -172,7 +172,7 @@ export default {
                     selected: false
                 }
             }) || []
-            const ungrouped = this.applicationDevices.filter((device) => !device.deviceGroupId)
+            const ungrouped = this.applicationDevices.filter((device) => !device.deviceGroup)
             this.localAvailableDevices = ungrouped?.map((device) => {
                 return {
                     id: device.id,
