@@ -731,7 +731,7 @@ describe('Application API', function () {
 
                 const response = await app.inject({
                     method: 'POST',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups`,
                     cookies: { sid },
                     payload: {
                         name: 'my device group',
@@ -753,7 +753,7 @@ describe('Application API', function () {
 
                 const response = await app.inject({
                     method: 'POST',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups`,
                     cookies: { sid },
                     payload: {
                         name: 'my device group',
@@ -774,7 +774,7 @@ describe('Application API', function () {
 
                 const response = await app.inject({
                     method: 'POST',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups`,
                     cookies: { sid },
                     payload: {
                         name: 'my device group',
@@ -793,7 +793,7 @@ describe('Application API', function () {
 
                 const response = await app.inject({
                     method: 'GET',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups`,
                     cookies: { sid }
                 })
 
@@ -815,7 +815,7 @@ describe('Application API', function () {
 
                 const response = await app.inject({
                     method: 'GET',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups?limit=1`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups?limit=1`,
                     cookies: { sid }
                 })
 
@@ -833,7 +833,7 @@ describe('Application API', function () {
 
                 const response = await app.inject({
                     method: 'GET',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups`,
                     cookies: { sid }
                 })
 
@@ -851,7 +851,7 @@ describe('Application API', function () {
 
                 const response = await app.inject({
                     method: 'GET',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups/${deviceGroup.hashid}`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup.hashid}`,
                     cookies: { sid }
                 })
 
@@ -878,7 +878,7 @@ describe('Application API', function () {
 
                 const response = await app.inject({
                     method: 'GET',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups/doesNotExist`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups/doesNotExist`,
                     cookies: { sid }
                 })
 
@@ -895,7 +895,7 @@ describe('Application API', function () {
 
                 const response = await app.inject({
                     method: 'GET',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups`,
                     cookies: { sid }
                 })
 
@@ -915,7 +915,7 @@ describe('Application API', function () {
                 // now call the API to update name and desc
                 const response = await app.inject({
                     method: 'PUT',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups/${deviceGroup.hashid}`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup.hashid}`,
                     cookies: { sid },
                     payload: {
                         name: 'updated name',
@@ -938,7 +938,7 @@ describe('Application API', function () {
 
                 const response = await app.inject({
                     method: 'PUT',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups/${deviceGroup.hashid}`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup.hashid}`,
                     cookies: { sid },
                     payload: {
                         name: 'updated name',
@@ -960,7 +960,7 @@ describe('Application API', function () {
 
                 const response = await app.inject({
                     method: 'PUT',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups/${deviceGroup.hashid}`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup.hashid}`,
                     cookies: { sid },
                     payload: {
                         name: 'updated name',
@@ -980,7 +980,7 @@ describe('Application API', function () {
 
                 const response = await app.inject({
                     method: 'DELETE',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups/${deviceGroup.hashid}`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup.hashid}`,
                     cookies: { sid }
                 })
 
@@ -993,7 +993,7 @@ describe('Application API', function () {
 
                 const response = await app.inject({
                     method: 'DELETE',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups/${deviceGroup.hashid}`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup.hashid}`,
                     cookies: { sid }
                 })
 
@@ -1010,7 +1010,7 @@ describe('Application API', function () {
 
                 const response = await app.inject({
                     method: 'DELETE',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups/${deviceGroup.hashid}`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup.hashid}`,
                     cookies: { sid }
                 })
 
@@ -1026,7 +1026,7 @@ describe('Application API', function () {
                 const device = await factory.createDevice({ name: generateName('device') }, TestObjects.BTeam, null, application)
                 const response = await app.inject({
                     method: 'PATCH',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups/${deviceGroup.hashid}`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup.hashid}`,
                     cookies: { sid },
                     payload: {
                         add: [device.hashid]
@@ -1056,7 +1056,7 @@ describe('Application API', function () {
 
                 const response = await app.inject({
                     method: 'PATCH',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups/${deviceGroup.hashid}`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup.hashid}`,
                     cookies: { sid },
                     payload: {
                         add: [device2.hashid]
@@ -1085,7 +1085,7 @@ describe('Application API', function () {
 
                 const response = await app.inject({
                     method: 'PATCH',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups/${deviceGroup.hashid}`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup.hashid}`,
                     cookies: { sid },
                     payload: {
                         remove: [device2.hashid]
@@ -1113,7 +1113,7 @@ describe('Application API', function () {
 
                 const response = await app.inject({
                     method: 'PATCH',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups/${deviceGroup.hashid}`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup.hashid}`,
                     cookies: { sid },
                     payload: {
                         add: [device3.hashid],
@@ -1144,7 +1144,7 @@ describe('Application API', function () {
 
                 const response = await app.inject({
                     method: 'PATCH',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups/${deviceGroup.hashid}`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup.hashid}`,
                     cookies: { sid },
                     payload: {
                         set: [device3.hashid]
@@ -1167,7 +1167,7 @@ describe('Application API', function () {
 
                 const response = await app.inject({
                     method: 'PATCH',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups/${deviceGroup.hashid}`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup.hashid}`,
                     cookies: { sid },
                     payload: {
                         add: [device.hashid]
@@ -1189,7 +1189,7 @@ describe('Application API', function () {
 
                 const response = await app.inject({
                     method: 'PATCH',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups/${deviceGroup.hashid}`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup.hashid}`,
                     cookies: { sid },
                     payload: {
                         add: [device.hashid]
@@ -1211,7 +1211,7 @@ describe('Application API', function () {
 
                 const response = await app.inject({
                     method: 'PATCH',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups/${deviceGroup.hashid}`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup.hashid}`,
                     cookies: { sid },
                     payload: {
                         set: [device.hashid]
@@ -1232,7 +1232,7 @@ describe('Application API', function () {
 
                 const response = await app.inject({
                     method: 'PATCH',
-                    url: `/api/v1/applications/${application.hashid}/devicegroups/${deviceGroup.hashid}`,
+                    url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup.hashid}`,
                     cookies: { sid },
                     payload: {
                         set: [device.hashid]

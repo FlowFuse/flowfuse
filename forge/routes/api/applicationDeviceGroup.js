@@ -1,7 +1,7 @@
 /**
  * Application DeviceGroup api routes
  *
- * - /api/v1/applications/:applicationId/devicegroups
+ * - /api/v1/applications/:applicationId/device-groups
  *
  * @namespace application
  * @memberof forge.routes.api
@@ -15,12 +15,12 @@ const { Roles } = require('../../lib/roles.js')
  */
 module.exports = async function (app) {
     registerPermissions({
-        'application:devicegroup:create': { description: 'Create a device group', role: Roles.Owner },
-        'application:devicegroup:list': { description: 'List device groups', role: Roles.Member },
-        'application:devicegroup:update': { description: 'Update a device group', role: Roles.Owner },
-        'application:devicegroup:delete': { description: 'Delete a device group', role: Roles.Owner },
-        'application:devicegroup:read': { description: 'View a device group', role: Roles.Member },
-        'application:devicegroup:membership:update': { description: 'Update a device group membership', role: Roles.Owner }
+        'application:device-group:create': { description: 'Create a device group', role: Roles.Owner },
+        'application:device-group:list': { description: 'List device groups', role: Roles.Member },
+        'application:device-group:update': { description: 'Update a device group', role: Roles.Owner },
+        'application:device-group:delete': { description: 'Delete a device group', role: Roles.Owner },
+        'application:device-group:read': { description: 'View a device group', role: Roles.Member },
+        'application:device-group:membership:update': { description: 'Update a device group membership', role: Roles.Owner }
     })
 
     // pre-handler for all routes in this file
@@ -38,11 +38,11 @@ module.exports = async function (app) {
     /**
      * Get a list of device groups in an application
      * @method GET
-     * @name /api/v1/applications/:applicationId/devicegroups
+     * @name /api/v1/applications/:applicationId/device-groups
      * @memberof forge.routes.api.application
      */
     app.get('/', {
-        preHandler: app.needsPermission('application:devicegroup:list'),
+        preHandler: app.needsPermission('application:device-group:list'),
         schema: {
             summary: 'Get a list of device groups in an application',
             tags: ['Applications'],
@@ -86,11 +86,11 @@ module.exports = async function (app) {
     /**
      * Add a new Device Group to an Application
      * @method POST
-     * @name /api/v1/applications/:applicationId/devicegroups
+     * @name /api/v1/applications/:applicationId/device-groups
      * @memberof forge.routes.api.application
      */
     app.post('/', {
-        preHandler: app.needsPermission('application:devicegroup:create'),
+        preHandler: app.needsPermission('application:device-group:create'),
         schema: {
             summary: 'Add a new Device Group to an Application',
             tags: ['Applications'],
@@ -130,11 +130,11 @@ module.exports = async function (app) {
     /**
      * Update a Device Group
      * @method PUT
-     * @name /api/v1/applications/:applicationId/devicegroups/:groupId
+     * @name /api/v1/applications/:applicationId/device-groups/:groupId
      * @memberof forge.routes.api.application
      */
     app.put('/:groupId', {
-        preHandler: app.needsPermission('application:devicegroup:update'),
+        preHandler: app.needsPermission('application:device-group:update'),
         schema: {
             summary: 'Update a Device Group',
             tags: ['Applications'],
@@ -174,11 +174,11 @@ module.exports = async function (app) {
     /**
      * Get a specific deviceGroup
      * @method GET
-     * @name /api/v1/applications/:applicationId/devicegroups/:groupId
+     * @name /api/v1/applications/:applicationId/device-groups/:groupId
      * @memberof forge.routes.api.application
      */
     app.get('/:groupId', {
-        preHandler: app.needsPermission('application:devicegroup:read'),
+        preHandler: app.needsPermission('application:device-group:read'),
         schema: {
             summary: 'Get a specific deviceGroup',
             tags: ['Applications'],
@@ -207,11 +207,11 @@ module.exports = async function (app) {
     /**
      * Update Device Group membership
      * @method PATCH
-     * @name /api/v1/applications/:applicationId/devicegroups/:groupId
+     * @name /api/v1/applications/:applicationId/device-groups/:groupId
      * @memberof forge.routes.api.application
      */
     app.patch('/:groupId', {
-        preHandler: app.needsPermission('application:devicegroup:membership:update'),
+        preHandler: app.needsPermission('application:device-group:membership:update'),
         schema: {
             summary: 'Update Device Group membership',
             tags: ['Applications'],
@@ -259,11 +259,11 @@ module.exports = async function (app) {
     /**
      * Delete a Device Group
      * @method DELETE
-     * @name /api/v1/applications/:applicationId/devicegroups/:groupId
+     * @name /api/v1/applications/:applicationId/device-groups/:groupId
      * @memberof forge.routes.api.application
      */
     app.delete('/:groupId', {
-        preHandler: app.needsPermission('application:devicegroup:delete'),
+        preHandler: app.needsPermission('application:device-group:delete'),
         schema: {
             summary: 'Delete a Device Group',
             tags: ['Applications'],
