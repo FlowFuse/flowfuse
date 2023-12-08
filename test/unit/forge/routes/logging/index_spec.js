@@ -93,14 +93,14 @@ describe('Logging API', function () {
             headers: {
                 authorization: `Bearer ${TestObjects.tokens.project1}`
             },
-            payload: { event: 'nodes.install', module: '@flowforge/newmodule', version: '0.4.0', path: '/nodes' }
+            payload: { event: 'nodes.install', module: '@flowfuse/newmodule', version: '0.4.0', path: '/nodes' }
         })
         response.should.have.property('statusCode', 200)
         app.db.controllers.Project.addProjectModule.called.should.be.true()
         const args = app.db.controllers.Project.addProjectModule.lastCall.args
         args.should.have.length(3)
         args[0].should.have.property('id', TestObjects.project1.id)
-        args[1].should.equal('@flowforge/newmodule')
+        args[1].should.equal('@flowfuse/newmodule')
         args[2].should.equal('0.4.0')
     })
 
@@ -112,7 +112,7 @@ describe('Logging API', function () {
             headers: {
                 authorization: `Bearer ${TestObjects.tokens.project1}`
             },
-            payload: { event: 'nodes.install', module: '@flowforge/error', error: 'not_found', version: '0.4.0', path: '/nodes' }
+            payload: { event: 'nodes.install', module: '@flowfuse/error', error: 'not_found', version: '0.4.0', path: '/nodes' }
         })
         response.should.have.property('statusCode', 200)
         app.db.controllers.Project.addProjectModule.called.should.be.false()
@@ -126,13 +126,32 @@ describe('Logging API', function () {
             headers: {
                 authorization: `Bearer ${TestObjects.tokens.project1}`
             },
-            payload: { event: 'nodes.remove', module: '@flowforge/removemodule', version: '0.4.0', path: '/nodes' }
+            payload: { event: 'nodes.remove', module: '@flowfuse/removemodule', version: '0.4.0', path: '/nodes' }
         })
         response.should.have.property('statusCode', 200)
         app.db.controllers.Project.removeProjectModule.called.should.be.true()
         const args = app.db.controllers.Project.removeProjectModule.lastCall.args
         args.should.have.length(2)
         args[0].should.have.property('id', TestObjects.project1.id)
-        args[1].should.equal('@flowforge/removemodule')
+        args[1].should.equal('@flowfuse/removemodule')
+    })
+
+    it('Adds module to instance settings for modules.install event', async function () {
+        const url = `/logging/${TestObjects.project1.id}/audit`
+        const response = await app.inject({
+            method: 'POST',
+            url,
+            headers: {
+                authorization: `Bearer ${TestObjects.tokens.project1}`
+            },
+            payload: { event: 'modules.install', module: '@flowfuse/newmodule', path: '/nodes' }
+        })
+        response.should.have.property('statusCode', 200)
+        app.db.controllers.Project.addProjectModule.called.should.be.true()
+        const args = app.db.controllers.Project.addProjectModule.lastCall.args
+        args.should.have.length(3)
+        args[0].should.have.property('id', TestObjects.project1.id)
+        args[1].should.equal('@flowfuse/newmodule')
+        args[2].should.equal('*')
     })
 })
