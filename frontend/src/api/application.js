@@ -262,6 +262,78 @@ const getSnapshots = async (applicationId, cursor, limit, options) => {
     return res.data
 }
 
+/**
+ * Get the specified device group for an application
+ * @param {string} applicationId - The ID of application to get device groups for
+ * @param {string} groupId - The ID of the group to get
+ */
+const getDeviceGroup = async (applicationId, groupId) => {
+    return client.get(`/api/v1/applications/${applicationId}/devicegroups/${groupId}`).then(res => {
+        return res.data
+    })
+}
+
+/**
+ * Get all device groups for an application
+ * @param {string} applicationId - The ID of application to get device groups for
+ */
+const getDeviceGroups = async (applicationId) => {
+    return client.get(`/api/v1/applications/${applicationId}/devicegroups`).then(res => {
+        return res.data
+    })
+}
+
+/**
+ * Create a new device group for an application
+ * @param {string} applicationId - The ID of application
+ * @param {string} name
+ * @param {string} [description]
+ */
+const createDeviceGroup = async (applicationId, name, description) => {
+    return client.post(`/api/v1/applications/${applicationId}/devicegroups`, { name, description }).then(res => {
+        const props = {
+            'devicegroup-id': res.data.id,
+            'created-at': res.data.createdAt
+        }
+        product.capture('$ff-devicegroup-created', props, {
+            application: applicationId
+        })
+        return res.data
+    })
+}
+
+/**
+ * Delete a device group
+ * @param {string} applicationId - The ID of application
+ * @param {string} groupId - The ID of the group
+ */
+const deleteDeviceGroup = async (applicationId, groupId) => {
+    return client.delete(`/api/v1/applications/${applicationId}/devicegroups/${groupId}`)
+}
+
+/**
+ * Update a device group
+ * @param {string} applicationId - The ID of application
+ * @param {string} groupId - The ID of the group
+ * @param {object} group
+ */
+const updateDeviceGroup = async (applicationId, groupId, name, description) => {
+    return client.put(`/api/v1/applications/${applicationId}/devicegroups/${groupId}`, { name, description })
+}
+
+/**
+ * Update the members of a device group
+ * @param {string} applicationId - The ID of application
+ * @param {string} groupId - The ID of the group
+ * @param {{}} members
+ * @param {string[]} members.add - Array of device IDs to add to the group
+ * @param {string[]} members.remove - Array of device IDs to remove from the group
+ * @param {string[]} members.set - Array of device IDs to set as the only group members
+ */
+const updateDeviceGroupMembership = async (applicationId, groupId, { add, remove, set } = {}) => {
+    return client.patch(`/api/v1/applications/${applicationId}/devicegroups/${groupId}`, { add, remove, set })
+}
+
 export default {
     createApplication,
     updateApplication,
@@ -276,5 +348,11 @@ export default {
     getPipelines,
     createPipeline,
     deletePipeline,
-    updatePipeline
+    updatePipeline,
+    getDeviceGroup,
+    getDeviceGroups,
+    createDeviceGroup,
+    deleteDeviceGroup,
+    updateDeviceGroup,
+    updateDeviceGroupMembership
 }
