@@ -8,7 +8,7 @@ module.exports = {
      * @param {QueryInterface} context Sequelize.QueryInterface
      */
     up: async (context) => {
-        const tableExists = await context.tableExists('FlowTemplate')
+        const tableExists = await context.tableExists('FlowTemplates')
         if (!tableExists) {
             return context.sequelize.log('Skipping Subscription migration as table does not exist')
         }
@@ -18,7 +18,7 @@ module.exports = {
             allowNull: true
         })
         await context.addColumn('FlowTemplates', 'order', {
-            type: DataTypes.NUMBER,
+            type: DataTypes.INTEGER,
             defaultValue: 0
         })
         await context.addColumn('FlowTemplates', 'default', {
