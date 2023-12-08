@@ -51,7 +51,7 @@ export default [
                 }
             },
             {
-                path: 'devicegroups',
+                path: 'device-groups',
                 name: 'ApplicationDeviceGroups',
                 component: ApplicationDeviceGroups,
                 meta: {
@@ -149,7 +149,7 @@ export default [
         ]
     },
     {
-        path: '/application/:applicationId/devicegroup/:deviceGroupId',
+        path: '/application/:applicationId/device-group/:deviceGroupId',
         name: 'ApplicationDeviceGroupIndex',
         component: ApplicationDeviceGroupIndex,
         meta: {

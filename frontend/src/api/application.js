@@ -268,7 +268,7 @@ const getSnapshots = async (applicationId, cursor, limit, options) => {
  * @param {string} groupId - The ID of the group to get
  */
 const getDeviceGroup = async (applicationId, groupId) => {
-    return client.get(`/api/v1/applications/${applicationId}/devicegroups/${groupId}`).then(res => {
+    return client.get(`/api/v1/applications/${applicationId}/device-groups/${groupId}`).then(res => {
         return res.data
     })
 }
@@ -278,7 +278,7 @@ const getDeviceGroup = async (applicationId, groupId) => {
  * @param {string} applicationId - The ID of application to get device groups for
  */
 const getDeviceGroups = async (applicationId) => {
-    return client.get(`/api/v1/applications/${applicationId}/devicegroups`).then(res => {
+    return client.get(`/api/v1/applications/${applicationId}/device-groups`).then(res => {
         return res.data
     })
 }
@@ -290,12 +290,12 @@ const getDeviceGroups = async (applicationId) => {
  * @param {string} [description]
  */
 const createDeviceGroup = async (applicationId, name, description) => {
-    return client.post(`/api/v1/applications/${applicationId}/devicegroups`, { name, description }).then(res => {
+    return client.post(`/api/v1/applications/${applicationId}/device-groups`, { name, description }).then(res => {
         const props = {
-            'devicegroup-id': res.data.id,
+            deviceGroupId: res.data.id,
             'created-at': res.data.createdAt
         }
-        product.capture('$ff-devicegroup-created', props, {
+        product.capture('$ff-device-group-created', props, {
             application: applicationId
         })
         return res.data
@@ -308,7 +308,7 @@ const createDeviceGroup = async (applicationId, name, description) => {
  * @param {string} groupId - The ID of the group
  */
 const deleteDeviceGroup = async (applicationId, groupId) => {
-    return client.delete(`/api/v1/applications/${applicationId}/devicegroups/${groupId}`)
+    return client.delete(`/api/v1/applications/${applicationId}/device-groups/${groupId}`)
 }
 
 /**
@@ -318,7 +318,7 @@ const deleteDeviceGroup = async (applicationId, groupId) => {
  * @param {object} group
  */
 const updateDeviceGroup = async (applicationId, groupId, name, description) => {
-    return client.put(`/api/v1/applications/${applicationId}/devicegroups/${groupId}`, { name, description })
+    return client.put(`/api/v1/applications/${applicationId}/device-groups/${groupId}`, { name, description })
 }
 
 /**
@@ -331,7 +331,7 @@ const updateDeviceGroup = async (applicationId, groupId, name, description) => {
  * @param {string[]} members.set - Array of device IDs to set as the only group members
  */
 const updateDeviceGroupMembership = async (applicationId, groupId, { add, remove, set } = {}) => {
-    return client.patch(`/api/v1/applications/${applicationId}/devicegroups/${groupId}`, { add, remove, set })
+    return client.patch(`/api/v1/applications/${applicationId}/device-groups/${groupId}`, { add, remove, set })
 }
 
 export default {

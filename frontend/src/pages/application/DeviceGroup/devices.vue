@@ -100,7 +100,7 @@ export default {
             required: true
         }
     },
-    emits: ['devicegroup-members-updated'],
+    emits: ['device-group-members-updated'],
     data: function () {
         return {
             localMemberDevices: [],
@@ -299,7 +299,7 @@ export default {
                 .then(() => {
                     Alerts.emit('Device Group updated.', 'confirmation')
                     this.hasChanges = false
-                    this.$emit('devicegroup-members-updated')
+                    this.$emit('device-group-members-updated')
                 })
                 .catch((err) => {
                     this.$toast.error('Failed to update Device Group')

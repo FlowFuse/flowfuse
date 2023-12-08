@@ -47,7 +47,7 @@ export default {
             required: true
         }
     },
-    emits: ['devicegroup-updated'],
+    emits: ['device-group-updated'],
     data () {
         return {
             input: {
@@ -94,7 +94,7 @@ export default {
             }
             const response = await ApplicationApi.updateDeviceGroup(this.application.id, this.deviceGroup.id, this.input.name, this.input.description)
             if (response.status === 200) {
-                this.$emit('devicegroup-updated')
+                this.$emit('device-group-updated')
                 Alerts.emit('Device Group settings saved', 'confirmation')
             } else {
                 Alerts.emit('Failed to update device group settings', 'warning', 5000)

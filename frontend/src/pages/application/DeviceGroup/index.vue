@@ -35,8 +35,8 @@
                 :is-visiting-admin="isVisitingAdmin"
                 :team="team"
                 :team-membership="teamMembership"
-                @devicegroup-updated="load"
-                @devicegroup-members-updated="load"
+                @device-group-updated="load"
+                @device-group-members-updated="load"
             />
         </div>
     </main>
@@ -66,16 +66,6 @@ export default {
         TeamTrialBanner
     },
     mixins: [permissionsMixin],
-    // props: {
-    //     applicationId: {
-    //         type: String,
-    //         required: true
-    //     },
-    //     devicegroupId: {
-    //         type: String,
-    //         required: true
-    //     }
-    // },
     data: function () {
         return {
             mounted: false,
