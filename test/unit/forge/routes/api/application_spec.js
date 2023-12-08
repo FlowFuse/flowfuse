@@ -977,7 +977,6 @@ describe('Application API', function () {
                 result.should.have.property('error')
             })
 
-
             it('Non Owner can not update a device group', async function () {
                 const sid = await login('chris', 'ccPassword')
                 const application = await factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
