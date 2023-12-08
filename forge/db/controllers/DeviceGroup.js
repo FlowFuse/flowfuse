@@ -29,11 +29,8 @@ module.exports = {
         // Create a Device Group that devices can be linked to
         // * name is required
         // * application, description are optional
-        // * FUTURE: colors (background, border, text) and icon will optional
+        // * FUTURE: colors (background, border, text) and icon will be optional
 
-        if (typeof name !== 'string' || name.length === 0) {
-            throw new Error('Tag name is required')
-        }
         return await app.db.models.DeviceGroup.create({
             name,
             description,
@@ -49,9 +46,6 @@ module.exports = {
         }
         let changed = false
         if (typeof name !== 'undefined') {
-            if (typeof name !== 'string' || name.length === 0) {
-                throw new Error('Tag name is required')
-            }
             deviceGroup.name = name
             changed = true
         }
@@ -143,7 +137,9 @@ module.exports = {
         const deviceIds = await validateDeviceList(app, deviceGroup, null, deviceList)
         // null every device.DeviceGroupId row in device table where the id === deviceGroupId and device.id is in the deviceList
         await app.db.models.Device.update({ DeviceGroupId: null }, { where: { id: deviceIds.removeList, DeviceGroupId: deviceGroup.id } })
-    }
+    },
+
+    DeviceGroupMembershipValidationError
 }
 
 /**

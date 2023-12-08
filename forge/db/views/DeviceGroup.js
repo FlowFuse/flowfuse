@@ -6,13 +6,10 @@ module.exports = function (app) {
             id: { type: 'string' },
             name: { type: 'string' },
             description: { type: 'string' },
-            model: { type: 'string' }
+            deviceCount: { type: 'number' }
         }
     })
     function deviceGroupSummary (group) {
-        // if (Object.hasOwn(group, 'get')) {
-        //     group = group.get({ plain: true })
-        // }
         if (group.toJSON) {
             group = group.toJSON()
         }
@@ -32,7 +29,8 @@ module.exports = function (app) {
         properties: {
             createdAt: { type: 'string' },
             updatedAt: { type: 'string' },
-            DeviceGroup: { type: 'object', additionalProperties: true }
+            application: { $ref: 'ApplicationSummary' },
+            devices: { type: 'array', items: { $ref: 'Device' } }
         },
         additionalProperties: true
     })
@@ -46,7 +44,7 @@ module.exports = function (app) {
                 id: item.hashid,
                 name: item.name,
                 description: item.description,
-                Application: item.Application ? app.db.views.Application.applicationSummary(item.Application) : null,
+                application: item.Application ? app.db.views.Application.applicationSummary(item.Application) : null,
                 deviceCount: item.deviceCount || 0,
                 devices: item.Devices ? item.Devices.map(app.db.views.Device.device) : []
             }

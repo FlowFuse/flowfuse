@@ -28,7 +28,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.register(applicationDeviceGroup, { prefix: '/:applicationId/devicegroups' })
+    app.register(applicationDeviceGroup, { prefix: '/:applicationId/device-groups' })
 
     /**
      * Create an application
