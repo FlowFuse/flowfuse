@@ -28,7 +28,10 @@ module.exports = function (app) {
             instance: { $ref: 'InstanceSummary' },
             application: { $ref: 'ApplicationSummary' },
             editor: { type: 'object', additionalProperties: true },
-            deviceGroupId: { type: 'string' }
+            deviceGroup: {
+                nullable: true,
+                allOf: [{ $ref: 'DeviceGroupSummary' }]
+            }
         }
     })
 
@@ -65,7 +68,7 @@ module.exports = function (app) {
             mode: result.mode || 'autonomous',
             ownerType: result.ownerType,
             isDeploying: app.db.controllers.Device.isDeploying(device),
-            deviceGroupId: device.DeviceGroup ? device.DeviceGroup.hashid : null
+            deviceGroup: device.DeviceGroup && app.db.views.DeviceGroup.deviceGroupSummary(device.DeviceGroup)
         }
         if (device.Team) {
             filtered.team = app.db.views.Team.teamSummary(device.Team)
