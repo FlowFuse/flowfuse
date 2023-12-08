@@ -485,6 +485,35 @@ module.exports = async function (app) {
         // call to destroy the team will throw an error
         try {
             if (app.license.active() && app.billing) {
+                // It is possible the team has Instances but expired billing so
+                // we need to delete the Instances first
+
+                const instanceCount = await request.team.instanceCount()
+                if (instanceCount > 0) {
+                    // need to delete Instances 
+                    const instances = await app.db.models.Project.byTeam(request.team.hashid)
+                    for (instance of instances) {
+                        try {
+                            await app.containers.remove(instance)
+                        } catch (err) {
+                            if (err?.statusCode !== 404) {
+                                throw err
+                            }
+                        }
+
+                        // disconnect any devices from the Instance
+                        if (app.comms) {
+                            app.comms.devices.sendCommandToProjectDevices(request.team.hashid, instance.id, 'update', {
+                                project: null
+                            })
+                        }
+
+                        instance.destroy()
+                        await app.auditLog.Team.project.deleted(request.session.User, null, request.team, instance)
+                        await app.auditLog.Project.project.deleted(request.session.User, null, request.team, instance)
+                    }
+                }
+
                 const subscription = await request.team.getSubscription()
                 if (subscription && !subscription.isTrial() && !subscription.isUnmanaged()) {
                     await app.billing.closeSubscription(subscription)

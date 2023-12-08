@@ -58,18 +58,42 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user']),
+        ...mapState('account', ['user', 'features']),
         isAdmin: function () {
             return this.user.admin
         },
         deleteActive () {
-            if (this.applicationCount === -1) {
-                return false
+            if (!this.features.billing) {
+                if (this.applicationCount === -1) {
+                    return false
+                } else {
+                    return this.applicationList.applications.every((application) => application.instances.length === 0)
+                }
             } else {
-                return this.applicationList.applications.every((application) => application.instances.length === 0)
+                console.log('billing')
+                if ((!this.team.billing?.unmanaged) &&
+                    (!this.team.billing?.trial || this.team.billing?.trialEnded) &&
+                    (!this.team.billing?.active)
+                ) {
+                    // All projects should be suspended
+                    return true
+                } else {
+                    if (this.applicationCount === -1) {
+                        return false
+                    } else {
+                        return this.applicationList.applications.every((application) => application.instances.length === 0)
+                    }
+                }
             }
         },
         deleteDescription () {
+            if (this.features.billing &&
+                (!this.team.billing?.unmanaged) &&
+                (!this.team.billing?.trial || this.team.billing?.trialEnded) &&
+                (!this.team.billing?.active)
+            ) {
+                return 'Deleting team with expired billing'
+            }
             if (this.applicationCount === 0) {
                 return 'Deleting the team cannot be undone. Take care.'
             } else {
