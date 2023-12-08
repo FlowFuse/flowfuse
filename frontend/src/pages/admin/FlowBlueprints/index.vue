@@ -88,7 +88,11 @@ export default {
             })
         },
         activeFlowBlueprints () {
-            return this.flowBlueprintsArray.filter(pt => pt.active)
+            return this.flowBlueprintsArray
+                .filter(pt => pt.active)
+                .sort((a, b) => {
+                    return a.order - b.order
+                })
         },
         inactiveFlowBlueprints () {
             return this.flowBlueprintsArray.filter(pt => !pt.active)

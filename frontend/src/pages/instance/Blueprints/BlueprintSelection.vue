@@ -37,11 +37,20 @@ export default {
     },
     computed: {
         blueprintsGrouped () {
-            return (this.blueprints || this.localBlueprints).reduce((acc, blueprint) => {
+            const grouped = (this.blueprints || this.localBlueprints).reduce((acc, blueprint) => {
                 const category = blueprint.category || 'Other';
                 (acc[category] = acc[category] || []).push(blueprint)
                 return acc
             }, {})
+
+            // sort each group
+            Object.keys(grouped).forEach(key => {
+                grouped[key].sort((a, b) => {
+                    return a.order - b.order
+                })
+            })
+
+            return grouped
         }
     },
     mounted () {

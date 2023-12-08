@@ -75,8 +75,8 @@
 .ff-blueprint-tile--actions {
     width: 100%;
     display: flex;
-    justify-content: flex-end;
     padding: 0 $ff-unit-sm $ff-unit-md;
+    align-items: center;
 }
 
 .ff-blueprint-group--general {

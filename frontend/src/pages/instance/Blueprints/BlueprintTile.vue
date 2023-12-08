@@ -4,10 +4,14 @@
             <component :is="getIcon(blueprint.icon)" class="ff-icon" />
         </div>
         <div class="ff-blueprint-tile--info">
-            <label>{{ blueprint.name }} <template v-if="editable && blueprint.default"> (Default)</template></label>
+            <label>{{ blueprint.name }}</label>
             <p>{{ blueprint.description }}</p>
         </div>
-        <div class="ff-blueprint-tile--actions">
+        <div class="ff-blueprint-tile--actions" :class="{'justify-between': showDefault, 'justify-end': !showDefault}">
+            <div v-if="showDefault" v-ff-tooltip:bottom="'Default Blueprint'" class="text-green-600 flex items-center gap-1">
+                <CheckCircleIcon class="ff-icon-lg" />
+                <label class="text-green-800">Default</label>
+            </div>
             <ff-button v-if="!editable" @click="choose(blueprint)">
                 Select
             </ff-button>
@@ -19,7 +23,7 @@
 </template>
 
 <script>
-import { QuestionMarkCircleIcon } from '@heroicons/vue/outline'
+import { CheckCircleIcon, QuestionMarkCircleIcon } from '@heroicons/vue/outline'
 import { defineAsyncComponent } from 'vue'
 import { mapState } from 'vuex'
 
@@ -27,6 +31,9 @@ import product from '../../../services/product.js'
 
 export default {
     name: 'BlueprintTile',
+    components: {
+        CheckCircleIcon
+    },
     props: {
         blueprint: {
             required: true,
@@ -43,6 +50,9 @@ export default {
         categoryClass () {
             // to lower case and strip spaces
             return this.blueprint?.category.toLowerCase().replace(/\s/g, '-')
+        },
+        showDefault () {
+            return this.blueprint.default && this.editable
         }
     },
     methods: {
