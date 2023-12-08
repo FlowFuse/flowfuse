@@ -61,8 +61,8 @@
                             <ff-data-table-cell>
                                 <ff-checkbox v-model="device.selected" class="inline" />
                             </ff-data-table-cell>
-                            <ff-data-table-cell>{{ device.name }}</ff-data-table-cell>
-                            <ff-data-table-cell>{{ device.type }}</ff-data-table-cell>
+                            <ff-data-table-cell class="w-1/3">{{ device.name }}</ff-data-table-cell>
+                            <ff-data-table-cell class="w-2/3">{{ device.type }}</ff-data-table-cell>
                         </ff-data-table-row>
                     </template>
                 </ff-data-table>
@@ -127,13 +127,14 @@ export default {
                 {
                     label: 'Name',
                     key: 'name',
-                    sortable: true
+                    sortable: true,
+                    class: 'w-1/3'
                 },
                 {
                     label: 'Type',
                     key: 'type',
                     sortable: true,
-                    class: 'w-full'
+                    class: 'w-2/3'
                 }
             ]
         }
