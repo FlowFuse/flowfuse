@@ -747,6 +747,27 @@ describe('Application API', function () {
                 result.should.have.property('description', 'my device group description')
             })
 
+            it('Cannot create a device group with empty name', async function () {
+                const sid = await login('bob', 'bbPassword')
+                const application = await factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/applications/${application.hashid}/device-groups`,
+                    cookies: { sid },
+                    payload: {
+                        name: '',
+                        description: 'my device group description'
+                    }
+                })
+
+                response.statusCode.should.equal(400)
+
+                const result = response.json()
+                result.should.have.property('code', 'invalid_name')
+                result.should.have.property('error')
+            })
+
             it('Non Owner can not create a device group', async function () {
                 const sid = await login('chris', 'ccPassword')
                 const application = await factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
@@ -930,6 +951,32 @@ describe('Application API', function () {
                 updatedDeviceGroup.should.have.property('name', 'updated name')
                 updatedDeviceGroup.should.have.property('description', 'updated description')
             })
+
+            it('Cannot update a device group with empty name', async function () {
+                const sid = await login('bob', 'bbPassword')
+                const application = await factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
+                const deviceGroup = await factory.createApplicationDeviceGroup({ name: generateName('device-group') + ' original name', description: 'original desc' }, application)
+                deviceGroup.should.have.property('name').and.endWith('original name')
+                deviceGroup.should.have.property('description', 'original desc')
+
+                // now call the API to update name and desc
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup.hashid}`,
+                    cookies: { sid },
+                    payload: {
+                        name: '',
+                        description: 'updated description'
+                    }
+                })
+
+                response.statusCode.should.equal(400)
+
+                const result = response.json()
+                result.should.have.property('code', 'invalid_name')
+                result.should.have.property('error')
+            })
+
 
             it('Non Owner can not update a device group', async function () {
                 const sid = await login('chris', 'ccPassword')
@@ -1200,6 +1247,30 @@ describe('Application API', function () {
                 response.json().should.have.property('code', 'invalid_input')
                 // double check the device did not get added to the group
                 const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroup.hashid)
+                updatedDeviceGroup.should.have.property('Devices').and.have.length(0)
+            })
+
+            it('Can not add a device to a group if already in a group', async function () {
+                const sid = await login('bob', 'bbPassword')
+                const application = TestObjects.application // BTeam application
+                const deviceGroup = await factory.createApplicationDeviceGroup({ name: generateName('device-group') }, application)
+                const deviceGroup2 = await factory.createApplicationDeviceGroup({ name: generateName('device-group') }, application)
+                const device = await factory.createDevice({ name: generateName('device') }, TestObjects.BTeam, null, application)
+                await app.db.controllers.DeviceGroup.updateDeviceGroupMembership(deviceGroup, { addDevices: [device] })
+
+                const response = await app.inject({
+                    method: 'PATCH',
+                    url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup2.hashid}`,
+                    cookies: { sid },
+                    payload: {
+                        add: [device.hashid]
+                    }
+                })
+
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'invalid_input')
+                // double check the device did not get added to the group
+                const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroup2.hashid)
                 updatedDeviceGroup.should.have.property('Devices').and.have.length(0)
             })
 

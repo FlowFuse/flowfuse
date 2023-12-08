@@ -7,6 +7,9 @@
  * @memberof forge.routes.api
  */
 
+const { ValidationError } = require('sequelize')
+
+const { DeviceGroupMembershipValidationError } = require('../../db/controllers/DeviceGroup.js')
 const { registerPermissions } = require('../../lib/permissions')
 const { Roles } = require('../../lib/roles.js')
 
@@ -121,10 +124,13 @@ module.exports = async function (app) {
         const application = request.application
         const name = request.body.name
         const description = request.body.description
-
-        const newGroup = await app.db.controllers.DeviceGroup.createDeviceGroup(name, { application, description })
-        const newGroupView = app.db.views.DeviceGroup.deviceGroupSummary(newGroup)
-        reply.code(201).send(newGroupView)
+        try {
+            const newGroup = await app.db.controllers.DeviceGroup.createDeviceGroup(name, { application, description })
+            const newGroupView = app.db.views.DeviceGroup.deviceGroupSummary(newGroup)
+            reply.code(201).send(newGroupView)
+        } catch (error) {
+            return handleError(error, reply)
+        }
     })
 
     /**
@@ -166,13 +172,16 @@ module.exports = async function (app) {
         const group = request.deviceGroup
         const name = request.body.name
         const description = request.body.description
-
-        await app.db.controllers.DeviceGroup.updateDeviceGroup(group, { name, description })
-        reply.send({})
+        try {
+            await app.db.controllers.DeviceGroup.updateDeviceGroup(group, { name, description })
+            reply.send({})
+        } catch (error) {
+            return handleError(error, reply)
+        }
     })
 
     /**
-     * Get a specific deviceGroup
+     * Get a specific Device Group
      * @method GET
      * @name /api/v1/applications/:applicationId/device-groups/:groupId
      * @memberof forge.routes.api.application
@@ -180,7 +189,7 @@ module.exports = async function (app) {
     app.get('/:groupId', {
         preHandler: app.needsPermission('application:device-group:read'),
         schema: {
-            summary: 'Get a specific deviceGroup',
+            summary: 'Get a specific Device Group',
             tags: ['Applications'],
             params: {
                 type: 'object',
@@ -249,10 +258,7 @@ module.exports = async function (app) {
             await app.db.controllers.DeviceGroup.updateDeviceGroupMembership(group, { addDevices, removeDevices, setDevices })
             reply.send({})
         } catch (err) {
-            return reply.code(err.statusCode || 500).send({
-                code: err.code || 'unexpected_error',
-                error: err.error || err.message
-            })
+            return handleError(err, reply)
         }
     })
 
@@ -289,4 +295,28 @@ module.exports = async function (app) {
         await group.destroy()
         reply.send({})
     })
+
+    function handleError (err, reply) {
+        let statusCode = 500
+        let code = 'unexpected_error'
+        let error = err.error || err.message || 'Unexpected error'
+        if (err instanceof ValidationError) {
+            statusCode = 400
+            if (err.errors[0]) {
+                code = err.errors[0].path ? `invalid_${err.errors[0].path}` : 'invalid_input'
+                error = err.errors[0].message || error
+            } else {
+                code = 'invalid_input'
+                error = err.message || error
+            }
+        } else if (err instanceof DeviceGroupMembershipValidationError) {
+            statusCode = err.statusCode || 400
+            code = err.code || 'invalid_device_group_membership'
+            error = err.message || error
+        } else {
+            app.log.error('API error in application device groups:')
+            app.log.error(err)
+        }
+        return reply.code(statusCode).type('application/json').send({ code, error })
+    }
 }

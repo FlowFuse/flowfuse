@@ -7,11 +7,19 @@
 const { DataTypes, literal } = require('sequelize')
 
 const { buildPaginationSearchClause } = require('../utils')
+const nameValidator = { msg: 'Device Group name cannot be empty' }
 
 module.exports = {
     name: 'DeviceGroup',
     schema: {
-        name: { type: DataTypes.STRING, allowNull: false },
+        name: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            validate: {
+                notEmpty: nameValidator,
+                notNull: nameValidator
+            }
+        },
         description: { type: DataTypes.TEXT }
     },
     associations: function (M) {
