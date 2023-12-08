@@ -4,21 +4,22 @@
         :disable-primary="!formValid"
         confirm-label="Delete"
         data-el="delete-application-dialog"
-        header="Delete Application"
+        :header="'Delete Application: \'' + application?.name + '\''"
         kind="danger"
         @confirm="confirm()"
     >
         <template #default>
-            <form class="space-y-6" @submit.prevent>
-                <div class="mt-2 space-y-2">
-                    <p>
-                        Are you sure you want to delete this application? Once deleted, there is no going back.
-                    </p>
-                    <p class="flex">
-                        Enter the application name <code>{{ application?.name }}</code> to continue.
-                    </p>
-                </div>
-                <FormRow id="projectName" v-model="input.projectName" data-form="application-name">Name</FormRow>
+            <form class="space-y-4" @submit.prevent>
+                <p>
+                    Are you sure you want to delete this application? Once deleted, there is no going back.
+                </p>
+                <p>
+                    Name: <span class="font-bold">{{ application?.name }}</span>
+                </p>
+                <p>
+                    Please type in the application name to confirm.
+                </p>
+                <FormRow id="projectName" v-model="input.projectName" :placeholder="'Application Name'" data-form="application-name" />
             </form>
         </template>
     </ff-dialog>

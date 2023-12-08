@@ -3,22 +3,23 @@
         ref="dialog"
         confirm-label="Delete"
         data-el="delete-instance-dialog"
-        header="Delete Instance"
+        :header="'Delete Instance: \'' + instance?.name + '\''"
         kind="danger"
         :disable-primary="!formValid"
         @confirm="confirm()"
     >
         <template #default>
-            <form class="space-y-6" @submit.prevent>
-                <div class="mt-2 space-y-2">
-                    <p>
-                        Are you sure you want to delete this instance and the application that contains it? Once deleted, there is no going back.
-                    </p>
-                    <p class="flex">
-                        Enter the instance name <code>{{ instance?.name }}</code> to continue.
-                    </p>
-                </div>
-                <FormRow v-model="input.instanceName" data-form="instance-name">Name</FormRow>
+            <form class="space-y-4" @submit.prevent>
+                <p>
+                    Are you sure you want to delete this instance? Once deleted, there is no going back.
+                </p>
+                <p>
+                    Name: <span class="font-bold">{{ instance?.name }}</span>
+                </p>
+                <p>
+                    Please type in the instance name to confirm.
+                </p>
+                <FormRow v-model="input.instanceName" :placeholder="'Instance Name'" data-form="instance-name" />
             </form>
         </template>
     </ff-dialog>
