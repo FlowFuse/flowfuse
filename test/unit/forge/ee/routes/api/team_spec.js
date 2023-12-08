@@ -1,15 +1,8 @@
-const sleep = require('util').promisify(setTimeout)
-
-const should = require('should')
 const sinon = require('sinon')
 
 const setup = require('../../setup')
 
-const FF_UTIL = require('flowforge-test-utils')
-
-const { START_DELAY, STOP_DELAY } = FF_UTIL.require('forge/containers/stub/index.js')
-
-describe.only('Team API - with billing enabled', function () {
+describe('Team API - with billing enabled', function () {
     const sandbox = sinon.createSandbox()
 
     const TestObjects = { tokens: {} }
@@ -46,20 +39,16 @@ describe.only('Team API - with billing enabled', function () {
 
     describe('Delete Team', function () {
         it('Delete team with expired trial and projects', async function () {
-            const subscription = await app.db.models.Subscription.byTeamId(app.team.hashid)
-            // console.log(subscription)
-            // subscription.status = 'trial'
-            // subscription.trialEndsAt = Date.now() - 3000
-            // subscription.trialStatus = 'ended'
-            // await subscription.save()
-
-            const projects = await app.db.models.Project.byTeam(app.team.hashid)
-            // console.log(projects)
+            const subscription = await app.team.getSubscription()
+            subscription.status = 'trial'
+            subscription.trialEndsAt = Date.now() - 3000
+            subscription.trialStatus = 'created'
+            await subscription.save()
 
             const response = await app.inject({
                 method: 'DELETE',
                 url: `/api/v1/teams/${app.team.hashid}`,
-                cookies: {sid: TestObjects.tokens.alice }
+                cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
         })

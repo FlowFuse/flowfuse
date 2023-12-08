@@ -497,7 +497,6 @@ module.exports = async function (app) {
                             await app.containers.remove(instance)
                         } catch (err) {
                             if (err?.statusCode !== 404) {
-                                console.log('throwing error', err)
                                 throw err
                             }
                         }
@@ -509,10 +508,15 @@ module.exports = async function (app) {
                             })
                         }
 
-                        instance.destroy()
+                        await instance.destroy()
                         await app.auditLog.Team.project.deleted(request.session.User, null, request.team, instance)
                         await app.auditLog.Project.project.deleted(request.session.User, null, request.team, instance)
                     }
+                }
+
+                const applications = await app.db.models.Application.byTeam(request.team.hashid)
+                for (const application of applications) {
+                    await application.destroy()
                 }
 
                 const subscription = await request.team.getSubscription()
