@@ -80,7 +80,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings']),
+        ...mapState('account', ['features', 'settings']),
         flowBlueprintsArray () {
             return Array.from(this.flowBlueprints.values()).map((fb) => {
                 fb.htmlDescription = marked.parse(fb.description)
@@ -99,7 +99,11 @@ export default {
         }
     },
     async created () {
-        await this.loadItems()
+        if (this.features?.flowBlueprints) {
+            await this.loadItems()
+        } else {
+            this.$router.push({ name: 'Admin Settings' })
+        }
     },
     methods: {
         async showBlueprintForm (flowBlueprint) {
