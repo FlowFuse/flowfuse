@@ -27,7 +27,8 @@ module.exports = function (app) {
             team: { $ref: 'TeamSummary' },
             instance: { $ref: 'InstanceSummary' },
             application: { $ref: 'ApplicationSummary' },
-            editor: { type: 'object', additionalProperties: true }
+            editor: { type: 'object', additionalProperties: true },
+            deviceGroupId: { type: 'string' }
         }
     })
 
@@ -63,7 +64,8 @@ module.exports = function (app) {
             agentVersion: result.agentVersion,
             mode: result.mode || 'autonomous',
             ownerType: result.ownerType,
-            isDeploying: app.db.controllers.Device.isDeploying(device)
+            isDeploying: app.db.controllers.Device.isDeploying(device),
+            deviceGroupId: device.DeviceGroup ? device.DeviceGroup.hashid : null
         }
         if (device.Team) {
             filtered.team = app.db.views.Team.teamSummary(device.Team)
