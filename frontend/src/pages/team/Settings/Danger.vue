@@ -33,6 +33,8 @@ import teamTypesApi from '../../../api/teamTypes.js'
 
 import FormHeading from '../../../components/FormHeading.vue'
 
+import alerts from '../../../services/alerts.js'
+
 import ConfirmTeamDeleteDialog from '../dialogs/ConfirmTeamDeleteDialog.vue'
 
 import TeamAdminTools from './TeamAdminTools.vue'
@@ -70,7 +72,6 @@ export default {
                     return this.applicationList.applications.every((application) => application.instances.length === 0)
                 }
             } else {
-                console.log('billing')
                 if ((!this.team.billing?.unmanaged) &&
                     (!this.team.billing?.trial || this.team.billing?.trialEnded) &&
                     (!this.team.billing?.active)
@@ -121,8 +122,10 @@ export default {
         },
         deleteTeam () {
             teamApi.deleteTeam(this.team.id).then(() => {
+                alerts.emit('Team successfully deleted', 'confirmation')
                 this.$store.dispatch('account/checkState', '/')
             }).catch(err => {
+                alerts.emit('Problem deleting team', 'warning')
                 console.warn(err)
             })
         },

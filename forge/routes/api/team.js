@@ -490,9 +490,9 @@ module.exports = async function (app) {
 
                 const instanceCount = await request.team.instanceCount()
                 if (instanceCount > 0) {
-                    // need to delete Instances 
+                    // need to delete Instances
                     const instances = await app.db.models.Project.byTeam(request.team.hashid)
-                    for (instance of instances) {
+                    for (const instance of instances) {
                         try {
                             await app.containers.remove(instance)
                         } catch (err) {
