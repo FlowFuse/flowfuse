@@ -541,6 +541,22 @@ describe('User API', async function () {
                 await TestObjects.dave.save()
             })
 
+            it('password_expired user can not set weak password', async function () {
+                await login('dave', 'ddPassword')
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/user/change_password',
+                    payload: {
+                        old_password: 'ddPassword',
+                        password: 'aaPassword'
+                    },
+                    cookies: { sid: TestObjects.tokens.dave }
+                })
+                response.statusCode.should.equal(400)
+                const result = response.json()
+                result.code.should.equal('password_change_failed_too_weak')
+            })
+
             it('cannot access other parts of api', async function () {
                 // Not an exhaustive check by any means, but a simple check the
                 // basic blocking is working
