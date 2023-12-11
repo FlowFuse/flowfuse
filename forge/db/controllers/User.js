@@ -27,7 +27,7 @@ module.exports = {
 
     changePassword: async function (app, user, oldPassword, newPassword) {
         if (compareHash(oldPassword, user.password)) {
-            if (zxcvbn(newPassword.score < 3)) {
+            if (zxcvbn(newPassword).score < 3) {
                 throw new Error('Password Too Weak')
             }
             user.password = newPassword

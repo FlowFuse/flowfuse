@@ -283,7 +283,7 @@ describe('User API', async function () {
                 url: '/api/v1/user/change_password',
                 payload: {
                     old_password: 'ddPassword',
-                    password: 'newDDPassword'
+                    password: 'StapleBatteryHorse'
                 },
                 cookies: { sid: TestObjects.tokens.dave }
             })
@@ -527,7 +527,7 @@ describe('User API', async function () {
                     url: '/api/v1/user/change_password',
                     payload: {
                         old_password: 'ddPassword',
-                        password: 'newDDPassword'
+                        password: 'StapleBatteryHorse'
                     },
                     cookies: { sid: TestObjects.tokens.dave }
                 })

@@ -79,8 +79,8 @@ module.exports = async function (app) {
         } catch (err) {
             let resp
             if (err.message === 'Password Too Weak') {
-                resp = { code: 'password_change_failed_too_weak', error: 'password too weak'}
-            } else { 
+                resp = { code: 'password_change_failed_too_weak', error: 'password too weak' }
+            } else {
                 resp = { code: 'password_change_failed', error: 'password change failed' }
             }
             await app.auditLog.User.user.updatedPassword(request.session.User, resp)
