@@ -73,7 +73,7 @@ export default {
                 this.errors.password_confirm = 'Passwords do not match'
                 return false
             }
-            const zxcvbnResult = zxcvbn(this.input.password) 
+            const zxcvbnResult = zxcvbn(this.input.password)
             if (zxcvbnResult.score < 2) {
                 this.errors.password = `Password too weak, ${zxcvbnResult.feedback.suggestions[0]}`
                 return false

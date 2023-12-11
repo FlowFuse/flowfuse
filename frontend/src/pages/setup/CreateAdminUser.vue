@@ -112,7 +112,7 @@ export default {
             } else {
                 this.errors.password = ''
             }
-            const zxcvbnResult = zxcvbn(this.input.password) 
+            const zxcvbnResult = zxcvbn(this.input.password)
             if (zxcvbnResult.score < 2) {
                 this.errors.password = `Password too weak, ${zxcvbnResult.feedback.suggestions[0]}`
             } else {
