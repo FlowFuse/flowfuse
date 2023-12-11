@@ -100,6 +100,18 @@ describe('User controller', function () {
             }
             throw new Error('Password changed with invalid oldPassword')
         })
+        it('fails changes a users password, too weak', async function () {
+            const user = await app.db.models.User.byUsername('alice')
+            const initialPasswordCheck = await app.db.controllers.User.authenticateCredentials('alice', 'aaPassword')
+            initialPasswordCheck.should.be.true()
+            try {
+                await app.db.controllers.User.changePassword(user, 'aaPassword', 'ddPassword')
+            } catch (err) {
+                err.message.should.equal('Password Too Weak')
+                return
+            }
+            throw new Error('Allowed bad password')
+        })
     })
 
     describe('change email address', function () {
