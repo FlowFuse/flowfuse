@@ -157,3 +157,12 @@ the remote device.
 To further simplify device registration, Provisioning Tokens can be created to allow 
 devices to automatically connect to a team without having to manually register them first.
 The token can also be configured to assign a device directly to a Node-RED instance within the team.
+
+### Device Groups
+
+**Introduced in FlowFuse 1.15**
+
+Device groups allow you to organise your Application devices into logical groups. 
+For now, this is simply an organisational tool, but in the future, we will be
+adding new features like the ability to deploy snapshots to a group of devices via
+a [pipeline](#devops-pipeline).
