@@ -40,6 +40,13 @@ describe('Application API', async () => {
         mockDelete.mockClear()
     })
     describe('Device Groups', async () => {
+        test('getDeviceGroups calls the correct API endpoint when provided an applicationId', () => {
+            const applicationId = '1234'
+            ApplicationAPI.default.getDeviceGroups(applicationId)
+            expect(mockGet).toHaveBeenCalledOnce()
+            expect(mockGet).toHaveBeenCalledWith(`/api/v1/applications/${applicationId}/device-groups`)
+        })
+
         test('getDeviceGroup calls the correct API endpoint when provided an applicationId and groupId', () => {
             const applicationId = '1234'
             const groupId = '5678'
