@@ -23,7 +23,7 @@ Details of how to upgrade can be found for each deployment model:
 - [Docker](../install/docker/README.md#upgrade)
 - [Kubernetes](../install/kubernetes/README.md#upgrade)
 
-### Upgrading to 1.14
+### Upgrading to 1.15
 
 Together with new application features, this release updates the Helm sub-chart, Bitnami's Postgresql, version.
 If local PostgreSQL database instance is used, upgrading to this version, using our Helm chart, requires additional steps.
