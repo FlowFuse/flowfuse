@@ -82,6 +82,9 @@ module.exports = async function (app) {
             if (sessionInfo) {
                 reply.setCookie('sid', sessionInfo.session.sid, sessionInfo.cookieOptions)
             }
+            // Clear any password reset tokens
+            await app.db.controllers.AccessToken.deleteAllUserPasswordResetTokens(request.session.User)
+
             reply.send({ status: 'okay' })
         } catch (err) {
             const resp = { code: 'password_change_failed', error: 'password change failed' }

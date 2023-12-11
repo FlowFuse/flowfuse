@@ -785,6 +785,9 @@ async function init (app, opts, done) {
                 userInfo = user
                 try {
                     await app.db.controllers.User.resetPassword(user, request.body.password)
+                    // Clear any existing sessions to force a re-login
+                    await app.db.controllers.Session.deleteAllUserSessions(user)
+                    await app.db.controllers.AccessToken.deleteAllUserPasswordResetTokens(user)
                     success = true
                 } catch (err) {
                 }
