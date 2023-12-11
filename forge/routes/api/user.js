@@ -75,6 +75,13 @@ module.exports = async function (app) {
             await app.db.controllers.User.changePassword(request.session.User, request.body.old_password, request.body.password)
             await app.auditLog.User.user.updatedPassword(request.session.User, null)
             await app.postoffice.send(request.session.User, 'PasswordChanged', { })
+            // Delete all existing sessions for this user
+            await app.db.controllers.Session.deleteAllUserSessions(request.session.User)
+            // Create new session
+            const sessionInfo = await app.createSessionCookie(request.session.User.username)
+            if (sessionInfo) {
+                reply.setCookie('sid', sessionInfo.session.sid, sessionInfo.cookieOptions)
+            }
             reply.send({ status: 'okay' })
         } catch (err) {
             const resp = { code: 'password_change_failed', error: 'password change failed' }

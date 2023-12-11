@@ -291,6 +291,26 @@ describe('User API', async function () {
             const result = response.json()
             result.should.not.have.property('error')
 
+            // The response should include a new session token
+            response.cookies.should.have.length(1)
+            response.cookies[0].should.have.property('name', 'sid')
+
+            // The existing session token should no longer work
+            const checkOldToken = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.dave }
+            })
+            checkOldToken.statusCode.should.equal(401)
+
+            // The new session token should work
+            const checkNewToken = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user',
+                cookies: { sid: response.cookies[0].value }
+            })
+            checkNewToken.statusCode.should.equal(200)
+
             await TestObjects.dave.reload()
             TestObjects.dave.password = 'ddPassword'
             await TestObjects.dave.save()
