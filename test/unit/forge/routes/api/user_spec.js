@@ -278,6 +278,16 @@ describe('User API', async function () {
 
         it('user can change password', async function () {
             await login('dave', 'ddPassword')
+
+            const secondLoginSession = await app.inject({
+                method: 'POST',
+                url: '/account/login',
+                payload: { username: 'dave', password: 'ddPassword', remember: false }
+            })
+            secondLoginSession.cookies.should.have.length(1)
+            secondLoginSession.cookies[0].should.have.property('name', 'sid')
+            const secondLoginSessionId = secondLoginSession.cookies[0].value
+
             const response = await app.inject({
                 method: 'PUT',
                 url: '/api/v1/user/change_password',
@@ -290,6 +300,34 @@ describe('User API', async function () {
             response.statusCode.should.equal(200)
             const result = response.json()
             result.should.not.have.property('error')
+
+            // The response should include a new session token
+            response.cookies.should.have.length(1)
+            response.cookies[0].should.have.property('name', 'sid')
+
+            // The existing session token should no longer work
+            const checkOldToken = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.dave }
+            })
+            checkOldToken.statusCode.should.equal(401)
+
+            // The new session token should work
+            const checkNewToken = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user',
+                cookies: { sid: response.cookies[0].value }
+            })
+            checkNewToken.statusCode.should.equal(200)
+
+            // The second session token should no longer work
+            const checkSecondToken = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user',
+                cookies: { sid: secondLoginSessionId }
+            })
+            checkSecondToken.statusCode.should.equal(401)
 
             await TestObjects.dave.reload()
             TestObjects.dave.password = 'ddPassword'

@@ -37,6 +37,12 @@ module.exports = {
     },
 
     /**
+     * Delete all sessions for a user
+     */
+    deleteAllUserSessions: async function (app, user) {
+        return app.db.models.Session.destroy({ where: { UserId: user.id } })
+    },
+    /**
      * Get a session by its id. If the session has expired, it is deleted
      * and nothing returned.
      */
