@@ -82,10 +82,10 @@ describe('User controller', function () {
             const user = await app.db.models.User.byUsername('alice')
             const initialPasswordCheck = await app.db.controllers.User.authenticateCredentials('alice', 'aaPassword')
             initialPasswordCheck.should.be.true()
-            await app.db.controllers.User.changePassword(user, 'aaPassword', 'aNewPassword')
+            await app.db.controllers.User.changePassword(user, 'aaPassword', 'StapleBatteryHorse')
             user.password.should.not.equal('aaPassword')
-            user.password.should.not.equal('aNewPassword')
-            const finalPasswordCheck = await app.db.controllers.User.authenticateCredentials('alice', 'aNewPassword')
+            user.password.should.not.equal('StapleBatteryHorse')
+            const finalPasswordCheck = await app.db.controllers.User.authenticateCredentials('alice', 'StapleBatteryHorse')
             finalPasswordCheck.should.be.true()
         })
         it('fails if existing password not provided', async function () {
