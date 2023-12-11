@@ -36,7 +36,7 @@
 </template>
 
 <script>
-import zxcvbn from 'zxcvbn'
+// import zxcvbn from 'zxcvbn'
 
 import httpClient from '../../api/client.js'
 import FormHeading from '../../components/FormHeading.vue'
@@ -65,7 +65,8 @@ export default {
                 // isAdmin: false,
                 // createDefaultTeam: true
             },
-            errors: {}
+            errors: {},
+            zxcvbn: null
         }
     },
     computed: {
@@ -92,10 +93,14 @@ export default {
             }
         },
         'input.password': function (v) {
-            if (this.errors.password && v.length >= 8 && zxcvbn(v).score >= 2) {
+            if (this.errors.password && v.length >= 8 && this.zxcvbn(v).score >= 2) {
                 this.errors.password = ''
             }
         }
+    },
+    async mounted () {
+        const { default: zxcvbn } = await import('zxcvbn')
+        this.zxcvbn = zxcvbn
     },
     methods: {
         next () {
@@ -112,7 +117,7 @@ export default {
             } else {
                 this.errors.password = ''
             }
-            const zxcvbnResult = zxcvbn(this.input.password)
+            const zxcvbnResult = this.zxcvbn(this.input.password)
             if (zxcvbnResult.score < 2) {
                 this.errors.password = `Password too weak, ${zxcvbnResult.feedback.suggestions[0]}`
             } else {

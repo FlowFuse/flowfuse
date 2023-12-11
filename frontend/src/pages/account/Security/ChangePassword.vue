@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import zxcvbn from 'zxcvbn'
+// import zxcvbn from 'zxcvbn'
 
 import userApi from '../../../api/user.js'
 import FormHeading from '../../../components/FormHeading.vue'
@@ -40,7 +40,8 @@ export default {
                 old_password: '',
                 password: '',
                 password_confirm: ''
-            }
+            },
+            zxcvbn: null
         }
     },
     watch: {
@@ -49,6 +50,10 @@ export default {
                 this.errors.password = ''
             }
         }
+    },
+    async mounted () {
+        const { default: zxcvbn } = await import('zxcvbn')
+        this.zxcvbn = zxcvbn
     },
     methods: {
         changePassword () {
@@ -73,10 +78,15 @@ export default {
                 this.errors.password_confirm = 'Passwords do not match'
                 return false
             }
-            const zxcvbnResult = zxcvbn(this.input.password)
-            if (zxcvbnResult.score < 2) {
-                this.errors.password = `Password too weak, ${zxcvbnResult.feedback.suggestions[0]}`
-                return false
+            try {
+                console.log(this.zxcvbn)
+                const zxcvbnResult = this.zxcvbn(this.input.password)
+                if (zxcvbnResult.score < 2) {
+                    this.errors.password = `Password too weak, ${zxcvbnResult.feedback.suggestions[0]}`
+                    return false
+                }
+            } catch (ee) {
+                console.log(ee)
             }
             this.loading = true
             userApi.changePassword(this.input.old_password, this.input.password).then(() => {
