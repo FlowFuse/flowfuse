@@ -20,6 +20,6 @@ To add a new metric:
 
 2. Implement the code to gather the metric.
 
-3. Raise an issue on https://github.com/flowforge/usage-ping-collector with details
+3. Raise an issue on https://github.com/FlowFuse/usage-ping-collector with details
    of the new metric. The collector will need to be updated to handle it, otherwise
    the value will be dropped.

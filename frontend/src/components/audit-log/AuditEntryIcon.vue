@@ -196,6 +196,7 @@ const iconMap = {
     ],
     pipeline: [
         'application.pipeline.created',
+        'application.pipeline.updated',
         'application.pipeline.deleted',
         'application.pipeline.stage-added',
         'project.assigned-to-pipeline-stage'

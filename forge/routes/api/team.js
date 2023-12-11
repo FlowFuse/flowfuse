@@ -139,6 +139,7 @@ module.exports = async function (app) {
             const subscription = await team.getSubscription()
             if (subscription) {
                 result.billing.active = subscription.isActive()
+                result.billing.unmanaged = subscription.isUnmanaged()
                 result.billing.canceled = subscription.isCanceled()
                 result.billing.pastDue = subscription.isPastDue()
                 if (subscription.isTrial()) {
@@ -146,6 +147,10 @@ module.exports = async function (app) {
                     result.billing.trialEnded = subscription.isTrialEnded()
                     result.billing.trialEndsAt = subscription.trialEndsAt
                     result.billing.trialProjectAllowed = (await team.instanceCount(app.settings.get('user:team:trial-mode:projectType'))) === 0
+                }
+                if (request.session.User.admin) {
+                    result.billing.customer = subscription.customer
+                    result.billing.subscription = subscription.subscription
                 }
             } else {
                 result.billing.active = false
@@ -481,8 +486,7 @@ module.exports = async function (app) {
         try {
             if (app.license.active() && app.billing) {
                 const subscription = await request.team.getSubscription()
-                if (subscription && !subscription.isTrial()) {
-                    // const subId = subscription.subscription
+                if (subscription && !subscription.isTrial() && !subscription.isUnmanaged()) {
                     await app.billing.closeSubscription(subscription)
                 }
             }

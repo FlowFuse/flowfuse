@@ -177,4 +177,4 @@ ${mail.text}
     })
 
     next()
-})
+}, { name: 'app.postoffice' })

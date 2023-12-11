@@ -219,7 +219,7 @@ fileStore:
    docker-compose -p flowforge down
    ```
 - Download the latest Source code tar.gz [here](https://github.com/FlowFuse/docker-compose/releases/latest/)
-- Uncompress the tar file to a new directory
+- Uncompress the tar file: `tar -xzvf v1.y.y.tar.gz`. A new directory should appear `docker-compose-1.y.y`
 - Pull the latest version of the containers from Docker hub
      - `docker pull flowforge/forge-docker`
      - `docker pull flowforge/node-red`
@@ -230,7 +230,8 @@ fileStore:
     ```
 - Compare the old `docker-compose.yml` to the version supplied with the new version, copy over any changes made, 
 e.g. enabling HTTPS/TLS Certificates and setting the `VIRUAL_HOST` environment variables.
+- Compare the old `flowforge.yml` to the new version, and copy over variables specific to your set-up: url, broker, etc.
 - Start the new version in the new directory 
    ```bash
-   docker-compose -p flowforge up
+   docker-compose -p flowforge up -d
    ```

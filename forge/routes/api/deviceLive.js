@@ -170,18 +170,11 @@ module.exports = async function (app) {
                     ...settings,
                     ...snapshot.flows
                 }
-                const getSecret = async () => {
-                    // default to project in the absence of ownerType
-                    if (snapshot.ownerType === 'instance' || !snapshot.ownerType) {
-                        return await (await snapshot.getProject()).getCredentialSecret()
-                    } else {
-                        return (await snapshot.getDevice()).credentialSecret
-                    }
-                }
+
                 if (result.credentials) {
                     // Need to re-encrypt these credentials from the source secret
                     // to the target Device secret
-                    const secret = await getSecret()
+                    const secret = await snapshot.getCredentialSecret()
                     const deviceSecret = device.credentialSecret
                     result.credentials = app.db.controllers.Project.exportCredentials(result.credentials, secret, deviceSecret)
                 }

@@ -1,7 +1,13 @@
 <template>
-    <div v-if="stage" class="ff-pipeline-stage" data-el="ff-pipeline-stage">
+    <div v-if="stage" class="ff-pipeline-stage" data-el="ff-pipeline-stage" :class="{'ff-pipeline-stage--error': inDeveloperMode}">
         <div class="ff-pipeline-stage-banner">
-            <label>{{ stage.name }}</label>
+            <div class="ff-pipeline-stage-banner-name">
+                <label>{{ stage.name }}</label>
+                <span v-if="error" class="ff-pipelines-stage-banner-error" data-el="stage-banner-error">
+                    <ExclamationIcon class="ff-icon-sm" />
+                    {{ error }}
+                </span>
+            </div>
             <div class="ff-pipeline-actions">
                 <span
                     data-action="stage-edit"
@@ -23,10 +29,10 @@
                 </span>
                 <span
                     data-action="stage-run"
+                    :class="{'ff-disabled': !playEnabled || !pipeline?.id || deploying || inDeveloperMode}"
                     @click="runStage"
                 >
                     <PlayIcon
-                        v-if="playEnabled && pipeline?.id && !deploying"
                         class="ff-icon ff-clickable"
                     />
                 </span>
@@ -48,7 +54,11 @@
                 </div>
                 <div v-if="stage.stageType == StageType.DEVICE" class="ff-pipeline-stage-type">
                     <router-link class="flex gap-2 items-center" :to="{name: 'Device', params: { id: stage.device.id }}">
-                        <IconDeviceSolid class="ff-icon ff-icon-lg text-teal-700" />
+                        <span v-if="inDeveloperMode" v-ff-tooltip="'Cannot push to a Device in Developer Mode'">
+                            <IconDeviceSolid class="ff-icon ff-icon-lg text-teal-700" />
+                            <i class="bg-red-600 w-3 h-3 rounded-full absolute block -top-1 -right-1 border-2 border-gray-50" />
+                        </span>
+                        <IconDeviceSolid v-else class="ff-icon ff-icon-lg text-teal-700" />
                         <div>
                             <label class="flex items-center gap-2">Device:</label>
                             <span>
@@ -82,13 +92,16 @@
             <div v-if="playEnabled" class="ff-pipeline-stage-row">
                 <label>Deploy Action:</label>
                 <span>
-                    <template v-if="stage.action === 'create_snapshot'">
+                    <template v-if="stage.action === StageAction.CREATE_SNAPSHOT">
                         Create new snapshot
                     </template>
-                    <template v-else-if="stage.action === 'use_latest_snapshot'">
+                    <template v-else-if="stage.action === StageAction.USE_ACTIVE_SNAPSHOT">
+                        Use active snapshot
+                    </template>
+                    <template v-else-if="stage.action== StageAction.USE_LATEST_SNAPSHOT">
                         Use latest {{ stage.stageType === StageType.INSTANCE ? 'instance' : 'device' }} snapshot
                     </template>
-                    <template v-else-if="stage.action==='prompt'">
+                    <template v-else-if="stage.action== StageAction.PROMPT">
                         Prompt to select snapshot
                     </template>
                 </span>
@@ -108,9 +121,9 @@
 </template>
 
 <script>
-import { PencilAltIcon, PlayIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/outline'
+import { ExclamationIcon, PencilAltIcon, PlayIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/outline'
 
-import PipelineAPI, { StageType } from '../../api/pipeline.js'
+import PipelineAPI, { StageAction, StageType } from '../../api/pipeline.js'
 
 import InstanceStatusBadge from '../../pages/instance/components/InstanceStatusBadge.vue'
 
@@ -126,15 +139,16 @@ import DeployStageDialog from './DeployStageDialog.vue'
 export default {
     name: 'PipelineStage',
     components: {
-        InstanceStatusBadge,
         DeployStageDialog,
+        IconDeviceSolid,
+        IconNodeRedSolid,
+        InstanceStatusBadge,
         PencilAltIcon,
         PlayIcon,
         PlusCircleIcon,
         SpinnerIcon,
         TrashIcon,
-        IconDeviceSolid,
-        IconNodeRedSolid
+        ExclamationIcon
     },
     props: {
         application: {
@@ -158,14 +172,25 @@ export default {
             type: Boolean
         }
     },
-    emits: ['stage-deleted', 'stage-deploy-starting', 'stage-deploy-started'],
+    emits: ['stage-deleted', 'stage-deploy-starting', 'stage-deploy-started', 'stage-deploy-failed'],
     computed: {
         deploying () {
             return this.stage.isDeploying
+        },
+        inDeveloperMode () {
+            return this.stage.device?.mode === 'developer'
+        },
+        error () {
+            if (this.inDeveloperMode) {
+                return 'Device in Dev Mode'
+            }
+            return ''
         }
     },
     created () {
+        // Expose enums to template
         this.StageType = StageType
+        this.StageAction = StageAction
     },
     methods: {
         runStage: async function () {
@@ -210,8 +235,13 @@ export default {
                 // sourceSnapshot can be undefined if "create new snapshot" was chosen
                 await PipelineAPI.deployPipelineStage(this.pipeline.id, this.stage.id, sourceSnapshot?.id)
             } catch (error) {
-                Alerts.emit(error.message, 'warning')
-                return
+                this.$emit('stage-deploy-failed')
+
+                if (error.response?.data?.error) {
+                    return Alerts.emit(error.response.data.error, 'warning')
+                }
+
+                return Alerts.emit('Deployment of stage has failed for an unknown reason.', 'warning')
             }
 
             this.$emit('stage-deploy-started')

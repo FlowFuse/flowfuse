@@ -1,3 +1,49 @@
+#### 1.14.1: Release
+
+ - Fix login failure for generated admin (#3153) @hardillb
+ - Fix width of setup fields (#3147) @hardillb
+ - Coverage of creating and updating stages with devices (#3143) @Pezmc
+ - docs: Where to find billing details (#3149) @ZJvandeWeg
+ - Add canonical link to current base_url (#3146) @hardillb
+ - Add UI for pipeline update audit entry (#3124) @Steve-Mcl
+ - DevOps Pipeline: Clearer error messages (#3118) @Pezmc
+ - Update introduction.md (#3019) @zackwasli
+ - Bump @vue/test-utils from 2.4.1 to 2.4.2 (#3133) @app/dependabot
+ - Bump @babel/core from 7.23.2 to 7.23.3 (#3132) @app/dependabot
+ - Bump marked from 9.1.5 to 10.0.0 (#3131) @app/dependabot
+ - Bump mqtt from 5.1.4 to 5.3.0 (#3134) @app/dependabot
+ - Bump @sentry/webpack-plugin from 2.10.0 to 2.10.1 (#3135) @app/dependabot
+ - Allow a trial team to be put into unmanaged mode to bypass billing (#3138) @knolleary
+ - Update container loading for new module scopes (#3141) @knolleary
+ - Fix blob and add more Hubspot domains (#3121) @hardillb
+ - Add tunnel recreation unit test (#3126) @Steve-Mcl
+ - Notify developers on failed tests pipeline (#3122) @ppawlowski
+ - Fix linux version of install instructions (#3129) @hardillb
+
+#### 1.14.0: Release
+
+ - Doc upgrading #3082 (#3085) @hyamanieu
+ - Remove quotes on for worker-src blob (#3117) @hardillb
+ - DevOps Pipelines: Deploy active device snapshot (#3115) @Pezmc
+ - Fix sentry.io and add blob for worker (#3116) @hardillb
+ - Fix hostname used for posthog CSP (#3107) @hardillb
+ - fix pipelinestage device action dropdown choices (#3110) @Steve-Mcl
+ - Fix: Deploying of device to instance (#3111) @Pezmc
+ - Add app device access verification to ACL manager (#3074) @Steve-Mcl
+ - Docs - User Settings (#3102) @MarianRaphael
+ - Update billing setup page (#3092) @knolleary
+ - Bump @sentry/profiling-node from 1.2.1 to 1.2.6 (#3095) @app/dependabot
+ - Bump vue-loader from 17.3.0 to 17.3.1 (#3096) @app/dependabot
+ - Bump @babel/preset-env from 7.23.2 to 7.23.3 (#3097) @app/dependabot
+ - Bump @vitejs/plugin-vue from 4.4.0 to 4.5.0 (#3098) @app/dependabot
+ - Devices in Pipeline Stages (#3024) @Pezmc
+ - Bump @aws-sdk/credential-provider-node from 3.441.0 to 3.451.0 (#3099) @app/dependabot
+ - "Device Editor" enabled by default (#3061) @Steve-Mcl
+ - Disable create snapshot button if not assigned to an application or instance (#3049) @Pezmc
+ - Add support for 2FA via TOTP (#3065) @knolleary
+ - Update references to flowfuse (#3088) @hardillb
+ - Update StatusBadge styling for "Crashed" (#3090) @joepavitt
+
 #### 1.13.3: Release
 
  - fix forgot password email input field (#3081) @sumitshinde-84

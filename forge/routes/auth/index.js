@@ -37,7 +37,7 @@ const SESSION_COOKIE_OPTIONS = {
  * @typedef {import('../../db/controllers/User')} UserController
  */
 
-module.exports = fp(init)
+module.exports = fp(init, { name: 'app.routes.auth' })
 
 /**
  * Initialize the auth plugin
@@ -71,6 +71,9 @@ async function init (app, opts, done) {
                 const mfaMissing = request.session.User.mfa_enabled && !request.session.mfa_verified
 
                 if (emailVerified && passwordNotExpired && !suspended && !mfaMissing) {
+                    return
+                }
+                if (request.routeOptions.config.allowAnonymous) {
                     return
                 }
                 await request.session.destroy()

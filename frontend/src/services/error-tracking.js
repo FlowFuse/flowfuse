@@ -21,6 +21,7 @@ export const setupSentry = (app, router) => {
             }),
             new Replay()
         ],
+        sendClientReports: true,
 
         // Current build info
         release: window.sentryConfig.version,

@@ -26,10 +26,11 @@
                     :application="application"
                     :pipeline="pipeline"
                     :stage="stage"
-                    :playEnabled="$index < pipeline.stages.length - 1"
+                    :playEnabled="nextStageAvailable(stage, $index)"
                     :editEnabled="true"
                     @stage-deploy-starting="stageDeployStarting(stage)"
                     @stage-deploy-started="stageDeployStarted(stage)"
+                    @stage-deploy-failed="stageDeployFailed(stage)"
                     @stage-deleted="stageDeleted($index)"
                 />
                 <Transition name="fade">
@@ -38,6 +39,7 @@
                         class="ff-icon mt-4 flex-shrink-0"
                         :class="{
                             'animate-deploying': nextStageDeploying($index),
+                            'ff-disabled': !nextStageAvailable(stage, $index)
                         }"
                     />
                 </Transition>
@@ -87,7 +89,7 @@ export default {
             type: Map
         }
     },
-    emits: ['pipeline-deleted', 'stage-deleted', 'deploy-starting', 'deploy-started', 'stage-deploy-starting', 'stage-deploy-started'],
+    emits: ['pipeline-deleted', 'stage-deleted', 'deploy-starting', 'deploy-started', 'stage-deploy-starting', 'stage-deploy-started', 'stage-deploy-failed'],
     data () {
         const pipeline = this.pipeline
         return {
@@ -165,6 +167,10 @@ export default {
             const nextStage = this.pipeline.stages.find((s) => s.id === stage.NextStageId)
             this.$emit('stage-deploy-started', stage, nextStage)
         },
+        stageDeployFailed (stage) {
+            const nextStage = this.pipeline.stages.find((s) => s.id === stage.NextStageId)
+            this.$emit('stage-deploy-failed', stage, nextStage)
+        },
         stageDeleted (stageIndex) {
             this.$emit('stage-deleted', stageIndex)
         },
@@ -174,6 +180,21 @@ export default {
             }
 
             return false
+        },
+        nextStageAvailable (stage, $index) {
+            const endofPipeline = ($index >= this.pipeline.stages.length - 1)
+            if (!endofPipeline) {
+                // we are mid-pipeline
+                const nextStage = this.pipeline.stages[$index + 1]
+                if (nextStage.device?.mode === 'developer') {
+                    // cannot push to a device in Developer Mode
+                    return false
+                }
+                return true
+            } else {
+                // end of pipeline - nothing to deploy to
+                return false
+            }
         },
         deletePipeline () {
             const msg = {

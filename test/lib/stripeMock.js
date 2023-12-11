@@ -62,7 +62,8 @@ module.exports = (testSpecificMock = {}) => {
                         data: items
                     }
                 }
-            })
+            }),
+            del: sandbox.stub()
         },
         subscriptionItems: {
             update: sandbox.stub().callsFake(async function (itemId, update) {

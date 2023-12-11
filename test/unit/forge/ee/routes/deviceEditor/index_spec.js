@@ -115,6 +115,22 @@ describe('Device Editor API', function () {
             result.should.have.property('code')
         })
 
+        it('Recreates the tunnel upon enablement when the tunnel is open but connected state is `false', async function () {
+            // first enable the tunnel
+            const result = await setDeviceEditorStatus(app.device.hashid, TestObjects.tokens.alice, true)
+            result.should.have.property('enabled', true)
+            result.should.have.property('connected', false)
+            // now watch for `tunnelManager.closeTunnel` then `tunnelManager.newTunnel` being called
+            const closeTunnelSpy = sinon.spy(app.comms.devices.tunnelManager, 'closeTunnel')
+            const newTunnelSpy = sinon.spy(app.comms.devices.tunnelManager, 'newTunnel')
+            // now enable the tunnel again
+            const result2 = await setDeviceEditorStatus(app.device.hashid, TestObjects.tokens.alice, true)
+            result2.should.have.property('enabled', true)
+            // check that the tunnel was closed and re-created
+            closeTunnelSpy.calledWith(app.device.hashid).should.equal(true)
+            newTunnelSpy.calledWith(app.device.hashid).should.equal(true)
+        })
+
         it('enable editor mode', async function () {
             const result = await setDeviceEditorStatus(app.device.hashid, TestObjects.tokens.alice, true)
             result.should.have.property('enabled', true)

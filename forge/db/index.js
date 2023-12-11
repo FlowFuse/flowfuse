@@ -90,4 +90,4 @@ module.exports = fp(async function (app, _opts, next) {
     await controllers.init(app)
 
     next()
-})
+}, { name: 'app.db' })

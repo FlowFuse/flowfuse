@@ -11,9 +11,9 @@ class PipelineControllerError extends ControllerError {
 module.exports = {
     addPipelineStage: async function (app, pipeline, options) {
         if (options.instanceId && options.deviceId) {
-            throw new Error('Cannot add a pipeline stage with both instance and a device')
+            throw new PipelineControllerError('invalid_input', 'Cannot add a pipeline stage with both instance and a device', 400)
         } else if (!options.instanceId && !options.deviceId) {
-            throw new Error('Param instanceId or deviceId is required when creating a new pipeline stage')
+            throw new PipelineControllerError('invalid_input', 'Param instanceId or deviceId is required when creating a new pipeline stage', 400)
         }
 
         let source
@@ -32,7 +32,7 @@ module.exports = {
             await stage.addDeviceId(options.deviceId)
         } else {
             // This should never be reached due to guard at top of function
-            throw new Error('Must provide an instanceId or an deviceId')
+            throw new PipelineControllerError('invalid_input', 'Must provide an instanceId or an deviceId', 400)
         }
 
         if (source) {
@@ -95,17 +95,24 @@ module.exports = {
 
         targetObject.Team = await app.db.models.Team.byId(targetObject.TeamId)
         if (!targetObject.Team) {
-            throw new PipelineControllerError('invalid_stage', `Source ${sourceInstance ? 'instance' : 'device'} not associated with a team`, 404)
+            throw new PipelineControllerError('invalid_target_stage', `Target ${sourceInstance ? 'instance' : 'device'} not associated with a team`, 404)
         }
 
         if (sourceObject.TeamId !== targetObject.TeamId) {
             throw new PipelineControllerError('invalid_stage', `Source ${sourceInstance ? 'instance' : 'device'} and target ${targetInstance ? 'instance' : 'device'} must be in the same team`, 403)
         }
 
+        if (targetDevice && targetDevice.mode === 'developer') {
+            throw new PipelineControllerError('invalid_target_stage', 'Target device cannot not be in developer mode', 400)
+        }
+
         return { sourceInstance, targetInstance, sourceDevice, targetDevice, targetStage }
     },
 
-    getOrCreateSnapshotForSourceInstance: async function (app, { pipeline, sourceStage, sourceInstance, sourceSnapshotId, user, targetStage }) {
+    getOrCreateSnapshotForSourceInstance: async function (app, sourceStage, sourceInstance, sourceSnapshotId, deployMeta = { pipeline: null, user: null, targetStage: null }) {
+        // Only used for reporting and logging, should not be used for any logic
+        const { pipeline, targetStage, user } = deployMeta
+
         if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.USE_LATEST_SNAPSHOT) {
             const sourceSnapshot = await sourceInstance.getLatestSnapshot()
             if (!sourceSnapshot) {
@@ -139,10 +146,14 @@ module.exports = {
             return sourceSnapshot
         }
 
-        throw new PipelineControllerError('invalid_action', `Unsupported pipeline deploy action: ${sourceStage.action}`, 400)
+        if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.USE_ACTIVE_SNAPSHOT) {
+            throw new PipelineControllerError('invalid_source_action', 'When using an instance as a source, use active snapshot is not supported', 400)
+        }
+
+        throw new PipelineControllerError('invalid_action', `Unsupported pipeline deploy action for instances: ${sourceStage.action}`, 400)
     },
 
-    getOrCreateSnapshotForSourceDevice: async function (app, { pipeline, sourceStage, sourceDevice, sourceSnapshotId }) {
+    getOrCreateSnapshotForSourceDevice: async function (app, sourceStage, sourceDevice, sourceSnapshotId) {
         if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.USE_LATEST_SNAPSHOT) {
             const sourceSnapshot = await sourceDevice.getLatestSnapshot()
             if (!sourceSnapshot) {
@@ -152,7 +163,7 @@ module.exports = {
         }
 
         if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.CREATE_SNAPSHOT) {
-            throw new PipelineControllerError('invalid_source_action', 'When using a device as a source, create snapshot is not yet supported', 400)
+            throw new PipelineControllerError('invalid_source_action', 'When using a device as a source, create snapshot is not supported', 400)
         }
 
         if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.PROMPT) {
@@ -172,7 +183,15 @@ module.exports = {
             return sourceSnapshot
         }
 
-        throw new PipelineControllerError('invalid_action', `Unsupported pipeline deploy action: ${sourceStage.action}`, 400)
+        if (sourceStage.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.USE_ACTIVE_SNAPSHOT) {
+            const sourceSnapshot = await sourceDevice.getActiveSnapshot()
+            if (!sourceSnapshot) {
+                throw new PipelineControllerError('invalid_source_device', 'No active snapshot found for source stages device but deploy action is set to use active snapshot', 400)
+            }
+            return sourceSnapshot
+        }
+
+        throw new PipelineControllerError('invalid_action', `Unsupported pipeline deploy action for devices: ${sourceStage.action}`, 400)
     },
 
     /**
@@ -188,7 +207,10 @@ module.exports = {
      * @param {Object} targetStage - The target stage
      * @returns {Promise<Function>} - Resolves with the deploy is complete
      */
-    deploySnapshotToInstance: function (app, { pipeline, sourceStage, sourceSnapshot, targetInstance, sourceInstance, sourceDevice, user, targetStage }) {
+    deploySnapshotToInstance: function (app, sourceSnapshot, targetInstance, deployToDevices, deployMeta = { pipeline: undefined, sourceStage: undefined, sourceInstance: undefined, sourceDevice: undefined, targetStage: undefined, user: undefined }) {
+        // Only used for reporting and logging, should not be used for any logic
+        const { pipeline, sourceStage, sourceInstance, sourceDevice, targetStage, user } = deployMeta
+
         const restartTargetInstance = targetInstance?.state === 'running'
 
         app.db.controllers.Project.setInflightState(targetInstance, 'importing')
@@ -197,11 +219,11 @@ module.exports = {
         // Complete heavy work async
         return (async function () {
             try {
-                const setAsTargetForDevices = targetStage.deployToDevices ?? false
+                const setAsTargetForDevices = deployToDevices ?? false
                 const targetSnapshot = await copySnapshot(app, sourceSnapshot, targetInstance, {
                     importSnapshot: true, // target instance should import the snapshot
                     setAsTarget: setAsTargetForDevices,
-                    decryptAndReEncryptCredentialsSecret: await sourceInstance.getCredentialSecret(),
+                    decryptAndReEncryptCredentialsSecret: await sourceSnapshot.getCredentialSecret(),
                     targetSnapshotProperties: {
                         name: generateDeploySnapshotName(sourceSnapshot),
                         description: generateDeploySnapshotDescription(sourceStage, targetStage, pipeline, sourceSnapshot)
@@ -222,7 +244,7 @@ module.exports = {
                 await app.auditLog.Project.project.imported(user.id, null, targetInstance, sourceInstance, sourceDevice) // technically this isn't a project event
                 await app.auditLog.Project.project.snapshot.imported(user.id, err, targetInstance, sourceInstance, sourceDevice, null)
 
-                throw PipelineControllerError('unexpected_error', `Error during deploy: ${err.toString()}`, 500, { cause: err })
+                throw new PipelineControllerError('unexpected_error', `Error during deploy: ${err.toString()}`, 500, { cause: err })
             }
         })()
     },
@@ -235,7 +257,10 @@ module.exports = {
      * @param {Object} user - The user performing the deploy
      * @returns {Promise<Function>} - Resolves with the deploy is complete
      */
-    deploySnapshotToDevice: async function (app, { sourceSnapshot, targetDevice, user }) {
+    deploySnapshotToDevice: async function (app, sourceSnapshot, targetDevice, deployMeta = { user: null }) {
+        // Only used for reporting and logging, should not be used for any logic
+        const { user } = deployMeta
+
         try {
             // store original value for later audit log
             const originalSnapshotId = targetDevice.targetSnapshotId
@@ -252,7 +277,7 @@ module.exports = {
             const updatedDevice = await app.db.models.Device.byId(targetDevice.id) // fully reload with associations
             await app.db.controllers.Device.sendDeviceUpdateCommand(updatedDevice)
         } catch (err) {
-            throw PipelineControllerError('unexpected_error', `Error during deploy: ${err.toString()}`, 500, { cause: err })
+            throw new PipelineControllerError('unexpected_error', `Error during deploy: ${err.toString()}`, 500, { cause: err })
         }
     }
 }
