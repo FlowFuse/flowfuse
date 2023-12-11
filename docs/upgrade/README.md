@@ -28,18 +28,20 @@ Details of how to upgrade can be found for each deployment model:
 Together with new application features, this release updates the Helm sub-chart, Bitnami's Postgresql, version.
 If local PostgreSQL database instance is used, upgrading to this version, using our Helm chart, requires additional steps.
 
-1. Backup the database
+1. Backup the database (`yq` and `ghead` (MacOS only) tools are required)
 
    For linux:
       
       ```bash
-      kubectl run -it --rm db-backup --env=“PGPASSWORD=$putPasswordHere” --image ubuntu/postgres:14-22.04_edge -- bash -c “pg_dump -h flowforge-postgresql -U forge flowforge” | head -n -2 > db.sql
+      DBPASSWORD=$(kubectl get cm flowforge-config -o jsonpath='{.data.flowforge\.yml}' | yq ".db.password") 
+      kubectl run -it --rm db-backup --env="PGPASSWORD=$DBPASSWORD" --image ubuntu/postgres:14-22.04_edge -- bash -c "pg_dump -h flowforge-postgresql -U forge flowforge" | head -n -2 > db.sql
       ```
 
    For macOS/BSD:
 
       ```bash
-      kubectl run -it --rm db-backup --env=“PGPASSWORD=$putPasswordHere --image ubuntu/postgres:14-22.04_edge -- bash -c “pg_dump -h flowforge-postgresql -U forge flowforge” | ghead -n -2 > db.sql
+      DBPASSWORD=$(kubectl get cm flowforge-config -o jsonpath='{.data.flowforge\.yml}' | yq ".db.password")
+      kubectl run -it --rm db-backup --env="PGPASSWORD=$DBPASSWORD" --image ubuntu/postgres:14-22.04_edge -- bash -c "pg_dump -h flowforge-postgresql -U forge flowforge" | ghead -n -2 > db.sql
       ```
 
 2. Obtain the PVC name which stores the database data
