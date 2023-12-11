@@ -18,13 +18,14 @@
 
 <script>
 import { mapState } from 'vuex'
-// import zxcvbn from 'zxcvbn'
 
 import userApi from '../../api/user.js'
 import FormRow from '../../components/FormRow.vue'
 
 import FFLayoutBox from '../../layouts/Box.vue'
 import alerts from '../../services/alerts.js'
+
+let zxcvbn
 
 export default {
     name: 'PasswordRequest',
@@ -42,8 +43,7 @@ export default {
                 password: null,
                 confirm: null
             },
-            complete: false,
-            zxcvbn: null
+            complete: false
         }
     },
     computed: mapState('account', ['settings', 'pending']),
@@ -55,8 +55,8 @@ export default {
         }
     },
     async mounted () {
-        const { default: zxcvbn } = await import('zxcvbn')
-        this.zxcvbn = zxcvbn
+        const { default: zxcvbnImp } = await import('zxcvbn')
+        zxcvbn = zxcvbnImp
     },
     methods: {
         resetPassword () {
@@ -79,7 +79,7 @@ export default {
                 this.errors.confirm = 'Passwords do not match'
                 return false
             }
-            const zxcvbnResult = this.zxcvbn(this.input.password)
+            const zxcvbnResult = zxcvbn(this.input.password)
             if (zxcvbnResult.score < 2) {
                 this.errors.password = `Password too weak, ${zxcvbnResult.feedback.suggestions[0]}`
                 return false

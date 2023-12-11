@@ -36,11 +36,12 @@
 </template>
 
 <script>
-// import zxcvbn from 'zxcvbn'
-
 import httpClient from '../../api/client.js'
 import FormHeading from '../../components/FormHeading.vue'
 import FormRow from '../../components/FormRow.vue'
+
+let zxcvbn
+
 export default {
     name: 'CreateAdminUser',
     components: {
@@ -65,8 +66,7 @@ export default {
                 // isAdmin: false,
                 // createDefaultTeam: true
             },
-            errors: {},
-            zxcvbn: null
+            errors: {}
         }
     },
     computed: {
@@ -93,14 +93,14 @@ export default {
             }
         },
         'input.password': function (v) {
-            if (this.errors.password && v.length >= 8 && this.zxcvbn(v).score >= 2) {
+            if (this.errors.password && v.length >= 8 && zxcvbn(v).score >= 2) {
                 this.errors.password = ''
             }
         }
     },
     async mounted () {
-        const { default: zxcvbn } = await import('zxcvbn')
-        this.zxcvbn = zxcvbn
+        const { default: zxcvbnImp } = await import('zxcvbn')
+        zxcvbn = zxcvbnImp
     },
     methods: {
         next () {
@@ -117,7 +117,7 @@ export default {
             } else {
                 this.errors.password = ''
             }
-            const zxcvbnResult = this.zxcvbn(this.input.password)
+            const zxcvbnResult = zxcvbn(this.input.password)
             if (zxcvbnResult.score < 2) {
                 this.errors.password = `Password too weak, ${zxcvbnResult.feedback.suggestions[0]}`
             } else {

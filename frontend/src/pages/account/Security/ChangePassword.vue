@@ -14,11 +14,11 @@
 </template>
 
 <script>
-// import zxcvbn from 'zxcvbn'
-
 import userApi from '../../../api/user.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
+
+let zxcvbn
 
 export default {
     name: 'AccountSecurityChangePassword',
@@ -40,20 +40,19 @@ export default {
                 old_password: '',
                 password: '',
                 password_confirm: ''
-            },
-            zxcvbn: null
+            }
         }
     },
     watch: {
         'input.password': function (v) {
-            if (this.errors.password && v.length >= 8 && zxcvbn(v).score >= 2) {
+            if (this.errors.password && v.length >= 8 && this.zxcvbn(v).score >= 2) {
                 this.errors.password = ''
             }
         }
     },
     async mounted () {
-        const { default: zxcvbn } = await import('zxcvbn')
-        this.zxcvbn = zxcvbn
+        const { default: zxcvbnImp } = await import('zxcvbn')
+        zxcvbn = zxcvbnImp
     },
     methods: {
         changePassword () {
@@ -78,15 +77,10 @@ export default {
                 this.errors.password_confirm = 'Passwords do not match'
                 return false
             }
-            try {
-                console.log(this.zxcvbn)
-                const zxcvbnResult = this.zxcvbn(this.input.password)
-                if (zxcvbnResult.score < 2) {
-                    this.errors.password = `Password too weak, ${zxcvbnResult.feedback.suggestions[0]}`
-                    return false
-                }
-            } catch (ee) {
-                console.log(ee)
+            const zxcvbnResult = zxcvbn(this.input.password)
+            if (zxcvbnResult.score < 2) {
+                this.errors.password = `Password too weak, ${zxcvbnResult.feedback.suggestions[0]}`
+                return false
             }
             this.loading = true
             userApi.changePassword(this.input.old_password, this.input.password).then(() => {

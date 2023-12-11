@@ -136,7 +136,7 @@ module.exports = function (env, argv) {
                         priority: -10,
                         chunks: 'initial'
                     },
-                    zxcvbn: {
+                    async: {
                         test: /[\\/]node_modules[\\/]/,
                         name: 'async-vendor',
                         priority: -10,
