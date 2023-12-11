@@ -18,6 +18,7 @@
 
 <script>
 import { mapState } from 'vuex'
+import zxcvbn from 'zxcvbn'
 
 import userApi from '../../api/user.js'
 import FormRow from '../../components/FormRow.vue'
@@ -45,6 +46,13 @@ export default {
         }
     },
     computed: mapState('account', ['settings', 'pending']),
+    watch: {
+        'input.password': function (v) {
+            if (this.errors.password && v.length >= 8 && zxcvbn(v).score >= 2) {
+                this.errors.password = ''
+            }
+        }
+    },
     methods: {
         resetPassword () {
             this.errors.password = ''
@@ -64,6 +72,11 @@ export default {
             }
             if (this.input.password !== this.input.confirm) {
                 this.errors.confirm = 'Passwords do not match'
+                return false
+            }
+            const zxcvbnResult = zxcvbn(this.input.password) 
+            if (zxcvbnResult.score < 2) {
+                this.errors.password = `Password too weak, ${zxcvbnResult.feedback.suggestions[0]}`
                 return false
             }
             userApi.resetPassword(this.$route.params.token, {

@@ -36,6 +36,8 @@
 </template>
 
 <script>
+import zxcvbn from 'zxcvbn'
+
 import httpClient from '../../api/client.js'
 import FormHeading from '../../components/FormHeading.vue'
 import FormRow from '../../components/FormRow.vue'
@@ -90,7 +92,7 @@ export default {
             }
         },
         'input.password': function (v) {
-            if (this.errors.password && v.length >= 8) {
+            if (this.errors.password && v.length >= 8 && zxcvbn(v).score >= 2) {
                 this.errors.password = ''
             }
         }
@@ -107,6 +109,12 @@ export default {
             }
             if (this.input.password && this.input.password.length > 1024) {
                 this.errors.password = 'Password too long'
+            } else {
+                this.errors.password = ''
+            }
+            const zxcvbnResult = zxcvbn(this.input.password) 
+            if (zxcvbnResult.score < 2) {
+                this.errors.password = `Password too weak, ${zxcvbnResult.feedback.suggestions[0]}`
             } else {
                 this.errors.password = ''
             }
