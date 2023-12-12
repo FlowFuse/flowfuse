@@ -520,7 +520,7 @@ module.exports = async function (app) {
                 TeamId: request.team.id
             }
             const devices = await app.db.models.Device.getAll({}, where, { includeInstanceApplication: true })
-            for (const device of devices) {
+            for (const device of devices.devices) {
                 await device.destroy()
                 await app.auditLog.Team.team.device.deleted(request.session.User, null, request.team, device)
             }
