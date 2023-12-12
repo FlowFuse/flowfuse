@@ -138,7 +138,7 @@ module.exports = function (env, argv) {
                     },
                     async: {
                         test: /[\\/]node_modules[\\/]/,
-                        name: 'async-vendor',
+                        name: 'async-vendors',
                         priority: -10,
                         chunks: 'async'
                     }
