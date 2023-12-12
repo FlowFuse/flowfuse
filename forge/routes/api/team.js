@@ -519,7 +519,7 @@ module.exports = async function (app) {
             const where = {
                 TeamId: request.team.id
             }
-            const devices = await app.db.models.Device.getAll(paginationOptions, where, { includeInstanceApplication: true })
+            const devices = await app.db.models.Device.getAll({}, where, { includeInstanceApplication: true })
             for (const device of devices) {
                 await device.destroy()
                 await app.auditLog.Team.team.device.deleted(request.session.User, null, request.team, device)
@@ -531,7 +531,7 @@ module.exports = async function (app) {
                     await app.billing.closeSubscription(subscription)
                 }
             }
-            
+
             await request.team.destroy()
             await app.auditLog.Platform.platform.team.deleted(request.session.User, null, request.team)
             await app.auditLog.Team.team.deleted(request.session.User, null, request.team)
