@@ -1,5 +1,4 @@
 name: Create fresh app instance for PR
-
 on:
   pull_request:
     types: 
