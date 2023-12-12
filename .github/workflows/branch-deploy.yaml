@@ -23,6 +23,15 @@ jobs:
       IMAGE_NAME: 'forge-k8s'
       PR_NUMBER: ${{ github.event.number }}
     steps:
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: |
+          echo "$GITHUB_CONTEXT"
+
+      - name: exit
+        run: exit 1
+
       - name: Checkout
         uses: actions/checkout@v3
 
