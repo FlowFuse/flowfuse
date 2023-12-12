@@ -14,10 +14,10 @@
         <FormHeading class="text-red-700">Delete Team</FormHeading>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
-                <div class="max-w-sm pr-2">{{ deleteDescription }}</div>
+                <div class="max-w-sm pr-2">Deleting the team cannot be undone. Take care.</div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="danger" data-action="delete-team" :disabled="!deleteActive" @click="showConfirmDeleteDialog()">Delete Team</ff-button>
+                <ff-button kind="danger" data-action="delete-team" @click="showConfirmDeleteDialog()">Delete Team</ff-button>
                 <ConfirmTeamDeleteDialog ref="confirmTeamDeleteDialog" @delete-team="deleteTeam" />
             </div>
         </div>
@@ -63,46 +63,6 @@ export default {
         ...mapState('account', ['user', 'features']),
         isAdmin: function () {
             return this.user.admin
-        },
-        deleteActive () {
-            if (!this.features.billing) {
-                if (this.applicationCount === -1) {
-                    return false
-                } else {
-                    return this.applicationList.applications.every((application) => application.instances.length === 0)
-                }
-            } else {
-                if ((!this.team.billing?.unmanaged) &&
-                    (!this.team.billing?.trial || this.team.billing?.trialEnded) &&
-                    (!this.team.billing?.active)
-                ) {
-                    // All projects should be suspended
-                    return true
-                } else {
-                    if (this.applicationCount === -1) {
-                        return false
-                    } else {
-                        return this.applicationList.applications.every((application) => application.instances.length === 0)
-                    }
-                }
-            }
-        },
-        deleteDescription () {
-            if (this.features.billing &&
-                (!this.team.billing?.unmanaged) &&
-                (!this.team.billing?.trial || this.team.billing?.trialEnded) &&
-                (!this.team.billing?.active)
-            ) {
-                return 'Deleting team with expired billing'
-            }
-            if (this.applicationCount === 0) {
-                return 'Deleting the team cannot be undone. Take care.'
-            } else {
-                if (this.applicationList.applications.some((application) => application.instances.length !== 0)) {
-                    return 'You cannot delete a team that still owns instances.'
-                }
-                return 'Deleting the team cannot be undone. Take care.'
-            }
         }
     },
     watch: {
