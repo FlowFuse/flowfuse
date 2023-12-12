@@ -97,5 +97,54 @@ describe('FlowForge - Blueprints', () => {
         // and one blueprint in the first group, and 2 in the second
         cy.get('[data-form="blueprint-group"]').first().find('[data-el="blueprint-tile"]').its('length').should('eq', 1)
         cy.get('[data-form="blueprint-group"]').eq(1).find('[data-el="blueprint-tile"]').its('length').should('eq', 2)
+
+        // select the second blueprint
+        cy.get('[data-form="blueprint-group"]').eq(1).find('[data-el="blueprint-tile"] [data-action="select-blueprint"]').first().click()
+
+        // chck our newly selected blueprint is now in the blueprint preview with the CreateInstance form
+        cy.get('[data-form="blueprint"]').contains(multipleBlueprints.blueprints[1].name)
+    })
+
+    it('are included in the POST request when creating an Instance', () => {
+        const INSTANCE_NAME = 'test-instance'
+        let defaultBlueprint = null
+        cy.intercept('POST', '/api/*/projects', 'success').as('createInstance')
+        cy.intercept('GET', '/api/*/flow-blueprints*', singleBlueprint).as('getFlowBlueprints')
+
+        cy.visit('/team/ateam/instances/create')
+
+        cy.wait('@getFlowBlueprints')
+            .then(({ response }) => {
+                // get default blueprint
+                const blueprints = response.body.blueprints
+                defaultBlueprint = blueprints.find((blueprint) => blueprint.default) || blueprints[0]
+
+                cy.get('[data-form="blueprint"]').should('exist')
+                cy.get('[data-form="blueprint"]').contains(defaultBlueprint.name)
+
+                // fill out form
+
+                // select application
+                cy.get('[data-form="application-id"]').click()
+                cy.get('[data-form="application-id"] .ff-dropdown-options').should('be.visible')
+                cy.get('[data-form="application-id"] .ff-dropdown-options > .ff-dropdown-option').first().click()
+
+                // give instance a name
+                cy.get('[data-form="project-name"] input').clear()
+                cy.get('[data-form="project-name"] input').type(INSTANCE_NAME)
+
+                // select instance type
+                cy.get('[data-form="project-type"]').contains('type1').click()
+
+                cy.get('[data-form="project-template"]').should('exist') // template section visible for create
+
+                cy.get('[data-action="create-project"]').should('not.be.disabled').click()
+
+                return cy.wait('@createInstance')
+            })
+            .then((interception) => {
+                const requestBody = interception.request.body
+                cy.wrap(requestBody).its('flowBlueprintId').should('eq', defaultBlueprint.id)
+            })
     })
 })

@@ -12,10 +12,10 @@
                 <CheckCircleIcon class="ff-icon-lg" />
                 <label class="text-green-800">Default</label>
             </div>
-            <ff-button v-if="!editable" @click="choose(blueprint)">
+            <ff-button v-if="!editable" data-action="select-blueprint" @click="choose(blueprint)">
                 Select
             </ff-button>
-            <ff-button v-else @click="$emit('selected', blueprint)">
+            <ff-button v-else data-action="edit-blueprint" @click="$emit('selected', blueprint)">
                 Edit
             </ff-button>
         </div>
