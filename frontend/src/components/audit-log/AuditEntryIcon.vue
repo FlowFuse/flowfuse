@@ -45,6 +45,7 @@ const iconMap = {
     nodered: [
         'crashed',
         'stopped',
+        'safe-mode',
         'settings.update',
         'flows.set',
         'library.set',
