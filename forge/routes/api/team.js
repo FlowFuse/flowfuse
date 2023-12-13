@@ -497,25 +497,20 @@ module.exports = async function (app) {
                         }
                     }
 
-                    // disconnect any devices from the Instance
-                    if (app.comms) {
-                        app.comms.devices.sendCommandToProjectDevices(request.team.hashid, instance.id, 'update', {
-                            project: null
-                        })
-                    }
-
                     await instance.destroy()
                     await app.auditLog.Team.project.deleted(request.session.User, null, request.team, instance)
                     await app.auditLog.Project.project.deleted(request.session.User, null, request.team, instance)
                 }
             }
 
+            // Delete Applications
             const applications = await app.db.models.Application.byTeam(request.team.hashid)
             for (const application of applications) {
                 await application.destroy()
                 await app.auditLog.Team.application.deleted(request.session.User, null, request.team, application)
             }
 
+            // Delete Devices
             const where = {
                 TeamId: request.team.id
             }
