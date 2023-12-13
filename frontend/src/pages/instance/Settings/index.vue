@@ -44,7 +44,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership', 'features'])
+        ...mapState('account', ['team', 'teamMembership', 'features', 'settings'])
     },
     watch: {
         teamMembership: 'checkAccess'
@@ -65,6 +65,9 @@ export default {
                 this.sideNavigation.push({ name: 'Editor', path: './editor' })
                 this.sideNavigation.push({ name: 'Security', path: './security' })
                 this.sideNavigation.push({ name: 'Palette', path: './palette' })
+                if (this.settings.email) {
+                    this.sideNavigation.push({ name: 'Alerts', path: './alerts' })
+                }
             }
         }
     }

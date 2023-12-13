@@ -485,7 +485,7 @@
         <label>{{ AuditEvents[entry.event] }}</label>
         <span>Something has gone wrong. Check the instance logs to investigate further.</span>
     </template>
-        <template v-else-if="entry.event === 'safe-mode'">
+    <template v-else-if="entry.event === 'safe-mode'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span>Something has gone wrong repeatedly. Check the instance logs to investigate further.</span>
     </template>
