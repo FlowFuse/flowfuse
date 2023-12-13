@@ -75,7 +75,9 @@ module.exports = async (options = {}) => {
         bodyLimit: 5242880,
         maxParamLength: 500,
         trustProxy: true,
-        logger: loggerConfig
+        logger: loggerConfig,
+        // Increase the default timeout
+        pluginTimeout: 20000
     })
 
     if (runtimeConfig.telemetry.backend?.prometheus?.enabled) {
