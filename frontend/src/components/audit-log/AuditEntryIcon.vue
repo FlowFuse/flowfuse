@@ -86,7 +86,8 @@ const iconMap = {
     ],
     logout: [
         'account.logout',
-        'auth.logout' // node-red event
+        'auth.logout', // node-red event
+        'auth.login.revoke' // node-red event
     ],
     security: [
         'account.verify.auto-create-team',

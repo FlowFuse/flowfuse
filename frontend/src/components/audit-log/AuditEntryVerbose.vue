@@ -149,7 +149,7 @@
         <span v-if="!error && entry.trigger?.name">User '{{ entry.trigger.name }}' has logged in.</span>
         <span v-else-if="!error">User data not found in audit entry.</span>
     </template>
-    <template v-else-if="entry.event === 'account.logout' || entry.event === 'auth.logout'">
+    <template v-else-if="entry.event === 'account.logout' || entry.event === 'auth.logout' || entry.event === 'auth.login.revoke'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.trigger?.name">User '{{ entry.trigger.name }}' has logged out.</span>
         <span v-else-if="!error">User data not found in audit entry.</span>
