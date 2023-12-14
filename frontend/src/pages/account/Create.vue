@@ -144,8 +144,16 @@ export default {
             }
         },
         'input.password': function (v) {
-            if (this.errors.password && v.length >= 8 && zxcvbn(v).score >= 2) {
+            if (this.errors.password && v.length >= 8) {
                 this.errors.password = ''
+            } else {
+                this.errors.password = 'Password needs to be longer than 8 chars'
+                return
+            }
+            if (zxcvbn(v).score >= 2) {
+                this.errors.password = ''
+            } else {
+                this.errors.password = 'Password needs to be more complex'
             }
         },
         'input.name': function (v) {
@@ -162,19 +170,6 @@ export default {
         zxcvbn = zxcvbnImp
     },
     methods: {
-        checkPassword () {
-            if (this.input.password.length < 8) {
-                this.errors.password = 'Password must be at least 8 characters'
-            } else {
-                this.errors.password = ''
-            }
-            const zxcvbnResult = zxcvbn(this.input.password)
-            if (zxcvbnResult.score < 2) {
-                this.errors.password = `Password too weak, ${zxcvbnResult.feedback.suggestions[0]}`
-            } else {
-                this.errors.password = ''
-            }
-        },
         registerUser () {
             if (this.$route.query.code) {
                 this.input.code = this.$route.query.code
