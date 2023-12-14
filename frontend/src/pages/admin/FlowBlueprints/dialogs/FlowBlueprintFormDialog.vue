@@ -26,7 +26,7 @@
 
                 <FormRow v-model="input.icon" :error="errors.icon" data-form="icon">
                     Custom Icon
-                    <template #description>From https://heroicons.com/, falls back to category icon</template>
+                    <template #description>From https://v1.heroicons.com/, falls back to category icon</template>
                 </FormRow>
 
                 <FormRow v-model="input.order" type="number" :error="errors.order" data-form="order">
