@@ -7,7 +7,7 @@ module.exports = {
             generate: async function(projectId, event) {
                 if (app.postoffice.enabled) {
                     const project = await app.db.models.Project.byId(projectId)
-                    const settings = await project.getSetting('settings')
+                    const settings = await app.db.controllers.Project.getRuntimeSettings(project)
                     const emailAlerts = settings.emailAlerts
                     let template
                     if (emailAlerts.crash && event === 'crashed') {
