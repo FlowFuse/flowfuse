@@ -25,6 +25,8 @@ import FormRow from '../../components/FormRow.vue'
 import FFLayoutBox from '../../layouts/Box.vue'
 import alerts from '../../services/alerts.js'
 
+let zxcvbn
+
 export default {
     name: 'PasswordRequest',
     components: {
@@ -45,6 +47,17 @@ export default {
         }
     },
     computed: mapState('account', ['settings', 'pending']),
+    watch: {
+        'input.password': function (v) {
+            if (this.errors.password && v.length >= 8 && zxcvbn(v).score >= 2) {
+                this.errors.password = ''
+            }
+        }
+    },
+    async mounted () {
+        const { default: zxcvbnImp } = await import('zxcvbn')
+        zxcvbn = zxcvbnImp
+    },
     methods: {
         resetPassword () {
             this.errors.password = ''
@@ -64,6 +77,11 @@ export default {
             }
             if (this.input.password !== this.input.confirm) {
                 this.errors.confirm = 'Passwords do not match'
+                return false
+            }
+            const zxcvbnResult = zxcvbn(this.input.password)
+            if (zxcvbnResult.score < 2) {
+                this.errors.password = `Password too weak, ${zxcvbnResult.feedback.suggestions[0]}`
                 return false
             }
             userApi.resetPassword(this.$route.params.token, {

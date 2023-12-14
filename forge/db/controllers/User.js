@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken')
 const { fn, col, where } = require('sequelize')
+const zxcvbn = require('zxcvbn')
 
 const { compareHash, sha256 } = require('../utils')
 
@@ -26,6 +27,9 @@ module.exports = {
 
     changePassword: async function (app, user, oldPassword, newPassword) {
         if (compareHash(oldPassword, user.password)) {
+            if (zxcvbn(newPassword).score < 3) {
+                throw new Error('Password Too Weak')
+            }
             user.password = newPassword
             user.password_expired = false
             return user.save()
@@ -35,6 +39,9 @@ module.exports = {
     },
 
     resetPassword: async function (app, user, newPassword) {
+        // if (zxcvbn(newPassword.score < 3)) {
+        //     throw new Error('Password Too Weak')
+        // }
         user.password = newPassword
         user.password_expired = false
         return user.save()

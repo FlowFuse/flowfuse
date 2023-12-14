@@ -23,7 +23,8 @@ module.exports = function (env, argv) {
         output: {
             path: getPath('frontend/dist/app'),
             publicPath: '/app/',
-            assetModuleFilename: './assets/[hash][ext][query]'
+            assetModuleFilename: './assets/[hash][ext][query]',
+            filename: '[name].js'
         },
         module: {
             rules: [
@@ -133,7 +134,13 @@ module.exports = function (env, argv) {
                         test: /[\\/]node_modules[\\/]/,
                         name: 'vendors',
                         priority: -10,
-                        chunks: 'all'
+                        chunks: 'initial'
+                    },
+                    async: {
+                        test: /[\\/]node_modules[\\/]/,
+                        name: 'async-vendors',
+                        priority: -10,
+                        chunks: 'async'
                     }
                 }
             }
