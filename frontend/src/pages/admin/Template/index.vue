@@ -49,7 +49,8 @@ const sideNavigation = [
     { name: 'Settings', path: './settings' },
     { name: 'Security', path: './Security' },
     { name: 'Environment', path: './environment' },
-    { name: 'Palette', path: './palette' }
+    { name: 'Palette', path: './palette' },
+    { name: 'Alerts', path: './alerts'}
 ]
 
 export default {
