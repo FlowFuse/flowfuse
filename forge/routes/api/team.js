@@ -484,12 +484,49 @@ module.exports = async function (app) {
         // That is handled by the beforeDestroy hook on the Team model and the
         // call to destroy the team will throw an error
         try {
+            const instanceCount = await request.team.instanceCount()
+            if (instanceCount > 0) {
+                // need to delete Instances
+                const instances = await app.db.models.Project.byTeam(request.team.hashid)
+                for (const instance of instances) {
+                    try {
+                        await app.containers.remove(instance)
+                    } catch (err) {
+                        if (err?.statusCode !== 404) {
+                            throw err
+                        }
+                    }
+
+                    await instance.destroy()
+                    await app.auditLog.Team.project.deleted(request.session.User, null, request.team, instance)
+                    await app.auditLog.Project.project.deleted(request.session.User, null, request.team, instance)
+                }
+            }
+
+            // Delete Applications
+            const applications = await app.db.models.Application.byTeam(request.team.hashid)
+            for (const application of applications) {
+                await application.destroy()
+                await app.auditLog.Team.application.deleted(request.session.User, null, request.team, application)
+            }
+
+            // Delete Devices
+            const where = {
+                TeamId: request.team.id
+            }
+            const devices = await app.db.models.Device.getAll({}, where, { includeInstanceApplication: true })
+            for (const device of devices.devices) {
+                await device.destroy()
+                await app.auditLog.Team.team.device.deleted(request.session.User, null, request.team, device)
+            }
+
             if (app.license.active() && app.billing) {
                 const subscription = await request.team.getSubscription()
                 if (subscription && !subscription.isTrial() && !subscription.isUnmanaged()) {
                     await app.billing.closeSubscription(subscription)
                 }
             }
+
             await request.team.destroy()
             await app.auditLog.Platform.platform.team.deleted(request.session.User, null, request.team)
             await app.auditLog.Team.team.deleted(request.session.User, null, request.team)
