@@ -73,6 +73,8 @@ import userApi from '../../api/user.js'
 import SpinnerIcon from '../../components/icons/Spinner.js'
 import FFLayoutBox from '../../layouts/Box.vue'
 
+let zxcvbn
+
 export default {
     name: 'AccountCreate',
     components: {
@@ -141,7 +143,7 @@ export default {
             }
         },
         'input.password': function (v) {
-            if (this.errors.password && v.length >= 8) {
+            if (this.errors.password && v.length >= 8 && zxcvbn(v).score >= 2) {
                 this.errors.password = ''
             }
         },
@@ -153,13 +155,21 @@ export default {
             }
         }
     },
-    mounted () {
+    async mounted () {
         this.input.email = useRoute().query.email || ''
+        const { default: zxcvbnImp } = await import('zxcvbn')
+        zxcvbn = zxcvbnImp
     },
     methods: {
         checkPassword () {
             if (this.input.password.length < 8) {
                 this.errors.password = 'Password must be at least 8 characters'
+            } else {
+                this.errors.password = ''
+            }
+            const zxcvbnResult = zxcvbn(this.input.password)
+            if (zxcvbnResult.score < 2) {
+                this.errors.password = `Password too weak, ${zxcvbnResult.feedback.suggestions[0]}`
             } else {
                 this.errors.password = ''
             }
