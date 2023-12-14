@@ -144,7 +144,7 @@ export default {
             }
         },
         'input.password': function (v) {
-            if (this.errors.password && v.length >= 8) {
+            if (v.length >= 8) {
                 this.errors.password = ''
             } else {
                 this.errors.password = 'Password needs to be longer than 8 chars'
