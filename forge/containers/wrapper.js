@@ -203,6 +203,9 @@ module.exports = {
     },
     revokeUserToken: async (project, token) => { // logout:nodered(step-2)
         if (this._driver.revokeUserToken) {
+            if (project.state === 'suspended') {
+                return
+            }
             await this._driver.revokeUserToken(project, token) // logout:nodered(step-3)
         }
     },
