@@ -20,7 +20,7 @@
                 </FormRow>
             </div>
         </div>
-        <FormHeading>Email Addresses</FormHeading>
+        <FormHeading>Who to notify</FormHeading>
         <ff-radio-group v-model="email" orientation="vertical" :options="emailOptions" />
         
         <div class="space-x-4 whitespace-nowrap">

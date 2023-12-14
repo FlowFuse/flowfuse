@@ -65,7 +65,7 @@ export default {
                 this.sideNavigation.push({ name: 'Editor', path: './editor' })
                 this.sideNavigation.push({ name: 'Security', path: './security' })
                 this.sideNavigation.push({ name: 'Palette', path: './palette' })
-                if (this.settings.email) {
+                if (this.settings.email && this.team.type.properties.features.emailAlerts) {
                     this.sideNavigation.push({ name: 'Alerts', path: './alerts' })
                 }
             }

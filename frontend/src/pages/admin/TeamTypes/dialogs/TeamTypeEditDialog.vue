@@ -77,6 +77,7 @@
                     <FormRow v-model="input.properties.features.ha" type="checkbox">High Availability</FormRow>
                     <FormRow v-model="input.properties.features.teamHttpSecurity" type="checkbox">Team-based Endpoint Security</FormRow>
                     <FormRow v-model="input.properties.features.customCatalogs" type="checkbox">Custom NPM Catalogs</FormRow>
+                    <FormRow v-model="input.properties.features.emailAlerts" type="checkbox">Email Alerts</FormRow>
                     <div />
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
@@ -162,6 +163,9 @@ export default {
                     }
                     if (this.input.properties.features.customCatalogs === undefined) {
                         this.input.properties.features.customCatalogs = true
+                    }
+                    if (this.input.properties.features.emailAlerts === undefined) {
+                        this.input.properties.features.emailAlerts = true
                     }
                     if (this.input.properties.billing.proration === undefined) {
                         this.input.properties.billing.proration = 'always_invoice'
