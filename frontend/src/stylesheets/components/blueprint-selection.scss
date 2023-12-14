@@ -30,6 +30,8 @@
     align-items: center;
     justify-content: center;
     background-color: var(--tile-background);
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
     svg {
         stroke: var(--tile-foreground);
         path {
@@ -48,6 +50,9 @@
 
 .ff-blueprint-tile-sm .ff-blueprint-tile--header {
     width: 32px;
+    border-radius: 0px;
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
     svg {
         transform: scale(1.5);
     }
