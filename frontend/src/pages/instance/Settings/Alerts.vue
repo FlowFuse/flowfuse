@@ -62,12 +62,6 @@ export default {
             crashed: false,
             safeMode: false,
             email: 'owners',
-            editable: {
-                name: '',
-                settings: {},
-                policy: {},
-                errors: {}
-            },
             original: {}
         }
     },
