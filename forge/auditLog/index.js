@@ -1,5 +1,6 @@
 const fp = require('fastify-plugin')
 
+const alerts = require('./alerts')
 const application = require('./application')
 const formatters = require('./formatters')
 const platform = require('./platform')
@@ -14,6 +15,7 @@ module.exports = fp(async function (app, _opts, next) {
         Project: project.getLoggers(app),
         Team: team.getLoggers(app),
         Platform: platform.getLoggers(app),
+        alerts: alerts.init(app),
         formatters
     }
     app.decorate('auditLog', loggers)
