@@ -3,8 +3,18 @@ module.exports = {
     text:
 `Hello
 
-Your FlowFuse Project {{{ project.name }}} has crashed`,
+Your FlowFuse Project "{{{ name }}}" has crashed.
+
+You can access the logs here:
+
+{{{ url }}}
+
+`,
     html:
 `<p>Hello</p>
-<p>Your FlowFuse Project {{{ project.name }}} has crashed</p>`
+<p>Your FlowFuse Project "{{{ name }}}" has crashed</p>
+
+<p>You can access the logs here</p>
+<a href="{{{ url }}}">{{{ url }}}</a>
+`
 }

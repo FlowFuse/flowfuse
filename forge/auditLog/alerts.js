@@ -41,7 +41,7 @@ module.exports = {
                     const users  = (await app.db.models.TeamMember.findAll({ where, include: app.db.models.User })).map(tm => tm.User)
                     if (users.length > 0) {
                         users.forEach(user => {
-                            app.postoffice.send(user, template, { project })
+                            app.postoffice.send(user, template, { name: project.name, url: `${app.config.base_url}/instance/${project.id}`  })
                         })
                     }
                 }
