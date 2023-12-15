@@ -17,14 +17,14 @@
     <div v-if="deviceGroups?.length > 0" class="pt-4 space-y-6" data-el="pipelines-list">
         <ff-data-table v-model:search="tableSearch" :columns="tableColumns" :rows="deviceGroups" :show-search="true" search-placeholder="Filter..." :rows-selectable="true" @row-selected="editDeviceGroup">
             <template #actions>
-                <ff-button data-action="create-device-group" @click="showCreateDeviceGroupDialog">
+                <ff-button data-action="create-device-group" :disabled="!featureEnabled" @click="showCreateDeviceGroupDialog">
                     <template #icon-left><PlusSmIcon /></template>
                     Add Device Group
                 </ff-button>
             </template>
         </ff-data-table>
     </div>
-    <EmptyState v-else>
+    <EmptyState v-else :featureUnavailable="!featureEnabled" :featureUnavailableMessage="'Device Groups are an enterprise feature'">
         <template #header>Add your Application's First Device Group</template>
         <template #img>
             <img src="../../images/empty-states/application-device-groups.png">
@@ -38,7 +38,7 @@
             </p>
         </template>
         <template #actions>
-            <ff-button data-action="create-device-group" @click="showCreateDeviceGroupDialog">
+            <ff-button data-action="create-device-group" :disabled="!featureEnabled" @click="showCreateDeviceGroupDialog">
                 <template #icon-left><PlusSmIcon /></template>
                 Add Device Group
             </ff-button>
@@ -131,10 +131,15 @@ export default {
         }
     },
     computed: {
-        ...mapState('account')
+        ...mapState('account', ['features']),
+        featureEnabled () {
+            return this.features['device-groups']
+        }
     },
     mounted () {
-        this.loadDeviceGroups()
+        if (this.featureEnabled) {
+            this.loadDeviceGroups()
+        }
     },
     methods: {
         async showCreateDeviceGroupDialog () {
