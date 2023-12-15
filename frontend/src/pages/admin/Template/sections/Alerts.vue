@@ -32,24 +32,18 @@
                     <template #input>&nbsp;</template>
                 </FormRow>
             </div>
-            <LockSetting v-model="editable.policy.emailAlerts_recipients" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.emailAlerts_recipients"/>
+            <LockSetting v-model="editable.policy.emailAlerts_recipients" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.emailAlerts_recipients" />
         </div>
         <ff-radio-group v-model="editable.settings.emailAlerts_recipients" orientation="vertical" :options="emailOptions" />
-        
-        <div class="space-x-4 whitespace-nowrap">
-        </div>
     </form>
 </template>
 
 <script>
-import { mapState } from 'vuex'
-
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
 import FeatureUnavailableToTeam from '../../../../components/banners/FeatureUnavailableToTeam.vue'
 import ChangeIndicator from '../components/ChangeIndicator.vue'
 import LockSetting from '../components/LockSetting.vue'
-
 
 export default {
     name: 'TemplateSettingsAlerts',
@@ -74,28 +68,12 @@ export default {
             default: null
         }
     },
-    emits: ['updateModelValue'],
+    emits: ['update:modelValue'],
     data () {
         return {
-            // unsavedChanges: false,
-            // mounted: false,
-            // // editable: {
-            // //     name: '',
-            // //     settings: {},
-            // //     policy: {},
-            // //     changed: {
-            // //         name: false,
-            // //         description: false,
-            // //         settings: {},
-            // //         policy: {}
-            // //     },
-            // //     errors: {}
-            // // },
-            // // original: {}
         }
     },
     computed: {
-        // ...mapState('account', ['team', 'teamMembership', 'features']),
         editable: {
             get () {
                 return this.modelValue
@@ -133,7 +111,7 @@ export default {
             }
             const flag = this.team.type.properties.features?.emailAlerts
             return flag === undefined || flag
-        },
+        }
     }
 }
 </script>

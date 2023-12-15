@@ -50,7 +50,7 @@ const sideNavigation = [
     { name: 'Security', path: './Security' },
     { name: 'Environment', path: './environment' },
     { name: 'Palette', path: './palette' },
-    { name: 'Alerts', path: './alerts'}
+    { name: 'Alerts', path: './alerts' }
 ]
 
 export default {

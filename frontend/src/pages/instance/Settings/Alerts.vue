@@ -21,8 +21,7 @@ import {
     isPasswordField,
     prepareTemplateForEdit,
     setTemplateValue,
-    templateFields,
-    templateValidators
+    templateFields
 } from '../../admin/Template/utils.js'
 
 export default {
@@ -87,7 +86,6 @@ export default {
             handler (v) {
                 if (this.project.template) {
                     let changed = false
-                    let errors = false
                     templateFields.forEach(field => {
                         changed = changed || (this.editable.settings[field] !== this.original.settings[field])
                     })
