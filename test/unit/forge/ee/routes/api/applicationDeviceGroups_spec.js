@@ -1,6 +1,6 @@
 const should = require('should') // eslint-disable-line
 
-const setup = require('../setup')
+const setup = require('../../setup.js')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
@@ -21,7 +21,7 @@ describe('Application Device Groups API', function () {
         /** B-team Application */
         application: {}
     }
-    /** @type {import('../../../../lib/TestModelFactory')} */
+    /** @type {import('../../../../../lib/TestModelFactory')} */
     let factory = null
     let objectCount = 0
     const generateName = (root = 'object') => `${root}-${objectCount++}`
