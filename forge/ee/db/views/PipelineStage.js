@@ -8,7 +8,9 @@ module.exports = function (app) {
             instances: { $ref: 'InstanceSummaryList' },
             devices: {
                 type: 'array',
-                $ref: 'DeviceSummary'
+                items: {
+                    $ref: 'DeviceSummary'
+                }
             },
             action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) },
             NextStageId: { type: 'string' }

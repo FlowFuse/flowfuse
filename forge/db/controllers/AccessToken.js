@@ -29,8 +29,11 @@ module.exports = {
      * Create an AccessToken for a user's password reset request
      */
     createTokenForPasswordReset: async function (app, user) {
+        // Ensure any existing tokens are removed first
+        await app.db.controllers.AccessToken.deleteAllUserPasswordResetTokens(user)
+
         const token = generateToken(32, 'ffpr')
-        const expiresAt = new Date(Date.now() + (86400 * 1000))
+        const expiresAt = new Date(Date.now() + (86400 * 1000)) // 1 day
         await app.db.models.AccessToken.create({
             token,
             expiresAt,
@@ -40,6 +43,20 @@ module.exports = {
         })
         return { token }
     },
+
+    /**
+     * Deletes any pending password-change tokens for a user.
+     */
+    deleteAllUserPasswordResetTokens: async function (app, user) {
+        await app.db.models.AccessToken.destroy({
+            where: {
+                ownerType: 'user',
+                scope: 'password:Reset',
+                ownerId: user.hashid
+            }
+        })
+    },
+
     /**
      * Create an AccessToken for the given device.
      * The token is hashed in the database. The only time the

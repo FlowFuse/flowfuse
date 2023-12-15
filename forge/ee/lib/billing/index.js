@@ -1,5 +1,3 @@
-const { Op } = require('sequelize')
-
 module.exports.init = async function (app) {
     // Set the billing feature flag
     app.config.features.register('billing', true, true)
@@ -104,7 +102,7 @@ module.exports.init = async function (app) {
                     }
                 }
             }
-            const instanceCounts = await team.instanceCountByType({ state: { [Op.notIn]: ['suspended', 'deleting'] } })
+            const instanceCounts = await team.getBillableInstanceCountByType()
             const instanceTypes = await app.db.models.ProjectType.findAll()
             for (const instanceType of instanceTypes) {
                 // Get the stripe ids to use for this instance type in this team type
@@ -224,8 +222,13 @@ module.exports.init = async function (app) {
          * @param {Team} team
          */
         updateTeamInstanceCount: async (team) => {
-            const counts = await team.instanceCountByType({ state: { [Op.notIn]: ['suspended', 'deleting'] } })
+            const counts = await team.getBillableInstanceCountByType()
             const subscription = await team.getSubscription()
+            if (subscription && subscription.isUnmanaged()) {
+                // Unmanaged subscription means the platform is not responsible
+                // for managing the stripe configuration
+                return
+            }
             if (subscription && subscription.isActive()) {
                 const prorationBehavior = await team.getBillingProrationBehavior()
                 const stripeSubscription = await stripe.subscriptions.retrieve(subscription.subscription)
@@ -328,6 +331,11 @@ module.exports.init = async function (app) {
                 return
             }
             const subscription = await team.getSubscription()
+            if (subscription && subscription.isUnmanaged()) {
+                // Unmanaged subscription means the platform is not responsible
+                // for managing the stripe configuration
+                return
+            }
             if (subscription && subscription.isActive()) {
                 const deviceCount = await team.deviceCount()
                 const deviceFreeAllocation = await team.getDeviceFreeAllowance()
@@ -370,12 +378,14 @@ module.exports.init = async function (app) {
         },
 
         closeSubscription: async (subscription) => {
-            app.log.info(`Closing subscription for team ${subscription.Team.hashid}`)
+            if (subscription.subscription) {
+                app.log.info(`Canceling subscription ${subscription.subscription} for team ${subscription.Team.hashid}`)
 
-            await stripe.subscriptions.del(subscription.subscription, {
-                invoice_now: true,
-                prorate: true
-            })
+                await stripe.subscriptions.del(subscription.subscription, {
+                    invoice_now: true,
+                    prorate: true
+                })
+            }
             subscription.status = app.db.models.Subscription.STATUS.CANCELED
             await subscription.save()
         },
@@ -442,8 +452,13 @@ module.exports.init = async function (app) {
          */
         updateTeamType: async (team, targetTeamType) => {
             const subscription = await team.getSubscription()
-            // The team must have billing setup with an active subscription before
+            // The team must have billing setup with an active or unmanaged subscription before
             // it can change its type
+            if (subscription && subscription.isUnmanaged()) {
+                // Unmanaged subscription means the platform is not responsible
+                // for managing the stripe configuration
+                return
+            }
             if (subscription && subscription.isActive()) {
                 if (subscription.isTrial()) {
                     // This block can be removed in 1.14 as it is a condition
@@ -494,6 +509,55 @@ module.exports.init = async function (app) {
                 const err = new Error('Team subscription not active')
                 err.code = 'billing_required'
                 throw err
+            }
+        },
+        /**
+         * Flags the subscription as being unmanaged. This disables all interaction
+         * with Stripe for this team.
+         *
+         * If the team has an active subscription, we will check the subscription
+         * state on stripe and, if necessary, cancel the subscription.
+         *
+         * @param {*} team
+         * @param {*} targetTeamType
+         */
+        enableManualBilling: async (team) => {
+            app.log.info(`Enabling manual billing for team ${team.hashid}`)
+            const subscription = await team.getSubscription()
+            const existingSubscription = subscription.subscription
+            subscription.subscription = ''
+            subscription.status = app.db.models.Subscription.STATUS.UNMANAGED
+            subscription.trialEndsAt = null
+            subscription.trialStatus = app.db.models.Subscription.TRIAL_STATUS.ENDED
+            await subscription.save()
+
+            // Now we have marked the local subscription as unmanaged, we need to
+            // check to see if there is a stripe subscription to cancel
+            if (existingSubscription) {
+                try {
+                    const stripeSubscription = await stripe.subscriptions.retrieve(existingSubscription)
+                    if (stripeSubscription && stripeSubscription.status !== 'canceled') {
+                        app.log.info(`Canceling existing subscription ${existingSubscription} for team ${team.hashid}`)
+                        // There is an existing subscription to cancel
+                        try {
+                            // We do not use `app.billing.closeSubscription` because
+                            // that expects a Subscription object. However, we've already
+                            // updated the local Subscription object to remove the information
+                            // needed by closeSubscription. This is to ensure when the
+                            // stripe callback arrives we don't trigger a suspension of
+                            // the team resources.
+                            await stripe.subscriptions.del(subscription.subscription, {
+                                invoice_now: true,
+                                prorate: true
+                            })
+                        } catch (err) {
+                            app.log.warn(`Error canceling existing subscription ${existingSubscription} for team ${team.hashid}: ${err.toString()}`)
+                        }
+                    }
+                } catch (err) {
+                    // Could not find a matching stripe subscription - that's means
+                    // we have nothing cancel
+                }
             }
         }
     }

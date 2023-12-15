@@ -149,7 +149,7 @@
         <span v-if="!error && entry.trigger?.name">User '{{ entry.trigger.name }}' has logged in.</span>
         <span v-else-if="!error">User data not found in audit entry.</span>
     </template>
-    <template v-else-if="entry.event === 'account.logout' || entry.event === 'auth.logout'">
+    <template v-else-if="entry.event === 'account.logout' || entry.event === 'auth.logout' || entry.event === 'auth.login.revoke'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.trigger?.name">User '{{ entry.trigger.name }}' has logged out.</span>
         <span v-else-if="!error">User data not found in audit entry.</span>
@@ -314,6 +314,11 @@
     <template v-else-if="entry.event === 'application.pipeline.created'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.pipeline">DevOps Pipeline '{{ entry.body.pipeline?.name }}' has been created {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }}</span>
+        <span v-else-if="!error">Pipeline data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'application.pipeline.updated'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.pipeline">DevOps Pipeline '{{ entry.body.pipeline?.name }}' was updated {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }} with the following changes: <AuditEntryUpdates :updates="entry.body.updates" /></span>
         <span v-else-if="!error">Pipeline data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'application.pipeline.deleted'">

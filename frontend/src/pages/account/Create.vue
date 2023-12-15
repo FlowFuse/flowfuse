@@ -73,6 +73,8 @@ import userApi from '../../api/user.js'
 import SpinnerIcon from '../../components/icons/Spinner.js'
 import FFLayoutBox from '../../layouts/Box.vue'
 
+let zxcvbn
+
 export default {
     name: 'AccountCreate',
     components: {
@@ -117,6 +119,7 @@ export default {
             return (this.input.email && !this.errors.email) &&
                    (this.input.username && !this.errors.username) &&
                    this.input.password.length >= 8 &&
+                   zxcvbn(this.input.password).score >= 2 &&
                    (this.askJoinReason ? this.input.join_reason : true) &&
                    (this.settings['user:tcs-required'] ? this.input.tcs_accepted : true) &&
                    (!this.errors.name)
@@ -141,8 +144,16 @@ export default {
             }
         },
         'input.password': function (v) {
-            if (this.errors.password && v.length >= 8) {
+            if (v.length >= 8) {
                 this.errors.password = ''
+            } else {
+                this.errors.password = 'Password needs to be longer than 8 chars'
+                return
+            }
+            if (zxcvbn(v).score >= 2) {
+                this.errors.password = ''
+            } else {
+                this.errors.password = 'Password needs to be more complex'
             }
         },
         'input.name': function (v) {
@@ -153,17 +164,12 @@ export default {
             }
         }
     },
-    mounted () {
+    async mounted () {
         this.input.email = useRoute().query.email || ''
+        const { default: zxcvbnImp } = await import('zxcvbn')
+        zxcvbn = zxcvbnImp
     },
     methods: {
-        checkPassword () {
-            if (this.input.password.length < 8) {
-                this.errors.password = 'Password must be at least 8 characters'
-            } else {
-                this.errors.password = ''
-            }
-        },
         registerUser () {
             if (this.$route.query.code) {
                 this.input.code = this.$route.query.code

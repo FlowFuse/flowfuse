@@ -48,7 +48,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('application:device-group:list'),
         schema: {
             summary: 'Get a list of device groups in an application',
-            tags: ['Applications'],
+            tags: ['Application Device Groups'],
             query: { $ref: 'PaginationParams' },
             params: {
                 type: 'object',
@@ -96,7 +96,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('application:device-group:create'),
         schema: {
             summary: 'Add a new Device Group to an Application',
-            tags: ['Applications'],
+            tags: ['Application Device Groups'],
             body: {
                 type: 'object',
                 properties: {
@@ -143,7 +143,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('application:device-group:update'),
         schema: {
             summary: 'Update a Device Group',
-            tags: ['Applications'],
+            tags: ['Application Device Groups'],
             body: {
                 type: 'object',
                 properties: {
@@ -190,7 +190,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('application:device-group:read'),
         schema: {
             summary: 'Get a specific Device Group',
-            tags: ['Applications'],
+            tags: ['Application Device Groups'],
             params: {
                 type: 'object',
                 properties: {
@@ -223,7 +223,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('application:device-group:membership:update'),
         schema: {
             summary: 'Update Device Group membership',
-            tags: ['Applications'],
+            tags: ['Application Device Groups'],
             body: {
                 type: 'object',
                 properties: {
@@ -272,7 +272,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('application:device-group:delete'),
         schema: {
             summary: 'Delete a Device Group',
-            tags: ['Applications'],
+            tags: ['Application Device Groups'],
             params: {
                 type: 'object',
                 properties: {

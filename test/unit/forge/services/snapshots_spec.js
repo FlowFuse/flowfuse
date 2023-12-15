@@ -104,14 +104,17 @@ describe('Snapshots Service', function () {
         before(async function () {
             const application = await FACTORY.createApplication({ name: 'application1' }, TEAM)
 
-            const instance = await APP.db.models.Project.create({ name: 'instance-4', type: '', url: '' })
+            const instance = await APP.db.models.Project.create({ name: 'snaphot-instance-1', type: '', url: '' })
+            const instanceTwo = await APP.db.models.Project.create({ name: 'snaphot-instance-2', type: '', url: '' })
+            const instanceThree = await APP.db.models.Project.create({ name: 'snaphot-instance-3', type: '', url: '' })
+            const instanceFlour = await APP.db.models.Project.create({ name: 'snaphot-instance-4', type: '', url: '' })
 
             pipeline = await FACTORY.createPipeline({ name: 'pipeline-1' }, application)
 
             stageOne = await FACTORY.createPipelineStage({ name: 's1', instanceId: instance.id }, pipeline)
-            stageTwo = await FACTORY.createPipelineStage({ name: 's2', instanceId: instance.id }, pipeline)
-            stageThree = await FACTORY.createPipelineStage({ name: 's3', instanceId: instance.id }, pipeline)
-            stageFour = await FACTORY.createPipelineStage({ name: 's4', instanceId: instance.id }, pipeline)
+            stageTwo = await FACTORY.createPipelineStage({ name: 's2', instanceId: instanceTwo.id }, pipeline)
+            stageThree = await FACTORY.createPipelineStage({ name: 's3', instanceId: instanceThree.id }, pipeline)
+            stageFour = await FACTORY.createPipelineStage({ name: 's4', instanceId: instanceFlour.id }, pipeline)
         })
 
         it('Generates a description for a snapshot to be deployed', async function () {

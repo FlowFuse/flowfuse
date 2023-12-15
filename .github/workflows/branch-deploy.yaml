@@ -1,0 +1,185 @@
+name: Create fresh app instance for PR
+
+on:
+  pull_request:
+    types: 
+      - synchronize
+      - reopened
+      - closed
+      - labeled
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build and contenerize
+    if: |
+      github.event_name == 'pull_request' && 
+      github.event.action != 'closed' &&
+      contains(github.event.pull_request.labels.*.name, 'deploy:pr')
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: 'forge-k8s'
+      PR_NUMBER: ${{ github.event.number }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set variables
+        run: | 
+          echo "tagged_image=${{ env.IMAGE_NAME }}:pr-${{ env.PR_NUMBER}}" >> $GITHUB_ENV
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+  
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v3
+  
+      - name: Build container image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: "./ci/Dockerfile"
+          tags: ${{ env.tagged_image }}
+          push: false
+          outputs: type=docker,dest=/tmp/k8s-forge.tar
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: k8s-forge
+          path: /tmp/k8s-forge.tar
+          retention-days: 7
+
+  deploy:
+    name: Deploy application
+    needs: build
+    if: |
+      github.event_name == 'pull_request' && 
+      github.event.action != 'closed' &&
+      contains(github.event.pull_request.labels.*.name, 'deploy:pr')
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      IMAGE_NAME: 'forge-k8s'
+      PR_NUMBER: ${{ github.event.number }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set variables
+        run: | 
+          echo "tagged_image=${{ env.IMAGE_NAME }}:pr-${{ env.PR_NUMBER}}" >> $GITHUB_ENV
+          echo "timestamp=$(date +%s)" >> $GITHUB_ENV
+
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: k8s-forge
+          path: /tmp
+
+      - name: Load image
+        run: |
+          docker load --input /tmp/k8s-forge.tar
+          docker image ls -a
+
+      - name: Delete artifact
+        uses: geekyeggo/delete-artifact@v2
+        with:
+          name: k8s-forge
+          failOnError: false
+
+      - name: Configure AWS credentials for ECR interaction
+        id: aws-config
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+          aws-region: eu-west-1
+          mask-aws-account-id: true
+        
+      - name: Login to AWS ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          mask-password: true
+
+      - name: Push to ECR
+        run: |
+          docker tag ${{ env.tagged_image }} ${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }}
+          docker push ${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }}
+
+      - name: Configure AWS credentials for EKS interaction
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+          aws-region: eu-west-1
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/K8sAdmin
+          role-duration-seconds: 1200
+
+      - name: Configure kubeconfig
+        run: |
+          aws eks update-kubeconfig --region eu-west-1 --name ${{ secrets.EKS_CLUSTER_NAME }}
+
+      - name: Check out FlowFuse/helm repository (to access latest helm chart)
+        uses: actions/checkout@v3
+        with:
+          repository: 'FlowFuse/helm'
+          ref: 'main'
+          path: 'helm-repo'
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy
+        run: |
+          helm upgrade --install \
+            --create-namespace \
+            --namespace "pr-${{ env.PR_NUMBER }}" \
+            --timeout 300s \
+            --wait \
+            --atomic \
+            --values ci/ci-values.yaml \
+            --set forge.image=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }} \
+            --set forge.entryPoint=${{ env.PR_NUMBER }}.flowfuse.dev \
+            --set forge.projectNamespace=pr-${{ env.PR_NUMBER }}-projects \
+            --set forge.clusterRole.name=pr-${{ env.PR_NUMBER }}-clusterrole \
+            flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowforge
+
+      - name: Summary
+        run: |
+          echo "### :rocket: Deployment succeeded" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed commit SHA:** ${{ github.event.pull_request.head.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed to:** [https://${{ env.PR_NUMBER }}.flowfuse.dev](https://${{ env.PR_NUMBER }}.flowfuse.dev)" >> $GITHUB_STEP_SUMMARY
+
+  destroy:
+    name: Remove application
+    runs-on: ubuntu-latest
+    if: | 
+      github.event_name == 'pull_request' && 
+      github.event.action == 'closed' &&
+      contains(github.event.pull_request.labels.*.name, 'deploy:pr')
+    environment: staging
+    env:
+      IMAGE_NAME: 'forge-k8s'
+      PR_NUMBER: ${{ github.event.number }}
+    steps:
+      - name: Configure AWS credentials for EKS interaction
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+          aws-region: eu-west-1
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/K8sAdmin
+          role-duration-seconds: 1200
+
+      - name: Configure kubeconfig
+        run: |
+          aws eks update-kubeconfig --region eu-west-1 --name ${{ secrets.EKS_CLUSTER_NAME }}
+      
+      - name: Remove resources
+        run: |
+          helm uninstall --namespace "pr-${{ env.PR_NUMBER }}" flowfuse-pr-${{ env.PR_NUMBER }}
+          sleep 15
+          kubectl delete namespace "pr-${{ env.PR_NUMBER }}"

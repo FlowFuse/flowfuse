@@ -1,37 +1,39 @@
 <template>
-    <ff-loading v-if="loading" message="" />
-    <form v-else class="space-y-6" @submit.enter.prevent="">
-        <FormRow v-model="input.username" :type="editing?'text':'uneditable'" :error="errors.username">Username</FormRow>
-        <FormRow v-model="input.name" :type="editing?'text':'uneditable'" :placeholder="input.username" :error="errors.name">Name</FormRow>
-        <FormRow v-model="input.email" :type="emailEditingEnabled?'email':'uneditable'" :error="errors.email">Email</FormRow>
-        <FormRow v-if="!editing" v-model="defaultTeamName" :options="teams" type="uneditable">
-            Default Team
-        </FormRow>
-        <FormRow v-else v-model="input.defaultTeam" :options="teams" :error="errors.defaultTeam">
-            Default Team
-            <template #description>The team you'll see when you log in</template>
-        </FormRow>
+    <div>
+        <ff-loading v-if="loading" message="" />
+        <form v-else class="space-y-6" @submit.enter.prevent="">
+            <FormRow v-model="input.username" :type="editing?'text':'uneditable'" :error="errors.username">Username</FormRow>
+            <FormRow v-model="input.name" :type="editing?'text':'uneditable'" :placeholder="input.username" :error="errors.name">Name</FormRow>
+            <FormRow v-model="input.email" :type="emailEditingEnabled?'email':'uneditable'" :error="errors.email">Email</FormRow>
+            <FormRow v-if="!editing" v-model="defaultTeamName" :options="teams" type="uneditable">
+                Default Team
+            </FormRow>
+            <FormRow v-else v-model="input.defaultTeam" :options="teams" :error="errors.defaultTeam">
+                Default Team
+                <template #description>The team you'll see when you log in</template>
+            </FormRow>
 
-        <template v-if="editing">
-            <div class="flex space-x-4">
-                <ff-button :disabled="!formValid" @click="confirm">Save Changes</ff-button>
-                <ff-button kind="secondary" @click="resetInputs">Cancel</ff-button>
-            </div>
-        </template>
-        <template v-else>
-            <ff-button @click="startEdit">Edit</ff-button>
-        </template>
-    </form>
+            <template v-if="editing">
+                <div class="flex space-x-4">
+                    <ff-button :disabled="!formValid" @click="confirm">Save Changes</ff-button>
+                    <ff-button kind="secondary" @click="resetInputs">Cancel</ff-button>
+                </div>
+            </template>
+            <template v-else>
+                <ff-button @click="startEdit">Edit</ff-button>
+            </template>
+        </form>
 
-    <FormHeading class="text-red-700 mt-6">Delete Account</FormHeading>
-    <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-        <div class="flex-grow">
-            <div class="max-w-sm">
-                Before you can delete your account, teams you own must be deleted or have at least 1 other owner.
+        <FormHeading class="text-red-700 mt-6">Delete Account</FormHeading>
+        <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+            <div class="flex-grow">
+                <div class="max-w-sm">
+                    Before you can delete your account, teams you own must be deleted or have at least 1 other owner.
+                </div>
             </div>
-        </div>
-        <div class="min-w-fit flex-shrink-0">
-            <ff-button class="warning" kind="danger" @click="deleteAccount">Delete Account</ff-button>
+            <div class="min-w-fit flex-shrink-0">
+                <ff-button class="warning" kind="danger" @click="deleteAccount">Delete Account</ff-button>
+            </div>
         </div>
     </div>
 </template>

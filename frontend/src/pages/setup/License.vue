@@ -4,7 +4,7 @@
         <template v-if="!state.license">
             <p class="mt-4">FlowFuse Community Edition is Open Source and can be used freely without a license.</p>
             <p>If you have a FlowFuse Enterprise Edition license, upload it here.</p>
-            <FormRow v-model="input.license" class="mt-6" :error="errors.license">License Key</FormRow>
+            <FormRow v-model="input.license" class="!max-w-full mt-6" :error="errors.license">License Key</FormRow>
             <div class="flex mt-8">
                 <ff-button kind="tertiary" @click="next()">
                     Continue with FlowFuse CE

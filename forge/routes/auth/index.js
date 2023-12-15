@@ -37,7 +37,7 @@ const SESSION_COOKIE_OPTIONS = {
  * @typedef {import('../../db/controllers/User')} UserController
  */
 
-module.exports = fp(init)
+module.exports = fp(init, { name: 'app.routes.auth' })
 
 /**
  * Initialize the auth plugin
@@ -71,6 +71,9 @@ async function init (app, opts, done) {
                 const mfaMissing = request.session.User.mfa_enabled && !request.session.mfa_verified
 
                 if (emailVerified && passwordNotExpired && !suspended && !mfaMissing) {
+                    return
+                }
+                if (request.routeOptions.config.allowAnonymous) {
                     return
                 }
                 await request.session.destroy()
@@ -305,20 +308,7 @@ async function init (app, opts, done) {
             if (userInfo.id != null) {
                 const user = await app.db.models.User.byId(userInfo.id)
                 userInfo = app.auditLog.formatters.userObject(user)
-                const sessions = await app.db.models.StorageSession.byUsername(user.username)
-                for (let index = 0; index < sessions.length; index++) {
-                    const session = sessions[index]
-                    const ProjectId = session.ProjectId
-                    const project = await app.db.models.Project.byId(ProjectId)
-                    for (let index = 0; index < session.sessions.length; index++) {
-                        const token = session.sessions[index].accessToken
-                        try {
-                            await app.containers.revokeUserToken(project, token) // logout:nodered(step-2)
-                        } catch (error) {
-                            app.log.warn(`Failed to revoke token for Project ${ProjectId}: ${error.toString()}`) // log error but continue to delete session
-                        }
-                    }
-                }
+                await app.db.controllers.User.logout(user)
             }
             await app.db.controllers.Session.deleteSession(request.sid)
         }
@@ -782,6 +772,9 @@ async function init (app, opts, done) {
                 userInfo = user
                 try {
                     await app.db.controllers.User.resetPassword(user, request.body.password)
+                    // Clear any existing sessions to force a re-login
+                    await app.db.controllers.Session.deleteAllUserSessions(user)
+                    await app.db.controllers.AccessToken.deleteAllUserPasswordResetTokens(user)
                     success = true
                 } catch (err) {
                 }

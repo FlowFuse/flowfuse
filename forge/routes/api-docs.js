@@ -22,6 +22,7 @@ module.exports = fp(async function (app, opts, done) {
                 { name: 'Team Invitations', description: '' },
                 { name: 'Team Devices', description: '' },
                 { name: 'Applications', description: '' },
+                { name: 'Application Device Groups', description: '' },
                 { name: 'Instances', description: '' },
                 { name: 'Instance Types', description: '' },
                 { name: 'Instance Actions', description: '' },
@@ -157,4 +158,4 @@ module.exports = fp(async function (app, opts, done) {
     })
 
     done()
-})
+}, { name: 'app.routes.api-docs' })

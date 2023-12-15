@@ -8,6 +8,11 @@
   display: inline-block;
 }
 
+.ff-disabled {
+  pointer-events: none;
+  opacity: 0.4;
+}
+
 .ff-icon-sm {
   width: 16px;
   height: 16px;

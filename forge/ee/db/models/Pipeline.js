@@ -28,6 +28,38 @@ module.exports = {
             instance: {
                 stages: async function () {
                     return await M.PipelineStage.byPipeline(this.id)
+                },
+                hasInstance: async function (instance) {
+                    return await M.PipelineStage.count({
+                        where: {
+                            PipelineId: this.id
+                        },
+                        limit: 1,
+                        include: [
+                            {
+                                association: 'Instances',
+                                where: {
+                                    id: instance.id
+                                }
+                            }
+                        ]
+                    }) > 0
+                },
+                hasDevice: async function (device) {
+                    return await M.PipelineStage.count({
+                        where: {
+                            PipelineId: this.id
+                        },
+                        limit: 1,
+                        include: [
+                            {
+                                association: 'Devices',
+                                where: {
+                                    id: device.id
+                                }
+                            }
+                        ]
+                    }) > 0
                 }
             },
             static: {

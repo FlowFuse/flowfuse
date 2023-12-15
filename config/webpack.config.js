@@ -3,7 +3,6 @@ const path = require('path')
 const { sentryWebpackPlugin } = require('@sentry/webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
-const dotenv = require('dotenv')
 const DotenvPlugin = require('dotenv-webpack')
 const HTMLWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
@@ -24,7 +23,8 @@ module.exports = function (env, argv) {
         output: {
             path: getPath('frontend/dist/app'),
             publicPath: '/app/',
-            assetModuleFilename: './assets/[hash][ext][query]'
+            assetModuleFilename: './assets/[hash][ext][query]',
+            filename: '[name].js'
         },
         module: {
             rules: [
@@ -134,7 +134,13 @@ module.exports = function (env, argv) {
                         test: /[\\/]node_modules[\\/]/,
                         name: 'vendors',
                         priority: -10,
-                        chunks: 'all'
+                        chunks: 'initial'
+                    },
+                    async: {
+                        test: /[\\/]node_modules[\\/]/,
+                        name: 'async-vendors',
+                        priority: -10,
+                        chunks: 'async'
                     }
                 }
             }

@@ -2,24 +2,24 @@
     <form class="px-4 sm:px-6 lg:px-8 mt-8 space-y-4 pt-4">
         <FormHeading>1. Create Administrator User</FormHeading>
         <template v-if="!state.adminUser">
-            <FormRow v-model="input.username" :error="errors.username">
+            <FormRow v-model="input.username" class="!max-w-full" :error="errors.username">
                 Username
                 <template #description>Unique, short, no spaces. Cannot be 'admin' or 'root'</template>
             </FormRow>
-            <FormRow v-model="input.name" :placeholder="input.username">
+            <FormRow v-model="input.name" class="!max-w-full" :placeholder="input.username">
                 Full Name
             </FormRow>
-            <FormRow v-model="input.email" :error="errors.email">
+            <FormRow v-model="input.email" class="!max-w-full" :error="errors.email">
                 Email
                 <template v-if="!state.email" #description>
                     <div class="text-red-400">Email has not be configured. This will limit available features, such as inviting users to the platform. Check the documentation for how to configure email before running this setup.</div>
                 </template>
             </FormRow>
-            <FormRow id="password" v-model="input.password" type="password" :error="errors.password" :onBlur="checkPassword">
+            <FormRow id="password" v-model="input.password" class="!max-w-full" type="password" :error="errors.password" :onBlur="checkPassword">
                 Password
                 <template #description>At least 8 characters</template>
             </FormRow>
-            <FormRow id="password_confirm" v-model="input.password_confirm" type="password" :error="errors.password_confirm">Confirm Password</FormRow>
+            <FormRow id="password_confirm" v-model="input.password_confirm" class="!max-w-full" type="password" :error="errors.password_confirm">Confirm Password</FormRow>
             <ff-button :disabled="!formValid" class="mt-6" @click="createUser()">
                 Next
             </ff-button>
@@ -39,6 +39,9 @@
 import httpClient from '../../api/client.js'
 import FormHeading from '../../components/FormHeading.vue'
 import FormRow from '../../components/FormRow.vue'
+
+let zxcvbn
+
 export default {
     name: 'CreateAdminUser',
     components: {
@@ -90,10 +93,14 @@ export default {
             }
         },
         'input.password': function (v) {
-            if (this.errors.password && v.length >= 8) {
+            if (this.errors.password && v.length >= 8 && zxcvbn(v).score >= 2) {
                 this.errors.password = ''
             }
         }
+    },
+    async mounted () {
+        const { default: zxcvbnImp } = await import('zxcvbn')
+        zxcvbn = zxcvbnImp
     },
     methods: {
         next () {
@@ -107,6 +114,12 @@ export default {
             }
             if (this.input.password && this.input.password.length > 1024) {
                 this.errors.password = 'Password too long'
+            } else {
+                this.errors.password = ''
+            }
+            const zxcvbnResult = zxcvbn(this.input.password)
+            if (zxcvbnResult.score < 2) {
+                this.errors.password = `Password too weak, ${zxcvbnResult.feedback.suggestions[0]}`
             } else {
                 this.errors.password = ''
             }

@@ -21,7 +21,7 @@ describe('FlowForge - Sign Up Page', () => {
         cy.get('[data-action="sign-up"]').should('be.disabled')
         cy.get('[data-form="signup-email"] input').type('email@example.com')
         cy.get('[data-action="sign-up"]').should('be.disabled')
-        cy.get('[data-form="signup-password"] input').type('password')
+        cy.get('[data-form="signup-password"] input').type('aw3li8vb')
         cy.get('[data-action="sign-up"]').should('not.be.disabled')
 
         // Now the form is valid, check additional constraints
@@ -40,7 +40,7 @@ describe('FlowForge - Sign Up Page', () => {
         cy.get('[data-form="signup-password"] input').clear()
         cy.get('[data-form="signup-password"] input').type('1234')
         cy.get('[data-action="sign-up"]').should('be.disabled')
-        cy.get('[data-form="signup-password"] input').type('5678')
+        cy.get('[data-form="signup-password"] input').type('aw3li8vb')
         cy.get('[data-action="sign-up"]').should('not.be.disabled')
     })
 
@@ -63,7 +63,7 @@ describe('FlowForge - Sign Up Page', () => {
         cy.get('[data-form="signup-username"] input').type('username')
         cy.get('[data-form="signup-fullname"] input').type('fullname')
         cy.get('[data-form="signup-email"] input').type('email@example.com')
-        cy.get('[data-form="signup-password"] input').type('password')
+        cy.get('[data-form="signup-password"] input').type('aw3li8vb')
         cy.get('[data-action="sign-up"]').should('be.disabled')
         cy.get('[data-form="signup-accept-tcs"] span.checkbox').click()
         cy.get('[data-action="sign-up"]').should('not.be.disabled')
@@ -88,7 +88,7 @@ describe('FlowForge - Sign Up Page', () => {
         cy.get('[data-form="signup-username"] input').type('username')
         cy.get('[data-form="signup-fullname"] input').type('fullname')
         cy.get('[data-form="signup-email"] input').type('email@example.com')
-        cy.get('[data-form="signup-password"] input').type('password')
+        cy.get('[data-form="signup-password"] input').type('aw3li8vb')
         cy.get('[data-action="sign-up"]').should('be.disabled')
 
         cy.get('[data-form="signup-join-reason"] span.checkbox').first().click()

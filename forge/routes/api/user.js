@@ -75,9 +75,24 @@ module.exports = async function (app) {
             await app.db.controllers.User.changePassword(request.session.User, request.body.old_password, request.body.password)
             await app.auditLog.User.user.updatedPassword(request.session.User, null)
             await app.postoffice.send(request.session.User, 'PasswordChanged', { })
+            // Delete all existing sessions for this user
+            await app.db.controllers.Session.deleteAllUserSessions(request.session.User)
+            // Create new session
+            const sessionInfo = await app.createSessionCookie(request.session.User.username)
+            if (sessionInfo) {
+                reply.setCookie('sid', sessionInfo.session.sid, sessionInfo.cookieOptions)
+            }
+            // Clear any password reset tokens
+            await app.db.controllers.AccessToken.deleteAllUserPasswordResetTokens(request.session.User)
+
             reply.send({ status: 'okay' })
         } catch (err) {
-            const resp = { code: 'password_change_failed', error: 'password change failed' }
+            let resp
+            if (err.message === 'Password Too Weak') {
+                resp = { code: 'password_change_failed_too_weak', error: 'password too weak' }
+            } else {
+                resp = { code: 'password_change_failed', error: 'password change failed' }
+            }
             await app.auditLog.User.user.updatedPassword(request.session.User, resp)
             reply.code(400).send(resp)
         }

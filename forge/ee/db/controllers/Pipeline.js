@@ -11,9 +11,9 @@ class PipelineControllerError extends ControllerError {
 module.exports = {
     addPipelineStage: async function (app, pipeline, options) {
         if (options.instanceId && options.deviceId) {
-            throw new Error('Cannot add a pipeline stage with both instance and a device')
+            throw new PipelineControllerError('invalid_input', 'Cannot add a pipeline stage with both instance and a device', 400)
         } else if (!options.instanceId && !options.deviceId) {
-            throw new Error('Param instanceId or deviceId is required when creating a new pipeline stage')
+            throw new PipelineControllerError('invalid_input', 'Param instanceId or deviceId is required when creating a new pipeline stage', 400)
         }
 
         let source
@@ -32,7 +32,7 @@ module.exports = {
             await stage.addDeviceId(options.deviceId)
         } else {
             // This should never be reached due to guard at top of function
-            throw new Error('Must provide an instanceId or an deviceId')
+            throw new PipelineControllerError('invalid_input', 'Must provide an instanceId or an deviceId', 400)
         }
 
         if (source) {
@@ -95,11 +95,15 @@ module.exports = {
 
         targetObject.Team = await app.db.models.Team.byId(targetObject.TeamId)
         if (!targetObject.Team) {
-            throw new PipelineControllerError('invalid_stage', `Source ${sourceInstance ? 'instance' : 'device'} not associated with a team`, 404)
+            throw new PipelineControllerError('invalid_target_stage', `Target ${sourceInstance ? 'instance' : 'device'} not associated with a team`, 404)
         }
 
         if (sourceObject.TeamId !== targetObject.TeamId) {
             throw new PipelineControllerError('invalid_stage', `Source ${sourceInstance ? 'instance' : 'device'} and target ${targetInstance ? 'instance' : 'device'} must be in the same team`, 403)
+        }
+
+        if (targetDevice && targetDevice.mode === 'developer') {
+            throw new PipelineControllerError('invalid_target_stage', 'Target device cannot not be in developer mode', 400)
         }
 
         return { sourceInstance, targetInstance, sourceDevice, targetDevice, targetStage }

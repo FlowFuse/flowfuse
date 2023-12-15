@@ -105,6 +105,7 @@ export default {
         checkBilling: async function () {
             // Team Billing
             if (this.features.billing &&
+                (!this.team.billing?.unmanaged) &&
                 (!this.team.billing?.trial || this.team.billing?.trialEnded) &&
                 !this.team.billing?.active
             ) {
