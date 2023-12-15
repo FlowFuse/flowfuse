@@ -6,16 +6,18 @@
         <FormHeading class="mb-3">
             <div class="flex justify-between items-center">
                 <div class="min-w-0 truncate mr-2">Device Group Membership</div>
-                <!--<div class="flex justify-end items-end gap-x-4 mt-0 mb-2">-->
-                <div class="flex flex-wrap justify-end items-end gap-x-2 gap-y-2 mt-0 mb-1">
-                    <ff-button kind="secondary" size="small" :disabled="!hasChanges" class="w-24 whitespace-nowrap" @click="cancelChanges">Cancel</ff-button>
+                <div v-if="!editMode && !hasChanges" class="flex flex-wrap justify-end items-end gap-x-2 gap-y-2 mt-0 mb-1">
+                    <ff-button kind="primary" size="small" class="w-24 whitespace-nowrap" @click="editMode = true">Edit</ff-button>
+                </div>
+                <div v-else class="flex flex-wrap justify-end items-end gap-x-2 gap-y-2 mt-0 mb-1">
+                    <ff-button kind="secondary" size="small" class="w-24 whitespace-nowrap" @click="cancelChanges">Cancel</ff-button>
                     <ff-button kind="primary" size="small" :disabled="!hasChanges" class="w-24 whitespace-nowrap" @click="saveChanges">Save Changes</ff-button>
                 </div>
             </div>
         </FormHeading>
 
         <div class="flex flex-col sm:flex-row">
-            <div class="w-full sm:w-1/2 order-3 sm:order-1">
+            <div v-if="editMode" class="w-full sm:w-1/2 order-3 sm:order-1">
                 <div class="flex justify-between items-center mb-1">
                     <h3 class="text-gray-800 block text-sm font-medium mb-1 min-w-0 truncate">Available devices</h3>
                     <ff-button size="small" class="w-28 whitespace-nowrap mb-1" :disabled="!selectedAvailableDevices.length" @click="addDevicesToGroup()">Add Devices</ff-button>
@@ -39,10 +41,10 @@
                     </template>
                 </ff-data-table>
             </div>
-            <div class="w-1 border-l border-gray-300 pl-4 ml-4 hidden sm:block order-2" />
-            <div class="w-full border-t border-gray-300 pb-4 mt-4 sm:hidden order-2" />
-            <div class="w-full sm:w-1/2 order-1 sm:order-3">
-                <div class="flex justify-between items-center mb-1">
+            <div v-if="editMode" class="w-1 border-l border-gray-300 pl-4 ml-4 hidden sm:block order-2" />
+            <div v-if="editMode" class="w-full border-t border-gray-300 pb-4 mt-4 sm:hidden order-2" />
+            <div :class="editMode ? 'w-full sm:w-1/2 order-1 sm:order-3' : 'w-full'">
+                <div v-if="editMode" class="flex justify-between items-center mb-1">
                     <!-- <h2 class="text-xl font-bold min-w-0 truncate">{{ deviceGroup.name }}</h2> -->
                     <h3 class="text-gray-800 block text-sm font-medium mb-1 min-w-0 truncate">Group Members</h3>
                     <ff-button size="small" class="w-28 whitespace-nowrap mb-1" :disabled="!selectedMemberDevices.length" @click="removeDevicesFromGroup()">Remove Devices</ff-button>
@@ -110,6 +112,7 @@ export default {
             availableSearchTerm: '',
             membersSearchTerm: '',
             hasChanges: false,
+            editMode: false,
             memberDevicesSort: {
                 key: null,
                 direction: 'desc'
@@ -293,6 +296,7 @@ export default {
             this.initLocalData()
             this.updateAvailableDeviceList()
             this.updateMemberDevicesList()
+            this.editMode = false
         },
         saveChanges () {
             const deviceIds = this.localMemberDevices.map((device) => device.id)
@@ -301,6 +305,7 @@ export default {
                     Alerts.emit('Device Group updated.', 'confirmation')
                     this.hasChanges = false
                     this.$emit('device-group-members-updated')
+                    this.editMode = false
                 })
                 .catch((err) => {
                     this.$toast.error('Failed to update Device Group')
