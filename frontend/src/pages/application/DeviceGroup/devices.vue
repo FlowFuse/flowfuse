@@ -60,7 +60,7 @@
                 >
                     <template #rows>
                         <ff-data-table-row v-for="device in memberDevices" :key="device">
-                            <ff-data-table-cell>
+                            <ff-data-table-cell v-if="editMode">
                                 <ff-checkbox v-model="device.selected" class="inline" />
                             </ff-data-table-cell>
                             <ff-data-table-cell class="w-1/3">{{ device.name }}</ff-data-table-cell>
@@ -121,7 +121,7 @@ export default {
                 key: null,
                 direction: 'desc'
             },
-            tableCols: [
+            tableColsDefault: [
                 {
                     label: '',
                     key: 'selected',
@@ -149,6 +149,13 @@ export default {
         },
         selectedMemberDevices () {
             return this.localMemberDevices.filter((device) => device.selected)
+        },
+        tableCols () {
+            if (this.editMode) {
+                return this.tableColsDefault
+            }
+            // in non-edit mode, dont include the check box column
+            return this.tableCols.filter((col) => col.key !== 'selected')
         }
     },
     watch: {
