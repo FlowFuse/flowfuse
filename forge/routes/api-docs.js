@@ -158,4 +158,4 @@ module.exports = fp(async function (app, opts, done) {
     })
 
     done()
-})
+}, { name: 'app.routes.api-docs' })

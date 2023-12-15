@@ -16,7 +16,6 @@ describe('Billing', function () {
             app = null
         }
         setup.resetStripe()
-        delete require.cache[require.resolve('stripe')]
     })
 
     describe('createSubscriptionSession', async function () {
@@ -287,6 +286,82 @@ describe('Billing', function () {
         })
     })
 
+    describe('enableManualBilling', async function () {
+        let stripe
+        beforeEach(async function () {
+            stripe = setup.setupStripe()
+            app = await setup({
+                billing: {
+                    stripe: {
+                        key: 1234,
+                        team_product: 'defaultteamprod',
+                        team_price: 'defaultteamprice'
+                    }
+                }
+            })
+        })
+        it('puts trial team into unmanaged mode', async function () {
+            const team1 = await app.factory.createTeam({ name: 'UnmanagedTeam' })
+            await team1.addUser(app.user, { through: { role: Roles.Owner } })
+            await app.db.controllers.Subscription.createTrialSubscription(
+                team1,
+                Date.now() + 86400000
+            )
+
+            let sub = await team1.getSubscription()
+            // Check the default states for a trial subscription are correct
+            sub.isActive().should.be.false()
+            sub.isUnmanaged().should.be.false()
+            sub.isCanceled().should.be.false()
+            sub.isPastDue().should.be.false()
+            sub.isTrial().should.be.true()
+            sub.isTrialEnded().should.be.false()
+
+            await app.billing.enableManualBilling(team1)
+
+            sub = await team1.getSubscription()
+            // Check the updated states for an unmanaged subscription are correct
+            sub.isActive().should.be.false()
+            sub.isUnmanaged().should.be.true()
+            sub.isCanceled().should.be.false()
+            sub.isPastDue().should.be.false()
+            sub.isTrial().should.be.false()
+            sub.isTrialEnded().should.be.true()
+        })
+        it('puts team with subscription into unmanaged mode', async function () {
+            const team1 = await app.factory.createTeam({ name: 'UnmanagedTeam2' })
+            await team1.addUser(app.user, { through: { role: Roles.Owner } })
+            await app.db.controllers.Subscription.createSubscription(
+                team1,
+                'sub_1234',
+                'cus_1234'
+            )
+
+            let sub = await team1.getSubscription()
+            // Check the default states for a trial subscription are correct
+            sub.isActive().should.be.true()
+            sub.isUnmanaged().should.be.false()
+            sub.isTrial().should.be.false()
+            sub.isTrialEnded().should.be.true()
+            sub.subscription.should.equal('sub_1234')
+            sub.customer.should.equal('cus_1234')
+
+            await app.billing.enableManualBilling(team1)
+
+            sub = await team1.getSubscription()
+            // Check the updated states for an unmanaged subscription are correct
+            sub.isActive().should.be.false()
+            sub.isUnmanaged().should.be.true()
+            sub.isTrial().should.be.false()
+            sub.isTrialEnded().should.be.true()
+            sub.subscription.should.equal('')
+            sub.customer.should.equal('cus_1234')
+
+            // Check we asked stripe to delete/cancel the subscription
+            stripe.subscriptions.del.called.should.be.true()
+        })
+    })
+
     describe('addProject', function () {
         beforeEach(async function () {
             stripe = setup.setupStripe()
@@ -390,6 +465,20 @@ describe('Billing', function () {
             args[1].items[0].should.have.property('price', 'price_123')
             args[1].items[0].should.have.property('quantity', 1)
         })
+
+        it('skips for teams with unmanaged subscription', async function () {
+            const team1 = await app.factory.createTeam({ name: 'UnmanagedTeam' })
+            await team1.addUser(app.user, { through: { role: Roles.Owner } })
+            await app.db.controllers.Subscription.createTrialSubscription(
+                team1,
+                Date.now() + 86400000
+            )
+            await app.billing.enableManualBilling(team1)
+
+            await app.billing.addProject(team1, app.project)
+            // Ensure we didn't touch stripe
+            should.equal(stripe.subscriptions.update.called, false)
+        })
     })
 
     describe('removeProject', function () {
@@ -444,14 +533,14 @@ describe('Billing', function () {
             itemsArgs[0].should.equal('item-0')
             itemsArgs[1].should.have.property('proration_behavior', 'always_invoice')
 
-            should.equal(stripe.subscriptions.update.calledOnce, false)
+            should.equal(stripe.subscriptions.update.called, false)
         })
 
         it('skips removing a project from Stripe if the quanities already match', async function () {
             await app.billing.removeProject(app.team, app.project)
 
-            should.equal(stripe.subscriptions.update.calledOnce, false)
-            should.equal(stripe.subscriptionItems.update.calledOnce, false)
+            should.equal(stripe.subscriptions.update.called, false)
+            should.equal(stripe.subscriptionItems.update.called, false)
         })
 
         it('accounts for free allowance', async function () {
@@ -498,10 +587,54 @@ describe('Billing', function () {
             itemsArgs[1].should.have.property('quantity', 1)
             itemsArgs[1].should.have.property('proration_behavior', 'always_invoice')
         })
+
+        it('skips for teams with unmanaged subscription', async function () {
+            const team1 = await app.factory.createTeam({ name: 'UnmanagedTeam' })
+            await team1.addUser(app.user, { through: { role: Roles.Owner } })
+            await app.db.controllers.Subscription.createTrialSubscription(
+                team1,
+                Date.now() + 86400000
+            )
+            await app.billing.enableManualBilling(team1)
+
+            await app.billing.removeProject(team1, app.project)
+            // Ensure we didn't touch stripe
+            should.equal(stripe.subscriptions.update.called, false)
+        })
     })
 
     describe('updateTeamDeviceCount', async function () {
         let updateId, updateData
+
+        describe('unmanaged subscription', async function () {
+            beforeEach(async function () {
+                stripe = setup.setupStripe()
+                stripe.subscriptions.create('sub_1234567890') // add existing subscription to mock stripe
+                app = await setup({
+                    billing: {
+                        stripe: {
+                            key: 1234,
+                            team_product: 'defaultteamprod',
+                            team_price: 'defaultteamprice'
+                        }
+                    }
+                })
+            })
+            it('skips for teams with unmanaged subscription', async function () {
+                const team1 = await app.factory.createTeam({ name: 'UnmanagedTeam' })
+                await team1.addUser(app.user, { through: { role: Roles.Owner } })
+                await app.db.controllers.Subscription.createTrialSubscription(
+                    team1,
+                    Date.now() + 86400000
+                )
+                await app.billing.enableManualBilling(team1)
+
+                await app.billing.updateTeamDeviceCount(app.team)
+                // Ensure we didn't touch stripe
+                should.equal(stripe.subscriptions.retrieve.called, false)
+                should.equal(stripe.subscriptions.update.called, false)
+            })
+        })
         describe('no existing subscription item', async function () {
             beforeEach(async function () {
                 updateId = null

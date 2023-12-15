@@ -18,6 +18,8 @@ import userApi from '../../../api/user.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 
+let zxcvbn
+
 export default {
     name: 'AccountSecurityChangePassword',
     components: {
@@ -41,6 +43,17 @@ export default {
             }
         }
     },
+    watch: {
+        'input.password': function (v) {
+            if (this.errors.password && v.length >= 8 && this.zxcvbn(v).score >= 2) {
+                this.errors.password = ''
+            }
+        }
+    },
+    async mounted () {
+        const { default: zxcvbnImp } = await import('zxcvbn')
+        zxcvbn = zxcvbnImp
+    },
     methods: {
         changePassword () {
             this.errors.old_password = ''
@@ -62,6 +75,11 @@ export default {
             }
             if (this.input.password !== this.input.password_confirm) {
                 this.errors.password_confirm = 'Passwords do not match'
+                return false
+            }
+            const zxcvbnResult = zxcvbn(this.input.password)
+            if (zxcvbnResult.score < 2) {
+                this.errors.password = `Password too weak, ${zxcvbnResult.feedback.suggestions[0]}`
                 return false
             }
             this.loading = true

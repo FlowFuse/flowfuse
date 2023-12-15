@@ -136,4 +136,4 @@ module.exports = fp(async function (app, opts, done) {
         throw new Error('Invalid SAML response')
     })
     done()
-})
+}, { name: 'app.ee.routes.sso.auth' })

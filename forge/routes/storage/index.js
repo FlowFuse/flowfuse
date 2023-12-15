@@ -90,7 +90,6 @@ module.exports = async function (app) {
             })
             await settings.save()
         }
-        await app.db.controllers.Project.mergeProjectModules(request.project, await app.db.controllers.StorageSettings.getProjectModules(request.project))
         response.send(request.body)
     })
 

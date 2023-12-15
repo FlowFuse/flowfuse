@@ -18,17 +18,35 @@ describe('PipelineStage view', function () {
             },
             app.application)
 
+            const instanceTwo = await app.factory.createInstance(
+                { name: 'instance-two' },
+                app.application,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+
+            const instanceThree = await app.factory.createInstance(
+                { name: 'instance-three' },
+                app.application,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+
             const stage1 = await app.factory.createPipelineStage({
                 name: 's1',
                 instanceId: app.instance.id
             }, pipeline)
             const stage2 = await app.factory.createPipelineStage({
                 name: 's2',
-                instanceId: app.instance.id
+                instanceId: instanceTwo.id
             }, pipeline)
             const stage3 = await app.factory.createPipelineStage({
                 name: 's3',
-                instanceId: app.instance.id
+                instanceId: instanceThree.id
             }, pipeline)
 
             stage1.NextStageId = stage2.id

@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken')
 const { fn, col, where } = require('sequelize')
+const zxcvbn = require('zxcvbn')
 
 const { compareHash, sha256 } = require('../utils')
 
@@ -26,6 +27,9 @@ module.exports = {
 
     changePassword: async function (app, user, oldPassword, newPassword) {
         if (compareHash(oldPassword, user.password)) {
+            if (zxcvbn(newPassword).score < 3) {
+                throw new Error('Password Too Weak')
+            }
             user.password = newPassword
             user.password_expired = false
             return user.save()
@@ -35,6 +39,9 @@ module.exports = {
     },
 
     resetPassword: async function (app, user, newPassword) {
+        // if (zxcvbn(newPassword.score < 3)) {
+        //     throw new Error('Password Too Weak')
+        // }
         user.password = newPassword
         user.password_expired = false
         return user.save()
@@ -183,20 +190,14 @@ module.exports = {
     suspend: async function (app, user) {
         user.suspended = true
         // log suspended user out of all projects they have access to
-        const sessions = await app.db.models.StorageSession.byUsername(user.username)
-        for (let index = 0; index < sessions.length; index++) {
-            const session = sessions[index]
-            const ProjectId = session.ProjectId
-            const project = await app.db.models.Project.byId(ProjectId)
-            for (let index = 0; index < session.sessions.length; index++) {
-                const token = session.sessions[index].accessToken
-                try {
-                    await app.containers.revokeUserToken(project, token) // logout:nodered(step-2)
-                } catch (error) {
-                    app.log.warn(`Failed to revoke token for Project ${ProjectId}: ${error.toString()}`) // log error but continue to delete session
-                }
-            }
-        }
         await user.save()
+        await app.db.controllers.User.logout(user)
+    },
+
+    logout: async function (app, user) {
+        // Do a full logout.
+        // - Clear all node-red login sessions
+        // - Clear all accessTokens
+        await app.db.controllers.StorageSession.removeUserFromSessions(user)
     }
 }

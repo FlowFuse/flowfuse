@@ -177,4 +177,4 @@ module.exports = fp(async function (app, opts, next) {
         }
         await reportUsage()
     }
-})
+}, { name: 'app.licensing' })

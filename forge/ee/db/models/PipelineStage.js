@@ -1,5 +1,5 @@
 const {
-    DataTypes
+    DataTypes, ValidationError
 } = require('sequelize')
 
 const SNAPSHOT_ACTIONS = {
@@ -11,6 +11,22 @@ const SNAPSHOT_ACTIONS = {
 }
 
 Object.freeze(SNAPSHOT_ACTIONS)
+
+const VALID_ACTIONS_FOR_DEVICES = [
+    SNAPSHOT_ACTIONS.USE_ACTIVE_SNAPSHOT,
+    SNAPSHOT_ACTIONS.USE_LATEST_SNAPSHOT,
+    SNAPSHOT_ACTIONS.PROMPT
+]
+
+Object.freeze(VALID_ACTIONS_FOR_DEVICES)
+
+const VALID_ACTIONS_FOR_INSTANCES = [
+    SNAPSHOT_ACTIONS.CREATE_SNAPSHOT,
+    SNAPSHOT_ACTIONS.USE_LATEST_SNAPSHOT,
+    SNAPSHOT_ACTIONS.PROMPT
+]
+
+Object.freeze(VALID_ACTIONS_FOR_INSTANCES)
 
 module.exports = {
     name: 'PipelineStage',
@@ -37,24 +53,12 @@ module.exports = {
                     const instances = await instancesPromise
 
                     if (devices.length > 0) {
-                        const validActionsForDevices = [
-                            SNAPSHOT_ACTIONS.USE_ACTIVE_SNAPSHOT,
-                            SNAPSHOT_ACTIONS.USE_LATEST_SNAPSHOT,
-                            SNAPSHOT_ACTIONS.PROMPT
-                        ]
-
-                        if (!validActionsForDevices.includes(this.action)) {
-                            throw new Error(`Device stages only support the following actions: ${validActionsForDevices.join(', ')}.`)
+                        if (!VALID_ACTIONS_FOR_DEVICES.includes(this.action)) {
+                            throw new Error(`Device stages only support the following actions: ${VALID_ACTIONS_FOR_DEVICES.join(', ')}.`)
                         }
                     } else if (instances.length > 0) {
-                        const validActionsForInstances = [
-                            SNAPSHOT_ACTIONS.CREATE_SNAPSHOT,
-                            SNAPSHOT_ACTIONS.USE_LATEST_SNAPSHOT,
-                            SNAPSHOT_ACTIONS.PROMPT
-                        ]
-
-                        if (!validActionsForInstances.includes(this.action)) {
-                            throw new Error(`Instance stages only support the following actions: ${validActionsForInstances.join(', ')}.`)
+                        if (!VALID_ACTIONS_FOR_INSTANCES.includes(this.action)) {
+                            throw new Error(`Instance stages only support the following actions: ${VALID_ACTIONS_FOR_INSTANCES.join(', ')}.`)
                         }
                     }
                 }
@@ -121,7 +125,19 @@ module.exports = {
                 async addInstanceId (instanceId) {
                     const instance = await M.Project.byId(instanceId)
                     if (!instance) {
-                        throw new Error(`instanceId (${instanceId}) not found`)
+                        throw new ValidationError(`instanceId (${instanceId}) not found`)
+                    }
+
+                    if (await this.hasInstance(instance)) {
+                        throw new ValidationError(`instanceId (${instanceId}) is already in use in this stage`)
+                    }
+
+                    if (await (await this.getPipeline()).hasInstance(instance)) {
+                        throw new ValidationError(`instanceId (${instanceId}) is already in use in this pipeline`)
+                    }
+
+                    if (!VALID_ACTIONS_FOR_INSTANCES.includes(this.action)) {
+                        throw new ValidationError(`Can't add device as current action is ${this.action} and instance stages only support the following actions: ${VALID_ACTIONS_FOR_INSTANCES.join(', ')}.`)
                     }
 
                     await this.addInstance(instance)
@@ -129,7 +145,19 @@ module.exports = {
                 async addDeviceId (deviceId) {
                     const device = await M.Device.byId(deviceId)
                     if (!device) {
-                        throw new Error(`deviceId (${deviceId}) not found`)
+                        throw new ValidationError(`deviceId (${deviceId}) not found`)
+                    }
+
+                    if (await this.hasDevice(device)) {
+                        throw new ValidationError(`deviceId (${deviceId}) is already in use in this stage`)
+                    }
+
+                    if (await (await this.getPipeline()).hasDevice(device)) {
+                        throw new ValidationError(`deviceId (${deviceId}) is already in use in this pipeline`)
+                    }
+
+                    if (!VALID_ACTIONS_FOR_DEVICES.includes(this.action)) {
+                        throw new ValidationError(`Can't add device as current action is ${this.action} and device stages only support the following actions: ${VALID_ACTIONS_FOR_DEVICES.join(', ')}.`)
                     }
 
                     await this.addDevice(device)
@@ -167,7 +195,7 @@ module.exports = {
                     }
 
                     if (includeDeviceStatus) {
-                        devicesInclude.attributes.push('targetSnapshotId', 'activeSnapshotId', 'lastSeenAt', 'state')
+                        devicesInclude.attributes.push('targetSnapshotId', 'activeSnapshotId', 'lastSeenAt', 'state', 'mode')
                     }
 
                     return await self.findAll({
