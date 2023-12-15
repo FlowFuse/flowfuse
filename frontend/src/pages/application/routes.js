@@ -155,21 +155,24 @@ export default [
         meta: {
             title: 'Application - Device Group'
         },
+        redirect: to => {
+            return `/application/${to.params.applicationId}/device-group/${to.params.deviceGroupId}/devices`
+        },
         children: [
-            {
-                path: 'settings',
-                name: 'ApplicationDeviceGroupSettings',
-                component: ApplicationDeviceGroupSettings,
-                meta: {
-                    title: 'Application - Device Group - Settings'
-                }
-            },
             {
                 path: 'devices',
                 name: 'ApplicationDeviceGroupDevices',
                 component: ApplicationDeviceGroupDevices,
                 meta: {
                     title: 'Application - Device Group - Members'
+                }
+            },
+            {
+                path: 'settings',
+                name: 'ApplicationDeviceGroupSettings',
+                component: ApplicationDeviceGroupSettings,
+                meta: {
+                    title: 'Application - Device Group - Settings'
                 }
             }
         ]

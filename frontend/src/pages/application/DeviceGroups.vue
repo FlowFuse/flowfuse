@@ -163,7 +163,7 @@ export default {
         async editDeviceGroup (deviceGroup, index) {
             // navigate to the device group details page for the selected device group @ ./DeviceGroups/edit.vue
             const route = {
-                name: 'ApplicationDeviceGroupSettings',
+                name: 'ApplicationDeviceGroupIndex',
                 params: {
                     // url params
                     applicationId: this.application.id,

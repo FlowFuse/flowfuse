@@ -82,18 +82,6 @@ export default {
         navigation () {
             const routes = [
                 {
-                    label: 'Settings',
-                    to: {
-                        name: 'ApplicationDeviceGroupSettings',
-                        params: {
-                            applicationId: this.application?.id,
-                            deviceGroupId: this.deviceGroup?.id
-                        }
-                    },
-                    tag: 'application-device-group-settings',
-                    icon: CogIcon
-                },
-                {
                     label: 'Devices',
                     to: {
                         name: 'ApplicationDeviceGroupDevices',
@@ -104,6 +92,18 @@ export default {
                     },
                     tag: 'application-device-group-devices',
                     icon: DeviceSolidIcon
+                },
+                {
+                    label: 'Settings',
+                    to: {
+                        name: 'ApplicationDeviceGroupSettings',
+                        params: {
+                            applicationId: this.application?.id,
+                            deviceGroupId: this.deviceGroup?.id
+                        }
+                    },
+                    tag: 'application-device-group-settings',
+                    icon: CogIcon
                 }
             ]
             return routes
