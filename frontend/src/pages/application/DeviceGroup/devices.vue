@@ -23,7 +23,7 @@
                     <ff-button size="small" class="w-28 whitespace-nowrap mb-1" :disabled="!selectedAvailableDevices.length" @click="addDevicesToGroup()">Add Devices</ff-button>
                 </div>
                 <ff-data-table
-                    :columns="tableCols"
+                    :columns="tableColsRW"
                     :show-search="true"
                     search-placeholder="Search..."
                     no-data-message="No Devices available"
@@ -51,7 +51,7 @@
                 </div>
 
                 <ff-data-table
-                    :columns="tableCols"
+                    :columns="editMode ? tableColsRW : tableColsRO"
                     :show-search="true"
                     search-placeholder="Search..."
                     :no-data-message="localMemberDevices?.length ? 'No Devices found, try another search term' : 'No Devices assigned to this group'"
@@ -121,24 +121,14 @@ export default {
                 key: null,
                 direction: 'desc'
             },
-            tableColsDefault: [
-                {
-                    label: '',
-                    key: 'selected',
-                    sortable: true
-                },
-                {
-                    label: 'Name',
-                    key: 'name',
-                    sortable: true,
-                    class: 'w-1/3'
-                },
-                {
-                    label: 'Type',
-                    key: 'type',
-                    sortable: true,
-                    class: 'w-2/3'
-                }
+            tableColsRO: [
+                { label: 'Name', key: 'name', sortable: true, class: 'w-1/3' },
+                { label: 'Type', key: 'type', sortable: true, class: 'w-2/3' }
+            ],
+            tableColsRW: [
+                { label: '', key: 'selected', sortable: true },
+                { label: 'Name', key: 'name', sortable: true, class: 'w-1/3' },
+                { label: 'Type', key: 'type', sortable: true, class: 'w-2/3' }
             ]
         }
     },
@@ -149,13 +139,6 @@ export default {
         },
         selectedMemberDevices () {
             return this.localMemberDevices.filter((device) => device.selected)
-        },
-        tableCols () {
-            if (this.editMode) {
-                return this.tableColsDefault
-            }
-            // in non-edit mode, dont include the check box column
-            return this.tableCols.filter((col) => col.key !== 'selected')
         }
     },
     watch: {
