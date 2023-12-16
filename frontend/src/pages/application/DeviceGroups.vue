@@ -45,7 +45,7 @@
         </template>
     </EmptyState>
 
-    <ff-dialog ref="create-dialog" class="ff-dialog-box--info" :header="title || 'Create Application Device Group'">
+    <ff-dialog ref="create-dialog" class="ff-dialog-box--info" header="Create Application Device Group">
         <template #default>
             <slot name="helptext">
                 <p>Enter the name and description of the Device Group to create.</p>
@@ -102,7 +102,6 @@ export default {
     data () {
         return {
             deviceGroups: [],
-            deviceStatusMap: new Map(),
             input: {
                 name: '',
                 description: ''
@@ -176,23 +175,6 @@ export default {
             ApplicationAPI.getDeviceGroups(this.application.id)
                 .then((groups) => {
                     this.deviceGroups = groups.groups
-                })
-                .catch((err) => {
-                    console.error(err)
-                })
-        },
-
-        async loadDeviceStatus () {
-            ApplicationAPI.getApplicationDevices(this.application.id, null, null, null, { statusOnly: true })
-                .then((result) => {
-                    const devices = result?.devices || []
-
-                    this.deviceStatusMap = new Map(
-                        devices.map((device) => {
-                            const previousStatus = this.deviceStatusMap.get(device.id)
-                            return [device.id, { ...previousStatus, ...device }]
-                        })
-                    )
                 })
                 .catch((err) => {
                     console.error(err)

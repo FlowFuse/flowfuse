@@ -38,10 +38,6 @@ export default {
             type: Object,
             required: true
         },
-        devices: {
-            type: Array,
-            required: true
-        },
         deviceGroup: {
             type: Object,
             required: true
