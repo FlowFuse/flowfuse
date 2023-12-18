@@ -41,7 +41,6 @@ export default {
     },
     data () {
         return {
-            navigation: null,
             mounted: false,
             icons: {
                 chevronLeft: ChevronLeftIcon
@@ -49,24 +48,24 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'user', 'team'])
+        ...mapState('account', ['features', 'user', 'team']),
+        navigation: function () {
+            return [
+                { name: 'Overview', path: '/admin/overview', tag: 'admin-overview', icon: CollectionIcon },
+                { name: 'Users', path: '/admin/users', tag: 'admin-users', icon: UsersIcon },
+                { name: 'Teams', path: '/admin/teams', tag: 'admin-teams', icon: UserGroupIcon },
+                { name: 'Team Types', path: '/admin/team-types', tag: 'admin-teamtypes', icon: ColorSwatchIcon },
+                { name: 'Instance Types', path: '/admin/instance-types', tag: 'admin-instancetypes', icon: ColorSwatchIcon },
+                { name: 'Stacks', path: '/admin/stacks', tag: 'admin-stacks', icon: DesktopComputerIcon },
+                { name: 'Templates', path: '/admin/templates', tag: 'admin-templates', icon: TemplateIcon },
+                { name: 'Flow Blueprints', path: '/admin/flow-blueprints', tag: 'admin-flow-blueprints', icon: TemplateIcon, featureUnavailable: !this.features.flowBlueprints },
+                { name: 'Activity', path: '/admin/audit-log', tag: 'admin-auditlog', icon: DatabaseIcon },
+                { name: 'Settings', path: '/admin/settings', tag: 'admin-settings', icon: CogIcon }
+            ]
+        }
     },
     mounted () {
         this.mounted = true
-        const navigation = [
-            { name: 'Overview', path: '/admin/overview', tag: 'admin-overview', icon: CollectionIcon },
-            { name: 'Users', path: '/admin/users', tag: 'admin-users', icon: UsersIcon },
-            { name: 'Teams', path: '/admin/teams', tag: 'admin-teams', icon: UserGroupIcon },
-            { name: 'Team Types', path: '/admin/team-types', tag: 'admin-teamtypes', icon: ColorSwatchIcon },
-            { name: 'Instance Types', path: '/admin/instance-types', tag: 'admin-instancetypes', icon: ColorSwatchIcon },
-            { name: 'Stacks', path: '/admin/stacks', tag: 'admin-stacks', icon: DesktopComputerIcon },
-            { name: 'Templates', path: '/admin/templates', tag: 'admin-templates', icon: TemplateIcon },
-            { name: 'Flow Blueprints', path: '/admin/flow-blueprints', tag: 'admin-flow-blueprints', icon: TemplateIcon, featureUnavailable: !this.features.flowBlueprints },
-            { name: 'Activity', path: '/admin/audit-log', tag: 'admin-auditlog', icon: DatabaseIcon },
-            { name: 'Settings', path: '/admin/settings', tag: 'admin-settings', icon: CogIcon }
-        ]
-
-        this.navigation = navigation
     }
 }
 </script>
