@@ -64,13 +64,20 @@ module.exports = async function (config = {
         { start: false }
     )
 
+    const instanceToken = (await instance.refreshAuthTokens()).token
+
+    const tokens = {
+        instance: instanceToken
+    }
+
     forge.TestObjects = {
         defaultTeamType,
         userAlice,
         userBob,
         team1,
         application,
-        instance
+        instance,
+        tokens
     }
     forge.factory = factory
     return forge

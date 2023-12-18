@@ -10,8 +10,6 @@ describe('Instance Alerts emails', function () {
     before(async function () {
         app = await setup()
         inbox = app.config.email.transport
-
-        app.TestObjects.tokens = {}
         await login('alice', 'aaPassword')
     })
     after(async function () {
@@ -70,6 +68,26 @@ describe('Instance Alerts emails', function () {
                     }
                 },
                 cookies: { sid: app.TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            await app.auditLog.alerts.generate(app.TestObjects.instance.id, 'crashed')
+            inbox.messages.should.have.length(1)
+        })
+        it.only('Crashed, via api', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/logging/${app.TestObjects.instance.id}/audit`,
+                payload: {
+                    event: 'crash',
+                    error: {
+                        code: 'crashed',
+                        error: 'instance crashed'
+                    }
+                },
+                headers: {
+                    authorization: `Bearer ${app.TestObjects.tokens.instance}`
+                },
+                
             })
             response.statusCode.should.equal(200)
             await app.auditLog.alerts.generate(app.TestObjects.instance.id, 'crashed')
