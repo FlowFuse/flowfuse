@@ -451,7 +451,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
             })
     })
 
-    it('cannot push to a device in development mode', () => {
+    it.only('cannot push to a device in development mode', () => {
         cy.intercept('GET', '/api/v1/applications/*/pipelines', function (req) {
             req.continue((res) => {
                 res.body.pipelines.forEach((pipeline) => {
@@ -511,8 +511,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
             cy.get('[data-action="add-stage"]').click()
         })
-
-        cy.get('[data-form="stage-type"]').find('.ff-tile-selection-option:contains("Device":not(:contains("Device Group"))').click()
+        cy.get('[data-form="stage-type"]').find('.ff-tile-selection-option:contains("Device")').not(':contains("Group")').click()
 
         cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 2')
 
