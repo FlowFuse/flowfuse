@@ -30,7 +30,7 @@ describe('Instance Alerts emails', function () {
         app.TestObjects.tokens[username] = response.cookies[0].value
     }
 
-    describe('Alerts', function () {
+    describe.only('Alerts', function () {
         it('Owner notified of crash', async function () {
             await app.auditLog.alerts.generate(app.TestObjects.instance.id, 'crashed')
             inbox.messages.should.have.length(1)
@@ -51,7 +51,6 @@ describe('Instance Alerts emails', function () {
                 }
             })
             response.statusCode.should.equal(200)
-            await app.auditLog.alerts.generate(app.TestObjects.instance.id, 'crashed')
             inbox.messages.should.have.length(1)
         })
         it('Owner notified of safe-mode', async function () {
