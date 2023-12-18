@@ -30,7 +30,7 @@ describe('Instance Alerts emails', function () {
         app.TestObjects.tokens[username] = response.cookies[0].value
     }
 
-    describe.only('Alerts', function () {
+    describe('Alerts', function () {
         it('Owner notified of crash', async function () {
             await app.auditLog.alerts.generate(app.TestObjects.instance.id, 'crashed')
             inbox.messages.should.have.length(1)
