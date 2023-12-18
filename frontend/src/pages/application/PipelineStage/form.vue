@@ -12,7 +12,7 @@
         @submit.prevent="submit"
     >
         <SectionTopMenu
-            :hero="'Edit Pipeline Stage'"
+            :hero="isEdit ? 'Edit Pipeline Stage' : 'Add Pipeline Stage'"
         />
 
         <!-- Form Description -->
