@@ -451,7 +451,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
             })
     })
 
-    it.only('cannot push to a device in development mode', () => {
+    it('cannot push to a device in development mode', () => {
         cy.intercept('GET', '/api/v1/applications/*/pipelines', function (req) {
             req.continue((res) => {
                 res.body.pipelines.forEach((pipeline) => {
