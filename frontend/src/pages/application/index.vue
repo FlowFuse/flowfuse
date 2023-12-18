@@ -170,14 +170,18 @@ export default {
                 const applicationPromise = ApplicationApi.getApplication(applicationId)
                 const instancesPromise = ApplicationApi.getApplicationInstances(applicationId) // To-do needs to be enriched with instance state
                 const devicesPromise = ApplicationApi.getApplicationDevices(applicationId)
-                const deviceGroupsPromise = ApplicationApi.getDeviceGroups(applicationId)
-
                 this.application = await applicationPromise
                 const deviceData = await devicesPromise
-                const deviceGroupsData = await deviceGroupsPromise
-                this.deviceGroups = deviceGroupsData?.groups
                 this.applicationDevices = deviceData?.devices
                 const applicationInstances = await instancesPromise
+
+                if (this.features?.['device-groups']) {
+                    const deviceGroupsPromise = ApplicationApi.getDeviceGroups(applicationId)
+                    const deviceGroupsData = await deviceGroupsPromise
+                    this.deviceGroups = deviceGroupsData?.groups
+                } else {
+                    this.deviceGroups = []
+                }
 
                 this.applicationInstances = new Map()
                 applicationInstances.forEach(instance => {
