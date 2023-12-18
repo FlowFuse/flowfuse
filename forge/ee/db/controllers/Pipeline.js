@@ -9,6 +9,94 @@ class PipelineControllerError extends ControllerError {
 }
 
 module.exports = {
+
+    /**
+     * Update a pipeline stage
+     * @param {*} app The application instance
+     * @param {*} pipeline A pipeline object
+     * @param {String|Number} stageId The ID of the stage to update
+     * @param {Object} options Options to update the stage with
+     * @param {String} [options.name] The name of the stage
+     * @param {String} [options.action] The action to take when deploying to this stage
+     * @param {String} [options.instanceId] The ID of the instance to deploy to
+     * @param {String} [options.deviceId] The ID of the device to deploy to
+     * @param {String} [options.deviceGroupId] The ID of the device group to deploy to
+     * @param {Boolean} [options.deployToDevices] Whether to deploy to devices of the source stage
+     */
+    updatePipelineStage: async function (app, stageId, options) {
+        const stage = await app.db.models.PipelineStage.byId(stageId)
+        if (!stage) {
+            throw new PipelineControllerError('not_found', 'Pipeline stage not found', 404)
+        }
+        const pipeline = await stage.getPipeline()
+        if (!pipeline) {
+            throw new PipelineControllerError('not_found', 'Pipeline not found', 404)
+        }
+
+        if (options.name) {
+            stage.name = options.name
+        }
+
+        if (options.action) {
+            stage.action = options.action
+        }
+
+        // Null will remove devices and instances, undefined skips
+        if (options.instanceId !== undefined || options.deviceId !== undefined || options.deviceGroupId !== undefined) {
+            // Check that only one of instanceId, deviceId or deviceGroupId is set
+            const idCount = [options.instanceId, options.deviceId, options.deviceGroupId].filter(id => !!id).length
+            if (idCount > 1) {
+                throw new PipelineControllerError('invalid_input', 'Must provide only one instance, device or device group', 400)
+            }
+
+            // If this stage is being set as a device group, check all stages.
+            // * A device group cannot be the first stage
+            // * There can be only one device group and it can only be the last stage
+            if (options.deviceGroupId) {
+                const stages = await pipeline.stages()
+                if (stages.length === 0 || stage.id === stages[0].id) {
+                    throw new PipelineControllerError('invalid_input', 'A Device Group cannot be the first stage', 400)
+                }
+                const lastStage = stages[stages.length - 1]
+                if (lastStage.id !== stage.id) {
+                    throw new PipelineControllerError('invalid_input', 'A Device Group can only set on the last stage', 400)
+                }
+            }
+
+            // Currently only one instance, device or device group per stage is supported
+            const instances = await stage.getInstances()
+            for (const instance of instances) {
+                await stage.removeInstance(instance)
+            }
+
+            const devices = await stage.getDevices()
+            for (const device of devices) {
+                await stage.removeDevice(device)
+            }
+
+            const deviceGroups = await stage.getDeviceGroups()
+            for (const deviceGroup of deviceGroups) {
+                await stage.removeDeviceGroup(deviceGroup)
+            }
+
+            if (options.instanceId) {
+                await stage.addInstanceId(options.instanceId)
+            } else if (options.deviceId) {
+                await stage.addDeviceId(options.deviceId)
+            } else if (options.deviceGroupId) {
+                await stage.addDeviceGroupId(options.deviceGroupId)
+            }
+        }
+
+        if (options.deployToDevices !== undefined) {
+            stage.deployToDevices = options.deployToDevices
+        }
+
+        await stage.save()
+        await stage.reload()
+        return stage
+    },
+
     addPipelineStage: async function (app, pipeline, options) {
         const idCount = [options.instanceId, options.deviceId, options.deviceGroupId].filter(id => !!id).length
         if (idCount > 1) {
@@ -25,6 +113,23 @@ module.exports = {
             source = options.source
             delete options.source
         }
+
+        // before we create the stage, we need to check a few things
+        // if this is being added as a device group, check all stages.
+        // * A device group cannot be the first stage
+        // * There can be only one device group and it can only be the last stage
+        if (options.deviceGroupId) {
+            const stages = await pipeline.stages()
+            const stageCount = stages.length
+            if (stageCount === 0) {
+                // return reply.code(400).send({ code: 'invalid_input', error: 'A Device Group cannot be the first stage' })
+                throw new PipelineControllerError('invalid_input', 'A Device Group cannot be the first stage', 400)
+            } else if (stages.filter(s => s.DeviceGroups?.length).length) {
+                // return reply.code(400).send({ code: 'invalid_input', error: 'A Device Group can only set on the last stage' })
+                throw new PipelineControllerError('invalid_input', 'A Device Group can only set on the last stage', 400)
+            }
+        }
+
         const transaction = await app.db.sequelize.transaction()
         try {
             const stage = await app.db.models.PipelineStage.create(options, { transaction })
