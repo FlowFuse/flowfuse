@@ -1,11 +1,13 @@
 const { Op } = require('sequelize')
 
-const { Roles } = require('../lib/roles')
+const { Roles } = require('../../../lib/roles')
 
 module.exports = {
     init: function (app) {
-        return {
-            generate: async function (projectId, event) {
+        if (app.postoffice.enabled) {
+            app.config.features.register('emailAlerts', true, true)
+            app.auditLog.alerts = {}
+            app.auditLog.alerts.generate =  async function (projectId, event) {
                 if (app.postoffice.enabled) {
                     const project = await app.db.models.Project.byId(projectId)
                     const settings = await app.db.controllers.Project.getRuntimeSettings(project)

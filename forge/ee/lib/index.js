@@ -6,6 +6,7 @@ module.exports = fp(async function (app, opts, done) {
     }
     require('./projectComms').init(app)
     require('./deviceEditor').init(app)
+    require('./alerts').init(app)
 
     if (app.license.get('tier') === 'enterprise') {
         require('./ha').init(app)
