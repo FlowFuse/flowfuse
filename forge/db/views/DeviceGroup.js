@@ -23,6 +23,50 @@ module.exports = function (app) {
     }
 
     app.addSchema({
+        $id: 'DeviceGroupPipelineSummary',
+        type: 'object',
+        allOf: [{ $ref: 'DeviceGroupSummary' }],
+        properties: {
+            targetMatchCount: { type: 'number' },
+            activeMatchCount: { type: 'number' },
+            developerModeCount: { type: 'number' },
+            runningCount: { type: 'number' },
+            isDeploying: { type: 'boolean' },
+            hasTargetSnapshot: { type: 'boolean' }
+        }
+    })
+    function deviceGroupPipelineSummary (group) {
+        let item = group
+        if (item.toJSON) {
+            item = item.toJSON()
+        }
+        const result = {
+            id: item.hashid,
+            name: item.name,
+            description: item.description,
+            deviceCount: 0,
+            targetMatchCount: 0,
+            activeMatchCount: 0,
+            developerModeCount: 0,
+            runningCount: 0,
+            isDeploying: false,
+            hasTargetSnapshot: !!item.PipelineStageDeviceGroup?.targetSnapshotId
+        }
+        const pipelineTargetSnapshot = item.PipelineStageDeviceGroup?.targetSnapshotId ?? null
+        if (item.Devices && item.Devices.length > 0) {
+            result.deviceCount = item.Devices.length
+            if (result.hasTargetSnapshot) {
+                result.targetMatchCount = item.Devices.filter(d => d.targetSnapshotId === pipelineTargetSnapshot).length
+                result.activeMatchCount = item.Devices.filter(d => d.activeSnapshotId === pipelineTargetSnapshot).length
+                result.isDeploying = result.targetMatchCount > 0 && result.activeMatchCount < result.targetMatchCount
+            }
+            result.developerModeCount = item.Devices.filter(d => d.developerMode).length
+            result.runningCount = item.Devices.filter(d => d.state === 'running').length
+        }
+        return result
+    }
+
+    app.addSchema({
         $id: 'DeviceGroup',
         type: 'object',
         allOf: [{ $ref: 'DeviceGroupSummary' }],
@@ -56,6 +100,7 @@ module.exports = function (app) {
 
     return {
         deviceGroup,
-        deviceGroupSummary
+        deviceGroupSummary,
+        deviceGroupPipelineSummary
     }
 }
