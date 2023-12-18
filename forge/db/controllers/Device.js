@@ -43,16 +43,12 @@ module.exports = {
      */
     sendDeviceUpdateCommand: async function (app, device) {
         if (app.comms) {
-            let snapshotId = device.targetSnapshotId || null
+            let snapshotId = device.targetSnapshot?.hashid || null
             if (snapshotId) {
-                const targetSnapshot = device.targetSnapshot || (await app.db.models.ProjectSnapshot.byId(snapshotId))
-                if (targetSnapshot) {
-                    snapshotId = targetSnapshot.hashid // use the hashid instead of the id
-                } else {
-                    snapshotId = null // target snapshot does not exist, set it to null
-                }
+                // device.targetSnapshot is a limited view so we need to load the it from the db
                 // If this device is owned by an instance, check it has an associated instance and that it matches the device's project
                 if (!device.isApplicationOwned) {
+                    const targetSnapshot = (await app.db.models.ProjectSnapshot.byId(snapshotId))
                     if (!targetSnapshot || !targetSnapshot.ProjectId || targetSnapshot.ProjectId !== device.ProjectId) {
                         snapshotId = null // target snapshot is not associated with this project (possibly orphaned), set it to null
                     }
