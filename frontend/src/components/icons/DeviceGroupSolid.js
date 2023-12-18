@@ -4,7 +4,7 @@ module.exports = function render (_ctx, _cache) {
     return (_openBlock(), _createBlock('svg', {
         width: 24,
         height: 24,
-        fill: 'currentFill',
+        fill: 'currentColor',
         viewBox: '0 0 24 24'
     }, [
         (_openBlock(), _createBlock('g', {
@@ -12,7 +12,7 @@ module.exports = function render (_ctx, _cache) {
         }, [
             _createVNode('path', {
                 d: 'M20 0H4C1.79086 0 0 1.79086 0 4V20C0 22.2091 1.79086 24 4 24H20C22.2091 24 24 22.2091 24 20V4C24 1.79086 22.2091 0 20 0Z',
-                fill: '#397B7E'
+                fill: 'currentFill'
             }),
             _createVNode('path', {
                 d: 'M16.2 11.63H11.63V16.2H16.2V11.63Z',
