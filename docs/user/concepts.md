@@ -163,6 +163,6 @@ The token can also be configured to assign a device directly to a Node-RED insta
 **Introduced in FlowFuse 1.15**
 
 Device groups allow you to organise your Application devices into logical groups. 
-For now, this is simply an organisational tool, but in the future, we will be
-adding new features like the ability to deploy snapshots to a group of devices via
-a [pipeline](#devops-pipeline).
+These groups can be the target of [DevOps Pipelines](#devops-pipeline) greatly simplifying
+the deployments to one or hundreds of devices.
+
