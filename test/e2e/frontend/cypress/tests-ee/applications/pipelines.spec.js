@@ -558,4 +558,90 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
                 /* eslint-enable */
             })
     })
+
+    it('cannot select device group in the first stage of a pipeline', () => {
+        cy.intercept('GET', '/api/v1/applications/*/pipelines').as('getPipelines')
+        cy.intercept('POST', '/api/v1/pipelines').as('createPipeline')
+
+        /// Create stages ready to push between
+        cy.visit(`/application/${application.id}/pipelines`)
+        cy.wait('@getPipelines')
+
+        const PIPELINE_NAME = `My New Pipeline - ${Math.random().toString(36).substring(2, 7)}`
+
+        // Add pipeline
+        cy.get('[data-action="pipeline-add"]').click()
+        cy.get('[data-form="pipeline-form"]').should('be.visible')
+
+        cy.get('[data-form="pipeline-name"] input').type(PIPELINE_NAME)
+        cy.get('[data-action="create-pipeline"]').click()
+
+        cy.wait('@createPipeline')
+
+        // Add stage 1
+        cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
+            cy.get('[data-action="add-stage"]').click()
+        })
+
+        // there should NOT be a tile with the text "Device Group"
+        cy.get('[data-form="stage-type"]').find('.ff-tile-selection-option:contains("Device Group")').should('not.exist')
+    })
+
+    it('cannot add any more stages after a device group', () => {
+        cy.intercept('GET', '/api/v1/applications/*/pipelines').as('getPipelines')
+        cy.intercept('POST', '/api/v1/pipelines').as('createPipeline')
+
+        /// Create stages ready to push between
+        cy.visit(`/application/${application.id}/pipelines`)
+        cy.wait('@getPipelines')
+
+        const PIPELINE_NAME = `My New Pipeline - ${Math.random().toString(36).substring(2, 7)}`
+
+        // Add pipeline
+        cy.get('[data-action="pipeline-add"]').click()
+        cy.get('[data-form="pipeline-form"]').should('be.visible')
+
+        cy.get('[data-form="pipeline-name"] input').type(PIPELINE_NAME)
+        cy.get('[data-action="create-pipeline"]').click()
+
+        cy.wait('@createPipeline')
+
+        // Add stage 1
+        cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
+            cy.get('[data-action="add-stage"]').click()
+        })
+
+        cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 1')
+
+        cy.get('[data-form="stage-instance"] .ff-dropdown').click()
+        cy.get('[data-form="stage-instance"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="stage-instance"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+
+        cy.get('[data-form="stage-action"] .ff-dropdown').click()
+        cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+
+        cy.get('[data-action="add-stage"]').click()
+
+        // Add stage 2
+        cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
+            cy.get('[data-action="add-stage"]').click()
+        })
+
+        cy.get('[data-form="stage-type"]').find('.ff-tile-selection-option:contains("Device Group")').click()
+
+        cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 2')
+        // stage-action should not be present for device group
+        cy.get('[data-form="stage-action"]').should('not.exist')
+
+        // select 1st element for stage-device-group
+        cy.get('[data-form="stage-device-group"] .ff-dropdown').click()
+        cy.get('[data-form="stage-device-group"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="stage-device-group"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+
+        cy.get('[data-action="add-stage"]').click()
+
+        // now there is a device group at the end stage, check to ensure add-stage is not be present
+        cy.get('[data-action="add-stage"]').should('not.exist')
+    })
 })
