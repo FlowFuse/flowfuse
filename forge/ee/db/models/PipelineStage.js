@@ -99,6 +99,19 @@ module.exports = {
                     }
                 })
             },
+            async deviceGroupsHaveSameApplication () {
+                const deviceGroupsPromise = this.getDeviceGroups()
+                const pipelinePromise = this.getPipeline()
+
+                const deviceGroups = await deviceGroupsPromise
+                const pipeline = await pipelinePromise
+
+                deviceGroups.forEach((group) => {
+                    if (group.ApplicationId !== pipeline.ApplicationId) {
+                        throw new Error(`All device groups on a pipeline stage, must be a member of the same application as the pipeline. ${group.name} is not a member of application ${pipeline.ApplicationId}.`)
+                    }
+                })
+            },
             async devicesInstancesOrDeviceGroups () {
                 const devicesPromise = this.getDevices()
                 const instancesPromise = this.getInstances()
