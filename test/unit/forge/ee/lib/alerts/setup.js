@@ -1,4 +1,4 @@
-const TestModelFactory = require('../../../lib/TestModelFactory')
+const TestModelFactory = require('../../../../../lib/TestModelFactory')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
