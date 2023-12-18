@@ -512,7 +512,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
             cy.get('[data-action="add-stage"]').click()
         })
 
-        cy.get('[data-form="stage-type"]').find('.ff-tile-selection-option:contains("Device")').click()
+        cy.get('[data-form="stage-type"]').find('.ff-tile-selection-option:contains("Device":not(:contains("Device Group"))').click()
 
         cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 2')
 
