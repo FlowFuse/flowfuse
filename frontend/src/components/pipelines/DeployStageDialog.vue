@@ -12,13 +12,13 @@
             </p>
             <p class="my-4">
                 This will
-                <template v-if="stage.action === StageType.CREATE_SNAPSHOT">
+                <template v-if="stage.action === StageAction.CREATE_SNAPSHOT">
                     create a new snapshot in "{{ stage.name }}" and
                 </template>
-                <template v-else-if="stage.action === StageType.USE_LATEST_SNAPSHOT">
+                <template v-else-if="stage.action === StageAction.USE_LATEST_SNAPSHOT">
                     use the latest instance snapshot from "{{ stage.name }}" and
                 </template>
-                <template v-else-if="stage.action === StageType.PROMPT">
+                <template v-else-if="stage.action === StageAction.PROMPT">
                     use the snapshot selected below from "{{ stage.name }}" and
                 </template>
                 copy over all flows, nodes and credentials to "{{ target?.name }}".
