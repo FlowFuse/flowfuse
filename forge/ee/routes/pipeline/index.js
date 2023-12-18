@@ -255,6 +255,7 @@ module.exports = async function (app) {
                     name: { type: 'string' },
                     instanceId: { type: 'string' },
                     deviceId: { type: 'string' },
+                    deviceGroupId: { type: 'string' },
                     source: { type: 'string' },
                     action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) }
                 }
@@ -271,7 +272,7 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const team = await request.teamMembership.getTeam()
         const name = request.body.name?.trim() // name of the stage
-        const { instanceId, deviceId, deployToDevices, action } = request.body
+        const { instanceId, deviceId, deviceGroupId, deployToDevices, action } = request.body
 
         let stage
         try {
@@ -279,6 +280,7 @@ module.exports = async function (app) {
                 name,
                 instanceId,
                 deviceId,
+                deviceGroupId,
                 deployToDevices,
                 action
             }
@@ -348,6 +350,7 @@ module.exports = async function (app) {
                     name: { type: 'string' },
                     instanceId: { type: 'string' },
                     deviceId: { type: 'string' },
+                    deviceGroupId: { type: 'string' },
                     action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) }
                 }
             },
@@ -373,25 +376,46 @@ module.exports = async function (app) {
             }
 
             // Null will remove devices and instances, undefined skips
-            if (request.body.instanceId !== undefined || request.body.deviceId !== undefined) {
-                // Currently only one instance or device per stage is supported
+            if (request.body.instanceId !== undefined || request.body.deviceId !== undefined || request.body.deviceGroupId !== undefined) {
+                // Firstly, if this is being set as a device group, check all stages.
+                // * A device group cannot be the first stage
+                // * There can be only one device group and it can only be the last stage
+                if (request.body.deviceGroupId) {
+                    const stages = await request.pipeline.stages()
+                    const lastStage = stages[stages.length - 1]
+                    if (stage.id === stages[0].id) {
+                        return reply.code(400).send({ code: 'invalid_input', error: 'A Device Group cannot be the first stage' })
+                    } else if (lastStage.id !== stage.id) {
+                        return reply.code(400).send({ code: 'invalid_input', error: 'A Device Group can only set on the last stage' })
+                    }
+                }
+                // Next, check that only one of instanceId, deviceId or deviceGroupId is set
+                const idCount = [request.body.instanceId, request.body.deviceId, request.body.deviceGroupId].filter(id => !!id).length
+                if (idCount > 1) {
+                    return reply.code(400).send({ code: 'invalid_input', error: 'Must provide only one instance, device or device group' })
+                }
+                // Currently only one instance, device or device group per stage is supported
                 const instances = await stage.getInstances()
                 for (const instance of instances) {
                     await stage.removeInstance(instance)
                 }
 
-                // Currently only one device per stage is supported
                 const devices = await stage.getDevices()
                 for (const device of devices) {
                     await stage.removeDevice(device)
                 }
 
-                if (request.body.instanceId && request.body.deviceId) {
-                    return reply.code(400).send({ code: 'invalid_input', error: 'Must provide instanceId or deviceId, not both' })
-                } else if (request.body.instanceId) {
+                const deviceGroups = await stage.getDeviceGroups()
+                for (const deviceGroup of deviceGroups) {
+                    await stage.removeDeviceGroup(deviceGroup)
+                }
+
+                if (request.body.instanceId) {
                     await stage.addInstanceId(request.body.instanceId)
                 } else if (request.body.deviceId) {
                     await stage.addDeviceId(request.body.deviceId)
+                } else if (request.body.deviceGroupId) {
+                    await stage.addDeviceGroupId(request.body.deviceGroupId)
                 }
             }
 
@@ -534,6 +558,7 @@ module.exports = async function (app) {
                 targetInstance,
                 sourceDevice,
                 targetDevice,
+                targetDeviceGroup,
                 targetStage
             } = await app.db.controllers.Pipeline.validateSourceStageForDeploy(
                 request.pipeline,
@@ -588,6 +613,18 @@ module.exports = async function (app) {
                     {
                         user
 
+                    })
+
+                reply.code(200).send({ status: 'importing' })
+                repliedEarly = true
+
+                await deployPromise
+            } else if (targetDeviceGroup) {
+                const deployPromise = app.db.controllers.Pipeline.deploySnapshotToDeviceGroup(
+                    sourceSnapshot,
+                    targetDeviceGroup,
+                    {
+                        user
                     })
 
                 reply.code(200).send({ status: 'importing' })

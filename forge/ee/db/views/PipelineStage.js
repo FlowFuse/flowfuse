@@ -12,6 +12,12 @@ module.exports = function (app) {
                     $ref: 'DeviceSummary'
                 }
             },
+            deviceGroups: {
+                type: 'array',
+                items: {
+                    $ref: 'DeviceGroupPipelineSummary'
+                }
+            },
             action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) },
             NextStageId: { type: 'string' }
         }
@@ -32,6 +38,10 @@ module.exports = function (app) {
 
         if (stage.Devices?.length > 0) {
             filtered.devices = stage.Devices.map(app.db.views.Device.deviceSummary)
+        }
+
+        if (stage.DeviceGroups?.length > 0) {
+            filtered.deviceGroups = stage.DeviceGroups.map(app.db.views.DeviceGroup.deviceGroupPipelineSummary)
         }
 
         if (stage.NextStageId) {

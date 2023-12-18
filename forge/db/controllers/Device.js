@@ -43,12 +43,16 @@ module.exports = {
      */
     sendDeviceUpdateCommand: async function (app, device) {
         if (app.comms) {
-            let snapshotId = device.targetSnapshot?.hashid || null
+            let snapshotId = device.targetSnapshotId || null
             if (snapshotId) {
-                // device.targetSnapshot is a limited view so we need to load the it from the db
+                const targetSnapshot = device.targetSnapshot || (await app.db.models.ProjectSnapshot.byId(snapshotId))
+                if (targetSnapshot) {
+                    snapshotId = targetSnapshot.hashid // use the hashid instead of the id
+                } else {
+                    snapshotId = null // target snapshot does not exist, set it to null
+                }
                 // If this device is owned by an instance, check it has an associated instance and that it matches the device's project
                 if (!device.isApplicationOwned) {
-                    const targetSnapshot = (await app.db.models.ProjectSnapshot.byId(snapshotId))
                     if (!targetSnapshot || !targetSnapshot.ProjectId || targetSnapshot.ProjectId !== device.ProjectId) {
                         snapshotId = null // target snapshot is not associated with this project (possibly orphaned), set it to null
                     }
@@ -75,6 +79,37 @@ module.exports = {
                 delete payload.application // exclude application property to avoid triggering the wrong kind of update on the device
             }
             app.comms.devices.sendCommand(device.Team.hashid, device.hashid, 'update', payload)
+        }
+    },
+    /**
+     * Sends the project id, snapshot hash and settings hash to all devices in the group
+     * so that they can determine what/if it needs to update
+     * NOTE: Only devices belonging to an application are present in a device group
+     * @param {forge.db.models.DeviceGroup} deviceGroup The device group to send an "update" command to
+     */
+    sendDeviceGroupUpdateCommand: async function (app, deviceGroup) {
+        if (app.comms) {
+            const application = await deviceGroup.getApplication({ include: [{ model: app.db.models.Team }] })
+            const targetSnapshot = deviceGroup.targetSnapshot || (await app.db.models.ProjectSnapshot.byId(deviceGroup.PipelineStageDeviceGroup.targetSnapshotId))
+            const payloadTemplate = {
+                ownerType: 'application',
+                application: application.hashid,
+                snapshot: targetSnapshot.hashid,
+                settings: null,
+                mode: null,
+                licensed: app.license.active()
+            }
+            const devices = await deviceGroup.getDevices()
+            for (const device of devices) {
+                // If the device doesnt have the same target snapshot as the group, skip it
+                if (device.targetSnapshotId !== deviceGroup.PipelineStageDeviceGroup.targetSnapshotId) {
+                    continue
+                }
+                const payload = { ...payloadTemplate }
+                payload.settings = device.settingsHash || null
+                payload.mode = device.mode
+                app.comms.devices.sendCommand(application.Team.hashid, device.hashid, 'update', payload)
+            }
         }
     },
     /**

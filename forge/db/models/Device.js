@@ -28,7 +28,7 @@ module.exports = {
         ownerType: {
             type: DataTypes.VIRTUAL(DataTypes.ENUM('instance', 'application', null)),
             get () {
-                return this.Project?.id ? 'instance' : (this.Application?.hashid ? 'application' : null)
+                return this.ProjectId ? 'instance' : (this.ApplicationId ? 'application' : null)
             }
         },
         isApplicationOwned: {

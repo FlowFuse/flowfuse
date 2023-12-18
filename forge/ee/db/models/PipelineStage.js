@@ -99,15 +99,17 @@ module.exports = {
                     }
                 })
             },
-            async devicesOrInstancesNotBoth () {
+            async devicesInstancesOrDeviceGroups () {
                 const devicesPromise = this.getDevices()
                 const instancesPromise = this.getInstances()
+                const deviceGroupsPromise = this.getDeviceGroups()
 
                 const devices = await devicesPromise
                 const instances = await instancesPromise
-
-                if (devices.length > 0 && instances.length > 0) {
-                    throw new Error('A pipeline stage can contain devices or instances, but never both.')
+                const deviceGroups = await deviceGroupsPromise
+                const count = devices.length ? 1 : 0 + instances.length ? 1 : 0 + deviceGroups.length ? 1 : 0
+                if (count > 1) {
+                    throw new Error('A pipeline stage can only contain instances, devices or device groups, not a combination of them.')
                 }
             }
         }
@@ -116,13 +118,14 @@ module.exports = {
         this.belongsTo(M.Pipeline)
         this.belongsToMany(M.Project, { through: M.PipelineStageInstance, as: 'Instances', otherKey: 'InstanceId' })
         this.belongsToMany(M.Device, { through: M.PipelineStageDevice, as: 'Devices' })
+        this.belongsToMany(M.DeviceGroup, { through: M.PipelineStageDeviceGroup, as: 'DeviceGroups' })
         this.hasOne(M.PipelineStage, { as: 'NextStage', foreignKey: 'NextStageId', allowNull: true })
     },
     finders: function (M) {
         const self = this
         return {
             instance: {
-                async addInstanceId (instanceId) {
+                async addInstanceId (instanceId, options = {}) {
                     const instance = await M.Project.byId(instanceId)
                     if (!instance) {
                         throw new ValidationError(`instanceId (${instanceId}) not found`)
@@ -140,9 +143,9 @@ module.exports = {
                         throw new ValidationError(`Can't add device as current action is ${this.action} and instance stages only support the following actions: ${VALID_ACTIONS_FOR_INSTANCES.join(', ')}.`)
                     }
 
-                    await this.addInstance(instance)
+                    await this.addInstance(instance, options)
                 },
-                async addDeviceId (deviceId) {
+                async addDeviceId (deviceId, options = {}) {
                     const device = await M.Device.byId(deviceId)
                     if (!device) {
                         throw new ValidationError(`deviceId (${deviceId}) not found`)
@@ -160,7 +163,15 @@ module.exports = {
                         throw new ValidationError(`Can't add device as current action is ${this.action} and device stages only support the following actions: ${VALID_ACTIONS_FOR_DEVICES.join(', ')}.`)
                     }
 
-                    await this.addDevice(device)
+                    await this.addDevice(device, options)
+                },
+                async addDeviceGroupId (deviceGroupId, options = {}) {
+                    const deviceGroup = await M.DeviceGroup.byId(deviceGroupId)
+                    if (!deviceGroup) {
+                        throw new ValidationError(`deviceGroupId (${deviceGroupId}) not found`)
+                    }
+
+                    await this.addDeviceGroup(deviceGroup, options)
                 }
             },
             static: {
@@ -180,6 +191,10 @@ module.exports = {
                             {
                                 association: 'Devices',
                                 attributes: ['hashid', 'id', 'name', 'type', 'links', 'ownerType']
+                            },
+                            {
+                                association: 'DeviceGroups',
+                                attributes: ['hashid', 'id', 'name', 'description']
                             }
                         ]
                     })
@@ -193,9 +208,20 @@ module.exports = {
                         association: 'Devices',
                         attributes: ['hashid', 'id', 'name', 'type', 'ownerType', 'links']
                     }
+                    const deviceGroupsInclude = {
+                        association: 'DeviceGroups',
+                        attributes: ['hashid', 'id', 'name', 'description'],
+                        include: [
+                            {
+                                association: 'Devices',
+                                attributes: ['hashid', 'id', 'name', 'type', 'ownerType', 'links']
+                            }
+                        ]
+                    }
 
                     if (includeDeviceStatus) {
                         devicesInclude.attributes.push('targetSnapshotId', 'activeSnapshotId', 'lastSeenAt', 'state', 'mode')
+                        deviceGroupsInclude.include[0].attributes.push('targetSnapshotId', 'activeSnapshotId', 'lastSeenAt', 'state', 'mode')
                     }
 
                     return await self.findAll({
@@ -207,7 +233,8 @@ module.exports = {
                                 association: 'Instances',
                                 attributes: ['hashid', 'id', 'name', 'url', 'updatedAt']
                             },
-                            devicesInclude
+                            devicesInclude,
+                            deviceGroupsInclude
                         ]
                     })
                 },
