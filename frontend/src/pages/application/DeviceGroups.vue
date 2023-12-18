@@ -8,9 +8,8 @@
             <img src="../../images/pictograms/device_group_red.png">
         </template>
         <template #helptext>
-            <p>
-                Application Device Groups permit the grouping of Application assigned Devices.
-            </p>
+            <p>Application Device Groups permit the grouping of Application assigned Devices.</p>
+            <p>The device groups can then be set as the target in a DevOps Pipeline to update multiple devices in a single operation</p>
         </template>
     </SectionTopMenu>
 
@@ -30,12 +29,8 @@
             <img src="../../images/empty-states/application-device-groups.png">
         </template>
         <template #message>
-            <p>
-                Application Device Groups permit the grouping of Application assigned Devices.
-            </p>
-            <p>
-                <!--{# TODO: Update this message when groups are useful to pipelines. #}-->
-            </p>
+            <p>Application Device Groups permit the grouping of Application assigned Devices.</p>
+            <p>The device groups can then be set as the target in a DevOps Pipeline to update multiple devices in a single operation</p>
         </template>
         <template #actions>
             <ff-button data-action="create-device-group" :disabled="!featureEnabled" @click="showCreateDeviceGroupDialog">

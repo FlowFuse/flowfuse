@@ -7,6 +7,7 @@
             :application="application"
             :applicationDevices="devices"
             :instances="instances"
+            :deviceGroups="deviceGroups"
             :pipeline="pipeline"
         />
     </div>
@@ -28,6 +29,10 @@ export default {
             required: true
         },
         devices: {
+            type: Array,
+            required: true
+        },
+        deviceGroups: {
             type: Array,
             required: true
         }
