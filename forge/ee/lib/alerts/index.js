@@ -7,7 +7,7 @@ module.exports = {
         if (app.postoffice.enabled) {
             app.config.features.register('emailAlerts', true, true)
             app.auditLog.alerts = {}
-            app.auditLog.alerts.generate =  async function (projectId, event) {
+            app.auditLog.alerts.generate = async function (projectId, event) {
                 if (app.postoffice.enabled) {
                     const project = await app.db.models.Project.byId(projectId)
                     const settings = await app.db.controllers.Project.getRuntimeSettings(project)

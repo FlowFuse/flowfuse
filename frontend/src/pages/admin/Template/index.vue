@@ -29,9 +29,9 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-
 import { ChevronRightIcon } from '@heroicons/vue/solid'
+
+import { mapState } from 'vuex'
 
 import templateApi from '../../../api/templates.js'
 import SectionSideMenu from '../../../components/SectionSideMenu.vue'
@@ -90,7 +90,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account',['features', 'settings']),
+        ...mapState('account', ['features', 'settings']),
         sideNavigation: function () {
             const nav = [
                 { name: 'Settings', path: './settings' },
