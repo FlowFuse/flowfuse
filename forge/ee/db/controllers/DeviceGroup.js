@@ -102,11 +102,11 @@ module.exports = {
         try {
             // add devices
             if (actualAddDevices.length > 0) {
-                await this.assignDevicesToGroup(app, deviceGroup, actualAddDevices)
+                await this.assignDevicesToGroup(app, deviceGroup, actualAddDevices, t)
             }
             // remove devices
             if (actualRemoveDevices.length > 0) {
-                await this.removeDevicesFromGroup(app, deviceGroup, actualRemoveDevices)
+                await this.removeDevicesFromGroup(app, deviceGroup, actualRemoveDevices, t)
             }
             // commit the transaction
             await t.commit()
@@ -122,9 +122,9 @@ module.exports = {
         }
     },
 
-    assignDevicesToGroup: async function (app, deviceGroup, deviceList) {
+    assignDevicesToGroup: async function (app, deviceGroup, deviceList, transaction = null) {
         const deviceIds = await validateDeviceList(app, deviceGroup, deviceList, null)
-        await app.db.models.Device.update({ DeviceGroupId: deviceGroup.id }, { where: { id: deviceIds.addList } })
+        await app.db.models.Device.update({ DeviceGroupId: deviceGroup.id }, { where: { id: deviceIds.addList }, transaction })
     },
 
     /**
@@ -133,10 +133,10 @@ module.exports = {
      * @param {*} deviceGroupId The device group id
      * @param {*} deviceList A list of devices to remove from the group
      */
-    removeDevicesFromGroup: async function (app, deviceGroup, deviceList) {
+    removeDevicesFromGroup: async function (app, deviceGroup, deviceList, transaction = null) {
         const deviceIds = await validateDeviceList(app, deviceGroup, null, deviceList)
         // null every device.DeviceGroupId row in device table where the id === deviceGroupId and device.id is in the deviceList
-        await app.db.models.Device.update({ DeviceGroupId: null }, { where: { id: deviceIds.removeList, DeviceGroupId: deviceGroup.id } })
+        await app.db.models.Device.update({ DeviceGroupId: null }, { where: { id: deviceIds.removeList, DeviceGroupId: deviceGroup.id }, transaction })
     },
 
     DeviceGroupMembershipValidationError
