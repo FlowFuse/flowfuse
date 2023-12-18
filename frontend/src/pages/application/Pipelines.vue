@@ -45,8 +45,8 @@
             :device-status-map="deviceStatusMap"
             :device-group-status-map="deviceGroupStatusMap"
             @stage-deploy-starting="stageDeployStarting"
-            @stage-deploy-started="stageDeployFailed"
-            @stage-deploy-failed="stageDeployStarting"
+            @stage-deploy-started="startPollingForDeployStatus"
+            @stage-deploy-failed="stageDeployFailed"
             @pipeline-deleted="loadPipelines"
             @stage-deleted="(stageIndex) => stageDeleted(pipeline, stageIndex)"
         />
