@@ -1,5 +1,5 @@
 module.exports = {
-    subject: `FlowFuse Instance placed into Safe Mode`,
+    subject: 'FlowFuse Instance placed into Safe Mode',
     text:
 `Hello
 
