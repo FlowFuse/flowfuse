@@ -35,6 +35,25 @@ describe('Instance Alerts emails', function () {
             await app.auditLog.alerts.generate(app.TestObjects.instance.id, 'crashed')
             inbox.messages.should.have.length(1)
         })
+        it('Crashed, via api', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/logging/${app.TestObjects.instance.id}/audit`,
+                payload: {
+                    event: 'crashed',
+                    error: {
+                        code: 'crashed',
+                        error: 'instance crashed'
+                    }
+                },
+                headers: {
+                    authorization: `Bearer ${app.TestObjects.tokens.instance}`
+                }
+            })
+            response.statusCode.should.equal(200)
+            await app.auditLog.alerts.generate(app.TestObjects.instance.id, 'crashed')
+            inbox.messages.should.have.length(1)
+        })
         it('Owner notified of safe-mode', async function () {
             await app.auditLog.alerts.generate(app.TestObjects.instance.id, 'safe-mode')
             inbox.messages.should.have.length(1)
@@ -68,25 +87,6 @@ describe('Instance Alerts emails', function () {
                     }
                 },
                 cookies: { sid: app.TestObjects.tokens.alice }
-            })
-            response.statusCode.should.equal(200)
-            await app.auditLog.alerts.generate(app.TestObjects.instance.id, 'crashed')
-            inbox.messages.should.have.length(1)
-        })
-        it('Crashed, via api', async function () {
-            const response = await app.inject({
-                method: 'POST',
-                url: `/logging/${app.TestObjects.instance.id}/audit`,
-                payload: {
-                    event: 'crashed',
-                    error: {
-                        code: 'crashed',
-                        error: 'instance crashed'
-                    }
-                },
-                headers: {
-                    authorization: `Bearer ${app.TestObjects.tokens.instance}`
-                }
             })
             response.statusCode.should.equal(200)
             await app.auditLog.alerts.generate(app.TestObjects.instance.id, 'crashed')
