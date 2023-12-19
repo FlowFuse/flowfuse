@@ -301,9 +301,16 @@ describe('Pipelines API', function () {
 
             describe('Validates that a stage cannot be added after device group', function () {
                 it('Rejects a pipeline stage if the device group is added where a device group already exists', async function () {
-                    const pipelineId = TestObjects.pipelineDeviceGroups.hashid // this pipeline already has a device group stage
-                    const newDeviceGroup = await TestObjects.factory.createApplicationDeviceGroup({ name: 'device-group-c' }, app.application)
+                    const newPipeline = await TestObjects.factory.createPipeline({ name: 'new-pipeline' }, app.application)
+                    const pipelineId = newPipeline.hashid
+                    // add an instance stage
+                    const s1 = await TestObjects.factory.createPipelineStage({ name: 'stage-one', instanceId: app.instance.id }, newPipeline)
+                    // add a device group stage
+                    const s2DeviceGroup = await TestObjects.factory.createApplicationDeviceGroup({ name: 'device-group-c' }, app.application)
+                    await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceGroupId: s2DeviceGroup.hashid, source: s1.hashid, action: 'use_latest_snapshot' }, newPipeline)
+                    const newDeviceGroup = await TestObjects.factory.createApplicationDeviceGroup({ name: 'device-group-d' }, app.application)
 
+                    // try to add another device group stage
                     const response = await app.inject({
                         method: 'POST',
                         url: `/api/v1/pipelines/${pipelineId}/stages`,
@@ -318,7 +325,7 @@ describe('Pipelines API', function () {
                     response.statusCode.should.equal(400)
                     const body = await response.json()
                     body.should.have.property('code', 'invalid_input')
-                    body.should.have.property('error').match(/device group can only set on the last stage/i)
+                    body.should.have.property('error').match(/only one device group/i)
                 })
             })
         })
@@ -1601,6 +1608,9 @@ describe('Pipelines API', function () {
 
                         const body = await response.json()
                         body.should.have.property('status', 'importing')
+
+                        // Wait 250ms for the deploy to complete (api returns early)
+                        await new Promise((resolve, reject) => setTimeout(resolve, 250))
 
                         await TestObjects.deviceTwo.reload()
 
