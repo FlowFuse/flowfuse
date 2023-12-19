@@ -189,13 +189,14 @@ const actions = {
                 teamId = null
                 teamSlug = teamIdMatch[1]
             }
-
             try {
-                const team = await teamApi.getTeam(teamId || { slug: teamSlug })
-                const teamMembership = await teamApi.getTeamUserMembership(team.id)
-                state.commit('setTeam', team)
-                state.commit('setTeamMembership', teamMembership)
-
+                // Some routes will call `setTeam` once they figure out who they belong to.
+                if (!/^\/(application|device|instance)\//.test(router.currentRoute.value.path)) {
+                    const team = await teamApi.getTeam(teamId || { slug: teamSlug })
+                    const teamMembership = await teamApi.getTeamUserMembership(team.id)
+                    state.commit('setTeam', team)
+                    state.commit('setTeamMembership', teamMembership)
+                }
                 state.commit('clearPending')
                 if (redirectUrlAfterLogin) {
                     // If this is a user-driven login, take them to the profile page

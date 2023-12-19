@@ -23,7 +23,7 @@
             </template>
         </ff-data-table>
     </div>
-    <EmptyState v-else :featureUnavailable="!featureEnabled" :featureUnavailableMessage="'Device Groups are an enterprise feature'">
+    <EmptyState v-else :featureUnavailable="!featureEnabledForPlatform" :featureUnavailableToTeam="!featureEnabledForTeam" :featureUnavailableMessage="'Device Groups are an enterprise feature'">
         <template #header>Add your Application's First Device Group</template>
         <template #img>
             <img src="../../images/empty-states/application-device-groups.png">
@@ -92,6 +92,10 @@ export default {
         application: {
             type: Object,
             required: true
+        },
+        team: {
+            type: Object,
+            required: true
         }
     },
     data () {
@@ -126,8 +130,14 @@ export default {
     },
     computed: {
         ...mapState('account', ['features']),
+        featureEnabledForTeam () {
+            return !!this.team.type.properties.features?.deviceGroups
+        },
+        featureEnabledForPlatform () {
+            return this.features.deviceGroups
+        },
         featureEnabled () {
-            return this.features['device-groups']
+            return this.featureEnabledForTeam && this.featureEnabledForPlatform
         }
     },
     mounted () {
