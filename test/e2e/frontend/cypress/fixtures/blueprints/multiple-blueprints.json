@@ -1,0 +1,32 @@
+{
+    "count": 2,
+    "blueprints": [
+        {
+            "id": "1234",
+            "name": "Blueprint 1",
+            "active": true,
+            "description": "This is a blueprint",
+            "default": true,
+            "category": "Category A",
+            "order": 0
+        },
+        {
+            "id": "5678",
+            "name": "Blueprint 2",
+            "active": true,
+            "description": "This is another blueprint",
+            "default": false,
+            "category": "Category B",
+            "order": 1
+        },
+        {
+            "id": "91011",
+            "name": "Blueprint 3",
+            "active": true,
+            "description": "This is another blueprint",
+            "default": false,
+            "category": "Category B",
+            "order": 2
+        }
+    ]
+}
