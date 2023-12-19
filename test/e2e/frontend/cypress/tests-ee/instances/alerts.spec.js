@@ -35,5 +35,8 @@ describe('FlowFuse EE - Instance - Alerts', () => {
         cy.get('[data-el="notify-list"] div label:first label').contains('Owners')
         cy.get('[data-el="notify-list"] div label:nth-child(2) label').contains('Owners & Members')
         cy.get('[data-el="notify-list"] div label:nth-child(2) label').contains('Members')
+
+        // Change and discard changes
+        cy.get('[data-el="notify-list"] div label:nth-child(2)').click()
     })
 })
