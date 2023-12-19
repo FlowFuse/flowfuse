@@ -5,18 +5,42 @@
                 <div v-if="error" data-el="form-row-error" class="ml-4 text-red-400 text-xs">{{ error }}</div>
 
                 <FormRow v-model="input.name" :error="errors.name" data-form="name">Name</FormRow>
-                <FormRow v-model="input.active" type="checkbox" data-form="active">Active</FormRow>
+                <FormRow v-model="input.active" type="checkbox" data-form="active">
+                    Active
+                    <template #description>
+                        Display this blueprint in the list of available blueprints
+                    </template>
+                </FormRow>
+
+                <FormRow v-model="input.default" type="checkbox" :error="errors.default" data-form="default">
+                    Default Blueprint
+                    <template #description>
+                        Set this as the default blueprint for new instances
+                    </template>
+                </FormRow>
+
                 <FormRow v-model="input.category" :error="errors.category" data-form="category">
                     Category
                     <template #description>Freeform (case-sensitive) category</template>
                 </FormRow>
+
+                <FormRow v-model="input.icon" :error="errors.icon" data-form="icon">
+                    Custom Icon
+                    <template #description>From https://v1.heroicons.com/, falls back to category icon</template>
+                </FormRow>
+
+                <FormRow v-model="input.order" type="number" :error="errors.order" data-form="order">
+                    Custom Order
+                    <template #description>Used to sort blueprints, lowest to highest</template>
+                </FormRow>
+
                 <FormRow v-model="input.description" :error="errors.description" data-form="description">
                     Description
                     <template #description>Use markdown for formatting</template>
                     <template #input><textarea v-model="input.description" class="w-full" rows="4" /></template>
                 </FormRow>
 
-                <FormRow v-model="input.flows" :error="errors.flows" data-form="modules">
+                <FormRow v-model="input.flows" :error="errors.flows" data-form="flows">
                     Flows
                     <template #description>JSON representation of the flows for this template</template>
                     <template #input><textarea v-model="input.flows" class="w-full" rows="4" /></template>
@@ -36,7 +60,7 @@
                 </div>
                 <div class="flex">
                     <ff-button kind="secondary" @click="$refs['dialog'].close()">Cancel</ff-button>
-                    <ff-button :disabled="!formValid" @click="confirm">{{ flowBlueprint?.id ? 'Update' : 'Create' }}</ff-button>
+                    <ff-button :disabled="!formValid" data-form="confirm-dialog" @click="confirm">{{ flowBlueprint?.id ? 'Update' : 'Create' }}</ff-button>
                 </div>
             </div>
         </template>
@@ -64,6 +88,9 @@ export default {
                     active: flowBlueprint?.active ?? true,
                     category: flowBlueprint?.category ?? '',
                     description: flowBlueprint?.description ?? '',
+                    icon: flowBlueprint?.icon ?? '',
+                    order: flowBlueprint?.order ?? '',
+                    default: flowBlueprint?.default ?? false,
 
                     flows: flowBlueprint?.flows ? JSON.stringify(flowBlueprint.flows) : '',
                     modules: flowBlueprint?.modules ? JSON.stringify(flowBlueprint.modules) : ''
@@ -81,7 +108,10 @@ export default {
                 active: true,
                 description: '',
                 properties: {},
-                defaultStack: ''
+                defaultStack: '',
+                icon: '',
+                default: false,
+                order: 0
             },
             errors: {},
             error: null
@@ -89,7 +119,7 @@ export default {
     },
     computed: {
         formValid () {
-            return (this.input.name)
+            return this.input.name && this.input.flows && this.input.modules && !this.errors.name && !this.errors.flows && !this.errors.modules
         },
         dialogTitle () {
             return this.flowBlueprint?.id ? 'Edit Flow Blueprint' : 'Create Flow Blueprint'
@@ -102,6 +132,9 @@ export default {
             }
 
             const flowBlueprintProps = { ...this.input }
+            if (flowBlueprintProps.order === '') {
+                delete flowBlueprintProps.order
+            }
 
             // Validation
             try {

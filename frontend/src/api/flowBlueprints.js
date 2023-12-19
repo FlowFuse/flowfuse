@@ -27,8 +27,8 @@ import client from './client.js'
  * @param {number} limit
  * @returns {Array.<FlowBlueprintSummary>}
  */
-const getFlowBlueprints = async (state = 'active', cursor, limit) => {
-    const url = paginateUrl('/api/v1/flow-blueprints', cursor, limit, null, { filter: state })
+const getFlowBlueprints = async (options = { state: 'active' }, cursor, limit) => {
+    const url = paginateUrl('/api/v1/flow-blueprints', cursor, limit, null, { filter: options.state })
     return client.get(url).then(res => {
         return res.data
     })
