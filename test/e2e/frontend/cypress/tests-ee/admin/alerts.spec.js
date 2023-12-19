@@ -32,6 +32,5 @@ describe('FlowFuse - EE Templates', () => {
         // Change and discard changes
         cy.get('[data-el="notify-list"] div label:nth-child(2)').click()
         cy.get('button.ff-btn--secondary:first').click()
-
     })
 })
