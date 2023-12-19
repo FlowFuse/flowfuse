@@ -11,6 +11,7 @@ module.exports = {
                 if (app.postoffice.enabled) {
                     const project = await app.db.models.Project.byId(projectId)
                     const settings = await app.db.controllers.Project.getRuntimeSettings(project)
+                    const teamType = await app.db.models.TeamType.byId(project.Team.TeamTypeId)
                     const emailAlerts = settings.emailAlerts
                     let template
                     if (emailAlerts?.crash && event === 'crashed') {
@@ -18,12 +19,11 @@ module.exports = {
                     } else if (emailAlerts?.safe && event === 'safe-mode') {
                         template = 'SafeMode'
                     }
-                    if (!template) {
+                    if (!template || !teamType.getFeatureProperty('emailAlerts', false)) {
                         return
                     }
-                    const team = await app.db.models.Team.byId(project.Team.id)
                     const where = {
-                        TeamId: team.id
+                        TeamId: project.Team.id
                     }
                     switch (emailAlerts.recipients) {
                     case 'both':
