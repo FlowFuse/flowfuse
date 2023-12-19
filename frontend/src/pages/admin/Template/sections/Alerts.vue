@@ -34,7 +34,7 @@
             </div>
             <LockSetting v-model="editable.policy.emailAlerts_recipients" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.emailAlerts_recipients" />
         </div>
-        <ff-radio-group v-model="editable.settings.emailAlerts_recipients" orientation="vertical" :options="emailOptions" />
+        <ff-radio-group v-model="editable.settings.emailAlerts_recipients" orientation="vertical" :options="emailOptions" data-el="notify-list" />
     </form>
 </template>
 

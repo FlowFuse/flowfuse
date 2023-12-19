@@ -3,7 +3,7 @@ module.exports = {
     text:
 `Hello
 
-Your FlowFuse Project {{{ name }}} has crashed and has been
+Your FlowFuse Instance {{{ name }}} has crashed and has been
 placed into Safe Mode
 
 You can access the logs here:
@@ -12,7 +12,7 @@ You can access the logs here:
 `,
     html:
 `<p>Hello</p>
-<p>Your FlowFuse Project {{{ name }}} has crashed and has been placed in Safe Mode</p>
+<p>Your FlowFuse Instance {{{ name }}} has crashed and has been placed in Safe Mode</p>
 
 <p>You can access the logs here</p>
 <a href="{{{ url }}}">{{{ url }}}</a>

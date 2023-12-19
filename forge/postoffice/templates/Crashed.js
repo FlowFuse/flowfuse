@@ -1,9 +1,9 @@
 module.exports = {
-    subject: 'FlowFuse instance crashed',
+    subject: 'FlowFuse Instance crashed',
     text:
 `Hello
 
-Your FlowFuse Project "{{{ name }}}" has crashed.
+Your FlowFuse Instance "{{{ name }}}" has crashed.
 
 You can access the logs here:
 
@@ -12,7 +12,7 @@ You can access the logs here:
 `,
     html:
 `<p>Hello</p>
-<p>Your FlowFuse Project "{{{ name }}}" has crashed</p>
+<p>Your FlowFuse Instance "{{{ name }}}" has crashed</p>
 
 <p>You can access the logs here</p>
 <a href="{{{ url }}}">{{{ url }}}</a>
