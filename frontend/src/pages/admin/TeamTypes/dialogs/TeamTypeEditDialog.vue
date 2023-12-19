@@ -171,7 +171,7 @@ export default {
                         this.input.properties.billing.proration = 'always_invoice'
                     }
                     if (this.input.properties.trial.active && this.input.properties.trial.sendEmail === undefined) {
-                        this.input.properties.trial.sendEmail = true
+                        this.input.properties.trial.sendEmail = false
                     }
                 } else {
                     this.editDisabled = false
