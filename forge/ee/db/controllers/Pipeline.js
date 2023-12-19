@@ -54,22 +54,14 @@ module.exports = {
             // * There can be only one device group and it can only be the last stage
             if (options.deviceGroupId) {
                 const stages = await pipeline.stages()
-                if (stages.length === 0) {
+                // stages are a linked list, so ensure we use the sorted stages
+                const orderedStages = app.db.models.PipelineStage.sortStages(stages)
+                if (orderedStages.length === 0) {
                     // this should never be reached but here for completeness
                     throw new PipelineControllerError('invalid_input', 'A Device Group cannot be the first stage', 400)
                 }
-                // stages are a linked list, so the last stage is the one with no `NextStageId`
-                const lastStage = stages.find(s => !s.NextStageId)
-                // to get the first stage, we need to scan through them in reverse order
-                // where each stage is the next stage of the previous stage
-                let firstStage = lastStage
-                while (firstStage) {
-                    const prevStage = stages.find(s => s.NextStageId === firstStage.id)
-                    if (!prevStage) {
-                        break
-                    }
-                    firstStage = prevStage
-                }
+                const firstStage = orderedStages[0]
+                const lastStage = orderedStages[orderedStages.length - 1]
 
                 // if the first stage is the same as the stage being updated, then it's the first stage
                 if (firstStage && firstStage.id === stage.id) {

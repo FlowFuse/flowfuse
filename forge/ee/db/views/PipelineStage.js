@@ -65,27 +65,7 @@ module.exports = function (app) {
 
     async function stageList (stages) {
         // Must ensure the stages are listed in the correct order
-        const stagesById = {}
-        const backReferences = {}
-        let pointer = null
-        // Scan the list of stages
-        //  - build an id->stage reference table
-        //  - find the last stage (!NextStageId) and set pointer
-        //  - build a reference table of which stage points at which
-        stages.forEach(stage => {
-            stagesById[stage.id] = stage
-            if (!stage.NextStageId) {
-                pointer = stage
-            } else {
-                backReferences[stage.NextStageId] = stage.id
-            }
-        })
-        const orderedStages = []
-        // Starting at the last stage, work back through the references
-        while (pointer) {
-            orderedStages.unshift(pointer)
-            pointer = stagesById[backReferences[pointer.id]]
-        }
+        const orderedStages = app.db.models.PipelineStage.sortStages(stages)
         return await Promise.all(orderedStages.map(stage))
     }
 
