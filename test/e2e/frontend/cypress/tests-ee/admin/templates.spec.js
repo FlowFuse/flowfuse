@@ -27,6 +27,6 @@ describe('FlowFuse - EE Templates', () => {
         // Check who to notify
         cy.get('#ff-app > div > div.ff-layout--platform--wrapper > div.ff-view > main > div > div:nth-child(2) > div > form > div.ff-radio-group > div > label:first > label').contains('Owners')
         cy.get('#ff-app > div > div.ff-layout--platform--wrapper > div.ff-view > main > div > div:nth-child(2) > div > form > div.ff-radio-group > div > label:nth-child(2) > label').contains('Owners & Members')
-        cy.get('#ff-app > div > div.ff-layout--platform--wrapper > div.ff-view > main > div > div:nth-child(2) > div > form > div.ff-radio-group > div > label:nth-child(2) > label').contains('Members')        
+        cy.get('#ff-app > div > div.ff-layout--platform--wrapper > div.ff-view > main > div > div:nth-child(2) > div > form > div.ff-radio-group > div > label:nth-child(2) > label').contains('Members')       
     })
 })
