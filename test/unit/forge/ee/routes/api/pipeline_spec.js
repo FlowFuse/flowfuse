@@ -1460,6 +1460,30 @@ describe('Pipelines API', function () {
                 }, 250)
             })
         }
+        async function isDeviceDeployComplete (device) {
+            const statusResponse = (await app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/${device.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })).json()
+
+            return {
+                isDeploying: statusResponse?.isDeploying === true,
+                targetSnapshotHashid: statusResponse?.targetSnapshot?.id
+            }
+        }
+
+        function waitForDeviceDeployGetTargetSnapshot (device) {
+            return new Promise((resolve, reject) => {
+                const refreshIntervalId = setInterval(async () => {
+                    const { isDeploying, targetSnapshotHashid } = await isDeviceDeployComplete(device)
+                    if (isDeploying) {
+                        clearInterval(refreshIntervalId)
+                        resolve(targetSnapshotHashid)
+                    }
+                }, 30)
+            })
+        }
 
         beforeEach(async function () {
             TestObjects.tokens.instanceOne = (await TestObjects.instanceOne.refreshAuthTokens()).token
@@ -1609,15 +1633,12 @@ describe('Pipelines API', function () {
                         const body = await response.json()
                         body.should.have.property('status', 'importing')
 
-                        // Wait 250ms for the deploy to complete (api returns early)
-                        await new Promise((resolve, reject) => setTimeout(resolve, 250))
-
-                        await TestObjects.deviceTwo.reload()
-
                         const createdSnapshot = await TestObjects.instanceOne.getLatestSnapshot()
                         should(createSnapshot).should.not.equal(undefined)
 
-                        TestObjects.deviceTwo.targetSnapshotId.should.equal(createdSnapshot.id)
+                        // Wait for the deploy to complete & check the target snapshot has been set
+                        const targetSnapshotHashid = await waitForDeviceDeployGetTargetSnapshot(TestObjects.deviceTwo)
+                        createdSnapshot.hashid.should.equal(targetSnapshotHashid)
                     })
                 })
             })
@@ -1965,9 +1986,6 @@ describe('Pipelines API', function () {
                         const body = await response.json()
                         body.should.have.property('status', 'importing')
 
-                        // Wait for the deploy to complete
-                        await waitForDeployToComplete(TestObjects.instanceTwo)
-
                         // No new snapshot should have been created in stage 1
                         const sourceDeviceSnapshots = await TestObjects.deviceOne.getProjectSnapshots()
                         sourceDeviceSnapshots.should.have.lengthOf(3)
@@ -1976,7 +1994,9 @@ describe('Pipelines API', function () {
                         const snapshots = await TestObjects.deviceTwo.getProjectSnapshots()
                         snapshots.should.have.lengthOf(0)
 
-                        TestObjects.deviceTwo.targetSnapshotId.should.equal(snapshotToSetAsTarget.id)
+                        // Wait for the deploy to complete & check the target snapshot has been set
+                        const targetSnapshotHashid = await waitForDeviceDeployGetTargetSnapshot(TestObjects.deviceTwo)
+                        snapshotToSetAsTarget.hashid.should.equal(targetSnapshotHashid)
                     })
                 })
             })
@@ -2004,9 +2024,6 @@ describe('Pipelines API', function () {
                     const body = await response.json()
                     body.should.have.property('status', 'importing')
 
-                    // Wait for the deploy to complete
-                    await waitForDeployToComplete(TestObjects.instanceTwo)
-
                     // No new snapshot should have been created in stage 1
                     const sourceInstanceSnapshots = await TestObjects.instanceOne.getProjectSnapshots()
                     sourceInstanceSnapshots.should.have.lengthOf(1)
@@ -2015,8 +2032,9 @@ describe('Pipelines API', function () {
                     const snapshots = await TestObjects.deviceTwo.getProjectSnapshots()
                     snapshots.should.have.lengthOf(0)
 
-                    await TestObjects.deviceTwo.reload()
-                    TestObjects.deviceTwo.targetSnapshotId.should.equal(existingSnapshot.id)
+                    // Wait for the deploy to complete & check the target snapshot has been set
+                    const targetSnapshotHashid = await waitForDeviceDeployGetTargetSnapshot(TestObjects.deviceTwo)
+                    existingSnapshot.hashid.should.equal(targetSnapshotHashid)
                 })
             })
         })
@@ -2215,9 +2233,6 @@ describe('Pipelines API', function () {
                     const body = await response.json()
                     body.should.have.property('status', 'importing')
 
-                    // Wait for the deploy to complete
-                    await waitForDeployToComplete(TestObjects.instanceTwo)
-
                     // No new snapshot should have been created in stage 1
                     const sourceDeviceSnapshots = await TestObjects.deviceOne.getProjectSnapshots()
                     sourceDeviceSnapshots.should.have.lengthOf(2)
@@ -2226,8 +2241,9 @@ describe('Pipelines API', function () {
                     const snapshots = await TestObjects.deviceTwo.getProjectSnapshots()
                     snapshots.should.have.lengthOf(0)
 
-                    await TestObjects.deviceTwo.reload()
-                    TestObjects.deviceTwo.targetSnapshotId.should.equal(latestSnapshot.id)
+                    // Wait for the deploy to complete & check the target snapshot has been set
+                    const targetSnapshotHashid = await waitForDeviceDeployGetTargetSnapshot(TestObjects.deviceTwo)
+                    latestSnapshot.hashid.should.equal(targetSnapshotHashid)
                 })
             })
 
@@ -2292,9 +2308,6 @@ describe('Pipelines API', function () {
                     const body = await response.json()
                     body.should.have.property('status', 'importing')
 
-                    // Wait for the deploy to complete
-                    await waitForDeployToComplete(TestObjects.instanceTwo)
-
                     // No new snapshot should have been created in stage 1
                     const sourceInstanceSnapshots = await TestObjects.instanceOne.getProjectSnapshots()
                     sourceInstanceSnapshots.should.have.lengthOf(1)
@@ -2303,8 +2316,9 @@ describe('Pipelines API', function () {
                     const snapshots = await TestObjects.deviceTwo.getProjectSnapshots()
                     snapshots.should.have.lengthOf(0)
 
-                    await TestObjects.deviceTwo.reload()
-                    TestObjects.deviceTwo.targetSnapshotId.should.equal(existingSnapshot.id)
+                    // Wait for the deploy to complete & check the target snapshot has been set
+                    const targetSnapshotHashid = await waitForDeviceDeployGetTargetSnapshot(TestObjects.deviceTwo)
+                    existingSnapshot.hashid.should.equal(targetSnapshotHashid)
                 })
             })
 
