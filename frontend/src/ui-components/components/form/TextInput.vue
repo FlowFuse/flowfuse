@@ -42,12 +42,12 @@ export default {
             type: String // "small", "normal"
         },
         type: {
-            default: 'text', // One of: 'text', 'email', or 'password'
+            default: 'text', // One of: 'text', 'email', 'password' or 'number'
             type: String
         },
         // v-model
         modelValue: {
-            type: String,
+            type: [Number, String],
             default: ''
         }
     },

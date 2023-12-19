@@ -10,17 +10,15 @@
                 </ff-button>
             </template>
         </SectionTopMenu>
-        <ff-tile-selection data-el="active-flow-blueprints">
-            <ff-tile-selection-option
+        <div data-el="blueprints" class="grid grid-cols-3 gap-4 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 max-w-screen-xl">
+            <BlueprintTile
                 v-for="(flowBlueprint, index) in activeFlowBlueprints"
                 :key="index"
+                :blueprint="flowBlueprint"
                 :editable="true"
-                :value="flowBlueprint.id"
-                :label="flowBlueprint.name"
-                :description="flowBlueprint.description"
-                @edit="showBlueprintForm(flowBlueprint)"
+                @selected="showBlueprintForm(flowBlueprint)"
             />
-        </ff-tile-selection>
+        </div>
         <div v-if="nextCursor">
             <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
         </div>
@@ -37,6 +35,7 @@
     </div>
     <FlowBlueprintFormDialog
         ref="adminFlowBlueprintDialog"
+        data-el="create-blueprint-dialog"
         @flow-blueprint-created="flowBlueprintCreated"
         @flow-blueprint-updated="flowBlueprintUpdated"
         @show-delete-dialog="showDeleteBlueprint"
@@ -56,6 +55,8 @@ import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import MarkdownCell from '../../../components/tables/cells/MarkdownCell.vue'
 import Dialog from '../../../services/dialog.js'
 
+import BlueprintTile from '../../instance/Blueprints/BlueprintTile.vue'
+
 import FlowBlueprintFormDialog from './dialogs/FlowBlueprintFormDialog.vue'
 
 const marked = require('marked')
@@ -65,7 +66,8 @@ export default {
     components: {
         SectionTopMenu,
         PlusSmIcon,
-        FlowBlueprintFormDialog
+        FlowBlueprintFormDialog,
+        BlueprintTile
     },
     data () {
         return {
@@ -80,7 +82,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings']),
+        ...mapState('account', ['features', 'settings']),
         flowBlueprintsArray () {
             return Array.from(this.flowBlueprints.values()).map((fb) => {
                 fb.htmlDescription = marked.parse(fb.description)
@@ -88,14 +90,22 @@ export default {
             })
         },
         activeFlowBlueprints () {
-            return this.flowBlueprintsArray.filter(pt => pt.active)
+            return this.flowBlueprintsArray
+                .filter(pt => pt.active)
+                .sort((a, b) => {
+                    return a.order - b.order
+                })
         },
         inactiveFlowBlueprints () {
             return this.flowBlueprintsArray.filter(pt => !pt.active)
         }
     },
     async created () {
-        await this.loadItems()
+        if (this.features?.flowBlueprints) {
+            await this.loadItems()
+        } else {
+            this.$router.push({ name: 'Admin Settings' })
+        }
     },
     methods: {
         async showBlueprintForm (flowBlueprint) {
