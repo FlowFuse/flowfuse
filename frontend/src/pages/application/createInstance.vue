@@ -40,7 +40,7 @@
 </template>
 
 <script>
-import { ChevronLeftIcon } from '@heroicons/vue/solid'
+import { ChevronLeftIcon } from '@heroicons/vue/solid/index.js'
 import { mapState } from 'vuex'
 
 import instanceApi from '../../api/instances.js'
