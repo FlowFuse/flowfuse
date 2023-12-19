@@ -24,6 +24,7 @@ describe('FlowFuse EE - Instance - Alerts', () => {
     })
 
     it('show Alerts settings', () => {
+        cy.intercept('PUT', '/api/*/projects/*').as('updateInstance')
         navigateToInstanceSettings('BTeam', 'instance-2-1')
 
         // check Alerts in list and click
@@ -36,7 +37,11 @@ describe('FlowFuse EE - Instance - Alerts', () => {
         cy.get('[data-el="notify-list"] div label:nth-child(2) label').contains('Owners & Members')
         cy.get('[data-el="notify-list"] div label:nth-child(2) label').contains('Members')
 
-        // Change and discard changes
+        // Change and save changes
         cy.get('[data-el="notify-list"] div label:nth-child(2)').click()
+        cy.get('[data-el="alert-save-button"]').click()
+
+        cy.wait('@updateInstance')
+        cy.wait('@getInstance')
     })
 })
