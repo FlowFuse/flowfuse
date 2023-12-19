@@ -165,7 +165,7 @@ export default {
                         this.input.properties.features.customCatalogs = true
                     }
                     if (this.input.properties.features.emailAlerts === undefined) {
-                        this.input.properties.features.emailAlerts = true
+                        this.input.properties.features.emailAlerts = false
                     }
                     if (this.input.properties.billing.proration === undefined) {
                         this.input.properties.billing.proration = 'always_invoice'
