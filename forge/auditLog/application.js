@@ -33,6 +33,20 @@ module.exports = {
                         await log('application.device.snapshot.device-target-set', actionedBy, application?.id, generateBody({ error, device, snapshot }))
                     }
                 }
+            },
+            deviceGroup: {
+                async created (actionedBy, error, application, deviceGroup) {
+                    await log('application.deviceGroup.created', actionedBy, application?.id, generateBody({ error, application, deviceGroup }))
+                },
+                async updated (actionedBy, error, application, deviceGroup, updates) {
+                    await log('application.deviceGroup.updated', actionedBy, application?.id, generateBody({ error, application, deviceGroup, updates }))
+                },
+                async deleted (actionedBy, error, application, deviceGroup) {
+                    await log('application.deviceGroup.deleted', actionedBy, application?.id, generateBody({ error, application, deviceGroup }))
+                },
+                async membersChanged (actionedBy, error, application, deviceGroup, updates, info) {
+                    await log('application.deviceGroup.members.changed', actionedBy, application?.id, generateBody({ error, application, deviceGroup, updates, info }))
+                }
             }
         }
 

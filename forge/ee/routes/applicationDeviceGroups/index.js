@@ -9,14 +9,21 @@
 
 const { ValidationError } = require('sequelize')
 
+const { UpdatesCollection } = require('../../../auditLog/formatters.js')
 const { registerPermissions } = require('../../../lib/permissions.js')
 const { Roles } = require('../../../lib/roles.js')
 const { DeviceGroupMembershipValidationError } = require('../../db/controllers/DeviceGroup.js')
+
+// Declare getLogger function to provide type hints / quick code nav / code completion
+/** @type {import('../../../../forge/auditLog/application').getLoggers} */
+const getApplicationLogger = (app) => { return app.auditLog.Application }
 
 /**
  * @param {import('../../../forge.js').ForgeApplication} app The application instance
  */
 module.exports = async function (app) {
+    const deviceGroupLogger = getApplicationLogger(app).application.deviceGroup
+
     registerPermissions({
         'application:device-group:create': { description: 'Create a device group', role: Roles.Owner },
         'application:device-group:list': { description: 'List device groups', role: Roles.Member },
@@ -149,6 +156,7 @@ module.exports = async function (app) {
         try {
             const newGroup = await app.db.controllers.DeviceGroup.createDeviceGroup(name, { application, description })
             const newGroupView = app.db.views.DeviceGroup.deviceGroupSummary(newGroup)
+            await deviceGroupLogger.created(request.session.User, null, application, newGroup)
             reply.code(201).send(newGroupView)
         } catch (error) {
             return handleError(error, reply)
@@ -195,7 +203,12 @@ module.exports = async function (app) {
         const name = request.body.name
         const description = request.body.description
         try {
-            await app.db.controllers.DeviceGroup.updateDeviceGroup(group, { name, description })
+            const originalDetails = { name: group.name, description: group.description }
+            const updatedGroup = await app.db.controllers.DeviceGroup.updateDeviceGroup(group, { name, description })
+            const newDetails = { name: updatedGroup.name, description: updatedGroup.description }
+            const updates = new UpdatesCollection()
+            updates.pushDifferences(originalDetails, newDetails)
+            await deviceGroupLogger.updated(request.session.User, null, request.application, group, updates)
             reply.send({})
         } catch (error) {
             return handleError(error, reply)
@@ -277,7 +290,44 @@ module.exports = async function (app) {
         const removeDevices = request.body.remove
         const setDevices = request.body.set
         try {
+            // get before state
+            const originalDevices = await group.getDevices()
+            const originalSorted = originalDevices.sort((a, b) => a.id - b.id)
+            // const originalMemberList = originalSorted.map(d => d.name).join(', ')
+
+            // update membership
             await app.db.controllers.DeviceGroup.updateDeviceGroupMembership(group, { addDevices, removeDevices, setDevices })
+
+            // get after state
+            const newDevices = await group.getDevices()
+            const newSorted = newDevices.sort((a, b) => a.id - b.id)
+            // const newMembers = newSorted.map(d => d.name).join(', ')
+
+            // compare original and new members, generate a list of added and a list of removed members
+            const added = new Set()
+            const removed = new Set()
+            for (const device of originalSorted) {
+                if (!newSorted.find(d => d.id === device.id)) {
+                    removed.add(device)
+                }
+            }
+            for (const device of newSorted) {
+                if (!originalSorted.find(d => d.id === device.id)) {
+                    added.add(device)
+                }
+            }
+
+            // generate audit log message e.g. "Added 2, removed 1"
+            const infoBuilder = []
+            if (added.size > 0) {
+                infoBuilder.push(`Added ${added.size}`)
+            }
+            if (removed.size > 0) {
+                infoBuilder.push(`Removed ${removed.size}`)
+            }
+
+            await deviceGroupLogger.membersChanged(request.session.User, null, request.application, group, null, { info: infoBuilder.join(', ') })
+
             reply.send({})
         } catch (err) {
             return handleError(err, reply)
@@ -315,6 +365,7 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const group = request.deviceGroup
         await group.destroy()
+        await deviceGroupLogger.deleted(request.session.User, null, request.application, group)
         reply.send({})
     })
 

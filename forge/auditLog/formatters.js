@@ -7,10 +7,10 @@ const isObject = (obj) => {
 /**
  * Generate a standard format body for the audit log display and database.
  * Any items null or missing must not generate a property in the body
- * @param {{ error?, team?, project?, sourceProject?, targetProject?, device?, sourceDevice?, targetDevice?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType?, info? } == {}} objects objects to include in body
- * @returns {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType? info? }
+ * @param {{ error?, team?, project?, sourceProject?, targetProject?, device?, sourceDevice?, targetDevice?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType?, info?, deviceGroup? } == {}} objects objects to include in body
+ * @returns {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType? info?, deviceGroup? }}
  */
-const generateBody = ({ error, team, application, project, sourceProject, targetProject, device, sourceDevice, targetDevice, user, stack, billingSession, subscription, license, updates, snapshot, pipeline, pipelineStage, role, projectType, info, interval, threshold } = {}) => {
+const generateBody = ({ error, team, application, project, sourceProject, targetProject, device, sourceDevice, targetDevice, user, stack, billingSession, subscription, license, updates, snapshot, pipeline, pipelineStage, role, projectType, info, deviceGroup, interval, threshold } = {}) => {
     const body = {}
 
     if (isObject(error) || typeof error === 'string') {
@@ -80,6 +80,9 @@ const generateBody = ({ error, team, application, project, sourceProject, target
     } else if (isStringWithLength(info)) {
         body.info = { info }
     }
+    if (isObject(deviceGroup)) {
+        body.deviceGroup = deviceGroupObject(deviceGroup)
+    }
 
     if (interval) {
         body.interval = interval
@@ -146,6 +149,7 @@ const formatLogEntry = (auditLogDbRow) => {
                 snapshot: body?.snapshot,
                 updates: body?.updates,
                 device: body?.device,
+                deviceGroup: body?.deviceGroup,
                 sourceDevice: body?.sourceDevice,
                 targetDevice: body?.targetDevice,
                 projectType: body?.projectType,
@@ -304,6 +308,13 @@ const projectTypeObject = (projectType) => {
         id: projectType?.id || null,
         hashid: projectType?.hashid || null,
         name: projectType?.name || null
+    }
+}
+const deviceGroupObject = (deviceGroup) => {
+    return {
+        id: deviceGroup?.id || null,
+        hashid: deviceGroup?.hashid || null,
+        name: deviceGroup?.name || null
     }
 }
 /**
@@ -573,6 +584,7 @@ module.exports = {
     teamObject,
     projectObject,
     deviceObject,
+    deviceGroupObject,
     userObject,
     stackObject,
     billingSessionObject,
