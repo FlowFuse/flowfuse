@@ -28,7 +28,7 @@ module.exports = {
         if (!stage) {
             throw new PipelineControllerError('not_found', 'Pipeline stage not found', 404)
         }
-        const pipeline = await stage.getPipeline()
+        const pipeline = await app.db.models.Pipeline.byId(stage.PipelineId)
         if (!pipeline) {
             throw new PipelineControllerError('not_found', 'Pipeline not found', 404)
         }
@@ -54,11 +54,35 @@ module.exports = {
             // * There can be only one device group and it can only be the last stage
             if (options.deviceGroupId) {
                 const stages = await pipeline.stages()
-                if (stages.length === 0 || stage.id === stages[0].id) {
+                if (stages.length === 0) {
+                    // this should never be reached but here for completeness
                     throw new PipelineControllerError('invalid_input', 'A Device Group cannot be the first stage', 400)
                 }
-                const lastStage = stages[stages.length - 1]
-                if (lastStage.id !== stage.id) {
+                // stages are a linked list, so the last stage is the one with no `NextStageId`
+                const lastStage = stages.find(s => !s.NextStageId)
+                // to get the first stage, we need to scan through them in reverse order
+                // where each stage is the next stage of the previous stage
+                let firstStage = lastStage
+                while (firstStage) {
+                    const prevStage = stages.find(s => s.NextStageId === firstStage.id)
+                    if (!prevStage) {
+                        break
+                    }
+                    firstStage = prevStage
+                }
+
+                // if the first stage is the same as the stage being updated, then it's the first stage
+                if (firstStage && firstStage.id === stage.id) {
+                    throw new PipelineControllerError('invalid_input', 'A Device Group cannot be the first stage', 400)
+                }
+
+                // filter out the stage being updated and check if any other stages have a device group
+                const otherStages = stages.filter(s => s.id !== stage.id)
+                if (otherStages.filter(s => s.DeviceGroups?.length).length) {
+                    throw new PipelineControllerError('invalid_input', 'A Device Group can only set on the last stage', 400)
+                }
+
+                if (lastStage && lastStage.id !== stage.id) {
                     throw new PipelineControllerError('invalid_input', 'A Device Group can only set on the last stage', 400)
                 }
             }
@@ -122,11 +146,9 @@ module.exports = {
             const stages = await pipeline.stages()
             const stageCount = stages.length
             if (stageCount === 0) {
-                // return reply.code(400).send({ code: 'invalid_input', error: 'A Device Group cannot be the first stage' })
                 throw new PipelineControllerError('invalid_input', 'A Device Group cannot be the first stage', 400)
             } else if (stages.filter(s => s.DeviceGroups?.length).length) {
-                // return reply.code(400).send({ code: 'invalid_input', error: 'A Device Group can only set on the last stage' })
-                throw new PipelineControllerError('invalid_input', 'A Device Group can only set on the last stage', 400)
+                throw new PipelineControllerError('invalid_input', 'Only one Device Group can only set in a pipeline', 400)
             }
         }
 
