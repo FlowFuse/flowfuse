@@ -15,6 +15,17 @@ module.exports = async function (config = {
     const userBob = await forge.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
 
     const defaultTeamType = await forge.db.models.TeamType.findOne({ where: { id: 1 } })
+    const defaultTeamTypeProperties = defaultTeamType.properties
+    if (defaultTeamTypeProperties.features) {
+        defaultTeamTypeProperties.features.emailAlerts = true
+    } else {
+        defaultTeamTypeProperties.features = {
+            emailAlerts: true
+        }
+    }
+    defaultTeamType.properties = defaultTeamTypeProperties
+    await defaultTeamType.save()
+
     const team1 = await forge.db.models.Team.create({ name: 'ATeam', TeamTypeId: defaultTeamType.id })
     await team1.addUser(userAlice, { through: { role: Roles.Owner } })
     await team1.addUser(userBob, { through: { role: Roles.Member } })
