@@ -30,6 +30,7 @@
                 :application="application"
                 :instances="instancesArray"
                 :devices="devicesArray"
+                :deviceGroupsEnabled="deviceGroupsEnabled"
                 :deviceGroups="deviceGroupsArray"
                 :is-visiting-admin="isVisitingAdmin"
                 :team="team"
@@ -91,6 +92,7 @@ export default {
             mounted: false,
             application: {},
             applicationDevices: [],
+            deviceGroupsEnabled: false,
             deviceGroups: [],
             applicationInstances: new Map(),
             loading: {
@@ -116,7 +118,7 @@ export default {
                     to: `/application/${this.application.id}/device-groups`,
                     tag: 'application-devices-groups-overview',
                     icon: ChipIcon,
-                    featureUnavailable: !this.features?.['device-groups']
+                    featureUnavailable: !this.features?.deviceGroups
                 },
                 { label: 'Snapshots', to: `/application/${this.application.id}/snapshots`, tag: 'application-snapshots', icon: ClockIcon },
                 {
@@ -174,13 +176,22 @@ export default {
                 const deviceData = await devicesPromise
                 this.applicationDevices = deviceData?.devices
                 const applicationInstances = await instancesPromise
-
-                if (this.features?.['device-groups']) {
-                    const deviceGroupsPromise = ApplicationApi.getDeviceGroups(applicationId)
-                    const deviceGroupsData = await deviceGroupsPromise
-                    this.deviceGroups = deviceGroupsData?.groups
+                if (this.features?.deviceGroups) {
+                    // DeviceGroups could be disabled for this team. However at this point
+                    // in time we may not have looked up the team object yet, so we cannot be
+                    // certain.
+                    try {
+                        const deviceGroupsData = await ApplicationApi.getDeviceGroups(applicationId)
+                        this.deviceGroups = deviceGroupsData?.groups
+                        this.deviceGroupsEnabled = true
+                    } catch (err) {
+                        // If device groups is disabled for this team, this call will 404.
+                        this.deviceGroups = []
+                        this.deviceGroupsEnabled = false
+                    }
                 } else {
                     this.deviceGroups = []
+                    this.deviceGroupsEnabled = false
                 }
 
                 this.applicationInstances = new Map()

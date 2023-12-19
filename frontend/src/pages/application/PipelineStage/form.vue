@@ -45,7 +45,7 @@
                     <template #icon><IconDeviceSolid /></template>
                 </ff-tile-selection-option>
                 <ff-tile-selection-option
-                    v-if="!isFirstStage"
+                    v-if="!isFirstStage && deviceGroupsEnabled"
                     label="Device Group"
                     :value="StageType.DEVICEGROUP"
                     description=""
@@ -239,6 +239,10 @@ export default {
         },
         instances: {
             type: Array,
+            required: true
+        },
+        deviceGroupsEnabled: {
+            type: Boolean,
             required: true
         },
         deviceGroups: {
