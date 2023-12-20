@@ -21,7 +21,10 @@ module.exports = {
         'modules_denyList',
         'httpNodeAuth_type',
         'httpNodeAuth_user',
-        'httpNodeAuth_pass'
+        'httpNodeAuth_pass',
+        'emailAlerts_crash',
+        'emailAlerts_safe',
+        'emailAlerts_recipients'
     ],
     passwordTypes: [
         'httpNodeAuth_pass'
@@ -48,7 +51,10 @@ module.exports = {
         modules_denyList: '',
         httpNodeAuth_type: '',
         httpNodeAuth_user: '',
-        httpNodeAuth_pass: ''
+        httpNodeAuth_pass: '',
+        emailAlerts_crash: false,
+        emailAlerts_safe: false,
+        emailAlerts_recipients: 'owners'
     },
     defaultTemplatePolicy: {
         disableEditor: true,
@@ -72,6 +78,9 @@ module.exports = {
         modules_denyList: false,
         httpNodeAuth_type: true,
         httpNodeAuth_user: true,
-        httpNodeAuth_pass: true
+        httpNodeAuth_pass: true,
+        emailAlerts_crash: true,
+        emailAlerts_safe: true,
+        emailAlerts_recipients: true
     }
 }
