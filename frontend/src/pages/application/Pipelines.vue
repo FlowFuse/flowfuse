@@ -50,7 +50,7 @@
             @stage-deleted="(stageIndex) => stageDeleted(pipeline, stageIndex)"
         />
     </div>
-    <EmptyState v-else :featureUnavailable="!featureEnabled" :featureUnavailableMessage="'This feature is not available'">
+    <EmptyState v-else :featureUnavailable="!featureEnabled">
         <template #header>Add your Application's First DevOps Pipeline</template>
         <template #img>
             <img src="../../images/empty-states/application-pipelines.png">

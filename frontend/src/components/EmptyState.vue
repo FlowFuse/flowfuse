@@ -41,7 +41,7 @@ export default {
         },
         featureUnavailableMessage: {
             type: String,
-            default: null
+            default: undefined
         },
         featureUnavailableToTeam: {
             type: Boolean,
