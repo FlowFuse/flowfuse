@@ -8,6 +8,7 @@
     <DesktopComputerIcon v-if="icon === 'stacks'" class="ff-icon text-red-700" />
     <ColorSwatchIcon v-if="icon === 'project-types'" class="ff-icon text-red-700" />
     <ChipIcon v-if="icon === 'device'" class="ff-icon text-blue-700" />
+    <DeviceGroupSolidIcon v-if="icon === 'device-group'" class="ff-icon text-teal-700" />
     <MailIcon v-if="icon === 'mail'" class="ff-icon text-green-700" />
     <IdentificationIcon v-if="icon === 'user-profile'" class="ff-icon text-green-700" />
     <UserIcon v-if="icon === 'user'" class="ff-icon text-green-700" />
@@ -34,6 +35,7 @@ import {
     TemplateIcon, TicketIcon, UserGroupIcon, UserIcon
 } from '@heroicons/vue/outline'
 
+import DeviceGroupSolidIcon from '../icons/DeviceGroupSolid.js'
 import NodeRedIcon from '../icons/NodeRed.js'
 import PipelineIcon from '../icons/Pipelines.js'
 import ProjectIcon from '../icons/Projects.js'
@@ -185,6 +187,12 @@ const iconMap = {
         'team.device.credentialsGenerated', // legacy event
         'project.snapshot.deviceTarget' // legacy event
     ],
+    'device-group': [
+        'application.deviceGroup.created',
+        'application.deviceGroup.updated',
+        'application.deviceGroup.deleted',
+        'application.deviceGroup.members.changed'
+    ],
     beaker: [
         'team.device.developer-mode.enabled',
         'team.device.developer-mode.disabled',
@@ -239,6 +247,7 @@ export default {
         NodeRedIcon,
         TemplateIcon,
         ChipIcon,
+        DeviceGroupSolidIcon,
         ColorSwatchIcon,
         MailIcon,
         CogIcon,

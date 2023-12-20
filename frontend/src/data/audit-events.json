@@ -47,7 +47,11 @@
         "application.device.unassigned": "Device Unassigned from Application",
         "application.device.snapshot.created": "Device Snapshot Created",
         "application.device.snapshot.deleted": "Device Snapshot Deleted",
-        "application.device.snapshot.device-target-set": "Device Target Snapshot Set"
+        "application.device.snapshot.device-target-set": "Device Target Snapshot Set",
+        "application.deviceGroup.created": "Device Group Created",
+        "application.deviceGroup.updated": "Device Group Updated",
+        "application.deviceGroup.deleted": "Device Group Deleted",
+        "application.deviceGroup.members.changed": "Device Group Members Changed"
     },
     "project": {
         "project.created": "Instance Created",
