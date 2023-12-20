@@ -4,7 +4,13 @@ const { ControllerError } = require('../../../lib/errors.js')
 const { registerPermissions } = require('../../../lib/permissions')
 const { Roles } = require('../../../lib/roles.js')
 
+// Declare getLogger functions to provide type hints / quick code nav / code completion
+/** @type {import('../../../../forge/auditLog/team').getLoggers} */
+const getTeamLogger = (app) => { return app.auditLog.Team }
+
 module.exports = async function (app) {
+    const teamLogger = getTeamLogger(app)
+
     registerPermissions({
         'pipeline:read': { description: 'View a pipeline', role: Roles.Member },
         'pipeline:create': { description: 'Create a pipeline', role: Roles.Owner },
@@ -490,6 +496,7 @@ module.exports = async function (app) {
         const user = request.session.User
 
         let repliedEarly = false
+        let sourceDeployed, deployTarget
         try {
             const sourceStage = await app.db.models.PipelineStage.byId(
                 request.params.stageId
@@ -519,12 +526,14 @@ module.exports = async function (app) {
                         targetStage
                     }
                 )
+                sourceDeployed = sourceInstance
             } else if (sourceDevice) {
                 sourceSnapshot = await app.db.controllers.Pipeline.getOrCreateSnapshotForSourceDevice(
                     sourceStage,
                     sourceDevice,
                     request.body?.sourceSnapshotId
                 )
+                sourceDeployed = sourceDevice
             } else {
                 throw new Error('No source device or instance found.')
             }
@@ -546,7 +555,7 @@ module.exports = async function (app) {
 
                 reply.code(200).send({ status: 'importing' })
                 repliedEarly = true
-
+                deployTarget = targetInstance
                 await deployPromise
             } else if (targetDevice) {
                 const deployPromise = app.db.controllers.Pipeline.deploySnapshotToDevice(
@@ -559,7 +568,7 @@ module.exports = async function (app) {
 
                 reply.code(200).send({ status: 'importing' })
                 repliedEarly = true
-
+                deployTarget = targetDevice
                 await deployPromise
             } else if (targetDeviceGroup) {
                 const deployPromise = app.db.controllers.Pipeline.deploySnapshotToDeviceGroup(
@@ -571,11 +580,13 @@ module.exports = async function (app) {
 
                 reply.code(200).send({ status: 'importing' })
                 repliedEarly = true
-
+                deployTarget = targetDeviceGroup
                 await deployPromise
             } else {
                 throw new Error('No target device or instance found.')
             }
+
+            await teamLogger.application.pipeline.stageDeployed(request.session.User, null, request.application.Team, request.application, request.pipeline, sourceDeployed, deployTarget)
         } catch (err) {
             if (repliedEarly) {
                 console.warn('Deploy failed, but response already sent', err)
