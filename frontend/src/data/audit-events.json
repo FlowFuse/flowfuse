@@ -77,6 +77,7 @@
         "auth.login.revoke": "User Logged Out",
         "crashed": "Node-RED has crashed",
         "stopped": "Node-RED has stopped",
+        "safe-mode": "Node-RED has been placed in Safe Mode",
         "settings.update": "Node-RED Settings Updated",
         "flows.set": "Flow Deployed",
         "library.set": "Saved to Library",

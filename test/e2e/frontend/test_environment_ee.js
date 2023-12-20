@@ -30,6 +30,10 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
                     }
                 }
             }
+        },
+        email: {
+            enabled: true,
+            debug: true
         }
     })
 

@@ -12,3 +12,4 @@ frontend/public/
 forge/containers/localfs_root/
 forge/licensing/dev-private-key_enc.pem
 test/
+ci/

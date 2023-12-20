@@ -190,6 +190,8 @@ module.exports = {
                         }
                     }
                     result.palette.denyList = paletteDenyList
+                } else {
+                    result.palette.denyList = []
                 }
             }
         }

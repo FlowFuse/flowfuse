@@ -78,6 +78,7 @@
                     <FormRow v-model="input.properties.features.teamHttpSecurity" type="checkbox">Team-based Endpoint Security</FormRow>
                     <FormRow v-model="input.properties.features.customCatalogs" type="checkbox">Custom NPM Catalogs</FormRow>
                     <FormRow v-model="input.properties.features.deviceGroups" type="checkbox">Device Groups</FormRow>
+                    <FormRow v-model="input.properties.features.emailAlerts" type="checkbox">Email Alerts</FormRow>
                     <div />
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
@@ -168,11 +169,14 @@ export default {
                         // Default to disabled
                         this.input.properties.features.deviceGroups = false
                     }
+                    if (this.input.properties.features.emailAlerts === undefined) {
+                        this.input.properties.features.emailAlerts = false
+                    }
                     if (this.input.properties.billing.proration === undefined) {
                         this.input.properties.billing.proration = 'always_invoice'
                     }
                     if (this.input.properties.trial.active && this.input.properties.trial.sendEmail === undefined) {
-                        this.input.properties.trial.sendEmail = true
+                        this.input.properties.trial.sendEmail = false
                     }
                 } else {
                     this.editDisabled = false

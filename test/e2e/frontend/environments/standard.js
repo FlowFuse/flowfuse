@@ -91,6 +91,15 @@ module.exports = async function (settings = {}, config = {}) {
             instanceType: projectType.hashid
         }
     }
+    if (config.email.enabled) {
+        if (teamTypeProperties.features) {
+            teamTypeProperties.features.emailAlerts = true
+        } else {
+            teamTypeProperties.features = {
+                emailAlerts: true
+            }
+        }
+    }
     teamType.properties = teamTypeProperties
     await teamType.save()
 
