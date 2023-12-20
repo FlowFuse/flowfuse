@@ -39,7 +39,7 @@
             </ff-data-table>
             <ff-code-previewer v-else ref="code-preview" :snippet="contents" />
         </div>
-        <EmptyState v-else :featureUnavailable="!featureEnabledForPlatform" :featureUnavailableToTeam="!featureEnabledForTeam">
+        <EmptyState v-else :featureUnavailable="!featureEnabledForPlatform" :featureUnavailableToTeam="!featureEnabledForTeam" :featureUnavailableMessage="'This feature is not available'">
             <template #img>
                 <img src="../../images/empty-states/team-library.png">
             </template>
