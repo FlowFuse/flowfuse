@@ -78,8 +78,8 @@ export default {
                         Any changes made to the device whilst in developer mode will be lost.
                     </p>
                     <p>
-                        To avoid losses, you can cancel this operation use the 'create snapshot'
-                        developer mode option before disabling developer mode.
+                        To avoid losses, you can cancel this operation and create a snapshot
+                        in the developer mode tab.
                     </p>`
                 }
                 const dialogResult = await Dialog.showAsync(msg)
