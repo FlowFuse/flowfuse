@@ -67,7 +67,6 @@
                                     <router-link class="mt-0.5 ml-3" :to="{ name: 'InstanceSettingsSecurity' }"><LinkIcon class="w-4" /></router-link>
                                 </div>
                             </td>
-                            
                         </tr>
                     </table>
                 </div>
