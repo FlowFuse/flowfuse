@@ -45,11 +45,13 @@
                     <template #icon><IconDeviceSolid /></template>
                 </ff-tile-selection-option>
                 <ff-tile-selection-option
-                    v-if="!isFirstStage && deviceGroupsEnabled"
+                    v-if="deviceGroupsEnabled"
                     label="Device Group"
                     :value="StageType.DEVICEGROUP"
                     description=""
                     color="#31959A"
+                    :disabled="isFirstStage"
+                    disabledTooltip="Device Groups are not available for the first stage in a pipeline"
                 >
                     <template #icon><IconDeviceGroupSolid /></template>
                 </ff-tile-selection-option>
