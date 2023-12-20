@@ -12,7 +12,7 @@
         @submit.prevent="submit"
     >
         <SectionTopMenu
-            :hero="'Edit Pipeline Stage'"
+            :hero="isEdit ? 'Edit Pipeline Stage' : 'Add Pipeline Stage'"
         />
 
         <!-- Form Description -->
@@ -43,6 +43,15 @@
                     color="#31959A"
                 >
                     <template #icon><IconDeviceSolid /></template>
+                </ff-tile-selection-option>
+                <ff-tile-selection-option
+                    v-if="!isFirstStage && deviceGroupsEnabled"
+                    label="Device Group"
+                    :value="StageType.DEVICEGROUP"
+                    description=""
+                    color="#31959A"
+                >
+                    <template #icon><IconDeviceGroupSolid /></template>
                 </ff-tile-selection-option>
             </ff-tile-selection>
         </div>
@@ -86,12 +95,26 @@
                     Choose Device
                 </template>
             </FormRow>
+            <!-- Device Group -->
+            <FormRow
+                v-else-if="input.stageType === StageType.DEVICEGROUP"
+                v-model="input.deviceGroupId"
+                :options="deviceGroupOptions"
+                data-form="stage-device-group"
+                :placeholder="deviceGroupDropdownPlaceholder"
+                :disabled="deviceGroupDropdownDisabled"
+            >
+                <template #default>
+                    Choose Device Group
+                </template>
+            </FormRow>
 
             <div v-else class="text-sm text-gray-500">Please select a stage type</div>
         </div>
 
         <!-- Action -->
         <FormRow
+            v-if="input.stageType !== StageType.DEVICEGROUP"
             v-model="input.action"
             :options="actionOptions"
             data-form="stage-action"
@@ -106,7 +129,7 @@
             </template>
         </FormRow>
 
-        <ff-dialog ref="help-dialog" class="ff-dialog-box--info" header="Snapshot Actions">
+        <ff-dialog v-if="input.stageType !== StageType.DEVICEGROUP" ref="help-dialog" class="ff-dialog-box--info" header="Snapshot Actions">
             <template #default>
                 <div class="flex gap-8">
                     <slot name="pictogram"><img src="../../../images/pictograms/snapshot_red.png"></slot>
@@ -191,10 +214,13 @@
 <script>
 import { InformationCircleIcon } from '@heroicons/vue/outline'
 
+import { mapState } from 'vuex'
+
 import { StageAction, StageType } from '../../../api/pipeline.js'
 
 import FormRow from '../../../components/FormRow.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import IconDeviceGroupSolid from '../../../components/icons/DeviceGroupSolid.js'
 import IconDeviceSolid from '../../../components/icons/DeviceSolid.js'
 import IconNodeRedSolid from '../../../components/icons/NodeRedSolid.js'
 
@@ -204,6 +230,7 @@ export default {
         InformationCircleIcon,
         SectionTopMenu,
         FormRow,
+        IconDeviceGroupSolid,
         IconDeviceSolid,
         IconNodeRedSolid
     },
@@ -213,6 +240,10 @@ export default {
             required: true
         },
         instances: {
+            type: Array,
+            required: true
+        },
+        deviceGroups: {
             type: Array,
             required: true
         },
@@ -244,6 +275,7 @@ export default {
                 name: stage?.name,
                 instanceId: stage.instances?.[0].id, // API supports multiple instances per stage but UI only exposes one
                 deviceId: stage.devices?.[0].id, // API supports multiple devices per stage but UI only exposes one
+                deviceGroupId: stage.deviceGroups?.[0].id, // API supports multiple devices per stage but UI only exposes one
                 action: stage?.action,
                 deployToDevices: stage.deployToDevices || false,
                 stageType: stage.stageType || StageType.INSTANCE
@@ -251,20 +283,38 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['team', 'features']),
         isEdit () {
             return !!this.stage.id
+        },
+        isFirstStage () {
+            if (this.isEdit) {
+                // if the editing stage is the first stage, then it is the first stage
+                return this.pipeline.stages[0].id === this.stage.id
+            } else {
+                // if there are no stages, then this is (will be) the first stage
+                if (this.pipeline.stages.length === 0) {
+                    return true
+                }
+                // if there are stages, then this cannot be the first stage
+                return false
+            }
         },
         formDirty () {
             return (
                 this.input.name !== this.stage.name ||
                 this.input.instanceId !== this.stage.instances?.[0].id ||
                 this.input.deviceId !== this.stage.devices?.[0].id ||
-                this.input.action !== this.stage.action ||
-                this.input.deployToDevices !== this.stage.deployToDevices
+                this.input.deviceGroupId !== this.stage.deviceGroups?.[0].id ||
+                (this.input.stageType !== StageType.DEVICEGROUP && this.input.action !== this.stage.action) ||
+                (this.input.stageType !== StageType.DEVICEGROUP && this.input.deployToDevices !== this.stage.deployToDevices)
             )
         },
         submitEnabled () {
-            return this.formDirty && (this.input.instanceId || this.input.deviceId) && this.input.name && this.input.action
+            return this.formDirty &&
+                (this.input.instanceId || this.input.deviceId || this.input.deviceGroupId) &&
+                this.input.name &&
+                (this.input.stageType === StageType.DEVICEGROUP ? true : this.input.action)
         },
 
         instancesNotInUse () {
@@ -330,6 +380,27 @@ export default {
 
             return 'Choose Application Level Device'
         },
+        deviceGroupsEnabled () {
+            return this.features?.deviceGroups && this.team?.type.properties.features?.deviceGroups
+        },
+        deviceGroupOptions () {
+            return this.deviceGroups?.map((device) => {
+                return {
+                    label: device.name,
+                    value: device.id
+                }
+            }) || []
+        },
+        deviceGroupDropdownDisabled () {
+            return this.deviceGroupOptions.length === 0
+        },
+        deviceGroupDropdownPlaceholder () {
+            if (this.deviceGroupOptions.length === 0) {
+                return 'No Application Level Device Groups available'
+            }
+
+            return 'Choose Application Level Device Group'
+        },
 
         actionOptions () {
             const type = this.input.stageType === StageType.DEVICE ? 'device' : 'instance'
@@ -369,13 +440,22 @@ export default {
 
             if (this.input.stageType === StageType.INSTANCE) {
                 this.input.deviceId = null
+                this.input.deviceGroupId = null
             } else if (this.input.stageType === StageType.DEVICE) {
+                this.input.deviceGroupId = null
                 this.input.instanceId = null
+            } else if (this.input.stageType === StageType.DEVICEGROUP) {
+                this.input.instanceId = null
+                this.input.deviceId = null
             }
 
             // Ensure deploy to device is not set with "Device" type stage
             if (this.input.stageType === StageType.DEVICE) {
                 this.input.deployToDevices = false
+            }
+
+            if (this.input.stageType === StageType.DEVICEGROUP) {
+                this.input.action = StageAction.PROMPT // default to PROMPT (not used)
             }
 
             this.$emit('submit', this.input)

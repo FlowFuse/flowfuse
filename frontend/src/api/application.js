@@ -5,7 +5,7 @@ import paginateUrl from '../utils/paginateUrl.js'
 
 import client from './client.js'
 
-import { StageType } from './pipeline.js'
+import { getStageType } from './pipeline.js'
 
 const createApplication = (options) => {
     return client.post('/api/v1/applications', options).then(res => {
@@ -134,7 +134,6 @@ const getApplicationInstancesStatuses = async (applicationId, cursor, limit) => 
 const getPipelines = async (applicationId) => {
     const result = await client.get(`/api/v1/applications/${applicationId}/pipelines`)
     const pipelines = result.data.pipelines
-
     return pipelines.map((pipeline) => {
         pipeline.stages = pipeline.stages.map((stage) => {
             // Might be null if there are no associated objects
@@ -143,6 +142,9 @@ const getPipelines = async (applicationId) => {
             }
             if (!stage.devices) {
                 stage.devices = []
+            }
+            if (!stage.deviceGroups) {
+                stage.deviceGroups = []
             }
 
             // Hydrate all loaded devices
@@ -160,7 +162,11 @@ const getPipelines = async (applicationId) => {
             // only exposes connecting one
             stage.device = stage.devices?.[0]
 
-            stage.stageType = stage.instance ? StageType.INSTANCE : (stage.device ? StageType.DEVICE : null)
+            // The backend supports multiple device groups per stage but the UI
+            // only exposes connecting one
+            stage.deviceGroup = stage.deviceGroups?.[0]
+
+            stage.stageType = getStageType(stage)
 
             return stage
         })
@@ -277,10 +283,10 @@ const getDeviceGroup = async (applicationId, groupId) => {
  * Get all device groups for an application
  * @param {string} applicationId - The ID of application to get device groups for
  */
-const getDeviceGroups = async (applicationId) => {
-    return client.get(`/api/v1/applications/${applicationId}/device-groups`).then(res => {
-        return res.data
-    })
+const getDeviceGroups = async (applicationId, cursor, limit, query, extraParams = {}) => {
+    const url = paginateUrl(`/api/v1/applications/${applicationId}/device-groups`, cursor, limit, query, extraParams)
+    const res = await client.get(url)
+    return res.data
 }
 
 /**

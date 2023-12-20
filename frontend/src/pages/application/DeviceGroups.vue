@@ -8,13 +8,15 @@
             <img src="../../images/pictograms/device_group_red.png">
         </template>
         <template #helptext>
-            <p>
-                Application Device Groups permit the grouping of Application assigned Devices.
-            </p>
+            <p>Application Device Groups permit the grouping of Application assigned Devices.</p>
+            <p>The device groups can then be set as the target in a DevOps Pipeline to update multiple devices in a single operation</p>
         </template>
     </SectionTopMenu>
-
-    <div v-if="deviceGroups?.length > 0" class="pt-4 space-y-6" data-el="pipelines-list">
+    <ff-loading
+        v-if="loading"
+        message="Loading Device Groups..."
+    />
+    <div v-else-if="deviceGroups?.length > 0" class="pt-4 space-y-6" data-el="pipelines-list">
         <ff-data-table v-model:search="tableSearch" :columns="tableColumns" :rows="deviceGroups" :show-search="true" search-placeholder="Filter..." :rows-selectable="true" @row-selected="editDeviceGroup">
             <template #actions>
                 <ff-button data-action="create-device-group" :disabled="!featureEnabled" @click="showCreateDeviceGroupDialog">
@@ -24,18 +26,14 @@
             </template>
         </ff-data-table>
     </div>
-    <EmptyState v-else :featureUnavailable="!featureEnabled" :featureUnavailableMessage="'Device Groups are an enterprise feature'">
+    <EmptyState v-else :featureUnavailable="!featureEnabledForPlatform" :featureUnavailableToTeam="!featureEnabledForTeam" :featureUnavailableMessage="'Device Groups are an enterprise feature'">
         <template #header>Add your Application's First Device Group</template>
         <template #img>
             <img src="../../images/empty-states/application-device-groups.png">
         </template>
         <template #message>
-            <p>
-                Application Device Groups permit the grouping of Application assigned Devices.
-            </p>
-            <p>
-                <!--{# TODO: Update this message when groups are useful to pipelines. #}-->
-            </p>
+            <p>Application Device Groups permit the grouping of Application assigned Devices.</p>
+            <p>The device groups can then be set as the target in a DevOps Pipeline to update multiple devices in a single operation</p>
         </template>
         <template #actions>
             <ff-button data-action="create-device-group" :disabled="!featureEnabled" @click="showCreateDeviceGroupDialog">
@@ -97,10 +95,15 @@ export default {
         application: {
             type: Object,
             required: true
+        },
+        team: {
+            type: Object,
+            required: true
         }
     },
     data () {
         return {
+            loading: false,
             deviceGroups: [],
             input: {
                 name: '',
@@ -131,8 +134,14 @@ export default {
     },
     computed: {
         ...mapState('account', ['features']),
+        featureEnabledForTeam () {
+            return !!this.team.type.properties.features?.deviceGroups
+        },
+        featureEnabledForPlatform () {
+            return this.features.deviceGroups
+        },
         featureEnabled () {
-            return this.features['device-groups']
+            return this.featureEnabledForTeam && this.featureEnabledForPlatform
         }
     },
     mounted () {
@@ -172,12 +181,15 @@ export default {
             this.$router.push(route)
         },
         async loadDeviceGroups () {
+            this.loading = true
             ApplicationAPI.getDeviceGroups(this.application.id)
                 .then((groups) => {
                     this.deviceGroups = groups.groups
                 })
                 .catch((err) => {
                     console.error(err)
+                }).finally(() => {
+                    this.loading = false
                 })
         }
     }

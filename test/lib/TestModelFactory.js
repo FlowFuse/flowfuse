@@ -188,6 +188,10 @@ module.exports = class TestModelFactory {
         })
     }
 
+    async addDeviceToGroup (device, deviceGroup) {
+        await device.setDeviceGroup(deviceGroup)
+    }
+
     /**
      * Create a device and add it to a team. Optionally, add it to a project instance or application.
      * @param {Object} deviceDetails - device details to override defaults

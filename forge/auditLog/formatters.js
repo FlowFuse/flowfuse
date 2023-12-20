@@ -7,10 +7,10 @@ const isObject = (obj) => {
 /**
  * Generate a standard format body for the audit log display and database.
  * Any items null or missing must not generate a property in the body
- * @param {{ error?, team?, project?, sourceProject?, targetProject?, device?, sourceDevice?, targetDevice?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType?, info? } == {}} objects objects to include in body
- * @returns {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, role?, projectType? info? }
+ * @param {{ error?, team?, project?, sourceProject?, targetProject?, device?, sourceDevice?, targetDevice?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, pipeline?, pipelineStage?, pipelineStageTarget?, role?, projectType?, info?, interval?, threshold? } == {}} objects objects to include in body
+ * @returns {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, pipeline?, pipelineStage?, pipelineStageTarget?, role?, projectType? info?, interval?, threshold? }
  */
-const generateBody = ({ error, team, application, project, sourceProject, targetProject, device, sourceDevice, targetDevice, user, stack, billingSession, subscription, license, updates, snapshot, pipeline, pipelineStage, role, projectType, info, interval, threshold } = {}) => {
+const generateBody = ({ error, team, application, project, sourceProject, targetProject, device, sourceDevice, targetDevice, user, stack, billingSession, subscription, license, updates, snapshot, pipeline, pipelineStage, pipelineStageTarget, role, projectType, info, interval, threshold } = {}) => {
     const body = {}
 
     if (isObject(error) || typeof error === 'string') {
@@ -68,6 +68,9 @@ const generateBody = ({ error, team, application, project, sourceProject, target
     }
     if (isObject(pipelineStage)) {
         body.pipelineStage = pipelineStageObject(pipelineStage)
+    }
+    if (isObject(pipelineStageTarget)) {
+        body.pipelineStageTarget = pipelineStageObject(pipelineStageTarget)
     }
     if (isObject(role) || typeof role === 'number') {
         body.role = roleObject(role)
@@ -152,6 +155,7 @@ const formatLogEntry = (auditLogDbRow) => {
                 info: body?.info,
                 pipeline: body?.pipeline,
                 pipelineStage: body?.pipelineStage,
+                pipelineStageTarget: body?.pipelineStageTarget,
                 interval: body?.interval,
                 threshold: body?.threshold
             })

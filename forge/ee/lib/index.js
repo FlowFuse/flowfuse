@@ -13,7 +13,7 @@ module.exports = fp(async function (app, opts, done) {
         // Set the MFA Feature Flag
         app.config.features.register('mfa', true, true)
         // Set the Device Groups Feature Flag
-        app.config.features.register('device-groups', true, true)
+        app.config.features.register('deviceGroups', true, true)
     }
 
     // Set the Team Library Feature Flag

@@ -149,6 +149,9 @@ module.exports = {
                 },
                 async stageAdded (actionedBy, error, team, application, pipeline, pipelineStage) {
                     await log('application.pipeline.stage-added', actionedBy, team?.id, generateBody({ error, team, application, pipeline, pipelineStage }))
+                },
+                async stageDeployed (actionedBy, error, team, application, pipeline, sourcePipelineStage, targetPipelineStage) {
+                    await log('application.pipeline.stage-deployed', actionedBy, team?.id, generateBody({ error, team, application, pipeline, pipelineStage: sourcePipelineStage, pipelineStageTarget: targetPipelineStage }))
                 }
             }
         }
