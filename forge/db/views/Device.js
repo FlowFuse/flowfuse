@@ -27,7 +27,11 @@ module.exports = function (app) {
             team: { $ref: 'TeamSummary' },
             instance: { $ref: 'InstanceSummary' },
             application: { $ref: 'ApplicationSummary' },
-            editor: { type: 'object', additionalProperties: true }
+            editor: { type: 'object', additionalProperties: true },
+            deviceGroup: {
+                nullable: true,
+                allOf: [{ $ref: 'DeviceGroupSummary' }]
+            }
         }
     })
 
@@ -36,7 +40,7 @@ module.exports = function (app) {
             return null
         }
 
-        const result = device.toJSON()
+        const result = device.toJSON ? device.toJSON() : device
 
         if (statusOnly) {
             return {
@@ -64,7 +68,8 @@ module.exports = function (app) {
             agentVersion: result.agentVersion,
             mode: result.mode || 'autonomous',
             ownerType: result.ownerType,
-            isDeploying: app.db.controllers.Device.isDeploying(device)
+            isDeploying: app.db.controllers.Device.isDeploying(device),
+            deviceGroup: device.DeviceGroup && app.db.views.DeviceGroup.deviceGroupSummary(device.DeviceGroup)
         }
         if (device.Team) {
             filtered.team = app.db.views.Team.teamSummary(device.Team)
@@ -104,7 +109,7 @@ module.exports = function (app) {
     })
     function deviceSummary (device, { includeSnapshotIds = false } = {}) {
         if (device) {
-            const result = device.toJSON()
+            const result = device.toJSON ? device.toJSON() : device
             const filtered = {
                 id: result.hashid,
                 ownerType: result.ownerType,

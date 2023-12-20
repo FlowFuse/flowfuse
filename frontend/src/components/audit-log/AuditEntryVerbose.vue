@@ -331,6 +331,12 @@
         <span v-if="!error && entry.body?.pipeline && entry.body?.pipelineStage">Pipeline Stage '{{ entry.body.pipelineStage?.name }}' was added to the DevOps Pipeline '{{ entry.body.pipeline?.name }}' {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }}</span>
         <span v-else-if="!error">Pipeline data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'application.pipeline.stage-deployed'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.pipeline && entry.body?.pipelineStage && !entry.body?.pipelineStageTarget">Pipeline Stage '{{ entry.body.pipelineStage.name }}' in DevOps Pipeline '{{ entry.body.pipeline.name }}' {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }} was deployed</span>
+        <span v-if="!error && entry.body?.pipeline && entry.body?.pipelineStage && entry.body?.pipelineStageTarget">Pipeline Stage '{{ entry.body.pipelineStage.name }}' in DevOps Pipeline '{{ entry.body.pipeline.name }}' {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }} was deployed to '{{ entry.body.pipelineStageTarget.name }}'</span>
+        <span v-else-if="!error">Pipeline data not found in audit entry.</span>
+    </template>
 
     <!-- Application Device Events -->
     <template v-else-if="entry.event === 'application.device.assigned'">
@@ -357,6 +363,28 @@
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.device && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been set as the target for Application owned device '{{ entry.body.device.name }}'.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
+    </template>
+
+    <!-- Application Device Group Events -->
+    <template v-else-if="entry.event === 'application.deviceGroup.updated'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.deviceGroup">Device Group '{{ entry.body.deviceGroup?.name }}' was updated for Application '{{ entry.body.application?.name }}' with the following changes: <AuditEntryUpdates :updates="entry.body.updates" /></span>
+        <span v-else-if="!error">Device Group data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'application.deviceGroup.created'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.deviceGroup">Device Group '{{ entry.body.deviceGroup?.name }}' was created for Application '{{ entry.body.application?.name }}'.</span>
+        <span v-else-if="!error">Device Group data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'application.deviceGroup.deleted'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.deviceGroup">Device Group '{{ entry.body.deviceGroup?.name }}' was deleted from Application '{{ entry.body.application?.name }}'.</span>
+        <span v-else-if="!error">Device Group data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'application.deviceGroup.members.changed'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.deviceGroup">Device Group '{{ entry.body.deviceGroup?.name }}' members in Application '{{ entry.body.application?.name }} updated: {{ entry.body?.info?.info ?? 'No changes' }}.</span>
+        <span v-else-if="!error">Device Group data not found in audit entry.</span>
     </template>
 
     <!-- Instance Events -->

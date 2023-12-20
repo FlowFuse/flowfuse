@@ -5,8 +5,20 @@ import client from './client.js'
 
 export const StageType = Object.freeze({
     INSTANCE: 'instance',
-    DEVICE: 'device'
+    DEVICE: 'device',
+    DEVICEGROUP: 'device-group'
 })
+
+export const getStageType = (stage) => {
+    if (stage.instance) {
+        return StageType.INSTANCE
+    } else if (stage.device) {
+        return StageType.DEVICE
+    } else if (stage.deviceGroup) {
+        return StageType.DEVICEGROUP
+    }
+    return null
+}
 
 export const StageAction = Object.freeze({
     CREATE_SNAPSHOT: 'create_snapshot',
@@ -34,8 +46,12 @@ const getPipelineStage = async (pipelineId, stageId) => {
                 res.data.device.lastSeenSince = res.data.device.lastSeenAt ? elapsedTime(0, res.data.device.lastSeenMs) + ' ago' : ''
             }
 
+            // Again, the backend supports multiple device groups per stage but the UI
+            // only exposes connecting one
+            res.data.deviceGroup = res.data.deviceGroups?.[0]
+
             // Frontend only supports one type of object per stage
-            res.data.stageType = res.data.instance ? StageType.INSTANCE : (res.data.device ? StageType.DEVICE : null)
+            res.data.stageType = getStageType(res.data)
 
             return res.data
         })
@@ -50,6 +66,7 @@ const addPipelineStage = async (pipelineId, stage) => {
         name: stage.name,
         instanceId: stage.instanceId,
         deviceId: stage.deviceId,
+        deviceGroupId: stage.deviceGroupId,
         deployToDevices: stage.deployToDevices,
         action: stage.action
     }
