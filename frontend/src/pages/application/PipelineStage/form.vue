@@ -45,7 +45,7 @@
                     <template #icon><IconDeviceSolid /></template>
                 </ff-tile-selection-option>
                 <ff-tile-selection-option
-                    v-if="!isFirstStage"
+                    v-if="!isFirstStage && deviceGroupsEnabled"
                     label="Device Group"
                     :value="StageType.DEVICEGROUP"
                     description=""
@@ -214,6 +214,8 @@
 <script>
 import { InformationCircleIcon } from '@heroicons/vue/outline'
 
+import { mapState } from 'vuex'
+
 import { StageAction, StageType } from '../../../api/pipeline.js'
 
 import FormRow from '../../../components/FormRow.vue'
@@ -281,6 +283,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['team', 'features']),
         isEdit () {
             return !!this.stage.id
         },
@@ -376,6 +379,9 @@ export default {
             }
 
             return 'Choose Application Level Device'
+        },
+        deviceGroupsEnabled () {
+            return this.features?.deviceGroups && this.team?.type.properties.features?.deviceGroups
         },
         deviceGroupOptions () {
             return this.deviceGroups?.map((device) => {

@@ -116,7 +116,7 @@ export default {
                     to: `/application/${this.application.id}/device-groups`,
                     tag: 'application-devices-groups-overview',
                     icon: ChipIcon,
-                    featureUnavailable: !this.features?.['device-groups']
+                    featureUnavailable: !this.features?.deviceGroups
                 },
                 { label: 'Snapshots', to: `/application/${this.application.id}/snapshots`, tag: 'application-snapshots', icon: ClockIcon },
                 {
@@ -167,18 +167,20 @@ export default {
 
             try {
                 this.applicationInstances = []
-                const applicationPromise = ApplicationApi.getApplication(applicationId)
+                this.application = await ApplicationApi.getApplication(applicationId)
+                // Check to see if we have the right team loaded
+                if (this.team?.slug !== this.application.team.slug) {
+                    // Load the team for this application
+                    await this.$store.dispatch('account/setTeam', this.application.team.slug)
+                }
                 const instancesPromise = ApplicationApi.getApplicationInstances(applicationId) // To-do needs to be enriched with instance state
                 const devicesPromise = ApplicationApi.getApplicationDevices(applicationId)
-                this.application = await applicationPromise
                 const deviceData = await devicesPromise
                 this.applicationDevices = deviceData?.devices
                 const applicationInstances = await instancesPromise
-
-                if (this.features?.['device-groups']) {
-                    const deviceGroupsPromise = ApplicationApi.getDeviceGroups(applicationId)
-                    const deviceGroupsData = await deviceGroupsPromise
-                    this.deviceGroups = deviceGroupsData?.groups
+                if (this.features?.deviceGroups && this.team.type.properties.features?.deviceGroups) {
+                    const deviceGroupsData = await ApplicationApi.getDeviceGroups(applicationId)
+                    this.deviceGroups = deviceGroupsData?.groups || []
                 } else {
                     this.deviceGroups = []
                 }
@@ -202,8 +204,6 @@ export default {
                     .catch((err) => {
                         console.error(err)
                     })
-
-                this.$store.dispatch('account/setTeam', this.application.team.slug)
             } catch (err) {
                 this.$router.push({
                     name: 'PageNotFound',
