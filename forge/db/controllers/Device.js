@@ -78,37 +78,6 @@ module.exports = {
         }
     },
     /**
-     * Sends the project id, snapshot hash and settings hash to all devices in the group
-     * so that they can determine what/if it needs to update
-     * NOTE: Only devices belonging to an application are present in a device group
-     * @param {forge.db.models.DeviceGroup} deviceGroup The device group to send an "update" command to
-     */
-    sendDeviceGroupUpdateCommand: async function (app, deviceGroup) {
-        if (app.comms) {
-            const application = await deviceGroup.getApplication({ include: [{ model: app.db.models.Team }] })
-            const targetSnapshot = deviceGroup.targetSnapshot || (await app.db.models.ProjectSnapshot.byId(deviceGroup.PipelineStageDeviceGroup.targetSnapshotId))
-            const payloadTemplate = {
-                ownerType: 'application',
-                application: application.hashid,
-                snapshot: targetSnapshot.hashid,
-                settings: null,
-                mode: null,
-                licensed: app.license.active()
-            }
-            const devices = await deviceGroup.getDevices()
-            for (const device of devices) {
-                // If the device doesnt have the same target snapshot as the group, skip it
-                if (device.targetSnapshotId !== deviceGroup.PipelineStageDeviceGroup.targetSnapshotId) {
-                    continue
-                }
-                const payload = { ...payloadTemplate }
-                payload.settings = device.settingsHash || null
-                payload.mode = device.mode
-                app.comms.devices.sendCommand(application.Team.hashid, device.hashid, 'update', payload)
-            }
-        }
-    },
-    /**
      * Remove platform specific environment variables
      * @param {[{name:string, value:string}]} envVars Environment variables array
      */

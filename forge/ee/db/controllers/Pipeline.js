@@ -447,7 +447,7 @@ module.exports = {
             // updates.push('targetSnapshotId', originalSnapshotId, targetDeviceGroup.targetSnapshotId)
             // await app.auditLog.Team.team.device.updated(user, null, targetDeviceGroup.Team, targetDeviceGroup, updates)
 
-            await app.db.controllers.Device.sendDeviceGroupUpdateCommand(targetDeviceGroup)
+            await app.db.controllers.DeviceGroup.sendUpdateCommand(targetDeviceGroup)
         } catch (err) {
             throw new PipelineControllerError('unexpected_error', `Error during deploy: ${err.toString()}`, 500, { cause: err })
         }
