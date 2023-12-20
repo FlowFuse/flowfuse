@@ -1,3 +1,4 @@
+import InstanceSettingsAlerts from './Alerts.vue'
 import ChangeInstanceTypePage from './ChangeInstanceType.vue'
 import InstanceSettingsDanger from './Danger.vue'
 import InstanceSettingsEditor from './Editor.vue'
@@ -22,5 +23,6 @@ export default [
         meta: {
             title: 'Instance - Change Type'
         }
-    }
+    },
+    { path: 'alerts', component: InstanceSettingsAlerts }
 ]

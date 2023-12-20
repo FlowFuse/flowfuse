@@ -91,6 +91,15 @@ module.exports = async function (settings = {}, config = {}) {
             instanceType: projectType.hashid
         }
     }
+    if (config.email.enabled) {
+        if (teamTypeProperties.features) {
+            teamTypeProperties.features.emailAlerts = true
+        } else {
+            teamTypeProperties.features = {
+                emailAlerts: true
+            }
+        }
+    }
     teamType.properties = teamTypeProperties
     await teamType.save()
 
@@ -140,8 +149,13 @@ module.exports = async function (settings = {}, config = {}) {
     await factory.createSnapshot({ name: 'snapshot 2' }, instanceWithDevices, userBob)
     await factory.createSnapshot({ name: 'snapshot 3' }, instanceWithDevices, userBob)
 
-    // create a device bound to an application directly
+    // create devices bound to application directly
     await factory.createDevice({ name: 'application-device-a', type: 'type2' }, team2, null, application2)
+    const deviceB = await factory.createDevice({ name: 'application-device-b', type: 'type2' }, team2, null, application2)
+
+    // create a device group and add deviceB to it
+    const deviceGroup = await factory.createApplicationDeviceGroup({ name: 'application-device-group-a' }, application2)
+    await factory.addDeviceToGroup(deviceB, deviceGroup)
 
     forge.teams = [team1, team2]
     forge.projectTypes = [projectType, spareProjectType]

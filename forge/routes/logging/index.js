@@ -55,6 +55,10 @@ module.exports = async function (app) {
             await app.db.controllers.Project.removeProjectModule(request.project, auditEvent.module)
         } else if (event === 'modules.install' && !error) {
             await app.db.controllers.Project.addProjectModule(request.project, auditEvent.module, auditEvent.version || '*')
+        } else if (event === 'crashed' || event === 'safe-mode') {
+            if (app.config.features.enabled('emailAlerts')) {
+                await app.auditLog.alerts.generate(projectId, event)
+            }
         }
 
         response.status(200).send()

@@ -53,6 +53,11 @@ module.exports = async function (app) {
                     return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                 }
             }
+
+            const teamType = await request.application.Team.getTeamType()
+            if (!teamType.getFeatureProperty('deviceGroups', false)) {
+                return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+            }
         } catch (err) {
             return reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }

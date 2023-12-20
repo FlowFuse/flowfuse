@@ -72,7 +72,7 @@
         </FormRow>
 
         <div v-if="!creatingApplication || input.createInstance" :class="creatingApplication ? 'ml-6' : ''" class="space-y-6">
-            <template v-if="creatingNew && showFlowBlueprintSelection && !input.flowBlueprintId">
+            <template v-if="blueprintSelectionVisible">
                 <!-- Blueprints Selection First -->
                 <BlueprintSelection :blueprints="blueprints" @selected="selectBlueprint" />
             </template>
@@ -232,7 +232,7 @@
             </template>
         </div>
         <!-- Submit -->
-        <div class="flex flex-wrap gap-1 items-center">
+        <div v-if="!blueprintSelectionVisible" class="flex flex-wrap gap-1 items-center">
             <ff-button
                 v-if="!creatingNew"
                 class="ff-btn--secondary"
@@ -468,6 +468,9 @@ export default {
         },
         selectedBlueprint () {
             return this.blueprints.find((blueprint) => blueprint.id === this.input.flowBlueprintId)
+        },
+        blueprintSelectionVisible () {
+            return this.creatingNew && this.showFlowBlueprintSelection && !this.input.flowBlueprintId
         }
     },
     watch: {

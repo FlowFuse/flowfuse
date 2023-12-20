@@ -15,6 +15,10 @@ describe('Audit Log > Team', async function () {
     let ROLE
     let BILLING_SESSION
     let SUBSCRIPTION
+    let APPLICATION
+    let PIPELINE
+    let PIPELINE_STAGE_1
+    let PIPELINE_STAGE_2
 
     // temporarily assign the logger purely for type info & intellisense
     // so that xxxxxLogger.yyy.zzz function parameters are offered
@@ -37,6 +41,10 @@ describe('Audit Log > Team', async function () {
         ROLE = Roles.Member
         BILLING_SESSION = { id: 'billing_session' }
         SUBSCRIPTION = { subscription: 'subscription' }
+        APPLICATION = await app.db.models.Application.create({ name: 'application1', TeamId: TEAM.id })
+        PIPELINE = { id: 'pipeline', name: 'pipeline', ApplicationId: APPLICATION.id }
+        PIPELINE_STAGE_1 = { id: 'pipeline_stage_1', name: 'pipeline stage 1', NextStageId: 'pipeline_stage_2', PipelineId: PIPELINE.id }
+        PIPELINE_STAGE_2 = { id: 'pipeline_stage_2', name: 'pipeline stage 2', NextStageId: null, PipelineId: PIPELINE.id }
     })
     after(async () => {
         await app.close()
@@ -547,6 +555,92 @@ describe('Audit Log > Team', async function () {
         logEntry.body.info.should.only.have.keys('tokenId', 'tokenName')
         logEntry.body.info.should.have.property('tokenId', 'BBB222')
         logEntry.body.info.should.have.property('tokenName', 'Token Name 4')
+    })
+    // #endregion
+
+    // #region Team - application
+    describe('Application events', async function () {
+        it('Provides a logger for creating an application in a team', async function () {
+            await teamLogger.application.created(ACTIONED_BY, null, TEAM, APPLICATION)
+            // check log stored
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'application.created')
+            logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+            logEntry.should.have.property('body').and.be.an.Object()
+            logEntry.body.should.only.have.keys('application', 'team')
+        })
+
+        it('Provides a logger for updating an application in a team', async function () {
+            await teamLogger.application.updated(ACTIONED_BY, null, TEAM, APPLICATION, [{ key: 'name', old: 'old', new: 'new' }])
+            // check log stored
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'application.updated')
+            logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+            logEntry.should.have.property('body').and.be.an.Object()
+            logEntry.body.should.only.have.keys('application', 'team', 'updates')
+        })
+
+        it('Provides a logger for deleting an application in a team', async function () {
+            await teamLogger.application.deleted(ACTIONED_BY, null, TEAM, APPLICATION)
+            // check log stored
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'application.deleted')
+            logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+            logEntry.should.have.property('body').and.be.an.Object()
+            logEntry.body.should.only.have.keys('application', 'team')
+        })
+
+        describe('Pipeline events', async function () {
+            it('Provides a logger for creating a pipeline in an application', async function () {
+                await teamLogger.application.pipeline.created(ACTIONED_BY, null, TEAM, APPLICATION, PIPELINE)
+                // check log stored
+                const logEntry = await getLog()
+                logEntry.should.have.property('event', 'application.pipeline.created')
+                logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+                logEntry.should.have.property('body').and.be.an.Object()
+                logEntry.body.should.only.have.keys('application', 'team', 'pipeline')
+            })
+
+            it('Provides a logger for updating a pipeline in an application', async function () {
+                await teamLogger.application.pipeline.updated(ACTIONED_BY, null, TEAM, APPLICATION, PIPELINE, [{ key: 'name', old: 'old', new: 'new' }])
+                // check log stored
+                const logEntry = await getLog()
+                logEntry.should.have.property('event', 'application.pipeline.updated')
+                logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+                logEntry.should.have.property('body').and.be.an.Object()
+                logEntry.body.should.only.have.keys('application', 'team', 'pipeline', 'updates')
+            })
+
+            it('Provides a logger for deleting a pipeline in an application', async function () {
+                await teamLogger.application.pipeline.deleted(ACTIONED_BY, null, TEAM, APPLICATION, PIPELINE)
+                // check log stored
+                const logEntry = await getLog()
+                logEntry.should.have.property('event', 'application.pipeline.deleted')
+                logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+                logEntry.should.have.property('body').and.be.an.Object()
+                logEntry.body.should.only.have.keys('application', 'team', 'pipeline')
+            })
+
+            it('Provides a logger for adding a stage to a pipeline in an application', async function () {
+                await teamLogger.application.pipeline.stageAdded(ACTIONED_BY, null, TEAM, APPLICATION, PIPELINE, PIPELINE_STAGE_1)
+                // check log stored
+                const logEntry = await getLog()
+                logEntry.should.have.property('event', 'application.pipeline.stage-added')
+                logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+                logEntry.should.have.property('body').and.be.an.Object()
+                logEntry.body.should.only.have.keys('application', 'team', 'pipeline', 'pipelineStage')
+            })
+
+            it('Provides a logger for deploying a stage in a pipeline in an application', async function () {
+                await teamLogger.application.pipeline.stageDeployed(ACTIONED_BY, null, TEAM, APPLICATION, PIPELINE, PIPELINE_STAGE_1, PIPELINE_STAGE_2)
+                // check log stored
+                const logEntry = await getLog()
+                logEntry.should.have.property('event', 'application.pipeline.stage-deployed')
+                logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+                logEntry.should.have.property('body').and.be.an.Object()
+                logEntry.body.should.only.have.keys('application', 'team', 'pipeline', 'pipelineStage', 'pipelineStageTarget')
+            })
+        })
     })
     // #endregion
 })

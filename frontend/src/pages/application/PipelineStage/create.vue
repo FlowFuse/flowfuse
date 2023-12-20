@@ -3,6 +3,7 @@
         <PipelineStageForm
             :applicationDevices="applicationDevices"
             :instances="instances"
+            :deviceGroups="deviceGroups"
             :pipeline="pipeline"
             :stage="{}"
             :sourceStage="$route.query.sourceStage"
@@ -39,6 +40,10 @@ export default {
             type: Array,
             required: true
         },
+        deviceGroups: {
+            type: Array,
+            required: true
+        },
         pipeline: {
             type: Object,
             required: true
@@ -61,6 +66,7 @@ export default {
                 name: input.name,
                 instanceId: input.instanceId,
                 deviceId: input.deviceId,
+                deviceGroupId: input.deviceGroupId,
                 deployToDevices: input.deployToDevices,
                 action: input.action
             }

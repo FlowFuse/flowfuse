@@ -47,6 +47,7 @@ const iconMap = {
     nodered: [
         'crashed',
         'stopped',
+        'safe-mode',
         'settings.update',
         'flows.set',
         'library.set',
@@ -208,6 +209,7 @@ const iconMap = {
         'application.pipeline.updated',
         'application.pipeline.deleted',
         'application.pipeline.stage-added',
+        'application.pipeline.stage-deployed',
         'project.assigned-to-pipeline-stage'
     ],
     resource: [

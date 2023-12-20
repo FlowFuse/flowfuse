@@ -331,6 +331,12 @@
         <span v-if="!error && entry.body?.pipeline && entry.body?.pipelineStage">Pipeline Stage '{{ entry.body.pipelineStage?.name }}' was added to the DevOps Pipeline '{{ entry.body.pipeline?.name }}' {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }}</span>
         <span v-else-if="!error">Pipeline data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'application.pipeline.stage-deployed'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.pipeline && entry.body?.pipelineStage && !entry.body?.pipelineStageTarget">Pipeline Stage '{{ entry.body.pipelineStage.name }}' in DevOps Pipeline '{{ entry.body.pipeline.name }}' {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }} was deployed</span>
+        <span v-if="!error && entry.body?.pipeline && entry.body?.pipelineStage && entry.body?.pipelineStageTarget">Pipeline Stage '{{ entry.body.pipelineStage.name }}' in DevOps Pipeline '{{ entry.body.pipeline.name }}' {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }} was deployed to '{{ entry.body.pipelineStageTarget.name }}'</span>
+        <span v-else-if="!error">Pipeline data not found in audit entry.</span>
+    </template>
 
     <!-- Application Device Events -->
     <template v-else-if="entry.event === 'application.device.assigned'">
@@ -506,6 +512,10 @@
     <template v-else-if="entry.event === 'stopped'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span>Something has gone wrong. Check the instance logs to investigate further.</span>
+    </template>
+    <template v-else-if="entry.event === 'safe-mode'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span>Something has gone wrong repeatedly. Check the instance logs to investigate further.</span>
     </template>
     <template v-else-if="entry.event === 'settings.update'">
         <label>{{ AuditEvents[entry.event] }}</label>

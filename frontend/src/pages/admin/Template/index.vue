@@ -31,6 +31,8 @@
 <script>
 import { ChevronRightIcon } from '@heroicons/vue/solid'
 
+import { mapState } from 'vuex'
+
 import templateApi from '../../../api/templates.js'
 import SectionSideMenu from '../../../components/SectionSideMenu.vue'
 import alerts from '../../../services/alerts.js'
@@ -45,23 +47,11 @@ import {
     templateValidators
 } from './utils.js'
 
-const sideNavigation = [
-    { name: 'Settings', path: './settings' },
-    { name: 'Security', path: './Security' },
-    { name: 'Environment', path: './environment' },
-    { name: 'Palette', path: './palette' }
-]
-
 export default {
     name: 'AdminTemplate',
     components: {
         SectionSideMenu,
         ChevronRightIcon
-    },
-    setup () {
-        return {
-            sideNavigation
-        }
     },
     data () {
         return {
@@ -97,6 +87,21 @@ export default {
             icons: {
                 breadcrumbSeparator: ChevronRightIcon
             }
+        }
+    },
+    computed: {
+        ...mapState('account', ['features', 'settings']),
+        sideNavigation: function () {
+            const nav = [
+                { name: 'Settings', path: './settings' },
+                { name: 'Security', path: './Security' },
+                { name: 'Environment', path: './environment' },
+                { name: 'Palette', path: './palette' }
+            ]
+            if (this.features?.emailAlerts) {
+                nav.push({ name: 'Alerts', path: './alerts' })
+            }
+            return nav
         }
     },
     watch: {
