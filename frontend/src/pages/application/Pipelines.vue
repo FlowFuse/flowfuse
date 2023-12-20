@@ -4,6 +4,9 @@
         help-header="FlowFuse - DevOps Pipelines"
         info="Configure automated deployments between your Instances"
     >
+        <template #pictogram>
+            <img src="../../images/pictograms/pipeline_red.png">
+        </template>
         <template #helptext>
             <p>
                 DevOps Pipelines are used to link multiple Node-RED instances together
