@@ -49,20 +49,23 @@
                         <tr class="border-b">
                             <td class="font-medium">Security</td>
                             <td class="py-2">
-                                <template v-if="instance.settings.httpNodeAuth">
-                                    <template v-if="instance.settings.httpNodeAuth.type == 'basic'">
-                                        HTTP basic authentication
+                                <div class="flex">
+                                    <template v-if="instance.settings.httpNodeAuth">
+                                        <template v-if="instance.settings.httpNodeAuth.type == 'basic'">
+                                            HTTP basic authentication
+                                        </template>
+                                        <template v-else-if="instance.settings.httpNodeAuth.type == 'flowforge-user'">
+                                            FlowFuse User Authentication
+                                        </template>
+                                        <template v-else>
+                                            None
+                                        </template>
                                     </template>
-                                    <template v-else-if="instance.settings.httpNodeAuth.type == 'flowforge-user'">
-                                        FlowFuse User Authentication
-                                    </template>
-                                    <template v-else>
+                                    <span v-else>
                                         None
-                                    </template>
-                                </template>
-                                <span v-else class="text-gray-400 italic">
-                                    Unknown
-                                </span>
+                                    </span>
+                                    <router-link class="mt-0.5 ml-3" :to="{ name: 'InstanceSettingsSecurity' }"><LinkIcon class="w-4" /></router-link>
+                                </div>
                             </td>
                         </tr>
                     </table>
@@ -113,7 +116,7 @@
 </template>
 
 <script>
-import { ExternalLinkIcon, ServerIcon, TemplateIcon, TrendingUpIcon } from '@heroicons/vue/outline'
+import { ExternalLinkIcon, LinkIcon, ServerIcon, TemplateIcon, TrendingUpIcon } from '@heroicons/vue/outline'
 
 import { mapState } from 'vuex'
 
@@ -132,6 +135,7 @@ export default {
         ExternalLinkIcon,
         FormHeading,
         InstanceStatusBadge,
+        LinkIcon,
         ServerIcon,
         StatusBadge,
         TemplateIcon,

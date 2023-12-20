@@ -12,7 +12,7 @@ export default [
     { path: 'general', component: InstanceSettingsGeneral },
     { path: 'environment', component: InstanceSettingsEnvVar },
     { path: 'editor', component: InstanceSettingsEditor },
-    { path: 'security', component: InstanceSettingsSecurity },
+    { name: 'InstanceSettingsSecurity', path: 'security', component: InstanceSettingsSecurity },
     { path: 'palette', component: InstanceSettingsPalette },
     { path: 'danger', component: InstanceSettingsDanger },
     { path: 'ha', name: 'InstanceSettingsHA', component: InstanceSettingsHA },
