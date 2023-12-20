@@ -8,7 +8,6 @@
             :applicationDevices="devices"
             :instances="instances"
             :deviceGroups="deviceGroups"
-            :deviceGroupsEnabled="deviceGroupsEnabled"
             :pipeline="pipeline"
         />
     </div>
@@ -31,10 +30,6 @@ export default {
         },
         devices: {
             type: Array,
-            required: true
-        },
-        deviceGroupsEnabled: {
-            type: Boolean,
             required: true
         },
         deviceGroups: {

@@ -8,7 +8,6 @@
             :applicationDevices="applicationDevices"
             :instances="instances"
             :deviceGroups="deviceGroups"
-            :deviceGroupsEnabled="deviceGroupsEnabled"
             :pipeline="pipeline"
             :stage="stage"
             :sourceStage="$route.query.sourceStage"
@@ -46,10 +45,6 @@ export default {
         },
         deviceGroups: {
             type: Array,
-            required: true
-        },
-        deviceGroupsEnabled: {
-            type: Boolean,
             required: true
         },
         pipeline: {
