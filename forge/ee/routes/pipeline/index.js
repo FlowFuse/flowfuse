@@ -4,7 +4,13 @@ const { ControllerError } = require('../../../lib/errors.js')
 const { registerPermissions } = require('../../../lib/permissions')
 const { Roles } = require('../../../lib/roles.js')
 
+// Declare getLogger functions to provide type hints / quick code nav / code completion
+/** @type {import('../../../../forge/auditLog/team').getLoggers} */
+const getTeamLogger = (app) => { return app.auditLog.Team }
+
 module.exports = async function (app) {
+    const teamLogger = getTeamLogger(app)
+
     registerPermissions({
         'pipeline:read': { description: 'View a pipeline', role: Roles.Member },
         'pipeline:create': { description: 'Create a pipeline', role: Roles.Owner },
@@ -85,18 +91,14 @@ module.exports = async function (app) {
                 ApplicationId: request.application.id
             })
         } catch (error) {
-            if (error instanceof ValidationError) {
-                if (error.errors[0]) {
-                    return reply.status(400).type('application/json').send({ code: `invalid_${error.errors[0].path}`, error: error.errors[0].message })
-                }
-
-                return reply.status(400).type('application/json').send({ code: 'invalid_input', error: error.message })
+            if (handleValidationError(error, reply)) {
+                return
             }
 
             app.log.error('Error while creating pipeline:')
             app.log.error(error)
 
-            return reply.status(500).send({ code: 'unexpected_error', error: error.toString() })
+            return reply.code(500).send({ code: 'unexpected_error', error: error.toString() })
         }
 
         await app.auditLog.Team.application.pipeline.created(request.session.User, null, team, request.application, pipeline)
@@ -255,6 +257,7 @@ module.exports = async function (app) {
                     name: { type: 'string' },
                     instanceId: { type: 'string' },
                     deviceId: { type: 'string' },
+                    deviceGroupId: { type: 'string' },
                     source: { type: 'string' },
                     action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) }
                 }
@@ -271,7 +274,7 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const team = await request.teamMembership.getTeam()
         const name = request.body.name?.trim() // name of the stage
-        const { instanceId, deviceId, deployToDevices, action } = request.body
+        const { instanceId, deviceId, deviceGroupId, deployToDevices, action } = request.body
 
         let stage
         try {
@@ -279,6 +282,7 @@ module.exports = async function (app) {
                 name,
                 instanceId,
                 deviceId,
+                deviceGroupId,
                 deployToDevices,
                 action
             }
@@ -290,21 +294,12 @@ module.exports = async function (app) {
                 options
             )
         } catch (error) {
-            if (error instanceof ValidationError) {
-                if (error.errors[0]) {
-                    return reply.code(400).type('application/json').send({ code: `invalid_${error.errors[0].path}`, error: error.errors[0].message })
-                }
-
-                return reply.code(400).type('application/json').send({ code: 'invalid_input', error: error.message })
+            if (handleValidationError(error, reply)) {
+                return
             }
 
-            if (error instanceof ControllerError) {
-                return reply
-                    .code(error.statusCode || 400)
-                    .send({
-                        code: error.code || 'unexpected_error',
-                        error: error.error || error.message
-                    })
+            if (handleControllerError(error, reply)) {
+                return
             }
 
             app.log.error('Error while creating pipeline stage:')
@@ -348,6 +343,7 @@ module.exports = async function (app) {
                     name: { type: 'string' },
                     instanceId: { type: 'string' },
                     deviceId: { type: 'string' },
+                    deviceGroupId: { type: 'string' },
                     action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) }
                 }
             },
@@ -362,62 +358,38 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         try {
-            const stage = await app.db.models.PipelineStage.byId(request.params.stageId)
-
-            if (request.body.name) {
-                stage.name = request.body.name
+            const options = {
+                name: request.body.name,
+                instanceId: request.body.instanceId,
+                deployToDevices: request.body.deployToDevices,
+                action: request.body.action,
+                deviceId: request.body.deviceId,
+                deviceGroupId: request.body.deviceGroupId
             }
 
-            if (request.body.action) {
-                stage.action = request.body.action
-            }
-
-            // Null will remove devices and instances, undefined skips
-            if (request.body.instanceId !== undefined || request.body.deviceId !== undefined) {
-                // Currently only one instance or device per stage is supported
-                const instances = await stage.getInstances()
-                for (const instance of instances) {
-                    await stage.removeInstance(instance)
-                }
-
-                // Currently only one device per stage is supported
-                const devices = await stage.getDevices()
-                for (const device of devices) {
-                    await stage.removeDevice(device)
-                }
-
-                if (request.body.instanceId && request.body.deviceId) {
-                    return reply.code(400).send({ code: 'invalid_input', error: 'Must provide instanceId or deviceId, not both' })
-                } else if (request.body.instanceId) {
-                    await stage.addInstanceId(request.body.instanceId)
-                } else if (request.body.deviceId) {
-                    await stage.addDeviceId(request.body.deviceId)
-                }
-            }
-
-            if (request.body.deployToDevices !== undefined) {
-                stage.deployToDevices = request.body.deployToDevices
-            }
-
-            await stage.save()
-
-            // Load in devices and instance objects from ids
-            await stage.reload()
+            const stage = await app.db.controllers.Pipeline.updatePipelineStage(
+                request.params.stageId,
+                options
+            )
 
             reply.send(await app.db.views.PipelineStage.stage(stage))
-        } catch (err) {
-            if (err instanceof ValidationError) {
-                if (err.errors[0]) {
-                    return reply.status(400).type('application/json').send({ code: `invalid_${err.errors[0].path}`, error: err.errors[0].message })
+        } catch (error) {
+            if (error instanceof ValidationError) {
+                if (error.errors[0]) {
+                    return reply.status(400).type('application/json').send({ code: `invalid_${error.errors[0].path}`, error: error.errors[0].message })
                 }
 
-                return reply.status(400).type('application/json').send({ code: 'invalid_input', error: err.message })
+                return reply.status(400).type('application/json').send({ code: 'invalid_input', error: error.message })
+            }
+
+            if (handleControllerError(error, reply)) {
+                return
             }
 
             app.log.error('Error while updating pipeline stage:')
-            app.log.error(err)
+            app.log.error(error)
 
-            return reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
+            return reply.code(500).send({ code: 'unexpected_error', error: error.toString() })
         }
     })
 
@@ -524,6 +496,7 @@ module.exports = async function (app) {
         const user = request.session.User
 
         let repliedEarly = false
+        let sourceDeployed, deployTarget
         try {
             const sourceStage = await app.db.models.PipelineStage.byId(
                 request.params.stageId
@@ -534,6 +507,7 @@ module.exports = async function (app) {
                 targetInstance,
                 sourceDevice,
                 targetDevice,
+                targetDeviceGroup,
                 targetStage
             } = await app.db.controllers.Pipeline.validateSourceStageForDeploy(
                 request.pipeline,
@@ -552,12 +526,14 @@ module.exports = async function (app) {
                         targetStage
                     }
                 )
+                sourceDeployed = sourceInstance
             } else if (sourceDevice) {
                 sourceSnapshot = await app.db.controllers.Pipeline.getOrCreateSnapshotForSourceDevice(
                     sourceStage,
                     sourceDevice,
                     request.body?.sourceSnapshotId
                 )
+                sourceDeployed = sourceDevice
             } else {
                 throw new Error('No source device or instance found.')
             }
@@ -579,7 +555,7 @@ module.exports = async function (app) {
 
                 reply.code(200).send({ status: 'importing' })
                 repliedEarly = true
-
+                deployTarget = targetInstance
                 await deployPromise
             } else if (targetDevice) {
                 const deployPromise = app.db.controllers.Pipeline.deploySnapshotToDevice(
@@ -592,11 +568,25 @@ module.exports = async function (app) {
 
                 reply.code(200).send({ status: 'importing' })
                 repliedEarly = true
+                deployTarget = targetDevice
+                await deployPromise
+            } else if (targetDeviceGroup) {
+                const deployPromise = app.db.controllers.Pipeline.deploySnapshotToDeviceGroup(
+                    sourceSnapshot,
+                    targetDeviceGroup,
+                    {
+                        user
+                    })
 
+                reply.code(200).send({ status: 'importing' })
+                repliedEarly = true
+                deployTarget = targetDeviceGroup
                 await deployPromise
             } else {
                 throw new Error('No target device or instance found.')
             }
+
+            await teamLogger.application.pipeline.stageDeployed(request.session.User, null, request.application.Team, request.application, request.pipeline, sourceDeployed, deployTarget)
         } catch (err) {
             if (repliedEarly) {
                 console.warn('Deploy failed, but response already sent', err)
@@ -657,4 +647,29 @@ module.exports = async function (app) {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
     })
+
+    function handleValidationError (error, reply) {
+        if (error instanceof ValidationError) {
+            if (error.errors[0]) {
+                return reply.status(400).type('application/json').send({ code: `invalid_${error.errors[0].path}`, error: error.errors[0].message })
+            }
+
+            reply.status(400).type('application/json').send({ code: 'invalid_input', error: error.message })
+            return true // handled
+        }
+        return false // not handled
+    }
+
+    function handleControllerError (error, reply) {
+        if (error instanceof ControllerError) {
+            reply
+                .code(error.statusCode || 400)
+                .send({
+                    code: error.code || 'unexpected_error',
+                    error: error.error || error.message
+                })
+            return true // handled
+        }
+        return false // not handled
+    }
 }

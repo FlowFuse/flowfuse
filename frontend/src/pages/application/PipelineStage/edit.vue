@@ -7,6 +7,7 @@
             v-else
             :applicationDevices="applicationDevices"
             :instances="instances"
+            :deviceGroups="deviceGroups"
             :pipeline="pipeline"
             :stage="stage"
             :sourceStage="$route.query.sourceStage"
@@ -39,6 +40,10 @@ export default {
             required: true
         },
         instances: {
+            type: Array,
+            required: true
+        },
+        deviceGroups: {
             type: Array,
             required: true
         },
@@ -77,6 +82,7 @@ export default {
                 name: input.name,
                 instanceId: input.instanceId,
                 deviceId: input.deviceId,
+                deviceGroupId: input.deviceGroupId,
                 deployToDevices: input.deployToDevices,
                 action: input.action
             }

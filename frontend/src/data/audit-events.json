@@ -32,6 +32,7 @@
         "application.pipeline.updated": "DevOps Pipeline Updated",
         "application.pipeline.deleted": "DevOps Pipeline Deleted",
         "application.pipeline.stage-added": "Pipeline Stage Added",
+        "application.pipeline.stage-deployed": "Pipeline Stage Deployed",
         "project.created": "Instance Created",
         "project.deleted": "Instance Deleted",
         "project.duplicated": "Instance Duplicated",

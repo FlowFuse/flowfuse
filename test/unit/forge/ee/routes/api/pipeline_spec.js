@@ -15,7 +15,11 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 describe('Pipelines API', function () {
     const sandbox = sinon.createSandbox()
 
-    const TestObjects = { tokens: {} }
+    const TestObjects = {
+        tokens: {},
+        /** @type {TestModelFactory} */
+        factory: null
+    }
 
     let app
 
@@ -83,6 +87,9 @@ describe('Pipelines API', function () {
         TestObjects.deviceOne = await TestObjects.factory.createDevice({ name: 'device-a', type: 'dog' }, app.team, null, app.application)
         TestObjects.deviceTwo = await TestObjects.factory.createDevice({ name: 'device-b', type: 'robot' }, app.team, null, app.application)
 
+        TestObjects.deviceGroupOne = await TestObjects.factory.createApplicationDeviceGroup({ name: 'device-group-a' }, app.application)
+        TestObjects.deviceGroupTwo = await TestObjects.factory.createApplicationDeviceGroup({ name: 'device-group-b' }, app.application)
+
         const userPez = await TestObjects.factory.createUser({
             admin: false,
             username: 'pez',
@@ -104,11 +111,17 @@ describe('Pipelines API', function () {
         sandbox.restore()
     })
     beforeEach(async function () {
-        TestObjects.pipeline = await app.factory.createPipeline({ name: 'new-pipeline' }, app.application)
-        TestObjects.stageOne = await app.factory.createPipelineStage({ name: 'stage-one', instanceId: app.instance.id }, TestObjects.pipeline)
+        /** @type {TestModelFactory} */
+        const factory = app.factory
+        TestObjects.pipeline = await factory.createPipeline({ name: 'new-pipeline' }, app.application)
+        TestObjects.stageOne = await factory.createPipelineStage({ name: 'stage-one', instanceId: app.instance.id }, TestObjects.pipeline)
 
-        TestObjects.pipelineDevices = await app.factory.createPipeline({ name: 'new-pipeline-devices' }, app.application)
-        TestObjects.pipelineDevicesStageOne = await app.factory.createPipelineStage({ name: 'stage-one-devices', deviceId: TestObjects.deviceOne.id, action: 'use_latest_snapshot' }, TestObjects.pipelineDevices)
+        TestObjects.pipelineDevices = await factory.createPipeline({ name: 'new-pipeline-devices' }, app.application)
+        TestObjects.pipelineDevicesStageOne = await factory.createPipelineStage({ name: 'stage-one-devices', deviceId: TestObjects.deviceOne.id, action: 'use_latest_snapshot' }, TestObjects.pipelineDevices)
+
+        TestObjects.pipelineDeviceGroups = await factory.createPipeline({ name: 'new-pipeline-device-groups' }, app.application)
+        TestObjects.pipelineDeviceGroupsStageOne = await factory.createPipelineStage({ name: 'stage-one-instance', instanceId: app.instance.id, action: 'use_latest_snapshot' }, TestObjects.pipelineDeviceGroups)
+        TestObjects.pipelineDeviceGroupsStageTwo = await factory.createPipelineStage({ name: 'stage-two-device-group', deviceGroupId: TestObjects.deviceGroupOne.id, source: TestObjects.pipelineDeviceGroupsStageOne.hashid, action: 'use_latest_snapshot' }, TestObjects.pipelineDeviceGroups)
     })
     afterEach(async function () {
         await app.db.models.PipelineStage.destroy({ where: {} })
@@ -239,6 +252,84 @@ describe('Pipelines API', function () {
             })
         })
 
+        describe('With device group', function () {
+            it('Should create a pipeline stage', async function () {
+                const pipelineId = TestObjects.pipeline.hashid
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/pipelines/${pipelineId}/stages`,
+                    payload: {
+                        name: 'stage-two',
+                        deviceGroupId: TestObjects.deviceGroupTwo.hashid,
+                        action: 'prompt'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(200)
+
+                const body = await response.json()
+
+                body.should.have.property('id')
+                body.should.have.property('name', 'stage-two')
+                body.should.have.property('deviceGroups')
+
+                body.deviceGroups[0].should.have.property('name', 'device-group-b')
+            })
+
+            describe('Validates that the first stage cannot be a device group', function () {
+                it('Rejects a pipeline stage if the device group is applied to the 1st stage', async function () {
+                    const pl = await TestObjects.factory.createPipeline({ name: 'new-pipeline' }, app.application)
+
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/pipelines/${pl.hashid}/stages`,
+                        payload: {
+                            name: 'stage-one',
+                            deviceGroupId: TestObjects.deviceGroupOne.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
+                    response.statusCode.should.equal(400)
+                    const body = await response.json()
+                    body.should.have.property('code', 'invalid_input')
+                    body.should.have.property('error').match(/A Device Group cannot be the first stage/)
+                })
+            })
+
+            describe('Validates that a stage cannot be added after device group', function () {
+                it('Rejects a pipeline stage if the device group is added where a device group already exists', async function () {
+                    const newPipeline = await TestObjects.factory.createPipeline({ name: 'new-pipeline' }, app.application)
+                    const pipelineId = newPipeline.hashid
+                    // add an instance stage
+                    const s1 = await TestObjects.factory.createPipelineStage({ name: 'stage-one', instanceId: app.instance.id }, newPipeline)
+                    // add a device group stage
+                    const s2DeviceGroup = await TestObjects.factory.createApplicationDeviceGroup({ name: 'device-group-c' }, app.application)
+                    await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceGroupId: s2DeviceGroup.hashid, source: s1.hashid, action: 'use_latest_snapshot' }, newPipeline)
+                    const newDeviceGroup = await TestObjects.factory.createApplicationDeviceGroup({ name: 'device-group-d' }, app.application)
+
+                    // try to add another device group stage
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/pipelines/${pipelineId}/stages`,
+                        payload: {
+                            name: 'stage-three',
+                            deviceGroupId: newDeviceGroup.hashid,
+                            action: 'prompt'
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
+                    response.statusCode.should.equal(400)
+                    const body = await response.json()
+                    body.should.have.property('code', 'invalid_input')
+                    body.should.have.property('error').match(/only one device group/i)
+                })
+            })
+        })
+
         describe('With either device or instance', function () {
             describe('When a previous stage is passed', function () {
                 it('Should set the previous stages nextStage to the newly created pipeline stage', async function () {
@@ -286,15 +377,60 @@ describe('Pipelines API', function () {
                 })
 
                 const body = await response.json()
-
                 body.should.have.property('code', 'invalid_input')
-                body.should.have.property('error').match(/both instance and a device/)
+                body.should.have.property('error').match(/only one is permitted/i)
 
                 response.statusCode.should.equal(400)
             })
         })
 
-        describe('With neither device or instance', function () {
+        describe('With both device and device group', function () {
+            it('Rejects the request gracefully', async function () {
+                const pipelineId = TestObjects.pipeline.hashid
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/pipelines/${pipelineId}/stages`,
+                    payload: {
+                        name: 'stage-two',
+                        deviceId: TestObjects.deviceTwo.id,
+                        deviceGroupId: TestObjects.deviceGroupTwo.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const body = await response.json()
+                body.should.have.property('code', 'invalid_input')
+                body.should.have.property('error').match(/only one is permitted/i)
+
+                response.statusCode.should.equal(400)
+            })
+        })
+
+        describe('With both instance and device group', function () {
+            it('Rejects the request gracefully', async function () {
+                const pipelineId = TestObjects.pipeline.hashid
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/pipelines/${pipelineId}/stages`,
+                    payload: {
+                        name: 'stage-two',
+                        instanceId: TestObjects.instanceTwo.id,
+                        deviceGroupId: TestObjects.deviceGroupTwo.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const body = await response.json()
+                body.should.have.property('code', 'invalid_input')
+                body.should.have.property('error').match(/only one is permitted/i)
+
+                response.statusCode.should.equal(400)
+            })
+        })
+
+        describe('With neither device, instance or device group', function () {
             it('Fails gracefully with a clear error', async function () {
                 const pipelineId = TestObjects.pipeline.hashid
 
@@ -310,8 +446,10 @@ describe('Pipelines API', function () {
                 const body = await response.json()
 
                 body.should.have.property('code', 'invalid_input')
-                body.should.have.property('error').match(/instanceId/)
-                body.should.have.property('error').match(/deviceId/)
+                body.should.have.property('error').match(/instance/)
+                body.should.have.property('error').match(/device/)
+                body.should.have.property('error').match(/group/)
+                body.should.have.property('error').match(/is required/)
 
                 response.statusCode.should.equal(400)
             })
@@ -359,6 +497,32 @@ describe('Pipelines API', function () {
             body.devices.should.have.length(1)
 
             response.statusCode.should.equal(200)
+        })
+
+        it('Should return a single pipeline stage with a device group', async function () {
+            const pipelineId = TestObjects.pipelineDeviceGroups.hashid
+            const stageId = TestObjects.pipelineDeviceGroupsStageTwo.hashid
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            response.statusCode.should.equal(200)
+
+            const body = await response.json()
+            body.should.have.property('id')
+            body.should.have.property('name', 'stage-two-device-group')
+            body.should.have.property('deviceGroups').and.be.an.Array().and.have.length(1)
+            body.deviceGroups[0].should.have.property('name', 'device-group-a')
+            body.deviceGroups[0].should.have.property('deviceCount', 0)
+            body.deviceGroups[0].should.have.property('targetMatchCount', 0)
+            body.deviceGroups[0].should.have.property('activeMatchCount', 0)
+            body.deviceGroups[0].should.have.property('developerModeCount', 0)
+            body.deviceGroups[0].should.have.property('runningCount', 0)
+            body.deviceGroups[0].should.have.property('isDeploying', false)
+            body.deviceGroups[0].should.have.property('hasTargetSnapshot', false)
         })
 
         it('Should fail if the pipeline does not contain the request stage', async function () {
@@ -666,6 +830,106 @@ describe('Pipelines API', function () {
                 response.statusCode.should.equal(200)
             })
         })
+
+        describe('With a new device group', function () {
+            it('Should unassign the old device group and assign the new one', async function () {
+                const pipelineId = TestObjects.pipelineDeviceGroups.hashid
+                const stageId = TestObjects.pipelineDeviceGroupsStageTwo.hashid // the 2nd stage is the one with the device group
+                const newDeviceGroup = await TestObjects.factory.createApplicationDeviceGroup({ name: 'new-device-group' }, TestObjects.application)
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                    payload: {
+                        deviceGroupId: newDeviceGroup.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+
+                })
+
+                const body = await response.json()
+
+                body.should.have.property('id')
+                body.should.have.property('deviceGroups').and.be.an.Array().and.have.length(1)
+                body.deviceGroups[0].should.have.property('name', 'new-device-group')
+
+                response.statusCode.should.equal(200)
+            })
+
+            it('Should require the device group to be part of the same application', async function () {
+                const pipelineId = TestObjects.pipelineDeviceGroups.hashid
+                const stageId = TestObjects.pipelineDeviceGroupsStageTwo.hashid
+
+                const otherApplication = await TestObjects.factory.createApplication({
+                    name: 'other-application'
+                }, TestObjects.team)
+
+                // const deviceGroupFromOtherApplication = await TestObjects.factory.createDevice({ name: 'device-b', type: 'robot' }, TestObjects.team, null, otherApplication)
+                const deviceGroupFromOtherApplication = await TestObjects.factory.createApplicationDeviceGroup({ name: 'device-group-b' }, otherApplication)
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                    payload: {
+                        deviceGroupId: deviceGroupFromOtherApplication.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(400)
+
+                const body = await response.json()
+                body.should.have.property('code', 'invalid_deviceGroupsHaveSameApplication')
+                body.should.have.property('error').match(/not a member of application/)
+            })
+
+            it('Should not be allowed to replace 1st stage', async function () {
+                const pipelineId = TestObjects.pipeline.hashid
+                const stageId = TestObjects.stageOne.hashid
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                    payload: {
+                        deviceGroupId: TestObjects.deviceOne.hashid,
+                        action: 'prompt'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(400)
+
+                const body = await response.json()
+                body.should.have.property('code', 'invalid_input')
+                body.should.have.property('error').match(/A Device Group cannot be the first stage/i)
+            })
+
+            it('Should not be allowed set a center stage as a device group', async function () {
+                const pipelineId = TestObjects.pipeline.hashid
+                const stageId = TestObjects.stageOne.hashid
+
+                // add a device as the 2nd stage - this will be the center stage
+                await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceId: TestObjects.deviceOne.id, source: TestObjects.stageOne.hashid, action: 'use_active_snapshot' }, TestObjects.pipeline)
+
+                // add a device group as the 3rd stage - this will be the last stage
+                await TestObjects.factory.createPipelineStage({ name: 'stage-three', deviceGroupId: TestObjects.deviceGroupOne.id, source: TestObjects.stageOne.hashid, action: 'use_active_snapshot' }, TestObjects.pipeline)
+
+                // now attempt to update the center stage as a device group
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                    payload: {
+                        deviceGroupId: TestObjects.deviceGroupTwo.hashid,
+                        action: 'prompt'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(400)
+
+                const body = await response.json()
+                body.should.have.property('code', 'invalid_input')
+            })
+        })
     })
 
     describe('Delete Pipeline Stage', function () {
@@ -705,6 +969,25 @@ describe('Pipelines API', function () {
 
             should(await app.db.models.PipelineStage.byId(stageId)).equal(null)
             should(await app.db.models.Device.byId(deviceId)).not.equal(null)
+        })
+
+        it('should destroy the pipeline stage, but not touch the assigned device group', async function () {
+            const pipelineId = TestObjects.pipelineDeviceGroups.hashid
+            const stageId = TestObjects.pipelineDeviceGroupsStageOne.hashid
+            const deviceGroupId = TestObjects.deviceGroupOne.hashid
+
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            const body = await response.json()
+            body.should.have.property('status', 'okay')
+            response.statusCode.should.equal(200)
+
+            should(await app.db.models.PipelineStage.byId(stageId)).equal(null)
+            should(await app.db.models.DeviceGroup.byId(deviceGroupId)).not.equal(null)
         })
 
         it('should fail if the pipeline stage is not on this pipeline', async function () {
@@ -1177,6 +1460,30 @@ describe('Pipelines API', function () {
                 }, 250)
             })
         }
+        async function isDeviceDeployComplete (device) {
+            const statusResponse = (await app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/${device.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })).json()
+
+            return {
+                isDeploying: statusResponse?.isDeploying === true,
+                targetSnapshotHashid: statusResponse?.targetSnapshot?.id
+            }
+        }
+
+        function waitForDeviceDeployGetTargetSnapshot (device) {
+            return new Promise((resolve, reject) => {
+                const refreshIntervalId = setInterval(async () => {
+                    const { isDeploying, targetSnapshotHashid } = await isDeviceDeployComplete(device)
+                    if (isDeploying) {
+                        clearInterval(refreshIntervalId)
+                        resolve(targetSnapshotHashid)
+                    }
+                }, 30)
+            })
+        }
 
         beforeEach(async function () {
             TestObjects.tokens.instanceOne = (await TestObjects.instanceOne.refreshAuthTokens()).token
@@ -1326,12 +1633,12 @@ describe('Pipelines API', function () {
                         const body = await response.json()
                         body.should.have.property('status', 'importing')
 
-                        await TestObjects.deviceTwo.reload()
-
                         const createdSnapshot = await TestObjects.instanceOne.getLatestSnapshot()
                         should(createSnapshot).should.not.equal(undefined)
 
-                        TestObjects.deviceTwo.targetSnapshotId.should.equal(createdSnapshot.id)
+                        // Wait for the deploy to complete & check the target snapshot has been set
+                        const targetSnapshotHashid = await waitForDeviceDeployGetTargetSnapshot(TestObjects.deviceTwo)
+                        createdSnapshot.hashid.should.equal(targetSnapshotHashid)
                     })
                 })
             })
@@ -1679,9 +1986,6 @@ describe('Pipelines API', function () {
                         const body = await response.json()
                         body.should.have.property('status', 'importing')
 
-                        // Wait for the deploy to complete
-                        await waitForDeployToComplete(TestObjects.instanceTwo)
-
                         // No new snapshot should have been created in stage 1
                         const sourceDeviceSnapshots = await TestObjects.deviceOne.getProjectSnapshots()
                         sourceDeviceSnapshots.should.have.lengthOf(3)
@@ -1690,7 +1994,9 @@ describe('Pipelines API', function () {
                         const snapshots = await TestObjects.deviceTwo.getProjectSnapshots()
                         snapshots.should.have.lengthOf(0)
 
-                        TestObjects.deviceTwo.targetSnapshotId.should.equal(snapshotToSetAsTarget.id)
+                        // Wait for the deploy to complete & check the target snapshot has been set
+                        const targetSnapshotHashid = await waitForDeviceDeployGetTargetSnapshot(TestObjects.deviceTwo)
+                        snapshotToSetAsTarget.hashid.should.equal(targetSnapshotHashid)
                     })
                 })
             })
@@ -1718,9 +2024,6 @@ describe('Pipelines API', function () {
                     const body = await response.json()
                     body.should.have.property('status', 'importing')
 
-                    // Wait for the deploy to complete
-                    await waitForDeployToComplete(TestObjects.instanceTwo)
-
                     // No new snapshot should have been created in stage 1
                     const sourceInstanceSnapshots = await TestObjects.instanceOne.getProjectSnapshots()
                     sourceInstanceSnapshots.should.have.lengthOf(1)
@@ -1729,8 +2032,9 @@ describe('Pipelines API', function () {
                     const snapshots = await TestObjects.deviceTwo.getProjectSnapshots()
                     snapshots.should.have.lengthOf(0)
 
-                    await TestObjects.deviceTwo.reload()
-                    TestObjects.deviceTwo.targetSnapshotId.should.equal(existingSnapshot.id)
+                    // Wait for the deploy to complete & check the target snapshot has been set
+                    const targetSnapshotHashid = await waitForDeviceDeployGetTargetSnapshot(TestObjects.deviceTwo)
+                    existingSnapshot.hashid.should.equal(targetSnapshotHashid)
                 })
             })
         })
@@ -1929,9 +2233,6 @@ describe('Pipelines API', function () {
                     const body = await response.json()
                     body.should.have.property('status', 'importing')
 
-                    // Wait for the deploy to complete
-                    await waitForDeployToComplete(TestObjects.instanceTwo)
-
                     // No new snapshot should have been created in stage 1
                     const sourceDeviceSnapshots = await TestObjects.deviceOne.getProjectSnapshots()
                     sourceDeviceSnapshots.should.have.lengthOf(2)
@@ -1940,8 +2241,50 @@ describe('Pipelines API', function () {
                     const snapshots = await TestObjects.deviceTwo.getProjectSnapshots()
                     snapshots.should.have.lengthOf(0)
 
-                    await TestObjects.deviceTwo.reload()
-                    TestObjects.deviceTwo.targetSnapshotId.should.equal(latestSnapshot.id)
+                    // Wait for the deploy to complete & check the target snapshot has been set
+                    const targetSnapshotHashid = await waitForDeviceDeployGetTargetSnapshot(TestObjects.deviceTwo)
+                    latestSnapshot.hashid.should.equal(targetSnapshotHashid)
+                })
+            })
+
+            describe('For instance=>device group', function () {
+                it('Copies the existing instance snapshot to the next stages device group', async function () {
+                    // 1 -> 2
+                    TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceGroupId: TestObjects.deviceGroupTwo.id, source: TestObjects.stageOne.hashid, action: 'use_active_snapshot' }, TestObjects.pipeline)
+
+                    // add device to TestObjects.deviceGroupTwo
+                    // this way we can test that the group and a device within it are all updated
+                    await TestObjects.deviceGroupTwo.addDevice(TestObjects.deviceTwo)
+
+                    await createSnapshot(app, TestObjects.instanceOne, TestObjects.user, {
+                        name: 'Existing Snapshot Created In Test',
+                        description: 'This was the second snapshot created as part of the test process',
+                        setAsTarget: false // no need to deploy to devices of the source
+                    })
+
+                    const response = await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageOne.hashid}/deploy`,
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
+                    const body = await response.json()
+                    body.should.have.property('status', 'importing')
+
+                    // call the GET pipelines and check the status of the device group is deploying
+                    const responseGetPipelines = await app.inject({
+                        method: 'GET',
+                        url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines`,
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
+                    const bodyGetPipelines = await responseGetPipelines.json()
+                    const thisPipeline = bodyGetPipelines.pipelines.find(p => p.id === TestObjects.pipeline.hashid)
+                    const deviceGroups = thisPipeline.stages[1].deviceGroups
+                    deviceGroups.should.be.an.Array().and.have.lengthOf(1)
+                    deviceGroups[0].should.have.property('isDeploying', true)
+                    deviceGroups[0].should.have.property('hasTargetSnapshot', true)
+                    deviceGroups[0].should.have.property('targetMatchCount', 1)
                 })
             })
 
@@ -1965,9 +2308,6 @@ describe('Pipelines API', function () {
                     const body = await response.json()
                     body.should.have.property('status', 'importing')
 
-                    // Wait for the deploy to complete
-                    await waitForDeployToComplete(TestObjects.instanceTwo)
-
                     // No new snapshot should have been created in stage 1
                     const sourceInstanceSnapshots = await TestObjects.instanceOne.getProjectSnapshots()
                     sourceInstanceSnapshots.should.have.lengthOf(1)
@@ -1976,8 +2316,9 @@ describe('Pipelines API', function () {
                     const snapshots = await TestObjects.deviceTwo.getProjectSnapshots()
                     snapshots.should.have.lengthOf(0)
 
-                    await TestObjects.deviceTwo.reload()
-                    TestObjects.deviceTwo.targetSnapshotId.should.equal(existingSnapshot.id)
+                    // Wait for the deploy to complete & check the target snapshot has been set
+                    const targetSnapshotHashid = await waitForDeviceDeployGetTargetSnapshot(TestObjects.deviceTwo)
+                    existingSnapshot.hashid.should.equal(targetSnapshotHashid)
                 })
             })
 
@@ -2150,7 +2491,7 @@ describe('Pipelines API', function () {
     })
 
     describe('List Application Pipelines', function () {
-        it('should list all the pipelines within an application including stages, instances and devices', async function () {
+        it('should list all the pipelines within an application including stages, instances, devices and device groups', async function () {
             const response = await app.inject({
                 method: 'GET',
                 url: `/api/v1/applications/${TestObjects.application.hashid}/pipelines`,
@@ -2159,8 +2500,8 @@ describe('Pipelines API', function () {
 
             const body = await response.json()
 
-            body.should.have.property('count', 2)
-            body.pipelines.should.have.length(2)
+            body.should.have.property('count', 3)
+            body.pipelines.should.have.length(3)
 
             body.pipelines[0].should.have.property('name', 'new-pipeline')
             body.pipelines[0].should.have.property('stages')
@@ -2178,6 +2519,18 @@ describe('Pipelines API', function () {
 
             body.pipelines[1].stages[0].devices.should.have.length(1)
             body.pipelines[1].stages[0].devices[0].should.have.property('name', 'device-a')
+
+            body.pipelines[2].should.have.property('name', 'new-pipeline-device-groups')
+
+            body.pipelines[2].stages.should.have.length(2)
+            body.pipelines[2].stages[0].should.have.property('name', 'stage-one-instance') // first stage is an instance
+            body.pipelines[2].stages[1].should.have.property('name', 'stage-two-device-group') // second stage is a device group
+
+            body.pipelines[2].stages[0].instances.should.have.length(1)
+            body.pipelines[2].stages[0].instances[0].should.have.property('name', 'project1')
+
+            body.pipelines[2].stages[1].deviceGroups.should.have.length(1)
+            body.pipelines[2].stages[1].deviceGroups[0].should.have.property('name', 'device-group-a')
 
             response.statusCode.should.equal(200)
         })
