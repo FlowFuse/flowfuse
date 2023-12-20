@@ -1,27 +1,34 @@
 <template>
-    <div ref="input" class="ff-tile-selection-option"
-         :class="{'editable': editable, 'disabled': disabled, 'active': selected}"
-         :style="{'--ff-tile-selection-color': color || null}"
-         tabindex="0" @click="select(false)" @keydown.space.prevent="select(true)"
+    <div
+        v-ff-tooltip="disabled ? disabledTooltip : undefined"
     >
-        <div class="ff-tile-selection-option--header">
-            <h2>
-                <PencilAltIcon v-if="editable" class="ff-tile-selection-option--edit" @click="select(true)" />
-                <slot v-else name="icon"><CheckCircleIcon /></slot>
-                {{ label }}
-            </h2>
-            <div class="ff-tile-selection-option--price">
-                <h2>{{ price }}</h2>
-                <label>{{ priceInterval }}</label>
+        <div ref="input"
+             :class="{'editable': editable, 'disabled': disabled, 'active': selected}"
+             class="ff-tile-selection-option"
+             :style="{'--ff-tile-selection-color': color || null}"
+             tabindex="0"
+             @click="select(false)"
+             @keydown.space.prevent="select(true)"
+        >
+            <div class="ff-tile-selection-option--header">
+                <h2>
+                    <PencilAltIcon v-if="editable" class="ff-tile-selection-option--edit" @click="select(true)" />
+                    <slot v-else name="icon"><CheckCircleIcon /></slot>
+                    {{ label }}
+                </h2>
+                <div class="ff-tile-selection-option--price">
+                    <h2>{{ price }}</h2>
+                    <label>{{ priceInterval }}</label>
+                </div>
             </div>
-        </div>
-        <div v-if="description" class="ff-tile-selection-option--description">
-            <ff-markdown-viewer :content="description" />
-        </div>
-        <div v-if="meta" class="ff-tile-selection-option--meta">
-            <div v-for="(row, $index) in meta" :key="$index">
-                <span>{{ row.key }}</span>
-                <span>{{ row.value }}</span>
+            <div v-if="description" class="ff-tile-selection-option--description">
+                <ff-markdown-viewer :content="description" />
+            </div>
+            <div v-if="meta" class="ff-tile-selection-option--meta">
+                <div v-for="(row, $index) in meta" :key="$index">
+                    <span>{{ row.key }}</span>
+                    <span>{{ row.value }}</span>
+                </div>
             </div>
         </div>
     </div>
@@ -50,6 +57,10 @@ export default {
         disabled: {
             default: false,
             type: Boolean
+        },
+        disabledTooltip: {
+            default: undefined,
+            type: String
         },
         label: {
             default: '',
