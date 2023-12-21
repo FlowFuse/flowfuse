@@ -37,8 +37,11 @@
             </ff-button>
         </template>
     </SectionTopMenu>
-
-    <div v-if="pipelines?.length > 0" class="pt-4 space-y-6" data-el="pipelines-list">
+    <ff-loading
+        v-if="loading"
+        message="Loading Pipelines..."
+    />
+    <div v-else-if="pipelines?.length > 0" class="pt-4 space-y-6" data-el="pipelines-list">
         <PipelineRow
             v-for="pipeline in pipelines"
             :key="pipeline.id"
@@ -125,6 +128,7 @@ export default {
     },
     data () {
         return {
+            loading: false,
             pipelines: [],
             instanceStatusMap: new Map(),
             deviceStatusMap: new Map(),
@@ -240,6 +244,8 @@ export default {
             }
         },
         async loadPipelines () {
+            this.loading = true
+
             // getPipelines doesn't include full instance status information, kick this off async
             // Not needed for devices as device status is returned as part of pipelines API
             this.loadInstanceStatus()
@@ -248,9 +254,11 @@ export default {
                 .then((pipelines) => {
                     this.pipelines = pipelines
                     this.loadDeviceGroupStatus(this.pipelines)
+                    this.loading = false
                 })
                 .catch((err) => {
                     console.error(err)
+                    this.loading = false
                 })
         },
         async loadInstanceStatus () {
