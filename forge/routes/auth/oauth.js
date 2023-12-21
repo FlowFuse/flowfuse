@@ -157,7 +157,7 @@ module.exports = async function (app) {
             request.session = await app.db.controllers.Session.getOrExpire(request.sid)
             if (request.session) {
                 if (requestObject.client_id === 'ff-plugin') {
-                    // This is the FlowForge Node-RED plugin.
+                    // This is the FlowFuse Node-RED plugin.
                 } else {
                     const authClient = await app.db.controllers.AuthClient.getAuthClient(requestObject.client_id)
                     if (!authClient) {

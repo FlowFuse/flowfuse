@@ -1,5 +1,5 @@
 {
-    "name": "@flowforge/flowforge",
+    "name": "@flowfuse/flowfuse",
     "version": "1.14.1",
     "description": "An open source low-code development platform",
     "homepage": "https://flowfuse.com",
@@ -16,7 +16,8 @@
     },
     "bin": {
         "ff-install-stack": "./scripts/install-stack.js",
-        "flowforge": "./forge/app.js"
+        "flowforge": "./forge/app.js",
+        "flowfuse": "./forge/app.js"
     },
     "scripts": {
         "start": "node forge/app.js",

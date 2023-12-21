@@ -119,7 +119,7 @@ module.exports = async (options = {}) => {
                     return 0.001
                 }
 
-                // Used by nr-launcher and for flowforge-nr-auth
+                // Used by nr-launcher and for nr-auth
                 if (samplingContext?.transactionContext?.name === 'GET POST /account/token') {
                     return 0.01
                 }
