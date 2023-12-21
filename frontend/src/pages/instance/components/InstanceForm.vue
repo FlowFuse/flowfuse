@@ -677,7 +677,7 @@ export default {
                 return []
             }
 
-            const response = await flowBlueprintsApi.getFlowBlueprints({ state: 'active' })
+            const response = await flowBlueprintsApi.getFlowBlueprints()
             const blueprints = response.blueprints
 
             const defaultBlueprint = blueprints.find((blueprint) => blueprint.default) || blueprints[0]

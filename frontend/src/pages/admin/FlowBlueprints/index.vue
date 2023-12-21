@@ -135,7 +135,7 @@ export default {
         },
         loadItems: async function () {
             this.loading = true
-            const result = await FlowBlueprintsApi.getFlowBlueprints('all', this.nextCursor, 30)
+            const result = await FlowBlueprintsApi.getFlowBlueprints({ filter: 'all' }, this.nextCursor, 30)
             this.nextCursor = result.meta.next_cursor
             result.blueprints.forEach(flowBlueprint => {
                 this.flowBlueprints.set(flowBlueprint.id, flowBlueprint)
