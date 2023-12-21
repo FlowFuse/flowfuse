@@ -115,43 +115,33 @@ export default {
         },
         stagesWithStates () {
             return this.pipeline.stages.map((stage) => {
-                // For now, each stage contains only one instance or one device, so read state from that object
+                // For now, each stage contains only one instance, one device, or a device group, so read state from that object
                 // Falls back to the summary object on the stage if the status has not loaded yet
-                const stageInstance = this.instanceStatusMap.get(stage.instance?.id) || stage.instance
-                const stageDevice = this.deviceStatusMap.get(stage.device?.id) || stage.device
-                const stageDeviceGroupMapId = `${stage.id}:${stage.deviceGroup?.id}`
-                const stageDeviceGroup = this.deviceGroupStatusMap.get(stageDeviceGroupMapId) || stage.deviceGroup
+                const stageInstanceState = this.instanceStatusMap.get(stage.instance?.id) || stage.instance
+                const stageDeviceState = this.deviceStatusMap.get(stage.device?.id) || stage.device
 
-                // Relay state to the stage
-                if (stageDeviceGroup) {
-                    stage.deviceGroup = stageDeviceGroup
+                const stageDeviceGroupMapId = `${stage.id}:${stage.deviceGroup?.id}`
+                const stageDeviceGroupState = this.deviceGroupStatusMap.get(stageDeviceGroupMapId) || stage.deviceGroup
+
+                // Set the state state based on group, device, or instance
+                if (stageDeviceGroupState) {
                     stage.state = {
-                        isDeploying: stageDeviceGroup.isDeploying,
-                        targetMatchCount: stageDeviceGroup.targetMatchCount,
-                        activeMatchCount: stageDeviceGroup.activeMatchCount,
-                        developerModeCount: stageDeviceGroup.developerModeCount,
-                        runningCount: stageDeviceGroup.runningCount,
-                        hasTargetSnapshot: stageDeviceGroup.hasTargetSnapshot
+                        isDeploying: stageDeviceGroupState.isDeploying,
+                        targetMatchCount: stageDeviceGroupState.targetMatchCount,
+                        activeMatchCount: stageDeviceGroupState.activeMatchCount,
+                        developerModeCount: stageDeviceGroupState.developerModeCount,
+                        runningCount: stageDeviceGroupState.runningCount,
+                        hasTargetSnapshot: stageDeviceGroupState.hasTargetSnapshot
                     }
                 } else {
-                    stage.instance = stageInstance
-                    stage.state = stageInstance?.state || stageDevice?.status || stageDeviceGroup?.status
-                    stage.flowLastUpdatedSince = stageInstance?.flowLastUpdatedSince
-                    stage.lastSeenSince = stageDevice?.lastSeenSince
+                    stage.state = stageInstanceState?.state || stageDeviceState?.status
                 }
-                // find the instance in stage.instances that matches the stage.instance.id
-                // if it exists, use that instance's name
-                // otherwise, use the stage.instance.name
 
-                if (stage.instance && stage.instances) {
-                    const _instance = stage.instances.find((instance) => {
-                        return instance.id === stage.instance?.id
-                    })
-                    stage.instance.name = _instance?.name
-                }
+                stage.flowLastUpdatedSince = stageInstanceState?.flowLastUpdatedSince
+                stage.lastSeenSince = stageDeviceState?.lastSeenSince
 
                 // If any device or instance inside the stage are deploying, this stage is deploying
-                stage.isDeploying = stageDevice?.isDeploying || stageInstance?.isDeploying || stageDeviceGroup?.isDeploying
+                stage.isDeploying = stageDeviceState?.isDeploying || stageInstanceState?.isDeploying || stageDeviceGroupState?.isDeploying
 
                 return stage
             })

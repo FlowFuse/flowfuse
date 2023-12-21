@@ -120,7 +120,7 @@ module.exports = async function (settings = {}, config = {}) {
     // Application and Instances
     const application1 = await factory.createApplication({ name: 'application-1' }, team1)
     await factory.createInstance({ name: 'instance-1-1' }, application1, stack, template, projectType)
-    await factory.createInstance({ name: 'instance-1-2' }, application1, stack, template, projectType)
+    await factory.createInstance({ name: 'instance-1-2' }, application1, stack, template, projectType, { start: false })
 
     /// Team 2
     const team2 = await factory.createTeam({ name: 'BTeam' })
@@ -141,7 +141,7 @@ module.exports = async function (settings = {}, config = {}) {
     const application2 = await factory.createApplication({ name: 'application-2' }, team2, stack, template, projectType)
     await factory.createInstance({ name: 'instance-2-1' }, application2, stack, template, projectType)
 
-    const instanceWithDevices = await factory.createInstance({ name: 'instance-2-with-devices' }, application2, stack, template, projectType)
+    const instanceWithDevices = await factory.createInstance({ name: 'instance-2-with-devices' }, application2, stack, template, projectType, { start: false })
     await factory.createDevice({ name: 'assigned-device-a', type: 'type2' }, team2, instanceWithDevices)
     await factory.createDevice({ name: 'assigned-device-b', type: 'type2' }, team2, instanceWithDevices)
     await factory.createDevice({ name: 'assigned-device-c', type: 'type2' }, team2, instanceWithDevices)
