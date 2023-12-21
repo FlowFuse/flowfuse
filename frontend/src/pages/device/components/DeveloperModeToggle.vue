@@ -17,6 +17,7 @@ import { CodeIcon } from '@heroicons/vue/outline'
 import semver from 'semver'
 
 import alerts from '../../../services/alerts.js'
+import Dialog from '../../../services/dialog.js'
 
 export default {
     name: 'DeveloperModeToggle',
@@ -64,9 +65,36 @@ export default {
     methods: {
         async toggleDeveloperMode () {
             this.busy = true
-
+            if (this.developerMode) {
+                const msg = {
+                    header: 'Disable Developer Mode',
+                    kind: 'danger',
+                    confirmLabel: 'Confirm',
+                    html: `<p>
+                        Disabling developer mode will turn off access to the editor and
+                        may redeploy the current target snapshot to the device.
+                    </p>
+                    <p>
+                        Any changes made to the device whilst in developer mode will be lost.
+                    </p>
+                    <p>
+                        To avoid losses, you can cancel this operation and create a snapshot
+                        in the developer mode tab.
+                    </p>`
+                }
+                const dialogResult = await Dialog.showAsync(msg)
+                if (dialogResult === 'confirm') {
+                    await this.setDeveloperMode(false)
+                }
+            } else {
+                await this.setDeveloperMode(true)
+            }
+            this.busy = false
+        },
+        async setDeveloperMode (devModeOn) {
+            this.busy = true
             // perform the mode change to the selected mode. @see DevicePage.setDeviceMode
-            this.$emit('mode-change', !this.developerMode ? 'developer' : 'autonomous', (err, _result) => {
+            this.$emit('mode-change', devModeOn ? 'developer' : 'autonomous', (err, _result) => {
                 if (err) {
                     console.warn('Error setting developer mode', err)
                     alerts.emit(err.message, 'warning', 7000)
