@@ -582,8 +582,8 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
             cy.get('[data-action="add-stage"]').click()
         })
 
-        // there should NOT be a tile with the text "Device Group"
-        cy.get('[data-form="stage-type"]').find('.ff-tile-selection-option:contains("Device Group")').should('not.exist')
+        // Device group tile is disabled
+        cy.get('[data-form="stage-type"]').find('.ff-tile-selection-option[data-form="tile-selection-option-device-group"]').should('have.class', 'disabled')
     })
 
     it('cannot add any more stages after a device group', () => {
