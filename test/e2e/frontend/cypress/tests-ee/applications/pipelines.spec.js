@@ -388,7 +388,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
             cy.get('[data-action="add-stage"]').click()
         })
 
-        cy.get('[data-form="stage-type"]').find('.ff-tile-selection-option:contains("Device")').click()
+        cy.get('[data-form="stage-type"]').find('.ff-tile-selection-option[data-form="tile-selection-option-device"]').click()
 
         cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 1')
 
@@ -511,7 +511,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
             cy.get('[data-action="add-stage"]').click()
         })
-        cy.get('[data-form="stage-type"]').find('.ff-tile-selection-option:contains("Device")').not(':contains("Group")').click()
+        cy.get('[data-form="stage-type"]').find('.ff-tile-selection-option[data-form="tile-selection-option-device"]').click()
 
         cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 2')
 
@@ -627,7 +627,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
             cy.get('[data-action="add-stage"]').click()
         })
 
-        cy.get('[data-form="stage-type"]').find('.ff-tile-selection-option:contains("Device Group")').click()
+        cy.get('[data-form="stage-type"]').find('.ff-tile-selection-option[data-form="tile-selection-option-device-group"]').click()
 
         cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 2')
         // stage-action should not be present for device group
