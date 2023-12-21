@@ -16,6 +16,10 @@ function renderTooltip (el, binding, vnode) {
 const directive = {
     name: 'ff-tooltip',
     mounted: (el, binding) => {
+        if (!binding.value) {
+            return
+        }
+
         if (el && binding && binding.value) {
             renderTooltip(el, binding)
         }
