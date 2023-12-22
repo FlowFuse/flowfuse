@@ -131,6 +131,9 @@ export default {
                 return
             }
 
+            this.error = null
+            this.errors = {}
+
             const flowBlueprintProps = { ...this.input }
             if (flowBlueprintProps.order === '') {
                 delete flowBlueprintProps.order
@@ -170,11 +173,11 @@ export default {
                 if (error.response?.data?.error) {
                     const errorResponse = error.response.data
                     this.error = errorResponse.error
-                    if (errorResponse.message.includes('flows')) {
-                        this.errors.flows = errorResponse.message
+                    if (this.error.includes('flows')) {
+                        this.errors.flows = this.error
                     }
-                    if (errorResponse.message.includes('modules')) {
-                        this.errors.modules = errorResponse.message
+                    if (this.error.includes('modules')) {
+                        this.errors.modules = this.error
                     }
                 } else {
                     this.error = 'Unknown error, please try again'
