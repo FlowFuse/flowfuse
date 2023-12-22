@@ -119,7 +119,7 @@ export default {
     },
     computed: {
         formValid () {
-            return this.input.name && this.input.flows && this.input.modules && !this.errors.name && !this.errors.flows && !this.errors.modules
+            return this.input.name && this.input.flows && this.input.modules
         },
         dialogTitle () {
             return this.flowBlueprint?.id ? 'Edit Flow Blueprint' : 'Create Flow Blueprint'
