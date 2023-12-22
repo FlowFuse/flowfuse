@@ -12,6 +12,17 @@ body:
   attributes:
     label: Description
     description: Describe the epic
+- type: dropdown
+  id: pricing
+  attributes:
+    label: Which customers would this be availble to 
+    description: Based on our [pricing principles](https://flowforge.com/handbook/product/pricing/) features should be aligned between Cloud and CE/EE
+    multiple: false
+    options:
+      - Starter Tier (CE)
+      - Teams Tier (EE)
+      - Enterprise Tier (EE)
+      - Other (See comments)
 - type: markdown
   attributes:
     value: |

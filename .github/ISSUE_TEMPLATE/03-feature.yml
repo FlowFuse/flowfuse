@@ -7,6 +7,17 @@ body:
     label: Description
     description: Describe the feature
 - type: dropdown
+  id: pricing
+  attributes:
+    label: Which customers would this be availble to 
+    description: Based on our [pricing principles](https://flowforge.com/handbook/product/pricing/) features should be aligned between Cloud and CE/EE
+    multiple: false
+    options:
+      - Starter Tier (CE)
+      - Teams Tier (EE)
+      - Enterprise Tier (EE)
+      - Other (See comments)
+- type: dropdown
   id: estimation
   attributes:
     label: Have you provided an initial effort estimate for this issue?
