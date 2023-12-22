@@ -119,7 +119,7 @@ export default {
     },
     computed: {
         formValid () {
-            return this.input.name && this.input.flows && this.input.modules && !this.errors.name && !this.errors.flows && !this.errors.modules
+            return this.input.name && this.input.flows && this.input.modules
         },
         dialogTitle () {
             return this.flowBlueprint?.id ? 'Edit Flow Blueprint' : 'Create Flow Blueprint'
@@ -130,6 +130,9 @@ export default {
             if (!this.formValid) {
                 return
             }
+
+            this.error = null
+            this.errors = {}
 
             const flowBlueprintProps = { ...this.input }
             if (flowBlueprintProps.order === '') {
@@ -170,11 +173,11 @@ export default {
                 if (error.response?.data?.error) {
                     const errorResponse = error.response.data
                     this.error = errorResponse.error
-                    if (errorResponse.message.includes('flows')) {
-                        this.errors.flows = errorResponse.message
+                    if (this.error.includes('flows')) {
+                        this.errors.flows = this.error
                     }
-                    if (errorResponse.message.includes('modules')) {
-                        this.errors.modules = errorResponse.message
+                    if (this.error.includes('modules')) {
+                        this.errors.modules = this.error
                     }
                 } else {
                     this.error = 'Unknown error, please try again'
