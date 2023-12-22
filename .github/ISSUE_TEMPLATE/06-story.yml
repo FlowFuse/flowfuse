@@ -30,9 +30,9 @@ body:
     description: Based on our [pricing principles](https://flowforge.com/handbook/product/pricing/) features should be aligned between Cloud and CE/EE
     multiple: false
     options:
-      - Starter Tier (CE)
-      - Teams Tier (EE)
-      - Enterprise Tier (EE)
+      - Everyone - CE/Starter/Team/Enterprise
+      - Team + Enterprise Tiers (EE)
+      - Enterprise Tier Only (EE)
       - Other (See comments)
 
 

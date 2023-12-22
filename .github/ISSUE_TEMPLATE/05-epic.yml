@@ -15,13 +15,13 @@ body:
 - type: dropdown
   id: pricing
   attributes:
-    label: Which customers would this be availble to 
-    description: Based on our [pricing principles](https://flowforge.com/handbook/product/pricing/) features should be aligned between Cloud and CE/EE
+    label: Which customers would this be available to 
+    description: Based on our [pricing principles](https://flowfuse.com/handbook/product/pricing/) features should be aligned between Cloud and CE/EE
     multiple: false
     options:
-      - Starter Tier (CE)
-      - Teams Tier (EE)
-      - Enterprise Tier (EE)
+      - Everyone - CE/Starter/Team/Enterprise
+      - Team + Enterprise Tiers (EE)
+      - Enterprise Tier Only (EE)
       - Other (See comments)
 - type: markdown
   attributes:
