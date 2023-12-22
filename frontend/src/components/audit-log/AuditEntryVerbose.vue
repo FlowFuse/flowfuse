@@ -555,8 +555,8 @@
 
     <!-- Catch All -->
     <template v-else>
-        <label>{{ AuditEvents[entry.event] }}: {{ entry.event }}</label>
-        <span>We have no details available for this event type</span>
+        <label>{{ computeLabelForUnknown(entry) }}</label>
+        <span>We have no details available for event type{{ entry?.event ? ` '${entry.event}'` : '' }}</span>
     </template>
 
     <template v-if="error">
@@ -604,6 +604,23 @@ export default {
         ChevronRightIcon,
         ChevronDownIcon,
         AuditEntryUpdates
+    },
+    methods: {
+        computeLabelForUnknown (entry) {
+            if (!entry?.event) return 'Unknown'
+            const known = !!this.AuditEvents[entry.event]
+            if (known) {
+                return this.AuditEvents[entry.event]
+            }
+            let labelText = entry.event
+            // now replace any dashes, dots, underscores or colons with spaces
+            labelText = labelText.replace(/[-._:]/g, ' ')
+            // now capitalise the first letter of each word
+            labelText = labelText.replace(/\b\w/g, l => l.toUpperCase())
+            // replace camel case with spaces
+            labelText = labelText.replace(/([a-z])([A-Z])/g, '$1 $2')
+            return labelText
+        }
     }
 }
 </script>
