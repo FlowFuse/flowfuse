@@ -1,36 +1,37 @@
 <template>
     <LockClosedIcon v-if="icon === 'security'" class="ff-icon" />
-    <CogIcon v-if="icon === 'settings'" class="ff-icon" />
-    <ProjectIcon v-if="icon === 'project'" class="ff-icon text-red-700" />
-    <NodeRedIcon v-if="icon === 'nodered'" class="ff-icon text-red-700" />
-    <ClockIcon v-if="icon === 'clock'" class="ff-icon text-purple-700" />
-    <BeakerIcon v-if="icon === 'beaker'" class="ff-icon text-yellow-600" />
-    <DesktopComputerIcon v-if="icon === 'stacks'" class="ff-icon text-red-700" />
-    <ColorSwatchIcon v-if="icon === 'project-types'" class="ff-icon text-red-700" />
-    <ChipIcon v-if="icon === 'device'" class="ff-icon text-blue-700" />
-    <DeviceGroupSolidIcon v-if="icon === 'device-group'" class="ff-icon text-teal-700" />
-    <MailIcon v-if="icon === 'mail'" class="ff-icon text-green-700" />
-    <IdentificationIcon v-if="icon === 'user-profile'" class="ff-icon text-green-700" />
-    <UserIcon v-if="icon === 'user'" class="ff-icon text-green-700" />
-    <UserGroupIcon v-if="icon === 'users'" class="ff-icon text-teal-700" />
-    <CurrencyDollarIcon v-if="icon === 'billing'" class="ff-icon text-yellow-500" />
-    <KeyIcon v-if="icon === 'key'" class="ff-icon text-green-700" />
-    <KeyIcon v-if="icon === 'overage'" class="ff-icon text-red-700" />
-    <LoginIcon v-if="icon === 'login'" class="ff-icon text-blue-700" />
-    <LogoutIcon v-if="icon === 'logout'" class="ff-icon text-gray-600" />
-    <ExclamationCircleIcon v-if="icon === 'error'" class="ff-icon text-red-500" />
-    <TicketIcon v-if="icon === 'token'" class="ff-icon text-blue-500" />
-    <TemplateIcon v-if="icon === 'template'" class="ff-icon text-red-700" />
-    <PipelineIcon v-if="icon === 'pipeline'" class="ff-icon text-indigo-600" />
-    <ExclamationIcon v-if="icon === 'resource'" class="ff-icon text-yellow-500" />
+    <CogIcon v-else-if="icon === 'settings'" class="ff-icon" />
+    <NodeRedIcon v-else-if="icon === 'nodered'" class="ff-icon text-red-700" />
+    <ProjectIcon v-else-if="icon === 'project'" class="ff-icon text-red-700" />
+    <TemplateIcon v-else-if="icon === 'template'" class="ff-icon text-red-700" />
+    <PipelineIcon v-else-if="icon === 'pipeline'" class="ff-icon text-indigo-600" />
+    <ChipIcon v-else-if="icon === 'device'" class="ff-icon text-blue-700" />
+    <BeakerIcon v-else-if="icon === 'beaker'" class="ff-icon text-yellow-600" />
+    <DeviceGroupSolidIcon v-else-if="icon === 'device-group'" class="ff-icon text-teal-700" />
+    <UserIcon v-else-if="icon === 'user'" class="ff-icon text-green-700" />
+    <ClockIcon v-else-if="icon === 'clock'" class="ff-icon text-purple-700" />
+    <LoginIcon v-else-if="icon === 'login'" class="ff-icon text-blue-700" />
+    <LogoutIcon v-else-if="icon === 'logout'" class="ff-icon text-gray-600" />
+    <MailIcon v-else-if="icon === 'mail'" class="ff-icon text-green-700" />
+    <UserGroupIcon v-else-if="icon === 'users'" class="ff-icon text-teal-700" />
+    <DesktopComputerIcon v-else-if="icon === 'stacks'" class="ff-icon text-red-700" />
+    <ColorSwatchIcon v-else-if="icon === 'project-types'" class="ff-icon text-red-700" />
+    <IdentificationIcon v-else-if="icon === 'user-profile'" class="ff-icon text-green-700" />
+    <ExclamationCircleIcon v-else-if="icon === 'error'" class="ff-icon text-red-500" />
+    <TicketIcon v-else-if="icon === 'token'" class="ff-icon text-blue-500" />
+    <ExclamationIcon v-else-if="icon === 'resource'" class="ff-icon text-yellow-500" />
+    <CurrencyDollarIcon v-else-if="icon === 'billing'" class="ff-icon text-yellow-500" />
+    <KeyIcon v-else-if="icon === 'key'" class="ff-icon text-green-700" />
+    <KeyIcon v-else-if="icon === 'overage'" class="ff-icon text-red-700" />
+    <InformationCircleIcon v-else class="ff-icon text-gray-600" />
 </template>
 
 <script>
 
 import {
-    BeakerIcon, ChipIcon, ClockIcon, CogIcon,
-    ColorSwatchIcon, CurrencyDollarIcon, DesktopComputerIcon,
-    ExclamationCircleIcon, ExclamationIcon, IdentificationIcon,
+    BeakerIcon, ChipIcon, ClockIcon, CogIcon, ColorSwatchIcon,
+    CurrencyDollarIcon, DesktopComputerIcon, ExclamationCircleIcon,
+    ExclamationIcon, IdentificationIcon, InformationCircleIcon,
     KeyIcon, LockClosedIcon, LoginIcon, LogoutIcon, MailIcon,
     TemplateIcon, TicketIcon, UserGroupIcon, UserIcon
 } from '@heroicons/vue/outline'
@@ -227,10 +228,22 @@ export default {
         }
     },
     setup (props) {
-        for (const [icon, events] of Object.entries(iconMap)) {
-            if (events.includes(props.event)) {
-                return {
-                    icon
+        // convert the iconMap into an object where the key is the event and the value is the icon
+        const flatIconMap = Object.entries(iconMap).flatMap(([icon, events]) => events.map(event => [event, icon]))
+        const icon = flatIconMap.find(([event]) => event === props.event)
+
+        if (icon) {
+            return { icon: icon[1] }
+        }
+        // if we get here, we don't have an icon for this event. Lets
+        // at least attempt to show something relevant by looking at
+        // the first two parts of the event
+        const eventParts = props.event.split('.')
+        if (eventParts.length > 1) {
+            const first2Parts = eventParts.slice(0, 2).join('.')
+            for (const [event, icon] of flatIconMap) {
+                if (event.startsWith(first2Parts)) {
+                    return { icon }
                 }
             }
         }
@@ -261,7 +274,8 @@ export default {
         CurrencyDollarIcon,
         ExclamationCircleIcon,
         ExclamationIcon,
-        TicketIcon
+        TicketIcon,
+        InformationCircleIcon
     }
 }
 </script>
