@@ -74,5 +74,14 @@ module.exports = {
             body: encodeBody(body)
         })
         addToLog(app, 'team', TeamId, event, body)
+    },
+    deviceLog: async function (app, DeviceId, UserId, event, body) {
+        await app.db.models.AuditLog.create({
+            entityType: 'device',
+            entityId: DeviceId,
+            UserId,
+            event,
+            body: encodeBody(body)
+        })
     }
 }

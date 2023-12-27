@@ -732,6 +732,48 @@ module.exports = async function (app) {
         reply.send(app.db.views.ProjectSnapshot.snapshot(snapShot))
     })
 
+    /**
+     * @name /api/v1/devices/:id/audit-log
+     * @memberof forge.routes.api.devices
+     */
+    app.get(':deviceId/audit-log', {
+        preHandler: app.needsPermission('device:audit-log'),
+        schema: {
+            summary: '',
+            tags: ['Devices'],
+            params: {
+                type: 'object',
+                properties: {
+                    deviceId: { type: 'string' }
+                }
+            },
+            query: {
+                allOf: [
+                    { $ref: 'PaginationParams' },
+                    { $ref: 'AuditLogQueryParams' }
+                ]
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        log: { $ref: 'AuditLogEntryList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const paginationOptions = app.getPaginationOptions(request)
+        const logEntries = await app.db.models.AuditLog.forDevice(request.device.id, paginationOptions)
+        const result = app.db.views.AuditLog.auditLog(logEntries)
+        reply.send(result)
+    })
+
     async function assignDeviceToProject (device, project) {
         await device.setProject(project)
         // Set the target snapshot to match the project's one
