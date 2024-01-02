@@ -22,13 +22,13 @@ import client from './client.js'
 
 /**
  * Get all flow blueprints from the backend
- * @param {string} state - 'active' (default), 'all' or 'inactive'
+ * @param {string} filter - 'active' (default), 'all' or 'inactive'
  * @param {G} cursor
  * @param {number} limit
  * @returns {Array.<FlowBlueprintSummary>}
  */
-const getFlowBlueprints = async (options = { state: 'active' }, cursor, limit) => {
-    const url = paginateUrl('/api/v1/flow-blueprints', cursor, limit, null, { filter: options.state })
+const getFlowBlueprints = async (options = { filter: 'active' }, cursor, limit) => {
+    const url = paginateUrl('/api/v1/flow-blueprints', cursor, limit, null, { filter: options.filter })
     return client.get(url).then(res => {
         return res.data
     })
