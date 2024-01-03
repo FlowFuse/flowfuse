@@ -14,10 +14,10 @@
                     <ff-nav-breadcrumb>{{ device.name }}</ff-nav-breadcrumb>
                 </template>
                 <template #status>
-                    <div class="space-x-6">
+                    <div class="space-x-6 flex">
                         <DeviceLastSeenBadge :last-seen-at="device.lastSeenAt" :last-seen-ms="device.lastSeenMs" :last-seen-since="device.lastSeenSince" />
                         <StatusBadge :status="device.status" />
-                        <DeveloperModeBadge v-if="isDevModeAvailable && device.mode === 'developer'" />
+                        <DeviceModeBadge v-if="isDevModeAvailable " :mode="device.mode" />
                     </div>
                 </template>
                 <template #context>
@@ -127,9 +127,9 @@ import DeviceAssignInstanceDialog from '../team/Devices/dialogs/DeviceAssignInst
 
 import AssignDeviceDialog from './components/AssignDeviceDialog.vue'
 
-import DeveloperModeBadge from './components/DeveloperModeBadge.vue'
 import DeveloperModeToggle from './components/DeveloperModeToggle.vue'
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
+import DeviceModeBadge from './components/DeviceModeBadge.vue'
 
 // constants
 const POLL_TIME = 5000
@@ -139,7 +139,7 @@ export default {
     components: {
         ExternalLinkIcon,
         DeveloperModeToggle,
-        DeveloperModeBadge,
+        DeviceModeBadge,
         DeviceLastSeenBadge,
         SectionNavigationHeader,
         SideNavigationTeamOptions,
