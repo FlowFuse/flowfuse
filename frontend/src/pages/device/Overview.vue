@@ -82,13 +82,7 @@
 
                 <InfoCardRow property="Device Mode">
                     <template #value>
-                        <span v-if="device.mode === 'developer'" class="flex space-x-2 pr-2 items-center">
-                            <BeakerIcon class="text-purple-600 w-4" />
-                            <span> Developer Mode</span>
-                        </span>
-                        <span v-else>
-                            <span> Default</span>
-                        </span>
+                        <DeviceModeBadge :mode="device.mode" type="text" />
                     </template>
                 </InfoCardRow>
             </template>
@@ -99,7 +93,7 @@
 <script>
 
 // utilities
-import { BeakerIcon, CheckCircleIcon, ExclamationIcon, TemplateIcon, WifiIcon } from '@heroicons/vue/outline'
+import { CheckCircleIcon, ExclamationIcon, TemplateIcon, WifiIcon } from '@heroicons/vue/outline'
 
 // api
 import { mapState } from 'vuex'
@@ -110,19 +104,20 @@ import InfoCardRow from '../../components/InfoCardRow.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
 
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
+import DeviceModeBadge from './components/DeviceModeBadge.vue'
 
 export default {
     name: 'DeviceOverview',
     emits: ['device-updated', 'device-refresh'],
     props: ['device'],
     components: {
-        BeakerIcon,
         CheckCircleIcon,
         ExclamationIcon,
         WifiIcon,
         InfoCard,
         InfoCardRow,
         TemplateIcon,
+        DeviceModeBadge,
         DeviceLastSeenBadge,
         StatusBadge
     },
