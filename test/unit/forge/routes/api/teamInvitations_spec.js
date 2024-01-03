@@ -303,6 +303,36 @@ describe('Team Invitations API', function () {
     })
 
     describe('Delete an invitation team member', async function () {
-        // DELETE /api/v1/teams/:teamId/invitations/:invitationId
+        let invites
+        beforeEach(async function () {
+            await app.db.models.Invitation.truncate()
+            // Create invites
+            invites = await app.db.controllers.Invitation.createInvitations(TestObjects.bob, TestObjects.BTeam, ['alice', 'chris'], Roles.Member)
+        })
+        it('team owner can delete an invitation', async () => {
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations/${invites.alice.hashid}`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+            ;(await app.db.models.Invitation.count()).should.equal(1)
+        })
+        it('non-team member cannot delete an invitation', async () => {
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations/${invites.alice.hashid}`,
+                cookies: { sid: TestObjects.tokens.chris }
+            })
+            response.statusCode.should.equal(404)
+        })
+        it('non-team member cannot delete an invitation - team mismatch', async () => {
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/invitations/${invites.alice.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(404)
+        })
     })
 })
