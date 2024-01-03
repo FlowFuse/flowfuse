@@ -109,7 +109,7 @@
     "devDependencies": {
         "@babel/core": "^7.22.15",
         "@babel/preset-env": "^7.22.15",
-        "@vitejs/plugin-vue": "^4.3.4",
+        "@vitejs/plugin-vue": "^5.0.2",
         "@vitest/coverage-istanbul": "^1.1.0",
         "@vue/test-utils": "^2.4.1",
         "autoprefixer": "^10.4.15",
