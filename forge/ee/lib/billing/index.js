@@ -546,7 +546,7 @@ module.exports.init = async function (app) {
                             // needed by closeSubscription. This is to ensure when the
                             // stripe callback arrives we don't trigger a suspension of
                             // the team resources.
-                            await stripe.subscriptions.del(subscription.subscription, {
+                            await stripe.subscriptions.del(existingSubscription, {
                                 invoice_now: true,
                                 prorate: true
                             })
