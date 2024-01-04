@@ -176,6 +176,11 @@ const setSnapshotAsTarget = async (deviceId, snapshotId) => {
     return (await updateDevice(deviceId, { targetSnapshot: snapshotId }))
 }
 
+const getDeviceAuditLog = async (deviceId, params, cursor, limit) => {
+    const url = paginateUrl(`/api/v1/devices/${deviceId}/audit-log`, cursor, limit)
+    return client.get(url, { params }).then(res => res.data)
+}
+
 export default {
     create,
     getDevice,
@@ -193,5 +198,6 @@ export default {
     getDeviceSnapshot,
     getDeviceSnapshots,
     deleteSnapshot,
-    setSnapshotAsTarget
+    setSnapshotAsTarget,
+    getDeviceAuditLog
 }
