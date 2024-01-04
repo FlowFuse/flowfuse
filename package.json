@@ -22,7 +22,7 @@
     "scripts": {
         "start": "node forge/app.js",
         "repl": "node forge/app.js --repl",
-        "build": "webpack -c ./config/webpack.config.js",
+        "build": "webpack --mode=production -c ./config/webpack.config.js",
         "serve": "npm-run-all --parallel build-watch start-watch",
         "serve-repl": "npm-run-all --parallel build-watch start-watch-repl",
         "start-watch": "cross-env NODE_ENV=development nodemon -w forge -w ee/forge -i forge/containers/localfs_root forge/app.js",
@@ -100,7 +100,7 @@
         "sqlite3": "^5.1.6",
         "stripe": "^8.222.0",
         "uuid": "^9.0.0",
-        "vue": "^3.4.4",
+        "vue": "^3.4.5",
         "vue-router": "^4.2.2",
         "vuex": "^4.1.0",
         "yaml": "^2.3.1",
