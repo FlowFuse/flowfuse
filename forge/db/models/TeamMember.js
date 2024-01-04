@@ -48,6 +48,22 @@ module.exports = {
                         }
                     })
                 },
+                getTeamsForUser: async (userId, includeTeam = false) => {
+                    if (typeof userId === 'string') {
+                        userId = M.User.decodeHashid(userId)
+                    }
+                    const opts = {
+                        where: {
+                            UserId: userId
+                        }
+                    }
+                    if (includeTeam) {
+                        opts.include = {
+                            model: M.Team
+                        }
+                    }
+                    return this.findAll(opts)
+                },
                 getTeamMembership: async (userId, teamId, includeTeam) => {
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
