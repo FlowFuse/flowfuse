@@ -163,7 +163,7 @@ module.exports.init = async function (app) {
 
             await Promise.all(promises)
         } else {
-            const missingGroupAssertions = new Error(`SAML response missing ${providerOpts.groupAssertionName} assertion`)
+            const missingGroupAssertions = new Error(`SAML response missing ${providerOpts.groupsAssertionName} assertion`)
             missingGroupAssertions.code = 'unknown_sso_user'
             throw missingGroupAssertions
         }

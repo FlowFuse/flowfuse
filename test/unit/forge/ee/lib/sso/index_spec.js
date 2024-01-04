@@ -212,7 +212,10 @@ d
 
         it('errors if samlUser missing group assertions', async function () {
             const result = app.sso.updateTeamMembership({}, app.user, { groupsAssertionName: 'ff-roles' })
-            result.should.be.rejectedWith(/response missing ff-roles assertion/)
+            result.should.be.rejected()
+            await result.catch(err => {
+                err.toString().should.match(/SAML response missing ff-roles assertion/)
+            })
         })
 
         it('applies team membership changes - all teams', async function () {
