@@ -153,6 +153,13 @@ module.exports = function (env, argv) {
         devServer: {
             port: 3000,
             historyApiFallback: true
+        },
+        resolve: {
+            alias: {
+                // Use vue with the runtime compiler (needed for template strings)
+                // To-do: Remove use of template strings, https://github.com/FlowFuse/flowfuse/issues/3290
+                vue: 'vue/dist/vue.esm-bundler.js'
+            }
         }
     }
 
