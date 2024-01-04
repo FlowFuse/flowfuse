@@ -1,5 +1,7 @@
 ---
 navGroup: Contributing
 navTitle: Contributing to FlowFuse
-redirect: /docs/contribute/introduction
+redirect:
+  to: /docs/contribute/introduction
+layout: redirect
 ---
