@@ -7,6 +7,7 @@ const DotenvPlugin = require('dotenv-webpack')
 const HTMLWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const { VueLoaderPlugin } = require('vue-loader')
+const { DefinePlugin } = require('webpack')
 
 require('dotenv').config()
 
@@ -123,7 +124,11 @@ module.exports = function (env, argv) {
                     concurrency: 100
                 }
             }),
-            new DotenvPlugin()
+            new DotenvPlugin(),
+            new DefinePlugin({
+                __VUE_OPTIONS_API__: true,
+                __VUE_PROD_DEVTOOLS__: argv?.mode === 'development'
+            })
         ],
         optimization: {
             moduleIds: 'deterministic',
