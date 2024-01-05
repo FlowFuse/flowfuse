@@ -74,7 +74,7 @@ module.exports.init = async function (app) {
         // Look for the expected assertion in the SAML profile we have received
         // This is an array of groups the user belongs to. We expect them to be
         // of the form 'ff-SLUG-ROLE' - anything else is ignored
-        let groupAssertions = samlUser[providerOpts.groupsAssertionName]
+        let groupAssertions = samlUser[providerOpts.groupAssertionName]
         if (groupAssertions) {
             const promises = []
             if (!Array.isArray(groupAssertions)) {
@@ -163,7 +163,7 @@ module.exports.init = async function (app) {
 
             await Promise.all(promises)
         } else {
-            const missingGroupAssertions = new Error(`SAML response missing ${providerOpts.groupsAssertionName} assertion`)
+            const missingGroupAssertions = new Error(`SAML response missing ${providerOpts.groupAssertionName} assertion`)
             missingGroupAssertions.code = 'unknown_sso_user'
             throw missingGroupAssertions
         }

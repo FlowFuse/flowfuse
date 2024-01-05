@@ -43,7 +43,7 @@
                     </FormRow>
                     <FormRow v-model="input.options.groupMapping" type="checkbox">Manage roles using group assertions</FormRow>
                     <div v-if="input.options.groupMapping" class="pl-4 space-y-6">
-                        <FormRow v-model="input.options.groupsAssertionName" :error="groupAssertionNameError">
+                        <FormRow v-model="input.options.groupAssertionName" :error="groupAssertionNameError">
                             Group Assertion Name
                             <template #description>The name of the SAML Assertion containing group membership details</template>
                         </FormRow>
@@ -118,7 +118,7 @@ export default {
             )
         },
         isGroupAssertionNameValid () {
-            return this.input.options.groupsAssertionName.length > 0
+            return this.input.options.groupAssertionName.length > 0
         },
         groupAssertionNameError () {
             return !this.isGroupAssertionNameValid ? 'Group Asserion name is required' : ''
@@ -175,7 +175,7 @@ export default {
                 }
                 if (!opts.options.groupMapping) {
                     // Remove any group-related config
-                    delete opts.options.groupsAssertionName
+                    delete opts.options.groupAssertionName
                     delete opts.options.groupAllTeams
                     delete opts.options.groupTeams
                     // delete opts.options.groupAdmin
@@ -210,7 +210,7 @@ export default {
                     groupAllTeams: true,
                     // groupAdmin: false,
                     // groupAdminName: 'ff-admins',
-                    groupsAssertionName: 'ff-roles'
+                    groupAssertionName: 'ff-roles'
                 }
             } else {
                 this.loading = true
@@ -224,7 +224,7 @@ export default {
                     this.input.options.groupAllTeams = this.input.options.groupAllTeams ?? false
                     // this.input.options.groupAdmin = this.input.options.groupAdmin ?? false
                     // this.input.options.groupAdminName = this.input.options.groupAdminName || 'ff-admins'
-                    this.input.options.groupsAssertionName = this.input.options.groupsAssertionName || 'ff-roles'
+                    this.input.options.groupAssertionName = this.input.options.groupAssertionName || 'ff-roles'
                     // groupTeams is stored as an array - convert to multi-line string for the edit form
                     this.input.options.groupTeams = (this.input.options.groupTeams || []).join('\n')
                     this.originalValues = JSON.stringify(this.input)

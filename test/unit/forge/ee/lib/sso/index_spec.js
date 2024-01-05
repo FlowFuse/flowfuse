@@ -211,7 +211,7 @@ d
         })
 
         it('errors if samlUser missing group assertions', async function () {
-            const result = app.sso.updateTeamMembership({}, app.user, { groupsAssertionName: 'ff-roles' })
+            const result = app.sso.updateTeamMembership({}, app.user, { groupAssertionName: 'ff-roles' })
             result.should.be.rejected()
             await result.catch(err => {
                 err.toString().should.match(/SAML response missing ff-roles assertion/)
@@ -246,7 +246,7 @@ d
                     'ff-unknownTeam-viewer'
                 ]
             }, app.user, {
-                groupsAssertionName: 'ff-roles',
+                groupAssertionName: 'ff-roles',
                 groupAllTeams: true
             })
             ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)).should.have.property('role', Roles.Member)
@@ -278,7 +278,7 @@ d
                     'ff-unknownTeam-viewer'
                 ]
             }, app.user, {
-                groupsAssertionName: 'ff-roles',
+                groupAssertionName: 'ff-roles',
                 groupTeams: ['ateam', 'bteam']
             })
             ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)).should.have.property('role', Roles.Member)
@@ -306,7 +306,7 @@ d
                     'ff-dteam-viewer'
                 ]
             }, app.user, {
-                groupsAssertionName: 'ff-roles',
+                groupAssertionName: 'ff-roles',
                 groupAllTeams: true
             })
             ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.CTeam.id)).should.have.property('role', Roles.Owner)
@@ -329,7 +329,7 @@ d
                     'ff-ateam-admin'
                 ]
             }, app.user, {
-                groupsAssertionName: 'ff-roles',
+                groupAssertionName: 'ff-roles',
                 groupAllTeams: true
             })
             ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)).should.have.property('role', Roles.Owner)
