@@ -11,7 +11,7 @@ module.exports = {
                 } else {
                     bodyData.project = projectOrApplication
                 }
-                await log('device.assigned', actionedBy, generateBody(bodyData))
+                await log('device.assigned', actionedBy, device.id, generateBody(bodyData))
             },
             async unassigned (actionedBy, error, projectOrApplication, device) {
                 const bodyData = { error, device }
@@ -20,7 +20,7 @@ module.exports = {
                 } else {
                     bodyData.project = projectOrApplication
                 }
-                await log('device.unassigned', actionedBy, generateBody(bodyData))
+                await log('device.unassigned', actionedBy, device.id, generateBody(bodyData))
             },
             credentials: {
                 async generated (actionedBy, error, device) {
