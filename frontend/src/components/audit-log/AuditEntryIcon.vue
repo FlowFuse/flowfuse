@@ -186,7 +186,8 @@ const iconMap = {
         'team.device.assigned',
         'team.device.credentials-generated',
         'team.device.credentialsGenerated', // legacy event
-        'project.snapshot.deviceTarget' // legacy event
+        'project.snapshot.deviceTarget', // legacy event
+        'device.credentials.generated'
     ],
     'device-group': [
         'application.deviceGroup.created',
@@ -198,7 +199,11 @@ const iconMap = {
         'team.device.developer-mode.enabled',
         'team.device.developer-mode.disabled',
         'team.device.remote-access.enabled',
-        'team.device.remote-access.disabled'
+        'team.device.remote-access.disabled',
+        'device.developer-mode.enabled',
+        'device.developer-mode.disabled',
+        'device.remote-access.enabled',
+        'device.remote-access.disabled'
     ],
     token: [
         'team.device.provisioning.created',

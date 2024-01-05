@@ -207,6 +207,10 @@ export default {
                 })
             }
 
+            navigation.push(
+                { label: 'Audit Log', to: `/device/${this.$route.params.id}/audit-log`, tag: 'device-audit-log' }
+            )
+
             // device logs - if project comms is enabled,
             if (this.features.projectComms) {
                 navigation.push({

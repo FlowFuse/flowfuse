@@ -68,22 +68,22 @@
     </template>
 
     <!-- Team Device Developer Mode -->
-    <template v-else-if="entry.event === 'team.device.developer-mode.enabled'">
+    <template v-else-if="entry.event === 'team.device.developer-mode.enabled' || entry.event === 'device.developer-mode.enabled'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.device">Developer Mode has been enabled for the Device '{{ entry.body.device?.name }}'.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
-    <template v-else-if="entry.event === 'team.device.developer-mode.disabled'">
+    <template v-else-if="entry.event === 'team.device.developer-mode.disabled' || entry.event === 'device.developer-mode.disabled'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.device">Developer Mode has been disabled for the Device '{{ entry.body.device?.name }}'.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
-    <template v-else-if="entry.event === 'team.device.remote-access.enabled'">
+    <template v-else-if="entry.event === 'team.device.remote-access.enabled' || entry.event === 'device.remote-access.enabled'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.device">Remote Access has been enabled for device '{{ entry.body.device?.name }}'.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
-    <template v-else-if="entry.event === 'team.device.remote-access.disabled'">
+    <template v-else-if="entry.event === 'team.device.remote-access.disabled' || entry.event === 'device.remote-access.disbaled'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.device">Remote Access has been disabled for device '{{ entry.body.device?.name }}'.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
@@ -115,7 +115,7 @@
         <span v-if="!error && entry.body?.device">Device '{{ entry.body.device?.name }}' has been unassigned from the {{ entry.body.application ? 'Application' : 'Instance' }} '{{ entry.body.application ? entry.body.application.name : entry.body.project?.name }}'.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
-    <template v-else-if="entry.event === 'team.device.credentials-generated' || entry.event === 'team.device.credentialsGenerated'">
+    <template v-else-if="entry.event === 'team.device.credentials-generated' || entry.event === 'team.device.credentialsGenerated' || entry.event === 'device.credentials.generated'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.device">Credentials generated for Device '{{ entry.body.device?.name }}'.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
