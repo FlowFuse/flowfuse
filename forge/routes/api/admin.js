@@ -4,7 +4,7 @@ module.exports = async function (app) {
     async function getStats () {
         const userCount = await app.db.models.User.count({ attributes: ['admin'], group: 'admin' })
         const projectStateCounts = await app.db.models.Project.count({ attributes: ['state'], group: 'state' })
-        const teamTypeCounts = await app.db.models.Team.count({ attributes: ['teamTypeId'], group: 'teamTypeId' })
+        const teamTypeCounts = await app.db.models.Team.count({ attributes: ['TeamTypeId'], group: 'TeamTypeId' })
         const teamTypes = await app.db.models.TeamType.findAll({ attributes: ['id', 'name'] })
         const teamTypesMap = {}
         teamTypes.forEach(tt => {
