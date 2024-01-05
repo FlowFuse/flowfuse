@@ -18,7 +18,6 @@ describe('Audit Log > Device', async function () {
     // The real logger is assigned in the before() function
     let logger = getLoggers(null)
 
-
     before(async () => {
         app = await FF_UTIL.setupApp()
         logger = app.auditLog.Device
@@ -45,8 +44,8 @@ describe('Audit Log > Device', async function () {
     it('Provides a logger for generating credentials', async function () {
         await logger.device.credentials.generated(ACTIONED_BY, null, DEVICE)
         const logEntry = await getLog()
-        logEntry.should.have.property('event','device.credential.generated')
-        logEntry.should.have.property('scope', { id: DEVICE.hashid, type: 'device'})
+        logEntry.should.have.property('event', 'device.credential.generated')
+        logEntry.should.have.property('scope', { id: DEVICE.hashid, type: 'device' })
         logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
         logEntry.should.have.property('body')
         logEntry.body.should.only.have.keys('device')
@@ -57,8 +56,8 @@ describe('Audit Log > Device', async function () {
     it('Provides a logger for enabling developer mode', async function () {
         await logger.device.developerMode.enabled(ACTIONED_BY, null, DEVICE)
         const logEntry = await getLog()
-        logEntry.should.have.property('event','device.developer-mode.enabled')
-        logEntry.should.have.property('scope', { id: DEVICE.hashid, type: 'device'})
+        logEntry.should.have.property('event', 'device.developer-mode.enabled')
+        logEntry.should.have.property('scope', { id: DEVICE.hashid, type: 'device' })
         logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
         logEntry.should.have.property('body')
         logEntry.body.should.only.have.keys('device')
@@ -69,8 +68,8 @@ describe('Audit Log > Device', async function () {
     it('Provides a logger for disabling developer mode', async function () {
         await logger.device.developerMode.disabled(ACTIONED_BY, null, DEVICE)
         const logEntry = await getLog()
-        logEntry.should.have.property('event','device.developer-mode.disabled')
-        logEntry.should.have.property('scope', { id: DEVICE.hashid, type: 'device'})
+        logEntry.should.have.property('event', 'device.developer-mode.disabled')
+        logEntry.should.have.property('scope', { id: DEVICE.hashid, type: 'device' })
         logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
         logEntry.should.have.property('body')
         logEntry.body.should.only.have.keys('device')
@@ -81,8 +80,8 @@ describe('Audit Log > Device', async function () {
     it('Provides a logger for enabling remote access', async function () {
         await logger.device.remoteAccess.enabled(ACTIONED_BY, null, DEVICE)
         const logEntry = await getLog()
-        logEntry.should.have.property('event','device.remote-access.enabled')
-        logEntry.should.have.property('scope', { id: DEVICE.hashid, type: 'device'})
+        logEntry.should.have.property('event', 'device.remote-access.enabled')
+        logEntry.should.have.property('scope', { id: DEVICE.hashid, type: 'device' })
         logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
         logEntry.should.have.property('body')
         logEntry.body.should.only.have.keys('device')
@@ -93,8 +92,8 @@ describe('Audit Log > Device', async function () {
     it('Provides a logger for disabling remove access', async function () {
         await logger.device.remoteAccess.disabled(ACTIONED_BY, null, DEVICE)
         const logEntry = await getLog()
-        logEntry.should.have.property('event','device.remote-access.disabled')
-        logEntry.should.have.property('scope', { id: DEVICE.hashid, type: 'device'})
+        logEntry.should.have.property('event', 'device.remote-access.disabled')
+        logEntry.should.have.property('scope', { id: DEVICE.hashid, type: 'device' })
         logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
         logEntry.should.have.property('body')
         logEntry.body.should.only.have.keys('device')
@@ -105,8 +104,8 @@ describe('Audit Log > Device', async function () {
     it('Provide a logger for assigned to Application', async function () {
         await logger.device.assigned(ACTIONED_BY, null, APPLICATION, DEVICE)
         const logEntry = await getLog()
-        logEntry.should.have.property('event','device.assigned')
-        logEntry.should.have.property('scope', { id: DEVICE.hashid, type: 'device'})
+        logEntry.should.have.property('event', 'device.assigned')
+        logEntry.should.have.property('scope', { id: DEVICE.hashid, type: 'device' })
         logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
         logEntry.should.have.property('body')
         logEntry.body.should.only.have.keys('application', 'device')
@@ -117,8 +116,8 @@ describe('Audit Log > Device', async function () {
     it('Provide a logger for unassigned from Application', async function () {
         await logger.device.unassigned(ACTIONED_BY, null, APPLICATION, DEVICE)
         const logEntry = await getLog()
-        logEntry.should.have.property('event','device.unassigned')
-        logEntry.should.have.property('scope', { id: DEVICE.hashid, type: 'device'})
+        logEntry.should.have.property('event', 'device.unassigned')
+        logEntry.should.have.property('scope', { id: DEVICE.hashid, type: 'device' })
         logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
         logEntry.should.have.property('body')
         logEntry.body.should.only.have.keys('application', 'device')
