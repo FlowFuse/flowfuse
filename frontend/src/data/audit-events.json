@@ -131,6 +131,16 @@
         "users.auto-created-team": "Team Created",
         "platform.team.created": "New Team Created",
         "platform.team.deleted": "Team Deleted"
-
+    },
+    "device": {
+        "device.credentials.generated": "Device Credential Generated",
+        "device.developer-mode.enabled": "Developer Mode Enabled",
+        "device.developer-mode.disabled": "Developer Mode Disabled",
+        "device.remote-access.enabled": "Remote Access Enabled",
+        "device.remote-access.disabled": "Remote Access Disabled",
+        "device.developer-mode.enabled": "Developer Mode Enabled",
+        "device.developer-mode.disabled": "Developer Mode Disabled",
+        "device.remote-access.enabled": "Remote Access Enabled",
+        "device.remote-access.disabled": "Remote Access Disabled"
     }
 }

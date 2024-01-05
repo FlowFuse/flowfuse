@@ -55,7 +55,7 @@ module.exports = {
                 },
                 forDevice: async (deviceId, pagination = {}) => {
                     const where = {
-                        entityId: applicationId.toString(),
+                        entityId: deviceId.toString(),
                         entityType: 'device'
                     }
                     return M.AuditLog.forEntity(where, pagination)

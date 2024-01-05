@@ -28,7 +28,7 @@ export default {
     },
     data () {
         return {
-            loadEntries: [],
+            logEntries: [],
             users: []
         }
     },
@@ -37,11 +37,15 @@ export default {
     },
     watch: {
         device () {
-
+            console.log('ben')
+            this.$refs.AuditLog?.loadEntries()
         }
     },
     created () {
         this.loadUsers()
+        if (this.device) {
+            this.loadEntries()
+        }
     },
     methods: {
         async loadUsers () {
@@ -49,7 +53,7 @@ export default {
         },
         async loadEntries (params = new URLSearchParams(), cursor = undefined) {
             const deviceId = this.device.id
-            this.logEntries = (await DeviceApi.getInstanceAuditLog(deviceId, params, cursor, 200)).log
+            this.logEntries = (await DeviceApi.getDeviceAuditLog(deviceId, params, cursor, 200)).log
         }
     }
 }
