@@ -106,8 +106,10 @@ The following configuration options should then be set:
      - `Apply to selected teams` - this will restrict what teams can be managed to the provided list. This
        is suitable for shared-tenancy platforms with multiple SSO configurations for different groups of users,
        such as FlowFuse Cloud.
-       In this mode, users who sign-in via this SSO configuration can *only* be members of the configured teams - 
-       they will be removed from any team not in this list.
+       When this option is selected, an additional option is available - `Allow users to be in other teams`. This
+       will allow users who sign-in via this SSO configuration to be members of teams not in the list above.
+       Their membership of those teams will not be managed by the SSO groups.
+       If that option is disabled, then the user will be removed from any teams not in the list above.
 
 ### SAML Groups configuration
 

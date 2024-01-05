@@ -55,6 +55,13 @@
                             <template #description>A list of team <b>slugs</b> that will managed by this configuration - one per line</template>
                             <template #input><textarea v-model="input.options.groupTeams" class="font-mono w-full" rows="6" /></template>
                         </FormRow>
+                        <FormRow v-if="input.options.groupAllTeams === false" v-model="input.options.groupOtherTeams" type="checkbox" class="pl-4">
+                            Allow users to be in other teams
+                            <template #description>
+                                If enabled, users can be members of any teams not listed above and their membership/roles are not managed
+                                by this SSO configuration.
+                            </template>
+                        </FormRow>
                         <!-- <FormRow v-model="input.options.groupAdmin" type="checkbox">Manage Admin roles using group assertions</FormRow>
                         <FormRow v-if="input.options.groupAdmin" v-model="input.options.groupAdminName" :error="groupAdminNameError" class="pl-4">Admin Users SAML Group name</FormRow> -->
                     </div>
@@ -183,6 +190,7 @@ export default {
                 } else {
                     if (opts.options.groupAllTeams) {
                         delete opts.options.groupTeams
+                        delete opts.options.groupOtherTeams
                     } else {
                         // groupTeams is stored as an array of team ids.
                         opts.options.groupTeams = opts.options.groupTeams.split(/(?:\r|\n|\r\n)/).filter(n => n.trim().length > 0)
@@ -208,6 +216,7 @@ export default {
                 this.input.options = {
                     groupMapping: false,
                     groupAllTeams: true,
+                    groupOtherTeams: false,
                     // groupAdmin: false,
                     // groupAdminName: 'ff-admins',
                     groupAssertionName: 'ff-roles'
@@ -222,6 +231,7 @@ export default {
                     this.input.options = { ...this.provider.options }
                     this.input.options.groupMapping = this.input.options.groupMapping ?? true
                     this.input.options.groupAllTeams = this.input.options.groupAllTeams ?? false
+                    this.input.options.groupOtherTeams = this.input.options.groupOtherTeams ?? false
                     // this.input.options.groupAdmin = this.input.options.groupAdmin ?? false
                     // this.input.options.groupAdminName = this.input.options.groupAdminName || 'ff-admins'
                     this.input.options.groupAssertionName = this.input.options.groupAssertionName || 'ff-roles'

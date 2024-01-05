@@ -268,7 +268,7 @@ d
             // Alice member ATeam (change role)
             // Alice not in BTeam (remove from team - in allowed list)
             // Alice not in CTeam (not allowed for this SAML user)
-            // Alice viewer DTeam (removed from team - not in allowed list)
+            // Alice not in DTeam (removed from team - not in allowed list)
 
             await app.sso.updateTeamMembership({
                 'ff-roles': [
@@ -285,6 +285,37 @@ d
             should.not.exist(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.BTeam.id))
             should.not.exist(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.CTeam.id))
             should.not.exist(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.DTeam.id))
+        })
+
+        it('applies team membership changes - allows unmanaged teams to be untouched', async function () {
+            // Only apply changes to teams in the groupTeams list
+            //  - allow them to be in other teams not managed by this configuration
+
+            // Starting state:
+            // Alice owner ATeam
+            // Alice member BTeam
+            // Alice not in CTeam
+            // Alice viewer in DTeam
+
+            // Expected result:
+            // Alice member ATeam (change role)
+            // Alice not in BTeam (remove from team - in allowed list)
+            // Alice not in CTeam (unchanged)
+            // Alice viewer DTeam (unchanged - 'other' team)
+
+            await app.sso.updateTeamMembership({
+                'ff-roles': [
+                    'ff-ateam-member'
+                ]
+            }, app.user, {
+                groupAssertionName: 'ff-roles',
+                groupTeams: ['ateam', 'bteam'],
+                groupOtherTeams: true
+            })
+            ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)).should.have.property('role', Roles.Member)
+            should.not.exist(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.BTeam.id))
+            should.not.exist(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.CTeam.id))
+            ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.DTeam.id)).should.have.property('role', Roles.Viewer)
         })
 
         it('applies highest role when multiple groups provided', async function () {

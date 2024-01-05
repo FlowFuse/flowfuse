@@ -106,14 +106,28 @@ module.exports.init = async function (app) {
             // Get the existing memberships and generate a slug->membership object (existingMemberships)
             const existingMemberships = {}
             ;((await user.getTeamMemberships(true)) || []).forEach(membership => {
-                existingMemberships[membership.Team.slug] = membership
+                // Filter out any teams that are not to be managed by this configuration.
+                // A team is managed by this configuration if any of the follow is true:
+                //  - groupAllTeams is true (all teams to be managed)
+                //  - groupTeams includes this team (this is explicitly a team to be managed)
+                //  - groupOtherTeams is false (not allowed to be a member of other teams - so need to remove them)
+                if (
+                    providerOpts.groupAllTeams ||
+                    (providerOpts.groupTeams || []).includes(membership.Team.slug) ||
+                    !providerOpts.groupOtherTeams
+                ) {
+                    existingMemberships[membership.Team.slug] = membership
+                }
             })
 
             // We now have the list of desiredTeamMemberships and existingMemberships
+            // that are in scope of being modified
 
             // - Check each existing membership
             //   - if in desired list, update role to match and delete from desired list
-            //   - if not in desired list, delete membership
+            //   - if not in desired list,
+            //      - if groupOtherTeams is false or, delete membership
+            //      - else leave alone
             for (const [teamSlug, membership] of Object.entries(existingMemberships)) {
                 if (Object.hasOwn(desiredTeamMemberships, teamSlug)) {
                     // This team is in the desired list
