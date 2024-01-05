@@ -37,7 +37,6 @@ export default {
     },
     watch: {
         device () {
-            console.log('ben')
             this.$refs.AuditLog?.loadEntries()
         }
     },

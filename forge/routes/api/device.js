@@ -234,7 +234,7 @@ module.exports = async function (app) {
                     })
                     await app.auditLog.Team.team.device.assigned(actionedBy, null, device.Team, device.Project, device)
                     await app.auditLog.Project.project.device.assigned(actionedBy, null, device.Project, device)
-                    await app.auditLog.Device.device.assigned(actionedBy,null, device.Project, device)
+                    await app.auditLog.Device.device.assigned(actionedBy, null, device.Project, device)
                 }
                 const response = app.db.views.Device.device(device)
                 response.credentials = credentials
@@ -474,12 +474,12 @@ module.exports = async function (app) {
         case 'assigned-to-project':
             await app.auditLog.Team.team.device.assigned(request.session.User, null, updatedDevice.Team, assignToProject, updatedDevice)
             await app.auditLog.Project.project.device.assigned(request.session.User, null, assignToProject, updatedDevice)
-            await app.auditLog.Device.device.assigned(request.session.User,null, assignToProject, updatedDevice)
+            await app.auditLog.Device.device.assigned(request.session.User, null, assignToProject, updatedDevice)
             break
         case 'assigned-to-application':
             await app.auditLog.Team.team.device.assigned(request.session.User, null, updatedDevice.Team, assignToApplication, updatedDevice)
             await app.auditLog.Application.application.device.assigned(request.session.User, null, assignToApplication, updatedDevice)
-            await app.auditLog.Device.device.assigned(request.session.User,null, assignToApplication, updatedDevice)
+            await app.auditLog.Device.device.assigned(request.session.User, null, assignToApplication, updatedDevice)
             break
         }
         // fulfil team audit log updates

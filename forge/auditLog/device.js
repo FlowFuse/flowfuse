@@ -1,4 +1,4 @@
-const { triggerObject, generateBody } = require("./formatters")
+const { triggerObject, generateBody } = require('./formatters')
 
 // Audit Logging of device scoped events
 module.exports = {
@@ -24,23 +24,23 @@ module.exports = {
             },
             credentials: {
                 async generated (actionedBy, error, device) {
-                    await log('device.credential.generated', actionedBy, device?.id, generateBody({error, device}))
+                    await log('device.credential.generated', actionedBy, device?.id, generateBody({ error, device }))
                 }
             },
             developerMode: {
                 async enabled (actionedBy, error, device) {
-                    await log('device.developer-mode.enabled', actionedBy, device?.id, generateBody({error, device}))
+                    await log('device.developer-mode.enabled', actionedBy, device?.id, generateBody({ error, device }))
                 },
                 async disabled (actionedBy, error, device) {
-                    await log('device.developer-mode.disabled', actionedBy, device?.id, generateBody({error, device}))
+                    await log('device.developer-mode.disabled', actionedBy, device?.id, generateBody({ error, device }))
                 }
             },
             remoteAccess: {
                 async enabled (actionedBy, error, device) {
-                    await log('device.remote-access.enabled', actionedBy, device?.id, generateBody({error, device}))
+                    await log('device.remote-access.enabled', actionedBy, device?.id, generateBody({ error, device }))
                 },
                 async disabled (actionedBy, error, device) {
-                    await log('device.remote-access.disabled', actionedBy, device?.id, generateBody({error, device}))
+                    await log('device.remote-access.disabled', actionedBy, device?.id, generateBody({ error, device }))
                 }
             }
         }
@@ -52,7 +52,7 @@ module.exports = {
             try {
                 const trigger = triggerObject(actionedBy)
                 let whoDidIt = trigger?.id
-                if (typeof whoDidIt !== 'number' || whoDidIt <= 0 ) {
+                if (typeof whoDidIt !== 'number' || whoDidIt <= 0) {
                     whoDidIt = null
                     body.trigger = trigger
                 }
