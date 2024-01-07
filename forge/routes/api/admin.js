@@ -1,20 +1,30 @@
+const { Op } = require('sequelize')
+
 module.exports = async function (app) {
     async function getStats () {
         const userCount = await app.db.models.User.count({ attributes: ['admin'], group: 'admin' })
         const projectStateCounts = await app.db.models.Project.count({ attributes: ['state'], group: 'state' })
+        const teamTypeCounts = await app.db.models.Team.count({ attributes: ['TeamTypeId'], group: 'TeamTypeId' })
+        const teamTypes = await app.db.models.TeamType.findAll({ attributes: ['id', 'name'] })
+        const teamTypesMap = {}
+        teamTypes.forEach(tt => {
+            teamTypesMap[tt.id] = tt.name
+        })
         const license = await app.license.get() || app.license.defaults
         const result = {
             userCount: 0,
             maxUsers: license.users,
-            deviceCount: await app.db.models.Device.count(),
-            maxDevices: license.devices,
-            inviteCount: await app.db.models.Invitation.count(),
             adminCount: 0,
+            inviteCount: await app.db.models.Invitation.count(),
             teamCount: await app.db.models.Team.count(),
             maxTeams: license.teams,
+            teamsByType: {},
             instanceCount: 0,
             maxInstances: license.projects,
-            instancesByState: {}
+            instancesByState: {},
+            deviceCount: await app.db.models.Device.count(),
+            maxDevices: license.devices,
+            devicesByMode: {}
         }
         userCount.forEach(u => {
             result.userCount += u.count
@@ -27,11 +37,39 @@ module.exports = async function (app) {
             result.instanceCount += projectState.count
             result.instancesByState[projectState.state] = projectState.count
         })
+
+        teamTypeCounts.forEach(teamTypeCount => {
+            result.teamsByType[teamTypesMap[teamTypeCount.TeamTypeId]] = teamTypeCount.count
+        })
+
+        const deviceModeCounts = await app.db.models.Device.count({ attributes: ['mode'], group: 'mode' })
+        deviceModeCounts.forEach(mode => {
+            result.devicesByMode[mode.mode] = mode.count
+        })
+        const now = Date.now()
+        const devicesByLastSeenNever = await app.db.models.Device.count({ where: { lastSeenAt: null } })
+        const devicesByLastSeenDay = await app.db.models.Device.count({ where: { lastSeenAt: { [Op.gte]: new Date(now - 1000 * 60 * 60 * 24) } } })
+        const devicesByLastSeenWeek = await app.db.models.Device.count({ where: { lastSeenAt: { [Op.gte]: new Date(now - 1000 * 60 * 60 * 24 * 7) } } })
+        const devicesByLastSeenMonth = await app.db.models.Device.count({ where: { lastSeenAt: { [Op.gte]: new Date(now - 1000 * 60 * 60 * 24 * 7 * 4) } } })
+        result.devicesByLastSeen = {
+            never: devicesByLastSeenNever,
+            day: devicesByLastSeenDay,
+            week: devicesByLastSeenWeek - devicesByLastSeenDay,
+            month: devicesByLastSeenMonth - devicesByLastSeenWeek,
+            older: result.deviceCount - devicesByLastSeenNever - devicesByLastSeenMonth
+        }
+
         if (app.billing) {
             const teamStateCounts = await app.db.models.Subscription.count({ attributes: ['status'], group: 'status' })
             result.teamsByBillingState = {}
             teamStateCounts.forEach(teamState => {
                 result.teamsByBillingState[teamState.status] = teamState.count
+            })
+
+            const trialStats = await app.db.models.Subscription.count({ where: { status: 'trial' }, attributes: ['trialStatus'], group: 'trialStatus' })
+            result.trialsByState = {}
+            trialStats.forEach(trialStat => {
+                result.trialsByState[trialStat.trialStatus] = trialStat.count
             })
         }
         return result
