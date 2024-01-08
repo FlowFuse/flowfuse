@@ -56,11 +56,9 @@
     </div>
 </template>
 <script>
-import { AdjustmentsIcon, CogIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon } from '@heroicons/vue/solid'
+import { AdjustmentsIcon, CogIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, UserGroupIcon } from '@heroicons/vue/solid'
 import { ref } from 'vue'
 import { mapGetters, mapState } from 'vuex'
-
-import router from '../routes.js'
 
 import NavItem from './NavItem.vue'
 import TeamSelection from './TeamSelection.vue'
@@ -83,7 +81,14 @@ export default {
                     icon: CogIcon,
                     tag: 'user-settings',
                     onclick: this.$router.push,
-                    onclickparams: { name: 'User Settings' },
+                    onclickparams: { name: 'User Settings' }
+                },
+                {
+                    label: 'Team Invitations',
+                    icon: UserGroupIcon,
+                    tag: 'team-invitations',
+                    onclick: this.$router.push,
+                    onclickparams: { name: 'User Invitations' },
                     notifications: this.notifications.invitations
                 },
                 this.user.admin
