@@ -37,7 +37,7 @@ the device is running the deployed snapshot without modification.
 
 When running on FlowFuse Cloud, or a premium licensed FlowFuse instance (with the
 [MQTT broker enabled](https://flowfuse.com/docs/install/local/#setting-up-mosquitto-(optional))
-access to the editor.
+the device can be placed in Developer Mode that enables remote access to the editor. 
 
 This can then be used to develop the flows directly on the device and a new snapshot
 generated from the device that can be deployed to other devices in the application.
@@ -67,7 +67,7 @@ editor is only available when:
 
 * When running on FlowFuse Cloud, or a premium licensed FlowFuse instance (with the
 [MQTT broker enabled](https://flowfuse.com/docs/install/local/#setting-up-mosquitto-(optional))
-access to the editor.
+the device can be placed in Developer Mode that enables remote access to the editor.
 
 Whilst in Developer Mode the device will not receive new updates from the platform.
 
