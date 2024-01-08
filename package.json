@@ -69,7 +69,7 @@
         "@flowfuse/driver-localfs": "^1.15.0",
         "@headlessui/vue": "1.7.16",
         "@heroicons/vue": "1.0.6",
-        "@immobiliarelabs/fastify-sentry": "^7.1.1",
+        "@immobiliarelabs/fastify-sentry": "^8.0.0",
         "@levminer/speakeasy": "^1.4.2",
         "@node-saml/passport-saml": "^4.0.4",
         "@sentry/node": "^7.73.0",
