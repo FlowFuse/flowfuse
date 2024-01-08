@@ -8,7 +8,7 @@
         }"
         :data-el="`${isBadge ? 'badge' : 'text'}-${mode === 'developer' ? 'dev' : 'fleet'}mode`"
     >
-        <span v-ff-tooltip="isIcon ? 'Developer Mode' : undefined" class="inline-flex space-x-2 items-center">
+        <span v-ff-tooltip="isIcon ? (isDevMode ? 'Developer Mode' : 'Fleet Mode') : undefined" class="inline-flex space-x-2 items-center">
             <template v-if="isDevMode">
                 <BeakerIcon :class="`text-purple-600 w-${size} h-${size}`" />
                 <span v-if="!isIcon" class="ml-1"> Developer Mode</span>
