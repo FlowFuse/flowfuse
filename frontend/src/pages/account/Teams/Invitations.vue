@@ -1,9 +1,9 @@
 <template>
     <div class="space-y-6">
         <ff-data-table data-el="table" :columns="inviteColumns" :rows="invitations">
-            <template #context-menu="{row}">
-                <ff-list-item data-action="accept" label="Accept" @click="acceptInvite(row)" />
-                <ff-list-item data-action="reject" label="Reject" kind="danger" @click="rejectInvite(row)" />
+            <template #row-actions="{row}">
+                <ff-button kind="secondary-danger" @click="rejectInvite(row)">Reject</ff-button>
+                <ff-button @click="acceptInvite(row)">Accept</ff-button>
             </template>
         </ff-data-table>
     </div>
@@ -15,6 +15,7 @@ import { markRaw } from 'vue'
 import userApi from '../../../api/user.js'
 import InviteUserCell from '../../../components/tables/cells/InviteUserCell.vue'
 import TeamCell from '../../../components/tables/cells/TeamCell.vue'
+import Alerts from '../../../services/alerts.js'
 
 export default {
     name: 'UserInviteTable',
