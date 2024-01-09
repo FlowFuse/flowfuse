@@ -201,7 +201,7 @@ export default {
                 const folderSort = (aType < bType) ? -1 : ((aType > bType) ? 1 : 0)
                 // name sort
                 const aName = a.name.toLowerCase()
-                const bName = a.name.toLowerCase()
+                const bName = b.name?.toLowerCase()
                 const nameSort = (aName > bName) ? -1 : ((aName < bName) ? 1 : 0)
                 // folders first, then names
                 return folderSort || nameSort
