@@ -18,7 +18,7 @@
         <!-- Mobile: User Options -->
         <div class="ff-navigation ff-navigation-right" :class="{'open': mobileUserOptionsOpen}" data-action="user-options">
             <nav-item
-                v-for="option in options" :key="option.label"
+                v-for="option in navigationOptions" :key="option.label"
                 :label="option.label" :icon="option.icon" :notifications="option.notifications"
                 @click="mobileUserOptionsOpen = false; option.onclick(option.onclickparams)"
             />
@@ -47,7 +47,7 @@
                     </div>
                 </template>
                 <template #default>
-                    <ff-dropdown-option v-for="option in options" :key="option.label" @click="option.onclick(option.onclickparams)">
+                    <ff-dropdown-option v-for="option in navigationOptions" :key="option.label" @click="option.onclick(option.onclickparams)">
                         <nav-item :label="option.label" :icon="option.icon" :notifications="option.notifications" :data-nav="option.tag" />
                     </ff-dropdown-option>
                 </template>
@@ -56,11 +56,9 @@
     </div>
 </template>
 <script>
-import { AdjustmentsIcon, CogIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon } from '@heroicons/vue/solid'
+import { AdjustmentsIcon, CogIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, UserGroupIcon } from '@heroicons/vue/solid'
 import { ref } from 'vue'
 import { mapGetters, mapState } from 'vuex'
-
-import router from '../routes.js'
 
 import NavItem from './NavItem.vue'
 import TeamSelection from './TeamSelection.vue'
@@ -74,17 +72,48 @@ export default {
     },
     emits: ['menu-toggle'],
     computed: {
-        profile: function () {
-            const profileLinks = router.options.routes.filter(r => {
-                return r.profileLink && (!r.adminOnly || this.user.admin)
-            })
-            profileLinks.sort((A, B) => {
-                return (A.profileMenuIndex || 0) - (B.profileMenuIndex || 0)
-            })
-            return profileLinks
-        },
         ...mapState('account', ['user', 'team', 'teams']),
-        ...mapGetters('account', ['notifications'])
+        ...mapGetters('account', ['notifications']),
+        navigationOptions () {
+            return [
+                {
+                    label: 'User Settings',
+                    icon: CogIcon,
+                    tag: 'user-settings',
+                    onclick: this.$router.push,
+                    onclickparams: { name: 'User Settings' }
+                },
+                {
+                    label: 'Team Invitations',
+                    icon: UserGroupIcon,
+                    tag: 'team-invitations',
+                    onclick: this.$router.push,
+                    onclickparams: { name: 'User Invitations' },
+                    notifications: this.notifications.invitations
+                },
+                this.user.admin
+                    ? {
+                        label: 'Admin Settings',
+                        icon: AdjustmentsIcon,
+                        tag: 'admin-settings',
+                        onclick: this.$router.push,
+                        onclickparams: { name: 'Admin Settings' }
+                    }
+                    : undefined,
+                {
+                    label: 'Documentation',
+                    icon: QuestionMarkCircleIcon,
+                    tag: 'documentation',
+                    onclick: this.to,
+                    onclickparams: { url: 'https://flowfuse.com/docs/' }
+                }, {
+                    label: 'Sign Out',
+                    icon: LogoutIcon,
+                    tag: 'sign-out',
+                    onclick: this.signout
+                }
+            ].filter(option => option !== undefined)
+        }
     },
     watch: {
         notifications: {
@@ -102,25 +131,7 @@ export default {
     data () {
         return {
             mobileTeamSelectionOpen: false,
-            mobileUserOptionsOpen: false,
-            options: [{
-                label: 'User Settings',
-                icon: CogIcon,
-                tag: 'user-settings',
-                onclick: this.$router.push,
-                onclickparams: { name: 'User Settings' }
-            }, {
-                label: 'Documentation',
-                icon: QuestionMarkCircleIcon,
-                tag: 'documentation',
-                onclick: this.to,
-                onclickparams: { url: 'https://flowfuse.com/docs/' }
-            }, {
-                label: 'Sign Out',
-                icon: LogoutIcon,
-                tag: 'sign-out',
-                onclick: this.signout
-            }]
+            mobileUserOptionsOpen: false
         }
     },
     setup () {
@@ -129,18 +140,6 @@ export default {
             open,
             plusIcon: PlusIcon
         }
-    },
-    mounted () {
-        if (this.user.admin) {
-            this.options.splice(1, 0, {
-                label: 'Admin Settings',
-                icon: AdjustmentsIcon,
-                tag: 'admin-settings',
-                onclick: this.$router.push,
-                onclickparams: { name: 'Admin Settings' }
-            })
-        }
-        this.options[0].notifications = this.notifications.invitations
     },
     methods: {
         home () {
