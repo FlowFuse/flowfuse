@@ -187,7 +187,7 @@ export default {
             }).catch(err => {
                 console.error(err.response.data)
                 this.busy = false
-                if (err.response.data) {
+                if (err.response?.data) {
                     if (/username/.test(err.response.data.error)) {
                         this.errors.username = 'Username unavailable'
                     }
