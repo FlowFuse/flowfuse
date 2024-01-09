@@ -132,7 +132,7 @@ export default {
             return httpClient.post('/setup/create-user', opts).then(res => {
                 this.$emit('next')
             }).catch(err => {
-                if (err.response.data) {
+                if (err.response?.data) {
                     if (/username/.test(err.response.data.error)) {
                         this.errors.username = 'Username unavailable'
                     } else if (/password/.test(err.response.data.error)) {
