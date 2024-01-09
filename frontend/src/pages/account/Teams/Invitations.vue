@@ -2,8 +2,8 @@
     <div class="space-y-6">
         <ff-data-table data-el="table" :columns="inviteColumns" :rows="invitations">
             <template #row-actions="{row}">
-                <ff-button kind="secondary-danger" @click="rejectInvite(row)">Reject</ff-button>
-                <ff-button @click="acceptInvite(row)">Accept</ff-button>
+                <ff-button data-action="invite-reject" kind="secondary-danger" @click="rejectInvite(row)">Reject</ff-button>
+                <ff-button data-action="invite-accept" @click="acceptInvite(row)">Accept</ff-button>
             </template>
         </ff-data-table>
     </div>
