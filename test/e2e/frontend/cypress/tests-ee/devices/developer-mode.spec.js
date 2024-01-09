@@ -25,9 +25,11 @@ describe('FlowForge - Devices - With Billing', () => {
         cy.contains('span', 'application-device-a').click()
         cy.get('[data-nav="device-devmode"]').should('not.exist')
         cy.get('[data-el="badge-devmode"]').should('not.exist')
+        cy.get('[data-el="badge-fleetmode"]').should('exist')
         cy.get('[data-el="device-devmode-toggle"]').click()
         cy.get('[data-nav="device-devmode"]').should('exist')
         cy.get('[data-el="badge-devmode"]').should('exist')
+        cy.get('[data-el="badge-fleetmode"]').should('not.exist')
 
         // reset dev mode state
         cy.get('[data-el="device-devmode-toggle"]').click()
