@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-header">
+    <div class="ff-header" data-sentry-unmask>
         <!-- Mobile: Toggle(Team & Team Admin Options) -->
         <i class="ff-header--mobile-toggle" :class="{'active': mobileMenuOpen}">
             <MenuIcon class="ff-avatar" @click="$emit('menu-toggle')" />

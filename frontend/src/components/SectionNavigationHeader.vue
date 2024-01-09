@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-page-header border-b border-gray-300 text-gray-500 justify-between px-7 pt-7 gap-y-4 items-center">
+    <div class="ff-page-header border-b border-gray-300 text-gray-500 justify-between px-7 pt-7 gap-y-4 items-center" data-sentry-unmask>
         <div class="flex flex-wrap justify-between pb-4">
             <div class="flex">
                 <div class="w-full flex items-center md:w-auto mr-8 gap-x-2">
