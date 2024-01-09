@@ -45,6 +45,7 @@ export default {
             await userApi.acceptTeamInvitation(invite.id, invite.team.id)
             await this.fetchData()
             await this.$store.dispatch('account/refreshTeams')
+            Alerts.emit(`Invite to "${invite.team.name}" has been accepted.`, 'confirmation')
             // navigate to team dashboad once invite accepted
             this.$router.push({
                 name: 'Team',
@@ -56,6 +57,7 @@ export default {
         async rejectInvite (invite) {
             await userApi.rejectTeamInvitation(invite.id, invite.team.id)
             await this.fetchData()
+            Alerts.emit(`Invite to "${invite.team.name}" has been rejected.`, 'confirmation')
         },
         async fetchData () {
             const invitations = await userApi.getTeamInvitations()
