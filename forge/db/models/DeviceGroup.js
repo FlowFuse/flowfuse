@@ -20,7 +20,8 @@ module.exports = {
                 notNull: nameValidator
             }
         },
-        description: { type: DataTypes.TEXT }
+        description: { type: DataTypes.TEXT },
+        activePipelineStageId: { type: DataTypes.INTEGER, allowNull: true }
     },
     associations: function (M) {
         this.belongsTo(M.Application, { onDelete: 'CASCADE' })
