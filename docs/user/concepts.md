@@ -166,3 +166,4 @@ Device groups allow you to organise your Application devices into logical groups
 These groups can be the target of [DevOps Pipelines](#devops-pipeline) greatly simplifying
 the deployments to one or hundreds of devices.
 
+Read more about Device Groups [here](./device-groups.md).
