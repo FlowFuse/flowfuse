@@ -1,4 +1,5 @@
 const should = require('should') // eslint-disable-line
+const sinon = require('sinon')
 
 const setup = require('../../setup.js')
 
@@ -19,7 +20,10 @@ describe('Application Device Groups API', function () {
         ATeam: {},
         BTeam: {},
         /** B-team Application */
-        application: {}
+        application: {},
+        /** B-team Instance */
+        instance: {}
+
     }
     /** @type {import('../../../../../lib/TestModelFactory')} */
     let factory = null
@@ -61,6 +65,7 @@ describe('Application Device Groups API', function () {
             description: 'B-team Application description',
             TeamId: TestObjects.BTeam.id
         })
+        TestObjects.instance = await app.factory.createInstance({ name: 'B-team-instance' }, TestObjects.application, app.stack, app.template, app.projectType, { start: false })
     })
 
     async function login (username, password) {
@@ -664,6 +669,140 @@ describe('Application Device Groups API', function () {
             })
 
             response.statusCode.should.be.oneOf([400, 403, 404])
+        })
+        describe('Update', async function () {
+            const checkCallArgs = (calls, device) => {
+                const args = calls.find(e => e.args[1] === device.hashid).args
+                args[0].should.equal(device.Team.hashid)
+                args[1].should.equal(device.hashid)
+                args[2].should.equal('update')
+                const payload = args[3]
+                payload.should.have.property('ownerType', 'application')
+                payload.should.have.property('application', device.Application.hashid)
+                payload.should.have.property('snapshot')
+                payload.should.have.property('settings')
+                payload.should.have.property('mode', 'autonomous')
+                payload.should.have.property('licensed')
+            }
+            beforeEach(async function () {
+                // mock the `app.comms.devices.sendCommand()`
+                sinon.stub(app.comms.devices, 'sendCommand').resolves()
+            })
+
+            afterEach(async function () {
+                app.comms.devices.sendCommand.restore()
+                await app.db.models.PipelineStage.destroy({ where: {} })
+                await app.db.models.Pipeline.destroy({ where: {} })
+                await app.db.models.ProjectSnapshot.destroy({ where: {} })
+            })
+
+            it('Add and Remove Devices get an update request', async function () {
+                // Premise:
+                // Create 4 devices, 1 is unused, 2 of them to be added to the group initially, 1 is added and another is removed
+                // Check the 3 devices involved get an update request
+                const sid = await login('bob', 'bbPassword')
+                const application = TestObjects.application // BTeam application
+                const deviceGroup = await factory.createApplicationDeviceGroup({ name: generateName('device-group') }, application)
+                const device1of3 = await factory.createDevice({ name: generateName('device') }, TestObjects.BTeam, null, application)
+                const device2of3 = await factory.createDevice({ name: generateName('device') }, TestObjects.BTeam, null, application)
+                const device3of3 = await factory.createDevice({ name: generateName('device') }, TestObjects.BTeam, null, application)
+                // eslint-disable-next-line no-unused-vars
+                const nonGroupedDevice = await factory.createDevice({ name: generateName('device') }, TestObjects.BTeam, null, application)
+
+                // add 2 of the devices to the group
+                await app.db.controllers.DeviceGroup.updateDeviceGroupMembership(deviceGroup, { addDevices: [device1of3.id, device2of3.id] })
+
+                // reset the mock call history
+                app.comms.devices.sendCommand.resetHistory()
+
+                // now add 1 and remove 1
+                const response = await app.inject({
+                    method: 'PATCH',
+                    url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup.hashid}`,
+                    cookies: { sid },
+                    payload: {
+                        remove: [device1of3.hashid],
+                        add: [device3of3.hashid]
+                    }
+                })
+
+                // should succeed
+                response.statusCode.should.equal(200)
+
+                // check 3 devices got an update request
+                app.comms.devices.sendCommand.callCount.should.equal(3)
+                const devices = await app.db.models.Device.getAll({}, { id: [device1of3.id, device2of3.id, device3of3.id] })
+                const d1 = devices.devices.find(d => d.id === device1of3.id)
+                const d2 = devices.devices.find(d => d.id === device2of3.id)
+                const d3 = devices.devices.find(d => d.id === device3of3.id)
+                const calls = app.comms.devices.sendCommand.getCalls()
+                checkCallArgs(calls, d1)
+                checkCallArgs(calls, d2)
+                checkCallArgs(calls, d3)
+            })
+            it('All Devices removed get an update request and clears activePipelineStageId', async function () {
+                // Premise:
+                // Create 2 devices in a group, add group to a pipeline and deploy a snapshot
+                //   (direct db ops: set the activePipelineStageId on the group and the targetSnapshotId on the device group pipeline stage)
+                // Test the API by removing both devices leaving the group empty
+                // Check the 2 devices involved get an update request
+                // Check the DeviceGroup `activePipelineStageId` is cleared (this is cleared because the group is empty)
+                // Check the `PipelineStageDeviceGroup.targetSnapshotId` is cleared (this is cleared because the group is empty)
+                const sid = await login('bob', 'bbPassword')
+                const application = TestObjects.application // BTeam application
+                const instance = TestObjects.instance
+                const deviceGroupOne = await factory.createApplicationDeviceGroup({ name: generateName('device-group') }, application)
+
+                const device1of2 = await factory.createDevice({ name: generateName('device') }, TestObjects.BTeam, null, application)
+                const device2of2 = await factory.createDevice({ name: generateName('device') }, TestObjects.BTeam, null, application)
+
+                // add the devices to the group
+                await app.db.controllers.DeviceGroup.updateDeviceGroupMembership(deviceGroupOne, { addDevices: [device1of2.id, device2of2.id] })
+
+                // create a pipeline and snapshot
+                const pipelineDeviceGroups = await factory.createPipeline({ name: 'new-pipeline-device-groups' }, TestObjects.application)
+                const pipelineDeviceGroupsStageOne = await factory.createPipelineStage({ name: 'stage-one-instance', instanceId: instance.id, action: 'use_latest_snapshot' }, pipelineDeviceGroups)
+                const pipelineDeviceGroupsStageTwo = await factory.createPipelineStage({ name: 'stage-two-device-group', deviceGroupId: deviceGroupOne.id, source: pipelineDeviceGroupsStageOne.hashid, action: 'use_latest_snapshot' }, pipelineDeviceGroups)
+                const snapshot = await factory.createSnapshot({ name: generateName('snapshot') }, instance, TestObjects.bob)
+
+                // deploy the snapshot to the group
+                deviceGroupOne.set('activePipelineStageId', pipelineDeviceGroupsStageTwo.id)
+                await deviceGroupOne.save()
+                await app.db.models.PipelineStageDeviceGroup.update({ targetSnapshotId: snapshot.id }, { where: { PipelineStageId: pipelineDeviceGroupsStageTwo.id } })
+
+                // reset the mock call history
+                app.comms.devices.sendCommand.resetHistory()
+
+                // now remove both
+                const response = await app.inject({
+                    method: 'PATCH',
+                    url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroupOne.hashid}`,
+                    cookies: { sid },
+                    payload: {
+                        remove: [device1of2.hashid, device2of2.hashid]
+                    }
+                })
+
+                // should succeed
+                response.statusCode.should.equal(200)
+
+                // check both devices got an update request
+                app.comms.devices.sendCommand.callCount.should.equal(2)
+                const devices = await app.db.models.Device.getAll({}, { id: [device1of2.id, device2of2.id] })
+                const d1 = devices.devices.find(d => d.id === device1of2.id)
+                const d2 = devices.devices.find(d => d.id === device2of2.id)
+                const calls = app.comms.devices.sendCommand.getCalls()
+                checkCallArgs(calls, d1)
+                checkCallArgs(calls, d2)
+
+                // check the DeviceGroup `activePipelineStageId` is cleared
+                const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroupOne.hashid)
+                updatedDeviceGroup.should.have.property('activePipelineStageId', null)
+
+                // load the PipelineStageDeviceGroup stage from DB and ensure `targetSnapshotId` is cleared
+                const updatedPipelineDeviceGroupsStageTwo = await app.db.models.PipelineStageDeviceGroup.byId(pipelineDeviceGroupsStageTwo.id)
+                updatedPipelineDeviceGroupsStageTwo.should.have.property('targetSnapshotId', null)
+            })
         })
     })
 })
