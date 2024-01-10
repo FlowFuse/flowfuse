@@ -79,6 +79,7 @@ import { mapState } from 'vuex'
 import ApplicationApi from '../../../api/application.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import Alerts from '../../../services/alerts.js'
+import Dialog from '../../../services/dialog.js'
 
 import { debounce } from '../../../utils/eventHandling.js'
 
@@ -290,17 +291,38 @@ export default {
         },
         saveChanges () {
             const deviceIds = this.localMemberDevices.map((device) => device.id)
-            ApplicationApi.updateDeviceGroupMembership(this.application.id, this.deviceGroup.id, { set: deviceIds })
-                .then(() => {
-                    Alerts.emit('Device Group updated.', 'confirmation')
-                    this.hasChanges = false
-                    this.$emit('device-group-members-updated')
-                    this.editMode = false
-                })
-                .catch((err) => {
-                    this.$toast.error('Failed to update Device Group')
-                    console.error(err)
-                })
+            const removedCount = this.deviceGroup.devices.length - deviceIds.length
+            const addedCount = deviceIds.length - this.deviceGroup.devices.length
+            const warning = []
+            if (removedCount > 0) {
+                warning.push(`${removedCount} device${removedCount > 1 ? 's' : ''} will be removed from this group. If ${removedCount > 1 ? 'they have' : 'it has'} the latest active pipeline snapshot, the device${removedCount > 1 ? 's' : ''} will be updated with a default snapshot.`)
+            }
+            if (addedCount > 0) {
+                warning.push(`${addedCount} device${addedCount > 1 ? 's' : ''} will be added to this group and ${addedCount > 1 ? 'they' : 'it'} will be updated to deploy the active pipeline snapshot.`)
+            }
+            if (addedCount > 0 || removedCount > 0) {
+                warning.push('')
+            }
+            warning.push('Do you want to continue?')
+            const warningMessage = `<p>${warning.join('<br>')}</p>`
+            Dialog.show({
+                header: 'Update device group members',
+                kind: 'danger',
+                html: warningMessage,
+                confirmLabel: 'Accept'
+            }, async () => {
+                ApplicationApi.updateDeviceGroupMembership(this.application.id, this.deviceGroup.id, { set: deviceIds })
+                    .then(() => {
+                        Alerts.emit('Device Group updated.', 'confirmation')
+                        this.hasChanges = false
+                        this.$emit('device-group-members-updated')
+                        this.editMode = false
+                    })
+                    .catch((err) => {
+                        this.$toast.error('Failed to update Device Group')
+                        console.error(err)
+                    })
+            })
         }
     }
 }
