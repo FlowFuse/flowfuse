@@ -11,6 +11,10 @@ Device groups allow you to organise your Application assigned devices into logic
 These groups can be the target of [DevOps Pipelines](./devops-pipelines.md), greatly
 simplifying deployments to one or hundreds of devices.
 
+The following requirements apply:
+
+ - FlowFuse 1.15+ running with an EE license
+ - FlowFuse Cloud
 
 ## Creating a Device Group
 
@@ -36,5 +40,4 @@ _Note: Adding a description can help you better distinguish device groups._
 1. Click "Save" to commit your changes
 
 _Note: If you make a mistake, you can cancel your changes at any time by clicking "Cancel"_
-_Note: You can only add devices to a device group that are assigned to the same application and are not already in another device group._
-
+_Note: You can only add devices to a device group that are assigned to the application and are not already in another device group._
