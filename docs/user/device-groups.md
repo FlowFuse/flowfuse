@@ -7,6 +7,8 @@ navTitle: Device Groups
 
 **Navigation**: `Team > Application > Device Groups`
 
+<img src="./images/ui-device-groups.png" width="100%" />
+
 When managing many devices that are intended to run the same snapshot, Device Groups allow you
 to organise your devices into logical groups.
 These groups can then be set as the target of a [DevOps Pipelines](./devops-pipelines.md).
@@ -19,6 +21,8 @@ The following requirements apply:
 
 ## Creating a Device Group
 
+<img src="./images/ui-device-group-create.png" width="100%" />
+
 1. Select the Application you want to configure a Device Group for.
 1. Select the "Device Groups" tab
 1. Click "Add Device Group"
@@ -28,6 +32,8 @@ The following requirements apply:
 _Note: Adding a description can help you better distinguish device groups._
 
 ## Updating Device Group Membership
+
+<img src="./images/ui-device-group-member-edit.png" width="100%" />
 
 1. In the Device Groups table, click the Device Group you want to modify
 1. Click "Edit"
