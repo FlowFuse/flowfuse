@@ -118,7 +118,7 @@ When a pipeline stage with this action is deployed, you will be prompted to choo
 
 #### Device Group stage
 
-Device group stages are not actionable.
+Device group stages are not actionable, i.e. they cannot push content to another stage.
 It is only used as a target stage for deploying to a group of devices.
 
 #### Deploy to Devices
