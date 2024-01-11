@@ -2,7 +2,7 @@ const should = require('should') // eslint-disable-line
 const rateLimits = require('../../../../../../forge/routes/rateLimits.js')
 const setup = require('../../setup.js')
 
-describe.only('Endpoint Rate Limiting', () => {
+describe('Endpoint Rate Limiting', () => {
     describe('getLimits unit tests', () => {
         const app = {}
         let config = {}
