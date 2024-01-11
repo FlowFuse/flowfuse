@@ -38,8 +38,8 @@ export const setupSentry = (app, router) => {
         ],
 
         // Session Replay
-        replaysSessionSampleRate: window.sentryConfig.production ? 0.05 : 0.25,
-        replaysOnErrorSampleRate: 0.5,
+        replaysSessionSampleRate: window.sentryConfig.production ? 0.01 : 0.25,
+        replaysOnErrorSampleRate: 0.25,
 
         // Skip localhost reporting
         beforeSend: (event) => {
