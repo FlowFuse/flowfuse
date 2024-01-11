@@ -36,7 +36,7 @@ any Instances you wish to include in the Pipeline before being able to add them 
 8. Click "Add Stage"
 9. Repeat 5. - 7. for as many stages as you need.
 
-See [Pipeline Stage details](#pipeline-stage-details) below for more info
+See [Pipeline Stage details](#pipeline-stage-details) below for more info.
 
 ## Running a Pipeline Stage
 
