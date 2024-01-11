@@ -57,7 +57,7 @@ This ensures a split between your staging environments.
 * Stages of a pipeline are executed from the selected stage to the next stage immediately to the right.
 * Actionable stages have a play button that will push from that stage to the next stage.
 * Every stage except the last one is effectively a source stage that can be pushed from.
-* Every stage except the first one is a effectively a target stage that can be pushed to from the previous stage.
+* Every stage, except the first one, is a target stage that can be pushed _to_.
 * You cannot currently insert a Stage into the middle of a Pipeline, only at the end.
 * Only one Device Group can appear in a Pipeline, and it must be the last Stage.
 
