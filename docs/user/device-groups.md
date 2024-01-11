@@ -9,7 +9,7 @@ navTitle: Device Groups
 
 <img src="./images/ui-device-groups.png" width="100%" />
 
-When managing many devices that are intended to run the same snapshot, Device Groups allow you
+When managing many devices that are intended to run the same [snapshot](./snapshots.md), Device Groups allow you
 to organise your devices into logical groups.
 These groups can then be set as the target of a [DevOps Pipelines](./devops-pipelines.md).
 This greatly simplifying deployments of the same configuration to one or even hundreds of devices.
