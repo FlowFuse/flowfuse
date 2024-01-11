@@ -40,4 +40,4 @@ _Note: Adding a description can help you better distinguish device groups._
 1. Click "Save" to commit your changes
 
 _Note: If you make a mistake, you can cancel your changes at any time by clicking "Cancel"_
-_Note: You can only add devices to a device group that are assigned to the application and are not already in another device group._
+_Note: When a device you want to add to a group doesn't appear in the list, it's likely already assigned to another group._
