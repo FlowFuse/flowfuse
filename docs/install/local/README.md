@@ -27,7 +27,7 @@ The install script has been tested against the following operating systems:
 
 ### Node.js
 
-FlowFuse requires ***Node.js v16***.
+FlowFuse requires ***Node.js v18***.
 
 #### Linux
 
