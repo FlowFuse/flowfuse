@@ -7,9 +7,10 @@ navTitle: Device Groups
 
 **Navigation**: `Team > Application > Device Groups`
 
-Device groups allow you to organise your Application assigned devices into logical groups.
-These groups can be the target of [DevOps Pipelines](./devops-pipelines.md), greatly
-simplifying deployments to one or hundreds of devices.
+When managing many devices that are intended to run the same snapshot, Device Groups allow you
+to organise your devices into logical groups.
+These groups can then be set as the target of a [DevOps Pipelines](./devops-pipelines.md).
+This greatly simplifying deployments of the same configuration to one or even hundreds of devices.
 
 The following requirements apply:
 
