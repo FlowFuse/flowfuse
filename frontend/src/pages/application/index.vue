@@ -15,13 +15,13 @@
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">
                 You are viewing this application as an Administrator
             </div>
-            <SubscriptionExpiredBanner :team="team" />
-            <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
+            <SubscriptionExpiredBanner v-if="team" :team="team" />
+            <TeamTrialBanner v-if="team && team.billing?.trial" :team="team" />
         </Teleport>
         <div class="ff-instance-header">
             <ff-page-header :title="application.name" :tabs="navigation">
                 <template #breadcrumbs>
-                    <ff-nav-breadcrumb :to="{name: 'Applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb v-if="team" :to="{name: 'Applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
                 </template>
             </ff-page-header>
         </div>
@@ -102,7 +102,7 @@ export default {
     computed: {
         ...mapState('account', ['teamMembership', 'team', 'features']),
         isVisitingAdmin () {
-            return this.teamMembership.role === Roles.Admin
+            return this.teamMembership?.role === Roles.Admin
         },
         isLoading () {
             return this.loading.deleting || this.loading.suspend
