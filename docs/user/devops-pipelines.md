@@ -94,7 +94,7 @@ When a pipeline stage with this action is deployed, a new snapshot of the define
 
 ##### Use latest instance snapshot
 
-When a pipeline stage with this action is deployed, the latest snapshot of the defined instance will be pushed to the next stage.
+When a pipeline stage with this action is deployed, the latest existing snapshot of the defined instance will be pushed to the next stage.
 
 ##### Prompt to select instance snapshot
 
