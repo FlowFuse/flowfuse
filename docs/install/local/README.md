@@ -257,6 +257,9 @@ fileStore:
 
 ## Upgrade
 
+If upgrading from 1.x.y to 2.x.y then you may need to upgrade from NodeJS v16 to NodeJS v18.
+Please ensure you do this before the following steps.
+
 To upgrade to the latest release you can follow these steps. Replace `x.y.z` with the
 version you are upgrading to.
 
