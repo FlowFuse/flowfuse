@@ -54,7 +54,7 @@ This ensures a split between your staging environments.
 
 ## Pipeline Stage details
 
-* Stages of a pipeline are executed from the selected stage to the next stage immediately to the right.
+* Stages of a pipeline are executed from left to right.
 * Actionable stages have a play button that will push from that stage to the next stage.
 * Every stage, except the last one, is effectively a source stage that can be pushed _from_.
 * Every stage, except the first one, is a target stage that can be pushed _to_.
