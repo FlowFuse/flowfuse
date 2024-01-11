@@ -104,7 +104,7 @@ class DeviceTunnelManager {
         const url = this.getTunnelUrl(deviceId)
         const enabled = this.isEnabled(deviceId)
         const connected = this.isConnected(deviceId)
-        return { url, enabled, connected }
+        return { url, enabled, connected, affinity: this.#getTunnel(deviceId)?.affinity }
     }
 
     closeTunnel (deviceId) {
@@ -128,6 +128,13 @@ class DeviceTunnelManager {
             return `/api/v1/devices/${deviceId}/editor/proxy/?access_token=${tunnel.token}`
         }
         return ''
+    }
+
+    setTunnelAffinity (deviceId, affinity) {
+        const tunnel = this.#getTunnel(deviceId)
+        if (tunnel) {
+            tunnel.affinity = affinity
+        }
     }
 
     isEnabled (deviceId) {
@@ -364,7 +371,8 @@ function createNewTunnel (deviceId, token) {
         forwardedWS: {},
         token,
         _handleHTTP: null,
-        _handleWS: null
+        _handleWS: null,
+        affinity: null
     }
     return tunnel
 }

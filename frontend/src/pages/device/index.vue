@@ -325,6 +325,9 @@ export default {
                     try {
                         // * Enable Device Editor (Step 1) - (browser->frontendApi) User clicks button to "Enable Editor"
                         const result = await deviceApi.enableEditorTunnel(this.device.id)
+                        if (result.affinity) {
+                            document.cookie = `FFSESSION=${result.affinity}`
+                        }
                         this.updateTunnelStatus(result)
                         setTimeout(() => {
                             this.loadDevice()
