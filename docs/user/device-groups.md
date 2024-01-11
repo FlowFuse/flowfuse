@@ -18,9 +18,6 @@ The following requirements apply:
 
 ## Creating a Device Group
 
-Before starting, ensure you have 2 or more devices assigned to your application.
-You can find out how to do that [here](../device-agent/register.md#assign-the-device-to-an-application)
-
 1. Select the Application you want to configure a Device Group for.
 1. Select the "Device Groups" tab
 1. Click "Add Device Group"
