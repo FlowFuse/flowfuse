@@ -22,6 +22,7 @@ them when _snapshots_ are created of the instance.
    - [Template](#template)
    - [Snapshot](#instance-snapshot)
  - [Device](#device)
+ - [Device Groups](#device-groups)
 
 
 ### Team
