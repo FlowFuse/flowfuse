@@ -66,12 +66,12 @@
             placeholder="e.g. Development, Staging, Production"
         >
             <template #default>
-                Stage name
+                Stage Name
             </template>
         </FormRow>
 
         <!-- Instance/Device -->
-        <div>
+        <div class="flex space-x-4">
             <FormRow
                 v-if="input.stageType === StageType.INSTANCE"
                 v-model="input.instanceId"
@@ -97,6 +97,7 @@
                     Choose Device
                 </template>
             </FormRow>
+
             <!-- Device Group -->
             <FormRow
                 v-else-if="input.stageType === StageType.DEVICEGROUP"
@@ -105,6 +106,7 @@
                 data-form="stage-device-group"
                 :placeholder="deviceGroupDropdownPlaceholder"
                 :disabled="deviceGroupDropdownDisabled"
+                class="flex-grow"
             >
                 <template #default>
                     Choose Device Group
@@ -112,6 +114,28 @@
             </FormRow>
 
             <div v-else class="text-sm text-gray-500">Please select a stage type</div>
+
+            <div
+                v-if="input.deviceGroupId === 'new'"
+                class="max-w-sm flex-grow space-y-2"
+            >
+                <FormRow
+                    v-model="newDeviceGroupInput.name"
+                    type="text"
+                    data-form="stage-device-group-name"
+                    placeholder="e.g. Development, Staging, Production"
+                    :required="input.deviceGroupId === 'new'"
+                >
+                    Group Name
+                </FormRow>
+                <FormRow
+                    v-model="newDeviceGroupInput.description"
+                    type="text"
+                    data-form="stage-device-group-description"
+                >
+                    Group Description
+                </FormRow>
+            </div>
         </div>
 
         <!-- Action -->
@@ -281,6 +305,10 @@ export default {
                 action: stage?.action,
                 deployToDevices: stage.deployToDevices || false,
                 stageType: stage.stageType || StageType.INSTANCE
+            },
+            newDeviceGroupInput: {
+                name: '',
+                description: ''
             }
         }
     },
@@ -316,9 +344,9 @@ export default {
             return this.formDirty &&
                 (this.input.instanceId || this.input.deviceId || this.input.deviceGroupId) &&
                 this.input.name &&
-                (this.input.stageType === StageType.DEVICEGROUP ? true : this.input.action)
+                (this.input.stageType === StageType.DEVICEGROUP ? true : this.input.action) &&
+                (this.input.deviceGroupId === 'new' ? this.newDeviceGroupInput.name !== '' : true)
         },
-
         instancesNotInUse () {
             const instanceIdsInUse = this.pipeline.stages.reduce((acc, stage) => {
                 stage.instances.forEach((instance) => {
@@ -386,12 +414,15 @@ export default {
             return this.features?.deviceGroups && this.team?.type.properties.features?.deviceGroups
         },
         deviceGroupOptions () {
-            return this.deviceGroups?.map((device) => {
-                return {
-                    label: device.name,
-                    value: device.id
-                }
-            }) || []
+            return [
+                ...this.deviceGroups?.map((device) => {
+                    return {
+                        label: device.name,
+                        value: device.id
+                    }
+                }) || [],
+                { label: 'Create New Application Level Group…', value: 'new' }
+            ]
         },
         deviceGroupDropdownDisabled () {
             return this.deviceGroupOptions.length === 0
@@ -440,6 +471,9 @@ export default {
             this.loading.creating = !this.isEdit
             this.loading.updating = this.isEdit
 
+            // Always clear any leftover newDeviceGroup input
+            delete this.input.newDeviceGroup
+
             if (this.input.stageType === StageType.INSTANCE) {
                 this.input.deviceId = null
                 this.input.deviceGroupId = null
@@ -449,15 +483,21 @@ export default {
             } else if (this.input.stageType === StageType.DEVICEGROUP) {
                 this.input.instanceId = null
                 this.input.deviceId = null
+
+                this.input.action = StageAction.PROMPT // default to PROMPT (not used for device groups)
+
+                // If creating a new group, copy over the props
+                if (this.input.deviceGroupId === 'new') {
+                    this.input.newDeviceGroup = {
+                        name: this.newDeviceGroupInput.name,
+                        description: this.newDeviceGroupInput.description
+                    }
+                }
             }
 
             // Ensure deploy to device is not set with "Device" type stage
             if (this.input.stageType === StageType.DEVICE) {
                 this.input.deployToDevices = false
-            }
-
-            if (this.input.stageType === StageType.DEVICEGROUP) {
-                this.input.action = StageAction.PROMPT // default to PROMPT (not used)
             }
 
             this.$emit('submit', this.input)

@@ -23,7 +23,7 @@
                 </template>
                 copy over all flows, nodes and credentials to "{{ target?.name }}".
             </p>
-            <template v-if="target.stageType === StageType.DEVICEGROUP">
+            <template v-if="target?.stageType === StageType.DEVICEGROUP">
                 <p class="my-4">
                     All devices in the target group will be notified and this may result in them re-loading with a new configuration.
                 </p>
@@ -213,9 +213,9 @@ export default {
         },
 
         targetTypeName () {
-            if (this.target.stageType === StageType.DEVICE) {
+            if (this.target?.stageType === StageType.DEVICE) {
                 return 'device'
-            } else if (this.target.stageType === StageType.DEVICEGROUP) {
+            } else if (this.target?.stageType === StageType.DEVICEGROUP) {
                 return 'groups devices'
             }
             return 'instance'
