@@ -194,7 +194,14 @@ async function init (app, opts, done) {
      */
     app.post('/account/login', {
         config: {
-            rateLimit: app.config.rate_limits // rate limit this route regardless of global/per-route mode (if enabled)
+            rateLimit: app.config.rate_limits
+                ? {
+                    max: 5,
+                    timeWindow: 30000,
+                    keyGenerator: app.config.rate_limits.keyGenerator,
+                    hard: true
+                }
+                : false
         },
         schema: {
             summary: 'Log in to the platform',
@@ -326,7 +333,14 @@ async function init (app, opts, done) {
      */
     app.post('/account/register', {
         config: {
-            rateLimit: app.config.rate_limits // rate limit this route regardless of global/per-route mode (if enabled)
+            rateLimit: app.config.rate_limits
+                ? {
+                    max: 5,
+                    timeWindow: 30000,
+                    keyGenerator: app.config.rate_limits.keyGenerator,
+                    hard: true
+                }
+                : false
         },
         schema: {
             tags: ['Authentication', 'X-HIDDEN'],
@@ -608,7 +622,14 @@ async function init (app, opts, done) {
             app.verifySession(request, reply).then(() => done()).catch(done)
         },
         config: {
-            rateLimit: false, // never rate limit this route
+            rateLimit: app.config.rate_limits
+                ? {
+                    max: 5,
+                    timeWindow: 30000,
+                    keyGenerator: app.config.rate_limits.keyGenerator,
+                    hard: true
+                }
+                : false,
             allowUnverifiedEmail: true
         },
         schema: {
@@ -690,7 +711,14 @@ async function init (app, opts, done) {
 
     app.post('/account/forgot_password', {
         config: {
-            rateLimit: app.config.rate_limits // rate limit this route regardless of global/per-route mode (if enabled)
+            rateLimit: app.config.rate_limits
+                ? {
+                    max: 5,
+                    timeWindow: 30000,
+                    keyGenerator: app.config.rate_limits.keyGenerator,
+                    hard: true
+                }
+                : false
         },
         schema: {
             tags: ['Authentication', 'X-HIDDEN'],

@@ -126,6 +126,9 @@ module.exports = async function (app) {
 
     app.get('/stats', {
         preHandler: app.needsPermission('platform:stats'),
+        config: {
+            rateLimit: app.config.rate_limits
+        },
         schema: {
             summary: 'Get a platform stats - admin-only',
             tags: ['Platform'],
@@ -261,34 +264,6 @@ module.exports = async function (app) {
         })
     })
 
-    // Undocumented
-    app.get('/debug/db-migrations', { preHandler: app.needsPermission('platform:debug') }, async (request, reply) => {
-        reply.send((await app.db.sequelize.query('select * from "MetaVersions"'))[0])
-    })
-    // Undocumented
-    app.get('/debug/db-schema', { preHandler: app.needsPermission('platform:debug') }, async (request, reply) => {
-        const result = {}
-        let tables
-        if (app.config.db.type === 'postgres') {
-            const response = await app.db.sequelize.query('select * from information_schema.tables')
-            const tt = response[0]
-            tables = []
-            for (let i = 0; i < tt.length; i++) {
-                const table = tt[i]
-                if (table.table_schema === 'public') {
-                    tables.push(table.table_name)
-                }
-            }
-        } else {
-            const response = await app.db.sequelize.showAllSchemas()
-            tables = response.map(t => t.name)
-        }
-        for (let i = 0; i < tables.length; i++) {
-            result[tables[i]] = await app.db.sequelize.getQueryInterface().describeTable(tables[i])
-        }
-
-        reply.send(result)
-    })
     /**
      * Get platform audit logs
      * @name /api/v1/admin/audit-log
