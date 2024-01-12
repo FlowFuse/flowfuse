@@ -112,6 +112,9 @@ module.exports = async function (app) {
                 if (cmdResponse.error) {
                     throw new Error('No Node-RED running on Device')
                 }
+                if (cmdResponse.affinity) {
+                    tunnelManager.setTunnelAffinity(deviceId, cmdResponse.affinity)
+                }
             } catch (error) {
                 // ensure any attempt to enable the editor is cleaned up if an error occurs
                 tunnelManager.closeTunnel(deviceId)

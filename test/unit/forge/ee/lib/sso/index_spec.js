@@ -2,6 +2,9 @@ const fastify = require('fastify')
 const should = require('should') // eslint-disable-line
 const setup = require('../../setup')
 
+const FF_UTIL = require('flowforge-test-utils')
+const { Roles } = FF_UTIL.require('forge/lib/roles')
+
 describe('SSO Providers', function () {
     let app
 
@@ -187,6 +190,180 @@ d
                 }
             })
             response.statusCode.should.equal(200)
+        })
+    })
+
+    describe('updateTeamMembership', async function () {
+        const teams = {}
+
+        before(async function () {
+            teams.ATeam = app.team
+            teams.BTeam = await app.factory.createTeam({ name: 'BTeam' })
+            teams.CTeam = await app.factory.createTeam({ name: 'CTeam' })
+            teams.DTeam = await app.factory.createTeam({ name: 'DTeam' })
+        })
+
+        beforeEach(async function () {
+            await app.db.models.TeamMember.truncate()
+            await teams.ATeam.addUser(app.user, { through: { role: Roles.Owner } })
+            await teams.BTeam.addUser(app.user, { through: { role: Roles.Member } })
+            await teams.DTeam.addUser(app.user, { through: { role: Roles.Viewer } })
+        })
+
+        it('errors if samlUser missing group assertions', async function () {
+            const result = app.sso.updateTeamMembership({}, app.user, { groupAssertionName: 'ff-roles' })
+            result.should.be.rejected()
+            await result.catch(err => {
+                err.toString().should.match(/SAML response missing ff-roles assertion/)
+            })
+        })
+
+        it('applies team membership changes - all teams', async function () {
+            // Apply changes to all teams
+            // Covers:
+            //   - Changing existing role
+            //   - Removing from team
+            //   - Adding to team
+            //   - Already has the right role in a team
+
+            // Starting state:
+            // Alice owner ATeam
+            // Alice member BTeam
+            // Alice not in CTeam
+            // Alice viewer in DTeam
+
+            // Expected result:
+            // Alice member ATeam (change role)
+            // Alice not in BTeam (remove from team)
+            // Alice owner CTeam (add to team)
+            // Alice viewer DTeam (unchanged)
+
+            await app.sso.updateTeamMembership({
+                'ff-roles': [
+                    'ff-ateam-member',
+                    'ff-cteam-owner',
+                    'ff-dteam-viewer',
+                    'ff-unknownTeam-viewer'
+                ]
+            }, app.user, {
+                groupAssertionName: 'ff-roles',
+                groupAllTeams: true
+            })
+            ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)).should.have.property('role', Roles.Member)
+            should.not.exist(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.BTeam.id))
+            ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.CTeam.id)).should.have.property('role', Roles.Owner)
+            ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.DTeam.id)).should.have.property('role', Roles.Viewer)
+        })
+        it('applies team membership changes - restricted teams', async function () {
+            // Only apply changes to teams in the groupTeams list
+            // Ensure they are not in any other teams
+
+            // Starting state:
+            // Alice owner ATeam
+            // Alice member BTeam
+            // Alice not in CTeam
+            // Alice viewer in DTeam
+
+            // Expected result:
+            // Alice member ATeam (change role)
+            // Alice not in BTeam (remove from team - in allowed list)
+            // Alice not in CTeam (not allowed for this SAML user)
+            // Alice not in DTeam (removed from team - not in allowed list)
+
+            await app.sso.updateTeamMembership({
+                'ff-roles': [
+                    'ff-ateam-member',
+                    'ff-cteam-owner',
+                    'ff-dteam-viewer',
+                    'ff-unknownTeam-viewer'
+                ]
+            }, app.user, {
+                groupAssertionName: 'ff-roles',
+                groupTeams: ['ateam', 'bteam']
+            })
+            ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)).should.have.property('role', Roles.Member)
+            should.not.exist(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.BTeam.id))
+            should.not.exist(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.CTeam.id))
+            should.not.exist(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.DTeam.id))
+        })
+
+        it('applies team membership changes - allows unmanaged teams to be untouched', async function () {
+            // Only apply changes to teams in the groupTeams list
+            //  - allow them to be in other teams not managed by this configuration
+
+            // Starting state:
+            // Alice owner ATeam
+            // Alice member BTeam
+            // Alice not in CTeam
+            // Alice viewer in DTeam
+
+            // Expected result:
+            // Alice member ATeam (change role)
+            // Alice not in BTeam (remove from team - in allowed list)
+            // Alice not in CTeam (unchanged)
+            // Alice viewer DTeam (unchanged - 'other' team)
+
+            await app.sso.updateTeamMembership({
+                'ff-roles': [
+                    'ff-ateam-member'
+                ]
+            }, app.user, {
+                groupAssertionName: 'ff-roles',
+                groupTeams: ['ateam', 'bteam'],
+                groupOtherTeams: true
+            })
+            ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)).should.have.property('role', Roles.Member)
+            should.not.exist(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.BTeam.id))
+            should.not.exist(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.CTeam.id))
+            ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.DTeam.id)).should.have.property('role', Roles.Viewer)
+        })
+
+        it('applies highest role when multiple groups provided', async function () {
+            // When multiple groups specify the same team, pick the highest role
+
+            // Starting state:
+            // Alice not in CTeam
+            // Alice viewer in DTeam
+
+            // Expected result:
+            // Alice owner CTeam (add to team as owner)
+            // Alice member DTeam (change to member)
+
+            await app.sso.updateTeamMembership({
+                'ff-roles': [
+                    'ff-cteam-member',
+                    'ff-cteam-owner',
+                    'ff-dteam-member',
+                    'ff-dteam-viewer'
+                ]
+            }, app.user, {
+                groupAssertionName: 'ff-roles',
+                groupAllTeams: true
+            })
+            ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.CTeam.id)).should.have.property('role', Roles.Owner)
+            ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.DTeam.id)).should.have.property('role', Roles.Member)
+        })
+        it('ignores invalid role in group', async function () {
+            // Validates that it ignores both unknown roles, but also roles that
+            // exist but are not valid for a team membershipt (ie admin)
+
+            // Starting state:
+            // Alice owner ATeam
+
+            // Expected result:
+            // Alice owner ATeam - unchanged
+
+            await app.sso.updateTeamMembership({
+                'ff-roles': [
+                    'ff-ateam-magician',
+                    'ff-ateam-owner',
+                    'ff-ateam-admin'
+                ]
+            }, app.user, {
+                groupAssertionName: 'ff-roles',
+                groupAllTeams: true
+            })
+            ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)).should.have.property('role', Roles.Owner)
         })
     })
 })

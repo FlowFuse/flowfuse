@@ -220,8 +220,8 @@ export default {
                     this.$emit('user-updated', response)
                     this.$refs.dialog.close()
                 }).catch(err => {
-                    console.error(err.response.data)
-                    if (err.response.data) {
+                    console.error(err.response?.data)
+                    if (err.response?.data) {
                         let showAlert = true
                         if (/username/.test(err.response.data.error)) {
                             this.errors.username = 'Username unavailable'

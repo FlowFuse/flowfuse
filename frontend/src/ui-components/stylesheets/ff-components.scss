@@ -137,6 +137,15 @@
       color: $ff-white;
     }
   }
+  &--secondary-danger {
+    color: $ff-color--danger;
+    background-color: $ff-white;
+    border: 1px solid $ff-color--danger;
+    &:hover {
+      background-color: $ff-color--danger--dark;
+      color: $ff-white;
+    }
+  }
 
   &.ff-btn-small {
     .ff-btn--icon,
@@ -782,6 +791,11 @@ li.ff-list-item {
       &:last-child {
         border-right-width: 1px;
       }
+    }
+    &-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
     }
   }
 }

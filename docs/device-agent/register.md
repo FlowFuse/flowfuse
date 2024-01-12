@@ -89,16 +89,29 @@ the real **Device Configuration** is generated and downloaded to the device.
 The original **Provisioning Configuration** will be overwritten meaning subsequent 
 runs will not need to perform the auto registration again.
 
-## Assign the device to a Node-RED instance
+## Assign the device
 
-The next step is to assign the device to a Node-RED instance.
+The next step is to assign the device to a Node-RED instance or application.
+
+### Assign to Node-RED instance
+
+To assign to a Node-RED instance:
 
 1. Go to your teams's **Devices** page.
 2. Open the dropdown menu to the right of the device you want to assign and
    select the **Add to Instance** option.
 3. Select the instance in the dialog and click **Add** to continue.
 
-## Remove a device from a Node-RED instance
+### Assign the device to an Application
+
+The next step is to assign the device to a FlowFuse Application
+
+1. Go to your teams's **Devices** page.
+2. Open the dropdown menu to the right of the device you want to assign and
+   select the **Add to Application** option.
+3. Select the application in the dialog and click **Add** to continue.
+
+### Remove from Node-RED instance
 
 To remove the device from a Node-RED instance:
 
@@ -110,16 +123,7 @@ To remove the device from a Node-RED instance:
 The device will stop running the current Node-RED flows. It will then wait
 until it is assigned to another instance.
 
-## Assign the device to an Application
-
-The next step is to assign the device to a FlowFuse Application
-
-1. Go to your teams's **Devices** page.
-2. Open the dropdown menu to the right of the device you want to assign and
-   select the **Add to Application** option.
-3. Select the application in the dialog and click **Add** to continue.
-
-## Remove a device from an Application
+### Remove a device from an Application
 
 To remove the device from an application:
 

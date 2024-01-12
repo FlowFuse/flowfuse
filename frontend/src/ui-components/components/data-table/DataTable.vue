@@ -32,6 +32,7 @@
                                 </div>
                             </ff-data-table-cell>
 
+                            <ff-data-table-cell v-if="hasRowActions" />
                             <ff-data-table-cell v-if="hasContextMenu" />
                         </ff-data-table-row>
                     </slot>
@@ -47,6 +48,9 @@
                                 v-for="(r, $index) in filteredRows" :key="$index" :data="r" :columns="columns"
                                 :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn" @selected="rowClick(r)"
                             >
+                                <template v-if="hasRowActions" #row-actions="{row}">
+                                    <slot name="row-actions" :row="row" />
+                                </template>
                                 <template v-if="hasContextMenu" #context-menu="{row}">
                                     <slot name="context-menu" :row="row" />
                                 </template>
@@ -199,6 +203,9 @@ export default {
                     this.$emit('update:search', value)
                 }
             }
+        },
+        hasRowActions: function () {
+            return this.$slots['row-actions']
         },
         hasContextMenu: function () {
             return this.$slots['context-menu']

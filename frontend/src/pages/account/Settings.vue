@@ -179,7 +179,7 @@ export default {
                     this.changed = {}
                     this.resetInputs()
                 }).catch(err => {
-                    if (err.response.data) {
+                    if (err.response?.data) {
                         if (/username/.test(err.response.data.error)) {
                             this.errors.username = 'Username unavailable'
                         }

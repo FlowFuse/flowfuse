@@ -167,7 +167,7 @@ describe('Endpoint Rate Limiting', () => {
             { url: '/api/comms/auth/acl', method: 'POST', shouldLimit: false },
             { url: '/account/logout', method: 'POST', shouldLimit: false },
             { url: '/account/verify/:token', method: 'POST', shouldLimit: false },
-            { url: '/account/verify', method: 'POST', shouldLimit: false },
+            // { url: '/account/verify', method: 'POST', shouldLimit: false },
             { url: '/account/authorize', method: 'GET', shouldLimit: false }, // used by oauth2, needs license
             { url: '/account/token', method: 'POST', shouldLimit: false }, // used by oauth2, needs license
             { url: '/api/v1/devices/:deviceId/editor', method: 'PUT', shouldLimit: false }, // licensed feature
@@ -281,10 +281,15 @@ describe('Endpoint Rate Limiting', () => {
                     it(`Route ${route.method} ${route.url} should be rate limited`, async function () {
                         const routeConfig = route.fastifyRoute.config
                         routeConfig.should.have.property('rateLimit').and.be.an.Object()
-                        routeConfig.rateLimit.should.have.property('enabled', true)
-                        routeConfig.rateLimit.should.have.property('global', true)
-                        routeConfig.rateLimit.should.have.property('max', 666)
-                        routeConfig.rateLimit.should.have.property('timeWindow', '60 seconds')
+                        if (routeConfig.rateLimit.hard) {
+                            routeConfig.rateLimit.should.have.property('max', 5)
+                            routeConfig.rateLimit.should.have.property('timeWindow', 30000)
+                        } else {
+                            routeConfig.rateLimit.should.have.property('enabled', true)
+                            routeConfig.rateLimit.should.have.property('global', true)
+                            routeConfig.rateLimit.should.have.property('max', 666)
+                            routeConfig.rateLimit.should.have.property('timeWindow', '60 seconds')
+                        }
                         routeConfig.rateLimit.should.have.property('keyGenerator').and.be.a.Function()
                     })
                 })
@@ -388,10 +393,15 @@ describe('Endpoint Rate Limiting', () => {
                     it(`Route ${route.method} ${route.url} should be rate limited`, async function () {
                         const routeConfig = route.fastifyRoute.config
                         routeConfig.should.have.property('rateLimit').and.be.an.Object()
-                        routeConfig.rateLimit.should.have.property('enabled', true)
-                        routeConfig.rateLimit.should.have.property('global', false)
-                        routeConfig.rateLimit.should.have.property('max', 555)
-                        routeConfig.rateLimit.should.have.property('timeWindow', '55 seconds')
+                        if (routeConfig.rateLimit.hard) {
+                            routeConfig.rateLimit.should.have.property('max', 5)
+                            routeConfig.rateLimit.should.have.property('timeWindow', 30000)
+                        } else {
+                            routeConfig.rateLimit.should.have.property('enabled', true)
+                            routeConfig.rateLimit.should.have.property('global', false)
+                            routeConfig.rateLimit.should.have.property('max', 555)
+                            routeConfig.rateLimit.should.have.property('timeWindow', '55 seconds')
+                        }
                         routeConfig.rateLimit.should.have.property('keyGenerator').and.be.a.Function()
                     })
                 })

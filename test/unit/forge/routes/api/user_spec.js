@@ -277,6 +277,11 @@ describe('User API', async function () {
         })
 
         it('user can change password', async function () {
+            // Create a password reset token so we can verify it gets cleared
+            ;(await app.db.models.AccessToken.count({ where: { scope: 'password:reset' } })).should.equal(0)
+            await app.db.controllers.AccessToken.createTokenForPasswordReset(TestObjects.dave)
+            ;(await app.db.models.AccessToken.count({ where: { scope: 'password:reset' } })).should.equal(1)
+
             await login('dave', 'ddPassword')
 
             const secondLoginSession = await app.inject({
@@ -328,6 +333,9 @@ describe('User API', async function () {
                 cookies: { sid: secondLoginSessionId }
             })
             checkSecondToken.statusCode.should.equal(401)
+
+            // The password_reset token should no longer exist
+            ;(await app.db.models.AccessToken.count({ where: { scope: 'password:reset' } })).should.equal(0)
 
             await TestObjects.dave.reload()
             TestObjects.dave.password = 'ddPassword'

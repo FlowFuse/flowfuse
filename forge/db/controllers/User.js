@@ -168,6 +168,9 @@ module.exports = {
             requestingUser.email = decodedToken.change // apply new Email Address
             requestingUser.email_verified = true
             await requestingUser.save()
+
+            await app.db.controllers.AccessToken.deleteAllUserPasswordResetTokens(requestingUser)
+
             return requestingUser
         } catch (err) {
             if (err.name === 'TokenExpiredError') {
