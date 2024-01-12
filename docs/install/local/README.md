@@ -260,11 +260,6 @@ fileStore:
 If upgrading from 1.x.y to 2.x.y then you may need to upgrade from NodeJS v16 to NodeJS v18.
 Please ensure you do this before the following steps.
 
-NodeJS v18 also defaults to using IPv6 over IPv4 if available. You should change the `host`
-entry in `etc/flowforge.yml` from `host: 0.0.0.0` to `host: '::'` to ensure the forge app is
-listening on both. If you are using the file-server component then the same change should be
-made to `etc/flowforge-storage.yml`
-
 To upgrade to the latest release you can follow these steps. Replace `x.y.z` with the
 version you are upgrading to.
 
