@@ -646,7 +646,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         })
     })
 
-    it.only('can create a new device group', () => {
+    it('can create a new device group', () => {
         cy.intercept('GET', '/api/v1/applications/*/pipelines').as('getPipelines')
         cy.intercept('POST', '/api/v1/pipelines').as('createPipeline')
 
