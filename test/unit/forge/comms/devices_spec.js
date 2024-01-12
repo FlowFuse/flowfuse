@@ -212,7 +212,7 @@ describe('DeviceCommsHandler', function () {
     describe('Device Status', function () {
         let oldHandler
         let client
-        before(function () {
+        beforeEach(function () {
             client = mockSocket()
             const commsHandler = DeviceCommsHandler(app, client)
 
