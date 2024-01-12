@@ -1,6 +1,4 @@
-const fp = require('fastify-plugin')
-
-module.exports = fp(async function (app, opts) {
+module.exports = async function (app, opts) {
     /**
      * Begin MFA setup
      * 1. Generate MFA Token
@@ -62,4 +60,4 @@ module.exports = fp(async function (app, opts) {
         await app.db.models.MFAToken.deleteTokenForUser(request.session.User)
         reply.send({ status: 'okay' })
     })
-}, { name: 'app.ee.mfa' })
+}
