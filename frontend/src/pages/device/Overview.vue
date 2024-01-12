@@ -15,7 +15,14 @@
                         <StatusBadge :status="device.status" />
                     </template>
                 </InfoCardRow>
-                <InfoCardRow property="Agent Version:" :value="device.agentVersion || 'unknown'" />
+                <InfoCardRow property="Agent Version:">
+                    <template #value>
+                        <StatusBadge
+                            :status="agentVersionWarning ? 'error' : 'success'"
+                            :text="device.agentVersion || 'unknown'" v-ff-tooltip="agentVersionWarning"
+                        />
+                    </template>
+                </InfoCardRow>
             </template>
         </InfoCard>
         <InfoCard header="Deployment:">
@@ -96,6 +103,7 @@
 import { CheckCircleIcon, ExclamationIcon, TemplateIcon, WifiIcon } from '@heroicons/vue/outline'
 
 // api
+import semver from 'semver'
 import { mapState } from 'vuex'
 
 // components
@@ -137,6 +145,15 @@ export default {
         },
         deviceOwnerType: function () {
             return this.device?.ownerType || ''
+        },
+        agentVersionWarning: function () {
+            if (this.deviceOwnerType === 'application') {
+                if (this.device?.agentVersion && semver.gte(this.device.agentVersion, '1.15.0')) {
+                    return ''
+                }
+                return 'Devices assigned to an application must be version 1.15 or greater in order to receive snapshots and updates'
+            }
+            return ''
         }
     },
     mounted () {
