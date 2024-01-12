@@ -17,7 +17,7 @@ This greatly simplifying deployments of the same configuration to one or even hu
 The following requirements apply:
 
 - FlowFuse 1.15+ running with an EE license
-- FlowFuse Cloud Enterprise Teams
+- FlowFuse Cloud teams on the Enterprise tier
 
 ## Creating a Device Group
 
