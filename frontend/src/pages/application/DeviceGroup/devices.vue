@@ -291,25 +291,31 @@ export default {
         },
         saveChanges () {
             const deviceIds = this.localMemberDevices.map((device) => device.id)
-            const removedCount = this.deviceGroup.devices.length - deviceIds.length
-            const addedCount = deviceIds.length - this.deviceGroup.devices.length
+            const devicesRemoved = this.deviceGroup.devices.filter((device) => this.localAvailableDevices.map((d) => d.id).includes(device.id))
+            const devicesAdded = this.localMemberDevices.filter((device) => !this.deviceGroup.devices.map((d) => d.id).includes(device.id))
+            const removedCount = devicesRemoved.length
+            const addedCount = devicesAdded.length
             const warning = []
-            if (removedCount > 0) {
-                warning.push(`${removedCount} device${removedCount > 1 ? 's' : ''} will be removed from this group. If ${removedCount > 1 ? 'they have' : 'it has'} the latest active pipeline snapshot, the device${removedCount > 1 ? 's' : ''} will be updated with a default snapshot.`)
-            }
             if (addedCount > 0) {
-                warning.push(`${addedCount} device${addedCount > 1 ? 's' : ''} will be added to this group and ${addedCount > 1 ? 'they' : 'it'} will be updated to deploy the active pipeline snapshot.`)
-            }
-            if (addedCount > 0 || removedCount > 0) {
+                warning.push('1 or more devices will be added to this group. These device(s) will be updated to deploy the active pipeline snapshot.')
                 warning.push('')
             }
+            if (removedCount > 0) {
+                warning.push('1 or more devices will be removed from this group. These device(s) will be cleared of any active pipeline snapshot.')
+                warning.push('')
+            }
+            if (addedCount <= 0 && removedCount <= 0) {
+                return // nothing to do, shouldn't be able to get here as the save button should be disabled. but just in case...
+            }
             warning.push('Do you want to continue?')
+
             const warningMessage = `<p>${warning.join('<br>')}</p>`
             Dialog.show({
                 header: 'Update device group members',
                 kind: 'danger',
                 html: warningMessage,
-                confirmLabel: 'Accept'
+                confirmLabel: 'Confirm',
+                cancelLabel: 'No'
             }, async () => {
                 ApplicationApi.updateDeviceGroupMembership(this.application.id, this.deviceGroup.id, { set: deviceIds })
                     .then(() => {
