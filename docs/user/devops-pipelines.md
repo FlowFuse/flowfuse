@@ -88,32 +88,20 @@ These are listed below.
 
 #### Instance stage actions
 
-##### Create new instance snapshot
+- **Create new instance snapshot** - When a pipeline stage with this action is deployed, a new snapshot of the defined instance will be created and pushed to the next stage.
 
-When a pipeline stage with this action is deployed, a new snapshot of the defined instance will be created and pushed to the next stage.
+- **Use latest instance snapshot** - When a pipeline stage with this action is deployed, the latest existing snapshot of the defined instance will be pushed to the next stage.
 
-##### Use latest instance snapshot
-
-When a pipeline stage with this action is deployed, the latest existing snapshot of the defined instance will be pushed to the next stage.
-
-##### Prompt to select instance snapshot
-
-When a pipeline stage with this action is deployed, you will be prompted to choose which snapshot to push to the next stage.
+- **Prompt to select instance snapshot** - When a pipeline stage with this action is deployed, you will be prompted to choose which snapshot to push to the next stage.
 
 
 #### Device stage action
 
-##### Use active snapshot
+- **Use active snapshot** - When a pipeline stage with this action is deployed, the active snapshot of the defined device will be pushed to the next stage.
 
-When a pipeline stage with this action is deployed, the active snapshot of the defined device will be pushed to the next stage.
+- **Use latest device snapshot** - When a pipeline stage with this action is deployed, the latest snapshot of the defined device will be pushed to the next stage.
 
-##### Use latest device snapshot
-
-When a pipeline stage with this action is deployed, the latest snapshot of the defined device will be pushed to the next stage.
-
-##### Prompt to select device snapshot
-
-When a pipeline stage with this action is deployed, you will be prompted to choose which snapshot to push to the next stage.
+- **Prompt to select device snapshot** - When a pipeline stage with this action is deployed, you will be prompted to choose which snapshot to push to the next stage.
 
 
 #### Device Group stage
