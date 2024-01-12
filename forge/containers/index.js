@@ -42,7 +42,7 @@ const DRIVER_MODULES = {
     kubernetes: '@flowfuse/driver-kubernetes'
 }
 
-module.exports = fp(async function (app, _opts, next) {
+module.exports = fp(async function (app, _opts) {
     const containerDialect = app.config.driver.type
     const containerModule = DRIVER_MODULES[containerDialect]
     try {
@@ -65,6 +65,4 @@ module.exports = fp(async function (app, _opts, next) {
         app.log.error(`Failed to load the container driver: ${containerDialect}`)
         throw err
     }
-
-    next()
 }, { name: 'app.containers' })

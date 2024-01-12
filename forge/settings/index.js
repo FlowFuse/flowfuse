@@ -6,7 +6,7 @@ const { v4: uuidv4 } = require('uuid')
 
 const defaultSettings = require('./defaults')
 
-module.exports = fp(async function (app, _opts, next) {
+module.exports = fp(async function (app, _opts) {
     const settings = { ...defaultSettings }
 
     const loadedSettings = await app.db.models.PlatformSettings.findAll()
@@ -55,5 +55,4 @@ module.exports = fp(async function (app, _opts, next) {
     }
 
     app.decorate('settings', settingsApi)
-    next()
 }, { name: 'app.settings' })

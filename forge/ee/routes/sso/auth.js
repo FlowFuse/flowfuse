@@ -2,7 +2,7 @@ const { Authenticator } = require('@fastify/passport')
 const { MultiSamlStrategy } = require('@node-saml/passport-saml')
 const fp = require('fastify-plugin')
 
-module.exports = fp(async function (app, opts, done) {
+module.exports = fp(async function (app, opts) {
     app.addHook('onRequest', async (request, reply) => {
         if (!request.session) {
             // passport expects request.session to exist and to be able to store
@@ -147,5 +147,4 @@ module.exports = fp(async function (app, opts, done) {
         }
         throw new Error('Invalid SAML response')
     })
-    done()
 }, { name: 'app.ee.routes.sso.auth' })
