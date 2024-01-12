@@ -45,7 +45,7 @@ module.exports = fp(init, { name: 'app.routes.auth' })
  * @param {Object} opts
  * @param {Function} done
  */
-async function init (app, opts, done) {
+async function init (app, opts) {
     await app.register(require('./oauth'), { logLevel: app.config.logging.http })
     await app.register(require('./permissions'))
 
@@ -791,6 +791,4 @@ async function init (app, opts, done) {
             reply.code(400).send({ status: 'error', message: resp.error, ...resp })
         }
     })
-
-    done()
 }

@@ -17,12 +17,12 @@ const fp = require('fastify-plugin')
  * }
  * ```
  */
-module.exports = fp(async function (app, _opts, next) {
+module.exports = fp(async function (app, _opts) {
     const tasks = {}
     const delayedStartupTasks = []
 
     // Ensure we stop any scheduled tasks when the app is shutting down
-    app.addHook('onClose', async (_) => {
+    app.addHook('onClose', async () => {
         Object.values(tasks).forEach(task => {
             if (task.job) {
                 task.job.stop()
@@ -148,6 +148,4 @@ module.exports = fp(async function (app, _opts, next) {
     app.decorate('housekeeper', {
         registerTask
     })
-
-    next()
 }, { name: 'app.housekeeper' })

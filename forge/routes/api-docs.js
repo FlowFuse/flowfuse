@@ -2,7 +2,7 @@ const { readFileSync, existsSync } = require('fs')
 const path = require('path')
 
 const fp = require('fastify-plugin')
-module.exports = fp(async function (app, opts, done) {
+module.exports = fp(async function (app, opts) {
     await app.register(require('@fastify/swagger'), {
         openapi: {
             info: {
@@ -156,6 +156,4 @@ module.exports = fp(async function (app, opts, done) {
             self: { type: 'string' }
         }
     })
-
-    done()
 }, { name: 'app.routes.api-docs' })
