@@ -49,7 +49,10 @@ module.exports = async function (app) {
      */
     app.put('/change_password', {
         preHandler: app.needsPermission('user:edit'),
-        config: { allowExpiredPassword: true },
+        config: {
+            allowExpiredPassword: true,
+            rateLimit: app.config.rate_limits ? { max: 5, timeWindow: 30000 } : false
+        },
         schema: {
             summary: 'Change the current users password',
             tags: ['User'],
@@ -137,6 +140,9 @@ module.exports = async function (app) {
      */
     app.put('/', {
         preHandler: app.needsPermission('user:edit'),
+        config: {
+            rateLimit: app.config.rate_limits ? { max: 5, timeWindow: 30000 } : false
+        },
         schema: {
             summary: 'Update the current users settings',
             tags: ['User'],
@@ -235,6 +241,9 @@ module.exports = async function (app) {
      * /api/v1/user/pat
      */
     app.post('/tokens', {
+        config: {
+            rateLimit: app.config.rate_limits ? { max: 5, timeWindow: 30000 } : false
+        },
         schema: {
             summary: 'Create user Personal Access Token',
             tags: ['Tokens'],

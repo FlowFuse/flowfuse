@@ -203,4 +203,27 @@ describe('AccessToken controller', function () {
             ;(await app.db.models.AccessToken.count()).should.equal(0)
         })
     })
+
+    describe('passwordReset Tokens', function () {
+        it('generates a password reset token for a known user', async function () {
+            ;(await app.db.models.AccessToken.count({ where: { scope: 'password:reset' } })).should.equal(0)
+            const originalToken = await app.db.controllers.AccessToken.createTokenForPasswordReset(TestObjects.alice)
+            ;(await app.db.models.AccessToken.count({ where: { scope: 'password:reset' } })).should.equal(1)
+            const token1 = await app.db.models.AccessToken.findOne({ where: { ownerId: TestObjects.alice.hashid } })
+            token1.should.have.property('ownerId', TestObjects.alice.hashid)
+            token1.should.have.property('ownerType', 'user')
+            token1.should.have.property('scope', ['password:reset'])
+
+            // Ensure regenerating the token removes old ones
+            const newToken = await app.db.controllers.AccessToken.createTokenForPasswordReset(TestObjects.alice)
+            // Should still only be one
+            ;(await app.db.models.AccessToken.count({ where: { scope: 'password:reset' } })).should.equal(1)
+
+            const oldTokenInDb = await app.db.controllers.AccessToken.getOrExpirePasswordResetToken(originalToken.token)
+            should.not.exist(oldTokenInDb)
+
+            const newTokenInDb = await app.db.controllers.AccessToken.getOrExpirePasswordResetToken(newToken.token)
+            should.exist(newTokenInDb)
+        })
+    })
 })

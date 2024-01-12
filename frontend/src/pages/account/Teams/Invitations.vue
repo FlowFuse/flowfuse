@@ -1,9 +1,9 @@
 <template>
     <div class="space-y-6">
         <ff-data-table data-el="table" :columns="inviteColumns" :rows="invitations">
-            <template #context-menu="{row}">
-                <ff-list-item data-action="accept" label="Accept" @click="acceptInvite(row)" />
-                <ff-list-item data-action="reject" label="Reject" kind="danger" @click="rejectInvite(row)" />
+            <template #row-actions="{row}">
+                <ff-button data-action="invite-reject" kind="secondary-danger" @click="rejectInvite(row)">Reject</ff-button>
+                <ff-button data-action="invite-accept" @click="acceptInvite(row)">Accept</ff-button>
             </template>
         </ff-data-table>
     </div>
@@ -15,6 +15,7 @@ import { markRaw } from 'vue'
 import userApi from '../../../api/user.js'
 import InviteUserCell from '../../../components/tables/cells/InviteUserCell.vue'
 import TeamCell from '../../../components/tables/cells/TeamCell.vue'
+import Alerts from '../../../services/alerts.js'
 
 export default {
     name: 'UserInviteTable',
@@ -44,6 +45,7 @@ export default {
             await userApi.acceptTeamInvitation(invite.id, invite.team.id)
             await this.fetchData()
             await this.$store.dispatch('account/refreshTeams')
+            Alerts.emit(`Invite to "${invite.team.name}" has been accepted.`, 'confirmation')
             // navigate to team dashboad once invite accepted
             this.$router.push({
                 name: 'Team',
@@ -55,6 +57,7 @@ export default {
         async rejectInvite (invite) {
             await userApi.rejectTeamInvitation(invite.id, invite.team.id)
             await this.fetchData()
+            Alerts.emit(`Invite to "${invite.team.name}" has been rejected.`, 'confirmation')
         },
         async fetchData () {
             const invitations = await userApi.getTeamInvitations()

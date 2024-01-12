@@ -193,11 +193,17 @@
         @apply border-dashed;
         @apply text-green-700;
     }
+    
     .forge-badge-devmode {
         @apply bg-purple-100;
         @apply border-purple-600;
         @apply text-purple-700;
     }
+    .forge-badge-fleetmode {
+        @apply bg-teal-100;
+        @apply border-teal-600;
+        @apply text-teal-700;
+    } 
 
     th {
         @apply text-left;

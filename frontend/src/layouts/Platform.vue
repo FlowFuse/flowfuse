@@ -2,7 +2,7 @@
     <div class="ff-layout--platform">
         <PageHeader :mobileMenuOpen="mobileMenuOpen" @menu-toggle="toggleMenu" />
         <div class="ff-layout--platform--wrapper">
-            <div id="platform-sidenav" class="ff-navigation" :class="{'open': mobileMenuOpen}">
+            <div id="platform-sidenav" class="ff-navigation" :class="{'open': mobileMenuOpen}" data-sentry-unmask>
                 <!-- Each view uses a <Teleport> to fill this -->
             </div>
             <div class="ff-view">

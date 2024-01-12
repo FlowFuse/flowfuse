@@ -56,6 +56,9 @@ module.exports = async function (app) {
      * POST [/api/v1/teams/:teamId/invitations]/
      */
     app.post('/', {
+        config: {
+            rateLimit: app.config.rate_limits ? { max: 5, timeWindow: 30000 } : false
+        },
         schema: {
             summary: 'Create an invitation',
             tags: ['Team Invitations'],

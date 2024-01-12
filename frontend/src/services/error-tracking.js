@@ -31,11 +31,15 @@ export const setupSentry = (app, router) => {
         tracesSampleRate: window.sentryConfig.production ? 0.5 : 1.0,
 
         // Which URLs distributed tracing should be enabled
-        tracePropagationTargets: [/^https:\/\/forge.flowforge.dev\/api/, /^https:\/\/app.flowforge.com\//],
+        tracePropagationTargets: [
+            /app\.flow(forge|fuse).com\/api/,
+            /forge\.flow(forge|fuse).dev\/api/,
+            /^\//
+        ],
 
         // Session Replay
-        replaysSessionSampleRate: window.sentryConfig.production ? 0.05 : 0.25,
-        replaysOnErrorSampleRate: 0.5,
+        replaysSessionSampleRate: window.sentryConfig.production ? 0.01 : 0.25,
+        replaysOnErrorSampleRate: 0.25,
 
         // Skip localhost reporting
         beforeSend: (event) => {

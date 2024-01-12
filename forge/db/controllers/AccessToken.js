@@ -51,7 +51,7 @@ module.exports = {
         await app.db.models.AccessToken.destroy({
             where: {
                 ownerType: 'user',
-                scope: 'password:Reset',
+                scope: 'password:reset',
                 ownerId: user.hashid
             }
         })

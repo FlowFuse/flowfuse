@@ -68,15 +68,27 @@ module.exports = fp(async function (app, opts, done) {
             }
             done(new Error('Missing u query parameter'))
         }
-    }, async (req, profile, done) => {
-        if (profile.nameID) {
-            const user = await app.db.models.User.byUsernameOrEmail(profile.nameID)
+    }, async (request, samlUser, done) => {
+        if (samlUser.nameID) {
+            // console.log(profile)
+            const user = await app.db.models.User.byUsernameOrEmail(samlUser.nameID)
             if (user) {
+                const state = JSON.parse(request.body.RelayState)
+                const providerOpts = await app.sso.getProviderOptions(state.provider)
+                if (providerOpts.groupMapping) {
+                    // This SSO provider is configured to manage team membership.
+                    try {
+                        await app.sso.updateTeamMembership(samlUser, user, providerOpts)
+                    } catch (err) {
+                        done(err)
+                        return
+                    }
+                }
                 done(null, user)
             } else {
-                const unknownError = new Error(`Unknown user: ${profile.nameID}`)
+                const unknownError = new Error(`Unknown user: ${samlUser.nameID}`)
                 unknownError.code = 'unknown_sso_user'
-                const userInfo = app.auditLog.formatters.userObject({ email: profile.nameID })
+                const userInfo = app.auditLog.formatters.userObject({ email: samlUser.nameID })
                 const resp = { code: 'unknown_sso_user', error: 'unauthorized' }
                 await app.auditLog.User.account.login(userInfo, resp, userInfo)
                 done(unknownError)
