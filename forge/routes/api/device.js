@@ -1,5 +1,3 @@
-const semver = require('semver')
-
 // eslint-disable-next-line no-unused-vars
 const { DeviceTunnelManager } = require('../../ee/lib/deviceEditor/DeviceTunnelManager')
 const { Roles } = require('../../lib/roles')
@@ -406,12 +404,6 @@ module.exports = async function (app) {
                 if (device.Application?.id === request.body.application) {
                     // Device is already assigned to this application - nothing to do
                 } else {
-                    // check the agent version is compatible with the application
-                    // the agent semver must be greater than or equal to first version that supports applications
-                    if (!device.agentVersion || semver.lt(device.agentVersion, '1.11.0')) {
-                        reply.code(400).send({ code: 'invalid_agent_version', error: 'invalid agent version' })
-                        return
-                    }
                     // Check if the specified application is in the same team
                     assignToApplication = await app.db.models.Application.byId(request.body.application)
                     if (!assignToApplication) {
