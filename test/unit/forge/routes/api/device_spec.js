@@ -658,7 +658,9 @@ describe('Device API', async function () {
                 // ensure old flowforge module is not present
                 result.modules.should.not.have.property('@flowforge/nr-project-nodes')
             })
-            it('cannot assign to an application if device agent version is not present', async function () {
+            it('can assign to an application even if device agent version is not present', async function () {
+                // Prior to FF 2.0, we would reject application assignment if the agent version was not present
+                // Now, we permit it, but the device will be sent null snapshot when it checks in (unless agent version is updated)
                 const device = await createDevice({ name: 'Ad1b', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
                 const response = await app.inject({
                     method: 'PUT',
@@ -668,11 +670,11 @@ describe('Device API', async function () {
                     },
                     cookies: { sid: TestObjects.tokens.bob }
                 })
-                response.statusCode.should.equal(400)
-                const result = response.json()
-                result.should.have.property('code', 'invalid_agent_version')
+                response.statusCode.should.equal(200)
             })
-            it('cannot assign to an application if device agent version is too old', async function () {
+            it('can assign to an application if device agent version even is too old to support application assignment', async function () {
+                // Prior to FF 2.0, we would reject application assignment if the agent version was too old
+                // Now, we permit it, but the old device will be sent null snapshot when it checks in
                 const agentVersion = '1.10.1' // agent version too old for application assignment
                 const device = await createDevice({ name: 'Ad1c', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion })
                 const response = await app.inject({
@@ -683,9 +685,7 @@ describe('Device API', async function () {
                     },
                     cookies: { sid: TestObjects.tokens.bob }
                 })
-                response.statusCode.should.equal(400)
-                const result = response.json()
-                result.should.have.property('code', 'invalid_agent_version')
+                response.statusCode.should.equal(200)
             })
             it('can unassign from an application', async function () {
                 // first, create a device and add it to application

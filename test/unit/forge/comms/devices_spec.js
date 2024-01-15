@@ -212,7 +212,7 @@ describe('DeviceCommsHandler', function () {
     describe('Device Status', function () {
         let oldHandler
         let client
-        before(function () {
+        beforeEach(function () {
             client = mockSocket()
             const commsHandler = DeviceCommsHandler(app, client)
 
@@ -285,6 +285,33 @@ describe('DeviceCommsHandler', function () {
             await TestObjects.applicationDevice.reload()
 
             TestObjects.applicationDevice.activeSnapshotId.should.equal(knownSnapshot.id)
+        })
+
+        it('sends update to clear application device configuration if device agent is older than 1.11.0', async function () {
+            client.emit('status/device', {
+                id: TestObjects.applicationDevice.hashid,
+                status: JSON.stringify({
+                    state: 'online',
+                    application: 'an-application',
+                    snapshot: 'an-snapshot',
+                    settings: 'some-settings',
+                    agentVersion: '1.14.0'
+                })
+            })
+
+            // Task happens async
+            await sleep(100)
+
+            // Should have received update command
+            client.received().should.have.length(1)
+
+            const msg = client.received()[0]
+            msg.should.have.property('topic', `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.applicationDevice.hashid}/command`)
+            msg.should.have.property('payload')
+            const payload = JSON.parse(msg.payload)
+            payload.should.have.property('command', 'update')
+            payload.should.have.property('project', null)
+            payload.should.have.property('snapshot', null)
         })
     })
 })

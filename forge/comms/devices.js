@@ -3,6 +3,7 @@
  * for sending commands to devices.
  */
 
+const SemVer = require('semver')
 const { v4: uuidv4 } = require('uuid')
 
 const noop = () => {}
@@ -79,6 +80,13 @@ class DeviceCommsHandler {
                 // this scenario
                 let sendUpdateCommand = payload.state === 'unknown'
 
+                // If the device is owned by an application (in the DB) and the agent is reporting version < 1.11.0
+                // then we need to send an update command to the device
+                if (Object.hasOwn(payload, 'snapshot') && device.isApplicationOwned) {
+                    if (!device.agentVersion || SemVer.lt(device.agentVersion, '1.11.0')) {
+                        sendUpdateCommand = true
+                    }
+                }
                 if (Object.hasOwn(payload, 'project') && payload.project !== (device.Project?.id || null)) {
                     // The Project is incorrect
                     sendUpdateCommand = true

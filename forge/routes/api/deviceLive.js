@@ -36,6 +36,18 @@ module.exports = async function (app) {
      */
     app.post('/state', async (request, reply) => {
         await app.db.controllers.Device.updateState(request.device, request.body)
+        if (request.device.isApplicationOwned) {
+            if (!request.device.agentVersion || SemVer.lt(request.device.agentVersion, '1.11.0')) {
+                reply.code(409).send({
+                    error: 'incorrect-agent-version',
+                    mode: request.device.mode || null,
+                    project: null,
+                    settings: null,
+                    snapshot: null
+                })
+                return
+            }
+        }
         if (Object.hasOwn(request.body, 'project') && request.body.project !== (request.device.Project?.id || null)) {
             reply.code(409).send({
                 error: 'incorrect-project',
@@ -102,6 +114,14 @@ module.exports = async function (app) {
                 if (SemVer.satisfies(SemVer.coerce(device.agentVersion), '>=1.11.2')) {
                     // 1.11.2 includes fix for ESM loading of GOT, so lets use 'latest' as before
                     nodeRedVersion = 'latest'
+                }
+                if (SemVer.satisfies(SemVer.coerce(device.agentVersion), '>=1.11.2')) {
+                    // 1.11.2 includes fix for ESM loading of GOT, so lets use 'latest' as before
+                    nodeRedVersion = 'latest'
+                }
+                if (!device.agentVersion || SemVer.lt(device.agentVersion, '1.11.0')) {
+                    reply.code(400).send({ code: 'invalid_agent_version', error: 'invalid agent version' })
+                    return
                 }
                 // determine is device is in application mode? if so, return a default snapshot to permit the user to generate flows
                 const DEFAULT_APP_SNAPSHOT = {
