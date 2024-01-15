@@ -173,10 +173,6 @@ async function init (app, opts) {
         }
     })
 
-    // app.post('/account/register', (request, reply) => {
-    //
-    // })
-
     /**
      * Login a user.
      *
@@ -460,11 +456,11 @@ async function init (app, opts) {
             let responseMessage
             let responseCode = 'unexpected_error'
             if (/user_username_lower_unique|Users_username_key/.test(err.parent?.toString())) {
-                responseMessage = 'username not available'
-                responseCode = 'invalid_username'
+                responseMessage = 'Username or email not available'
+                responseCode = 'invalid_request'
             } else if (/user_email_lower_unique|Users_email_key/.test(err.parent?.toString())) {
-                responseMessage = 'email not available'
-                responseCode = 'invalid_email'
+                responseMessage = 'Username or email not available'
+                responseCode = 'invalid_request'
             } else if (err.errors) {
                 responseMessage = err.errors.map(err => err.message).join(',')
             } else {
