@@ -44,7 +44,7 @@ module.exports = {
     },
 
     resetPassword: async function (app, user, newPassword) {
-        if (zxcvbn(newPassword).score < 3) {
+        if (zxcvbn(newPassword).score < 2) {
             throw new Error('Password Too Weak')
         }
         if (newPassword === user.username) {
