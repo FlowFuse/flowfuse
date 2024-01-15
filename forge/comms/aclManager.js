@@ -111,11 +111,8 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/status$/, shared: true },
                 // - ff/v1/<team>/d/<device>/logs
                 { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/logs$/ },
-                // - ff/v1/<team>/d/<device>/response
-                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/response$/, shared: true },
-
                 // Receive broadcast response notification
-                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/response\/broadcast$/ }
+                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/response(\/[^/]+)?$/ }
             ],
             pub: [
                 // Send commands to project launchers
@@ -129,10 +126,7 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/[^/]+\/p\/[^/]+\/command$/ },
                 // Send commands to all application-assigned devices
                 // - ff/v1/+/a/+/command
-                { topic: /^ff\/v1\/[^/]+\/a\/[^/]+\/command$/ },
-
-                // Publish broadcast response to all platform instances
-                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/response\/broadcast$/ }
+                { topic: /^ff\/v1\/[^/]+\/a\/[^/]+\/command$/ }
             ]
         },
         project: {
@@ -165,8 +159,8 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/status$/, verify: 'checkTeamAndObjectIds' },
                 // - ff/v1/<team>/d/<device/logs
                 { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/logs$/, verify: 'checkTeamAndObjectIds' },
-                // - ff/v1/<team>/d/<device>/response
-                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/response$/, verify: 'checkTeamAndObjectIds' }
+                // - ff/v1/<team>/d/<device>/response[/<instance>]
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/response(\/[^/]+)?$/, verify: 'checkTeamAndObjectIds' }
             ]
         }
     }
