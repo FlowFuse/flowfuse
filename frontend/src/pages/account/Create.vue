@@ -188,16 +188,10 @@ export default {
                 console.error(err.response.data)
                 this.busy = false
                 if (err.response?.data) {
-                    if (/username/.test(err.response.data.error)) {
-                        this.errors.username = 'Username unavailable'
-                    }
-                    if (/password/.test(err.response.data.error)) {
-                        this.errors.password = 'Invalid username'
-                    }
-                    if (err.response.data.code === 'invalid_sso_email') {
+                    if (err.response.data.code === 'invalid_request') {
+                        this.errors.username = err.response.data.error || 'Invalid request'
+                    } else if (err.response.data.code === 'invalid_sso_email') {
                         this.errors.email = err.response.data.error
-                    } else if (/email/.test(err.response.data.error)) {
-                        this.errors.email = 'Email unavailable'
                     } else if (err.response.data.statusCode === 429) {
                         this.errors.general = 'Too many attempts. Try again later.'
                         this.tooManyRequests = true
@@ -205,7 +199,6 @@ export default {
                             this.tooManyRequests = false
                         }, 10000)
                     } else if (err.response.data.error === 'user registration not enabled') {
-                        // TODO Where to show this error?
                         this.errors.general = 'User registration is not enabled'
                     }
                 }
