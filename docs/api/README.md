@@ -9,7 +9,7 @@ navTitle: FlowFuse API
 The platform provides a REST API that makes it possible to create integrations and
 custom workflows.
 
-The API comes with an OpenAPI 3.0 Specification that can be viewed [here](https://app.flowforge.com/api/),
+The API comes with an OpenAPI 3.0 Specification that can be viewed [here](https://app.flowfuse.com/api/),
 or on any FlowFuse instance on the path `/api/`.
 
 ### Accessing the API
