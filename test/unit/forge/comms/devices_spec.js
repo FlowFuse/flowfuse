@@ -67,8 +67,11 @@ describe('DeviceCommsHandler', function () {
         const handlers = {}
         return {
             platformId: 'test-platform-id',
-            publish: (topic, payload) => {
+            publish: (topic, payload, opts, callback) => {
                 received.push({ topic, payload })
+                if (callback) {
+                    setImmediate(() => callback())
+                }
             },
             send: (data) => {
                 received.push(data)
@@ -336,6 +339,45 @@ describe('DeviceCommsHandler', function () {
                 result.should.have.property('a', 123)
                 return true
             })
+        })
+
+        it('sends command to enable device editor', async function () {
+            const commandPromise = commsHandler.enableEditor(TestObjects.ATeam.hashid, TestObjects.device.hashid, 'random-token')
+            await sleep(5)
+            client.received().should.have.length(1)
+            const message = client.received()[0]
+            message.should.have.property('topic', `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.device.hashid}/command`)
+            const payload = JSON.parse(message.payload)
+            payload.should.have.property('command', 'startEditor')
+            payload.should.have.property('deviceId', TestObjects.device.hashid)
+            payload.should.have.property('teamId', TestObjects.ATeam.hashid)
+            payload.should.have.property('correlationData')
+            payload.should.have.property('createdAt')
+            payload.should.have.property('expiresAt')
+            payload.should.have.property('responseTopic', `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.device.hashid}/response/test-platform-id`)
+            payload.should.have.property('payload')
+            payload.payload.should.have.property('token', 'random-token')
+
+            client.emit('response/device', {
+                id: TestObjects.device.hashid,
+                message: JSON.stringify({
+                    command: 'startEditor',
+                    correlationData: payload.correlationData,
+                    payload: { token: payload.token }
+                })
+            })
+            return commandPromise
+        })
+
+        it('sends command to disabled device editor without blocking on response', async function () {
+            const commandPromise = commsHandler.disableEditor(TestObjects.ATeam.hashid, TestObjects.device.hashid)
+            await sleep(5)
+            client.received().should.have.length(1)
+            const message = client.received()[0]
+            message.should.have.property('topic', `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.device.hashid}/command`)
+            const payload = JSON.parse(message.payload)
+            payload.should.have.property('command', 'stopEditor')
+            return commandPromise
         })
     })
 })
