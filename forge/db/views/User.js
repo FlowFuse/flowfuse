@@ -4,6 +4,7 @@ module.exports = function (app) {
         type: 'object',
         allOf: [{ $ref: 'UserSummary' }],
         properties: {
+            email: { type: 'string' },
             email_verified: { type: 'boolean' },
             defaultTeam: { type: 'string' },
             sso_enabled: { type: 'boolean' },
@@ -16,6 +17,9 @@ module.exports = function (app) {
     })
     function userProfile (user) {
         const result = userSummary(user)
+        if (user.email) {
+            result.email = user.email
+        }
         if (user.password_expired) {
             result.password_expired = true
         }
@@ -43,7 +47,6 @@ module.exports = function (app) {
             id: { type: 'string' },
             username: { type: 'string' },
             name: { type: 'string' },
-            email: { type: 'string' },
             avatar: { type: 'string' },
             admin: { type: 'boolean' },
             createdAt: { type: 'string' },
@@ -57,7 +60,6 @@ module.exports = function (app) {
         [
             'username',
             'name',
-            'email',
             'avatar',
             'admin',
             'createdAt',
