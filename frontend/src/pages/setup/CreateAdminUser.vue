@@ -74,7 +74,8 @@ export default {
             return this.input.email &&
                    (this.input.username && !this.errors.username) &&
                    this.input.password !== '' &&
-                   this.input.password === this.input.password_confirm
+                   this.input.password === this.input.password_confirm &&
+                   !this.errors.password
         }
     },
     watch: {
@@ -96,6 +97,12 @@ export default {
             if (this.errors.password && v.length >= 8 && zxcvbn(v).score >= 2) {
                 this.errors.password = ''
             }
+            if (v === this.input.username) {
+                this.errors.password = 'Password must not match username'
+            }
+            if (v === this.input.email) {
+                this.errors.password = 'Password must not match email'
+            }
         }
     },
     async mounted () {
@@ -109,13 +116,23 @@ export default {
         checkPassword () {
             if (this.input.password && this.input.password.length < 8) {
                 this.errors.password = 'Password must be at least 8 characters'
+                return
             } else {
                 this.errors.password = ''
             }
             if (this.input.password && this.input.password.length > 1024) {
                 this.errors.password = 'Password too long'
+                return
             } else {
                 this.errors.password = ''
+            }
+            if (this.input.password === this.input.username) {
+                this.errors.password = 'Password must not match username'
+                return
+            }
+            if (this.input.password === this.input.email) {
+                this.errors.password = 'Password must not match email'
+                return
             }
             const zxcvbnResult = zxcvbn(this.input.password)
             if (zxcvbnResult.score < 2) {

@@ -15,7 +15,7 @@
                 <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
                 <FormRow v-model="input.name" :placeholder="input.username" :error="errors.name">Full Name</FormRow>
                 <FormRow v-model="input.email" :error="errors.email">Email</FormRow>
-                <FormRow id="password" v-model="input.password" type="password" :error="errors.password" :onBlur="checkPassword">Password</FormRow>
+                <FormRow id="password" v-model="input.password" type="password" :error="errors.password">Password</FormRow>
                 <FormRow id="password_confirm" v-model="input.password_confirm" type="password" :error="errors.password_confirm">Confirm Password</FormRow>
                 <FormRow id="isAdmin" v-model="input.isAdmin" type="checkbox">Administrator</FormRow>
                 <FormHeading>Team options</FormHeading>
@@ -42,6 +42,8 @@ import FormRow from '../../../components/FormRow.vue'
 
 import NavItem from '../../../components/NavItem.vue'
 import SideNavigation from '../../../components/SideNavigation.vue'
+
+let zxcvbn
 
 export default {
     name: 'AdminCreateUser',
@@ -76,7 +78,7 @@ export default {
             return this.input.email &&
                    (this.input.username && !this.errors.username) &&
                    (this.input.password === this.input.password_confirm) &&
-                   (!this.errors.name)
+                   !this.errors.name && !this.errors.password
         }
     },
     watch: {
@@ -95,9 +97,28 @@ export default {
             }
         },
         'input.password': function (v) {
-            if (this.errors.password && v.length >= 8) {
-                this.errors.password = ''
+            if (this.input.password.length < 8) {
+                this.errors.password = 'Password must be at least 8 characters'
+                return
             }
+            if (this.input.password.length > 1024) {
+                this.errors.password = 'Password too long'
+                return
+            }
+            if (this.input.password === this.input.username) {
+                this.errors.password = 'Password must not match username'
+                return
+            }
+            if (this.input.password === this.input.email) {
+                this.errors.password = 'Password must not match email'
+                return
+            }
+            const zxcvbnResult = zxcvbn(this.input.password)
+            if (zxcvbnResult.score < 2) {
+                this.errors.password = `Password too weak, ${zxcvbnResult.feedback.suggestions[0]}`
+                return
+            }
+            this.errors.password = ''
         },
         'input.name': function (v) {
             if (v && /:\/\//i.test(v)) {
@@ -107,17 +128,12 @@ export default {
             }
         }
     },
-    mounted () {
+    async mounted () {
         this.mounted = true
+        const { default: zxcvbnImp } = await import('zxcvbn')
+        zxcvbn = zxcvbnImp
     },
     methods: {
-        checkPassword () {
-            if (this.input.password && this.input.password.length < 8) {
-                this.errors.password = 'Password must be at least 8 characters'
-            } else {
-                this.errors.password = ''
-            }
-        },
         createUser () {
             const opts = { ...this.input, name: this.input.name || this.input.username }
             delete opts.password_confirm

@@ -1,5 +1,5 @@
 <template>
-    <ff-layout-box class="ff-setup">
+    <ff-layout-box class="ff-login">
         <form v-if="!pending" class="px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
             <template v-if="complete">
                 <p class="text-center">Password reset successful.</p>
@@ -8,7 +8,7 @@
             <template v-else>
                 <FormRow id="new_password" v-model="input.password" type="password" :error="errors.password">New Password</FormRow>
                 <FormRow id="confirm_password" v-model="input.confirm" type="password" :error="errors.confirm">Confirm</FormRow>
-                <ff-button @click="resetPassword">
+                <ff-button :disabled="!formValid" @click="resetPassword">
                     Change password
                 </ff-button>
             </template>
@@ -46,12 +46,30 @@ export default {
             complete: false
         }
     },
-    computed: mapState('account', ['settings', 'pending']),
+    computed: {
+        ...mapState('account', ['settings', 'pending']),
+        formValid () {
+            return this.input.password &&
+                   (this.input.password === this.input.confirm) &&
+                   !this.errors.password
+        }
+    },
     watch: {
         'input.password': function (v) {
-            if (this.errors.password && v.length >= 8 && zxcvbn(v).score >= 2) {
-                this.errors.password = ''
+            if (this.input.password.length < 8) {
+                this.errors.password = 'Password must be at least 8 characters'
+                return
             }
+            if (this.input.password.length > 1024) {
+                this.errors.password = 'Password too long'
+                return
+            }
+            const zxcvbnResult = zxcvbn(this.input.password)
+            if (zxcvbnResult.score < 2) {
+                this.errors.password = `Password too weak, ${zxcvbnResult.feedback.suggestions[0]}`
+                return
+            }
+            this.errors.password = ''
         }
     },
     async mounted () {
@@ -60,30 +78,6 @@ export default {
     },
     methods: {
         resetPassword () {
-            this.errors.password = ''
-            this.errors.confirm = ''
-
-            if (this.input.password === '') {
-                this.errors.password = 'Enter a new password'
-                return false
-            }
-            if (this.input.password.length < 8) {
-                this.errors.password = 'Password too short'
-                return false
-            }
-            if (this.input.password.length > 1024) {
-                this.errors.password = 'Password too long'
-                return false
-            }
-            if (this.input.password !== this.input.confirm) {
-                this.errors.confirm = 'Passwords do not match'
-                return false
-            }
-            const zxcvbnResult = zxcvbn(this.input.password)
-            if (zxcvbnResult.score < 2) {
-                this.errors.password = `Password too weak, ${zxcvbnResult.feedback.suggestions[0]}`
-                return false
-            }
             userApi.resetPassword(this.$route.params.token, {
                 password: this.input.password
             }).then((res) => {

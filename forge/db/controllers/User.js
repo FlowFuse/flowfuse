@@ -30,6 +30,11 @@ module.exports = {
             if (zxcvbn(newPassword).score < 3) {
                 throw new Error('Password Too Weak')
             }
+            if (newPassword === user.username) {
+                throw new Error('Password must not match username')
+            } else if (newPassword === user.email) {
+                throw new Error('Password must not match email')
+            }
             user.password = newPassword
             user.password_expired = false
             return user.save()
@@ -39,9 +44,14 @@ module.exports = {
     },
 
     resetPassword: async function (app, user, newPassword) {
-        // if (zxcvbn(newPassword.score < 3)) {
-        //     throw new Error('Password Too Weak')
-        // }
+        if (zxcvbn(newPassword).score < 3) {
+            throw new Error('Password Too Weak')
+        }
+        if (newPassword === user.username) {
+            throw new Error('Password must not match username')
+        } else if (newPassword === user.email) {
+            throw new Error('Password must not match email')
+        }
         user.password = newPassword
         user.password_expired = false
         return user.save()

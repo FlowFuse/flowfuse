@@ -112,6 +112,20 @@ describe('User controller', function () {
             }
             throw new Error('Allowed bad password')
         })
+        it('fails if password matches username or email', async function () {
+            // Need a user with a username/email that'll pass the general length/weakness checks
+            const userComplexUsername = await app.db.models.User.create({ username: 'BluePianoLampshade', name: '', email: 'BluePianoLampshade@example.com', email_verified: true, password: 'aaPassword' })
+            try {
+                await app.db.controllers.User.changePassword(userComplexUsername, 'aaPassword', 'BluePianoLampshade')
+            } catch (err) {
+                err.message.should.equal('Password must not match username')
+            }
+            try {
+                await app.db.controllers.User.changePassword(userComplexUsername, 'aaPassword', 'BluePianoLampshade@example.com')
+            } catch (err) {
+                err.message.should.equal('Password must not match email')
+            }
+        })
     })
 
     describe('change email address', function () {
