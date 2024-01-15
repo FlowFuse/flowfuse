@@ -66,6 +66,13 @@ module.exports = fp(async function (app, opts) {
         },
         logLevel: 'silent',
         hideUntagged: true,
+        staticCSP: true,
+        transformStaticCSP: header => {
+            header.replace(
+                /script-src 'self'/,
+                "script-src 'self' 'unsafe-inline'"
+            )
+        },
         uiConfig: {
             defaultModelsExpandDepth: -1,
             operationsSorter: 'alpha',
@@ -93,6 +100,7 @@ module.exports = fp(async function (app, opts) {
             content: readFileSync(logoPath)
         }
     }
+
     // Fully built path
     let faviconPath = path.join(__dirname, '../../frontend/dist/favicon-32x32.png')
     if (!existsSync(faviconPath)) {
