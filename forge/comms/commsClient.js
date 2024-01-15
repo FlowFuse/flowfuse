@@ -64,19 +64,26 @@ class CommsClient extends EventEmitter {
                             id: ownerId,
                             message: message.toString()
                         }
-                        this.emit('response/device', response)
+                        if (topicParts[6] === 'broadcast') {
+                            response.correlationData = response.message
+                            delete response.message
+                        }
+                        this.emit('response/device', response, topic)
                     }
                 }
             })
             this.client.subscribe([
                 // Launcher status
-                'ff/v1/+/l/+/status',
+                '$share/platform/ff/v1/+/l/+/status',
                 // Device status
-                'ff/v1/+/d/+/status',
+                '$share/platform/ff/v1/+/d/+/status',
                 // Device logs
                 'ff/v1/+/d/+/logs',
                 // Device response
-                'ff/v1/+/d/+/response'
+                '$share/platform/ff/v1/+/d/+/response',
+                // Device response broadcast - used by the platform to notify all
+                // platform instances there is a response available
+                'ff/v1/+/d/+/response/broadcast'
             ])
         }
     }

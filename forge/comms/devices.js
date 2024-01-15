@@ -58,7 +58,7 @@ class DeviceCommsHandler {
         // Listen for any incoming device status events
         client.on('status/device', (status) => { this.handleStatus(status) })
         client.on('logs/device', (log) => { this.forwardLog(log) })
-        client.on('response/device', (response) => { this.handleCommandResponse(response) })
+        client.on('response/device', (response, originalTopic) => { this.handleCommandResponse(response, originalTopic) })
     }
 
     async handleStatus (status) {
@@ -125,7 +125,7 @@ class DeviceCommsHandler {
      * @returns {Promise<void>}
      * @see sendCommandAwaitReply
      */
-    async handleCommandResponse (response) {
+    async handleCommandResponse (response, originalTopic) {
         // Check it looks like a valid response to a command
         // The response part should have the following:
         // * id: the device id
@@ -148,9 +148,30 @@ class DeviceCommsHandler {
             }
 
             const inFlightCommand = this.inFlightCommands[message.correlationData]
-            if (inFlightCommand && inFlightCommand.command === message.command) {
+            if (inFlightCommand) {
+                // This command is known to the local instance - process it
                 inFlightCommand.resolve(message.payload)
                 delete this.inFlightCommands[response.correlationData]
+            } else {
+                // This command is not known to the local instance - write to the
+                // database and publish a notification for other platform instances
+                // to check it
+                await this.app.db.models.CommandResponse.create({
+                    id: message.correlationData,
+                    payload: response.message
+                })
+                this.client.publish(`${originalTopic}/broadcast`, message.correlationData)
+            }
+        } else if (response.id && response.correlationData) {
+            // This is a re-broadcast message notifying us a response is available
+            // in the database
+            const inFlightCommand = this.inFlightCommands[response.correlationData]
+            if (inFlightCommand) {
+                const commandResponse = await this.app.db.models.CommandResponse.byId(response.correlationData)
+                const message = JSON.parse(commandResponse.payload)
+                delete this.inFlightCommands[response.correlationData]
+                inFlightCommand.resolve(message.payload)
+                await commandResponse.destroy()
             }
         }
     }
