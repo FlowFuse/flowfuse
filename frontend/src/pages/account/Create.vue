@@ -119,6 +119,8 @@ export default {
             return (this.input.email && !this.errors.email) &&
                    (this.input.username && !this.errors.username) &&
                    this.input.password.length >= 8 &&
+                   this.input.password !== this.input.email &&
+                   this.input.password !== this.input.username &&
                    zxcvbn(this.input.password).score >= 2 &&
                    (this.askJoinReason ? this.input.join_reason : true) &&
                    (this.settings['user:tcs-required'] ? this.input.tcs_accepted : true) &&
@@ -148,6 +150,14 @@ export default {
                 this.errors.password = ''
             } else {
                 this.errors.password = 'Password needs to be longer than 8 chars'
+                return
+            }
+            if (v === this.input.username) {
+                this.errors.password = 'Password must not match username'
+                return
+            }
+            if (v === this.input.email) {
+                this.errors.password = 'Password must not match email'
                 return
             }
             if (zxcvbn(v).score >= 2) {
