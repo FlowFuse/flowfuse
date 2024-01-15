@@ -3,11 +3,12 @@ const path = require('path')
 
 const axios = require('axios')
 
+const { randomInt } = require('../utils')
+
 const METRICS_DIR = path.join(__dirname, 'telemetryMetrics')
 
 // Pick a random time to run the ping on
-const randomInt = (min, max) => { return min + Math.floor(Math.random() * (max - min)) }
-const PING_TIME = `${randomInt(0, 60)} ${randomInt(0, 24)} * * *`
+const PING_TIME = `${randomInt(0, 59)} ${randomInt(0, 23)} * * *`
 
 /**
  * Gather the metrics to send to the ping api
