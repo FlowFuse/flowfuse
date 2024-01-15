@@ -840,7 +840,7 @@ describe('Accounts API', async function () {
             const resetResponse = await app.inject({
                 method: 'POST',
                 url: `/account/reset_password/${token}`,
-                payload: { password: 'newPassword' }
+                payload: { password: 'BoatShelfLegoDroid' }
             })
             resetResponse.statusCode.should.equal(200)
 
@@ -864,12 +864,12 @@ describe('Accounts API', async function () {
             const resetResponse2 = await app.inject({
                 method: 'POST',
                 url: `/account/reset_password/${token}`,
-                payload: { password: 'newPassword2' }
+                payload: { password: 'BoatShelfLegoDroidAgain' }
             })
             resetResponse2.statusCode.should.equal(400)
 
             // Should be able to login with new password
-            await login('testUser', 'newPassword')
+            await login('testUser', 'BoatShelfLegoDroid')
         })
 
         it('Password reset for an unknown user does not error', async function () {
