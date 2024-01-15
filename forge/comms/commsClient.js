@@ -1,6 +1,7 @@
 const EventEmitter = require('events')
 
 const mqtt = require('mqtt')
+const { v4: uuidv4 } = require('uuid')
 
 /**
  * MQTT Client wrapper. This connects to the platform broker and subscribes
@@ -10,6 +11,7 @@ class CommsClient extends EventEmitter {
     constructor (app) {
         super()
         this.app = app
+        this.platformId = uuidv4()
     }
 
     async init () {
@@ -64,26 +66,19 @@ class CommsClient extends EventEmitter {
                             id: ownerId,
                             message: message.toString()
                         }
-                        if (topicParts[6] === 'broadcast') {
-                            response.correlationData = response.message
-                            delete response.message
-                        }
-                        this.emit('response/device', response, topic)
+                        this.emit('response/device', response)
                     }
                 }
             })
             this.client.subscribe([
-                // Launcher status
+                // Launcher status - shared subscription
                 '$share/platform/ff/v1/+/l/+/status',
-                // Device status
+                // Device status - shared subscription
                 '$share/platform/ff/v1/+/d/+/status',
-                // Device logs
+                // Device logs - not shared subscription
                 'ff/v1/+/d/+/logs',
-                // Device response
-                '$share/platform/ff/v1/+/d/+/response',
-                // Device response broadcast - used by the platform to notify all
-                // platform instances there is a response available
-                'ff/v1/+/d/+/response/broadcast'
+                // Device response - not shared subscription
+                'ff/v1/+/d/+/response/' + this.platformId
             ])
         }
     }

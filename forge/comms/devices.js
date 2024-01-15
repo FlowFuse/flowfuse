@@ -58,7 +58,7 @@ class DeviceCommsHandler {
         // Listen for any incoming device status events
         client.on('status/device', (status) => { this.handleStatus(status) })
         client.on('logs/device', (log) => { this.forwardLog(log) })
-        client.on('response/device', (response, originalTopic) => { this.handleCommandResponse(response, originalTopic) })
+        client.on('response/device', (response) => { this.handleCommandResponse(response) })
     }
 
     async handleStatus (status) {
@@ -125,7 +125,7 @@ class DeviceCommsHandler {
      * @returns {Promise<void>}
      * @see sendCommandAwaitReply
      */
-    async handleCommandResponse (response, originalTopic) {
+    async handleCommandResponse (response) {
         // Check it looks like a valid response to a command
         // The response part should have the following:
         // * id: the device id
@@ -152,26 +152,6 @@ class DeviceCommsHandler {
                 // This command is known to the local instance - process it
                 inFlightCommand.resolve(message.payload)
                 delete this.inFlightCommands[response.correlationData]
-            } else {
-                // This command is not known to the local instance - write to the
-                // database and publish a notification for other platform instances
-                // to check it
-                await this.app.db.models.CommandResponse.create({
-                    id: message.correlationData,
-                    payload: response.message
-                })
-                this.client.publish(`${originalTopic}/broadcast`, message.correlationData)
-            }
-        } else if (response.id && response.correlationData) {
-            // This is a re-broadcast message notifying us a response is available
-            // in the database
-            const inFlightCommand = this.inFlightCommands[response.correlationData]
-            if (inFlightCommand) {
-                const commandResponse = await this.app.db.models.CommandResponse.byId(response.correlationData)
-                const message = JSON.parse(commandResponse.payload)
-                delete this.inFlightCommands[response.correlationData]
-                inFlightCommand.resolve(message.payload)
-                await commandResponse.destroy()
             }
         }
     }
@@ -261,7 +241,7 @@ class DeviceCommsHandler {
         options = options || {}
         options.timeout = (typeof options.timeout === 'number' && options.timeout > 0) ? options.timeout : DEFAULT_TIMEOUT
 
-        const inFlightCommand = DeviceCommsHandler.newResponseMonitor(command, deviceId, teamId, options)
+        const inFlightCommand = DeviceCommsHandler.newResponseMonitor(command, deviceId, teamId, this.client.platformId, options)
 
         const promise = new Promise((resolve, reject) => {
             inFlightCommand.resolve = (payload) => {
@@ -314,7 +294,7 @@ class DeviceCommsHandler {
         commandMessage.deviceId = cmr.deviceId
         commandMessage.teamId = cmr.teamId
         commandMessage.correlationData = cmr.correlationData
-        commandMessage.responseTopic = `ff/v1/${cmr.teamId}/d/${cmr.deviceId}/response`
+        commandMessage.responseTopic = `ff/v1/${cmr.teamId}/d/${cmr.deviceId}/response/${cmr.platformId}`
         commandMessage.payload = payload
         return commandMessage
     }
@@ -327,7 +307,7 @@ class DeviceCommsHandler {
      * @param {Object} [options={ timeout: DEFAULT_TIMEOUT }] Options
      * @returns {ResponseMonitor}
      */
-    static newResponseMonitor (command, deviceId, teamId, options = { timeout: DEFAULT_TIMEOUT }) {
+    static newResponseMonitor (command, deviceId, teamId, platformId, options = { timeout: DEFAULT_TIMEOUT }) {
         const now = Date.now()
         const correlationData = uuidv4() // generate a random correlation data (uuid)
         /** @type {ResponseMonitor} */
@@ -341,6 +321,7 @@ class DeviceCommsHandler {
         responseMonitor.expiresAt = now + options?.timeout || DEFAULT_TIMEOUT
         responseMonitor.deviceId = deviceId
         responseMonitor.teamId = teamId
+        responseMonitor.platformId = platformId
         responseMonitor.correlationData = correlationData
         return responseMonitor
     }
