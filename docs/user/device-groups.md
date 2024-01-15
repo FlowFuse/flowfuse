@@ -16,7 +16,7 @@ These groups can then be set as the target of a [DevOps Pipelines](./devops-pipe
 Furthermore:
 * Devices added to an active Device Group will automatically be updated to the active pipeline snapshot
 * Devices removed from an active Device Group will have their active pipeline snapshot cleared
-More details are provided below.
+More details are provided below in [Adding a Device to a group](#adding-a-device-to-a-group-which-has-an-active-pipeline-snapshot) and [Removing a Device from a group](#removing-a-device-from-a-group-which-has-an-active-pipeline-snapshot)
 
 This greatly simplifies deployments of the same configuration to one or even hundreds of devices with a single click.
 
