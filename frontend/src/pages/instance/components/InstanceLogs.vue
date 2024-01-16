@@ -58,7 +58,7 @@ export default {
             checkInterval: null,
             showOfflineBanner: false,
             /** @type {import('../../../utils/timers.js').PollTimer} */
-            polltimer: null
+            pollTimer: null
         }
     },
     computed: {
