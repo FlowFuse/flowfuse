@@ -17,7 +17,7 @@
  * @param {Boolean} [autoStart] - Whether to start the timer immediately (Optional, defaults to `true`)
  * @example
  * // In a Vue component
- * import { createPollTimer } from 'vue-timers'
+ * import { createPollTimer } from 'timers.js'
  *
  * this.pollTimer = createPollTimer(this.pollTimerHandler, 5000)
  * this.pollTimer.start()
