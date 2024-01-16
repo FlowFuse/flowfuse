@@ -99,7 +99,6 @@ module.exports = {
         let changeCount = 0
         // wrap the operations in a transaction to avoid inconsistent state
         const t = await app.db.sequelize.transaction()
-        // const targetSnapshotId = activePipelineStage?.targetSnapshotId || undefined
         const targetSnapshotId = deviceGroup.targetSnapshotId || undefined
         try {
             // add devices
@@ -149,19 +148,19 @@ module.exports = {
 
     /**
      * Remove 1 or more devices from the specified DeviceGroup
-     * Specifying `activePipelineTargetSnapshotId` will null the `targetSnapshotId` of each device in `deviceList` where it matches
-     * This is used to remove the project from a device when being removed from a group where the active snapshot is the one applied by the pipeline
+     * Specifying `activeDeviceGroupTargetSnapshotId` will null the `targetSnapshotId` of each device in `deviceList` where it matches
+     * This is used to remove the project from a device when being removed from a group where the active snapshot is the one applied by the DeviceGroup
      * @param {*} app The application object
      * @param {number} deviceGroupId The device group id
      * @param {number[]} deviceList A list of devices to remove from the group
-     * @param {number} activePipelineTargetSnapshotId If specified, null devices `targetSnapshotId` where it matches
+     * @param {number} activeDeviceGroupTargetSnapshotId If specified, null devices `targetSnapshotId` where it matches
      */
-    removeDevicesFromGroup: async function (app, deviceGroup, deviceList, activePipelineTargetSnapshotId, transaction = null) {
+    removeDevicesFromGroup: async function (app, deviceGroup, deviceList, activeDeviceGroupTargetSnapshotId, transaction = null) {
         const deviceIds = await validateDeviceList(app, deviceGroup, null, deviceList)
-        // Before removing from the group, if removeTargetSnapshotWhenSet is specified, null targetSnapshotId of each device in `deviceList`
-        // where the device ACTUALLY DOES HAVE the matching active pipeline targetsnapshotid
-        if (typeof activePipelineTargetSnapshotId !== 'undefined') {
-            await app.db.models.Device.update({ targetSnapshotId: null }, { where: { id: deviceIds.removeList, DeviceGroupId: deviceGroup.id, targetSnapshotId: activePipelineTargetSnapshotId }, transaction })
+        // Before removing from the group, if activeDeviceGroupTargetSnapshotId is specified, null `targetSnapshotId` of each device in `deviceList`
+        // where the device ACTUALLY DOES HAVE the matching targetsnapshotid
+        if (typeof activeDeviceGroupTargetSnapshotId !== 'undefined') {
+            await app.db.models.Device.update({ targetSnapshotId: null }, { where: { id: deviceIds.removeList, DeviceGroupId: deviceGroup.id, targetSnapshotId: activeDeviceGroupTargetSnapshotId }, transaction })
         }
         // null every device.DeviceGroupId row in device table where the id === deviceGroupId and device.id is in the deviceList
         await app.db.models.Device.update({ DeviceGroupId: null }, { where: { id: deviceIds.removeList, DeviceGroupId: deviceGroup.id }, transaction })
