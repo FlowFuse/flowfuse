@@ -26,14 +26,15 @@
 </template>
 
 <script>
+
 import InstanceApi from '../../../api/instances.js'
-import { VueTimersMixin } from '../../../mixins/vue-timers.js'
 import Alerts from '../../../services/alerts.js'
+import { createPollTimer } from '../../../utils/timers.js'
+
 const POLL_TIME = 5000
 
 export default {
     name: 'LogsShared',
-    mixins: [VueTimersMixin],
     inheritAttrs: false,
     props: {
         instance: {
@@ -55,7 +56,9 @@ export default {
             prevCursor: null,
             nextCursor: null,
             checkInterval: null,
-            showOfflineBanner: false
+            showOfflineBanner: false,
+            /** @type {import('../../../utils/timers.js').PollTimer} */
+            polltimer: null
         }
     },
     computed: {
@@ -68,9 +71,6 @@ export default {
             }
         }
     },
-    timers: {
-        pollTimer: { time: POLL_TIME, repeat: true, autostart: false }
-    },
     watch: {
         instance: 'fetchData'
     },
@@ -79,10 +79,14 @@ export default {
             this.loading = false
         }
         await this.fetchData()
-        this.$timer.start('pollTimer')
+
+        this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME)
+    },
+    unmounted () {
+        this.pollTimer.stop()
     },
     methods: {
-        pollTimer: function () {
+        pollTimerElapsed: function () {
             if (this.instance.meta && this.instance.meta.state !== 'suspended') {
                 this.loadNext()
             }

@@ -160,10 +160,6 @@ export default {
         this.refreshDevice()
     },
     methods: {
-        // pollTimer method is called by VueTimersMixin. See the timers property above.
-        pollTimer: async function () {
-            this.refreshDevice()
-        },
         refreshDevice: function () {
             this.$emit('device-refresh') // cause parent to refresh device
         }

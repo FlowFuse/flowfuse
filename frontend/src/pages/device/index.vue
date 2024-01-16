@@ -119,9 +119,9 @@ import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import permissionsMixin from '../../mixins/Permissions.js'
-import { VueTimersMixin } from '../../mixins/vue-timers.js'
 import Alerts from '../../services/alerts.js'
 
+import { createPollTimer } from '../../utils/timers.js'
 import DeviceAssignApplicationDialog from '../team/Devices/dialogs/DeviceAssignApplicationDialog.vue'
 import DeviceAssignInstanceDialog from '../team/Devices/dialogs/DeviceAssignInstanceDialog.vue'
 
@@ -150,14 +150,16 @@ export default {
         DeviceAssignApplicationDialog,
         DeviceAssignInstanceDialog
     },
-    mixins: [permissionsMixin, VueTimersMixin],
+    mixins: [permissionsMixin],
     data: function () {
         return {
             mounted: false,
             device: null,
             agentSupportsDeviceAccess: false,
             openingTunnel: false,
-            closingTunnel: false
+            closingTunnel: false,
+            /** @type {import('../../utils/timers.js').PollTimer} */
+            pollTimer: null
         }
     },
     computed: {
@@ -240,16 +242,13 @@ export default {
         this.mounted = true
         await this.loadDevice()
         this.checkFeatures()
-        this.$timer.start('pollTimer') // vue-timer auto stops when navigating away
+        this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME)
     },
-    timers: {
-        // declare a pollTimer that will call the pollTimer method every POLL_TIME milliseconds
-        // see the documentation in `frontend/src/mixins/vue-timers.js` for more details and examples
-        pollTimer: { time: POLL_TIME, repeat: true, autostart: false } // no autoStart: manually start in mounted()
+    unmounted () {
+        this.pollTimer.stop()
     },
     methods: {
-        // pollTimer method is called by VueTimersMixin. See the timers property above.
-        pollTimer: async function () {
+        pollTimerElapsed: async function () {
             // Only refresh device via the timer if we are on the overview page or the developer mode page
             // This is to prevent settings pages from refreshing the device state while modifying settings
             // See `watch: { device: { handler () ...  in pages/device/Settings/General.vue for why that happens

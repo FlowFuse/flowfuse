@@ -225,7 +225,6 @@ import instanceApi from '../api/instances.js'
 import teamApi from '../api/team.js'
 
 import permissionsMixin from '../mixins/Permissions.js'
-import { VueTimersMixin } from '../mixins/vue-timers.js'
 
 import DeviceAssignedToLink from '../pages/application/components/cells/DeviceAssignedToLink.vue'
 import DeviceLink from '../pages/application/components/cells/DeviceLink.vue'
@@ -243,6 +242,7 @@ import Alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 
 import { debounce } from '../utils/eventHandling.js'
+import { createPollTimer } from '../utils/timers.js'
 
 import EmptyState from './EmptyState.vue'
 import FeatureUnavailableToTeam from './banners/FeatureUnavailableToTeam.vue'
@@ -264,7 +264,7 @@ export default {
         EmptyState,
         DevicesStatusBar
     },
-    mixins: [permissionsMixin, VueTimersMixin],
+    mixins: [permissionsMixin],
     inheritAttrs: false,
     props: {
         // One of the two must be provided
@@ -312,7 +312,9 @@ export default {
             sort: {
                 key: null,
                 direction: 'desc'
-            }
+            },
+            /** @type { import('../utils/timers.js').PollTimer } */
+            pollTimer: null
         }
     },
     computed: {
@@ -407,19 +409,18 @@ export default {
     },
     mounted () {
         this.fullReloadOfData()
-        this.$timer.start('pollTimer')
+        this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME) // auto starts
     },
-    timers: {
-        pollTimer: { time: POLL_TIME, repeat: true, autostart: false }
+    unmounted () {
+        this.pollTimer.stop()
     },
     methods: {
-        // pollTimer method is called by VueTimersMixin. See the timers property above.
-        pollTimer: async function () {
-            this.$timer.stop('pollTimer')
+        pollTimerElapsed: async function () {
+            this.pollTimer.pause()
             try {
                 await this.pollForDeviceStatuses()
             } finally {
-                this.$timer.start('pollTimer')
+                this.pollTimer.resume()
             }
         },
 
