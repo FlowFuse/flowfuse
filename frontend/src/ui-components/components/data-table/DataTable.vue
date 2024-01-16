@@ -211,7 +211,14 @@ export default {
             return this.$slots['context-menu']
         },
         messageColSpan: function () {
-            return this.hasContextMenu ? this.columns.length + 1 : this.columns.length
+            let colspan = this.columns.length
+            if (this.hasRowActions) {
+                colspan++
+            }
+            if (this.hasContextMenu) {
+                colspan++
+            }
+            return colspan
         },
         filteredRows: function () {
             const rows = this.filterRows([...this.rows])
