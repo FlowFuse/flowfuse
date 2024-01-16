@@ -45,7 +45,7 @@ module.exports = fp(init, { name: 'app.routes.auth' })
  * @param {Object} opts
  * @param {Function} done
  */
-async function init (app, opts, done) {
+async function init (app, opts) {
     await app.register(require('./oauth'), { logLevel: app.config.logging.http })
     await app.register(require('./permissions'))
 
@@ -172,10 +172,6 @@ async function init (app, opts, done) {
             return null
         }
     })
-
-    // app.post('/account/register', (request, reply) => {
-    //
-    // })
 
     /**
      * Login a user.
@@ -460,11 +456,11 @@ async function init (app, opts, done) {
             let responseMessage
             let responseCode = 'unexpected_error'
             if (/user_username_lower_unique|Users_username_key/.test(err.parent?.toString())) {
-                responseMessage = 'username not available'
-                responseCode = 'invalid_username'
+                responseMessage = 'Username or email not available'
+                responseCode = 'invalid_request'
             } else if (/user_email_lower_unique|Users_email_key/.test(err.parent?.toString())) {
-                responseMessage = 'email not available'
-                responseCode = 'invalid_email'
+                responseMessage = 'Username or email not available'
+                responseCode = 'invalid_request'
             } else if (err.errors) {
                 responseMessage = err.errors.map(err => err.message).join(',')
             } else {
@@ -819,6 +815,4 @@ async function init (app, opts, done) {
             reply.code(400).send({ status: 'error', message: resp.error, ...resp })
         }
     })
-
-    done()
 }

@@ -104,15 +104,18 @@ module.exports = function (app) {
         forge_platform: {
             sub: [
                 // Receive status events from project launchers
-                // - ff/v1/+/l/+/status
-                { topic: /^ff\/v1\/[^/]+\/l\/[^/]+\/status$/ },
+                // - ff/v1/<team>/l/<instance>/status
+                { topic: /^ff\/v1\/[^/]+\/l\/[^/]+\/status$/, shared: true },
                 // Receive status events, logs and command responses from devices
-                // - ff/v1/+/d/+/status
-                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/status$/ },
-                // - ff/v1/+/d/+/logs
+                // - ff/v1/<team>/d/<device>/status
+                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/status$/, shared: true },
+                // - ff/v1/<team>/d/<device>/logs
                 { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/logs$/ },
-                // - ff/v1/+/d/+/logs
-                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/response$/ }
+                // - ff/v1/<team>/d/<device>/response
+                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/response$/, shared: true },
+
+                // Receive broadcast response notification
+                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/response\/broadcast$/ }
             ],
             pub: [
                 // Send commands to project launchers
@@ -126,7 +129,10 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/[^/]+\/p\/[^/]+\/command$/ },
                 // Send commands to all application-assigned devices
                 // - ff/v1/+/a/+/command
-                { topic: /^ff\/v1\/[^/]+\/a\/[^/]+\/command$/ }
+                { topic: /^ff\/v1\/[^/]+\/a\/[^/]+\/command$/ },
+
+                // Publish broadcast response to all platform instances
+                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/response\/broadcast$/ }
             ]
         },
         project: {
@@ -198,7 +204,7 @@ module.exports = function (app) {
                         isSharedSub = true
                         // This is a shared sub - validate the share group name
                         const shareGroup = sharedSubParts[1]
-                        if (shareGroup !== usernameParts[2]) {
+                        if (shareGroup !== 'platform' && shareGroup !== usernameParts[2]) {
                             return false
                         }
                         topic = sharedSubParts[2]

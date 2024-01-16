@@ -14,7 +14,7 @@ const { DeviceCommsHandler } = require('./devices')
  *  - Broker ACL requests
  *
  */
-module.exports = fp(async function (app, _opts, next) {
+module.exports = fp(async function (app, _opts) {
     // Check the runtime configuration includes the minimum required configuration
     // to use the MQTT broker service
     if (app.config.broker && app.config.broker.url) {
@@ -56,7 +56,6 @@ module.exports = fp(async function (app, _opts, next) {
     } else {
         app.log.warn('[comms] Broker not configured - comms unavailable')
     }
-    next()
 }, {
     name: 'app.comms'
 })

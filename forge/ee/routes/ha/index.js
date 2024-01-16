@@ -26,7 +26,7 @@ module.exports = async function (app) {
                             return // eslint-disable-line no-useless-return
                         }
                     } else if (request.session.ownerId !== request.params.projectId) {
-                        // AccesToken being used - but not owned by this project
+                        // AccessToken being used - but not owned by this project
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return // eslint-disable-line no-useless-return
                     }

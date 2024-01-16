@@ -111,7 +111,7 @@ describe('Accounts API', async function () {
                 password: '12345678',
                 name: 'u1.2',
                 email: 'u1-2@example.com'
-            }, /username not available/)
+            }, /Username or email not available/)
 
             // TODO: check user audit logs - expect 'account.xxx-yyy' { code: '', error, '' }
         })
@@ -130,7 +130,7 @@ describe('Accounts API', async function () {
                 password: '12345678',
                 name: 'u1.2',
                 email: 'u1@example.com'
-            }, /email not available/)
+            }, /Username or email not available/)
 
             // TODO: check user audit logs - expect 'account.xxx-yyy' { code: '', error, '' }
         })

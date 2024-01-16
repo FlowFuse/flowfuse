@@ -8,7 +8,7 @@ const project = require('./project')
 const team = require('./team')
 const user = require('./user')
 
-module.exports = fp(async function (app, _opts, next) {
+module.exports = fp(async function (app, _opts) {
     const loggers = {
         User: user.getLoggers(app),
         Application: application.getLoggers(app),
@@ -19,8 +19,6 @@ module.exports = fp(async function (app, _opts, next) {
         formatters
     }
     app.decorate('auditLog', loggers)
-
-    next()
 }, {
     name: 'app.auditLog'
 })

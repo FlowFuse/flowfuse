@@ -3,7 +3,7 @@ const fp = require('fastify-plugin')
 const { registerPermissions } = require('../../../lib/permissions')
 const { Roles } = require('../../../lib/roles.js')
 
-module.exports = fp(async function (app, opts, done) {
+module.exports = fp(async function (app, opts) {
     registerPermissions({
         'saml-provider:create': { description: 'Create a SAML Provider', role: Roles.Admin },
         'saml-provider:list': { description: 'List all SAML Providers', role: Roles.Admin },
@@ -90,6 +90,4 @@ module.exports = fp(async function (app, opts, done) {
     // IMPORTANT: register the auth routes last so that none of their internal
     // handling get applied to the routes registered in this file.
     await app.register(require('./auth'))
-
-    done()
 }, { name: 'app.ee.routes.sso' })

@@ -1,6 +1,6 @@
 const fp = require('fastify-plugin')
 
-module.exports = fp(async function (app, opts, done) {
+module.exports = fp(async function (app, opts) {
     if (app.config.billing) {
         app.decorate('billing', await require('./billing').init(app))
     }
@@ -25,6 +25,4 @@ module.exports = fp(async function (app, opts, done) {
 
     // Set the Custom Catalogs Flag
     app.config.features.register('customCatalogs', true, true)
-
-    done()
 }, { name: 'app.ee.lib' })

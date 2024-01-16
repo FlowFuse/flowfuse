@@ -3,7 +3,7 @@ const fp = require('fastify-plugin')
 /**
  * Loads the FlowFuse EE components
  */
-module.exports = fp(async function (app, opts, next) {
+module.exports = fp(async function (app, opts) {
     // Load ee only if enabled in the license
     if (app.license.active()) {
         app.log.info('Loading EE Features')
