@@ -2290,7 +2290,7 @@ describe('Pipelines API', function () {
                     const deviceGroupData = await app.db.models.DeviceGroup.getAll({}, { id: TestObjects.deviceGroupTwo.id })
                     const deviceGroup = deviceGroupData.groups[0]
                     device.should.have.property('targetSnapshotId', snapshot.id)
-                    deviceGroup.should.have.property('activePipelineStageId', TestObjects.stageTwo.id)
+                    deviceGroup.should.have.property('targetSnapshotId', snapshot.id)
                 })
             })
 

@@ -740,14 +740,13 @@ describe('Application Device Groups API', function () {
                 checkCallArgs(calls, d2)
                 checkCallArgs(calls, d3)
             })
-            it('All Devices removed get an update request and clears activePipelineStageId', async function () {
+            it('All Devices removed get an update request and clears DeviceGroup.targetSnapshotId', async function () {
                 // Premise:
                 // Create 2 devices in a group, add group to a pipeline and deploy a snapshot
-                //   (direct db ops: set the activePipelineStageId on the group and the targetSnapshotId on the device group pipeline stage)
+                //   (direct db ops: set the targetSnapshotId on the group and the targetSnapshotId on the device group pipeline stage)
                 // Test the API by removing both devices leaving the group empty
                 // Check the 2 devices involved get an update request
-                // Check the DeviceGroup `activePipelineStageId` is cleared (this is cleared because the group is empty)
-                // Check the `PipelineStageDeviceGroup.targetSnapshotId` is cleared (this is cleared because the group is empty)
+                // Check the DeviceGroup `targetSnapshotId` is cleared (this is cleared because the group is empty)
                 const sid = await login('bob', 'bbPassword')
                 const application = TestObjects.application // BTeam application
                 const instance = TestObjects.instance
@@ -766,7 +765,7 @@ describe('Application Device Groups API', function () {
                 const snapshot = await factory.createSnapshot({ name: generateName('snapshot') }, instance, TestObjects.bob)
 
                 // deploy the snapshot to the group
-                deviceGroupOne.set('activePipelineStageId', pipelineDeviceGroupsStageTwo.id)
+                deviceGroupOne.set('targetSnapshotId', snapshot.id)
                 await deviceGroupOne.save()
                 await app.db.models.PipelineStageDeviceGroup.update({ targetSnapshotId: snapshot.id }, { where: { PipelineStageId: pipelineDeviceGroupsStageTwo.id } })
 
@@ -795,13 +794,9 @@ describe('Application Device Groups API', function () {
                 checkCallArgs(calls, d1)
                 checkCallArgs(calls, d2)
 
-                // check the DeviceGroup `activePipelineStageId` is cleared
+                // check the DeviceGroup `targetSnapshotId` is cleared
                 const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroupOne.hashid)
-                updatedDeviceGroup.should.have.property('activePipelineStageId', null)
-
-                // load the PipelineStageDeviceGroup stage from DB and ensure `targetSnapshotId` is cleared
-                const updatedPipelineDeviceGroupsStageTwo = await app.db.models.PipelineStageDeviceGroup.byId(pipelineDeviceGroupsStageTwo.id)
-                updatedPipelineDeviceGroupsStageTwo.should.have.property('targetSnapshotId', null)
+                updatedDeviceGroup.should.have.property('targetSnapshotId', null)
             })
         })
     })

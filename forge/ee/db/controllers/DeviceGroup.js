@@ -99,15 +99,11 @@ module.exports = {
         let changeCount = 0
         // wrap the operations in a transaction to avoid inconsistent state
         const t = await app.db.sequelize.transaction()
-        const activePipelineStageId = deviceGroup.activePipelineStageId
-        const activePipelineStage = (activePipelineStageId && await app.db.models.PipelineStageDeviceGroup.byId(activePipelineStageId)) || null
-        const targetSnapshotId = activePipelineStage?.targetSnapshotId || undefined
+        // const targetSnapshotId = activePipelineStage?.targetSnapshotId || undefined
+        const targetSnapshotId = deviceGroup.targetSnapshotId || undefined
         try {
             // add devices
             if (actualAddDevices.length > 0) {
-                // get the activePipelineStageId for this device group and get the
-                // targetSnapshotId for the pipeline stage. Include that in the payload
-                // so that newly added devices can be updated to the current snapshot
                 changeCount += actualAddDevices.length
                 await this.assignDevicesToGroup(app, deviceGroup, actualAddDevices, targetSnapshotId, t)
             }
@@ -134,15 +130,8 @@ module.exports = {
             // check to see if the group is now empty
             const remainingDevices = await deviceGroup.deviceCount()
             if (remainingDevices === 0) {
-                // remove the activePipelineStageId
-                deviceGroup.activePipelineStageId = null
+                deviceGroup.targetSnapshotId = null
                 await deviceGroup.save()
-
-                // remove `targetSnapshotId` from PipelineStageDeviceGroup
-                if (activePipelineStage) {
-                    activePipelineStage.targetSnapshotId = null
-                    await activePipelineStage.save()
-                }
             }
             // finally, inform the devices an update may be required
             await this.sendUpdateCommand(app, deviceGroup, actualRemoveDevices)

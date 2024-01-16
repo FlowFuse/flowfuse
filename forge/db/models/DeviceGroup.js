@@ -21,10 +21,11 @@ module.exports = {
             }
         },
         description: { type: DataTypes.TEXT },
-        activePipelineStageId: { type: DataTypes.INTEGER, allowNull: true }
+        targetSnapshotId: { type: DataTypes.INTEGER, allowNull: true }
     },
     associations: function (M) {
         this.belongsTo(M.Application, { onDelete: 'CASCADE' })
+        this.belongsTo(M.ProjectSnapshot, { as: 'targetSnapshot' })
         this.hasMany(M.Device)
     },
     finders: function (M) {
@@ -55,6 +56,11 @@ module.exports = {
                                     ApplicationId: literal('"Devices"."ApplicationId" = "Application"."id"')
                                 },
                                 required: false
+                            },
+                            {
+                                model: M.ProjectSnapshot,
+                                as: 'targetSnapshot',
+                                attributes: ['hashid', 'id', 'name']
                             }
                         ],
                         attributes: {

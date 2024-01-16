@@ -432,8 +432,8 @@ module.exports = {
                 // Update the targetSnapshot of the device group
                 await targetDeviceGroup.PipelineStageDeviceGroup.update({ targetSnapshotId: sourceSnapshot.id }, { transaction })
 
-                // Update the activePipelineStageId on the device group
-                await targetDeviceGroup.update({ activePipelineStageId: targetDeviceGroup.PipelineStageDeviceGroup.PipelineStageId }, { transaction })
+                // Update the targetSnapshotId on the device group
+                await targetDeviceGroup.update({ targetSnapshotId: sourceSnapshot.id }, { transaction })
 
                 // update all devices targetSnapshotId
                 await app.db.models.Device.update({ targetSnapshotId: sourceSnapshot.id }, { where: { DeviceGroupId: targetDeviceGroup.id }, transaction })

@@ -32,7 +32,7 @@ module.exports = {
                         include: [
                             {
                                 model: M.DeviceGroup,
-                                attributes: ['hashid', 'id', 'name', 'description', 'ApplicationId', 'activePipelineStageId']
+                                attributes: ['hashid', 'id', 'name', 'description', 'ApplicationId']
                             },
                             {
                                 model: M.PipelineStage,
