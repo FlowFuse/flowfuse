@@ -111,6 +111,8 @@ import InfoCard from '../../components/InfoCard.vue'
 import InfoCardRow from '../../components/InfoCardRow.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
 
+import { createPollTimer } from '../../utils/timers.js'
+
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
 import DeviceModeBadge from './components/DeviceModeBadge.vue'
 
@@ -156,14 +158,20 @@ export default {
             return ''
         }
     },
+    data () {
+        return {
+            /** @type {import('../../utils/timers').PollTimer} */
+            polltimer: null
+        }
+    },
     mounted () {
         this.refreshDevice()
+        createPollTimer(this.refreshDevice, 10000)
+    },
+    unmounted () {
+        this.polltimer.stop()
     },
     methods: {
-        // pollTimer method is called by VueTimersMixin. See the timers property above.
-        pollTimer: async function () {
-            this.refreshDevice()
-        },
         refreshDevice: function () {
             this.$emit('device-refresh') // cause parent to refresh device
         }

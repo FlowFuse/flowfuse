@@ -21,10 +21,6 @@ export default {
         device: {
             type: Object,
             required: true
-        },
-        instance: {
-            type: Object,
-            required: true
         }
     },
     data () {
