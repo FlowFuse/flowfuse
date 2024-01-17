@@ -22,19 +22,26 @@ const settings = require('./settings')
 require('dotenv').config()
 
 const generatePassword = () => {
-    const charList = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz~!@-#$'
-    return Array.from(crypto.randomFillSync(new Uint32Array(8))).map(x => charList[x % charList.length]).join('')
+    const charList =
+    '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz~!@-#$'
+    return Array.from(crypto.randomFillSync(new Uint32Array(8)))
+        .map((x) => charList[x % charList.length])
+        .join('')
 }
 
 async function createAdminAccessToken (server, userId) {
-    const { token, expiresAt, refreshToken } = await server.db.controllers.AccessToken.createTokenForUser(userId, null, ['all'], true)
+    const { token } =
+    await server.db.controllers.AccessToken.createPersonalAccessToken(
+        userId,
+        '',
+        null,
+        'Admin Access Token'
+    )
     server.log.info(`[SETUP] token: ${token}`)
-    server.log.info(`[SETUP] refresh token: ${refreshToken}`)
-    server.log.info(`[SETUP] expires at: ${expiresAt}`)
 }
 
 async function createAdminUser (server) {
-    if (await server.db.models.User.count() !== 0) return
+    if ((await server.db.models.User.count()) !== 0) return
 
     const password = process.env.FF_ADMIN_PASSWORD || generatePassword()
     const { id: userId } = await server.db.models.User.create({
@@ -50,7 +57,7 @@ async function createAdminUser (server) {
     server.log.info('[SETUP] username: ff-admin')
     server.log.info(`[SETUP] password: ${password}`)
 
-    if (server.config.create_admin_access_token) await createAdminAccessToken(server, userId)
+    if (server.config.create_admin_access_token) { await createAdminAccessToken(server, userId) }
 }
 
 // type defs for JSDoc and VSCode Intellisense
@@ -76,7 +83,7 @@ module.exports = async (options = {}) => {
                 return { level: label.toUpperCase() }
             },
             bindings: (bindings) => {
-                return { }
+                return {}
             }
         },
         timestamp: require('pino').stdTimeFunctions.isoTime,
@@ -121,13 +128,11 @@ module.exports = async (options = {}) => {
     if (runtimeConfig.telemetry.backend?.sentry?.dsn) {
         server.register(require('@immobiliarelabs/fastify-sentry'), {
             dsn: runtimeConfig.telemetry.backend.sentry.dsn,
-            environment: process.env.SENTRY_ENV ?? (process.env.NODE_ENV ?? 'unknown'),
+            environment: process.env.SENTRY_ENV ?? process.env.NODE_ENV ?? 'unknown',
             release: `flowfuse@${runtimeConfig.version}`,
             tracesSampleRate: 0.1,
             profilesSampleRate: 0.1,
-            integrations: [
-                new ProfilingIntegration()
-            ],
+            integrations: [new ProfilingIntegration()],
             extractUserData (request) {
                 const user = request.session?.User || request.user
                 if (!user) {
@@ -146,12 +151,12 @@ module.exports = async (options = {}) => {
     }
 
     server.addHook('onError', async (request, reply, error) => {
-        // Useful for debugging when a route goes wrong
-        // console.error(error.stack)
+    // Useful for debugging when a route goes wrong
+    // console.error(error.stack)
     })
 
     try {
-        // Config : loads environment configuration
+    // Config : loads environment configuration
         await server.register(config.attach, options)
 
         // Test Only. Permit access to app.routes - for evaluating routes in tests
@@ -163,7 +168,10 @@ module.exports = async (options = {}) => {
         // Rate Limits: rate limiting for the server end points
         if (server.config.rate_limits?.enabled) {
             // for rate_limits, see [routes/rateLimits.js].getLimits()
-            await server.register(require('@fastify/rate-limit'), server.config.rate_limits)
+            await server.register(
+                require('@fastify/rate-limit'),
+                server.config.rate_limits
+            )
         }
 
         // DB : the database connection/models/views/controllers
@@ -180,12 +188,17 @@ module.exports = async (options = {}) => {
 
         // HTTP Server configuration
         if (!server.settings.get('cookieSecret')) {
-            await server.settings.set('cookieSecret', server.db.utils.generateToken(12))
+            await server.settings.set(
+                'cookieSecret',
+                server.db.utils.generateToken(12)
+            )
         }
         await server.register(cookie, {
             secret: server.settings.get('cookieSecret')
         })
-        await server.register(csrf, { cookieOpts: { _signed: true, _httpOnly: true } })
+        await server.register(csrf, {
+            cookieOpts: { _signed: true, _httpOnly: true }
+        })
         await server.register(helmet, {
             global: true,
             contentSecurityPolicy: false,
