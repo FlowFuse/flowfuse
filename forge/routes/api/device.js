@@ -1,5 +1,3 @@
-const semver = require('semver')
-
 // eslint-disable-next-line no-unused-vars
 const { DeviceTunnelManager } = require('../../ee/lib/deviceEditor/DeviceTunnelManager')
 const { Roles } = require('../../lib/roles')
@@ -234,6 +232,7 @@ module.exports = async function (app) {
                     })
                     await app.auditLog.Team.team.device.assigned(actionedBy, null, device.Team, device.Project, device)
                     await app.auditLog.Project.project.device.assigned(actionedBy, null, device.Project, device)
+                    await app.auditLog.Device.device.assigned(actionedBy, null, device.Project, device)
                 }
                 const response = app.db.views.Device.device(device)
                 response.credentials = credentials
@@ -405,12 +404,6 @@ module.exports = async function (app) {
                 if (device.Application?.id === request.body.application) {
                     // Device is already assigned to this application - nothing to do
                 } else {
-                    // check the agent version is compatible with the application
-                    // the agent semver must be greater than or equal to first version that supports applications
-                    if (!device.agentVersion || semver.lt(device.agentVersion, '1.11.0')) {
-                        reply.code(400).send({ code: 'invalid_agent_version', error: 'invalid agent version' })
-                        return
-                    }
                     // Check if the specified application is in the same team
                     assignToApplication = await app.db.models.Application.byId(request.body.application)
                     if (!assignToApplication) {
@@ -473,10 +466,12 @@ module.exports = async function (app) {
         case 'assigned-to-project':
             await app.auditLog.Team.team.device.assigned(request.session.User, null, updatedDevice.Team, assignToProject, updatedDevice)
             await app.auditLog.Project.project.device.assigned(request.session.User, null, assignToProject, updatedDevice)
+            await app.auditLog.Device.device.assigned(request.session.User, null, assignToProject, updatedDevice)
             break
         case 'assigned-to-application':
             await app.auditLog.Team.team.device.assigned(request.session.User, null, updatedDevice.Team, assignToApplication, updatedDevice)
             await app.auditLog.Application.application.device.assigned(request.session.User, null, assignToApplication, updatedDevice)
+            await app.auditLog.Device.device.assigned(request.session.User, null, assignToApplication, updatedDevice)
             break
         }
         // fulfil team audit log updates
@@ -511,6 +506,7 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const credentials = await request.device.refreshAuthTokens()
         app.auditLog.Team.team.device.credentialsGenerated(request.session.User, null, request.device?.Team, request.device)
+        app.auditLog.Device.device.credentials.generated(request.session.User, null, request.device)
         reply.send(credentials)
     })
 
@@ -649,8 +645,10 @@ module.exports = async function (app) {
         // Audit log the change
         if (request.device.mode === 'developer') {
             await app.auditLog.Team.team.device.developerMode.enabled(request.session.User, null, request.device.Team, request.device)
+            await app.auditLog.Device.device.developerMode.enabled(request.session.User, null, request.device)
         } else {
             await app.auditLog.Team.team.device.developerMode.disabled(request.session.User, null, request.device.Team, request.device)
+            await app.auditLog.Device.device.developerMode.disabled(request.session.User, null, request.device)
         }
         reply.send({ mode: request.body.mode })
     })
@@ -730,6 +728,48 @@ module.exports = async function (app) {
             }
         }
         reply.send(app.db.views.ProjectSnapshot.snapshot(snapShot))
+    })
+
+    /**
+     * @name /api/v1/devices/:id/audit-log
+     * @memberof forge.routes.api.devices
+     */
+    app.get('/:deviceId/audit-log', {
+        preHandler: app.needsPermission('device:audit-log'),
+        schema: {
+            summary: '',
+            tags: ['Devices'],
+            params: {
+                type: 'object',
+                properties: {
+                    deviceId: { type: 'string' }
+                }
+            },
+            query: {
+                allOf: [
+                    { $ref: 'PaginationParams' },
+                    { $ref: 'AuditLogQueryParams' }
+                ]
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        log: { $ref: 'AuditLogEntryList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const paginationOptions = app.getPaginationOptions(request)
+        const logEntries = await app.db.models.AuditLog.forDevice(request.device.id, paginationOptions)
+        const result = app.db.views.AuditLog.auditLog(logEntries)
+        reply.send(result)
     })
 
     async function assignDeviceToProject (device, project) {

@@ -1,3 +1,56 @@
+#### 1.15.0: Release
+
+ - Device Groups: Disable rather than hide Device Group option (#3249) @Pezmc
+ - Add loading indicator to Pipelines.vue (#3257) @Steve-Mcl
+ - Fix missing instance properties (#3255) @Pezmc
+ - Move to @flowfuse/flowfuse npm package (#3190) @knolleary
+ - Restore leaving developer mode warning dialog (#3251) @Steve-Mcl
+ - Pictogram for Pipelines (#3250) @Pezmc
+ - Implement API for Device Groups (#3157) @Steve-Mcl
+ - Update description of Disable Editor (#3245) @hardillb
+ - Ensure pipelines empty state has a feature unavailable message (#3242) @Steve-Mcl
+ - Make Security: Unknown show None (tweek to #3175) (#3240) @hardillb
+ - Update instance settings docs for alerts (#3244) @MarianRaphael
+ - Make link a button so it's obvious for change team type (#3233) @hardillb
+ - Send alerts on Instance Crash (#3217) @hardillb
+ - If empty deny list allow storing (#3232) @hardillb
+ - Blueprint UI Follow ups (#3234) @Pezmc
+ - Add 'ci/' to .npmignore (#3225) @ppawlowski
+ - Bump cypress from 13.6.0 to 13.6.1 (#3198) @app/dependabot
+ - Bump eslint-plugin-vue from 9.17.0 to 9.19.2 (#3199) @app/dependabot
+ - Bump fastify-metrics from 10.3.2 to 10.4.1 (#3201) @app/dependabot
+ - Bump html-webpack-plugin from 5.5.3 to 5.5.4 (#3228) @app/dependabot
+ - Flow Blueprints Selection UI (#3180) @Pezmc
+ - Bump mqtt from 5.3.1 to 5.3.3 (#3227) @app/dependabot
+ - Allow to deploy from all PRs (#3231) @ppawlowski
+ - Enforce password quality rules (#3195) @hardillb
+ - Allow expired billing teams to be deleted (#3187) @hardillb
+ - Ensure editor sessions are revoked when logging out of the platform (#3214) @knolleary
+ - Increase plugin timeout to 20s to avoid failed startups (#3213) @knolleary
+ - Bump @aws-sdk/credential-provider-node from 3.451.0 to 3.470.0 (#3200) @app/dependabot
+ - FIX: run deployment from branch only once (#3207) @ppawlowski
+ - Add possibility to deploy feature branch on a dedicated application instance (#3144) @ppawlowski
+ - Allow teams with empty Applications deletion (#3178) @hardillb
+ - Ensure password reset tokens cannot be reused (#3196) @knolleary
+ - Improve session handling on password change (#3194) @knolleary
+ - Only use node-red audit events to update local package list (#3189) @knolleary
+ - Tidy up delete dialogs (#3185) @knolleary
+ - Show current security setting against instance (#3175) @Pezmc
+ - Improve handling of hanging plugin on startup (#3182) @knolleary
+ - Fix team delete for unmanaged-billing team (#3181) @knolleary
+ - Extend manual billing options to non-trial teams (#3170) @knolleary
+ - Sentry: Enable client reporting (#3166) @Pezmc
+ - Move app.monitor to be a housekeeper task (#3167) @knolleary
+ - Revert "Bump @vitejs/plugin-vue from 4.5.0 to 4.5.1" (#3169) @knolleary
+ - DevOps Pipeline: Block attempted deploys to devices in developer mode (#3127) @Pezmc
+ - Bump @vitejs/plugin-vue from 4.5.0 to 4.5.1 (#3161) @app/dependabot
+ - Bump sequelize from 6.35.0 to 6.35.1 (#3160) @app/dependabot
+ - Sentry: Add custom sampling rates for high volume routes (#3163) @Pezmc
+ - Bump mqtt from 5.3.0 to 5.3.1 (#3158) @app/dependabot
+ - Bump @fastify/cookie from 9.1.0 to 9.2.0 (#3162) @app/dependabot
+ - Bump cypress from 13.2.0 to 13.6.0 (#3159) @app/dependabot
+ - Update npm-publish action version to v2 (#3155) @ppawlowski
+
 #### 1.14.1: Release
 
  - Fix login failure for generated admin (#3153) @hardillb

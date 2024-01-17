@@ -75,7 +75,9 @@ module.exports = async (options = {}) => {
         bodyLimit: 5242880,
         maxParamLength: 500,
         trustProxy: true,
-        logger: loggerConfig
+        logger: loggerConfig,
+        // Increase the default timeout
+        pluginTimeout: 20000
     })
 
     if (runtimeConfig.telemetry.backend?.prometheus?.enabled) {
@@ -117,7 +119,7 @@ module.exports = async (options = {}) => {
                     return 0.001
                 }
 
-                // Used by nr-launcher and for flowforge-nr-auth
+                // Used by nr-launcher and for nr-auth
                 if (samplingContext?.transactionContext?.name === 'GET POST /account/token') {
                     return 0.01
                 }

@@ -159,6 +159,12 @@
         @apply border-dashed;
         @apply text-gray-700;
     }
+    .forge-status-info {
+        @apply bg-gray-100;
+        @apply border-gray-300;
+        @apply border-dashed;
+        @apply text-gray-800;
+    }
     .forge-status-starting {
         @apply bg-green-100;
         @apply border-green-300;
@@ -170,6 +176,12 @@
         @apply border-yellow-400;
         @apply text-yellow-600;
     }
+    .forge-status-warning {
+        @apply bg-yellow-400;
+        @apply border-yellow-700;
+        @apply text-yellow-900;
+    }
+    .forge-status-success,
     .forge-status-running {
         @apply bg-green-200;
         @apply border-green-400;
@@ -181,11 +193,17 @@
         @apply border-dashed;
         @apply text-green-700;
     }
+    
     .forge-badge-devmode {
         @apply bg-purple-100;
         @apply border-purple-600;
         @apply text-purple-700;
     }
+    .forge-badge-fleetmode {
+        @apply bg-teal-100;
+        @apply border-teal-600;
+        @apply text-teal-700;
+    } 
 
     th {
         @apply text-left;

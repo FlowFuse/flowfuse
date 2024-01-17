@@ -45,7 +45,7 @@ module.exports = fp(init, { name: 'app.routes.auth' })
  * @param {Object} opts
  * @param {Function} done
  */
-async function init (app, opts, done) {
+async function init (app, opts) {
     await app.register(require('./oauth'), { logLevel: app.config.logging.http })
     await app.register(require('./permissions'))
 
@@ -173,10 +173,6 @@ async function init (app, opts, done) {
         }
     })
 
-    // app.post('/account/register', (request, reply) => {
-    //
-    // })
-
     /**
      * Login a user.
      *
@@ -194,7 +190,14 @@ async function init (app, opts, done) {
      */
     app.post('/account/login', {
         config: {
-            rateLimit: app.config.rate_limits // rate limit this route regardless of global/per-route mode (if enabled)
+            rateLimit: app.config.rate_limits
+                ? {
+                    max: 5,
+                    timeWindow: 30000,
+                    keyGenerator: app.config.rate_limits.keyGenerator,
+                    hard: true
+                }
+                : false
         },
         schema: {
             summary: 'Log in to the platform',
@@ -308,20 +311,7 @@ async function init (app, opts, done) {
             if (userInfo.id != null) {
                 const user = await app.db.models.User.byId(userInfo.id)
                 userInfo = app.auditLog.formatters.userObject(user)
-                const sessions = await app.db.models.StorageSession.byUsername(user.username)
-                for (let index = 0; index < sessions.length; index++) {
-                    const session = sessions[index]
-                    const ProjectId = session.ProjectId
-                    const project = await app.db.models.Project.byId(ProjectId)
-                    for (let index = 0; index < session.sessions.length; index++) {
-                        const token = session.sessions[index].accessToken
-                        try {
-                            await app.containers.revokeUserToken(project, token) // logout:nodered(step-2)
-                        } catch (error) {
-                            app.log.warn(`Failed to revoke token for Project ${ProjectId}: ${error.toString()}`) // log error but continue to delete session
-                        }
-                    }
-                }
+                await app.db.controllers.User.logout(user)
             }
             await app.db.controllers.Session.deleteSession(request.sid)
         }
@@ -339,7 +329,14 @@ async function init (app, opts, done) {
      */
     app.post('/account/register', {
         config: {
-            rateLimit: app.config.rate_limits // rate limit this route regardless of global/per-route mode (if enabled)
+            rateLimit: app.config.rate_limits
+                ? {
+                    max: 5,
+                    timeWindow: 30000,
+                    keyGenerator: app.config.rate_limits.keyGenerator,
+                    hard: true
+                }
+                : false
         },
         schema: {
             tags: ['Authentication', 'X-HIDDEN'],
@@ -443,7 +440,7 @@ async function init (app, opts, done) {
                 for (let i = 0; i < pendingInvitations.length; i++) {
                     const invite = pendingInvitations[i]
                     // For now we'll auto-accept any invites for this user
-                    // See https://github.com/flowforge/flowforge/issues/275#issuecomment-1040113991
+                    // See https://github.com/FlowFuse/flowfuse/issues/275#issuecomment-1040113991
                     await app.db.controllers.Invitation.acceptInvitation(invite, newUser)
                     // // If we go back to having the user be able to accept invites
                     // // as a secondary step, the following code will convert the external
@@ -459,11 +456,11 @@ async function init (app, opts, done) {
             let responseMessage
             let responseCode = 'unexpected_error'
             if (/user_username_lower_unique|Users_username_key/.test(err.parent?.toString())) {
-                responseMessage = 'username not available'
-                responseCode = 'invalid_username'
+                responseMessage = 'Username or email not available'
+                responseCode = 'invalid_request'
             } else if (/user_email_lower_unique|Users_email_key/.test(err.parent?.toString())) {
-                responseMessage = 'email not available'
-                responseCode = 'invalid_email'
+                responseMessage = 'Username or email not available'
+                responseCode = 'invalid_request'
             } else if (err.errors) {
                 responseMessage = err.errors.map(err => err.message).join(',')
             } else {
@@ -542,7 +539,7 @@ async function init (app, opts, done) {
             for (let i = 0; i < pendingInvitations.length; i++) {
                 const invite = pendingInvitations[i]
                 // For now we'll auto-accept any invites for this user
-                // See https://github.com/flowforge/flowforge/issues/275#issuecomment-1040113991
+                // See https://github.com/FlowFuse/flowfuse/issues/275#issuecomment-1040113991
                 await app.db.controllers.Invitation.acceptInvitation(invite, verifiedUser)
                 // // If we go back to having the user be able to accept invites
                 // // as a secondary step, the following code will convert the external
@@ -621,7 +618,14 @@ async function init (app, opts, done) {
             app.verifySession(request, reply).then(() => done()).catch(done)
         },
         config: {
-            rateLimit: false, // never rate limit this route
+            rateLimit: app.config.rate_limits
+                ? {
+                    max: 5,
+                    timeWindow: 30000,
+                    keyGenerator: app.config.rate_limits.keyGenerator,
+                    hard: true
+                }
+                : false,
             allowUnverifiedEmail: true
         },
         schema: {
@@ -703,7 +707,14 @@ async function init (app, opts, done) {
 
     app.post('/account/forgot_password', {
         config: {
-            rateLimit: app.config.rate_limits // rate limit this route regardless of global/per-route mode (if enabled)
+            rateLimit: app.config.rate_limits
+                ? {
+                    max: 5,
+                    timeWindow: 30000,
+                    keyGenerator: app.config.rate_limits.keyGenerator,
+                    hard: true
+                }
+                : false
         },
         schema: {
             tags: ['Authentication', 'X-HIDDEN'],
@@ -785,6 +796,9 @@ async function init (app, opts, done) {
                 userInfo = user
                 try {
                     await app.db.controllers.User.resetPassword(user, request.body.password)
+                    // Clear any existing sessions to force a re-login
+                    await app.db.controllers.Session.deleteAllUserSessions(user)
+                    await app.db.controllers.AccessToken.deleteAllUserPasswordResetTokens(user)
                     success = true
                 } catch (err) {
                 }
@@ -801,6 +815,4 @@ async function init (app, opts, done) {
             reply.code(400).send({ status: 'error', message: resp.error, ...resp })
         }
     })
-
-    done()
 }

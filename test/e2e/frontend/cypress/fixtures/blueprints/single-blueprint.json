@@ -1,0 +1,14 @@
+{
+    "count": 1,
+    "blueprints": [
+        {
+            "id": "1234",
+            "name": "Blueprint 1",
+            "active": true,
+            "description": "This is a blueprint",
+            "default": true,
+            "category": "Category A",
+            "order": 0
+        }
+    ]
+}

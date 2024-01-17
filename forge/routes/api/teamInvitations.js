@@ -56,6 +56,9 @@ module.exports = async function (app) {
      * POST [/api/v1/teams/:teamId/invitations]/
      */
     app.post('/', {
+        config: {
+            rateLimit: app.config.rate_limits ? { max: 5, timeWindow: 30000 } : false
+        },
         schema: {
             summary: 'Create an invitation',
             tags: ['Team Invitations'],
@@ -217,7 +220,7 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const invitation = await app.db.models.Invitation.byId(request.params.invitationId)
-        if (invitation) {
+        if (invitation && invitation.teamId === request.team.id) {
             const role = invitation.role || Roles.Member
             const invitedUser = app.auditLog.formatters.userObject(invitation.external ? invitation : invitation.invitee)
             await invitation.destroy()

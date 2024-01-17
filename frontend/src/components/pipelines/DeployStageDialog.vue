@@ -12,25 +12,30 @@
             </p>
             <p class="my-4">
                 This will
-                <template v-if="stage.action === StageType.CREATE_SNAPSHOT">
+                <template v-if="stage.action === StageAction.CREATE_SNAPSHOT">
                     create a new snapshot in "{{ stage.name }}" and
                 </template>
-                <template v-else-if="stage.action === StageType.USE_LATEST_SNAPSHOT">
+                <template v-else-if="stage.action === StageAction.USE_LATEST_SNAPSHOT">
                     use the latest instance snapshot from "{{ stage.name }}" and
                 </template>
-                <template v-else-if="stage.action === StageType.PROMPT">
+                <template v-else-if="stage.action === StageAction.PROMPT">
                     use the snapshot selected below from "{{ stage.name }}" and
                 </template>
                 copy over all flows, nodes and credentials to "{{ target?.name }}".
             </p>
-            <template v-if="target?.deployToDevices">
+            <template v-if="target?.stageType === StageType.DEVICEGROUP">
+                <p class="my-4">
+                    All devices in the target group will be notified and this may result in them re-loading with a new configuration.
+                </p>
+            </template>
+            <template v-else-if="target?.deployToDevices">
                 <p class="my-4">
                     And push out the changes to all devices connected to "{{ target?.name }}".
                 </p>
             </template>
             <p class="my-4">
                 It will also transfer the keys, but not the values, of any newly created Environment
-                Variables that your target instance does not currently have.
+                Variables not currently in the target {{ targetTypeName }}.
             </p>
 
             <template v-if="(promptForSnapshot || useLatestSnapshot) && loadingSnapshots">
@@ -205,6 +210,15 @@ export default {
 
         hasSnapshots () {
             return this.snapshots.length > 0
+        },
+
+        targetTypeName () {
+            if (this.target?.stageType === StageType.DEVICE) {
+                return 'device'
+            } else if (this.target?.stageType === StageType.DEVICEGROUP) {
+                return 'groups devices'
+            }
+            return 'instance'
         }
     },
     created () {

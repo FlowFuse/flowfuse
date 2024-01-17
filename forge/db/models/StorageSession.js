@@ -22,20 +22,14 @@ module.exports = {
                     })
                 },
                 byUsername: async (username) => {
-                    const allStorageSessions = await this.findAll({
+                    return this.findAll({
                         where: {
                             sessions: {
                                 [Op.like]: '%"' + username + '"%'
                             }
                         },
-                        attributes: ['sessions', 'ProjectId']
+                        attributes: ['id', 'sessions', 'ProjectId']
                     })
-                    return allStorageSessions.map(m => {
-                        const session = m.sessions ? JSON.parse(m.sessions) : {}
-                        const sessions = Object.values(session) || []
-                        const usersSessions = sessions.filter(e => e.user === username && e.client === 'node-red-editor')
-                        return { ProjectId: m.ProjectId, sessions: usersSessions }
-                    }).filter(m => m.sessions.length > 0 && M.ProjectId)
                 }
             }
         }

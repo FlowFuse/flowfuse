@@ -46,6 +46,7 @@ module.exports = {
         this.belongsTo(M.User)
         this.hasMany(M.Device, { foreignKey: 'targetSnapshotId' })
         this.hasMany(M.Device, { foreignKey: 'activeSnapshotId' })
+        this.hasMany(M.DeviceGroup, { foreignKey: 'targetSnapshotId' })
     },
     finders: function (M) {
         const self = this

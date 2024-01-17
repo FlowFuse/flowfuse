@@ -33,7 +33,7 @@
                     @stage-deploy-failed="stageDeployFailed(stage)"
                     @stage-deleted="stageDeleted($index)"
                 />
-                <Transition name="fade">
+                <Transition v-if="stage.stageType !== StageType.DEVICEGROUP" name="fade">
                     <ChevronRightIcon
                         v-if="$index <= pipeline.stages.length - 1"
                         class="ff-icon mt-4 flex-shrink-0"
@@ -44,7 +44,7 @@
                     />
                 </Transition>
             </template>
-            <Transition name="fade">
+            <Transition v-if="!lastStageIsDeviceGroup" name="fade">
                 <PipelineStage @click="addStage" />
             </Transition>
         </div>
@@ -58,6 +58,8 @@
 import { ChevronRightIcon, PencilAltIcon, TrashIcon } from '@heroicons/vue/outline'
 
 import ApplicationAPI from '../../api/application.js'
+import { StageType } from '../../api/pipeline.js'
+
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 
@@ -87,6 +89,10 @@ export default {
         deviceStatusMap: {
             required: true,
             type: Map
+        },
+        deviceGroupStatusMap: {
+            required: true,
+            type: Map
         }
     },
     emits: ['pipeline-deleted', 'stage-deleted', 'deploy-starting', 'deploy-started', 'stage-deploy-starting', 'stage-deploy-started', 'stage-deploy-failed'],
@@ -109,22 +115,44 @@ export default {
         },
         stagesWithStates () {
             return this.pipeline.stages.map((stage) => {
-                // For now, each stage contains only one instance or one device, so read state from that object
+                // For now, each stage contains only one instance, one device, or a device group, so read state from that object
                 // Falls back to the summary object on the stage if the status has not loaded yet
-                const stageInstance = this.instanceStatusMap.get(stage.instance?.id) || stage.instance
-                const stageDevice = this.deviceStatusMap.get(stage.device?.id) || stage.device
+                const stageInstanceState = this.instanceStatusMap.get(stage.instance?.id) || stage.instance
+                const stageDeviceState = this.deviceStatusMap.get(stage.device?.id) || stage.device
 
-                // Relay state to the stage
-                stage.state = stageInstance?.state || stageDevice?.status
-                stage.flowLastUpdatedSince = stageInstance?.flowLastUpdatedSince
-                stage.lastSeenSince = stageDevice?.lastSeenSince
+                const stageDeviceGroupMapId = `${stage.id}:${stage.deviceGroup?.id}`
+                const stageDeviceGroupState = this.deviceGroupStatusMap.get(stageDeviceGroupMapId) || stage.deviceGroup
 
-                // If any devices or instances inside the stage are deploying, this stage is deploying
-                stage.isDeploying = stageDevice?.isDeploying || stageInstance?.isDeploying
+                // Set the state state based on group, device, or instance
+                if (stageDeviceGroupState) {
+                    stage.state = {
+                        isDeploying: stageDeviceGroupState.isDeploying,
+                        targetMatchCount: stageDeviceGroupState.targetMatchCount,
+                        activeMatchCount: stageDeviceGroupState.activeMatchCount,
+                        developerModeCount: stageDeviceGroupState.developerModeCount,
+                        runningCount: stageDeviceGroupState.runningCount,
+                        hasTargetSnapshot: stageDeviceGroupState.hasTargetSnapshot
+                    }
+                } else {
+                    stage.state = stageInstanceState?.state || stageDeviceState?.status
+                }
+
+                stage.flowLastUpdatedSince = stageInstanceState?.flowLastUpdatedSince
+                stage.lastSeenSince = stageDeviceState?.lastSeenSince
+
+                // If any device or instance inside the stage are deploying, this stage is deploying
+                stage.isDeploying = stageDeviceState?.isDeploying || stageInstanceState?.isDeploying || stageDeviceGroupState?.isDeploying
 
                 return stage
             })
+        },
+        lastStageIsDeviceGroup () {
+            const lastStage = this.pipeline?.stages?.[this.pipeline.stages.length - 1]
+            return lastStage?.stageType === StageType.DEVICEGROUP
         }
+    },
+    created () {
+        this.StageType = StageType
     },
     methods: {
         addStage: function () {

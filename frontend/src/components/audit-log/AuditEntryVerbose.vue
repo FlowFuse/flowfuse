@@ -68,22 +68,22 @@
     </template>
 
     <!-- Team Device Developer Mode -->
-    <template v-else-if="entry.event === 'team.device.developer-mode.enabled'">
+    <template v-else-if="entry.event === 'team.device.developer-mode.enabled' || entry.event === 'device.developer-mode.enabled'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.device">Developer Mode has been enabled for the Device '{{ entry.body.device?.name }}'.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
-    <template v-else-if="entry.event === 'team.device.developer-mode.disabled'">
+    <template v-else-if="entry.event === 'team.device.developer-mode.disabled' || entry.event === 'device.developer-mode.disabled'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.device">Developer Mode has been disabled for the Device '{{ entry.body.device?.name }}'.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
-    <template v-else-if="entry.event === 'team.device.remote-access.enabled'">
+    <template v-else-if="entry.event === 'team.device.remote-access.enabled' || entry.event === 'device.remote-access.enabled'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.device">Remote Access has been enabled for device '{{ entry.body.device?.name }}'.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
-    <template v-else-if="entry.event === 'team.device.remote-access.disabled'">
+    <template v-else-if="entry.event === 'team.device.remote-access.disabled' || entry.event === 'device.remote-access.disbaled'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.device">Remote Access has been disabled for device '{{ entry.body.device?.name }}'.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
@@ -115,7 +115,7 @@
         <span v-if="!error && entry.body?.device">Device '{{ entry.body.device?.name }}' has been unassigned from the {{ entry.body.application ? 'Application' : 'Instance' }} '{{ entry.body.application ? entry.body.application.name : entry.body.project?.name }}'.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
-    <template v-else-if="entry.event === 'team.device.credentials-generated' || entry.event === 'team.device.credentialsGenerated'">
+    <template v-else-if="entry.event === 'team.device.credentials-generated' || entry.event === 'team.device.credentialsGenerated' || entry.event === 'device.credentials.generated'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.device">Credentials generated for Device '{{ entry.body.device?.name }}'.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
@@ -149,7 +149,7 @@
         <span v-if="!error && entry.trigger?.name">User '{{ entry.trigger.name }}' has logged in.</span>
         <span v-else-if="!error">User data not found in audit entry.</span>
     </template>
-    <template v-else-if="entry.event === 'account.logout' || entry.event === 'auth.logout'">
+    <template v-else-if="entry.event === 'account.logout' || entry.event === 'auth.logout' || entry.event === 'auth.login.revoke'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.trigger?.name">User '{{ entry.trigger.name }}' has logged out.</span>
         <span v-else-if="!error">User data not found in audit entry.</span>
@@ -331,6 +331,12 @@
         <span v-if="!error && entry.body?.pipeline && entry.body?.pipelineStage">Pipeline Stage '{{ entry.body.pipelineStage?.name }}' was added to the DevOps Pipeline '{{ entry.body.pipeline?.name }}' {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }}</span>
         <span v-else-if="!error">Pipeline data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'application.pipeline.stage-deployed'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.pipeline && entry.body?.pipelineStage && !entry.body?.pipelineStageTarget">Pipeline Stage '{{ entry.body.pipelineStage.name }}' in DevOps Pipeline '{{ entry.body.pipeline.name }}' {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }} was deployed</span>
+        <span v-if="!error && entry.body?.pipeline && entry.body?.pipelineStage && entry.body?.pipelineStageTarget">Pipeline Stage '{{ entry.body.pipelineStage.name }}' in DevOps Pipeline '{{ entry.body.pipeline.name }}' {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }} was deployed to '{{ entry.body.pipelineStageTarget.name }}'</span>
+        <span v-else-if="!error">Pipeline data not found in audit entry.</span>
+    </template>
 
     <!-- Application Device Events -->
     <template v-else-if="entry.event === 'application.device.assigned'">
@@ -357,6 +363,28 @@
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.device && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been set as the target for Application owned device '{{ entry.body.device.name }}'.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
+    </template>
+
+    <!-- Application Device Group Events -->
+    <template v-else-if="entry.event === 'application.deviceGroup.updated'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.deviceGroup">Device Group '{{ entry.body.deviceGroup?.name }}' was updated for Application '{{ entry.body.application?.name }}' with the following changes: <AuditEntryUpdates :updates="entry.body.updates" /></span>
+        <span v-else-if="!error">Device Group data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'application.deviceGroup.created'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.deviceGroup">Device Group '{{ entry.body.deviceGroup?.name }}' was created for Application '{{ entry.body.application?.name }}'.</span>
+        <span v-else-if="!error">Device Group data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'application.deviceGroup.deleted'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.deviceGroup">Device Group '{{ entry.body.deviceGroup?.name }}' was deleted from Application '{{ entry.body.application?.name }}'.</span>
+        <span v-else-if="!error">Device Group data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'application.deviceGroup.members.changed'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.deviceGroup">Device Group '{{ entry.body.deviceGroup?.name }}' members in Application '{{ entry.body.application?.name }} updated: {{ entry.body?.info?.info ?? 'No changes' }}.</span>
+        <span v-else-if="!error">Device Group data not found in audit entry.</span>
     </template>
 
     <!-- Instance Events -->
@@ -485,6 +513,10 @@
         <label>{{ AuditEvents[entry.event] }}</label>
         <span>Something has gone wrong. Check the instance logs to investigate further.</span>
     </template>
+    <template v-else-if="entry.event === 'safe-mode'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span>Something has gone wrong repeatedly. Check the instance logs to investigate further.</span>
+    </template>
     <template v-else-if="entry.event === 'settings.update'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span>Node-RED editor user settings have been updated.</span>
@@ -523,8 +555,8 @@
 
     <!-- Catch All -->
     <template v-else>
-        <label>{{ AuditEvents[entry.event] }}: {{ entry.event }}</label>
-        <span>We have no details available for this event type</span>
+        <label>{{ computeLabelForUnknown(entry) }}</label>
+        <span>We have no details available for event type{{ entry?.event ? ` '${entry.event}'` : '' }}</span>
     </template>
 
     <template v-if="error">
@@ -572,6 +604,23 @@ export default {
         ChevronRightIcon,
         ChevronDownIcon,
         AuditEntryUpdates
+    },
+    methods: {
+        computeLabelForUnknown (entry) {
+            if (!entry?.event) return 'Unknown'
+            const known = !!this.AuditEvents[entry.event]
+            if (known) {
+                return this.AuditEvents[entry.event]
+            }
+            let labelText = entry.event
+            // now replace any dashes, dots, underscores or colons with spaces
+            labelText = labelText.replace(/[-._:]/g, ' ')
+            // now capitalise the first letter of each word
+            labelText = labelText.replace(/\b\w/g, l => l.toUpperCase())
+            // replace camel case with spaces
+            labelText = labelText.replace(/([a-z])([A-Z])/g, '$1 $2')
+            return labelText
+        }
     }
 }
 </script>

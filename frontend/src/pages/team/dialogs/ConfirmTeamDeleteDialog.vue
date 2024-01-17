@@ -20,7 +20,6 @@
 <script>
 
 import FormRow from '../../../components/FormRow.vue'
-import alerts from '../../../services/alerts.js'
 
 export default {
     name: 'ConfirmTeamDeleteDialog',
@@ -45,7 +44,6 @@ export default {
     methods: {
         confirm () {
             this.$emit('delete-team')
-            alerts.emit('Team successfully deleted', 'confirmation')
         }
     },
     setup () {

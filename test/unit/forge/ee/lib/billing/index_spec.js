@@ -359,6 +359,7 @@ describe('Billing', function () {
 
             // Check we asked stripe to delete/cancel the subscription
             stripe.subscriptions.del.called.should.be.true()
+            stripe.subscriptions.del.lastCall.args[0].should.equal('sub_1234')
         })
     })
 

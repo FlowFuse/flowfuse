@@ -66,8 +66,12 @@ describe('DeviceCommsHandler', function () {
         let received = []
         const handlers = {}
         return {
-            publish: (topic, payload) => {
+            platformId: 'test-platform-id',
+            publish: (topic, payload, opts, callback) => {
                 received.push({ topic, payload })
+                if (callback) {
+                    setImmediate(() => callback())
+                }
             },
             send: (data) => {
                 received.push(data)
@@ -212,7 +216,7 @@ describe('DeviceCommsHandler', function () {
     describe('Device Status', function () {
         let oldHandler
         let client
-        before(function () {
+        beforeEach(function () {
             client = mockSocket()
             const commsHandler = DeviceCommsHandler(app, client)
 
@@ -285,6 +289,122 @@ describe('DeviceCommsHandler', function () {
             await TestObjects.applicationDevice.reload()
 
             TestObjects.applicationDevice.activeSnapshotId.should.equal(knownSnapshot.id)
+        })
+
+        it('sends update to clear application device configuration if device agent is older than 1.11.0', async function () {
+            client.emit('status/device', {
+                id: TestObjects.applicationDevice.hashid,
+                status: JSON.stringify({
+                    state: 'online',
+                    application: 'an-application',
+                    snapshot: 'an-snapshot',
+                    settings: 'some-settings',
+                    agentVersion: '1.14.0'
+                })
+            })
+
+            // Task happens async
+            await sleep(100)
+
+            // Should have received update command
+            client.received().should.have.length(1)
+
+            const msg = client.received()[0]
+            msg.should.have.property('topic', `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.applicationDevice.hashid}/command`)
+            msg.should.have.property('payload')
+            const payload = JSON.parse(msg.payload)
+            payload.should.have.property('command', 'update')
+            payload.should.have.property('project', null)
+            payload.should.have.property('snapshot', null)
+        })
+    })
+
+    describe('sendCommandAwaitReply', async function () {
+        let commsHandler
+        let client
+        before(function () {
+            client = mockSocket()
+            commsHandler = DeviceCommsHandler(app, client)
+        })
+        afterEach(function () {
+            client.clearReceived()
+        })
+
+        it('Times out command', async function () {
+            const start = Date.now()
+            return commsHandler.sendCommandAwaitReply(TestObjects.ATeam.hashid, TestObjects.device.hashid, 'command', { a: 123 }, { timeout: 200 }).catch(err => {
+                // Expect this to reject
+                (Date.now() - start).should.be.approximately(200, 30)
+                err.message.should.match(/Command timed out/)
+            })
+        })
+
+        it('sends command to device and blocks until response received', async function () {
+            const commandPromise = commsHandler.sendCommandAwaitReply(TestObjects.ATeam.hashid, TestObjects.device.hashid, 'command', { a: 123 }, { timeout: 200 })
+            await sleep(5)
+            client.received().should.have.length(1)
+            const message = client.received()[0]
+            message.should.have.property('topic', `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.device.hashid}/command`)
+            const payload = JSON.parse(message.payload)
+            payload.should.have.property('command', 'command')
+            payload.should.have.property('deviceId', TestObjects.device.hashid)
+            payload.should.have.property('teamId', TestObjects.ATeam.hashid)
+            payload.should.have.property('correlationData')
+            payload.should.have.property('createdAt')
+            payload.should.have.property('expiresAt')
+            payload.should.have.property('responseTopic', `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.device.hashid}/response/test-platform-id`)
+
+            client.emit('response/device', {
+                id: TestObjects.device.hashid,
+                message: JSON.stringify({
+                    command: 'command',
+                    correlationData: payload.correlationData,
+                    payload: { a: 123 }
+                })
+            })
+            return commandPromise.then(result => {
+                result.should.have.property('a', 123)
+                return true
+            })
+        })
+
+        it('sends command to enable device editor', async function () {
+            const commandPromise = commsHandler.enableEditor(TestObjects.ATeam.hashid, TestObjects.device.hashid, 'random-token')
+            await sleep(5)
+            client.received().should.have.length(1)
+            const message = client.received()[0]
+            message.should.have.property('topic', `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.device.hashid}/command`)
+            const payload = JSON.parse(message.payload)
+            payload.should.have.property('command', 'startEditor')
+            payload.should.have.property('deviceId', TestObjects.device.hashid)
+            payload.should.have.property('teamId', TestObjects.ATeam.hashid)
+            payload.should.have.property('correlationData')
+            payload.should.have.property('createdAt')
+            payload.should.have.property('expiresAt')
+            payload.should.have.property('responseTopic', `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.device.hashid}/response/test-platform-id`)
+            payload.should.have.property('payload')
+            payload.payload.should.have.property('token', 'random-token')
+
+            client.emit('response/device', {
+                id: TestObjects.device.hashid,
+                message: JSON.stringify({
+                    command: 'startEditor',
+                    correlationData: payload.correlationData,
+                    payload: { token: payload.token }
+                })
+            })
+            return commandPromise
+        })
+
+        it('sends command to disabled device editor without blocking on response', async function () {
+            const commandPromise = commsHandler.disableEditor(TestObjects.ATeam.hashid, TestObjects.device.hashid)
+            await sleep(5)
+            client.received().should.have.length(1)
+            const message = client.received()[0]
+            message.should.have.property('topic', `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.device.hashid}/command`)
+            const payload = JSON.parse(message.payload)
+            payload.should.have.property('command', 'stopEditor')
+            return commandPromise
         })
     })
 })

@@ -1,17 +1,20 @@
 const fp = require('fastify-plugin')
 
-module.exports = fp(async function (app, opts, done) {
+module.exports = fp(async function (app, opts) {
     if (app.config.billing) {
         app.decorate('billing', await require('./billing').init(app))
     }
     require('./projectComms').init(app)
     require('./deviceEditor').init(app)
+    require('./alerts').init(app)
 
     if (app.license.get('tier') === 'enterprise') {
         require('./ha').init(app)
         app.decorate('sso', await require('./sso').init(app))
         // Set the MFA Feature Flag
         app.config.features.register('mfa', true, true)
+        // Set the Device Groups Feature Flag
+        app.config.features.register('deviceGroups', true, true)
     }
 
     // Set the Team Library Feature Flag
@@ -22,6 +25,4 @@ module.exports = fp(async function (app, opts, done) {
 
     // Set the Custom Catalogs Flag
     app.config.features.register('customCatalogs', true, true)
-
-    done()
 }, { name: 'app.ee.lib' })

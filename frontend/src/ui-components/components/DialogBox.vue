@@ -1,7 +1,7 @@
 <template>
     <div ref="container" class="ff-dialog-container" :class="'ff-dialog-container--' + (open ? 'open' : 'closed')">
         <div class="ff-dialog-box">
-            <div class="ff-dialog-header">{{ header }}</div>
+            <div class="ff-dialog-header" data-sentry-unmask>{{ header }}</div>
             <div ref="content" class="ff-dialog-content">
                 <slot></slot>
             </div>

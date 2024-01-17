@@ -1,3 +1,4 @@
+const SemVer = require('semver')
 const { literal } = require('sequelize')
 
 module.exports = {
@@ -18,8 +19,8 @@ module.exports = {
             device.set('agentVersion', state.agentVersion)
         }
         device.set('lastSeenAt', literal('CURRENT_TIMESTAMP'))
-        if (!state.snapshot) {
-            if (device.currentSnapshot !== null) {
+        if (!state.snapshot || state.snapshot === '0') {
+            if (device.activeSnapshotId !== null) {
                 device.set('activeSnapshotId', null)
             }
         } else {
@@ -68,7 +69,12 @@ module.exports = {
             // permit the user to generate new flows and submit a snapshot
             if (device.isApplicationOwned) {
                 delete payload.project // exclude project property to avoid triggering the wrong kind of update on the device
-                if (payload.snapshot === null) {
+                if (!device.agentVersion || SemVer.lt(device.agentVersion, '1.11.0')) {
+                    // device is running an agent version < 1.11.0 we need to clear it
+                    payload.snapshot = null
+                    payload.project = null
+                    payload.settings = null
+                } else if (payload.snapshot === null) {
                     payload.snapshot = '0' // '0' indicates that the application owned device should start with starter flows
                 }
             } else {

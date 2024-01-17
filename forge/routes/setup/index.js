@@ -92,7 +92,7 @@ module.exports = async function (app) {
             await app.settings.set('setup:initialised', true)
 
             app.log.info('****************************************************')
-            app.log.info('* FlowForge setup is complete. You can login at:   *')
+            app.log.info('* FlowFuse setup is complete. You can login at:    *')
             app.log.info(`*   ${app.config.base_url.padEnd(47, ' ')}*`)
             app.log.info('****************************************************')
             reply.send({ status: 'okay' })

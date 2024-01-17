@@ -209,7 +209,7 @@ export default {
                 alerts.emit('Instance flows imported.', 'confirmation')
             }).catch(err => {
                 console.error(err)
-                alerts.emit('Failed to import flows.', 'warning')
+                alerts.emit(`Failed to import flows - ${err.response?.data?.error}`, 'warning')
             }).finally(() => {
                 this.loading.importing = false
             })

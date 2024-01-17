@@ -39,6 +39,9 @@
 import httpClient from '../../api/client.js'
 import FormHeading from '../../components/FormHeading.vue'
 import FormRow from '../../components/FormRow.vue'
+
+let zxcvbn
+
 export default {
     name: 'CreateAdminUser',
     components: {
@@ -71,7 +74,8 @@ export default {
             return this.input.email &&
                    (this.input.username && !this.errors.username) &&
                    this.input.password !== '' &&
-                   this.input.password === this.input.password_confirm
+                   this.input.password === this.input.password_confirm &&
+                   !this.errors.password
         }
     },
     watch: {
@@ -90,10 +94,20 @@ export default {
             }
         },
         'input.password': function (v) {
-            if (this.errors.password && v.length >= 8) {
+            if (this.errors.password && v.length >= 8 && zxcvbn(v).score >= 2) {
                 this.errors.password = ''
             }
+            if (v === this.input.username) {
+                this.errors.password = 'Password must not match username'
+            }
+            if (v === this.input.email) {
+                this.errors.password = 'Password must not match email'
+            }
         }
+    },
+    async mounted () {
+        const { default: zxcvbnImp } = await import('zxcvbn')
+        zxcvbn = zxcvbnImp
     },
     methods: {
         next () {
@@ -102,11 +116,27 @@ export default {
         checkPassword () {
             if (this.input.password && this.input.password.length < 8) {
                 this.errors.password = 'Password must be at least 8 characters'
+                return
             } else {
                 this.errors.password = ''
             }
             if (this.input.password && this.input.password.length > 1024) {
                 this.errors.password = 'Password too long'
+                return
+            } else {
+                this.errors.password = ''
+            }
+            if (this.input.password === this.input.username) {
+                this.errors.password = 'Password must not match username'
+                return
+            }
+            if (this.input.password === this.input.email) {
+                this.errors.password = 'Password must not match email'
+                return
+            }
+            const zxcvbnResult = zxcvbn(this.input.password)
+            if (zxcvbnResult.score < 2) {
+                this.errors.password = `Password too weak, ${zxcvbnResult.feedback.suggestions[0]}`
             } else {
                 this.errors.password = ''
             }
@@ -119,7 +149,7 @@ export default {
             return httpClient.post('/setup/create-user', opts).then(res => {
                 this.$emit('next')
             }).catch(err => {
-                if (err.response.data) {
+                if (err.response?.data) {
                     if (/username/.test(err.response.data.error)) {
                         this.errors.username = 'Username unavailable'
                     } else if (/password/.test(err.response.data.error)) {

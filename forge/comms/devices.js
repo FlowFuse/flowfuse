@@ -3,6 +3,7 @@
  * for sending commands to devices.
  */
 
+const SemVer = require('semver')
 const { v4: uuidv4 } = require('uuid')
 
 const noop = () => {}
@@ -79,6 +80,13 @@ class DeviceCommsHandler {
                 // this scenario
                 let sendUpdateCommand = payload.state === 'unknown'
 
+                // If the device is owned by an application (in the DB) and the agent is reporting version < 1.11.0
+                // then we need to send an update command to the device
+                if (Object.hasOwn(payload, 'snapshot') && device.isApplicationOwned) {
+                    if (!device.agentVersion || SemVer.lt(device.agentVersion, '1.11.0')) {
+                        sendUpdateCommand = true
+                    }
+                }
                 if (Object.hasOwn(payload, 'project') && payload.project !== (device.Project?.id || null)) {
                     // The Project is incorrect
                     sendUpdateCommand = true
@@ -148,7 +156,8 @@ class DeviceCommsHandler {
             }
 
             const inFlightCommand = this.inFlightCommands[message.correlationData]
-            if (inFlightCommand && inFlightCommand.command === message.command) {
+            if (inFlightCommand) {
+                // This command is known to the local instance - process it
                 inFlightCommand.resolve(message.payload)
                 delete this.inFlightCommands[response.correlationData]
             }
@@ -240,7 +249,7 @@ class DeviceCommsHandler {
         options = options || {}
         options.timeout = (typeof options.timeout === 'number' && options.timeout > 0) ? options.timeout : DEFAULT_TIMEOUT
 
-        const inFlightCommand = DeviceCommsHandler.newResponseMonitor(command, deviceId, teamId, options)
+        const inFlightCommand = DeviceCommsHandler.newResponseMonitor(command, deviceId, teamId, this.client.platformId, options)
 
         const promise = new Promise((resolve, reject) => {
             inFlightCommand.resolve = (payload) => {
@@ -293,7 +302,7 @@ class DeviceCommsHandler {
         commandMessage.deviceId = cmr.deviceId
         commandMessage.teamId = cmr.teamId
         commandMessage.correlationData = cmr.correlationData
-        commandMessage.responseTopic = `ff/v1/${cmr.teamId}/d/${cmr.deviceId}/response`
+        commandMessage.responseTopic = `ff/v1/${cmr.teamId}/d/${cmr.deviceId}/response/${cmr.platformId}`
         commandMessage.payload = payload
         return commandMessage
     }
@@ -306,7 +315,7 @@ class DeviceCommsHandler {
      * @param {Object} [options={ timeout: DEFAULT_TIMEOUT }] Options
      * @returns {ResponseMonitor}
      */
-    static newResponseMonitor (command, deviceId, teamId, options = { timeout: DEFAULT_TIMEOUT }) {
+    static newResponseMonitor (command, deviceId, teamId, platformId, options = { timeout: DEFAULT_TIMEOUT }) {
         const now = Date.now()
         const correlationData = uuidv4() // generate a random correlation data (uuid)
         /** @type {ResponseMonitor} */
@@ -320,6 +329,7 @@ class DeviceCommsHandler {
         responseMonitor.expiresAt = now + options?.timeout || DEFAULT_TIMEOUT
         responseMonitor.deviceId = deviceId
         responseMonitor.teamId = teamId
+        responseMonitor.platformId = platformId
         responseMonitor.correlationData = correlationData
         return responseMonitor
     }

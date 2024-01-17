@@ -4,6 +4,9 @@
         help-header="FlowFuse - DevOps Pipelines"
         info="Configure automated deployments between your Instances"
     >
+        <template #pictogram>
+            <img src="../../images/pictograms/pipeline_red.png">
+        </template>
         <template #helptext>
             <p>
                 DevOps Pipelines are used to link multiple Node-RED instances together
@@ -34,8 +37,11 @@
             </ff-button>
         </template>
     </SectionTopMenu>
-
-    <div v-if="pipelines?.length > 0" class="pt-4 space-y-6" data-el="pipelines-list">
+    <ff-loading
+        v-if="loading"
+        message="Loading Pipelines..."
+    />
+    <div v-else-if="pipelines?.length > 0" class="pt-4 space-y-6" data-el="pipelines-list">
         <PipelineRow
             v-for="pipeline in pipelines"
             :key="pipeline.id"
@@ -43,9 +49,10 @@
             :pipeline="pipeline"
             :instance-status-map="instanceStatusMap"
             :device-status-map="deviceStatusMap"
+            :device-group-status-map="deviceGroupStatusMap"
             @stage-deploy-starting="stageDeployStarting"
-            @stage-deploy-started="stageDeployFailed"
-            @stage-deploy-failed="stageDeployStarting"
+            @stage-deploy-started="startPollingForDeployStatus"
+            @stage-deploy-failed="stageDeployFailed"
             @pipeline-deleted="loadPipelines"
             @stage-deleted="(stageIndex) => stageDeleted(pipeline, stageIndex)"
         />
@@ -121,12 +128,15 @@ export default {
     },
     data () {
         return {
+            loading: false,
             pipelines: [],
             instanceStatusMap: new Map(),
             deviceStatusMap: new Map(),
+            deviceGroupStatusMap: new Map(),
             polling: {
                 instances: null,
-                devices: null
+                devices: null,
+                deviceGroups: null
             }
         }
     },
@@ -154,8 +164,14 @@ export default {
                     this.deviceStatusMap.set(nextStage.device.id, {})
                 }
                 this.deviceStatusMap.get(nextStage.device.id).isDeploying = true
+            } else if (nextStage.deviceGroup?.id) {
+                const nextStageDeviceGroupMapId = `${nextStage.id}:${nextStage.deviceGroup?.id}`
+                if (!this.deviceGroupStatusMap.has(nextStageDeviceGroupMapId)) {
+                    this.deviceGroupStatusMap.set(nextStageDeviceGroupMapId, {})
+                }
+                this.deviceGroupStatusMap.get(nextStageDeviceGroupMapId).isDeploying = true
             } else {
-                return console.warn('Deployment starting to stage without an instance or device.')
+                return console.warn('Deployment starting to stage without an instance, device or device group.')
             }
         },
         stageDeployFailed (stage, nextStage) {
@@ -168,14 +184,22 @@ export default {
                 clearInterval(this.polling.devices)
                 this.deviceStatusMap.get(nextStage.device.id).isDeploying = false
             }
+
+            const nextStageDeviceGroupMapId = `${nextStage.id}:${nextStage.deviceGroup?.id}`
+            if (this.deviceGroupStatusMap.has(nextStageDeviceGroupMapId)) {
+                clearInterval(this.polling.deviceGroups)
+                this.deviceGroupStatusMap.get(nextStageDeviceGroupMapId).isDeploying = false
+            }
         },
         startPollingForDeployStatus (stage, nextStage) {
             if (nextStage.instance?.id) {
                 this.startPollingForInstanceDeployStatus()
             } else if (nextStage.device?.id) {
                 this.startPollingForDeviceDeployStatus()
+            } else if (nextStage.deviceGroup?.id) {
+                this.startPollingForDeviceGroupsDeployStatus()
             } else {
-                return console.warn('Polling started for stage without an instance or device.')
+                return console.warn('Polling started for stage without an instance, device or device group.')
             }
         },
         startPollingForInstanceDeployStatus () {
@@ -186,6 +210,10 @@ export default {
             clearInterval(this.polling.devices)
             this.polling.devices = setInterval(this.loadDeviceStatus, 5000)
         },
+        startPollingForDeviceGroupsDeployStatus () {
+            clearInterval(this.polling.deviceGroups)
+            this.polling.deviceGroups = setInterval(this.loadDeviceGroupStatus, 5000)
+        },
         stageInstanceDeployCompleted () {
             clearInterval(this.polling.instances)
             this.polling.instances = null
@@ -195,6 +223,12 @@ export default {
         stageDeviceDeployCompleted () {
             clearInterval(this.polling.devices)
             this.polling.devices = null
+
+            Alerts.emit('Deployment of stage successful.', 'confirmation')
+        },
+        stageDeviceGroupDeployCompleted () {
+            clearInterval(this.polling.deviceGroups)
+            this.polling.deviceGroups = null
 
             Alerts.emit('Deployment of stage successful.', 'confirmation')
         },
@@ -210,6 +244,8 @@ export default {
             }
         },
         async loadPipelines () {
+            this.loading = true
+
             // getPipelines doesn't include full instance status information, kick this off async
             // Not needed for devices as device status is returned as part of pipelines API
             this.loadInstanceStatus()
@@ -217,9 +253,12 @@ export default {
             ApplicationAPI.getPipelines(this.application.id)
                 .then((pipelines) => {
                     this.pipelines = pipelines
+                    this.loadDeviceGroupStatus(this.pipelines)
+                    this.loading = false
                 })
                 .catch((err) => {
                     console.error(err)
+                    this.loading = false
                 })
         },
         async loadInstanceStatus () {
@@ -284,6 +323,42 @@ export default {
                 .catch((err) => {
                     console.error(err)
                 })
+        },
+
+        async loadDeviceGroupStatus (pipelines) {
+            try {
+                pipelines = pipelines || (await ApplicationAPI.getPipelines(this.application.id, null, null, null, { statusOnly: true }))
+                // pipelines is an array of pipeline each with a `stages` array
+                // each stage _might_ have a `deviceGroup` object
+                // from this we need to build a map of device groups with their status
+                let deployingDeviceGroups = false
+                const deviceGroupsMap = new Map()
+                pipelines.forEach(pipeline => {
+                    pipeline.stages.forEach(stage => {
+                        if (stage.deviceGroup) {
+                            const stageDeviceGroupMapId = `${stage.id}:${stage.deviceGroup?.id}`
+                            const previousStatus = this.deviceGroupStatusMap.get(stageDeviceGroupMapId)
+                            deviceGroupsMap.set(stageDeviceGroupMapId, { ...previousStatus, ...stage.deviceGroup })
+                        }
+                        deployingDeviceGroups = deployingDeviceGroups || stage.deviceGroup?.isDeploying
+                    })
+                })
+                if (this.polling.deviceGroups) {
+                    // We were polling for status (triggered by deploy start) and all devices have finished deploying
+                    if (!deployingDeviceGroups) {
+                        this.stageDeviceGroupDeployCompleted()
+                    }
+                } else {
+                    // Some instances are deploying, so we need to start polling for status
+                    if (deployingDeviceGroups) {
+                        this.startPollingForDeviceGroupsDeployStatus()
+                    }
+                }
+
+                this.deviceGroupStatusMap = deviceGroupsMap
+            } catch (err) {
+                console.error(err)
+            }
         }
     }
 }

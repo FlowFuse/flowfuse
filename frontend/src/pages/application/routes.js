@@ -5,6 +5,10 @@
  * No new functionality should be added here.
  */
 import ApplicationActivity from './Activity.vue'
+import ApplicationDeviceGroupDevices from './DeviceGroup/devices.vue'
+import ApplicationDeviceGroupIndex from './DeviceGroup/index.vue'
+import ApplicationDeviceGroupSettings from './DeviceGroup/settings.vue'
+import ApplicationDeviceGroups from './DeviceGroups.vue'
 import ApplicationDevices from './Devices.vue'
 import ApplicationLogs from './Logs.vue'
 import ApplicationOverview from './Overview.vue'
@@ -44,6 +48,14 @@ export default [
                 component: ApplicationDevices,
                 meta: {
                     title: 'Application - Devices'
+                }
+            },
+            {
+                path: 'device-groups',
+                name: 'ApplicationDeviceGroups',
+                component: ApplicationDeviceGroups,
+                meta: {
+                    title: 'Application - Devices Groups'
                 }
             },
             {
@@ -133,6 +145,35 @@ export default [
                         }
                     }
                 ]
+            }
+        ]
+    },
+    {
+        path: '/application/:applicationId/device-group/:deviceGroupId',
+        name: 'ApplicationDeviceGroupIndex',
+        component: ApplicationDeviceGroupIndex,
+        meta: {
+            title: 'Application - Device Group'
+        },
+        redirect: to => {
+            return `/application/${to.params.applicationId}/device-group/${to.params.deviceGroupId}/devices`
+        },
+        children: [
+            {
+                path: 'devices',
+                name: 'ApplicationDeviceGroupDevices',
+                component: ApplicationDeviceGroupDevices,
+                meta: {
+                    title: 'Application - Device Group - Members'
+                }
+            },
+            {
+                path: 'settings',
+                name: 'ApplicationDeviceGroupSettings',
+                component: ApplicationDeviceGroupSettings,
+                meta: {
+                    title: 'Application - Device Group - Settings'
+                }
             }
         ]
     }

@@ -111,7 +111,7 @@ describe('Accounts API', async function () {
                 password: '12345678',
                 name: 'u1.2',
                 email: 'u1-2@example.com'
-            }, /username not available/)
+            }, /Username or email not available/)
 
             // TODO: check user audit logs - expect 'account.xxx-yyy' { code: '', error, '' }
         })
@@ -130,7 +130,7 @@ describe('Accounts API', async function () {
                 password: '12345678',
                 name: 'u1.2',
                 email: 'u1@example.com'
-            }, /email not available/)
+            }, /Username or email not available/)
 
             // TODO: check user audit logs - expect 'account.xxx-yyy' { code: '', error, '' }
         })
@@ -773,6 +773,114 @@ describe('Accounts API', async function () {
                 const reply = mfaResponse2.json()
                 reply.should.have.property('code', 'mfa_enabled')
             })
+        })
+    })
+
+    describe('Password reset', async function () {
+        let testUser
+        before(async function () {
+            app = await setup()
+        })
+        after(async function () {
+            await app.close()
+        })
+        beforeEach(async function () {
+            testUser = await app.factory.createUser({
+                username: 'testUser',
+                name: 'Test User',
+                email: 'testReset@example.com',
+                password: 'ttPassword'
+            })
+            await login('testUser', 'ttPassword')
+        })
+        afterEach(async function () {
+            // Reset settings to default
+            app.settings.set('user:reset-password', false)
+            await testUser.destroy()
+        })
+
+        it('Password reset rejected if not enabled on platform', async function () {
+            app.settings.set('user:reset-password', false)
+            const response = await app.inject({
+                method: 'POST',
+                url: '/account/forgot_password',
+                payload: { email: 'testReset@example.com' }
+            })
+            response.statusCode.should.equal(400)
+        })
+
+        it('Password reset can be submitted for a known user', async function () {
+            app.settings.set('user:reset-password', true)
+
+            // Create a second login session to verify existing sessions are ended
+            const secondLoginSession = await app.inject({
+                method: 'POST',
+                url: '/account/login',
+                payload: { username: 'testUser', password: 'ttPassword', remember: false }
+            })
+            secondLoginSession.cookies.should.have.length(1)
+            secondLoginSession.cookies[0].should.have.property('name', 'sid')
+            const secondLoginSessionId = secondLoginSession.cookies[0].value
+
+            // Submit the reset request
+            const response = await app.inject({
+                method: 'POST',
+                url: '/account/forgot_password',
+                payload: { email: 'testReset@example.com' }
+            })
+            response.statusCode.should.equal(200)
+            app.config.email.transport.getMessageQueue().should.have.lengthOf(1)
+            const resetEmail = app.config.email.transport.getMessageQueue()[0].text
+            // Extract token from the email notification
+            const m = /\/account\/change-password\/(ffpr_\S+)/.exec(resetEmail)
+            should.exist(m[1])
+            const token = m[1]
+
+            // Submit reset
+            const resetResponse = await app.inject({
+                method: 'POST',
+                url: `/account/reset_password/${token}`,
+                payload: { password: 'BoatShelfLegoDroid' }
+            })
+            resetResponse.statusCode.should.equal(200)
+
+            // The existing session token should no longer work
+            const checkOldToken = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.testUser }
+            })
+            checkOldToken.statusCode.should.equal(401)
+
+            // The existing session token should no longer work
+            const checkSecondToken = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user',
+                cookies: { sid: secondLoginSessionId }
+            })
+            checkSecondToken.statusCode.should.equal(401)
+
+            // The reset token cannot be reused
+            const resetResponse2 = await app.inject({
+                method: 'POST',
+                url: `/account/reset_password/${token}`,
+                payload: { password: 'BoatShelfLegoDroidAgain' }
+            })
+            resetResponse2.statusCode.should.equal(400)
+
+            // Should be able to login with new password
+            await login('testUser', 'BoatShelfLegoDroid')
+        })
+
+        it('Password reset for an unknown user does not error', async function () {
+            // We do not disclose whether this is a valid user or not
+            app.settings.set('user:reset-password', true)
+            const response = await app.inject({
+                method: 'POST',
+                url: '/account/forgot_password',
+                payload: { email: 'unknown@example.com' }
+            })
+            response.statusCode.should.equal(200)
         })
     })
 })

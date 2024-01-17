@@ -28,6 +28,7 @@
                     />
                 </span>
                 <span
+                    v-if="stage.stageType !== StageType.DEVICEGROUP"
                     data-action="stage-run"
                     :class="{'ff-disabled': !playEnabled || !pipeline?.id || deploying || inDeveloperMode}"
                     @click="runStage"
@@ -39,7 +40,7 @@
                 <SpinnerIcon v-if="deploying" class="ff-icon" />
             </div>
         </div>
-        <div v-if="stage.instance || stage.device" class="py-3">
+        <div v-if="stage.instance || stage.device || stage.deviceGroup" class="py-3">
             <div>
                 <div v-if="stage.stageType == StageType.INSTANCE" class="ff-pipeline-stage-type">
                     <router-link class="flex gap-2 items-center" :to="{name: 'Instance', params: { id: stage.instance.id }}">
@@ -67,6 +68,17 @@
                         </div>
                     </router-link>
                 </div>
+                <div v-if="stage.stageType == StageType.DEVICEGROUP" class="ff-pipeline-stage-type">
+                    <router-link class="flex gap-2 items-center" :to="{name: 'ApplicationDeviceGroupDevices', params: { applicationId: application.id, deviceGroupId: stage.deviceGroup.id }}">
+                        <IconDeviceGroupSolid class="ff-icon ff-icon-lg text-teal-700" />
+                        <div>
+                            <label class="flex items-center gap-2">Device Group:</label>
+                            <span>
+                                {{ stage.deviceGroup.name }}
+                            </span>
+                        </div>
+                    </router-link>
+                </div>
             </div>
             <div v-if="stage.stageType == StageType.INSTANCE" class="ff-pipeline-stage-row">
                 <label>Last Deployed:</label>
@@ -76,7 +88,7 @@
                 <label>Last Seen:</label>
                 <span>{{ stage.lastSeenSince ? stage.lastSeenSince : 'Unknown' }}</span>
             </div>
-            <div class="ff-pipeline-stage-row">
+            <div v-if="stage.stageType !== StageType.DEVICEGROUP" class="ff-pipeline-stage-row">
                 <label v-if="stage.stageType == StageType.DEVICE">Last Known Status:</label>
                 <label v-else>Status:</label>
                 <InstanceStatusBadge :status="stage.state" />
@@ -88,6 +100,19 @@
                     :href="stage.instance.url"
                     :target="stage.instance.name"
                 >{{ stage.instance.url }}</a>
+            </div>
+            <div v-if="stage.stageType === StageType.DEVICEGROUP" class="ff-pipeline-stage-row">
+                <label>Devices:</label>
+                <StatusBadge :text="stage.deviceGroup?.deviceCount" status="info" />
+            </div>
+            <div v-if="stage.stageType === StageType.DEVICEGROUP" class="ff-pipeline-stage-row">
+                <label>Deployed:</label>
+                <div v-ff-tooltip="stage.state?.hasTargetSnapshot && (stage.state?.activeMatchCount === stage.deviceGroup?.deviceCount) ? 'All devices have the latest pipeline snapshot deployed' : 'Some devices do not have the latest pipeline snapshot deployed'">
+                    <StatusBadge
+                        :text="stage.state?.activeMatchCount"
+                        :status="stage.state?.hasTargetSnapshot && (stage.state?.activeMatchCount === stage.deviceGroup?.deviceCount) ? 'success' : 'warning'"
+                    />
+                </div>
             </div>
             <div v-if="playEnabled" class="ff-pipeline-stage-row">
                 <label>Deploy Action:</label>
@@ -125,10 +150,12 @@ import { ExclamationIcon, PencilAltIcon, PlayIcon, PlusCircleIcon, TrashIcon } f
 
 import PipelineAPI, { StageAction, StageType } from '../../api/pipeline.js'
 
+import StatusBadge from '../../components/StatusBadge.vue'
 import InstanceStatusBadge from '../../pages/instance/components/InstanceStatusBadge.vue'
 
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
+import IconDeviceGroupSolid from '../icons/DeviceGroupSolid.js'
 import IconDeviceSolid from '../icons/DeviceSolid.js'
 import IconNodeRedSolid from '../icons/NodeRedSolid.js'
 
@@ -140,6 +167,7 @@ export default {
     name: 'PipelineStage',
     components: {
         DeployStageDialog,
+        IconDeviceGroupSolid,
         IconDeviceSolid,
         IconNodeRedSolid,
         InstanceStatusBadge,
@@ -147,6 +175,7 @@ export default {
         PlayIcon,
         PlusCircleIcon,
         SpinnerIcon,
+        StatusBadge,
         TrashIcon,
         ExclamationIcon
     },
@@ -258,6 +287,10 @@ export default {
 
             if (target.device?.id) {
                 messageParts.push('The connected device has been requested to update, but the time to deploy is dependent on its current status.')
+            }
+
+            if (target.deviceGroup?.id) {
+                messageParts.push("The devices in the Device Group have been requested to update, but the time to deploy is dependent on each device's own status.")
             }
 
             Alerts.emit(

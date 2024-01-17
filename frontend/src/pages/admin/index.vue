@@ -4,7 +4,7 @@
             <template #options>
                 <li class="ff-navigation-divider">Admin Settings</li>
                 <router-link v-for="route in navigation" :key="route.label" :to="route.path">
-                    <nav-item :icon="route.icon" :label="route.name" :data-nav="route.tag" />
+                    <nav-item :icon="route.icon" :label="route.name" :data-nav="route.tag" :featureUnavailable="route.featureUnavailable" />
                 </router-link>
             </template>
             <template v-if="team" #back>
@@ -33,29 +33,11 @@ import { mapState } from 'vuex'
 import NavItem from '../../components/NavItem.vue'
 import SideNavigation from '../../components/SideNavigation.vue'
 
-const navigation = [
-    { name: 'Overview', path: '/admin/overview', tag: 'admin-overview', icon: CollectionIcon },
-    { name: 'Users', path: '/admin/users', tag: 'admin-users', icon: UsersIcon },
-    { name: 'Teams', path: '/admin/teams', tag: 'admin-teams', icon: UserGroupIcon },
-    { name: 'Team Types', path: '/admin/team-types', tag: 'admin-teamtypes', icon: ColorSwatchIcon },
-    { name: 'Instance Types', path: '/admin/instance-types', tag: 'admin-instancetypes', icon: ColorSwatchIcon },
-    { name: 'Stacks', path: '/admin/stacks', tag: 'admin-stacks', icon: DesktopComputerIcon },
-    { name: 'Templates', path: '/admin/templates', tag: 'admin-templates', icon: TemplateIcon },
-    { name: 'Flow Blueprints', path: '/admin/flow-blueprints', tag: 'admin-flow-blueprints', icon: TemplateIcon },
-    { name: 'Activity', path: '/admin/audit-log', tag: 'admin-auditlog', icon: DatabaseIcon },
-    { name: 'Settings', path: '/admin/settings', tag: 'admin-settings', icon: CogIcon }
-]
-
 export default {
     name: 'AdminPage',
     components: {
         SideNavigation,
         NavItem
-    },
-    setup () {
-        return {
-            navigation
-        }
     },
     data () {
         return {
@@ -66,7 +48,21 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user', 'team'])
+        ...mapState('account', ['features', 'user', 'team']),
+        navigation: function () {
+            return [
+                { name: 'Overview', path: '/admin/overview', tag: 'admin-overview', icon: CollectionIcon },
+                { name: 'Users', path: '/admin/users', tag: 'admin-users', icon: UsersIcon },
+                { name: 'Teams', path: '/admin/teams', tag: 'admin-teams', icon: UserGroupIcon },
+                { name: 'Team Types', path: '/admin/team-types', tag: 'admin-teamtypes', icon: ColorSwatchIcon },
+                { name: 'Instance Types', path: '/admin/instance-types', tag: 'admin-instancetypes', icon: ColorSwatchIcon },
+                { name: 'Stacks', path: '/admin/stacks', tag: 'admin-stacks', icon: DesktopComputerIcon },
+                { name: 'Templates', path: '/admin/templates', tag: 'admin-templates', icon: TemplateIcon },
+                { name: 'Flow Blueprints', path: '/admin/flow-blueprints', tag: 'admin-flow-blueprints', icon: TemplateIcon, featureUnavailable: !this.features.flowBlueprints },
+                { name: 'Activity', path: '/admin/audit-log', tag: 'admin-auditlog', icon: DatabaseIcon },
+                { name: 'Settings', path: '/admin/settings', tag: 'admin-settings', icon: CogIcon }
+            ]
+        }
     },
     mounted () {
         this.mounted = true

@@ -2,5 +2,7 @@
 navGroup: Support
 navOrder: 1
 navTitle: Community Support
-redirect: https://community.flowfuse.com/
+redirect: 
+  to: https://community.flowfuse.com/
+layout: redirect
 ---

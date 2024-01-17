@@ -181,21 +181,34 @@ const actions = {
                 return
             }
 
-            let teamId = user.defaultTeam || teams.teams[0].id
-            let teamSlug = null
-            //
-            const teamIdMatch = /^\/team\/([^/]+)($|\/)/.exec(redirectUrlAfterLogin || router.currentRoute.value.path)
-            if (teamIdMatch && teamIdMatch[1] !== 'create') {
-                teamId = null
-                teamSlug = teamIdMatch[1]
-            }
-
             try {
-                const team = await teamApi.getTeam(teamId || { slug: teamSlug })
-                const teamMembership = await teamApi.getTeamUserMembership(team.id)
-                state.commit('setTeam', team)
-                state.commit('setTeamMembership', teamMembership)
+                // We now check to see if we know what team the user is currently
+                // accessing and load it.
+                // Some routes handle this for themselves in their setup based
+                // on the object the user is trying to access:
+                //  - /application/XYZ/
+                //  - /device/XYZ/
+                //  - /instance/XYZ
+                // They call `setTeam` once they have identified the owning team
+                // of the object being accessed.
+                if (!/^\/(application|device|instance)\//.test(redirectUrlAfterLogin || router.currentRoute.value.path)) {
+                    // Assume we'll load the users default team, or the first in their team list
+                    // if no default has been set
+                    let teamId = user.defaultTeam || teams.teams[0].id
+                    let teamSlug = null
 
+                    // Check the url to see if it is a /team/XYZ path - which
+                    // identifies the team we should try to load instead
+                    const teamIdMatch = /^\/team\/([^/]+)($|\/)/.exec(redirectUrlAfterLogin || router.currentRoute.value.path)
+                    if (teamIdMatch && teamIdMatch[1] !== 'create') {
+                        teamId = null
+                        teamSlug = teamIdMatch[1]
+                    }
+                    const team = await teamApi.getTeam(teamId || { slug: teamSlug })
+                    const teamMembership = await teamApi.getTeamUserMembership(team.id)
+                    state.commit('setTeam', team)
+                    state.commit('setTeamMembership', teamMembership)
+                }
                 state.commit('clearPending')
                 if (redirectUrlAfterLogin) {
                     // If this is a user-driven login, take them to the profile page
@@ -253,8 +266,10 @@ const actions = {
             }
             state.dispatch('checkState', state.getters.redirectUrlAfterLogin)
         } catch (err) {
-            if (err.response.status >= 401) {
+            if (err.response?.status >= 401) {
                 state.commit('loginFailed', err.response.data)
+            } else {
+                console.error(err)
             }
         }
     },

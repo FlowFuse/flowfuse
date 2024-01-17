@@ -1,3 +1,4 @@
+import InstanceSettingsAlerts from './Alerts.vue'
 import ChangeInstanceTypePage from './ChangeInstanceType.vue'
 import InstanceSettingsDanger from './Danger.vue'
 import InstanceSettingsEditor from './Editor.vue'
@@ -11,7 +12,7 @@ export default [
     { path: 'general', component: InstanceSettingsGeneral },
     { path: 'environment', component: InstanceSettingsEnvVar },
     { path: 'editor', component: InstanceSettingsEditor },
-    { path: 'security', component: InstanceSettingsSecurity },
+    { name: 'InstanceSettingsSecurity', path: 'security', component: InstanceSettingsSecurity },
     { path: 'palette', component: InstanceSettingsPalette },
     { path: 'danger', component: InstanceSettingsDanger },
     { path: 'ha', name: 'InstanceSettingsHA', component: InstanceSettingsHA },
@@ -22,5 +23,6 @@ export default [
         meta: {
             title: 'Instance - Change Type'
         }
-    }
+    },
+    { path: 'alerts', component: InstanceSettingsAlerts }
 ]

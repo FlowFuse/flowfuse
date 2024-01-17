@@ -6,7 +6,7 @@ const STATUS = {
     // Any changes to this list *must* be made via migration.
     // See forge/db/migrations/20230130-01-add-subscription-trial-date.js for example
 
-    // A subset of the statuses on Stripe that are important to FlowForge
+    // A subset of the statuses on Stripe that are important to FlowFuse
     // https://stripe.com/docs/billing/subscriptions/overview#subscription-statuses
     ACTIVE: 'active',
     CANCELED: 'canceled',

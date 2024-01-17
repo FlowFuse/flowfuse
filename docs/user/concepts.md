@@ -22,6 +22,7 @@ them when _snapshots_ are created of the instance.
    - [Template](#template)
    - [Snapshot](#instance-snapshot)
  - [Device](#device)
+ - [Device Groups](#device-groups)
 
 
 ### Team
@@ -157,3 +158,13 @@ the remote device.
 To further simplify device registration, Provisioning Tokens can be created to allow 
 devices to automatically connect to a team without having to manually register them first.
 The token can also be configured to assign a device directly to a Node-RED instance within the team.
+
+### Device Groups
+
+**Introduced in FlowFuse 1.15**
+
+Device groups allow you to organise your Application devices into logical groups. 
+These groups can be the target of [DevOps Pipelines](#devops-pipeline) greatly simplifying
+the deployments to one or hundreds of devices.
+
+Read more [about Device Groups](./device-groups.md).
