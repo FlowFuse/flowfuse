@@ -50,7 +50,7 @@ describe('Default Admin User', function () {
 
     it('should create admin user on start using FF_ADMIN_PASSWORD as the password', async function () {
         process.env.FF_ADMIN_PASSWORD = '12345678'
-        await createFlowForgeApp()
+        forge = await createFlowForgeApp()
         const admin = await forge.db.models.User.findOne({
             where: {
                 admin: true
@@ -61,7 +61,7 @@ describe('Default Admin User', function () {
     })
 
     it('should create admin access token on start if create_admin = true and create_admin_access_token = true', async function () {
-        await createFlowForgeApp({
+        forge = await createFlowForgeApp({
             create_admin: true,
             create_admin_access_token: true
         })
@@ -70,7 +70,7 @@ describe('Default Admin User', function () {
     })
 
     it('should not create admin access token on start if create_admin = true and create_admin_access_token = false', async function () {
-        await createFlowForgeApp({
+        forge = await createFlowForgeApp({
             create_admin: true,
             create_admin_access_token: false
         })
@@ -80,7 +80,7 @@ describe('Default Admin User', function () {
     })
 
     it('should not create admin access token on start if create_admin = false and create_admin_access_token = true', async function () {
-        await createFlowForgeApp({
+        forge = await createFlowForgeApp({
             create_admin: false,
             create_admin_access_token: true
         })
@@ -90,12 +90,48 @@ describe('Default Admin User', function () {
     })
 
     it('should not create admin access token on start if create_admin = false and create_admin_access_token = false', async function () {
-        await createFlowForgeApp({
+        forge = await createFlowForgeApp({
             create_admin: false,
             create_access_token: false
         })
         const accessToken = await forge.db.models.AccessToken.findAll()
 
         accessToken.should.be.empty()
+    })
+
+    it('setup:initialised should start false if create_admin = false and create_admin_access_token = false', async function () {
+        forge = await createFlowForgeApp({
+            create_admin: false,
+            create_access_token: false
+        })
+        const setupInitialized = await forge.settings.get('setup:initialised')
+        setupInitialized.should.be.false()
+    })
+
+    it('setup:initialised should start true if create_admin = true and create_admin_access_token = false', async function () {
+        forge = await createFlowForgeApp({
+            create_admin: true,
+            create_access_token: false
+        })
+        const setupInitialized = await forge.settings.get('setup:initialised')
+        setupInitialized.should.be.true()
+    })
+
+    it('setup:initialised should start false if create_admin = false and create_admin_access_token = true', async function () {
+        forge = await createFlowForgeApp({
+            create_admin: false,
+            create_access_token: true
+        })
+        const setupInitialized = await forge.settings.get('setup:initialised')
+        setupInitialized.should.be.false()
+    })
+
+    it('setup:initialised should start true if create_admin = true and create_admin_access_token = true', async function () {
+        forge = await createFlowForgeApp({
+            create_admin: true,
+            create_access_token: true
+        })
+        const setupInitialized = await forge.settings.get('setup:initialised')
+        setupInitialized.should.be.true()
     })
 })

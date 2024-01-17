@@ -9,6 +9,8 @@
 const fs = require('fs/promises')
 const path = require('path')
 
+const { finishSetup } = require('../../setup')
+
 const setupApp = path.join(__dirname, '../../../frontend/dist-setup/setup.html')
 
 module.exports = async function (app) {
@@ -48,29 +50,7 @@ module.exports = async function (app) {
             return
         }
         try {
-            const adminUser = await app.db.models.User.findOne({
-                where: {
-                    admin: true
-                }
-            })
-            const projectType = await app.db.controllers.ProjectType.createDefaultProjectType()
-            app.log.info('[SETUP] Created default InstanceType')
-
-            await app.db.controllers.TeamType.enableInstanceTypeForDefaultType(projectType)
-            app.log.info('[SETUP] Enabled default InstanceType for default TeamType')
-
-            await app.db.controllers.ProjectTemplate.createDefaultTemplate(adminUser)
-            app.log.info('[SETUP] Created default Template')
-
-            await app.db.controllers.ProjectStack.createDefaultProjectStack(projectType)
-            app.log.info('[SETUP] Created default Stack')
-
-            await app.settings.set('setup:initialised', true)
-
-            app.log.info('****************************************************')
-            app.log.info('* FlowForge setup is complete. You can login at:   *')
-            app.log.info(`*   ${app.config.base_url.padEnd(47, ' ')}*`)
-            app.log.info('****************************************************')
+            await finishSetup(app)
             reply.send({ status: 'okay' })
         } catch (err) {
             app.log.error(`Failed to create default ProjectStack: ${err.toString()}`)
