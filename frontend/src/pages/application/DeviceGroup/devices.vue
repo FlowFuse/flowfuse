@@ -325,7 +325,7 @@ export default {
                         this.editMode = false
                     })
                     .catch((err) => {
-                        this.$toast.error('Failed to update Device Group')
+                        Alerts.emit('Failed to update Device Group: ' + err.toString(), 'warning', 7500)
                         console.error(err)
                     })
             })
