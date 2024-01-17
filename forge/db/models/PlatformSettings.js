@@ -1,5 +1,5 @@
 /**
- * Forge Platform settings
+ * FlowFuse Platform settings
  *
  * @namespace forge.db.models.PlatformSettings
  */

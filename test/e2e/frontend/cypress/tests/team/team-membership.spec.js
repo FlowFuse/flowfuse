@@ -48,11 +48,8 @@ describe('FlowForge - Team Membership', () => {
         cy.get('[data-el="table"] tbody tr').should('have.length', 1)
         cy.get('[data-el="table"] tbody tr td.status-message').should('have.length', 0)
 
-        // click kebab menu
-        cy.get('[data-el="table"] tbody').find('.ff-kebab-menu').click()
-
-        // click accept
-        cy.get('[data-action="accept"]').click()
+        // click "Accept"
+        cy.get('[data-el="table"] tbody').find('[data-action="invite-accept"]').click()
 
         // wait for invitation to be accepted and reloaded
         cy.wait('@acceptInvite')

@@ -14,7 +14,6 @@ const db = require('./db')
 const ee = require('./ee')
 const housekeeper = require('./housekeeper')
 const license = require('./licensing')
-const monitor = require('./monitor')
 const postoffice = require('./postoffice')
 const routes = require('./routes')
 const settings = require('./settings')
@@ -109,7 +108,9 @@ module.exports = async (options = {}) => {
         bodyLimit: 5242880,
         maxParamLength: 500,
         trustProxy: true,
-        logger: loggerConfig
+        logger: loggerConfig,
+        // Increase the default timeout
+        pluginTimeout: 20000
     })
 
     if (runtimeConfig.telemetry.backend?.prometheus?.enabled) {
@@ -118,12 +119,14 @@ module.exports = async (options = {}) => {
     }
 
     if (runtimeConfig.telemetry.backend?.sentry?.dsn) {
+        const environment = process.env.SENTRY_ENV ?? (process.env.NODE_ENV ?? 'unknown')
+        const sentrySampleRate = environment === 'production' ? 0.1 : 0.5
         server.register(require('@immobiliarelabs/fastify-sentry'), {
             dsn: runtimeConfig.telemetry.backend.sentry.dsn,
-            environment: process.env.SENTRY_ENV ?? (process.env.NODE_ENV ?? 'unknown'),
+            sendClientReports: true,
+            environment,
             release: `flowfuse@${runtimeConfig.version}`,
-            tracesSampleRate: 0.1,
-            profilesSampleRate: 0.1,
+            profilesSampleRate: sentrySampleRate, // relative to output from tracesSampler
             integrations: [
                 new ProfilingIntegration()
             ],
@@ -140,6 +143,41 @@ module.exports = async (options = {}) => {
                 }
 
                 return extractedUser
+            },
+            tracesSampler: (samplingContext) => {
+                // Adjust sample rates for routes with high volumes, sorted descending by volume
+
+                // Used for mosquitto auth
+                if (samplingContext?.transactionContext?.name === 'POST /api/comms/auth/client' || samplingContext?.transactionContext?.name === 'POST /api/comms/auth/acl') {
+                    return 0.001
+                }
+
+                // Used by nr-launcher and for nr-auth
+                if (samplingContext?.transactionContext?.name === 'GET POST /account/token') {
+                    return 0.01
+                }
+
+                // Common endpoints in app (list devices by team, list devices by project)
+                if (samplingContext?.transactionContext?.name === 'GET /api/v1/teams/:teamId/devices' || samplingContext?.transactionContext?.name === 'GET /api/v1/projects/:instanceId/devices') {
+                    return 0.01
+                }
+
+                // Used by device editor device tunnel
+                if (samplingContext?.transactionContext?.name === 'GET /api/v1/devices/:deviceId/editor/proxy/*') {
+                    return 0.01
+                }
+
+                // Prometheus scraping
+                if (samplingContext?.transactionContext?.name === 'GET /metrics') {
+                    return 0.01
+                }
+
+                // OAuth check
+                if (samplingContext?.transactionContext?.name === 'GET /account/check/:ownerType/:ownerId') {
+                    return 0.01
+                }
+
+                return sentrySampleRate
             }
         })
     }
@@ -185,14 +223,128 @@ module.exports = async (options = {}) => {
             secret: server.settings.get('cookieSecret')
         })
         await server.register(csrf, { cookieOpts: { _signed: true, _httpOnly: true } })
+
+        let contentSecurityPolicy = false
+        if (runtimeConfig.content_security_policy?.enabled) {
+            if (!runtimeConfig.content_security_policy.directives) {
+                contentSecurityPolicy = {
+                    directives: {
+                        'base-uri': ["'self'"],
+                        'default-src': ["'self'"],
+                        'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+                        'worker-src': ["'self'", 'blob:'],
+                        'connect-src': ["'self'"],
+                        'img-src': ["'self'", 'data:', 'www.gravatar.com'],
+                        'font-src': ["'self'"],
+                        'style-src': ["'self'", 'https:', "'unsafe-inline'"],
+                        'upgrade-insecure-requests': null
+                    }
+                }
+            } else {
+                contentSecurityPolicy = {
+                    directives: runtimeConfig.content_security_policy.directives
+                }
+            }
+
+            if (runtimeConfig.content_security_policy.report_only) {
+                contentSecurityPolicy.reportOnly = true
+                if (runtimeConfig.content_security_policy.report_uri) {
+                    contentSecurityPolicy.directives['report-uri'] = runtimeConfig.content_security_policy.report_uri
+                }
+            }
+
+            if (runtimeConfig.telemetry.frontend?.plausible?.domain) {
+                if (contentSecurityPolicy.directives['script-src'] && Array.isArray(contentSecurityPolicy.directives['script-src'])) {
+                    contentSecurityPolicy.directives['script-src'].push('plausible.io')
+                } else {
+                    contentSecurityPolicy.directives['script-src'] = ['plausible.io']
+                }
+            }
+            if (runtimeConfig.telemetry?.frontend?.posthog?.apikey) {
+                let posthogHost = 'app.posthog.com'
+                if (runtimeConfig.telemetry.frontend.posthog.apiurl) {
+                    posthogHost = new URL(runtimeConfig.telemetry.frontend.posthog.apiurl).host
+                }
+                if (contentSecurityPolicy.directives['script-src'] && Array.isArray(contentSecurityPolicy.directives['script-src'])) {
+                    contentSecurityPolicy.directives['script-src'].push(posthogHost)
+                } else {
+                    contentSecurityPolicy.directives['script-src'] = [posthogHost]
+                }
+                if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
+                    contentSecurityPolicy.directives['connect-src'].push(posthogHost)
+                } else {
+                    contentSecurityPolicy.directives['connect-src'] = [posthogHost]
+                }
+            }
+            if (runtimeConfig.telemetry?.frontend?.sentry) {
+                if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
+                    contentSecurityPolicy.directives['connect-src'].push('*.ingest.sentry.io')
+                } else {
+                    contentSecurityPolicy.directives['connect-src'] = ['*.ingest.sentry.io']
+                }
+            }
+            if (runtimeConfig.support?.enabled && runtimeConfig.support.frontend?.hubspot?.trackingcode) {
+                const hubspotDomains = [
+                    'js-eu1.hs-analytics.com',
+                    'js-eu1.hs-banner.com',
+                    'js-eu1.hs-scripts.com',
+                    'js-eu1.hscollectedforms.net',
+                    'js-eu1.hubspot.com',
+                    'js-eu1.usemessages.com'
+                ]
+                if (contentSecurityPolicy.directives['script-src'] && Array.isArray(contentSecurityPolicy.directives['script-src'])) {
+                    contentSecurityPolicy.directives['script-src'].push(...hubspotDomains)
+                } else {
+                    contentSecurityPolicy.directives['script-src'] = hubspotDomains
+                }
+                const hubspotImageDomains = [
+                    'forms-eu1.hsforms.com',
+                    'track-eu1.hubspot.com',
+                    'perf-eu1.hsforms.com'
+                ]
+                if (contentSecurityPolicy.directives['img-src'] && Array.isArray(contentSecurityPolicy.directives['img-src'])) {
+                    contentSecurityPolicy.directives['img-src'].push(...hubspotImageDomains)
+                } else {
+                    contentSecurityPolicy.directives['img-src'] = hubspotImageDomains
+                }
+                const hubspotConnectDomains = [
+                    'api-eu1.hubspot.com',
+                    'cta-eu1.hubspot.com',
+                    'forms-eu1.hscollectedforms.net'
+                ]
+                if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
+                    contentSecurityPolicy.directives['connect-src'].push(...hubspotConnectDomains)
+                } else {
+                    contentSecurityPolicy.directives['connect-src'] = hubspotConnectDomains
+                }
+                const hubspotFrameDomains = [
+                    'app-eu1.hubspot.com'
+                ]
+                if (contentSecurityPolicy.directives['frame-src'] && Array.isArray(contentSecurityPolicy.directives['frame-src'])) {
+                    contentSecurityPolicy.directives['frame-src'].push(...hubspotFrameDomains)
+                } else {
+                    contentSecurityPolicy.directives['frame-src'] = hubspotFrameDomains
+                }
+            }
+        }
+
+        let strictTransportSecurity = false
+        if (runtimeConfig.base_url.startsWith('https://')) {
+            strictTransportSecurity = {
+                includeSubDomains: false,
+                preload: true,
+                maxAge: 3600
+            }
+        }
+
         await server.register(helmet, {
             global: true,
-            contentSecurityPolicy: false,
+            contentSecurityPolicy,
             crossOriginEmbedderPolicy: false,
             crossOriginOpenerPolicy: false,
             crossOriginResourcePolicy: false,
             hidePoweredBy: true,
-            hsts: false,
+            strictTransportSecurity,
             frameguard: {
                 action: 'deny'
             }
@@ -208,9 +360,6 @@ module.exports = async (options = {}) => {
         await server.register(containers)
 
         await server.register(ee)
-
-        // Monitor
-        await server.register(monitor)
 
         await server.ready()
 
@@ -228,8 +377,14 @@ module.exports = async (options = {}) => {
 
         return server
     } catch (err) {
-        console.error(err)
         server.log.error(`Failed to start: ${err.toString()}`)
+        server.log.error(err.stack)
+        try {
+            await server.close()
+        } catch (err2) {
+            server.log.error(`Failed to shutdown: ${err2.toString()}`)
+            server.log.error(err2.stack)
+        }
         throw err
     }
 }

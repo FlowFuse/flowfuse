@@ -64,7 +64,7 @@ describe('Audit Log > Project', async function () {
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'project.started')
         logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
-        logEntry.should.have.property('trigger', { id: 'system', type: 'system', name: 'Forge Platform' })
+        logEntry.should.have.property('trigger', { id: 'system', type: 'system', name: 'FlowFuse Platform' })
         logEntry.should.have.property('body')
         logEntry.body.should.only.have.keys('project') // should exclude the 'trigger' property from body
         logEntry.body.project.should.only.have.keys('id', 'name')

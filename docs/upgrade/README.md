@@ -15,6 +15,23 @@ for each version you are upgrading across.
 Note that we do not support downgrading FlowFuse to previous levels once an upgrade
 has been performed.
 
+## General guideline
+
+Details of how to upgrade can be found for each deployment model:
+
+- [LocalFS](../install/local/README.md#upgrade)
+- [Docker](../install/docker/README.md#upgrade)
+- [Kubernetes](../install/kubernetes/README.md#upgrade)
+
+
+### Upgrading to 2.0.0
+
+> **⚠️**  Breaking changes introduced!
+
+Together with new application features, this **release 2.0.0 introduces breaking changes** in Flowfuse Helm chart.
+If you are managing your local Flowfuse instance using our [Helm Chart](https://github.com/FlowFuse/helm/tree/main/helm/flowforge), please refer to the [upgrade](../install/kubernetes/README.md#upgrading-to-2.0) section of the Kubernetes installation guide for more details.
+
+
 ### Upgrading to 1.10
 
 Endpoint Rate Limiting is now available to FlowFuse. This is disabled by default, but can be enabled by setting the `rate_limits.enabled` config setting to `true`.
@@ -36,38 +53,11 @@ as a way to group individual [Node-RED instances](../user/concepts.md#instance) 
 The term 'Project' is being phased out. You may still see it crop up, such as
 in some of the external APIs, but we're working our way through removing it.
 
-Details of how to upgrade can be found for each deployment model:
-
-- [LocalFS](../install/local/README.md#upgrade)
-- [Docker](../install/docker/README.md#upgrade)
-- [Kubernetes](../install/kubernetes/README.md#upgrade)
-
-### Upgrading to 1.4
-
-Details of how to upgrade can be found for each deployment model:
-
-- [LocalFS](../install/local/README.md#upgrade)
-- [Docker](../install/docker/README.md#upgrade)
-- [Kubernetes](../install/kubernetes/README.md#upgrade)
-
 ### Upgrading to 1.3
 
-Details of how to upgrade can be found for each deployment model:
-
-- [LocalFS](../install/local/README.md#upgrade)
-- [Docker](../install/docker/README.md#upgrade)
-- [Kubernetes](../install/kubernetes/README.md#upgrade)
 
 To enable the Team Library and FlowFuse-based Authentication of HTTP routes each
 Node-RED instance will need to be updated to the [latest Stack](../user/changestack.md).
-
-### Upgrading to 1.2
-
-Details of how to upgrade can be found for each deployment model:
-
-- [LocalFS](../install/local/README.md#upgrade)
-- [Docker](../install/docker/README.md#upgrade)
-- [Kubernetes](../install/kubernetes/README.md#upgrade)
 
 #### Persistent Context added
 
@@ -99,7 +89,7 @@ Details of how to configure this can be found at the following links:
 
 #### MQTT Broker added
 
-This release introduces an MQTT Broker into the FlowForge platform used to communicate
+This release introduces an MQTT Broker into the FlowFuse platform used to communicate
 between devices and the core platform.
 
 For LocalFS users, they will need to manually setup the broker and ensure it is

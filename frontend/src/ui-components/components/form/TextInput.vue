@@ -7,6 +7,7 @@
             :placeholder="placeholder"
             :disabled="disabled"
             :value="modelValue"
+            :maxlength="maxlength"
             @change="$emit('update:modelValue', $event.target.value)"
             @input="$emit('update:modelValue', $event.target.value)"
             @blur="$emit('blur')" @keyup.enter="$emit('enter', $evt)"
@@ -31,18 +32,22 @@ export default {
             type: String,
             default: ''
         },
+        maxlength: {
+            type: String,
+            default: ''
+        },
         // flowfuse specific props
         size: {
             default: 'normal',
             type: String // "small", "normal"
         },
         type: {
-            default: 'text', // One of: 'text', 'email', or 'password'
+            default: 'text', // One of: 'text', 'email', 'password' or 'number'
             type: String
         },
         // v-model
         modelValue: {
-            type: String,
+            type: [Number, String],
             default: ''
         }
     },

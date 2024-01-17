@@ -1,0 +1,14 @@
+forge:
+  domain: flowfuse.dev
+  https: false
+  localPostgresql: true
+
+postgresql:
+  persistence:
+    enabled: false
+  primary:
+    nodeAffinityPreset:
+      type: "hard"
+      key: "role"
+      values:
+        - "management"

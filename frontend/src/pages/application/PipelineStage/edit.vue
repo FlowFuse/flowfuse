@@ -5,7 +5,9 @@
         />
         <PipelineStageForm
             v-else
+            :applicationDevices="applicationDevices"
             :instances="instances"
+            :deviceGroups="deviceGroups"
             :pipeline="pipeline"
             :stage="stage"
             :sourceStage="$route.query.sourceStage"
@@ -17,6 +19,7 @@
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
 
+import ApplicationAPI from '../../../api/application.js'
 import PipelinesAPI from '../../../api/pipeline.js'
 
 import Alerts from '../../../services/alerts.js'
@@ -33,7 +36,15 @@ export default {
             type: Object,
             required: true
         },
+        applicationDevices: {
+            type: Array,
+            required: true
+        },
         instances: {
+            type: Array,
+            required: true
+        },
+        deviceGroups: {
             type: Array,
             required: true
         },
@@ -71,8 +82,23 @@ export default {
             const options = {
                 name: input.name,
                 instanceId: input.instanceId,
+                deviceId: input.deviceId,
                 deployToDevices: input.deployToDevices,
                 action: input.action
+            }
+
+            // Set the device group, new, existing or null
+            if (input.deviceGroupId === 'new') {
+                try {
+                    const result = await ApplicationAPI.createDeviceGroup(this.application.id, input.newDeviceGroup.name, input.newDeviceGroup.description)
+                    options.deviceGroupId = result.id
+                } catch (err) {
+                    console.error(err)
+                    Alerts.emit('Failed to create Device Group, stage was not updated. Check the console for more details', 'error', 7500)
+                    return
+                }
+            } else {
+                options.deviceGroupId = input.deviceGroupId
             }
 
             await PipelinesAPI.updatePipelineStage(this.pipeline.id, this.stage.id, options)

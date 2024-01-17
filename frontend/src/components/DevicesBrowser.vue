@@ -217,7 +217,6 @@
 import { ClockIcon } from '@heroicons/vue/outline'
 import { PlusSmIcon } from '@heroicons/vue/solid'
 
-import semver from 'semver'
 import { markRaw } from 'vue'
 
 import ApplicationApi from '../api/application.js'
@@ -226,7 +225,6 @@ import instanceApi from '../api/instances.js'
 import teamApi from '../api/team.js'
 
 import permissionsMixin from '../mixins/Permissions.js'
-import { VueTimersMixin } from '../mixins/vue-timers.js'
 
 import DeviceAssignedToLink from '../pages/application/components/cells/DeviceAssignedToLink.vue'
 import DeviceLink from '../pages/application/components/cells/DeviceLink.vue'
@@ -244,6 +242,7 @@ import Alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 
 import { debounce } from '../utils/eventHandling.js'
+import { createPollTimer } from '../utils/timers.js'
 
 import EmptyState from './EmptyState.vue'
 import FeatureUnavailableToTeam from './banners/FeatureUnavailableToTeam.vue'
@@ -265,7 +264,7 @@ export default {
         EmptyState,
         DevicesStatusBar
     },
-    mixins: [permissionsMixin, VueTimersMixin],
+    mixins: [permissionsMixin],
     inheritAttrs: false,
     props: {
         // One of the two must be provided
@@ -313,7 +312,9 @@ export default {
             sort: {
                 key: null,
                 direction: 'desc'
-            }
+            },
+            /** @type { import('../utils/timers.js').PollTimer } */
+            pollTimer: null
         }
     },
     computed: {
@@ -408,19 +409,18 @@ export default {
     },
     mounted () {
         this.fullReloadOfData()
-        this.$timer.start('pollTimer')
+        this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME) // auto starts
     },
-    timers: {
-        pollTimer: { time: POLL_TIME, repeat: true, autostart: false }
+    unmounted () {
+        this.pollTimer.stop()
     },
     methods: {
-        // pollTimer method is called by VueTimersMixin. See the timers property above.
-        pollTimer: async function () {
-            this.$timer.stop('pollTimer')
+        pollTimerElapsed: async function () {
+            this.pollTimer.pause()
             try {
                 await this.pollForDeviceStatuses()
             } finally {
-                this.$timer.start('pollTimer')
+                this.pollTimer.resume()
             }
         },
 
@@ -705,13 +705,6 @@ export default {
             } else if (action === 'assignToProject') {
                 this.$refs.deviceAssignInstanceDialog.show(device)
             } else if (action === 'assignToApplication') {
-                if (!device?.agentVersion) {
-                    Alerts.emit('The device version could not be determined. Please ensure you have refreshed the browser and the device has connected to the platform before assigning it to an application.', 'warning', 7500)
-                    return
-                } else if (semver.lt(device.agentVersion, '1.11.0')) {
-                    Alerts.emit('The device version is not supported.  Please ensure you have refreshed the browser and and the device has been updated to the latest version before assigning it to an application', 'warning', 7500)
-                    return
-                }
                 this.$refs.deviceAssignApplicationDialog.show(device, false)
             }
         },

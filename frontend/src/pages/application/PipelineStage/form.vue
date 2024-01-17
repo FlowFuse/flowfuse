@@ -12,12 +12,50 @@
         @submit.prevent="submit"
     >
         <SectionTopMenu
-            :hero="'Edit Pipeline Stage'"
+            :hero="isEdit ? 'Edit Pipeline Stage' : 'Add Pipeline Stage'"
         />
 
         <!-- Form Description -->
         <div class="mb-8 text-sm text-gray-500">
-            Update existing pipeline stage from {{ pipeline?.name }}.
+            <template v-if="isEdit">
+                Update existing pipeline stage from {{ pipeline?.name }}.
+            </template>
+            <template v-else>
+                Create a new pipeline stage for {{ pipeline?.name }}.
+            </template>
+        </div>
+
+        <div>
+            <label class="w-full block text-sm font-medium text-gray-700 mb-2">Stage Type</label>
+            <ff-tile-selection v-model="input.stageType" data-form="stage-type">
+                <ff-tile-selection-option
+                    label="Instance"
+                    :value="StageType.INSTANCE"
+                    description=""
+                    color="#8F0000"
+                >
+                    <template #icon><IconNodeRedSolid /></template>
+                </ff-tile-selection-option>
+                <ff-tile-selection-option
+                    label="Device"
+                    :value="StageType.DEVICE"
+                    description=""
+                    color="#31959A"
+                >
+                    <template #icon><IconDeviceSolid /></template>
+                </ff-tile-selection-option>
+                <ff-tile-selection-option
+                    v-if="deviceGroupsEnabled"
+                    label="Device Group"
+                    :value="StageType.DEVICEGROUP"
+                    description=""
+                    color="#31959A"
+                    :disabled="isFirstStage"
+                    disabledTooltip="Device Groups are not available for the first stage in a pipeline"
+                >
+                    <template #icon><IconDeviceGroupSolid /></template>
+                </ff-tile-selection-option>
+            </ff-tile-selection>
         </div>
 
         <!-- Stage Name -->
@@ -25,27 +63,84 @@
             v-model="input.name"
             type="text"
             data-form="stage-name"
+            placeholder="e.g. Development, Staging, Production"
         >
             <template #default>
-                Stage name
+                Stage Name
             </template>
         </FormRow>
 
-        <!-- Instance -->
-        <FormRow
-            v-model="input.instanceId"
-            :options="instanceOptions"
-            data-form="stage-instance"
-            :placeholder="instanceDropdownPlaceholder"
-            :disabled="instanceDropdownDisabled"
-        >
-            <template #default>
-                Choose Instance
-            </template>
-        </FormRow>
+        <!-- Instance/Device -->
+        <div class="flex space-x-4">
+            <FormRow
+                v-if="input.stageType === StageType.INSTANCE"
+                v-model="input.instanceId"
+                :options="instanceOptions"
+                data-form="stage-instance"
+                :placeholder="instanceDropdownPlaceholder"
+                :disabled="instanceDropdownDisabled"
+            >
+                <template #default>
+                    Choose Instance
+                </template>
+            </FormRow>
+
+            <FormRow
+                v-else-if="input.stageType === StageType.DEVICE"
+                v-model="input.deviceId"
+                :options="deviceOptions"
+                data-form="stage-device"
+                :placeholder="deviceDropdownPlaceholder"
+                :disabled="deviceDropdownDisabled"
+            >
+                <template #default>
+                    Choose Device
+                </template>
+            </FormRow>
+
+            <!-- Device Group -->
+            <FormRow
+                v-else-if="input.stageType === StageType.DEVICEGROUP"
+                v-model="input.deviceGroupId"
+                :options="deviceGroupOptions"
+                data-form="stage-device-group"
+                :placeholder="deviceGroupDropdownPlaceholder"
+                :disabled="deviceGroupDropdownDisabled"
+                class="flex-grow"
+            >
+                <template #default>
+                    Choose Device Group
+                </template>
+            </FormRow>
+
+            <div v-else class="text-sm text-gray-500">Please select a stage type</div>
+
+            <div
+                v-if="input.deviceGroupId === 'new'"
+                class="max-w-sm flex-grow space-y-2"
+            >
+                <FormRow
+                    v-model="newDeviceGroupInput.name"
+                    type="text"
+                    data-form="stage-device-group-name"
+                    placeholder="e.g. Development, Staging, Production"
+                    :required="input.deviceGroupId === 'new'"
+                >
+                    Group Name
+                </FormRow>
+                <FormRow
+                    v-model="newDeviceGroupInput.description"
+                    type="text"
+                    data-form="stage-device-group-description"
+                >
+                    Group Description
+                </FormRow>
+            </div>
+        </div>
 
         <!-- Action -->
         <FormRow
+            v-if="input.stageType !== StageType.DEVICEGROUP"
             v-model="input.action"
             :options="actionOptions"
             data-form="stage-action"
@@ -60,22 +155,36 @@
             </template>
         </FormRow>
 
-        <ff-dialog ref="help-dialog" class="ff-dialog-box--info" header="Snapshot Actions">
+        <ff-dialog v-if="input.stageType !== StageType.DEVICEGROUP" ref="help-dialog" class="ff-dialog-box--info" header="Snapshot Actions">
             <template #default>
                 <div class="flex gap-8">
                     <slot name="pictogram"><img src="../../../images/pictograms/snapshot_red.png"></slot>
-                    <div>
+                    <div v-if="input.stageType === StageType.INSTANCE">
                         <p>
-                            When a Pipeline stage is triggered an Instance Snapshot is deployed to the next stage. You can configure how this stage picks what snapshot to deploy.
+                            When a instance Pipeline stage type is triggered an Instance Snapshot is deployed to the next stage. You can configure how this stage picks what snapshot to deploy.
                         </p>
                         <p>
-                            Create New Snapshot: Creates a new snapshot using the current flows and settings.
+                            <b>Create New Snapshot:</b> Creates a new snapshot using the current flows and settings.
                         </p>
                         <p>
-                            Use Latest Instance Snapshot: Uses the most recent existing snapshot of the instance. The deploy will fail if no snapshot exists.
+                            <b>Use Latest Instance Snapshot:</b> Uses the most recent existing snapshot of the instance. The deploy will fail if no snapshot exists.
                         </p>
                         <p>
-                            Prompt to Select Snapshot: Will ask at deploy time, which snapshot from the source stage should be copied to the next stage.
+                            <b>Prompt to Select Snapshot:</b> Will ask at deploy time, which snapshot from the source stage should be copied to the next stage.
+                        </p>
+                    </div>
+                    <div v-else-if="input.stageType === StageType.DEVICE">
+                        <p>
+                            When a device Pipeline stage type is triggered an Device Snapshot is deployed to the next stage. You can configure how this stage picks what snapshot to deploy.
+                        </p>
+                        <p>
+                            <b>Use Active Snapshot:</b> Will use the snapshot currently active on the device. The deploy will fail is there is no active snapshot.
+                        </p>
+                        <p>
+                            <b>Use Latest Device Snapshot:</b> Uses the most recent snapshot created from the device. The deploy will fail if no snapshot exists.
+                        </p>
+                        <p>
+                            <b>Prompt to Select Snapshot:</b> Will ask at deploy time, which snapshot from the source stage should be copied to the next stage.
                         </p>
                     </div>
                 </div>
@@ -87,13 +196,18 @@
 
         <!-- Deploy to Devices -->
         <FormRow
+            v-if="input.stageType === StageType.INSTANCE"
             v-model="input.deployToDevices"
             type="checkbox"
             data-form="stage-deploy-to-devices"
-            :disabled="!sourceStage"
+            :disabled="!input.instanceId || !sourceStage"
             class="max-w-md"
         >
-            Deploy to Devices <template v-if="!sourceStage">- Not available for first stage in pipeline</template>
+            Deploy to Devices
+            <template v-if="!sourceStage">- Not available for first stage in pipeline</template>
+            <template v-else-if="!input.instanceId">
+                - Only available when an instance is selected
+            </template>
             <template #description>
                 When this stage is deployed to changes will also be be deployed to all devices connected to this stages instance.
             </template>
@@ -126,18 +240,36 @@
 <script>
 import { InformationCircleIcon } from '@heroicons/vue/outline'
 
+import { mapState } from 'vuex'
+
+import { StageAction, StageType } from '../../../api/pipeline.js'
+
 import FormRow from '../../../components/FormRow.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import IconDeviceGroupSolid from '../../../components/icons/DeviceGroupSolid.js'
+import IconDeviceSolid from '../../../components/icons/DeviceSolid.js'
+import IconNodeRedSolid from '../../../components/icons/NodeRedSolid.js'
 
 export default {
     name: 'PipelineForm',
     components: {
         InformationCircleIcon,
         SectionTopMenu,
-        FormRow
+        FormRow,
+        IconDeviceGroupSolid,
+        IconDeviceSolid,
+        IconNodeRedSolid
     },
     props: {
+        applicationDevices: {
+            type: Array,
+            required: true
+        },
         instances: {
+            type: Array,
+            required: true
+        },
+        deviceGroups: {
             type: Array,
             required: true
         },
@@ -167,31 +299,53 @@ export default {
             },
             input: {
                 name: stage?.name,
-                instanceId: stage.instances?.[0].id,
+                instanceId: stage.instances?.[0].id, // API supports multiple instances per stage but UI only exposes one
+                deviceId: stage.devices?.[0].id, // API supports multiple devices per stage but UI only exposes one
+                deviceGroupId: stage.deviceGroups?.[0].id, // API supports multiple devices per stage but UI only exposes one
                 action: stage?.action,
-                deployToDevices: stage.deployToDevices || false
+                deployToDevices: stage.deployToDevices || false,
+                stageType: stage.stageType || StageType.INSTANCE
             },
-            actionOptions: [
-                { value: 'create_snapshot', label: 'Create new snapshot' },
-                { value: 'use_latest_snapshot', label: 'Use latest instance snapshot' },
-                { value: 'prompt', label: 'Prompt to select snapshot' }
-            ]
+            newDeviceGroupInput: {
+                name: '',
+                description: ''
+            }
         }
     },
     computed: {
+        ...mapState('account', ['team', 'features']),
         isEdit () {
             return !!this.stage.id
+        },
+        isFirstStage () {
+            if (this.isEdit) {
+                // if the editing stage is the first stage, then it is the first stage
+                return this.pipeline.stages[0].id === this.stage.id
+            } else {
+                // if there are no stages, then this is (will be) the first stage
+                if (this.pipeline.stages.length === 0) {
+                    return true
+                }
+                // if there are stages, then this cannot be the first stage
+                return false
+            }
         },
         formDirty () {
             return (
                 this.input.name !== this.stage.name ||
                 this.input.instanceId !== this.stage.instances?.[0].id ||
-                this.input.action !== this.stage.action ||
-                this.input.deployToDevices !== this.stage.deployToDevices
+                this.input.deviceId !== this.stage.devices?.[0].id ||
+                this.input.deviceGroupId !== this.stage.deviceGroups?.[0].id ||
+                (this.input.stageType !== StageType.DEVICEGROUP && this.input.action !== this.stage.action) ||
+                (this.input.stageType !== StageType.DEVICEGROUP && this.input.deployToDevices !== this.stage.deployToDevices)
             )
         },
         submitEnabled () {
-            return this.formDirty && this.input.instanceId && this.input.name && this.input.action
+            return this.formDirty &&
+                (this.input.instanceId || this.input.deviceId || this.input.deviceGroupId) &&
+                this.input.name &&
+                (this.input.stageType === StageType.DEVICEGROUP ? true : this.input.action) &&
+                (this.input.deviceGroupId === 'new' ? this.newDeviceGroupInput.name !== '' : true)
         },
         instancesNotInUse () {
             const instanceIdsInUse = this.pipeline.stages.reduce((acc, stage) => {
@@ -223,12 +377,128 @@ export default {
             }
 
             return 'Choose Instance'
+        },
+
+        devicesNotInUse () {
+            const deviceIdsInUse = this.pipeline.stages.reduce((acc, stage) => {
+                stage.devices.forEach((device) => {
+                    acc.add(device.id)
+                })
+
+                return acc
+            }, new Set())
+
+            return this.applicationDevices.filter((device) => {
+                return !deviceIdsInUse.has(device.id) || device.id === this.input.deviceId
+            })
+        },
+        deviceOptions () {
+            return this.devicesNotInUse.map((device) => {
+                return {
+                    label: device.name,
+                    value: device.id
+                }
+            })
+        },
+        deviceDropdownDisabled () {
+            return this.devicesNotInUse.length === 0
+        },
+        deviceDropdownPlaceholder () {
+            if (this.devicesNotInUse.length === 0) {
+                return 'No application level devices available'
+            }
+
+            return 'Choose Application Level Device'
+        },
+        deviceGroupsEnabled () {
+            return this.features?.deviceGroups && this.team?.type.properties.features?.deviceGroups
+        },
+        deviceGroupOptions () {
+            return [
+                ...this.deviceGroups?.map((device) => {
+                    return {
+                        label: device.name,
+                        value: device.id
+                    }
+                }) || [],
+                { label: 'Create New Application Level Group…', value: 'new' }
+            ]
+        },
+        deviceGroupDropdownDisabled () {
+            return this.deviceGroupOptions.length === 0
+        },
+        deviceGroupDropdownPlaceholder () {
+            if (this.deviceGroupOptions.length === 0) {
+                return 'No Application Level Device Groups available'
+            }
+
+            return 'Choose Application Level Device Group'
+        },
+
+        actionOptions () {
+            const type = this.input.stageType === StageType.DEVICE ? 'device' : 'instance'
+
+            const options = [
+                { value: StageAction.USE_LATEST_SNAPSHOT, label: `Use latest ${type} snapshot` },
+                { value: StageAction.PROMPT, label: `Prompt to select ${type} snapshot` }
+            ]
+
+            if (this.input.stageType === StageType.INSTANCE) {
+                options.unshift({ value: StageAction.CREATE_SNAPSHOT, label: 'Create new instance snapshot' })
+            } else if (this.input.stageType === StageType.DEVICE) {
+                options.unshift({ value: StageAction.USE_ACTIVE_SNAPSHOT, label: 'Use active snapshot' })
+            }
+
+            return options
         }
+    },
+    watch: {
+        'input.stageType' (newStageType, oldStageType) {
+            // Check if selected action is still available
+            if (this.actionOptions.some((option) => option.value === this.input.action)) {
+                return
+            }
+
+            // If not, reset to the stages original action (if available)
+            this.input.action = this.stage?.action && this.actionOptions.some((option) => option.value === this.stage.action) ? this.stage.action : null
+        }
+    },
+    created () {
+        this.StageType = StageType
     },
     methods: {
         async submit () {
             this.loading.creating = !this.isEdit
             this.loading.updating = this.isEdit
+
+            // Always clear any leftover newDeviceGroup input
+            delete this.input.newDeviceGroup
+
+            if (this.input.stageType === StageType.INSTANCE) {
+                this.input.deviceId = null
+                this.input.deviceGroupId = null
+            } else if (this.input.stageType === StageType.DEVICE) {
+                this.input.deviceGroupId = null
+                this.input.instanceId = null
+            } else if (this.input.stageType === StageType.DEVICEGROUP) {
+                this.input.instanceId = null
+                this.input.deviceId = null
+
+                this.input.action = StageAction.PROMPT // default to PROMPT (not used for device groups)
+
+                // If creating a new group, copy over the props
+                if (this.input.deviceGroupId === 'new') {
+                    this.input.newDeviceGroup = {
+                        name: this.newDeviceGroupInput.name,
+                        description: this.newDeviceGroupInput.description
+                    }
+                }
+            }
+
+            // Ensure deploy to device is not set with "Device" type stage
+            if (this.input.stageType === StageType.DEVICE) {
+                this.input.deployToDevices = false
+            }
 
             this.$emit('submit', this.input)
         }

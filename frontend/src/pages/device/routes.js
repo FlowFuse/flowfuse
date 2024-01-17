@@ -1,3 +1,4 @@
+import DeviceAuditLog from './AuditLog.vue'
 import DeviceDeveloperMode from './DeveloperMode/index.vue'
 import DeviceLogs from './Logs.vue'
 import DeviceOverview from './Overview.vue'
@@ -21,7 +22,7 @@ export default [
             title: 'Device - Overview'
         },
         children: [
-            { path: 'overview', component: DeviceOverview },
+            { path: 'overview', component: DeviceOverview, name: 'DeviceOverview' },
             {
                 path: 'settings',
                 component: DeviceSettings,
@@ -36,6 +37,13 @@ export default [
                     { path: 'environment', component: DeviceSettingsEnvironment },
                     { path: 'danger', component: DeviceSettingsDanger }
                 ]
+            },
+            {
+                path: 'audit-log',
+                component: DeviceAuditLog,
+                meta: {
+                    title: 'Device - Audit Log'
+                }
             },
             {
                 path: 'logs',

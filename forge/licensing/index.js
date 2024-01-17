@@ -2,7 +2,7 @@ const fp = require('fastify-plugin')
 
 const loader = require('./loader')
 
-module.exports = fp(async function (app, opts, next) {
+module.exports = fp(async function (app, opts) {
     // Dev License:
     /*
     {
@@ -82,8 +82,6 @@ module.exports = fp(async function (app, opts, next) {
         await reportUsage()
     }
     app.decorate('license', licenseApi)
-
-    next()
 
     function status () {
         const PRE_EXPIRE_WARNING_DAYS = 30 // hard coded
@@ -177,4 +175,4 @@ module.exports = fp(async function (app, opts, next) {
         }
         await reportUsage()
     }
-})
+}, { name: 'app.licensing' })

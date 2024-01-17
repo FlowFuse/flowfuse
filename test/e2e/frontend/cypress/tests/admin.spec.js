@@ -1,6 +1,6 @@
 // test admin rights & access in FlowForge
 
-describe('FlowForge platform admin users', () => {
+describe('FlowFuse platform admin users', () => {
     beforeEach(() => {
         cy.login('alice', 'aaPassword')
         cy.home()
@@ -14,8 +14,8 @@ describe('FlowForge platform admin users', () => {
         cy.get('[data-cy="user-options"]').get('.ff-dropdown-options').should('not.be.visible')
         cy.get('[data-cy="user-options"]').click()
         cy.get('[data-cy="user-options"] .ff-dropdown-options').should('be.visible')
-        cy.get('[data-cy="user-options"] .ff-dropdown-options > .ff-dropdown-option').eq(1).contains('Admin Settings').should('be.visible')
-        cy.get('[data-cy="user-options"] .ff-dropdown-options > .ff-dropdown-option').eq(1).click()
+        cy.get('[data-cy="user-options"] .ff-dropdown-options > .ff-dropdown-option').eq(2).contains('Admin Settings').should('be.visible')
+        cy.get('[data-cy="user-options"] .ff-dropdown-options > .ff-dropdown-option').eq(2).click()
 
         // wait for APIs to return
         cy.wait('@getSettings')
@@ -153,7 +153,7 @@ describe('FlowForge platform admin users', () => {
     })
 })
 
-describe('FlowForge platform non-admin users', () => {
+describe('FlowFuse platform non-admin users', () => {
     beforeEach(() => {
         cy.login('bob', 'bbPassword')
         cy.home()

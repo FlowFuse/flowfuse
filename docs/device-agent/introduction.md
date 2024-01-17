@@ -1,7 +1,8 @@
 ---
-navTitle: Introduction
+navTitle: FlowFuse Device Agent Introduction
 navOrder: 1
 ---
+
 # FlowFuse Device Agent
 
 The FlowFuse platform can be used to manage Node-RED instances running on remote Devices.

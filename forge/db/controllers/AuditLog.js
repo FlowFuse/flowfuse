@@ -11,6 +11,11 @@ function addToLog (app, entityType, entityId, event, body) {
     const details = [`event: ${event}`]
     if (entityType) { details.push(`type: ${entityType}`) }
     if (entityId) { details.push(`id: ${entityId}`) }
+    if (event === 'context.delete' && body && typeof body === 'object' && body.key && body.scope && body.store) {
+        details.push(`key: ${body.key}`)
+        details.push(`scope: ${body.scope}`)
+        details.push(`store: ${body.store}`)
+    }
     const msg = details.join(', ')
     if (body && body.error) {
         app.log.error(`AUDIT: ${msg}, ${body.error.message || 'unknown error'}`)
@@ -69,5 +74,14 @@ module.exports = {
             body: encodeBody(body)
         })
         addToLog(app, 'team', TeamId, event, body)
+    },
+    deviceLog: async function (app, DeviceId, UserId, event, body) {
+        await app.db.models.AuditLog.create({
+            entityType: 'device',
+            entityId: DeviceId,
+            UserId,
+            event,
+            body: encodeBody(body)
+        })
     }
 }

@@ -13,7 +13,7 @@
             <template #default>Type</template>
             <template #description>
                 <template v-if="editing">
-                    Click <router-link :to="{name: 'TeamChangeType'}">here</router-link> to change the team type
+                    <ff-button kind="secondary" :to="{name: 'TeamChangeType'}">Change Team Type</ff-button>
                 </template>
             </template>
         </FormRow>

@@ -421,7 +421,7 @@ module.exports = async function (app) {
             if (newSettings.httpNodeAuth?.type === 'flowforge-user') {
                 const teamType = await request.project.Team.getTeamType()
                 if (teamType.properties.features?.teamHttpSecurity === false) {
-                    reply.code(400).send({ code: 'invalid_request', error: 'FlowForge User Authentication not available for this team type' })
+                    reply.code(400).send({ code: 'invalid_request', error: 'FlowFuse User Authentication not available for this team type' })
                     return
                 }
             }

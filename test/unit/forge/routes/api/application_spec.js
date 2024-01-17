@@ -9,7 +9,20 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 describe('Application API', function () {
     let app
-    const TestObjects = {}
+    const TestObjects = {
+        /** admin - owns ateam */
+        alice: {},
+        /** owner of bteam */
+        bob: {},
+        /** member of b team */
+        chris: {},
+        /** not connected to any teams */
+        dave: {},
+        ATeam: {},
+        BTeam: {},
+        /** B-team Application */
+        application: {}
+    }
     let objectCount = 0
     const generateName = (root = 'object') => `${root}-${objectCount++}`
 

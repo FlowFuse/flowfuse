@@ -16,6 +16,9 @@ module.exports = async function (app) {
         if (request.params.snapshotId !== undefined) {
             if (request.params.snapshotId) {
                 try {
+                    // TODO: Only the export snapshot route requires the snapshot to have flows attached.
+                    // We could single that out (as an uncommon path) and otherwise add { includeFlows: false }
+                    // here to avoid loading the full flow object.
                     request.snapshot = await app.db.models.ProjectSnapshot.byId(request.params.snapshotId)
                     if (!request.snapshot) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })

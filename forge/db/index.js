@@ -23,7 +23,7 @@ const models = require('./models')
 const utils = require('./utils')
 const views = require('./views')
 
-module.exports = fp(async function (app, _opts, next) {
+module.exports = fp(async function (app, _opts) {
     utils.init(app)
     const dbOptions = {
         dialect: app.config.db.type || 'sqlite'
@@ -88,6 +88,4 @@ module.exports = fp(async function (app, _opts, next) {
     await models.init(app)
     await views.init(app)
     await controllers.init(app)
-
-    next()
-})
+}, { name: 'app.db' })

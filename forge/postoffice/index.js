@@ -4,7 +4,7 @@ const nodemailer = require('nodemailer')
 
 const templates = {}
 
-module.exports = fp(async function (app, _opts, next) {
+module.exports = fp(async function (app, _opts) {
     let mailTransport
     let exportableSettings = {}
     let EMAIL_ENABLED = app.config.email.enabled
@@ -175,6 +175,4 @@ ${mail.text}
         exportSettings,
         registerTemplate
     })
-
-    next()
-})
+}, { name: 'app.postoffice' })

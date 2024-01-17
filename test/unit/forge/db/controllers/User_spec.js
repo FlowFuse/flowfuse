@@ -82,10 +82,10 @@ describe('User controller', function () {
             const user = await app.db.models.User.byUsername('alice')
             const initialPasswordCheck = await app.db.controllers.User.authenticateCredentials('alice', 'aaPassword')
             initialPasswordCheck.should.be.true()
-            await app.db.controllers.User.changePassword(user, 'aaPassword', 'aNewPassword')
+            await app.db.controllers.User.changePassword(user, 'aaPassword', 'StapleBatteryHorse')
             user.password.should.not.equal('aaPassword')
-            user.password.should.not.equal('aNewPassword')
-            const finalPasswordCheck = await app.db.controllers.User.authenticateCredentials('alice', 'aNewPassword')
+            user.password.should.not.equal('StapleBatteryHorse')
+            const finalPasswordCheck = await app.db.controllers.User.authenticateCredentials('alice', 'StapleBatteryHorse')
             finalPasswordCheck.should.be.true()
         })
         it('fails if existing password not provided', async function () {
@@ -99,6 +99,32 @@ describe('User controller', function () {
                 return
             }
             throw new Error('Password changed with invalid oldPassword')
+        })
+        it('fails changes a users password, too weak', async function () {
+            const user = await app.db.models.User.byUsername('alice')
+            const initialPasswordCheck = await app.db.controllers.User.authenticateCredentials('alice', 'aaPassword')
+            initialPasswordCheck.should.be.true()
+            try {
+                await app.db.controllers.User.changePassword(user, 'aaPassword', 'ddPassword')
+            } catch (err) {
+                err.message.should.equal('Password Too Weak')
+                return
+            }
+            throw new Error('Allowed bad password')
+        })
+        it('fails if password matches username or email', async function () {
+            // Need a user with a username/email that'll pass the general length/weakness checks
+            const userComplexUsername = await app.db.models.User.create({ username: 'BluePianoLampshade', name: '', email: 'BluePianoLampshade@example.com', email_verified: true, password: 'aaPassword' })
+            try {
+                await app.db.controllers.User.changePassword(userComplexUsername, 'aaPassword', 'BluePianoLampshade')
+            } catch (err) {
+                err.message.should.equal('Password must not match username')
+            }
+            try {
+                await app.db.controllers.User.changePassword(userComplexUsername, 'aaPassword', 'BluePianoLampshade@example.com')
+            } catch (err) {
+                err.message.should.equal('Password must not match email')
+            }
         })
     })
 

@@ -15,7 +15,14 @@
                         <StatusBadge :status="device.status" />
                     </template>
                 </InfoCardRow>
-                <InfoCardRow property="Agent Version:" :value="device.agentVersion || 'unknown'" />
+                <InfoCardRow property="Agent Version:">
+                    <template #value>
+                        <StatusBadge
+                            :status="agentVersionWarning ? 'error' : 'success'"
+                            :text="device.agentVersion || 'unknown'" v-ff-tooltip="agentVersionWarning"
+                        />
+                    </template>
+                </InfoCardRow>
             </template>
         </InfoCard>
         <InfoCard header="Deployment:">
@@ -82,13 +89,7 @@
 
                 <InfoCardRow property="Device Mode">
                     <template #value>
-                        <span v-if="device.mode === 'developer'" class="flex space-x-2 pr-2 items-center">
-                            <BeakerIcon class="text-purple-600 w-4" />
-                            <span> Developer Mode</span>
-                        </span>
-                        <span v-else>
-                            <span> Default</span>
-                        </span>
+                        <DeviceModeBadge :mode="device.mode" type="text" />
                     </template>
                 </InfoCardRow>
             </template>
@@ -99,35 +100,34 @@
 <script>
 
 // utilities
-import { BeakerIcon, CheckCircleIcon, ExclamationIcon, TemplateIcon, WifiIcon } from '@heroicons/vue/outline'
+import { CheckCircleIcon, ExclamationIcon, TemplateIcon, WifiIcon } from '@heroicons/vue/outline'
 
 // api
+import semver from 'semver'
 import { mapState } from 'vuex'
 
 // components
 import InfoCard from '../../components/InfoCard.vue'
 import InfoCardRow from '../../components/InfoCardRow.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
-import { VueTimersMixin } from '../../mixins/vue-timers.js'
+
+import { createPollTimer } from '../../utils/timers.js'
 
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
-
-// constants
-const POLL_TIME = 5000
+import DeviceModeBadge from './components/DeviceModeBadge.vue'
 
 export default {
     name: 'DeviceOverview',
-    mixins: [VueTimersMixin],
     emits: ['device-updated', 'device-refresh'],
     props: ['device'],
     components: {
-        BeakerIcon,
         CheckCircleIcon,
         ExclamationIcon,
         WifiIcon,
         InfoCard,
         InfoCardRow,
         TemplateIcon,
+        DeviceModeBadge,
         DeviceLastSeenBadge,
         StatusBadge
     },
@@ -147,22 +147,31 @@ export default {
         },
         deviceOwnerType: function () {
             return this.device?.ownerType || ''
+        },
+        agentVersionWarning: function () {
+            if (this.deviceOwnerType === 'application') {
+                if (this.device?.agentVersion && semver.gte(this.device.agentVersion, '1.15.0')) {
+                    return ''
+                }
+                return 'Devices assigned to an application must be version 1.15 or greater in order to receive snapshots and updates'
+            }
+            return ''
         }
     },
-    timers: {
-        // declare a pollTimer that will call the pollTimer method every POLL_TIME milliseconds
-        // see the documentation in `frontend/src/mixins/vue-timers.js` for more details and examples
-        pollTimer: { time: POLL_TIME, repeat: true, autostart: false } // no autoStart: manually start in mounted()
+    data () {
+        return {
+            /** @type {import('../../utils/timers').PollTimer} */
+            polltimer: null
+        }
     },
     mounted () {
         this.refreshDevice()
-        this.$timer.start('pollTimer') // vue-timer auto stops when navigating away
+        createPollTimer(this.refreshDevice, 10000)
+    },
+    unmounted () {
+        this.polltimer.stop()
     },
     methods: {
-        // pollTimer method is called by VueTimersMixin. See the timers property above.
-        pollTimer: async function () {
-            this.refreshDevice()
-        },
         refreshDevice: function () {
             this.$emit('device-refresh') // cause parent to refresh device
         }

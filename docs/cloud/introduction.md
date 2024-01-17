@@ -16,7 +16,8 @@ connect two devices. This is a great way to start using FlowFuse and discover a
 lot of the value it provides.
 
 Users can end their trial by heading to the Billing page of their team and 
-upgrading to our Starter package at any time.
+setting up their payment information. This includes the option to pick which
+plan you want to upgrade the team to.
 
 Otherwise, at the end of the 14-day trial period, any instances created in the team
 will be suspended. This means they will no longer be running and the
@@ -51,6 +52,16 @@ new instance a [Stack](../user/concepts.md#stack) is chosen, which later
 can be [upgraded to a later version](../user/changestack.md).
 
 Each Node-RED can install custom modules as advertised in the [Flow Library](https://flows.nodered.org).
+
+## Cloud Instance Sizes
+
+| Size | Memory (RAM) |
+|--------|--------|
+| Small | 256MB |
+| Medium | 768MB |
+| Large | 3840MB |
+
+Medium and Large instance types require the Teams or Enterprise tier.
 
 ## Use of the File System
 

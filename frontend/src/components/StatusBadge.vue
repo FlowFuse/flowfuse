@@ -1,13 +1,15 @@
 <template>
-    <div v-if="!status" class="forge-badge"><RefreshIcon class="w-4 h-4 animate-spin" /></div>
+    <div v-if="!status && text === null" class="forge-badge"><RefreshIcon class="w-4 h-4 animate-spin" /></div>
     <div
         v-else
         class="forge-badge"
         :class="['forge-status-' + status, pendingChange ? 'opacity-40' : '']"
     >
-        <ExclamationCircleIcon v-if="status === 'error'" class="w-4 h-4" />
-        <ExclamationIcon v-if="status === 'suspended'" class="w-4 h-4" />
+        <ExclamationCircleIcon v-if="status === 'error' || status === 'crashed'" class="w-4 h-4" />
+        <ExclamationIcon v-if="status === 'suspended' || status === 'warning'" class="w-4 h-4" />
         <PlayIcon v-if="status === 'running'" class="w-4 h-4" />
+        <InformationCircleIcon v-if="status === 'info'" class="w-4 h-4" />
+        <CheckCircleIcon v-if="status === 'success'" class="w-4 h-4" />
         <StopIcon v-if="status === 'stopping' || status === 'suspending'" class="w-4 h-4" />
         <AnimIconRestarting v-if="status === 'restarting'" class="w-4 h-4" />
         <AnimIconInstalling v-if="status === 'importing'" class="w-4 h-4" />
@@ -15,15 +17,17 @@
         <CloudUploadIcon v-if="status === 'loading'" class="w-4 h-4" />
         <AnimIconInstalling v-if="status === 'installing'" class="w-3 h-3" />
         <SupportIcon v-if="status === 'safe'" class="w-4 h-4" />
-        <span class="ml-1">{{ status }}</span>
+        <span class="ml-1">{{ text === null ? status : text }}</span>
     </div>
 </template>
 
 <script>
 import {
+    CheckCircleIcon,
     CloudUploadIcon,
     ExclamationCircleIcon,
     ExclamationIcon,
+    InformationCircleIcon,
     PlayIcon,
     RefreshIcon,
     StopIcon,
@@ -35,9 +39,11 @@ import { AnimIconInstalling, AnimIconRestarting, AnimIconStarting } from './icon
 export default {
     name: 'StatusBadge',
     components: {
+        CheckCircleIcon,
         CloudUploadIcon,
         ExclamationCircleIcon,
         ExclamationIcon,
+        InformationCircleIcon,
         PlayIcon,
         StopIcon,
         SupportIcon,
@@ -49,6 +55,10 @@ export default {
     props: {
         status: {
             type: String,
+            default: null
+        },
+        text: {
+            type: [Number, String],
             default: null
         },
         pendingChange: {

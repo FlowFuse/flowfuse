@@ -3,7 +3,7 @@ navTitle: Deploying your Flows
 navOrder: 6
 ---
 
-# Deploying Flows to the Device Agent
+# Deploying Flows to the Device Agent - Team and Enterprise tier only
 
 Before you're able to deploy your flows to your device,
 you will have needed to have completed these steps:
@@ -32,12 +32,12 @@ be edited on the device see [Editing the Node-RED flows on a device that is assi
 
 ## Editing the Node-RED flows on a device that is assigned to an instance
 
-The device agent does not allow local access to the Node-RED editor. This ensures
-the device is running the deployed snapshot without modification.
+When running in the default of Fleet Mode, the device agent does not allow local access to the 
+Node-RED editor. This ensures the device is running the deployed snapshot without modification.
 
 When running on FlowFuse Cloud, or a premium licensed FlowFuse instance (with the
 [MQTT broker enabled](https://flowfuse.com/docs/install/local/#setting-up-mosquitto-(optional))
-access to the editor.
+the device can be placed in Developer Mode that enables remote access to the editor. 
 
 This can then be used to develop the flows directly on the device and a new snapshot
 generated from the device that can be deployed to other devices in the application.
@@ -67,7 +67,7 @@ editor is only available when:
 
 * When running on FlowFuse Cloud, or a premium licensed FlowFuse instance (with the
 [MQTT broker enabled](https://flowfuse.com/docs/install/local/#setting-up-mosquitto-(optional))
-access to the editor.
+the device can be placed in Developer Mode that enables remote access to the editor.
 
 Whilst in Developer Mode the device will not receive new updates from the platform.
 
@@ -77,7 +77,6 @@ Whilst in Developer Mode the device will not receive new updates from the platfo
 2. Select the device you want to edit by clicking its name.
 3. Click the "Developer Mode" button to enable developer mode.
 4. Once enabled, Developer Mode options are available under the tab labelled "Developer Mode" on the device page.
-
 
 **Accessing the Editor**
 
@@ -101,7 +100,10 @@ about working with snapshots.
 * Deploying a snapshot from a different instance or device to an application owned device is supported in FlowFuse V1.13.0 or later.
 * When a device is assigned to an instance:
     * It must first have a snapshot applied before editor access is possible.
-    * Disabling Developer Mode will cause the device to check-in with the platform. If the device flows have changed, it will be reloaded with the current target snapshot assigned to that device, causing any changes made in Developer Mode to be overwritten. Therefore, it is recommended to create a snapshot of the changes before disabling Developer Mode.
+    * Disabling Developer Mode and returning to Fleet Mode will cause the device to check-in with the platform.
+    If the device flows have changed, it will be reloaded with the current target snapshot assigned to that device,
+    causing any changes made in Developer Mode to be overwritten. Therefore, it is recommended to create a snapshot
+    of the changes before disabling Developer Mode.
 * When a device is assigned to an application:
     * It will start with a set of default flows.
 * The device will not receive any updates from the platform while in Developer Mode.

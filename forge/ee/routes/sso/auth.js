@@ -2,7 +2,7 @@ const { Authenticator } = require('@fastify/passport')
 const { MultiSamlStrategy } = require('@node-saml/passport-saml')
 const fp = require('fastify-plugin')
 
-module.exports = fp(async function (app, opts, done) {
+module.exports = fp(async function (app, opts) {
     app.addHook('onRequest', async (request, reply) => {
         if (!request.session) {
             // passport expects request.session to exist and to be able to store
@@ -68,15 +68,27 @@ module.exports = fp(async function (app, opts, done) {
             }
             done(new Error('Missing u query parameter'))
         }
-    }, async (req, profile, done) => {
-        if (profile.nameID) {
-            const user = await app.db.models.User.byUsernameOrEmail(profile.nameID)
+    }, async (request, samlUser, done) => {
+        if (samlUser.nameID) {
+            // console.log(profile)
+            const user = await app.db.models.User.byUsernameOrEmail(samlUser.nameID)
             if (user) {
+                const state = JSON.parse(request.body.RelayState)
+                const providerOpts = await app.sso.getProviderOptions(state.provider)
+                if (providerOpts.groupMapping) {
+                    // This SSO provider is configured to manage team membership.
+                    try {
+                        await app.sso.updateTeamMembership(samlUser, user, providerOpts)
+                    } catch (err) {
+                        done(err)
+                        return
+                    }
+                }
                 done(null, user)
             } else {
-                const unknownError = new Error(`Unknown user: ${profile.nameID}`)
+                const unknownError = new Error(`Unknown user: ${samlUser.nameID}`)
                 unknownError.code = 'unknown_sso_user'
-                const userInfo = app.auditLog.formatters.userObject({ email: profile.nameID })
+                const userInfo = app.auditLog.formatters.userObject({ email: samlUser.nameID })
                 const resp = { code: 'unknown_sso_user', error: 'unauthorized' }
                 await app.auditLog.User.account.login(userInfo, resp, userInfo)
                 done(unknownError)
@@ -108,6 +120,12 @@ module.exports = fp(async function (app, opts, done) {
             if (sessionInfo) {
                 request.user.sso_enabled = true
                 request.user.email_verified = true
+                if (request.user.mfa_enabled) {
+                    // They are mfa_enabled - but have authenticated via SSO
+                    // so we will let them in without further challenge
+                    sessionInfo.session.mfa_verified = true
+                    await sessionInfo.session.save()
+                }
                 await request.user.save()
                 userInfo.id = sessionInfo.session.UserId
                 reply.setCookie('sid', sessionInfo.session.sid, sessionInfo.cookieOptions)
@@ -129,5 +147,4 @@ module.exports = fp(async function (app, opts, done) {
         }
         throw new Error('Invalid SAML response')
     })
-    done()
-})
+}, { name: 'app.ee.routes.sso.auth' })

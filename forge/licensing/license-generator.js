@@ -1,4 +1,4 @@
-// This is a command-line tool used to generate valid FlowForge license files.
+// This is a command-line tool used to generate valid FlowFuse license files.
 
 // A license file is encoded as a JSON Web Token signed using ES256
 // It consists of a well-defined set of claims. These claims identify who
@@ -11,7 +11,7 @@
 // development - they are used by the tests to generate and verify licenses.
 //
 // To generate a production license, you will need to access the Production private key
-// file in the FlowForge 1Password vault
+// file in the FlowFuse 1Password vault
 
 // ref: https://www.scottbrady91.com/OpenSSL/Creating-Elliptical-Curve-Keys-using-OpenSSL
 
@@ -32,7 +32,7 @@ const promptly = require('promptly')
 const { v4: uuidv4 } = require('uuid')
 
 ;(async () => {
-    console.info('FlowForge EE License Generator')
+    console.info('FlowFuse EE License Generator')
     console.info('------------------------------')
     try {
         const devLicense = await promptly.confirm('Is this a development-only license? (Y/n): ', { default: 'y' })

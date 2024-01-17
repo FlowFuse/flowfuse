@@ -112,6 +112,10 @@ module.exports = {
                 if (request.body.email_verified !== undefined) {
                     user.email_verified = request.body.email_verified
                 }
+                if (app.config.features.enabled('mfa') && request.body.mfa_enabled === false) {
+                    user.mfa_enabled = false
+                    await app.db.models.MFAToken.deleteTokenForUser(user)
+                }
 
                 if (request.body.admin !== undefined) {
                     user.admin = request.body.admin

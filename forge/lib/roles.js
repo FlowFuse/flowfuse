@@ -15,6 +15,11 @@ const RoleNames = {
     [Roles.Admin]: 'admin'
 }
 
+// For convenience, we want to be able to look up role values with both 'Role' and 'role'
+Object.keys(RoleNames).forEach(role => {
+    Roles[RoleNames[role]] = parseInt(role)
+})
+
 const TeamRoles = [
     Roles.Dashboard,
     Roles.Viewer,

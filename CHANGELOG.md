@@ -1,3 +1,143 @@
+#### 1.15.0: Release
+
+ - Device Groups: Disable rather than hide Device Group option (#3249) @Pezmc
+ - Add loading indicator to Pipelines.vue (#3257) @Steve-Mcl
+ - Fix missing instance properties (#3255) @Pezmc
+ - Move to @flowfuse/flowfuse npm package (#3190) @knolleary
+ - Restore leaving developer mode warning dialog (#3251) @Steve-Mcl
+ - Pictogram for Pipelines (#3250) @Pezmc
+ - Implement API for Device Groups (#3157) @Steve-Mcl
+ - Update description of Disable Editor (#3245) @hardillb
+ - Ensure pipelines empty state has a feature unavailable message (#3242) @Steve-Mcl
+ - Make Security: Unknown show None (tweek to #3175) (#3240) @hardillb
+ - Update instance settings docs for alerts (#3244) @MarianRaphael
+ - Make link a button so it's obvious for change team type (#3233) @hardillb
+ - Send alerts on Instance Crash (#3217) @hardillb
+ - If empty deny list allow storing (#3232) @hardillb
+ - Blueprint UI Follow ups (#3234) @Pezmc
+ - Add 'ci/' to .npmignore (#3225) @ppawlowski
+ - Bump cypress from 13.6.0 to 13.6.1 (#3198) @app/dependabot
+ - Bump eslint-plugin-vue from 9.17.0 to 9.19.2 (#3199) @app/dependabot
+ - Bump fastify-metrics from 10.3.2 to 10.4.1 (#3201) @app/dependabot
+ - Bump html-webpack-plugin from 5.5.3 to 5.5.4 (#3228) @app/dependabot
+ - Flow Blueprints Selection UI (#3180) @Pezmc
+ - Bump mqtt from 5.3.1 to 5.3.3 (#3227) @app/dependabot
+ - Allow to deploy from all PRs (#3231) @ppawlowski
+ - Enforce password quality rules (#3195) @hardillb
+ - Allow expired billing teams to be deleted (#3187) @hardillb
+ - Ensure editor sessions are revoked when logging out of the platform (#3214) @knolleary
+ - Increase plugin timeout to 20s to avoid failed startups (#3213) @knolleary
+ - Bump @aws-sdk/credential-provider-node from 3.451.0 to 3.470.0 (#3200) @app/dependabot
+ - FIX: run deployment from branch only once (#3207) @ppawlowski
+ - Add possibility to deploy feature branch on a dedicated application instance (#3144) @ppawlowski
+ - Allow teams with empty Applications deletion (#3178) @hardillb
+ - Ensure password reset tokens cannot be reused (#3196) @knolleary
+ - Improve session handling on password change (#3194) @knolleary
+ - Only use node-red audit events to update local package list (#3189) @knolleary
+ - Tidy up delete dialogs (#3185) @knolleary
+ - Show current security setting against instance (#3175) @Pezmc
+ - Improve handling of hanging plugin on startup (#3182) @knolleary
+ - Fix team delete for unmanaged-billing team (#3181) @knolleary
+ - Extend manual billing options to non-trial teams (#3170) @knolleary
+ - Sentry: Enable client reporting (#3166) @Pezmc
+ - Move app.monitor to be a housekeeper task (#3167) @knolleary
+ - Revert "Bump @vitejs/plugin-vue from 4.5.0 to 4.5.1" (#3169) @knolleary
+ - DevOps Pipeline: Block attempted deploys to devices in developer mode (#3127) @Pezmc
+ - Bump @vitejs/plugin-vue from 4.5.0 to 4.5.1 (#3161) @app/dependabot
+ - Bump sequelize from 6.35.0 to 6.35.1 (#3160) @app/dependabot
+ - Sentry: Add custom sampling rates for high volume routes (#3163) @Pezmc
+ - Bump mqtt from 5.3.0 to 5.3.1 (#3158) @app/dependabot
+ - Bump @fastify/cookie from 9.1.0 to 9.2.0 (#3162) @app/dependabot
+ - Bump cypress from 13.2.0 to 13.6.0 (#3159) @app/dependabot
+ - Update npm-publish action version to v2 (#3155) @ppawlowski
+
+#### 1.14.1: Release
+
+ - Fix login failure for generated admin (#3153) @hardillb
+ - Fix width of setup fields (#3147) @hardillb
+ - Coverage of creating and updating stages with devices (#3143) @Pezmc
+ - docs: Where to find billing details (#3149) @ZJvandeWeg
+ - Add canonical link to current base_url (#3146) @hardillb
+ - Add UI for pipeline update audit entry (#3124) @Steve-Mcl
+ - DevOps Pipeline: Clearer error messages (#3118) @Pezmc
+ - Update introduction.md (#3019) @zackwasli
+ - Bump @vue/test-utils from 2.4.1 to 2.4.2 (#3133) @app/dependabot
+ - Bump @babel/core from 7.23.2 to 7.23.3 (#3132) @app/dependabot
+ - Bump marked from 9.1.5 to 10.0.0 (#3131) @app/dependabot
+ - Bump mqtt from 5.1.4 to 5.3.0 (#3134) @app/dependabot
+ - Bump @sentry/webpack-plugin from 2.10.0 to 2.10.1 (#3135) @app/dependabot
+ - Allow a trial team to be put into unmanaged mode to bypass billing (#3138) @knolleary
+ - Update container loading for new module scopes (#3141) @knolleary
+ - Fix blob and add more Hubspot domains (#3121) @hardillb
+ - Add tunnel recreation unit test (#3126) @Steve-Mcl
+ - Notify developers on failed tests pipeline (#3122) @ppawlowski
+ - Fix linux version of install instructions (#3129) @hardillb
+
+#### 1.14.0: Release
+
+ - Doc upgrading #3082 (#3085) @hyamanieu
+ - Remove quotes on for worker-src blob (#3117) @hardillb
+ - DevOps Pipelines: Deploy active device snapshot (#3115) @Pezmc
+ - Fix sentry.io and add blob for worker (#3116) @hardillb
+ - Fix hostname used for posthog CSP (#3107) @hardillb
+ - fix pipelinestage device action dropdown choices (#3110) @Steve-Mcl
+ - Fix: Deploying of device to instance (#3111) @Pezmc
+ - Add app device access verification to ACL manager (#3074) @Steve-Mcl
+ - Docs - User Settings (#3102) @MarianRaphael
+ - Update billing setup page (#3092) @knolleary
+ - Bump @sentry/profiling-node from 1.2.1 to 1.2.6 (#3095) @app/dependabot
+ - Bump vue-loader from 17.3.0 to 17.3.1 (#3096) @app/dependabot
+ - Bump @babel/preset-env from 7.23.2 to 7.23.3 (#3097) @app/dependabot
+ - Bump @vitejs/plugin-vue from 4.4.0 to 4.5.0 (#3098) @app/dependabot
+ - Devices in Pipeline Stages (#3024) @Pezmc
+ - Bump @aws-sdk/credential-provider-node from 3.441.0 to 3.451.0 (#3099) @app/dependabot
+ - "Device Editor" enabled by default (#3061) @Steve-Mcl
+ - Disable create snapshot button if not assigned to an application or instance (#3049) @Pezmc
+ - Add support for 2FA via TOTP (#3065) @knolleary
+ - Update references to flowfuse (#3088) @hardillb
+ - Update StatusBadge styling for "Crashed" (#3090) @joepavitt
+
+#### 1.13.3: Release
+
+ - fix forgot password email input field (#3081) @sumitshinde-84
+ - Fix typo as to which file to exluse (#3083) @hardillb
+ - Add Icon and detail for 'context.delete' audit entry (#3078) @Steve-Mcl
+ - Update deploy.md (#3079) @ZJvandeWeg
+ - New stack version error (#3036) @hardillb
+ - Ensure device provisioning data shown (#3076) @hardillb
+ - Add keywords to strengthen associations (#3077) @Steve-Mcl
+ - Bump fastify from 4.24.0 to 4.24.3 (#3069) @app/dependabot
+ - Bump sequelize from 6.33.0 to 6.35.0 (#3070) @app/dependabot
+ - Bump postcss-preset-env from 9.1.3 to 9.3.0 (#3071) @app/dependabot
+ - Bump @sentry/webpack-plugin from 2.7.1 to 2.10.0 (#3072) @app/dependabot
+ - Bump lru-cache from 10.0.1 to 10.0.2 (#3068) @app/dependabot
+ - Enable CSP in report only mode (#3062) @hardillb
+ - Bump axios from 1.5.0 to 1.6.0 (#3067) @app/dependabot
+ - Update device agent docs to reflect package changes (#3063) @knolleary
+ - Merge test workflows (#3037) @ppawlowski
+ - Refactor array splicing to be a computed property (#3052) @Pezmc
+ - Bump @aws-sdk/credential-provider-node from 3.421.0 to 3.441.0 (#3050) @app/dependabot
+ - Bump marked from 9.0.3 to 9.1.5 (#3051) @app/dependabot
+ - Bump @vitest/coverage-istanbul from 0.34.5 to 0.34.6 (#3053) @app/dependabot
+ - Bump vue-template-compiler from 2.7.14 to 2.7.15 (#3055) @app/dependabot
+ - Bump @babel/core from 7.23.0 to 7.23.2 (#3054) @app/dependabot
+ - Fix URL of FF helm chart (#3046) @hardillb
+ - Avoid unnecessary retrieval of full snapshot contents where possible (#3025) @knolleary
+ - Prevent snapshots of devices without applications / instances (#3026) @Pezmc
+ - rebrand: Rebrand the platform from Forge (#3044) @ZJvandeWeg
+ - Chore: Reduce sentry reporting rate (#3041) @Pezmc
+
+#### 1.13.2: Release
+
+ - Bump vue-router from 4.2.4 to 4.2.5 (#3027) @app/dependabot
+ - Bump pino-pretty from 10.2.0 to 10.2.3 (#3028) @app/dependabot
+ - Bump webpack from 5.88.2 to 5.89.0 (#3029) @app/dependabot
+ - Bump eslint-plugin-n from 16.1.0 to 16.2.0 (#3030) @app/dependabot
+ - Bump mqtt from 5.1.3 to 5.1.4 (#3031) @app/dependabot
+ - Fix applying pipeline migrations on non-EE platforms (#3033) @knolleary
+ - Quick Start Guide for Devices (#3016) @gdziuba
+ - Avoid needless settings lookup on instance list endpoint (#3023) @knolleary
+ 
 #### 1.13.1: Release
 
  - Fix recursion when adding mutating palette catalogue urls (#3012) @Pezmc

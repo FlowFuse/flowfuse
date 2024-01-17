@@ -69,6 +69,10 @@ module.exports = async function (app) {
                 injection += `<script>window.sentryConfig = { dsn: "${telemetry.frontend.sentry.dsn}", production_mode: ${telemetry.frontend.sentry.production_mode ?? true}, version: "flowfuse@${config.version}", environment: "${process.env.SENTRY_ENV ?? (process.env.NODE_ENV ?? 'unknown')}" }</script>`
             }
 
+            if (config.base_url) {
+                injection += `<link rel="canonical" href="${config.base_url}" />`
+            }
+
             // inject into index.html
             cachedIndex = data.replace(/<script>\/\*inject-ff-scripts\*\/<\/script>/g, injection)
         }
@@ -90,7 +94,7 @@ module.exports = async function (app) {
             return
         }
         if (app.config.telemetry?.frontend?.plausible) {
-            app.log.warn('Configuration found for Plausible. Please note that support for Plausible will be deprecated after FlowForge 0.9')
+            app.log.warn('Configuration found for Plausible. Please note that support for Plausible will be deprecated after FlowFuse 0.9')
         }
         // check if we need to inject plausible
         if (app.config.telemetry?.frontend) {

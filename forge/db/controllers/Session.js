@@ -16,12 +16,15 @@ module.exports = {
     createUserSession: async function (app, username) {
         const user = await app.db.models.User.byUsernameOrEmail(username)
         if (user && !user.suspended) {
-            return app.db.models.Session.create({
+            const session = await app.db.models.Session.create({
                 sid: generateToken(32, 'ffu'),
                 expiresAt: Date.now() + DEFAULT_WEB_SESSION_EXPIRY,
                 idleAt: Date.now() + DEFAULT_WEB_SESSION_IDLE_TIMEOUT,
-                UserId: user.id
+                UserId: user.id,
+                mfa_verified: false
             })
+            session.User = user
+            return session
         }
         return null
     },
@@ -33,6 +36,12 @@ module.exports = {
         return app.db.models.Session.destroy({ where: { sid } })
     },
 
+    /**
+     * Delete all sessions for a user
+     */
+    deleteAllUserSessions: async function (app, user) {
+        return app.db.models.Session.destroy({ where: { UserId: user.id } })
+    },
     /**
      * Get a session by its id. If the session has expired, it is deleted
      * and nothing returned.

@@ -1,6 +1,6 @@
 // test team invitations in FlowForge
 
-describe('FlowForge platform invitees', () => {
+describe('FlowFuse platform invitees', () => {
     beforeEach(() => {
         cy.login('dave', 'ddPassword')
 
@@ -33,11 +33,8 @@ describe('FlowForge platform invitees', () => {
         // should have 2 pending invites
         cy.get('[data-el="table"] tbody').find('tr').should('have.length', 2)
 
-        // click the kebab menu of the first item
-        cy.get('[data-el="table"] tbody').find('.ff-kebab-menu').eq(0).click()
-
-        // accept the invite
-        cy.get('[data-el="table"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').contains('Reject').click()
+        // reject the invite
+        cy.get('[data-el="table"] tbody').find('[data-action="invite-reject"]').eq(0).click()
 
         cy.get('[data-el="table"] tbody').find('tr').should('have.length', 1)
 
@@ -57,10 +54,8 @@ describe('FlowForge platform invitees', () => {
 
         cy.url().should('include', '/account/teams/invitations')
 
-        // click the kebab menu of the first item
-        cy.get('[data-el="table"] tbody').find('.ff-kebab-menu').eq(0).click()
         // accept the invite
-        cy.get('[data-el="table"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').contains('Accept').click()
+        cy.get('[data-el="table"] tbody').find('[data-action="invite-accept"]').eq(0).click()
 
         cy.get('[data-action="team-selection"]').should('be.visible')
         // should have navigated to the team dashboard

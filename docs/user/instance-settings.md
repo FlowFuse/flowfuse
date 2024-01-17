@@ -14,6 +14,7 @@ Instance Settings are split into a number of sections:
  - [Editor](#editor)
  - [Security](#security)
  - [Palette](#palette)
+ - [Alerts](#alerts)
 
 ## General
 
@@ -88,3 +89,16 @@ as any restrictions you want to apply to the Palette Manager within Node-RED.
 It includes the option to add extra Node-RED Catalogue URLs and a `.npmrc` file
 that will be deployed to the instance. Details of the `.npmrc` format can be found
 [here](https://docs.npmjs.com/cli/v9/configuring-npm/npmrc)
+
+## Alerts
+
+Alerts are a feature designed to provide email notifications based on specific Auditlog events. This functionality ensures prompt awareness and response to critical events.
+
+Users have the ability to configure alerts for the following Auditlog events:
+- Node-RED has crashed
+- Node-RED has been placed in Safe Mode
+
+When configuring alerts, you can choose the recipients of these notifications:
+- Team Owners
+- Team Members
+- Both Owners and Members

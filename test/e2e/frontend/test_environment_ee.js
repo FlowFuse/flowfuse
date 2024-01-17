@@ -30,10 +30,21 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
                     }
                 }
             }
+        },
+        email: {
+            enabled: true,
+            debug: true
         }
     })
 
     const factory = new TestModelFactory(flowforge)
+
+    // Enable Device Group feature for default team type
+    const defaultTeamType = await flowforge.db.models.TeamType.findOne({ where: { name: 'starter' } })
+    const defaultTeamTypeProperties = defaultTeamType.properties
+    defaultTeamTypeProperties.features.deviceGroups = true
+    defaultTeamType.properties = defaultTeamTypeProperties
+    await defaultTeamType.save()
 
     // setup team
     const trialTeam = await factory.createTeam({ name: 'TTeam' })
@@ -45,6 +56,14 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 
     await trialTeam.addUser(userTerry, { through: { role: Roles.Owner } })
     // assign user to the trial team
+
+    await factory.createTeamType({
+        name: 'Second Team Type',
+        description: 'team type description',
+        active: true,
+        order: 2,
+        properties: { instances: {}, devices: {}, users: {}, features: {} }
+    })
 
     flowforge.listen({ port: PORT }, function (err, address) {
         console.info(`EE Environment running at http://localhost:${PORT}`)

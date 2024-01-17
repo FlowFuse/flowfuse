@@ -11,7 +11,7 @@
  * @memberof forge
  */
 const fp = require('fastify-plugin')
-module.exports = fp(async function (app, opts, done) {
+module.exports = fp(async function (app, opts) {
     app.decorate('getPaginationOptions', (request, defaults) => {
         const result = { ...defaults, ...request.query }
         if (result.query) {
@@ -28,5 +28,4 @@ module.exports = fp(async function (app, opts, done) {
     await app.register(require('./setup'), { logLevel: app.config.logging.http })
     await app.register(require('./storage'), { prefix: '/storage', logLevel: app.config.logging.http })
     await app.register(require('./logging'), { prefix: '/logging', logLevel: app.config.logging.http })
-    done()
-})
+}, { name: 'app.routes' })

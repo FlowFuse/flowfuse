@@ -1,8 +1,11 @@
 const should = require('should') // eslint-disable-line
 const setup = require('../routes/setup')
+const TestModelFactory = require('../../../lib/TestModelFactory') // eslint-disable-line
 
 describe('Broker Auth API', async function () {
     let app
+    /** @type {TestModelFactory} */
+    let factory = null
     const TestObjects = {}
 
     const ACC = {
@@ -71,7 +74,7 @@ describe('Broker Auth API', async function () {
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
-    async function setupTestObjects () {
+    async function setupTestObjects ({ createDeviceOptions = null } = {}) {
         // alice : admin
         // ATeam ( alice  (owner) )
 
@@ -83,6 +86,10 @@ describe('Broker Auth API', async function () {
 
         TestObjects.ProjectA = app.project
         TestObjects.ProjectACredentials = await TestObjects.ProjectA.refreshAuthTokens()
+
+        TestObjects.ApplicationA = app.application
+
+        factory = app.factory
 
         TestObjects.tokens = {}
         await login('alice', 'aaPassword')
@@ -593,20 +600,10 @@ describe('Broker Auth API', async function () {
             let deviceCommandTopic
             let deviceStatusTopic
             async function setupDeviceTestObjects () {
-                const response = await app.inject({
-                    method: 'POST',
-                    url: '/api/v1/devices',
-                    body: {
-                        name: 'my device',
-                        type: 'test device',
-                        team: TestObjects.ATeam.hashid
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                TestObjects.DeviceA = response.json()
-                deviceUsername = `device:${TestObjects.ATeam.hashid}:${TestObjects.DeviceA.id}`
-                deviceCommandTopic = `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.DeviceA.id}/command`
-                deviceStatusTopic = `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.DeviceA.id}/status`
+                TestObjects.DeviceA = await factory.createDevice({ name: 'my device', type: 'test device' }, TestObjects.ATeam, null, null)
+                deviceUsername = `device:${TestObjects.ATeam.hashid}:${TestObjects.DeviceA.hashid}`
+                deviceCommandTopic = `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.DeviceA.hashid}/command`
+                deviceStatusTopic = `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.DeviceA.hashid}/status`
 
                 // Create a second project in the team
                 TestObjects.ProjectB = await app.db.models.Project.create({ name: 'project2', type: '', url: '' })
@@ -704,6 +701,12 @@ describe('Broker Auth API', async function () {
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectB.id}/out/foo`
                         })
                     })
+                    it('cannot subscribe to application broadcast if unassigned', async function () {
+                        await denyRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/a/${TestObjects.ApplicationA.id}/out/foo`
+                        })
+                    })
                     it('cannot subscribe to all broadcast if unassigned', async function () {
                         await denyRead({
                             username: deviceUsername,
@@ -729,11 +732,11 @@ describe('Broker Auth API', async function () {
                         })
                     })
                 })
-                describe('assigned', async function () {
+                describe('assigned to instance', async function () {
                     before(async function () {
                         await app.inject({
                             method: 'PUT',
-                            url: `/api/v1/devices/${TestObjects.DeviceA.id}`,
+                            url: `/api/v1/devices/${TestObjects.DeviceA.hashid}`,
                             body: {
                                 instance: TestObjects.ProjectA.id
                             },
@@ -777,6 +780,79 @@ describe('Broker Auth API', async function () {
                         })
                     })
                     it('can publish to project response if assigned', async function () {
+                        await allowWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectB.id}/res/foo`
+                        })
+                    })
+                })
+                describe('assigned to application', async function () {
+                    before(async function () {
+                        // Assign device to application
+                        await app.inject({
+                            method: 'PUT',
+                            url: `/api/v1/devices/${TestObjects.DeviceA.hashid}`,
+                            body: {
+                                application: TestObjects.ApplicationA.hashid
+                            },
+                            cookies: { sid: TestObjects.tokens.alice }
+                        })
+                    })
+                    it('can subscribe to application command', async function () {
+                        await allowRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/a/${TestObjects.ApplicationA.hashid}/command`
+                        })
+                    })
+                    it('can subscribe to project inbox', async function () {
+                        await allowRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectA.id}/in/foo`
+                        })
+                    })
+                    it('can subscribe to project broadcast', async function () {
+                        await allowRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectB.id}/out/foo`
+                        })
+                    })
+                    it('can subscribe to all broadcast', async function () {
+                        await allowRead({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/out/foo`
+                        })
+                    })
+                    it('can publish to project inbox', async function () {
+                        await allowWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectB.id}/in/foo`
+                        })
+                    })
+                    it('can not publish broadcast without `dev:` topic prefix', async function () {
+                        await denyWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.DeviceA.hashid}/out/foo`
+                        })
+                    })
+                    it('can not publish broadcast with missing device id `dev:`', async function () {
+                        await denyWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/dev:/out/foo`
+                        })
+                    })
+                    it('can not publish broadcast with bad device id `dev:invalid dev id `', async function () {
+                        await denyWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/dev:invalid dev id/out/foo`
+                        })
+                    })
+                    it('can publish broadcast with `dev:` topic prefix', async function () {
+                        await allowWrite({
+                            username: deviceUsername,
+                            topic: `ff/v1/${TestObjects.ATeam.hashid}/p/dev:${TestObjects.DeviceA.hashid}/out/foo`
+                        })
+                    })
+                    it('can publish to project response', async function () {
                         await allowWrite({
                             username: deviceUsername,
                             topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectB.id}/res/foo`

@@ -5,6 +5,8 @@ import paginateUrl from '../utils/paginateUrl.js'
 
 import client from './client.js'
 
+import { getStageType } from './pipeline.js'
+
 const createApplication = (options) => {
     return client.post('/api/v1/applications', options).then(res => {
         const props = {
@@ -132,16 +134,39 @@ const getApplicationInstancesStatuses = async (applicationId, cursor, limit) => 
 const getPipelines = async (applicationId) => {
     const result = await client.get(`/api/v1/applications/${applicationId}/pipelines`)
     const pipelines = result.data.pipelines
-
     return pipelines.map((pipeline) => {
         pipeline.stages = pipeline.stages.map((stage) => {
-            // For now, in the UI, a pipeline stage can only have one instance/
-            // In the backend, multiple instances per pipeline are supported
-            // @see getPipelineStage in frontend Pipeline API
-            stage.instance = stage.instances?.[0]
+            // Might be null if there are no associated objects
             if (!stage.instances) {
                 stage.instances = []
             }
+            if (!stage.devices) {
+                stage.devices = []
+            }
+            if (!stage.deviceGroups) {
+                stage.deviceGroups = []
+            }
+
+            // Hydrate all loaded devices
+            stage.devices.map((device) => {
+                device.lastSeenSince = device.lastSeenAt ? elapsedTime(0, device.lastSeenMs) + ' ago' : ''
+                return device
+            })
+
+            // For now, in the UI, a pipeline stage can only have one instance/device
+            // In the backend, multiple instances per pipeline are supported
+            // @see getPipelineStage in frontend Pipeline API
+            stage.instance = stage.instances?.[0]
+
+            // Again, the backend supports multiple devices per stage but the UI
+            // only exposes connecting one
+            stage.device = stage.devices?.[0]
+
+            // The backend supports multiple device groups per stage but the UI
+            // only exposes connecting one
+            stage.deviceGroup = stage.deviceGroups?.[0]
+
+            stage.stageType = getStageType(stage)
 
             return stage
         })
@@ -243,6 +268,78 @@ const getSnapshots = async (applicationId, cursor, limit, options) => {
     return res.data
 }
 
+/**
+ * Get the specified device group for an application
+ * @param {string} applicationId - The ID of application to get device groups for
+ * @param {string} groupId - The ID of the group to get
+ */
+const getDeviceGroup = async (applicationId, groupId) => {
+    return client.get(`/api/v1/applications/${applicationId}/device-groups/${groupId}`).then(res => {
+        return res.data
+    })
+}
+
+/**
+ * Get all device groups for an application
+ * @param {string} applicationId - The ID of application to get device groups for
+ */
+const getDeviceGroups = async (applicationId, cursor, limit, query, extraParams = {}) => {
+    const url = paginateUrl(`/api/v1/applications/${applicationId}/device-groups`, cursor, limit, query, extraParams)
+    const res = await client.get(url)
+    return res.data
+}
+
+/**
+ * Create a new device group for an application
+ * @param {string} applicationId - The ID of application
+ * @param {string} name
+ * @param {string} [description]
+ */
+const createDeviceGroup = async (applicationId, name, description) => {
+    return client.post(`/api/v1/applications/${applicationId}/device-groups`, { name, description }).then(res => {
+        const props = {
+            deviceGroupId: res.data.id,
+            'created-at': res.data.createdAt
+        }
+        product.capture('$ff-device-group-created', props, {
+            application: applicationId
+        })
+        return res.data
+    })
+}
+
+/**
+ * Delete a device group
+ * @param {string} applicationId - The ID of application
+ * @param {string} groupId - The ID of the group
+ */
+const deleteDeviceGroup = async (applicationId, groupId) => {
+    return client.delete(`/api/v1/applications/${applicationId}/device-groups/${groupId}`)
+}
+
+/**
+ * Update a device group
+ * @param {string} applicationId - The ID of application
+ * @param {string} groupId - The ID of the group
+ * @param {object} group
+ */
+const updateDeviceGroup = async (applicationId, groupId, name, description) => {
+    return client.put(`/api/v1/applications/${applicationId}/device-groups/${groupId}`, { name, description })
+}
+
+/**
+ * Update the members of a device group
+ * @param {string} applicationId - The ID of application
+ * @param {string} groupId - The ID of the group
+ * @param {{}} members
+ * @param {string[]} members.add - Array of device IDs to add to the group
+ * @param {string[]} members.remove - Array of device IDs to remove from the group
+ * @param {string[]} members.set - Array of device IDs to set as the only group members
+ */
+const updateDeviceGroupMembership = async (applicationId, groupId, { add, remove, set } = {}) => {
+    return client.patch(`/api/v1/applications/${applicationId}/device-groups/${groupId}`, { add, remove, set })
+}
+
 export default {
     createApplication,
     updateApplication,
@@ -257,5 +354,11 @@ export default {
     getPipelines,
     createPipeline,
     deletePipeline,
-    updatePipeline
+    updatePipeline,
+    getDeviceGroup,
+    getDeviceGroups,
+    createDeviceGroup,
+    deleteDeviceGroup,
+    updateDeviceGroup,
+    updateDeviceGroupMembership
 }

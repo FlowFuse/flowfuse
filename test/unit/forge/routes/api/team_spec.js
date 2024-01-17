@@ -394,7 +394,7 @@ describe('Team API', function () {
         // DELETE /api/v1/teams/:teamId
         // - Admin/Owner/Member
         // - should fail if team owns projects
-        it('cannot delete team with instance', async function () {
+        it('can delete team with instance', async function () {
             const team = await app.db.models.Team.create({ name: 'delete-team-1', TeamTypeId: app.defaultTeamType.id })
             const application = await app.factory.createApplication({ name: 'application-1' }, team)
             await app.factory.createInstance(
@@ -412,10 +412,7 @@ describe('Team API', function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
 
-            response.statusCode.should.equal(400)
-            const result = response.json()
-            result.should.have.property('code', 'unexpected_error')
-            result.error.should.match(/delete team that owns/)
+            response.statusCode.should.equal(200)
         })
         it('admin can delete team without instances', async function () {
             const team = await app.db.models.Team.create({ name: 'delete-team-2', TeamTypeId: app.defaultTeamType.id })

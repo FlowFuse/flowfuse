@@ -58,7 +58,7 @@ export default {
     computed: {
         ...mapState('account', ['teamMembership']),
         billingPath () {
-            return '/team/' + this.team.slug + '/billing'
+            return '/team/' + this.team.slug + '/settings/change-type'
         },
         linkToBilling () {
             return this.hasPermission('team:edit') && !this.onBillingPage

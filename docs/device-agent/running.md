@@ -7,19 +7,20 @@ navOrder: 5
 
 ## Running
 
-If the agent was installed as a global npm module, the command `flowforge-device-agent` will be on the path.
+If the agent was installed as a global npm module, the command `flowfuse-device-agent` will be on the path.
 
 If the default working directory and config file are being used, then the agent can be started with:
 
 ```bash
-flowforge-device-agent
+flowfuse-device-agent
 ```
 
 By default Node-RED will listen to port `1880`, you can change there using the options
 detailed [here](./install.md#listen-port).
 
-This will start the agent, and connect to FlowForge, waiting until a Target Snapshot
-has been assigned to it or it is assigned to an Application.
+This will start the agent, set the device in the default of fleet mode, and connect to
+FlowForge, waiting until a Target Snapshot has been assigned to it or it is assigned
+to an Application.
 
 ### When assigned to an instance:
 Once the agent has been assigned a Target Snapshot, it will download the Snapshot and
@@ -64,13 +65,13 @@ Global Options
 _Start the agent with a different port number_
 
 ```bash
-flowforge-device-agent -p 8080
+flowfuse-device-agent -p 8080
 ```
 
 _Start the agent with a different working directory and the Web UI enabled_
 
 ```bash
-flowforge-device-agent -d /path/to/working/directory -w --ui-user admin --ui-pass password --ui-port 8081
+flowfuse-device-agent -d /path/to/working/directory -w --ui-user admin --ui-pass password --ui-port 8081
 ```
 
 ## Running with no access to npmjs.org
@@ -85,7 +86,7 @@ set of modules.
 You can enable this mode by adding `-m` to the command line adding `moduleCache: true` 
 to the `device.yml` file. This will cause the Device Agent to load the modules from the 
 `module_cache` directory in the Device Agents [Working Directory](./install.md#working-directory) (or whatever is set
-with the `-d` option) (e.g. `/opt/flowforge-device/module_cache`.).
+with the `-d` option) (e.g. `/opt/flowfuse-device/module_cache`.).
 
 ### Creating a module cache
 

@@ -2,7 +2,7 @@
     <ff-layout-box class="ff-login">
         <div v-if="!pending">
             <ff-loading v-if="loggingIn" message="Logging in..." color="white" />
-            <template v-else>
+            <template v-else-if="!mfaRequired">
                 <label>username / email</label>
                 <ff-text-input ref="login-username" v-model="input.username" label="username" :error="errors.username" @enter="login" />
                 <span class="ff-error-inline" data-el="errors-username">{{ errors.username }}</span>
@@ -21,6 +21,18 @@
                     </ff-button>
                     <ff-button v-if="settings['user:signup']" kind="tertiary" to="/account/create" data-action="sign-up">Sign Up</ff-button>
                     <ff-button v-if="passwordRequired && settings['user:reset-password']" kind="tertiary" :to="{'name': 'ForgotPassword'}" data-action="forgot-password">Forgot your password?</ff-button>
+                </div>
+            </template>
+            <template v-else>
+                <label>Enter the 6-digit security code from your authenticator app</label>
+                <ff-text-input ref="login-mfa-token" v-model="input.token" maxlength="6" label="token" @enter="submitMFAToken" />
+                <div class="ff-actions">
+                    <ff-button data-action="submit-token" :disabled="loggingIn || tokenInvalid" @click="submitMFAToken()">
+                        <span>Continue</span>
+                        <span class="w-4">
+                            <SpinnerIcon v-if="loggingIn" class="ff-icon ml-3 !w-3.5" />
+                        </span>
+                    </ff-button>
                 </div>
             </template>
         </div>
@@ -50,11 +62,13 @@ export default {
     data () {
         return {
             loggingIn: false,
+            mfaRequired: false,
             passwordRequired: false,
             tooManyRequests: false,
             input: {
                 username: '',
-                password: ''
+                password: '',
+                token: ''
             },
             errors: {
                 general: null,
@@ -64,13 +78,17 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings', 'pending', 'loginError', 'redirectUrlAfterLogin'])
+        ...mapState('account', ['settings', 'pending', 'loginError', 'redirectUrlAfterLogin']),
+        tokenInvalid () {
+            return this.mfaRequired && !/^\d{6}$/.test(this.input.token)
+        }
     },
     watch: {
         async loginError (newError, oldError) {
             this.errors.general = ''
             this.errors.username = ''
             this.errors.password = ''
+            this.input.password = ''
             if (newError.code === 'password_required') {
                 this.loggingIn = false
                 this.passwordRequired = true
@@ -91,8 +109,15 @@ export default {
                     this.focusUsername()
                     this.errors.username = newError.error
                 }
+            } else if (newError.code === 'mfa_required') {
+                this.input.token = ''
+                this.mfaRequired = true
+                this.loggingIn = false
+                await this.$nextTick()
+                this.focusToken()
             } else if (newError.code === 'unauthorized') {
                 this.loggingIn = false
+                this.mfaRequired = false
                 await this.$nextTick()
                 this.focusUsername()
                 this.errors.general = 'Login failed'
@@ -136,14 +161,26 @@ export default {
             }
             if (valid) {
                 this.loggingIn = true
-                this.$store.dispatch('account/login', this.input)
+                this.$store.dispatch('account/login', {
+                    username: this.input.username,
+                    password: this.input.password
+                })
             }
+        },
+        submitMFAToken () {
+            this.loggingIn = true
+            this.$store.dispatch('account/login', {
+                token: this.input.token
+            })
         },
         focusUsername () {
             this.$refs['login-username'].focus()
         },
         focusPassword () {
             this.$refs['login-password'].focus()
+        },
+        focusToken () {
+            this.$refs['login-mfa-token'].focus()
         }
     }
 }

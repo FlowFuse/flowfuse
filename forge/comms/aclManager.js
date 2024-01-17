@@ -19,16 +19,27 @@ module.exports = function (app) {
             // ids = [ 'project', <teamid>, <projectid> ]
             return requestParts[1] === ids[1]
         },
-        checkDeviceIsAssigned: async function (requestParts, ids) {
-            // requestParts = [ _ , <teamid>, <projectid> ]
+        checkDeviceIsAssigned: async function (requestParts, ids, acl) {
+            // requestParts = [ _ , <teamid>, <projectid> ] or [ _ , <teamid>, <deviceid> ]
             // ids = [ 'device', <teamid>, <deviceid> ]
 
             // Do the simple team id check
             if (requestParts[1] !== ids[1]) {
-                return false
+                return false // not in this team
             }
-            const assignedProject = await app.db.models.Device.getDeviceProjectId(ids[2])
-            return !!assignedProject
+
+            if (acl.deviceOwnerType === 'application') {
+                if (requestParts[2] !== ids[2]) {
+                    return false // not owned by this application
+                }
+            }
+
+            // check to see if the device is assigned to something?
+            const assignedTo = await app.db.models.Device.getOwnerTypeAndId(ids[2])
+            if (assignedTo && assignedTo.ownerType && assignedTo.ownerId) {
+                return true
+            }
+            return false
         },
         checkDeviceAssignedToProject: async function (requestParts, ids) {
             // requestParts = [ _ , <teamid>, <projectid> ]
@@ -43,8 +54,8 @@ module.exports = function (app) {
             return assignedProject && assignedProject === requestParts[2]
         },
         checkDeviceAssignedToApplication: async function (requestParts, ids) {
-            // requestParts = [ _ , <teamid>, <applicationid> ]
-            // ids = [ 'device', <teamid>, <deviceid> ]
+            // requestParts = [ _ , <teamid>, <deviceid> ]
+            // ids = [ 'device', <teamid>, <applicationid> ]
 
             // Do the simple team id check
             if (requestParts[1] !== ids[1]) {
@@ -62,19 +73,28 @@ module.exports = function (app) {
             if (requestParts[1] !== ids[1]) {
                 return false
             }
-            // Get the project this device is assigned to
-            const assignedProject = await app.db.models.Device.getDeviceProjectId(ids[2])
-            if (!assignedProject) {
+            // check to see if the device is assigned to something?
+            const assignedTo = await app.db.models.Device.getOwnerTypeAndId(ids[2])
+            if (!assignedTo?.ownerType || !assignedTo?.ownerId) {
                 return false
             }
-            if (assignedProject === requestParts[2]) {
-                // Access the project we're assigned to - all good
-                return true
+            // If the device is assigned to a project and that matches the request project - all good
+            if (assignedTo.ownerType === 'instance') {
+                if (assignedTo.ownerId === requestParts[2]) {
+                    // Access the project we're assigned to - all good
+                    return true
+                }
             }
 
-            // Need to check if this project is in the same team.
-            const projectTeamId = await app.db.models.Project.getProjectTeamId(requestParts[2])
-            return projectTeamId && app.db.models.Team.encodeHashid(projectTeamId) === requestParts[1]
+            try {
+                // Need to check if this project is in the same team.
+                const projectTeamId = await app.db.models.Project.getProjectTeamId(requestParts[2])
+                return projectTeamId && app.db.models.Team.encodeHashid(projectTeamId) === requestParts[1]
+            } catch (err) {
+                // Any error likely means requestParts[2] isn't a valid uuid - which
+                // postgres with throw over, unlike sqlite that returns no results.
+                return false
+            }
         }
     }
 
@@ -84,15 +104,15 @@ module.exports = function (app) {
         forge_platform: {
             sub: [
                 // Receive status events from project launchers
-                // - ff/v1/+/l/+/status
-                { topic: /^ff\/v1\/[^/]+\/l\/[^/]+\/status$/ },
+                // - ff/v1/<team>/l/<instance>/status
+                { topic: /^ff\/v1\/[^/]+\/l\/[^/]+\/status$/, shared: true },
                 // Receive status events, logs and command responses from devices
-                // - ff/v1/+/d/+/status
-                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/status$/ },
-                // - ff/v1/+/d/+/logs
+                // - ff/v1/<team>/d/<device>/status
+                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/status$/, shared: true },
+                // - ff/v1/<team>/d/<device>/logs
                 { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/logs$/ },
-                // - ff/v1/+/d/+/logs
-                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/response$/ }
+                // Receive broadcast response notification
+                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/response(\/[^/]+)?$/ }
             ],
             pub: [
                 // Send commands to project launchers
@@ -139,8 +159,8 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/status$/, verify: 'checkTeamAndObjectIds' },
                 // - ff/v1/<team>/d/<device/logs
                 { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/logs$/, verify: 'checkTeamAndObjectIds' },
-                // - ff/v1/<team>/d/<device>/response
-                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/response$/, verify: 'checkTeamAndObjectIds' }
+                // - ff/v1/<team>/d/<device>/response[/<instance>]
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/response(\/[^/]+)?$/, verify: 'checkTeamAndObjectIds' }
             ]
         }
     }
@@ -178,20 +198,25 @@ module.exports = function (app) {
                         isSharedSub = true
                         // This is a shared sub - validate the share group name
                         const shareGroup = sharedSubParts[1]
-                        if (shareGroup !== usernameParts[2]) {
+                        if (shareGroup !== 'platform' && shareGroup !== usernameParts[2]) {
                             return false
                         }
                         topic = sharedSubParts[2]
                     }
                 }
                 for (let i = 0; i < l; i++) {
-                    const m = aclList[i].topic.exec(topic)
+                    const acl = aclList[i]
+                    const m = acl.topic.exec(topic)
                     if (m) {
-                        if (isSharedSub && !aclList[i].shared) {
+                        if (isSharedSub && !acl.shared) {
                             // This isn't allowed to be a sharedSub
                             break
-                        } else if (aclList[i].verify && verifyFunctions[aclList[i].verify]) {
-                            allowed = await verifyFunctions[aclList[i].verify](m, usernameParts)
+                        } else if (acl.verify && verifyFunctions[acl.verify]) {
+                            allowed = await verifyFunctions[acl.verify](m, usernameParts, acl)
+                            // ↓ Useful for debugging ↓
+                            // if (allowed !== true) {
+                            //     console.log('DENIED!', topic, acl)
+                            // }
                         } else {
                             allowed = true
                         }

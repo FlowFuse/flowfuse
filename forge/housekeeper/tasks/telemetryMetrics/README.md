@@ -1,6 +1,6 @@
-# FlowForge Platform Metrics
+# FlowFuse Metrics
 
-The FlowForge platform will send occasional pings back to a data collector
+The FlowFuse platform will send occasional pings back to a data collector
 running at https://ping.flowforge.com
 
 The payload of the ping is a collection of well-defined statistics about the
@@ -20,6 +20,6 @@ To add a new metric:
 
 2. Implement the code to gather the metric.
 
-3. Raise an issue on https://github.com/flowforge/usage-ping-collector with details
+3. Raise an issue on https://github.com/FlowFuse/usage-ping-collector with details
    of the new metric. The collector will need to be updated to handle it, otherwise
    the value will be dropped.

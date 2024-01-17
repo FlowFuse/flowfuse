@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken')
 const { fn, col, where } = require('sequelize')
+const zxcvbn = require('zxcvbn')
 
 const { compareHash, sha256 } = require('../utils')
 
@@ -26,6 +27,14 @@ module.exports = {
 
     changePassword: async function (app, user, oldPassword, newPassword) {
         if (compareHash(oldPassword, user.password)) {
+            if (zxcvbn(newPassword).score < 3) {
+                throw new Error('Password Too Weak')
+            }
+            if (newPassword === user.username) {
+                throw new Error('Password must not match username')
+            } else if (newPassword === user.email) {
+                throw new Error('Password must not match email')
+            }
             user.password = newPassword
             user.password_expired = false
             return user.save()
@@ -35,6 +44,14 @@ module.exports = {
     },
 
     resetPassword: async function (app, user, newPassword) {
+        if (zxcvbn(newPassword).score < 2) {
+            throw new Error('Password Too Weak')
+        }
+        if (newPassword === user.username) {
+            throw new Error('Password must not match username')
+        } else if (newPassword === user.email) {
+            throw new Error('Password must not match email')
+        }
         user.password = newPassword
         user.password_expired = false
         return user.save()
@@ -91,7 +108,18 @@ module.exports = {
         }
         throw new Error('Invalid link')
     },
-
+    verifyMFAToken: async function (app, user, token) {
+        if (!app.config.features.enabled('mfa')) {
+            // Feature not enabled
+            return false
+        }
+        if (!user.mfa_enabled) {
+            // User does not have mfa configured
+            return false
+        }
+        // Verify the token for this user
+        return app.db.models.MFAToken.verifyTokenForUser(user, token)
+    },
     generatePendingEmailChangeToken: async function (app, user, newEmailAddress) {
         const TOKEN_EXPIRY = 1000 * 60 * 60 * 24 * 2 // 48 Hours
         const expiresAt = Math.floor((Date.now() + TOKEN_EXPIRY) / 1000) // 48 hours
@@ -150,6 +178,9 @@ module.exports = {
             requestingUser.email = decodedToken.change // apply new Email Address
             requestingUser.email_verified = true
             await requestingUser.save()
+
+            await app.db.controllers.AccessToken.deleteAllUserPasswordResetTokens(requestingUser)
+
             return requestingUser
         } catch (err) {
             if (err.name === 'TokenExpiredError') {
@@ -172,20 +203,14 @@ module.exports = {
     suspend: async function (app, user) {
         user.suspended = true
         // log suspended user out of all projects they have access to
-        const sessions = await app.db.models.StorageSession.byUsername(user.username)
-        for (let index = 0; index < sessions.length; index++) {
-            const session = sessions[index]
-            const ProjectId = session.ProjectId
-            const project = await app.db.models.Project.byId(ProjectId)
-            for (let index = 0; index < session.sessions.length; index++) {
-                const token = session.sessions[index].accessToken
-                try {
-                    await app.containers.revokeUserToken(project, token) // logout:nodered(step-2)
-                } catch (error) {
-                    app.log.warn(`Failed to revoke token for Project ${ProjectId}: ${error.toString()}`) // log error but continue to delete session
-                }
-            }
-        }
         await user.save()
+        await app.db.controllers.User.logout(user)
+    },
+
+    logout: async function (app, user) {
+        // Do a full logout.
+        // - Clear all node-red login sessions
+        // - Clear all accessTokens
+        await app.db.controllers.StorageSession.removeUserFromSessions(user)
     }
 }

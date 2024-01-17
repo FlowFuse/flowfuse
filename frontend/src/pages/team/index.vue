@@ -94,7 +94,8 @@ export default {
                 '/team/' + this.team.slug + '/billing',
                 '/team/' + this.team.slug + '/settings',
                 '/team/' + this.team.slug + '/settings/general',
-                '/team/' + this.team.slug + '/settings/danger'
+                '/team/' + this.team.slug + '/settings/danger',
+                '/team/' + this.team.slug + '/settings/change-type'
             ]
             if (allowedRoutes.indexOf(route.path) === -1) {
                 // if we're on a path that requires billing
@@ -104,6 +105,7 @@ export default {
         checkBilling: async function () {
             // Team Billing
             if (this.features.billing &&
+                (!this.team.billing?.unmanaged) &&
                 (!this.team.billing?.trial || this.team.billing?.trialEnded) &&
                 !this.team.billing?.active
             ) {

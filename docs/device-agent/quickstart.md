@@ -3,9 +3,6 @@ navTitle: Quick Start
 navOrder: 2
 ---
 
-
-
-
 # Developing Flows on Your Device
 
 ## Add Device to FlowFuse
@@ -17,17 +14,17 @@ navOrder: 2
 
 Windows:
 ```bash
-mkdir c:\opt\flowforge-device
-cd c:\opt\flowforge-device
-npm install -g @flowforge/flowforge-device-agent
-flowforge-device-agent -w --ui-user admin --ui-pass password --ui-port 8081
+mkdir c:\opt\flowfuse-device
+cd c:\opt\flowfuse-device
+npm install -g @flowfuse/device-agent
+flowfuse-device-agent -w --ui-user admin --ui-pass password --ui-port 8081
 ```
 Linux:
 ```bash
-mkdir /opt/flowforge-device
-cd /opt\flowforge-device
-npm install -g @flowforge/flowforge-device-agent
-flowforge-device-agent -w --ui-user admin --ui-pass password --ui-port 8081
+mkdir /opt/flowfuse-device
+cd /opt/flowfuse-device
+npm install -g @flowfuse/device-agent
+flowfuse-device-agent -w --ui-user admin --ui-pass password --ui-port 8081
 ```
 
 Note: The flags used in the command above have the following meanings:

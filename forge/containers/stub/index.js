@@ -155,8 +155,6 @@ module.exports = {
                     resolve()
                 }, 250)
             })
-        } else {
-            throw new Error(`${project.id} not found`)
         }
     },
     /**
@@ -268,5 +266,6 @@ module.exports = {
             nodered: '3.0.2',
             ...this._app.config.driver.options?.default_stack
         }
-    }
+    },
+    revokeUserToken: async (project, token) => { }
 }

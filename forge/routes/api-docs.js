@@ -2,7 +2,7 @@ const { readFileSync, existsSync } = require('fs')
 const path = require('path')
 
 const fp = require('fastify-plugin')
-module.exports = fp(async function (app, opts, done) {
+module.exports = fp(async function (app, opts) {
     await app.register(require('@fastify/swagger'), {
         openapi: {
             info: {
@@ -22,6 +22,7 @@ module.exports = fp(async function (app, opts, done) {
                 { name: 'Team Invitations', description: '' },
                 { name: 'Team Devices', description: '' },
                 { name: 'Applications', description: '' },
+                { name: 'Application Device Groups', description: '' },
                 { name: 'Instances', description: '' },
                 { name: 'Instance Types', description: '' },
                 { name: 'Instance Actions', description: '' },
@@ -65,6 +66,13 @@ module.exports = fp(async function (app, opts, done) {
         },
         logLevel: 'silent',
         hideUntagged: true,
+        staticCSP: true,
+        transformStaticCSP: header => {
+            header.replace(
+                /script-src 'self'/,
+                "script-src 'self' 'unsafe-inline'"
+            )
+        },
         uiConfig: {
             defaultModelsExpandDepth: -1,
             operationsSorter: 'alpha',
@@ -92,6 +100,7 @@ module.exports = fp(async function (app, opts, done) {
             content: readFileSync(logoPath)
         }
     }
+
     // Fully built path
     let faviconPath = path.join(__dirname, '../../frontend/dist/favicon-32x32.png')
     if (!existsSync(faviconPath)) {
@@ -155,6 +164,4 @@ module.exports = fp(async function (app, opts, done) {
             self: { type: 'string' }
         }
     })
-
-    done()
-})
+}, { name: 'app.routes.api-docs' })

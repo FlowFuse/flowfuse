@@ -1,5 +1,6 @@
 /**
- * This is the many:1 association model between a Project and a PipelineStage
+ * This is the *..* association model between an Instance (Project) and a PipelineStage
+ * Sequelize does not need this model as it'll use an auto-generated one, but it allows us to configure timestamps off and meta and customise the column names
  * @namespace forge.db.models.PipelineStageInstance
  */
 
@@ -10,7 +11,7 @@ module.exports = {
     },
     associations: function (M) {
         this.belongsTo(M.PipelineStage)
-        this.belongsTo(M.Project, { as: 'Instance' }) // @TODO: need to guard that the instance is part of the same application that owns the stage
+        this.belongsTo(M.Project, { as: 'Instance' })
     },
     meta: {
         slug: false,

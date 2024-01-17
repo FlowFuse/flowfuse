@@ -73,6 +73,8 @@ import userApi from '../../api/user.js'
 import SpinnerIcon from '../../components/icons/Spinner.js'
 import FFLayoutBox from '../../layouts/Box.vue'
 
+let zxcvbn
+
 export default {
     name: 'AccountCreate',
     components: {
@@ -117,6 +119,9 @@ export default {
             return (this.input.email && !this.errors.email) &&
                    (this.input.username && !this.errors.username) &&
                    this.input.password.length >= 8 &&
+                   this.input.password !== this.input.email &&
+                   this.input.password !== this.input.username &&
+                   zxcvbn(this.input.password).score >= 2 &&
                    (this.askJoinReason ? this.input.join_reason : true) &&
                    (this.settings['user:tcs-required'] ? this.input.tcs_accepted : true) &&
                    (!this.errors.name)
@@ -141,8 +146,24 @@ export default {
             }
         },
         'input.password': function (v) {
-            if (this.errors.password && v.length >= 8) {
+            if (v.length >= 8) {
                 this.errors.password = ''
+            } else {
+                this.errors.password = 'Password needs to be longer than 8 chars'
+                return
+            }
+            if (v === this.input.username) {
+                this.errors.password = 'Password must not match username'
+                return
+            }
+            if (v === this.input.email) {
+                this.errors.password = 'Password must not match email'
+                return
+            }
+            if (zxcvbn(v).score >= 2) {
+                this.errors.password = ''
+            } else {
+                this.errors.password = 'Password needs to be more complex'
             }
         },
         'input.name': function (v) {
@@ -153,17 +174,12 @@ export default {
             }
         }
     },
-    mounted () {
+    async mounted () {
         this.input.email = useRoute().query.email || ''
+        const { default: zxcvbnImp } = await import('zxcvbn')
+        zxcvbn = zxcvbnImp
     },
     methods: {
-        checkPassword () {
-            if (this.input.password.length < 8) {
-                this.errors.password = 'Password must be at least 8 characters'
-            } else {
-                this.errors.password = ''
-            }
-        },
         registerUser () {
             if (this.$route.query.code) {
                 this.input.code = this.$route.query.code
@@ -181,17 +197,11 @@ export default {
             }).catch(err => {
                 console.error(err.response.data)
                 this.busy = false
-                if (err.response.data) {
-                    if (/username/.test(err.response.data.error)) {
-                        this.errors.username = 'Username unavailable'
-                    }
-                    if (/password/.test(err.response.data.error)) {
-                        this.errors.password = 'Invalid username'
-                    }
-                    if (err.response.data.code === 'invalid_sso_email') {
+                if (err.response?.data) {
+                    if (err.response.data.code === 'invalid_request') {
+                        this.errors.username = err.response.data.error || 'Invalid request'
+                    } else if (err.response.data.code === 'invalid_sso_email') {
                         this.errors.email = err.response.data.error
-                    } else if (/email/.test(err.response.data.error)) {
-                        this.errors.email = 'Email unavailable'
                     } else if (err.response.data.statusCode === 429) {
                         this.errors.general = 'Too many attempts. Try again later.'
                         this.tooManyRequests = true
@@ -199,7 +209,6 @@ export default {
                             this.tooManyRequests = false
                         }, 10000)
                     } else if (err.response.data.error === 'user registration not enabled') {
-                        // TODO Where to show this error?
                         this.errors.general = 'User registration is not enabled'
                     }
                 }

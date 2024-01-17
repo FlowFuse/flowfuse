@@ -29,8 +29,10 @@
         "application.updated": "Application Modified",
         "application.deleted": "Application Deleted",
         "application.pipeline.created": "DevOps Pipeline Created",
+        "application.pipeline.updated": "DevOps Pipeline Updated",
         "application.pipeline.deleted": "DevOps Pipeline Deleted",
         "application.pipeline.stage-added": "Pipeline Stage Added",
+        "application.pipeline.stage-deployed": "Pipeline Stage Deployed",
         "project.created": "Instance Created",
         "project.deleted": "Instance Deleted",
         "project.duplicated": "Instance Duplicated",
@@ -45,7 +47,11 @@
         "application.device.unassigned": "Device Unassigned from Application",
         "application.device.snapshot.created": "Device Snapshot Created",
         "application.device.snapshot.deleted": "Device Snapshot Deleted",
-        "application.device.snapshot.device-target-set": "Device Target Snapshot Set"
+        "application.device.snapshot.device-target-set": "Device Target Snapshot Set",
+        "application.deviceGroup.created": "Device Group Created",
+        "application.deviceGroup.updated": "Device Group Updated",
+        "application.deviceGroup.deleted": "Device Group Deleted",
+        "application.deviceGroup.members.changed": "Device Group Members Changed"
     },
     "project": {
         "project.created": "Instance Created",
@@ -72,13 +78,16 @@
         "project.snapshot.deviceTarget": "Device Target Set",
         "auth.login": "User Logged In",
         "auth.logout": "User Logged Out",
+        "auth.login.revoke": "User Logged Out",
         "crashed": "Node-RED has crashed",
         "stopped": "Node-RED has stopped",
+        "safe-mode": "Node-RED has been placed in Safe Mode",
         "settings.update": "Node-RED Settings Updated",
         "flows.set": "Flow Deployed",
         "library.set": "Saved to Library",
         "nodes.install": "Third-Party Nodes Installed",
-        "nodes.remove": "Third-Party Nodes Removed"
+        "nodes.remove": "Third-Party Nodes Removed",
+        "context.delete": "Context Key Deleted"
     },
     "platform": {
         "platform.license.applied": "License Applied",
@@ -122,6 +131,16 @@
         "users.auto-created-team": "Team Created",
         "platform.team.created": "New Team Created",
         "platform.team.deleted": "Team Deleted"
-
+    },
+    "device": {
+        "device.credentials.generated": "Device Credential Generated",
+        "device.developer-mode.enabled": "Developer Mode Enabled",
+        "device.developer-mode.disabled": "Developer Mode Disabled",
+        "device.remote-access.enabled": "Remote Access Enabled",
+        "device.remote-access.disabled": "Remote Access Disabled",
+        "device.developer-mode.enabled": "Developer Mode Enabled",
+        "device.developer-mode.disabled": "Developer Mode Disabled",
+        "device.remote-access.enabled": "Remote Access Enabled",
+        "device.remote-access.disabled": "Remote Access Disabled"
     }
 }

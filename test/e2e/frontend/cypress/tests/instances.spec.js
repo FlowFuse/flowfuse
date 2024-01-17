@@ -239,11 +239,6 @@ describe('FlowForge - Instances', () => {
         // select instance type
         cy.get('[data-form="project-type"]').contains('type1').click()
 
-        // select stack
-        cy.get('[data-form="instance-stack"]').contains('stack1').click() // de-select
-        cy.get('[data-action="create-project"]').should('be.disabled')
-        cy.get('[data-form="instance-stack"]').contains('stack1').click() // re-select
-
         cy.get('[data-form="project-template"]').should('exist') // template section visible for create
 
         cy.get('[data-action="create-project"]').should('not.be.disabled').click()

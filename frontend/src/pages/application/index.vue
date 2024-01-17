@@ -15,13 +15,13 @@
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">
                 You are viewing this application as an Administrator
             </div>
-            <SubscriptionExpiredBanner :team="team" />
-            <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
+            <SubscriptionExpiredBanner v-if="team" :team="team" />
+            <TeamTrialBanner v-if="team && team.billing?.trial" :team="team" />
         </Teleport>
         <div class="ff-instance-header">
             <ff-page-header :title="application.name" :tabs="navigation">
                 <template #breadcrumbs>
-                    <ff-nav-breadcrumb :to="{name: 'Applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb v-if="team" :to="{name: 'Applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
                 </template>
             </ff-page-header>
         </div>
@@ -30,6 +30,7 @@
                 :application="application"
                 :instances="instancesArray"
                 :devices="devicesArray"
+                :deviceGroups="deviceGroupsArray"
                 :is-visiting-admin="isVisitingAdmin"
                 :team="team"
                 :team-membership="teamMembership"
@@ -90,6 +91,7 @@ export default {
             mounted: false,
             application: {},
             applicationDevices: [],
+            deviceGroups: [],
             applicationInstances: new Map(),
             loading: {
                 deleting: false,
@@ -100,7 +102,7 @@ export default {
     computed: {
         ...mapState('account', ['teamMembership', 'team', 'features']),
         isVisitingAdmin () {
-            return this.teamMembership.role === Roles.Admin
+            return this.teamMembership?.role === Roles.Admin
         },
         isLoading () {
             return this.loading.deleting || this.loading.suspend
@@ -109,6 +111,13 @@ export default {
             const routes = [
                 { label: 'Instances', to: `/application/${this.application.id}/instances`, tag: 'application-overview', icon: ProjectsIcon },
                 { label: 'Devices', to: `/application/${this.application.id}/devices`, tag: 'application-devices-overview', icon: ChipIcon },
+                {
+                    label: 'Devices Groups',
+                    to: `/application/${this.application.id}/device-groups`,
+                    tag: 'application-devices-groups-overview',
+                    icon: ChipIcon,
+                    featureUnavailable: !this.features?.deviceGroups
+                },
                 { label: 'Snapshots', to: `/application/${this.application.id}/snapshots`, tag: 'application-snapshots', icon: ClockIcon },
                 {
                     label: 'DevOps Pipelines',
@@ -129,6 +138,9 @@ export default {
         },
         devicesArray () {
             return this.applicationDevices
+        },
+        deviceGroupsArray () {
+            return this.deviceGroups || []
         }
     },
     async created () {
@@ -155,14 +167,23 @@ export default {
 
             try {
                 this.applicationInstances = []
-                const applicationPromise = ApplicationApi.getApplication(applicationId)
+                this.application = await ApplicationApi.getApplication(applicationId)
+                // Check to see if we have the right team loaded
+                if (this.team?.slug !== this.application.team.slug) {
+                    // Load the team for this application
+                    await this.$store.dispatch('account/setTeam', this.application.team.slug)
+                }
                 const instancesPromise = ApplicationApi.getApplicationInstances(applicationId) // To-do needs to be enriched with instance state
                 const devicesPromise = ApplicationApi.getApplicationDevices(applicationId)
-
-                this.application = await applicationPromise
                 const deviceData = await devicesPromise
                 this.applicationDevices = deviceData?.devices
                 const applicationInstances = await instancesPromise
+                if (this.features?.deviceGroups && this.team.type.properties.features?.deviceGroups) {
+                    const deviceGroupsData = await ApplicationApi.getDeviceGroups(applicationId)
+                    this.deviceGroups = deviceGroupsData?.groups || []
+                } else {
+                    this.deviceGroups = []
+                }
 
                 this.applicationInstances = new Map()
                 applicationInstances.forEach(instance => {
@@ -183,8 +204,6 @@ export default {
                     .catch((err) => {
                         console.error(err)
                     })
-
-                this.$store.dispatch('account/setTeam', this.application.team.slug)
             } catch (err) {
                 this.$router.push({
                     name: 'PageNotFound',

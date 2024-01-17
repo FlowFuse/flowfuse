@@ -12,10 +12,21 @@ module.exports = {
         name: { type: DataTypes.STRING, allowNull: false },
         description: { type: DataTypes.STRING, defaultValue: '' }
     },
+    hooks: function (M, app) {
+        return {
+            afterDestroy: async (application, opts) => {
+                const where = {
+                    ApplicationId: application.id
+                }
+                M.Device.update({ ApplicationId: null }, { where })
+            }
+        }
+    },
     associations: function (M) {
         this.hasMany(M.Project)
         this.hasMany(M.Project, { as: 'Instances' })
         this.belongsTo(M.Team, { foreignKey: { allowNull: false } })
+        this.hasMany(M.DeviceGroup, { onDelete: 'CASCADE' })
     },
     finders: function (M) {
         return {

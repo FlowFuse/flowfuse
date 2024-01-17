@@ -26,23 +26,25 @@
                     :application="application"
                     :pipeline="pipeline"
                     :stage="stage"
-                    :playEnabled="$index < pipeline.stages.length - 1"
+                    :playEnabled="nextStageAvailable(stage, $index)"
                     :editEnabled="true"
                     @stage-deploy-starting="stageDeployStarting(stage)"
                     @stage-deploy-started="stageDeployStarted(stage)"
+                    @stage-deploy-failed="stageDeployFailed(stage)"
                     @stage-deleted="stageDeleted($index)"
                 />
-                <Transition name="fade">
+                <Transition v-if="stage.stageType !== StageType.DEVICEGROUP" name="fade">
                     <ChevronRightIcon
                         v-if="$index <= pipeline.stages.length - 1"
                         class="ff-icon mt-4 flex-shrink-0"
                         :class="{
                             'animate-deploying': nextStageDeploying($index),
+                            'ff-disabled': !nextStageAvailable(stage, $index)
                         }"
                     />
                 </Transition>
             </template>
-            <Transition name="fade">
+            <Transition v-if="!lastStageIsDeviceGroup" name="fade">
                 <PipelineStage @click="addStage" />
             </Transition>
         </div>
@@ -56,6 +58,8 @@
 import { ChevronRightIcon, PencilAltIcon, TrashIcon } from '@heroicons/vue/outline'
 
 import ApplicationAPI from '../../api/application.js'
+import { StageType } from '../../api/pipeline.js'
+
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 
@@ -81,9 +85,17 @@ export default {
         instanceStatusMap: {
             required: true,
             type: Map
+        },
+        deviceStatusMap: {
+            required: true,
+            type: Map
+        },
+        deviceGroupStatusMap: {
+            required: true,
+            type: Map
         }
     },
-    emits: ['pipeline-deleted', 'stage-deleted', 'deploy-starting', 'deploy-started', 'stage-deploy-starting', 'stage-deploy-started'],
+    emits: ['pipeline-deleted', 'stage-deleted', 'deploy-starting', 'deploy-started', 'stage-deploy-starting', 'stage-deploy-started', 'stage-deploy-failed'],
     data () {
         const pipeline = this.pipeline
         return {
@@ -103,24 +115,44 @@ export default {
         },
         stagesWithStates () {
             return this.pipeline.stages.map((stage) => {
-                // For now, each stage contains only one instance, so read state from that instance
-                const stageInstance = this.instanceStatusMap.get(stage.instance?.id)
+                // For now, each stage contains only one instance, one device, or a device group, so read state from that object
+                // Falls back to the summary object on the stage if the status has not loaded yet
+                const stageInstanceState = this.instanceStatusMap.get(stage.instance?.id) || stage.instance
+                const stageDeviceState = this.deviceStatusMap.get(stage.device?.id) || stage.device
 
-                // Instance statuses might not have finished loading yet
-                if (!stageInstance) {
-                    return stage
+                const stageDeviceGroupMapId = `${stage.id}:${stage.deviceGroup?.id}`
+                const stageDeviceGroupState = this.deviceGroupStatusMap.get(stageDeviceGroupMapId) || stage.deviceGroup
+
+                // Set the state state based on group, device, or instance
+                if (stageDeviceGroupState) {
+                    stage.state = {
+                        isDeploying: stageDeviceGroupState.isDeploying,
+                        targetMatchCount: stageDeviceGroupState.targetMatchCount,
+                        activeMatchCount: stageDeviceGroupState.activeMatchCount,
+                        developerModeCount: stageDeviceGroupState.developerModeCount,
+                        runningCount: stageDeviceGroupState.runningCount,
+                        hasTargetSnapshot: stageDeviceGroupState.hasTargetSnapshot
+                    }
+                } else {
+                    stage.state = stageInstanceState?.state || stageDeviceState?.status
                 }
 
-                // Relay stage instances state to the stage
-                stage.state = stageInstance.state
-                stage.flowLastUpdatedSince = stageInstance.flowLastUpdatedSince
+                stage.flowLastUpdatedSince = stageInstanceState?.flowLastUpdatedSince
+                stage.lastSeenSince = stageDeviceState?.lastSeenSince
 
-                // If any instances inside the stage are deploying, this stage is deploying
-                stage.isDeploying = !!stageInstance?.isDeploying
+                // If any device or instance inside the stage are deploying, this stage is deploying
+                stage.isDeploying = stageDeviceState?.isDeploying || stageInstanceState?.isDeploying || stageDeviceGroupState?.isDeploying
 
                 return stage
             })
+        },
+        lastStageIsDeviceGroup () {
+            const lastStage = this.pipeline?.stages?.[this.pipeline.stages.length - 1]
+            return lastStage?.stageType === StageType.DEVICEGROUP
         }
+    },
+    created () {
+        this.StageType = StageType
     },
     methods: {
         addStage: function () {
@@ -160,7 +192,12 @@ export default {
             this.$emit('stage-deploy-starting', stage, nextStage)
         },
         stageDeployStarted (stage) {
-            this.$emit('stage-deploy-started', stage)
+            const nextStage = this.pipeline.stages.find((s) => s.id === stage.NextStageId)
+            this.$emit('stage-deploy-started', stage, nextStage)
+        },
+        stageDeployFailed (stage) {
+            const nextStage = this.pipeline.stages.find((s) => s.id === stage.NextStageId)
+            this.$emit('stage-deploy-failed', stage, nextStage)
         },
         stageDeleted (stageIndex) {
             this.$emit('stage-deleted', stageIndex)
@@ -171,6 +208,21 @@ export default {
             }
 
             return false
+        },
+        nextStageAvailable (stage, $index) {
+            const endofPipeline = ($index >= this.pipeline.stages.length - 1)
+            if (!endofPipeline) {
+                // we are mid-pipeline
+                const nextStage = this.pipeline.stages[$index + 1]
+                if (nextStage.device?.mode === 'developer') {
+                    // cannot push to a device in Developer Mode
+                    return false
+                }
+                return true
+            } else {
+                // end of pipeline - nothing to deploy to
+                return false
+            }
         },
         deletePipeline () {
             const msg = {

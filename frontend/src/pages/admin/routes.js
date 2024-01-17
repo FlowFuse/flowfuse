@@ -18,6 +18,7 @@ import AdminTeams from './Teams.vue'
 import AdminTemplatePalette from './Template/Palette.vue'
 import AdminTemplateSettings from './Template/Settings.vue'
 import AdminTemplate from './Template/index.vue'
+import AdminTemplateAlerts from './Template/sections/Alerts.vue'
 import AdminTemplateEnvironment from './Template/sections/Environment.vue'
 import AdminTemplateSecurity from './Template/sections/Security.vue'
 import AdminTemplates from './Templates/index.vue'
@@ -147,7 +148,8 @@ export default [
                     { path: 'settings', component: AdminTemplateSettings },
                     { path: 'security', component: AdminTemplateSecurity },
                     { path: 'environment', component: AdminTemplateEnvironment },
-                    { path: 'palette', component: AdminTemplatePalette }
+                    { path: 'palette', component: AdminTemplatePalette },
+                    { path: 'alerts', component: AdminTemplateAlerts }
                 ]
             },
             {

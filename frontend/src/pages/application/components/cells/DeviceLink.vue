@@ -3,13 +3,8 @@
         :to="{ name: 'Device', params: { id: id } }"
         class="flex"
     >
-        <span v-if="mode === 'developer'" v-ff-tooltip="'Developer Mode'" class="flex flex-col space-y-2">
-            <BeakerIcon class="text-purple-600 w-6 mr-2 flex-auto" />
-        </span>
-        <span v-else class="flex flex-col space-y-2">
-            <ChipIcon class="text-gray-500 w-6 mr-2 flex-auto" />
-        </span>
-        <div class="flex flex-col space-y-1">
+        <DeviceModeBadge :mode="mode" type="icon" class="flex flex-col justify-center mr-2" />
+        <div class="flex flex-col">
             <span class="text-lg">{{ name }}</span>
             <span class="text-xs text-gray-500">id: {{ id }}</span>
         </div>
@@ -17,11 +12,11 @@
 </template>
 
 <script>
-import { BeakerIcon, ChipIcon } from '@heroicons/vue/solid'
+import DeviceModeBadge from '../../../device/components/DeviceModeBadge.vue'
 
 export default {
     name: 'DeviceLink',
-    components: { ChipIcon, BeakerIcon },
+    components: { DeviceModeBadge },
     inheritAttrs: false,
     props: {
         id: {

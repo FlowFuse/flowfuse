@@ -13,8 +13,20 @@ const getSubscriptionInfo = async (teamId) => {
 }
 
 // Create a new subscription for a team
-const createSubscription = async (teamId) => {
-    return client.post('/ee/billing/teams/' + teamId).then(res => {
+const createSubscription = async (teamId, teamTypeId = undefined) => {
+    const options = {}
+    if (teamTypeId !== undefined) {
+        options.teamTypeId = teamTypeId
+    }
+    return client.post('/ee/billing/teams/' + teamId, options).then(res => {
+        return res.data
+    })
+}
+
+const setupManualBilling = async (teamId, teamTypeId) => {
+    return client.post('/ee/billing/teams/' + teamId + '/manual', {
+        teamTypeId
+    }).then(res => {
         return res.data
     })
 }
@@ -22,5 +34,6 @@ const createSubscription = async (teamId) => {
 export default {
     toCustomerPortal,
     getSubscriptionInfo,
-    createSubscription
+    createSubscription,
+    setupManualBilling
 }

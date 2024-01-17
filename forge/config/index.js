@@ -120,7 +120,7 @@ module.exports = {
         return config
     },
 
-    attach: fp(async function (app, opts, next) {
+    attach: fp(async function (app, opts) {
         config.features = features(app, config)
         config.rate_limits = rateLimits.getLimits(app, config.rate_limits)
         Object.freeze(config)
@@ -135,6 +135,5 @@ module.exports = {
         if (config.configFile) {
             app.log.info(`Config File: ${config.configFile}`)
         }
-        next()
-    })
+    }, { name: 'app.config' })
 }

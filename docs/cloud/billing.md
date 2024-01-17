@@ -11,8 +11,8 @@ provider. All payments are processed in US Dollars.
 
 ## Team Billing
 
-Each team has a separate billing account and a free subscription for the team. Each Node-RED instance under the team is added to that subscription.
-For each team you will need to setup the billing details for each time, though you can use the same card.
+Each team has its own billing subscription that includes charges for the Node-RED
+instances and Devices owned by the team.
 
 ## Billing Cycle
 
@@ -34,8 +34,8 @@ instance is restarted it will be charged for the remaining time in the billing c
 
 ## Managing Billing Details
 
-The settings tab of your Team page has a link to billing, on here you can see a summary of the teams current subscription.
-There is also a link to the Stripe Customer Portal where you can change the payment card in use or the billing email address.
+Click on "Billing" followed by "Stripe Customer Portal" to get a summary of the teams current subscription. You'll be redirected to
+a Stripe customer portal where you can update customer details as: The credit card on file and the billing information.
 
 ## Failed Payments
 

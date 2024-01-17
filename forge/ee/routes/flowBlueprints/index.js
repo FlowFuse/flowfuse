@@ -117,15 +117,8 @@ module.exports = async function (app) {
             tags: ['Flow Blueprints'],
             body: {
                 type: 'object',
-                required: ['name'],
-                properties: {
-                    active: { type: 'boolean' },
-                    name: { type: 'string' },
-                    description: { type: 'string' },
-                    category: { type: 'string' },
-                    flows: { type: 'object' },
-                    modules: { type: 'object' }
-                }
+                allOf: [{ $ref: 'FlowBlueprint' }],
+                required: ['name']
             },
             response: {
                 200: {
@@ -139,10 +132,13 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         // Only admins can create a Flow Blueprint
         const properties = {
+            active: request.body.active !== undefined ? request.body.active : false,
             name: request.body.name,
             description: request.body.description,
             category: request.body.category,
-            active: request.body.active !== undefined ? request.body.active : false,
+            icon: request.body.icon,
+            order: request.body.order,
+            default: request.body.default,
             flows: request.body.flows,
             modules: request.body.modules
         }
@@ -174,15 +170,7 @@ module.exports = async function (app) {
                 }
             },
             body: {
-                type: 'object',
-                properties: {
-                    active: { type: 'boolean' },
-                    name: { type: 'string' },
-                    description: { type: 'string' },
-                    category: { type: 'string' },
-                    flows: { type: 'object' },
-                    modules: { type: 'object' }
-                }
+                $ref: 'FlowBlueprint'
             },
             response: {
                 200: {
@@ -206,7 +194,10 @@ module.exports = async function (app) {
             'name',
             'description',
             'category',
-            'active'
+            'active',
+            'icon',
+            'order',
+            'default'
         ].forEach(prop => {
             if (hasValueChanged(request.body[prop], flowTemplate[prop])) {
                 flowTemplate[prop] = request.body[prop]

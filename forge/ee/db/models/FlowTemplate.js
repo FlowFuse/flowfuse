@@ -13,6 +13,9 @@ module.exports = {
         active: { type: DataTypes.BOOLEAN, defaultValue: true },
         description: { type: DataTypes.TEXT, defaultValue: '' },
         category: { type: DataTypes.STRING, defaultValue: '' },
+        order: { type: DataTypes.INTEGER, defaultValue: 0 },
+        default: { type: DataTypes.BOOLEAN, defaultValue: false },
+        icon: { type: DataTypes.STRING, allowNull: true },
         flows: {
             type: DataTypes.TEXT,
             validate: {
@@ -59,6 +62,19 @@ module.exports = {
             get () {
                 const rawValue = this.getDataValue('modules') || '{}'
                 return JSON.parse(rawValue)
+            }
+        }
+    },
+    hooks: {
+        afterValidate (flowTemplate, options) {
+            if (flowTemplate.changed('default') && flowTemplate.default === true) {
+                return this.update({
+                    default: false
+                }, {
+                    where: {
+                        default: true
+                    }
+                })
             }
         }
     },

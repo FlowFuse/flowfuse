@@ -4,7 +4,7 @@ navTitle: Local Install
 
 # Local Install
 
-This version of the FlowForge platform is intended for running on a single machine
+This version of the FlowFuse platform is intended for running on a single machine
 for a smaller deployment (e.g. evaluation or home user).
 
 Note that the local install does not currently support HTTPS.
@@ -27,7 +27,7 @@ The install script has been tested against the following operating systems:
 
 ### Node.js
 
-FlowFuse requires ***Node.js v16***.
+FlowFuse requires ***Node.js v18***.
 
 #### Linux
 
@@ -224,8 +224,8 @@ you can use a pre-built docker image that provides everything needed.
 2.  A default mosquitto.conf file can be found in the `broker` directory.
 
     You will need to customise the values to match your local configuration:
-     - `auth_opt_http_host` value to match the IP address of either the docker0 interface or the external IP address of the machine running the Forge platform
-     - `auth_opt_http_port` if you have changed the port the Forge platform is running on
+     - `auth_opt_http_host` value to match the IP address of either the docker0 interface or the external IP address of the machine running the FlowFuse platform
+     - `auth_opt_http_port` if you have changed the port the FlowFuse platform is running on
      - `auth_plugin` should be changed to `auth_plugin /mosquitto/go-auth.so`
 
 3. Start the container with the following command
@@ -256,6 +256,9 @@ fileStore:
 ```
 
 ## Upgrade
+
+If upgrading from 1.x.y to 2.x.y then you may need to upgrade from NodeJS v16 to NodeJS v18.
+Please ensure you do this before the following steps.
 
 To upgrade to the latest release you can follow these steps. Replace `x.y.z` with the
 version you are upgrading to.

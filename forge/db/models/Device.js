@@ -28,7 +28,7 @@ module.exports = {
         ownerType: {
             type: DataTypes.VIRTUAL(DataTypes.ENUM('instance', 'application', null)),
             get () {
-                return this.Project?.id ? 'instance' : (this.Application?.hashid ? 'application' : null)
+                return this.ProjectId ? 'instance' : (this.ApplicationId ? 'application' : null)
             }
         },
         isApplicationOwned: {
@@ -53,6 +53,7 @@ module.exports = {
         this.belongsTo(M.ProjectSnapshot, { as: 'activeSnapshot' })
         this.hasMany(M.DeviceSettings)
         this.hasMany(M.ProjectSnapshot) // associate device at application level with snapshots
+        this.belongsTo(M.DeviceGroup, { foreignKey: { allowNull: true } }) // SEE: forge/db/models/DeviceGroup.js for the other side of this relationship
     },
     hooks: function (M, app) {
         return {
@@ -173,6 +174,13 @@ module.exports = {
                         return result.value
                     }
                     return undefined
+                },
+                async getLatestSnapshot () {
+                    const snapshots = await this.getProjectSnapshots({
+                        order: [['createdAt', 'DESC'], ['id', 'DESC']],
+                        limit: 1
+                    })
+                    return snapshots[0]
                 }
             },
             static: {
@@ -201,7 +209,7 @@ module.exports = {
                         ]
                     })
                 },
-                getAll: async (pagination = {}, where = {}, { includeInstanceApplication = false } = {}) => {
+                getAll: async (pagination = {}, where = {}, { includeInstanceApplication = false, includeDeviceGroup = false } = {}) => {
                     // Pagination
                     const limit = Math.min(parseInt(pagination.limit) || 100, 100)
                     if (pagination.cursor) {
@@ -300,6 +308,12 @@ module.exports = {
                         }
                     ]
 
+                    if (includeDeviceGroup) {
+                        includes.push({
+                            model: M.DeviceGroup,
+                            attributes: ['hashid', 'id', 'name', 'description', 'ApplicationId']
+                        })
+                    }
                     const statusOnlyIncludes = projectInclude.include?.where ? [projectInclude] : []
 
                     const [rows, count] = await Promise.all([
@@ -400,6 +414,32 @@ module.exports = {
                     if (device && device.ApplicationId) {
                         return M.Application.encodeHashid(device.ApplicationId)
                     }
+                },
+                getOwnerTypeAndId: async (id) => {
+                    if (typeof id === 'string') {
+                        id = M.Device.decodeHashid(id)
+                    }
+                    const device = await this.findOne({
+                        where: { id },
+                        attributes: [
+                            'ProjectId',
+                            'ApplicationId'
+                        ]
+                    })
+                    if (device) {
+                        if (device.ProjectId) {
+                            return {
+                                ownerType: 'instance',
+                                ownerId: device.ProjectId
+                            }
+                        } else if (device.ApplicationId) {
+                            return {
+                                ownerType: 'application',
+                                ownerId: M.Application.encodeHashid(device.ApplicationId)
+                            }
+                        }
+                    }
+                    return null
                 },
                 /**
                  * Recalculate the `settingsHash` for all devices

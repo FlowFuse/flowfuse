@@ -1,6 +1,6 @@
 <template>
     <SectionTopMenu hero="Device Logs" help-header="FlowFuse - Device Logs" info="Live logs from your FlowFuse instances of Node-RED" />
-    <LogsShared :device="device" :instance="instance" />
+    <LogsShared :device="device" />
 </template>
 
 <script>
@@ -16,8 +16,7 @@ export default {
     },
     inheritAttrs: false,
     props: {
-        device: { type: Object, required: true },
-        instance: { type: Object, required: true }
+        device: { type: Object, required: true }
     }
 }
 </script>

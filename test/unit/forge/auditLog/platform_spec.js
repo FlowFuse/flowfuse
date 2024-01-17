@@ -53,7 +53,7 @@ describe('Audit Log > Platform', async function () {
         await platformLogger.platform.stack.created(0, null, STACK)
         // check log stored
         const logEntry = await getLog()
-        logEntry.should.have.property('trigger', { id: 'system', type: 'system', name: 'Forge Platform' })
+        logEntry.should.have.property('trigger', { id: 'system', type: 'system', name: 'FlowFuse Platform' })
         logEntry.should.have.property('body').and.be.an.Object()
         logEntry.body.should.not.have.property('trigger')
     })
@@ -198,7 +198,7 @@ describe('Audit Log > Platform', async function () {
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'platform.license.overage')
         logEntry.should.have.property('scope', { id: null, type: 'platform' })
-        logEntry.should.have.property('trigger', { id: 'system', type: 'system', name: 'Forge Platform' })
+        logEntry.should.have.property('trigger', { id: 'system', type: 'system', name: 'FlowFuse Platform' })
         logEntry.should.have.property('body').and.be.an.Object()
         logEntry.body.should.have.property('info', overage)
     })

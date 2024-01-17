@@ -8,6 +8,11 @@
   display: inline-block;
 }
 
+.ff-disabled {
+  pointer-events: none;
+  opacity: 0.4;
+}
+
 .ff-icon-sm {
   width: 16px;
   height: 16px;
@@ -126,6 +131,15 @@
   &--danger {
     color: $ff-white;
     background-color: $ff-color--danger;
+    border: 1px solid $ff-color--danger;
+    &:hover {
+      background-color: $ff-color--danger--dark;
+      color: $ff-white;
+    }
+  }
+  &--secondary-danger {
+    color: $ff-color--danger;
+    background-color: $ff-white;
     border: 1px solid $ff-color--danger;
     &:hover {
       background-color: $ff-color--danger--dark;
@@ -559,6 +573,7 @@ li.ff-list-item {
   flex-wrap: wrap;
   gap: $ff-unit-md;
   .ff-tile-selection-option {
+    --ff-tile-selection-color: #{$ff-blue-700};
     display: flex;
     flex-direction: column;
     background-color: $ff-white;
@@ -637,12 +652,12 @@ li.ff-list-item {
     }
     &:not(.editable):hover {
       cursor: pointer;
-      border: 2px solid $ff-blue-700;
+      border: 2px solid var(--ff-tile-selection-color);
     }
     &.active {
-      border: 2px solid $ff-blue-700;
+      border: 2px solid var(--ff-tile-selection-color);
       svg {
-        fill: $ff-blue-700;
+        fill: var(--ff-tile-selection-color);
       }
     }
     &.disabled {
@@ -757,7 +772,8 @@ li.ff-list-item {
           color: $ff-grey-400;
         }
       }
-      .selectable:hover .ff-data-table--cell {
+      .selectable:hover .ff-data-table--cell,
+      .selectable:hover .ff-data-table--cell span svg.ff-icon {
         cursor: pointer;
         color: $ff-blue-600;
         background-color: $ff-grey-50;
@@ -775,6 +791,11 @@ li.ff-list-item {
       &:last-child {
         border-right-width: 1px;
       }
+    }
+    &-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
     }
   }
 }

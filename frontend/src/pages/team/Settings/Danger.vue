@@ -14,29 +14,37 @@
         <FormHeading class="text-red-700">Delete Team</FormHeading>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
-                <div class="max-w-sm pr-2">{{ deleteDescription }}</div>
+                <div class="max-w-sm pr-2">Deleting the team cannot be undone. Take care.</div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="danger" data-action="delete-team" :disabled="!deleteActive" @click="showConfirmDeleteDialog()">Delete Team</ff-button>
+                <ff-button kind="danger" data-action="delete-team" @click="showConfirmDeleteDialog()">Delete Team</ff-button>
                 <ConfirmTeamDeleteDialog ref="confirmTeamDeleteDialog" @delete-team="deleteTeam" />
             </div>
         </div>
+        <TeamAdminTools v-if="isAdmin" :team="team" />
     </div>
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import teamApi from '../../../api/team.js'
 import teamTypesApi from '../../../api/teamTypes.js'
 
 import FormHeading from '../../../components/FormHeading.vue'
 
+import alerts from '../../../services/alerts.js'
+
 import ConfirmTeamDeleteDialog from '../dialogs/ConfirmTeamDeleteDialog.vue'
+
+import TeamAdminTools from './TeamAdminTools.vue'
 
 export default {
     name: 'TeamSettingsDanger',
     components: {
         FormHeading,
-        ConfirmTeamDeleteDialog
+        ConfirmTeamDeleteDialog,
+        TeamAdminTools
     },
     props: {
         team: {
@@ -47,19 +55,14 @@ export default {
     data () {
         return {
             applicationCount: -1,
+            applicationList: {},
             teamTypes: []
         }
     },
     computed: {
-        deleteActive () {
-            return this.applicationCount === 0
-        },
-        deleteDescription () {
-            if (this.applicationCount > 0) {
-                return 'You cannot delete a team that still owns applications.'
-            } else {
-                return 'Deleting the team cannot be undone. Take care.'
-            }
+        ...mapState('account', ['user', 'features']),
+        isAdmin: function () {
+            return this.user.admin
         }
     },
     watch: {
@@ -79,14 +82,17 @@ export default {
         },
         deleteTeam () {
             teamApi.deleteTeam(this.team.id).then(() => {
+                alerts.emit('Team successfully deleted', 'confirmation')
                 this.$store.dispatch('account/checkState', '/')
             }).catch(err => {
+                alerts.emit('Problem deleting team', 'warning')
                 console.warn(err)
             })
         },
         async fetchData () {
             if (this.team.id) {
                 const applicationList = await teamApi.getTeamApplications(this.team.id)
+                this.applicationList = applicationList
                 this.applicationCount = applicationList.count
             }
         }

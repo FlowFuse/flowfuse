@@ -76,12 +76,12 @@ module.exports = {
             ProjectId: project.id,
             UserId: user.id
         }
-        if (deviceConfig.flows) {
+        if (deviceConfig?.flows) {
             const projectSecret = await project.getCredentialSecret()
             snapshotOptions.flows.flows = deviceConfig.flows
             snapshotOptions.flows.credentials = app.db.controllers.Project.exportCredentials(deviceConfig.credentials || {}, device.credentialSecret, projectSecret)
         }
-        if (deviceConfig.package?.modules) {
+        if (deviceConfig?.package?.modules) {
             snapshotOptions.settings.modules = deviceConfig.package.modules
         }
         const snapshot = await app.db.models.ProjectSnapshot.create(snapshotOptions)

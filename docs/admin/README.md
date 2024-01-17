@@ -2,5 +2,7 @@
 navGroup: FlowFuse Self-Hosted
 navOrder: 3
 navTitle: Administering FlowFuse
-redirect: /docs/admin/introduction
+redirect:
+  to: /docs/admin/introduction
+layout: redirect
 ---

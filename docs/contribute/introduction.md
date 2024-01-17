@@ -30,7 +30,7 @@ that make up the platform.
 Repository    | Description
 --------------|---------------------
 [FlowFuse](https://github.com/FlowFuse/flowforge) | This is the core of the platform.
-[forge-ui-components](https://github.com/FlowFuse/forge-ui-components) | Common UI components used in the forge platform.
+[forge-ui-components](https://github.com/FlowFuse/forge-ui-components) | Common UI components used in the platform.
 [installer](https://github.com/FlowFuse/installer) | The installer for the platform
 [driver-localfs](https://github.com/FlowFuse/driver-localfs) | The LocalFS driver. This deploys projects to the local system.
 [driver-docker](https://github.com/FlowFuse/driver-docker) | The Docker driver. This deploys projects as containers in a Docker-managed environment.

@@ -44,6 +44,22 @@
                     </template>
                 </FormRow>
                 <FormHeading class="text-red-700">Danger Zone</FormHeading>
+                <FormRow v-if="features.mfa" :error="errors.disableMFA" wrapperClass="block">
+                    <template #input>
+                        <div class="flex justify-between items-center">
+                            <ff-button :disabled="mfaLocked" :kind="mfaLocked?'secondary':'danger'" @click="disableMFA">
+                                <template v-if="user.mfa_enabled">Disable MFA</template>
+                                <template v-else>MFA not enabled</template>
+                            </ff-button>
+                            <ff-button v-if="mfaLocked && user.mfa_enabled" kind="danger" size="small" @click="unlockMFA()">
+                                Unlock
+                                <template #icon>
+                                    <LockClosedIcon />
+                                </template>
+                            </ff-button>
+                        </div>
+                    </template>
+                </FormRow>
                 <FormRow :error="errors.expirePassword" wrapperClass="block">
                     <template #input>
                         <div class="flex justify-between items-center">
@@ -76,7 +92,9 @@
 </template>
 
 <script>
+
 import { LockClosedIcon } from '@heroicons/vue/outline'
+import { mapState } from 'vuex'
 
 import usersApi from '../../../../api/users.js'
 import FormHeading from '../../../../components/FormHeading.vue'
@@ -108,6 +126,7 @@ export default {
                 this.expirePassLocked = true
                 this.user_suspendedLocked = true
                 this.input.user_suspended = user.suspended
+                this.mfaLocked = true
                 this.errors = {}
             }
         }
@@ -121,10 +140,12 @@ export default {
             email_verifiedLocked: false,
             deleteLocked: true,
             expirePassLocked: true,
-            user_suspendedLocked: true
+            user_suspendedLocked: true,
+            mfaLocked: true
         }
     },
     computed: {
+        ...mapState('account', ['features']),
         disableSave () {
             const { isChanged, isValid } = this.getChanges()
             return !isValid || !isChanged
@@ -162,6 +183,9 @@ export default {
         unlockSuspended () {
             this.user_suspendedLocked = false
         },
+        unlockMFA () {
+            this.mfaLocked = false
+        },
         getChanges () {
             const changes = {}
             const isValid = (this.input.email && !this.errors.email) &&
@@ -196,8 +220,8 @@ export default {
                     this.$emit('user-updated', response)
                     this.$refs.dialog.close()
                 }).catch(err => {
-                    console.error(err.response.data)
-                    if (err.response.data) {
+                    console.error(err.response?.data)
+                    if (err.response?.data) {
                         let showAlert = true
                         if (/username/.test(err.response.data.error)) {
                             this.errors.username = 'Username unavailable'
@@ -249,6 +273,15 @@ export default {
                     this.$emit('user-updated', response)
                 }).catch(err => {
                     this.errors.expirePassword = err.response.data.error
+                })
+        },
+        disableMFA () {
+            usersApi.updateUser(this.user.id, { mfa_enabled: false })
+                .then((response) => {
+                    this.$refs.dialog.close()
+                    this.$emit('user-updated', response)
+                }).catch(err => {
+                    this.errors.disableMFA = err.response.data.error
                 })
         }
     }
