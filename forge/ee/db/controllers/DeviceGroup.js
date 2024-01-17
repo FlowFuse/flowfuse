@@ -96,18 +96,22 @@ module.exports = {
                 actualAddDevices = addDevices.filter(d => !currentMemberIds.includes(d))
             }
         }
-
-        // wrap the dual operation in a transaction to avoid inconsistent state
+        let changeCount = 0
+        // wrap the operations in a transaction to avoid inconsistent state
         const t = await app.db.sequelize.transaction()
+        const targetSnapshotId = deviceGroup.targetSnapshotId || undefined
         try {
             // add devices
             if (actualAddDevices.length > 0) {
-                await this.assignDevicesToGroup(app, deviceGroup, actualAddDevices, t)
+                changeCount += actualAddDevices.length
+                await this.assignDevicesToGroup(app, deviceGroup, actualAddDevices, targetSnapshotId, t)
             }
             // remove devices
             if (actualRemoveDevices.length > 0) {
-                await this.removeDevicesFromGroup(app, deviceGroup, actualRemoveDevices, t)
+                changeCount += actualRemoveDevices.length
+                await this.removeDevicesFromGroup(app, deviceGroup, actualRemoveDevices, targetSnapshotId, t)
             }
+
             // commit the transaction
             await t.commit()
         } catch (err) {
@@ -120,52 +124,89 @@ module.exports = {
             // otherwise, throw a friendly error message along with the original error
             throw new Error(`Failed to update device group membership: ${err.message}`)
         }
+        if (changeCount > 0) {
+            // clean up where necessary
+            // check to see if the group is now empty
+            const remainingDevices = await deviceGroup.deviceCount()
+            if (remainingDevices === 0) {
+                deviceGroup.targetSnapshotId = null
+                await deviceGroup.save()
+            }
+            // finally, inform the devices an update may be required
+            await this.sendUpdateCommand(app, deviceGroup, actualRemoveDevices)
+        }
     },
 
-    assignDevicesToGroup: async function (app, deviceGroup, deviceList, transaction = null) {
+    assignDevicesToGroup: async function (app, deviceGroup, deviceList, applyTargetSnapshot, transaction = null) {
         const deviceIds = await validateDeviceList(app, deviceGroup, deviceList, null)
-        await app.db.models.Device.update({ DeviceGroupId: deviceGroup.id }, { where: { id: deviceIds.addList }, transaction })
+        const updates = { DeviceGroupId: deviceGroup.id }
+        if (typeof applyTargetSnapshot !== 'undefined') {
+            updates.targetSnapshotId = applyTargetSnapshot
+        }
+        await app.db.models.Device.update(updates, { where: { id: deviceIds.addList }, transaction })
     },
 
     /**
      * Remove 1 or more devices from the specified DeviceGroup
+     * Specifying `activeDeviceGroupTargetSnapshotId` will null the `targetSnapshotId` of each device in `deviceList` where it matches
+     * This is used to remove the project from a device when being removed from a group where the active snapshot is the one applied by the DeviceGroup
      * @param {*} app The application object
-     * @param {*} deviceGroupId The device group id
-     * @param {*} deviceList A list of devices to remove from the group
+     * @param {number} deviceGroupId The device group id
+     * @param {number[]} deviceList A list of devices to remove from the group
+     * @param {number} activeDeviceGroupTargetSnapshotId If specified, null devices `targetSnapshotId` where it matches
      */
-    removeDevicesFromGroup: async function (app, deviceGroup, deviceList, transaction = null) {
+    removeDevicesFromGroup: async function (app, deviceGroup, deviceList, activeDeviceGroupTargetSnapshotId, transaction = null) {
         const deviceIds = await validateDeviceList(app, deviceGroup, null, deviceList)
+        // Before removing from the group, if activeDeviceGroupTargetSnapshotId is specified, null `targetSnapshotId` of each device in `deviceList`
+        // where the device ACTUALLY DOES HAVE the matching targetsnapshotid
+        if (typeof activeDeviceGroupTargetSnapshotId !== 'undefined') {
+            await app.db.models.Device.update({ targetSnapshotId: null }, { where: { id: deviceIds.removeList, DeviceGroupId: deviceGroup.id, targetSnapshotId: activeDeviceGroupTargetSnapshotId }, transaction })
+        }
         // null every device.DeviceGroupId row in device table where the id === deviceGroupId and device.id is in the deviceList
         await app.db.models.Device.update({ DeviceGroupId: null }, { where: { id: deviceIds.removeList, DeviceGroupId: deviceGroup.id }, transaction })
     },
+
     /**
-     * Sends the project id, snapshot hash and settings hash to all devices in the group
-     * so that they can determine what/if it needs to update
-     * NOTE: Only devices belonging to an application are present in a device group
-     * @param {forge.db.models.DeviceGroup} deviceGroup The device group to send an "update" command to
+     * Sends an update to all devices in the group and/or the specified list of devices
+     * so that they can determine what/if it needs to be updated
+     * NOTE: Since device groups only support application owned devices, this will only send updates to application owned devices
+     * @param {forge.db.models.DeviceGroup} [deviceGroup] A device group to send an "update" command to
+     * @param {Number[]} [deviceList] A list of device IDs to send an "update" command to
      */
-    sendUpdateCommand: async function (app, deviceGroup) {
+    sendUpdateCommand: async function (app, deviceGroup, deviceList) {
         if (app.comms) {
-            const application = await deviceGroup.getApplication({ include: [{ model: app.db.models.Team }] })
-            const targetSnapshot = deviceGroup.targetSnapshot || (await app.db.models.ProjectSnapshot.byId(deviceGroup.PipelineStageDeviceGroup.targetSnapshotId))
-            const payloadTemplate = {
-                ownerType: 'application',
-                application: application.hashid,
-                snapshot: targetSnapshot.hashid,
-                settings: null,
-                mode: null,
-                licensed: app.license.active()
-            }
-            const devices = await deviceGroup.getDevices()
-            for (const device of devices) {
-                // If the device doesnt have the same target snapshot as the group, skip it
-                if (device.targetSnapshotId !== deviceGroup.PipelineStageDeviceGroup.targetSnapshotId) {
-                    continue
+            if (deviceGroup) {
+                const devices = await deviceGroup.getDevices()
+                if (devices?.length) {
+                    // add them to the deviceList if not already present
+                    deviceList = deviceList || []
+                    for (const device of devices) {
+                        if (!deviceList.includes(device.id)) {
+                            deviceList.push(device.id)
+                        }
+                    }
                 }
-                const payload = { ...payloadTemplate }
-                payload.settings = device.settingsHash || null
-                payload.mode = device.mode
-                app.comms.devices.sendCommand(application.Team.hashid, device.hashid, 'update', payload)
+            }
+            if (deviceList?.length) {
+                const devices = await app.db.models.Device.getAll({}, { id: deviceList })
+                if (!devices || !devices.devices || devices.devices.length === 0) {
+                    return
+                }
+                const licenseActive = app.license.active()
+                for (const device of devices.devices) {
+                    if (device.ownerType !== 'application') {
+                        continue // ensure we only send updates to application owned devices
+                    }
+                    const payload = {
+                        ownerType: device.ownerType,
+                        application: device.Application?.hashid || null,
+                        snapshot: device.targetSnapshot?.hashid || '0', // '0' means starter snapshot + flows
+                        settings: device.settingsHash || null,
+                        mode: device.mode,
+                        licensed: licenseActive
+                    }
+                    app.comms.devices.sendCommand(device.Team.hashid, device.hashid, 'update', payload)
+                }
             }
         }
     },

@@ -18,5 +18,31 @@ module.exports = {
         slug: false,
         hashid: false,
         links: false
+    },
+    finders: function (M) {
+        return {
+            static: {
+                byId: async function (idOrHash) {
+                    let id = idOrHash
+                    if (typeof idOrHash === 'string') {
+                        id = M.PipelineStageDeviceGroup.decodeHashid(idOrHash)
+                    }
+                    return this.findOne({
+                        where: { PipelineStageId: id },
+                        include: [
+                            {
+                                model: M.DeviceGroup,
+                                attributes: ['hashid', 'id', 'name', 'description', 'ApplicationId']
+                            },
+                            {
+                                model: M.PipelineStage,
+                                attributes: ['hashid', 'id', 'name', 'action', 'NextStageId', 'PipelineId']
+                            },
+                            { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] }
+                        ]
+                    })
+                }
+            }
+        }
     }
 }

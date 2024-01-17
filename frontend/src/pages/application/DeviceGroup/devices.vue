@@ -79,6 +79,7 @@ import { mapState } from 'vuex'
 import ApplicationApi from '../../../api/application.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import Alerts from '../../../services/alerts.js'
+import Dialog from '../../../services/dialog.js'
 
 import { debounce } from '../../../utils/eventHandling.js'
 
@@ -290,17 +291,44 @@ export default {
         },
         saveChanges () {
             const deviceIds = this.localMemberDevices.map((device) => device.id)
-            ApplicationApi.updateDeviceGroupMembership(this.application.id, this.deviceGroup.id, { set: deviceIds })
-                .then(() => {
-                    Alerts.emit('Device Group updated.', 'confirmation')
-                    this.hasChanges = false
-                    this.$emit('device-group-members-updated')
-                    this.editMode = false
-                })
-                .catch((err) => {
-                    this.$toast.error('Failed to update Device Group')
-                    console.error(err)
-                })
+            const devicesRemoved = this.deviceGroup.devices.filter((device) => this.localAvailableDevices.map((d) => d.id).includes(device.id))
+            const devicesAdded = this.localMemberDevices.filter((device) => !this.deviceGroup.devices.map((d) => d.id).includes(device.id))
+            const removedCount = devicesRemoved.length
+            const addedCount = devicesAdded.length
+            const warning = []
+            if (addedCount > 0) {
+                warning.push('1 or more devices will be added to this group. These device(s) will be updated to deploy the active pipeline snapshot.')
+                warning.push('')
+            }
+            if (removedCount > 0) {
+                warning.push('1 or more devices will be removed from this group. These device(s) will be cleared of any active pipeline snapshot.')
+                warning.push('')
+            }
+            if (addedCount <= 0 && removedCount <= 0) {
+                return // nothing to do, shouldn't be able to get here as the save button should be disabled. but just in case...
+            }
+            warning.push('Do you want to continue?')
+
+            const warningMessage = `<p>${warning.join('<br>')}</p>`
+            Dialog.show({
+                header: 'Update device group members',
+                kind: 'danger',
+                html: warningMessage,
+                confirmLabel: 'Confirm',
+                cancelLabel: 'No'
+            }, async () => {
+                ApplicationApi.updateDeviceGroupMembership(this.application.id, this.deviceGroup.id, { set: deviceIds })
+                    .then(() => {
+                        Alerts.emit('Device Group updated.', 'confirmation')
+                        this.hasChanges = false
+                        this.$emit('device-group-members-updated')
+                        this.editMode = false
+                    })
+                    .catch((err) => {
+                        this.$toast.error('Failed to update Device Group')
+                        console.error(err)
+                    })
+            })
         }
     }
 }

@@ -2256,7 +2256,7 @@ describe('Pipelines API', function () {
                     // this way we can test that the group and a device within it are all updated
                     await TestObjects.deviceGroupTwo.addDevice(TestObjects.deviceTwo)
 
-                    await createSnapshot(app, TestObjects.instanceOne, TestObjects.user, {
+                    const snapshot = await createSnapshot(app, TestObjects.instanceOne, TestObjects.user, {
                         name: 'Existing Snapshot Created In Test',
                         description: 'This was the second snapshot created as part of the test process',
                         setAsTarget: false // no need to deploy to devices of the source
@@ -2285,6 +2285,12 @@ describe('Pipelines API', function () {
                     deviceGroups[0].should.have.property('isDeploying', true)
                     deviceGroups[0].should.have.property('hasTargetSnapshot', true)
                     deviceGroups[0].should.have.property('targetMatchCount', 1)
+                    const deviceData = await app.db.models.Device.getAll({}, { id: TestObjects.deviceTwo.id })
+                    const device = deviceData.devices[0]
+                    const deviceGroupData = await app.db.models.DeviceGroup.getAll({}, { id: TestObjects.deviceGroupTwo.id })
+                    const deviceGroup = deviceGroupData.groups[0]
+                    device.should.have.property('targetSnapshotId', snapshot.id)
+                    deviceGroup.should.have.property('targetSnapshotId', snapshot.id)
                 })
             })
 

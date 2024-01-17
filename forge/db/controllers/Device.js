@@ -19,8 +19,8 @@ module.exports = {
             device.set('agentVersion', state.agentVersion)
         }
         device.set('lastSeenAt', literal('CURRENT_TIMESTAMP'))
-        if (!state.snapshot) {
-            if (device.currentSnapshot !== null) {
+        if (!state.snapshot || state.snapshot === '0') {
+            if (device.activeSnapshotId !== null) {
                 device.set('activeSnapshotId', null)
             }
         } else {

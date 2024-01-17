@@ -107,10 +107,10 @@
             </div>
             <div v-if="stage.stageType === StageType.DEVICEGROUP" class="ff-pipeline-stage-row">
                 <label>Deployed:</label>
-                <div v-ff-tooltip="stage.deviceGroup?.hasTargetSnapshot && (stage.deviceGroup?.activeMatchCount === stage.deviceGroup?.deviceCount) ? 'All devices have the latest pipeline snapshot deployed' : 'Some devices do not have the latest pipeline snapshot deployed'">
+                <div v-ff-tooltip="stage.state?.hasTargetSnapshot && (stage.state?.activeMatchCount === stage.deviceGroup?.deviceCount) ? 'All devices have the latest pipeline snapshot deployed' : 'Some devices do not have the latest pipeline snapshot deployed'">
                     <StatusBadge
-                        :text="stage.deviceGroup?.activeMatchCount"
-                        :status="stage.deviceGroup?.hasTargetSnapshot && (stage.deviceGroup?.activeMatchCount === stage.deviceGroup?.deviceCount) ? 'success' : 'warning'"
+                        :text="stage.state?.activeMatchCount"
+                        :status="stage.state?.hasTargetSnapshot && (stage.state?.activeMatchCount === stage.deviceGroup?.deviceCount) ? 'success' : 'warning'"
                     />
                 </div>
             </div>
