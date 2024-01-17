@@ -23,7 +23,14 @@ Details of how to upgrade can be found for each deployment model:
 - [Docker](../install/docker/README.md#upgrade)
 - [Kubernetes](../install/kubernetes/README.md#upgrade)
 
-## Specific requirements for a given target version
+
+### Upgrading to 2.0.0
+
+> **⚠️**  Breaking changes introduced!
+
+Together with new application features, this **release 2.0.0 introduces breaking changes** in Flowfuse Helm chart.
+If you are managing your local Flowfuse instance using our [Helm Chart](https://github.com/FlowFuse/helm/tree/main/helm/flowforge), please refer to the [upgrade](../install/kubernetes/README.md#upgrading-to-2.0) section of the Kubernetes installation guide for more details.
+
 
 ### Upgrading to 1.10
 
