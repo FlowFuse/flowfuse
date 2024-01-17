@@ -214,7 +214,7 @@ forge:
 Together with new application features, this release updates the Helm sub-chart, Bitnami's Postgresql, version.
 If local PostgreSQL database instance is used, upgrading to this version, using our Helm chart, requires additional steps.
 
-1. Backup the database (`yq` and `ghead` (MacOS only) tools are required)
+1. Backup the database ([yq](https://mikefarah.gitbook.io/yq/#install) and [ghead](https://formulae.brew.sh/formula/coreutils) (part of `coreutils` package, MacOS only) tools are required)
 
    For linux:
       
