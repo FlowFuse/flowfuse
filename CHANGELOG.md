@@ -1,3 +1,59 @@
+#### 2.0.0: Release
+
+ - Describe local pgsql upgrade process (#3108) @ppawlowski
+ - Update Min nodejs in localfs install/upgrade docs (#3319) @hardillb
+ - Use Alert.emit instead of $toast (#3352) @Steve-Mcl
+ - Update device on group membership change (#3330) @Steve-Mcl
+ - Reimplement vue poll timers (#3351) @Steve-Mcl
+ - Account for actions column in calculated colspan of data table (#3337) @Steve-Mcl
+ - Change expireTokens task schedule (#3327) @knolleary
+ - Remove email from UserSummary view (#3348) @knolleary
+ - Bump sequelize from 6.35.1 to 6.35.2 (#3344) @app/dependabot
+ - Ensure swagger-ui baseDir is set to non-existent directory (#3322) @knolleary
+ - Do not allow password to be same as email/username (#3338) @knolleary
+ - Improved handling of command/response pattern in scaled environment (#3342) @knolleary
+ - Allow device to be add to platform regardless of agent version recorded in DB (#3334) @Steve-Mcl
+ - Update title for dev agent intro page (#3340) @ZJvandeWeg
+ - Fix link to API docs to flowfuse.com (#3336) @hardillb
+ - Be less specific if username or email is unavailable on registration (#3335) @knolleary
+ - Add CommandResponse pattern for handling scalable platform (#3331) @knolleary
+ - Create Device Groups from the Pipeline Stage Form (#3323) @Pezmc
+ - Remove mixed used of callback and async in fastify plugins (#3329) @Pezmc
+ - Tighten Auth & Email route rate limits (#3326) @hardillb
+ - Improve docs around pipeline target types (#3318) @Steve-Mcl
+ - Sentry Config Tweaks (#3320) @Pezmc
+ - Update team name in issue templates (#3325) @knolleary
+ - First pass at device & browser affinity (#3173) @hardillb
+ - Ensure password reset tokens are cleared on use (#3321) @knolleary
+ - Allow team membership to be managed by SAML Group assertion (#3291) @knolleary
+ - Show better error when importing flows into instance (#3317) @hardillb
+ - Bump @immobiliarelabs/fastify-sentry from 7.1.1 to 8.0.0 (#3300) @app/dependabot
+ - Bump c8 from 8.0.1 to 9.0.0 (#3299) @app/dependabot
+ - Devices: Fleet Mode Label (#3287) @Pezmc
+ - Sentry: Fix several small exceptions (#3313) @Pezmc
+ - Add team invitations to dropdown (#3304) @Pezmc
+ - Bump @fastify/swagger from 8.12.0 to 8.13.0 (#3303) @app/dependabot
+ - Bump axios from 1.6.0 to 1.6.5 (#3302) @app/dependabot
+ - Bump @fastify/static from 6.11.2 to 6.12.0 (#3301) @app/dependabot
+ - Add teamTrial, teamType, deviceLastSeen and deviceMode to stats end point (#3297) @knolleary
+ - Device audit log (#3296) @hardillb
+ - Revert "Revert redirects as it breaks TOC for some reason" (#3293) @knolleary
+ - Upgrade vue dependencies to latest minor versions (#3288) @Pezmc
+ - Bump vue from 3.3.6 to 3.4.3 (#3280) @app/dependabot
+ - Fix subscription deletion when putting into unmanaged mode (#3286) @knolleary
+ - Validate team id when deleting team invitation (#3289) @knolleary
+ - Bump tj-actions/changed-files from 40 to 41 in /.github/workflows (#3284) @app/dependabot
+ - Bump vitest and @vitest/coverage-istanbul (#3273) @app/dependabot
+ - Bump @fastify/rate-limit from 8.0.3 to 9.1.0 (#3282) @app/dependabot
+ - Flow Blueprints Admin: Fix inactive (#3267) @Pezmc
+ - Bump eslint from 8.52.0 to 8.56.0 (#3274) @app/dependabot
+ - Bump @babel/core from 7.23.3 to 7.23.7 (#3281) @app/dependabot
+ - Add primer on feature flags to contrib docs (#3271) @knolleary
+ - Update platform audit-log to provide correct set of event types to filter with (#3283) @knolleary
+ - Added tiers to templates (#3272) @MarianRaphael
+ - Blueprint Admin: Fix form validation (#3270) @Pezmc
+ - Better defaults for Audit Log view (#3269) @Steve-Mcl
+
 #### 1.15.0: Release
 
  - Device Groups: Disable rather than hide Device Group option (#3249) @Pezmc
