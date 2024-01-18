@@ -80,7 +80,20 @@ module.exports = {
             } else {
                 delete payload.application // exclude application property to avoid triggering the wrong kind of update on the device
             }
-            app.comms.devices.sendCommand(device.Team.hashid, device.hashid, 'update', payload)
+
+            // ensure the device has a team association
+            let team = device.Team
+            if (!team) {
+                // reload the device with the team association
+                const _device = await app.db.models.Device.byId(device.id)
+                team = _device?.Team
+                if (!team) {
+                    app.log.warn(`Failed to send update command to device ${device.hashid} as it has no team association`)
+                    return
+                }
+            }
+            // send out update command
+            app.comms.devices.sendCommand(team.hashid, device.hashid, 'update', payload)
         }
     },
     /**
