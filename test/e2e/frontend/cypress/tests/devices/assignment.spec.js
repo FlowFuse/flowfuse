@@ -39,6 +39,7 @@ describe('FlowForge - Team - Devices - Create', () => {
     })
 
     it('creates the Device unassigned', () => {
+        const deviceName = 'new-device-unassigned--' + Date.now()
         cy.intercept('GET', '/api/v1/teams/*/devices*').as('getDevices')
         cy.intercept('GET', '/api/v1/teams/*/applications*').as('getApplications')
 
@@ -51,7 +52,7 @@ describe('FlowForge - Team - Devices - Create', () => {
         cy.get('[data-el="team-device-create-dialog"]').within(() => {
             // enter a name for the device
             cy.get('[data-form="device-name"] input').click()
-            cy.get('[data-form="device-name"] input').type('new-device-unassigned')
+            cy.get('[data-form="device-name"] input').type(deviceName)
 
             // ensure the application selector is visible (dont select anything)
             cy.get('[data-form="application"]').should('be.visible')
@@ -65,13 +66,15 @@ describe('FlowForge - Team - Devices - Create', () => {
 
         // check the device is in the list
         cy.wait('@getDevices').then(() => {
-            // check the table has a row with the device name and that is is unassigned
-            cy.get('[data-el="devices-browser"] tbody tr td').contains('new-device-unassigned')
-            cy.get('[data-el="devices-browser"] tbody tr td').contains('Unassigned')
+            // check the table (last row) has the device name (1st td)
+            cy.get('[data-el="devices-browser"] tbody tr:last-child td:nth-child(1)').contains(deviceName)
+            // 2nd last column is the application name - should be unassigned
+            cy.get('[data-el="devices-browser"] tbody tr:last-child td:nth-last-child(2)').contains('Unassigned')
         })
     })
 
     it('creates and assigns the Device to the selected Application', () => {
+        const deviceName = 'new-device-assigned--' + Date.now()
         cy.intercept('GET', '/api/v1/teams/*/devices*').as('getDevices')
         cy.intercept('GET', '/api/v1/teams/*/applications*').as('getApplications')
 
@@ -84,7 +87,7 @@ describe('FlowForge - Team - Devices - Create', () => {
         cy.get('[data-el="team-device-create-dialog"]').within(() => {
             // enter a name for the device
             cy.get('[data-form="device-name"] input').click()
-            cy.get('[data-form="device-name"] input').type('new-device-assigned')
+            cy.get('[data-form="device-name"] input').type(deviceName)
 
             // ensure the application selector is visible
             cy.get('[data-form="application"]').should('be.visible')
@@ -108,7 +111,7 @@ describe('FlowForge - Team - Devices - Create', () => {
         // check the device is in the list and is assigned to the application
         cy.wait('@getDevices').then(() => {
             // check the table (last row) has the device name (1st td)
-            cy.get('[data-el="devices-browser"] tbody tr:last-child td:nth-child(1)').contains('new-device-assigned')
+            cy.get('[data-el="devices-browser"] tbody tr:last-child td:nth-child(1)').contains(deviceName)
             // 2nd last column is the application name
             cy.get('[data-el="devices-browser"] tbody tr:last-child td:nth-last-child(2)').contains('application-2')
         })
@@ -138,7 +141,7 @@ describe('FlowForge - Application - Devices - Create', () => {
         cy.login('bob', 'bbPassword')
     })
 
-    it('creates the Device and adds assigned it to the current application', () => {
+    it('creates the Device and assigned it to the current application', () => {
         navigateToApplicationDevices('BTeam', 'application-2')
         const deviceName = 'new-device-auto-assigned--' + Date.now()
         cy.get('[data-action="register-device"]').click()
@@ -164,7 +167,6 @@ describe('FlowForge - Application - Devices - Create', () => {
         // check the device is in the list
         cy.wait('@getApplicationDevices').then(() => {
             // check the table has a row with the device name and that is is unassigned
-            cy.get('[data-el="devices-browser"] tbody tr td').contains('new-device-unassigned')
             cy.get('[data-el="devices-browser"] tbody tr td').contains(deviceName)
         })
     })
