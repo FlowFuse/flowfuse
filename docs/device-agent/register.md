@@ -17,8 +17,9 @@ _for a single device_
 
 1. Go to your teams's **Devices** page.
 2. Click the **Register Device** button.
-3. You will be prompted to give the device a **name** and an optional **type**.
-   The type field can be used to record additional meta information about the device.
+3. You will be prompted to give the device a **name**, an optional **type** and to chose which **Application**, if any, the device should be assigned to.
+   * The **type** field can be used to record additional meta information about the device.
+   * If you do not wish to assign the device to an application at this time, you can do so later.
 4. Click **Register**
 
 Once the device has been registered, you will be shown the **Device Configuration** 
@@ -104,7 +105,8 @@ To assign to a Node-RED instance:
 
 ### Assign the device to an Application
 
-The next step is to assign the device to a FlowFuse Application
+If the device was not assigned to an application when it was registered, the next step
+is to assign it to a FlowFuse Application
 
 1. Go to your teams's **Devices** page.
 2. Open the dropdown menu to the right of the device you want to assign and
