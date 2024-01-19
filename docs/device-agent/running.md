@@ -83,7 +83,7 @@ If the device is being run on an offline network or security policies prevent th
 Device Agent from connecting to npmjs.org then it can be configured to use a pre-cached 
 set of modules.
 
-You can enable this mode by adding `-m` to the command line adding `moduleCache: true` 
+You can enable this mode by adding `-m` to the command line or adding `moduleCache: true` 
 to the `device.yml` file. This will cause the Device Agent to load the modules from the 
 `module_cache` directory in the Device Agents [Working Directory](./install.md#working-directory) (or whatever is set
 with the `-d` option) (e.g. `/opt/flowfuse-device/module_cache`.).
