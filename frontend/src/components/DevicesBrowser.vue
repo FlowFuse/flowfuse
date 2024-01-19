@@ -468,7 +468,8 @@ export default {
         }, 50),
 
         showCreateDeviceDialog () {
-            this.$refs.teamDeviceCreateDialog.show(null, this.instance, this.application)
+            const showApplicationsList = this.displayingTeam
+            this.$refs.teamDeviceCreateDialog.show(null, this.instance, this.application, showApplicationsList)
         },
 
         showEditDeviceDialog (device) {
