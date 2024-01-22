@@ -32,7 +32,7 @@ describe('Default Admin User', function () {
     }
 
     after(function () {
-        return forge.close()
+        return await forge.close()
     })
 
     it('should create admin user on start', async function () {
