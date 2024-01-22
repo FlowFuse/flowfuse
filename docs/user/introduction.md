@@ -19,6 +19,10 @@ This guide will help you learn how to use the FlowFuse platform to quickly creat
 
 [Learn more about Instances](#working-with-instances)
 
+3. **Blueprint selection**: When creating a new Node-RED instance, you have the option to choose a blueprint tailored for specific use cases. For example, our "ANDON Operator Terminal" blueprint can be selected, and it will automatically configure the Node-RED instance, sparing you the need to start from scratch. While these templates are powerful out-of-the-box, they're also fully customizable, allowing you to tweak them to suit your unique requirements. Ultimately, blueprints speed up the learning curve for new users and expedite the solution-building process for experienced ones.
+
+![Blueprint selection](./images/blueprint-selection.png)
+
 ## Creating Your First Flow
 
 If you are already familiar with Node-RED, you can [skip this section](#creating-your-first-devops-pipeline).
