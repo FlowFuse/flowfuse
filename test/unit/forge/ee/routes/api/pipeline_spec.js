@@ -122,6 +122,10 @@ describe('Pipelines API', function () {
         TestObjects.pipelineDeviceGroups = await factory.createPipeline({ name: 'new-pipeline-device-groups' }, app.application)
         TestObjects.pipelineDeviceGroupsStageOne = await factory.createPipelineStage({ name: 'stage-one-instance', instanceId: app.instance.id, action: 'use_latest_snapshot' }, TestObjects.pipelineDeviceGroups)
         TestObjects.pipelineDeviceGroupsStageTwo = await factory.createPipelineStage({ name: 'stage-two-device-group', deviceGroupId: TestObjects.deviceGroupOne.id, source: TestObjects.pipelineDeviceGroupsStageOne.hashid, action: 'use_latest_snapshot' }, TestObjects.pipelineDeviceGroups)
+
+        app.log.info.reset()
+        app.log.warn.reset()
+        app.log.error.reset()
     })
     afterEach(async function () {
         await app.db.models.PipelineStage.destroy({ where: {} })
@@ -1572,6 +1576,9 @@ describe('Pipelines API', function () {
                         targetSnapshot.settings.env.should.have.property('one', 'a')
                         targetSnapshot.settings.env.should.have.property('two', 'b')
                         targetSnapshot.settings.should.have.property('modules')
+
+                        // Verify the container driver was asked to restart the flows
+                        app.log.info.calledWith(`[stub driver] Restarting flows ${TestObjects.instanceTwo.id}`).should.be.true()
                     })
                 })
 
@@ -1888,6 +1895,9 @@ describe('Pipelines API', function () {
                     targetSnapshot.settings.should.have.property('settings')
                     targetSnapshot.settings.modules.should.have.property('custom', 'custom-module')
                     targetSnapshot.settings.env.should.have.property('custom', 'custom-env')
+
+                    // Verify the container driver was asked to restart the flows
+                    app.log.info.calledWith(`[stub driver] Restarting flows ${TestObjects.instanceTwo.id}`).should.be.true()
                 })
             })
 
@@ -1950,6 +1960,9 @@ describe('Pipelines API', function () {
 
                     targetSnapshot.settings.should.have.property('settings')
                     targetSnapshot.settings.modules.should.have.property('custom', 'custom-module')
+
+                    // Verify the container driver was asked to restart the flows
+                    app.log.info.calledWith(`[stub driver] Restarting flows ${TestObjects.instanceTwo.id}`).should.be.true()
                 })
             })
 
@@ -2149,6 +2162,9 @@ describe('Pipelines API', function () {
                     targetSnapshot.settings.should.have.property('settings')
                     targetSnapshot.settings.modules.should.have.property('custom', 'custom-module')
                     targetSnapshot.settings.env.should.have.property('custom', 'custom-env')
+
+                    // Verify the container driver was asked to restart the flows
+                    app.log.info.calledWith(`[stub driver] Restarting flows ${TestObjects.instanceTwo.id}`).should.be.true()
                 })
             })
 
@@ -2206,6 +2222,9 @@ describe('Pipelines API', function () {
 
                     targetSnapshot.settings.should.have.property('settings')
                     targetSnapshot.settings.modules.should.have.property('custom', 'custom-module')
+
+                    // Verify the container driver was asked to restart the flows
+                    app.log.info.calledWith(`[stub driver] Restarting flows ${TestObjects.instanceTwo.id}`).should.be.true()
                 })
             })
 
@@ -2425,6 +2444,9 @@ describe('Pipelines API', function () {
                     targetSnapshot.name.should.match(/active-snapshot - Deploy Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
                     targetSnapshot.description.should.match(/Snapshot created for pipeline deployment from stage-one-devices to stage-two as part of pipeline new-pipeline-devices/)
                     targetSnapshot.description.should.match(/the active snapshot of the device/)
+
+                    // Verify the container driver was asked to restart the flows
+                    app.log.info.calledWith(`[stub driver] Restarting flows ${TestObjects.instanceTwo.id}`).should.be.true()
                 })
             })
 
