@@ -31,7 +31,7 @@ describe('Default Admin User', function () {
         return await FF_UTIL.setupApp({ ...defaultConfig, ...config })
     }
 
-    after(function () {
+    afterEach(async function () {
         return await forge.close()
     })
 
