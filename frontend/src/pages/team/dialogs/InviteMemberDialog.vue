@@ -43,7 +43,7 @@ export default {
             required: true
         },
         userCount: {
-            type: Object,
+            type: Number,
             required: true
         },
         inviteCount: {
