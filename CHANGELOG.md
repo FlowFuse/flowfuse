@@ -1,3 +1,20 @@
+#### 2.0.1: Release
+
+ - Bump @vitejs/plugin-vue from 5.0.2 to 5.0.3 (#3373) @app/dependabot
+ - Show application select dropdown in team -> device -> create dialog (#3363) @Steve-Mcl
+ - Bump style-loader from 3.3.3 to 3.3.4 (#3370) @app/dependabot
+ - Bump @vitest/coverage-istanbul from 1.1.0 to 1.2.1 (#3372) @app/dependabot
+ - Bump nodemailer from 6.9.6 to 6.9.8 (#3371) @app/dependabot
+ - Bump nodemon from 3.0.1 to 3.0.3 (#3369) @app/dependabot
+ - Ensure that the project team is available (#3375) @hardillb
+ - Blueprints docs (#3368) @MarianRaphael
+ - Bump vite from 5.0.10 to 5.0.12 (#3364) @app/dependabot
+ - Bump css-loader from 6.8.1 to 6.9.0 (#3346) @app/dependabot
+ - Bump postcss from 8.4.32 to 8.4.33 (#3347) @app/dependabot
+ - Bump @sentry/webpack-plugin from 2.10.1 to 2.10.2 (#3343) @app/dependabot
+ - add missing or (#3361) @hardillb
+ - Adjust kebab menu x/y if out of viewport when rendered (#3354) @Steve-Mcl
+
 #### 2.0.0: Release
 
  - Describe local pgsql upgrade process (#3108) @ppawlowski
