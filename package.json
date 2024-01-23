@@ -1,6 +1,6 @@
 {
     "name": "@flowfuse/flowfuse",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "description": "An open source low-code development platform",
     "homepage": "https://flowfuse.com",
     "bugs": {
@@ -66,7 +66,7 @@
         "@fastify/swagger": "^8.10.1",
         "@fastify/swagger-ui": "^2.1.0",
         "@fastify/websocket": "^8.1.0",
-        "@flowfuse/driver-localfs": "^2.0.0",
+        "@flowfuse/driver-localfs": "^2.0.1",
         "@headlessui/vue": "1.7.16",
         "@heroicons/vue": "1.0.6",
         "@immobiliarelabs/fastify-sentry": "^8.0.0",
