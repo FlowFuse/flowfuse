@@ -7,6 +7,7 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localTransport.js')
 
 module.exports = async function (settings = {}, config = {}) {
+    process.env.FF_TELEMETRY_DISABLED = true
     config = {
         ...config,
         telemetry: { enabled: false },
