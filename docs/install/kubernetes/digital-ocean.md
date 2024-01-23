@@ -68,6 +68,54 @@ kubectl --kubeconfig=./k8s-flowforge-kubeconfig.yaml \
 You will need to update the entry in your DNS server to point 
 `*.example.com` to the IP address listed under `EXTERNAL-IP`
 
+## Install Cert-manager
+
+This will use LetsEncrypt to issue certificates for both the FlowFuse application
+but also for the Node-RED instances.
+
+```bash
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
+helm install \
+  cert-manager jetstack/cert-manager \
+  --namespace cert-manager \
+  --create-namespace \
+  --version v1.13.3 \
+  --set installCRDs=true
+```
+
+After installing you will need to create a `ClusterIssuer` to access LetsEncrypt.
+
+Create the following YAML file called `letsencrypt.yml`, please replace 
+`user@example.com` with your email address.
+
+```yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt
+spec:
+  acme:
+    # The ACME server URL
+    server: https://acme-v02.api.letsencrypt.org/directory
+    # Email address used for ACME registration
+    email: user@example.com
+    # Name of a secret used to store the ACME account private key
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    # Enable the HTTP-01 challenge provider
+    solvers:
+      - http01:
+          ingress:
+            ingressClassName: nginx
+```
+
+Then use `kubectl` to install this
+
+```bash
+kubectl apply -f letsencrypt.yml
+```
+
 ## Install FlowFuse
 
 Then setup the FlowFuse Helm repository
@@ -85,7 +133,7 @@ The following is the bare minimum to get started:
 ```yaml
 forge:
   domain: example.com
-  https: false
+  https: true
   localPostgresql: true
   projectSelector: 
   managementSelector: 
@@ -94,7 +142,12 @@ forge:
 postgresql:
   global:
     storageClass: do-block-storage
+ingress:
+  certManagerIssuer: letsencrypt
 ```
+
+Again, please replace `example.com` with the domain you configured
+earlier in the [Setup DNS](#setup-dns) section
 
 Then we use this to install FlowFuse
 
