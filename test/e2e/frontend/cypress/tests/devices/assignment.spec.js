@@ -32,6 +32,146 @@ describe('FlowForge - Devices', () => {
     })
 })
 
+describe('FlowForge - Team - Devices - Create', () => {
+    beforeEach(() => {
+        cy.login('bob', 'bbPassword')
+        cy.visit('/team/bteam/devices')
+    })
+
+    it('creates the Device unassigned', () => {
+        const deviceName = 'new-device-unassigned--' + Date.now()
+        cy.intercept('GET', '/api/v1/teams/*/devices*').as('getDevices')
+        cy.intercept('GET', '/api/v1/teams/*/applications*').as('getApplications')
+
+        cy.wait(['@getDevices', '@getApplications'])
+
+        cy.get('[data-action="register-device"]').click()
+
+        // ensure team-device-create-dialog is visible
+        cy.get('[data-el="team-device-create-dialog"]').should('be.visible')
+        cy.get('[data-el="team-device-create-dialog"]').within(() => {
+            // enter a name for the device
+            cy.get('[data-form="device-name"] input').click()
+            cy.get('[data-form="device-name"] input').type(deviceName)
+
+            // ensure the application selector is visible (dont select anything)
+            cy.get('[data-form="application"]').should('be.visible')
+
+            // click the "Add" button
+            cy.get('[data-action="dialog-confirm"]').click()
+        })
+
+        // check the dialog has closed
+        cy.get('[data-el="platform-dialog"]').should('not.be.visible')
+
+        // check the device is in the list
+        cy.wait('@getDevices').then(() => {
+            // check the table (last row) has the device name (1st td)
+            cy.get('[data-el="devices-browser"] tbody tr:last-child td:nth-child(1)').contains(deviceName)
+            // 2nd last column is the application name - should be unassigned
+            cy.get('[data-el="devices-browser"] tbody tr:last-child td:nth-last-child(2)').contains('Unassigned')
+        })
+    })
+
+    it('creates and assigns the Device to the selected Application', () => {
+        const deviceName = 'new-device-assigned--' + Date.now()
+        cy.intercept('GET', '/api/v1/teams/*/devices*').as('getDevices')
+        cy.intercept('GET', '/api/v1/teams/*/applications*').as('getApplications')
+
+        cy.wait(['@getDevices', '@getApplications'])
+
+        cy.get('[data-action="register-device"]').click()
+
+        // ensure team-device-create-dialog is visible
+        cy.get('[data-el="team-device-create-dialog"]').should('be.visible')
+        cy.get('[data-el="team-device-create-dialog"]').within(() => {
+            // enter a name for the device
+            cy.get('[data-form="device-name"] input').click()
+            cy.get('[data-form="device-name"] input').type(deviceName)
+
+            // ensure the application selector is visible
+            cy.get('[data-form="application"]').should('be.visible')
+
+            cy.get('[data-form="application"]').within(() => {
+                // eslint-disable-next-line cypress/require-data-selectors
+                cy.get('.ff-dropdown[disabled=false]').click()
+
+                // Click item with label 'application-2'
+                // eslint-disable-next-line cypress/require-data-selectors
+                cy.get('.ff-dropdown-options > .ff-dropdown-option').contains('application-2').click()
+            })
+
+            // click the "Add" button
+            cy.get('[data-action="dialog-confirm"]').click()
+        })
+
+        // check the dialog has closed
+        cy.get('[data-el="platform-dialog"]').should('not.be.visible')
+
+        // check the device is in the list and is assigned to the application
+        cy.wait('@getDevices').then(() => {
+            // check the table (last row) has the device name (1st td)
+            cy.get('[data-el="devices-browser"] tbody tr:last-child td:nth-child(1)').contains(deviceName)
+            // 2nd last column is the application name
+            cy.get('[data-el="devices-browser"] tbody tr:last-child td:nth-last-child(2)').contains('application-2')
+        })
+    })
+})
+
+describe('FlowForge - Application - Devices - Create', () => {
+    function navigateToApplicationDevices (teamName, appName) {
+        cy.request('GET', '/api/v1/user/teams')
+            .then((response) => {
+                const team = response.body.teams.find(
+                    (team) => team.name === teamName
+                )
+                return cy.request('GET', `/api/v1/teams/${team.id}/applications`)
+            })
+            .then((response) => {
+                const application = response.body.applications.find(
+                    (application) => application.name === appName
+                )
+                cy.visit(`/application/${application.id}/devices`)
+                cy.wait(['@getApplicationDevices'])
+            })
+    }
+
+    beforeEach(() => {
+        cy.intercept('GET', '/api/v1/applications/*/devices').as('getApplicationDevices')
+        cy.login('bob', 'bbPassword')
+    })
+
+    it('creates the Device and assigned it to the current application', () => {
+        navigateToApplicationDevices('BTeam', 'application-2')
+        const deviceName = 'new-device-auto-assigned--' + Date.now()
+        cy.get('[data-action="register-device"]').click()
+
+        // ensure team-device-create-dialog is visible
+        cy.get('[data-el="team-device-create-dialog"]').should('be.visible')
+        cy.get('[data-el="team-device-create-dialog"]').within(() => {
+            // enter a name for the device
+            cy.get('[data-form="device-name"] input').click()
+            cy.get('[data-form="device-name"] input').type(deviceName)
+
+            // ensure the application selector does NOT exist in the dialog
+            // (app choice should not be rendered because we are doing this from the app-devices page)
+            cy.get('[data-form="application"]').should('not.exist')
+
+            // click the "Add" button
+            cy.get('[data-action="dialog-confirm"]').click()
+        })
+
+        // check the dialog has closed
+        cy.get('[data-el="platform-dialog"]').should('not.be.visible')
+
+        // check the device is in the list
+        cy.wait('@getApplicationDevices').then(() => {
+            // check the table has a row with the device name and that is is unassigned
+            cy.get('[data-el="devices-browser"] tbody tr td').contains(deviceName)
+        })
+    })
+})
+
 describe('FlowForge - Devices - Assign', () => {
     beforeEach(() => {
         cy.login('bob', 'bbPassword')

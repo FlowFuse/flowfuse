@@ -1,7 +1,8 @@
 <template>
     <ff-dialog
         ref="dialog" :header="device ? 'Update Device' : 'Add Device'"
-        :confirm-label="device ? 'Update' : 'Add'" :disable-primary="!formValid" @confirm="confirm()"
+        :confirm-label="device ? 'Update' : 'Add'" :disable-primary="!formValid" data-el="team-device-create-dialog"
+        @confirm="confirm()"
     >
         <template #default>
             <slot name="description" />
@@ -13,6 +14,18 @@
                 <FormRow v-model="input.type" data-form="device-type" :error="errors.type" :disabled="editDisabled" container-class="w-full">
                     <template #default>Type</template>
                     <template #description>Use this field to better identify your device, and sort/filter in your device list.</template>
+                </FormRow>
+                <FormRow
+                    v-if="showApplicationsList"
+                    v-model="input.application"
+                    :options="applicationsList"
+                    :disabled="noApplications || loading.applications"
+                    placeholder="Select an application"
+                    data-form="application"
+                    container-class="w-full"
+                >
+                    <template #description>Assign the device to an application (optional).</template>
+                    Application
                 </FormRow>
                 <div v-if="billingDescription">
                     <b>Price: {{ billingDescription }}</b>
@@ -47,11 +60,12 @@ export default {
     emits: ['deviceUpdated', 'deviceCreating', 'deviceCreated'],
     setup () {
         return {
-            show (device, instance, application) {
+            show (device, instance, application, showApplicationsList = false) {
                 this.$refs.dialog.show()
                 this.instance = instance
                 this.application = application
                 this.device = device
+                this.showApplicationsList = showApplicationsList
                 if (device) {
                     this.input = {
                         name: device.name,
@@ -73,8 +87,14 @@ export default {
             totalDeviceCount: 0,
             input: {
                 name: '',
-                type: ''
+                type: '',
+                application: null
             },
+            applications: [],
+            loading: {
+                applications: false
+            },
+            showApplicationsList: false,
             errors: {},
             editDisabled: false
         }
@@ -94,6 +114,15 @@ export default {
         },
         formValid () {
             return !!this.input.name
+        },
+        noApplications () {
+            return !this.applications || this.applications.length === 0
+        },
+        applicationsList () {
+            return [
+                { value: '', label: '- none -' },
+                ...this.applications
+            ]
         }
     },
     async mounted () {
@@ -105,12 +134,23 @@ export default {
             const teamData = await teamApi.getTeamDevices(this.team.id, null, 0)
             this.totalDeviceCount = teamData.count
         }
+        this.loadApplications()
     },
     methods: {
+        loadApplications () {
+            this.loading.applications = true
+            teamApi.getTeamApplications(this.team.id).then((data) => {
+                this.applications = data.applications.map(application => { return { value: application, label: application.name } })
+                this.loading.applications = false
+            }).catch((error) => {
+                console.error(error)
+            })
+        },
         confirm () {
             const opts = {
                 name: this.input.name,
-                type: this.input.type
+                type: this.input.type,
+                application: this.input.application
             }
 
             if (this.device) {
@@ -130,7 +170,7 @@ export default {
                 opts.team = this.team.id
                 this.$emit('deviceCreating')
                 devicesApi.create(opts).then((response) => {
-                    if (!this.instance && !this.application) {
+                    if (!this.instance && !this.application && !this.input.application) {
                         this.$emit('deviceCreated', response)
                         alerts.emit('Device successfully created.', 'confirmation')
                     } else if (this.instance) {
@@ -146,12 +186,13 @@ export default {
                             this.$emit('deviceCreated', response)
                             alerts.emit('Device successfully created.', 'confirmation')
                         })
-                    } else if (this.application) {
+                    } else if (this.application || this.input.application) {
+                        const app = this.input.application || this.application
                         const creds = response.credentials
                         // TODO: should the create allow a device to linked to an application at the same time?
                         //       currently, as above, this is a 2 step process
                         // eslint-disable-next-line promise/no-nesting
-                        return devicesApi.updateDevice(response.id, { application: this.application.id }).then((response) => {
+                        return devicesApi.updateDevice(response.id, { application: app.id }).then((response) => {
                             // Reattach the credentials from the create request
                             // so they can be displayed to the user
                             response.credentials = creds
