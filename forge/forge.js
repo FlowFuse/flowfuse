@@ -32,7 +32,9 @@ async function createAdminAccessToken (server, userId) {
 }
 
 async function createAdminUser (server) {
-    if (await server.db.models.User.count() !== 0) return
+    if (await server.db.models.User.count() !== 0) {
+        return
+    }
 
     const password = process.env.FF_ADMIN_PASSWORD || generatePassword()
     const { id: userId } = await server.db.models.User.create({
@@ -48,7 +50,9 @@ async function createAdminUser (server) {
     server.log.info('[SETUP] username: ff-admin')
     server.log.info(`[SETUP] password: ${password}`)
 
-    if (server.config.create_admin_access_token) await createAdminAccessToken(server, userId)
+    if (server.config.create_admin_access_token) {
+        await createAdminAccessToken(server, userId)
+    }
 }
 
 // type defs for JSDoc and VSCode Intellisense
