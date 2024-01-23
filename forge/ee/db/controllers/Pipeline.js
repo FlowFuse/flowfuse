@@ -360,6 +360,7 @@ module.exports = {
                 })
 
                 if (restartTargetInstance) {
+                    await targetInstance.reload({ include: [app.db.models.Team] })
                     await app.containers.restartFlows(targetInstance)
                 }
 
