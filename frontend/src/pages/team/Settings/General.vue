@@ -1,61 +1,91 @@
 <template>
-    <form class="space-y-6">
-        <FormRow id="teamId" ref="id-row" v-model="teamId" type="uneditable">
-            <template #default>Team ID</template>
-        </FormRow>
-        <FormRow id="teamName" ref="name-row" v-model="input.teamName" :type="editing ? 'text' : 'uneditable'" :error="errors.teamName">
-            <template #default>Name</template>
-            <template #description>
-                <div v-if="editing">eg. 'Development'</div>
-            </template>
-        </FormRow>
-        <FormRow v-model="input.teamType" type="uneditable">
-            <template #default>Type</template>
-            <template #description>
-                <template v-if="editing">
-                    <ff-button kind="secondary" :to="{name: 'TeamChangeType'}">Change Team Type</ff-button>
-                </template>
-            </template>
-        </FormRow>
-        <FormRow id="teamSlug" v-model="input.slug" :type="editing ? 'text' : 'uneditable'" :error="errors.slug">
-            <template #default>Slug</template>
-            <template #description>
-                <div v-if="editing">
-                    <span class="text-red-700">Warning:</span>
-                    Changing this will modify all urls used to access the team.
-                    The platform will not redirect requests to the old url.
-                    <br>
-                    <br>
-                    <pre>/team/&lt;slug&gt;</pre>
-                </div>
-            </template>
-        </FormRow>
+    <div class="ff-project-overview space-y-4">
+        <div class="max-w-3xl">
+            <div class="ff-instance-info">
+                <FormHeading><TemplateIcon />Team Info</FormHeading>
 
-        <div class="space-x-4 whitespace-nowrap">
-            <template v-if="!editing">
-                <ff-button kind="primary" @click="editName">Edit team settings</ff-button>
-            </template>
-            <template v-else>
-                <div class="flex gap-x-3">
-                    <ff-button kind="secondary" @click="cancelEditName">Cancel</ff-button>
-                    <ff-button kind="primary" :disabled="!formValid" @click="saveEditName">Save team settings</ff-button>
-                </div>
-            </template>
+                <table class="table-fixed w-full border border-separate rounded">
+                    <tr class="border-b">
+                        <td class="w-40 font-medium">Name</td>
+                        <td>
+                            <span v-if="!editing">{{ input.teamName }} </span>
+                            <FormRow v-else id="teamName" ref="name-row" v-model="input.teamName" type="text" :error="errors.teamName" class="mt-2 mb-6">
+                                <template #description>
+                                    <div v-if="editing">eg. 'Development'</div>
+                                </template>
+                            </FormRow>
+                        </td>
+                    </tr>
+                    <tr class="border-b">
+                        <td class="w-40 font-medium">Type</td>
+                        <td class="flex flex-row items-center">
+                            <span class="flex-grow">{{ input.teamType }} </span>
+                            <ff-button kind="secondary" size="small" :to="{name: 'TeamChangeType'}">Change Team Type</ff-button>
+                        </td>
+                    </tr>
+                    <tr class="border-b">
+                        <td class="w-40 font-medium">URL</td>
+                        <td>
+                            <span v-if="!editing">{{ teamUrl }}</span>
+                            <FormRow v-else id="teamName" ref="name-row" v-model="input.slug" type="text" :error="errors.slug" class="mt-2 mb-6">
+                                <template #description>
+                                    <span class="text-red-700">Warning:</span>
+                                    Changing this will modify all urls used to access the team.
+                                    The platform will not redirect requests to the old url.
+                                    <br>
+                                    <br>
+                                    <pre>{{ teamUrl }}</pre>
+                                </template>
+                            </FormRow>
+                        </td>
+                    </tr>
+                    <tr class="border-b">
+                        <td class="w-40 font-medium">ID</td>
+                        <td>
+                            <span>{{ teamId }} </span>
+                        </td>
+                    </tr>
+                    <tr v-if="ssoAvailable" class="border-b">
+                        <td class="w-40 font-medium">SSO <SparklesIcon class="ff-icon ff-icon-sm mr-2" style="stroke-width: 1px;" /></td>
+                        <td>
+                            <span><a href="https://flowfuse.com/support/" target="_blank" class="underline">Contact us to enable SSO for your team's users</a></span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
         </div>
-    </form>
+    </div>
+    <div class="space-x-4 whitespace-nowrap">
+        <template v-if="!editing">
+            <ff-button kind="primary" @click="editName">Edit team settings</ff-button>
+        </template>
+        <template v-else>
+            <div class="flex gap-x-3">
+                <ff-button kind="secondary" @click="cancelEditName">Cancel</ff-button>
+                <ff-button kind="primary" :disabled="!formValid" @click="saveEditName">Save team settings</ff-button>
+            </div>
+        </template>
+    </div>
 </template>
 
 <script>
 
+import { SparklesIcon, TemplateIcon } from '@heroicons/vue/outline'
+import { mapState } from 'vuex'
+
 import teamApi from '../../../api/team.js'
 import teamsApi from '../../../api/teams.js'
+import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import alerts from '../../../services/alerts.js'
 
 export default {
     name: 'TeamSettingsGeneral',
     components: {
-        FormRow
+        FormHeading,
+        FormRow,
+        SparklesIcon,
+        TemplateIcon
     },
     props: {
         team: {
@@ -79,6 +109,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['user', 'features']),
         formValid () {
             return this.input.teamName && !this.pendingSlugCheck && !this.errors.slug && !this.errors.teamName
         },
@@ -87,6 +118,12 @@ export default {
         },
         slugValid () {
             return /^[a-z0-9-_]+$/i.test(this.input.slug)
+        },
+        teamUrl () {
+            return `${document.location.origin}/team/${this.input.slug}`
+        },
+        ssoAvailable () {
+            return this.features.sso && !this.user.sso_enabled && this.input.teamType === 'Enterprise'
         }
 
     },
