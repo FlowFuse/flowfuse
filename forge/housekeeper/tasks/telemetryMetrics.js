@@ -46,6 +46,10 @@ async function gather (app) {
 }
 
 async function ping (app) {
+    if (process.env.FF_TELEMETRY_DISABLED) {
+        // Allow our tests/CI to disable telemetry
+        return
+    }
     // Only do the ping if:
     // - The licence is active (EE)
     // OR
