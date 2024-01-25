@@ -122,6 +122,14 @@ function getCanonicalEmail (email, options = { removeDotsForDomains: ['gmail.', 
     return `${local}@${domain}`
 }
 
+/**
+ * Generate a random 1 or more random strings
+ * @param {Number} [count=1] - Number of strings to generate
+ * @param {Number} [minLength=2] - Minimum length of each string
+ * @param {Number} [maxLength=15] - Maximum length of each string
+ * @param {Number} [wordsPerString=1] - Number of words in each string
+ * @returns {Array<String>} - Array of random strings
+ */
 function randomStrings (count = 1, minLength = 2, maxLength = 15, wordsPerString = 1) {
     const words = randomWords.generate({
         exactly: count || 1,
@@ -133,8 +141,16 @@ function randomStrings (count = 1, minLength = 2, maxLength = 15, wordsPerString
     return words
 }
 
-function randomPhrase (count = 3, minLength = 2, maxLength = 15, separator = '-') {
-    return randomStrings(count, minLength, maxLength).join(separator)
+/**
+ * Generate a random phrase
+ * @param {Number} [wordCount=3] - Number of words in the phrase
+ * @param {Number} [minLength=2] - Minimum length of each word
+ * @param {Number} [maxLength=15] - Maximum length of each word
+ * @param {String} [separator='-'] - Separator between words
+ * @returns {String} - Random phrase
+ */
+function randomPhrase (wordCount = 3, minLength = 2, maxLength = 15, separator = '-') {
+    return randomStrings(wordCount, minLength, maxLength).join(separator)
 }
 
 module.exports = {
