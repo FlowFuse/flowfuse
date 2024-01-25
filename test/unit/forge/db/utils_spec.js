@@ -44,4 +44,65 @@ describe('db utils', () => {
             should(result).be.String().and.equal('alicepleasanceliddel@fakemail.com.fake')
         })
     })
+
+    describe('randomStrings', () => {
+        it('should be a function', () => {
+            utils.should.have.property('randomStrings').which.is.Function()
+        })
+        it('should return an array of 3 strings, any length', () => {
+            const result = utils.randomStrings(3)
+            should(result).be.Array().and.have.length(3)
+            result.should.matchEach(s => should(s).be.String())
+        })
+        it('should return an array of 5 strings, min length 8', () => {
+            const result = utils.randomStrings(5, 8)
+            should(result).be.Array().and.have.length(5)
+            result.should.matchEach(s => s.length.should.be.greaterThanOrEqual(8))
+        })
+        it('should return an array of strings, min length 3, max length 5', () => {
+            const result = utils.randomStrings(30, 3, 5)
+            should(result).be.Array().and.have.length(30)
+            result.should.matchEach(s => s.length.should.be.oneOf([3, 4, 5]))
+        })
+    })
+
+    describe('randomPhrase', () => {
+        it('should be a function', () => {
+            utils.should.have.property('randomPhrase').which.is.Function()
+        })
+        it('should return a string', () => {
+            const result = utils.randomPhrase()
+            should(result).be.String()
+        })
+        it('should return a string of 8 or more characters by default', () => {
+            const result = []
+            for (let i = 0; i < 100; i++) {
+                result.push(utils.randomPhrase())
+            }
+            result.should.matchEach(s => s.length.should.be.greaterThanOrEqual(8))
+        })
+        it('should return a string with 3 words by default', () => {
+            const result = utils.randomPhrase()
+            should(result.split('-')).be.Array().and.have.length(3)
+        })
+        it('should return a string with 5 words', () => {
+            const result = utils.randomPhrase(5)
+            should(result.split('-')).be.Array().and.have.length(5)
+        })
+        it('should return a string with 3 words, min length 8', () => {
+            const result = utils.randomPhrase(3, 8)
+            should(result.split('-')).be.Array().and.have.length(3)
+            result.split('-').should.matchEach(s => s.length.should.be.greaterThanOrEqual(8))
+        })
+        it('should return a string with 3 words, min length 8, max length 10', () => {
+            const result = utils.randomPhrase(3, 8, 10)
+            should(result.split('-')).be.Array().and.have.length(3)
+            result.split('-').should.matchEach(s => s.length.should.be.oneOf([8, 9, 10]))
+        })
+        it('should return a string with 3 words, min length 8, max length 10, using _ as separator', () => {
+            const result = utils.randomPhrase(3, 8, 10, '_')
+            should(result.split('_')).be.Array().and.have.length(3)
+            result.split('_').should.matchEach(s => s.length.should.be.oneOf([8, 9, 10]))
+        })
+    })
 })
