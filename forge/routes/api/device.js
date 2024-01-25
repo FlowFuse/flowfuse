@@ -103,7 +103,7 @@ module.exports = async function (app) {
     })
 
     /**
-     * Create a device
+     * Create a device (including auto-provisioning and Quick Connect with One-Time-Code)
      * @name /api/v1/devices
      * @static
      * @memberof forge.routes.api.devices
@@ -113,16 +113,25 @@ module.exports = async function (app) {
             async (request, reply) => {
                 // * If this is a Device Provisioning action: verify the device has the required scope
                 //   & session has been populated with provisioning data
+                // * If this is a Device Quick connect with a One time code, verify the code is valid and return the credentials
                 // * If this is a User action: verify the user has the required role
                 if (request.session.provisioning) {
-                    // A device is auto-provisioning. First check the request body team matches the token
-                    // NOTE: If the token was not valid, the request would have been rejected by
-                    // the verifySession decorator & request.session.provisioning would not be populated
-                    const teamOK = request.body.team && request.body.team === request.session.provisioning.team
-                    if (teamOK) {
-                        const hasPermission = app.needsPermission('device:provision')
-                        await hasPermission(request, reply) // hasPermission sends the error response if required which stops the request
+                    if (request.session.provisioning?.quickConnect) {
+                        // A request is being made to quick connect a device using a One-Time-Code.
+                        // NOTE: If the token (OTC) was not valid, the request would have been rejected by
+                        // the verifySession decorator & request.session.provisioning would not be populated
+                        // Essentially, we are good to go
                         return
+                    } else {
+                        // A device is auto-provisioning. First check the request body team matches the token
+                        // NOTE: If the token was not valid, the request would have been rejected by
+                        // the verifySession decorator & request.session.provisioning would not be populated
+                        const teamOK = request.body.team && request.body.team === request.session.provisioning.team
+                        if (teamOK) {
+                            const hasPermission = app.needsPermission('device:provision')
+                            await hasPermission(request, reply) // hasPermission sends the error response if required which stops the request
+                            return
+                        }
                     }
                 } else if (request.body?.team && request.session.User) {
                     // User action: check if the user is in the team and has the required role
@@ -135,15 +144,32 @@ module.exports = async function (app) {
             }
         ],
         schema: {
-            summary: 'Create a device',
+            summary: 'Create or provision a device',
             tags: ['Devices'],
             body: {
                 type: 'object',
-                required: ['name', 'team'],
+                oneOf: [
+                    {
+                        allOf: [
+                            { required: ['name'] },
+                            { required: ['team'] },
+                            { not: { required: ['quickConnect'] } } // quickConnect is not allowed when creating a device
+                        ]
+                    },
+                    {
+                        allOf: [
+                            { required: ['quickConnect'] },
+                            { not: { required: ['name'] } }, // neither of name or team are allowed when quick connecting a device
+                            { not: { required: ['team'] } }
+                        ]
+                    }
+                ],
                 properties: {
                     name: { type: 'string' },
                     type: { type: 'string' },
-                    team: { type: 'string' }
+                    team: { type: 'string' },
+                    quickConnect: { type: 'boolean', enum: [true] }, // enum only permits a value of true
+                    agentHost: { type: 'string' } // optional, for audit log
                 }
             },
             response: {
@@ -161,24 +187,39 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const provisioningMode = !!request.session.provisioning
+        const quickConnectMode = !!request.body.quickConnect && !!request.session.provisioning
         let team, project
         // Additional checks. (initial membership/team/token checks done in preHandler and auth verifySession decorator)
-        if (provisioningMode) {
-            team = await app.db.models.Team.byId(request.session.provisioning.team)
-            if (!team) {
-                reply.code(400).send({ code: 'invalid_team', error: 'Invalid team' })
-                return
-            }
-            if (request.session.provisioning.project) {
-                project = await app.db.models.Project.byId(request.session.provisioning.project)
-                if (!project) {
-                    reply.code(400).send({ code: 'invalid_instance', error: 'Invalid instance' })
+        if (provisioningMode || quickConnectMode) {
+            if (quickConnectMode) {
+                const device = await app.db.models.Device.byId(request.session.provisioning.deviceId)
+                if (device) {
+                    const credentials = await device.refreshAuthTokens({ refreshOTC: false })
+                    app.auditLog.Team.team.device.credentialsGenerated(0, null, device?.Team, device)
+                    app.auditLog.Device.device.credentials.generated(0, null, device)
+                    const response = app.db.views.Device.device(device)
+                    response.credentials = credentials
+                    return reply.send(response)
+                } else {
+                    return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                }
+            } else {
+                team = await app.db.models.Team.byId(request.session.provisioning.team)
+                if (!team) {
+                    reply.code(400).send({ code: 'invalid_team', error: 'Invalid team' })
                     return
                 }
-                const projectTeam = await project.getTeam()
-                if (projectTeam.id !== team.id) {
-                    reply.code(400).send({ code: 'invalid_instance', error: 'Invalid instance' })
-                    return
+                if (request.session.provisioning.project) {
+                    project = await app.db.models.Project.byId(request.session.provisioning.project)
+                    if (!project) {
+                        reply.code(400).send({ code: 'invalid_instance', error: 'Invalid instance' })
+                        return
+                    }
+                    const projectTeam = await project.getTeam()
+                    if (projectTeam.id !== team.id) {
+                        reply.code(400).send({ code: 'invalid_instance', error: 'Invalid instance' })
+                        return
+                    }
                 }
             }
         } else {
@@ -218,7 +259,7 @@ module.exports = async function (app) {
                     ]
                 })
 
-                const credentials = await device.refreshAuthTokens()
+                const credentials = await device.refreshAuthTokens({ refreshOTC: true })
                 await app.auditLog.Team.team.device.created(actionedBy, null, team, device)
 
                 // When device provisioning: if a project was specified, add the device to the project
@@ -504,7 +545,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const credentials = await request.device.refreshAuthTokens()
+        const credentials = await request.device.refreshAuthTokens({ refreshOTC: true }) // refreshOTC = true to generate a new OTC
         app.auditLog.Team.team.device.credentialsGenerated(request.session.User, null, request.device?.Team, request.device)
         app.auditLog.Device.device.credentials.generated(request.session.User, null, request.device)
         reply.send(credentials)
