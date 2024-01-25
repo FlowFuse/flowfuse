@@ -34,7 +34,7 @@ In this guide I will use `example.com` as the domain, remember to substitute you
 - Hit "Create Cluster" button
 
 When the cluster has finished provisioning you should be able to download
-the `k8s-flowforge-kubeconfig.yml` file which will allow you to connect to the cluster.
+the `k8s-flowforge-kubeconfig.yaml` file which will allow you to connect to the cluster.
 
 ## Install Ingress Controller
 
@@ -77,6 +77,7 @@ but also for the Node-RED instances.
 helm repo add jetstack https://charts.jetstack.io
 helm repo update
 helm install \
+  --kubeconfig=./k8s-flowforge-kubeconfig.yaml \
   cert-manager jetstack/cert-manager \
   --namespace cert-manager \
   --create-namespace \
@@ -113,7 +114,7 @@ spec:
 Then use `kubectl` to install this
 
 ```bash
-kubectl apply -f letsencrypt.yml
+kubectl --kubeconfig=./k8s-flowforge-kubeconfig.yaml apply -f letsencrypt.yml
 ```
 
 ## Install FlowFuse
@@ -152,7 +153,7 @@ earlier in the [Setup DNS](#setup-dns) section
 Then we use this to install FlowFuse
 
 ```bash
-helm upgrade --install --kubeconfig ./k8s-flowforge-kubeconfig.yml \
+helm upgrade --install --kubeconfig ./k8s-flowforge-kubeconfig.yaml \
   flowforge flowforge/flowforge -f customizations.yml \
   --wait
 ```
