@@ -49,11 +49,11 @@ only supports installing on x86_64 hardware.
 If using an external database you can pass the database details to the helm chart
 with the following values:
 
-- `forge.dbName`
-- `forge.dbUsername`
-- `forge.dbPassword`
-- `forge.postgres.host`
-- `forge.postgres.port`
+- `postgresql.host`
+- `postgresql.port`
+- `postgresql.auth.username`
+- `postgresql.auth.password`
+- `postgresql.auth.database`
 
 ### DNS
 
