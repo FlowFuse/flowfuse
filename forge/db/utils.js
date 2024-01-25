@@ -14,6 +14,13 @@ const sha256 = value => crypto.createHash('sha256').update(value).digest().toStr
 
 let app
 
+/** @type {typeof import('random-words')} */
+let randomWords
+
+(async () => {
+    randomWords = (await import('random-words'))
+})()
+
 /**
  * Generate a properly formed where-object for sequelize findAll, that applies
  * the required pagination, search and filter logic
@@ -115,6 +122,21 @@ function getCanonicalEmail (email, options = { removeDotsForDomains: ['gmail.', 
     return `${local}@${domain}`
 }
 
+function randomStrings (count = 1, minLength = 2, maxLength = 15, wordsPerString = 1) {
+    const words = randomWords.generate({
+        exactly: count || 1,
+        minLength: minLength || 2,
+        maxLength: maxLength || 15,
+        wordsPerString: wordsPerString || 1
+    })
+    words.sort(() => Math.random() - 0.5) // a bit of extra randomness additional to the default behaviour of `random-words` lib method
+    return words
+}
+
+function randomPhrase (count = 3, minLength = 2, maxLength = 15, separator = '-') {
+    return randomStrings(count, minLength, maxLength).join(separator)
+}
+
 module.exports = {
     init: _app => { app = _app },
     generateToken: (length, prefix) => (prefix ? prefix + '_' : '') + base64URLEncode(crypto.randomBytes(length || 32)),
@@ -143,5 +165,7 @@ module.exports = {
         return hashids[type]
     },
     buildPaginationSearchClause,
-    getCanonicalEmail
+    getCanonicalEmail,
+    randomStrings,
+    randomPhrase
 }
