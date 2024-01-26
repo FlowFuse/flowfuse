@@ -62,14 +62,18 @@ All of the repositories are cloned under the `packages` directory:
 ```txt
 flowforge-dev-env
 └── packages
-    ├── flowforge
-    ├── flowforge-driver-localfs
-    ├── flowforge-nr-audit-logger
-    ├── flowforge-nr-auth
-    ├── flowforge-nr-launcher
-    ├── flowforge-nr-storage
-    ├── flowforge-nr-theme
-    └── forge-ui-components
+    ├── device-agent
+    ├── docker-compose
+    ├── driver-docker
+    ├── driver-k8s
+    ├── driver-localfs
+    ├── file-server
+    ├── flowfuse
+    ├── helm
+    ├── installer
+    ├── nr-file-nodes
+    ├── nr-launcher
+    └── nr-project-nodes
 ```
 
 More details on using the FlowForge Development Environment are available in its
