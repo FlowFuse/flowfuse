@@ -100,7 +100,7 @@ module.exports = {
             ownerId: '' + device.id,
             ownerType: 'device'
         }
-        app.db.models.AccessToken.create(data)
+        await app.db.models.AccessToken.create(data)
         return { otc }
     },
 
