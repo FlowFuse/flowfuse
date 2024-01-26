@@ -236,7 +236,7 @@ If local PostgreSQL database instance is used, upgrading to this version, using 
    export POSTGRESQL_PVC=$(kubectl --namespace default get pvc -l app.kubernetes.io/name=postgresql,role=primary -o jsonpath="{.items[0].metadata.name}")
    ```
 
-3. Delete postgresql statefulset and secret
+3. Get database image version and delete postgresql statefulset and secret
 
    ```bash
    CURRENT_VERSION=$(kubectl --namespace default exec postgresql-postgresql-0 -- bash -c 'echo $BITNAMI_IMAGE_VERSION')
@@ -244,7 +244,7 @@ If local PostgreSQL database instance is used, upgrading to this version, using 
    kubectl --namespace default delete secret flowforge-postgresql
    ```
 
-4. Get database image version and perform the upgrade  
+4.  Perform the upgrade  
 
    ```bash
    helm upgrade --install --atomic \
