@@ -178,6 +178,7 @@ class DeviceTunnelManager {
             // Otherwise, it's a websocket message, so forward it to the device editor websocket
             const reply = tunnel.requests[response.id]
             if (reply) {
+                delete tunnel.requests[response.id]
                 reply.headers(response.headers ? response.headers : {})
                 reply.code(response.status)
                 if (response.body) {
