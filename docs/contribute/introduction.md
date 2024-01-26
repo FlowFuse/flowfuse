@@ -29,7 +29,7 @@ that make up the platform.
 
 Repository    | Description
 --------------|---------------------
-[FlowFuse](https://github.com/FlowFuse/flowforge) | This is the core of the platform.
+[FlowFuse](https://github.com/FlowFuse/flowfuse) | This is the core of the platform.
 [forge-ui-components](https://github.com/FlowFuse/forge-ui-components) | Common UI components used in the platform.
 [installer](https://github.com/FlowFuse/installer) | The installer for the platform
 [driver-localfs](https://github.com/FlowFuse/driver-localfs) | The LocalFS driver. This deploys projects to the local system.
@@ -62,14 +62,18 @@ All of the repositories are cloned under the `packages` directory:
 ```txt
 flowforge-dev-env
 └── packages
-    ├── flowforge
-    ├── flowforge-driver-localfs
-    ├── flowforge-nr-audit-logger
-    ├── flowforge-nr-auth
-    ├── flowforge-nr-launcher
-    ├── flowforge-nr-storage
-    ├── flowforge-nr-theme
-    └── forge-ui-components
+    ├── device-agent
+    ├── docker-compose
+    ├── driver-docker
+    ├── driver-k8s
+    ├── driver-localfs
+    ├── file-server
+    ├── flowfuse
+    ├── helm
+    ├── installer
+    ├── nr-file-nodes
+    ├── nr-launcher
+    └── nr-project-nodes
 ```
 
 More details on using the FlowForge Development Environment are available in its
@@ -77,7 +81,7 @@ More details on using the FlowForge Development Environment are available in its
 
 ### FlowFuse Code Structure
 
-The `FlowFuse/flowforge` repository is the core of the platform and where you'll 
+The `FlowFuse/flowfuse` repository is the core of the platform and where you'll 
 likely want to begin.
 
 ```txt
@@ -124,7 +128,7 @@ likely want to begin.
 
 You will need to setup the version(s) of Node-RED you want to use in your stacks.
 
-From the `flowforge` directory run
+From the `flowfuse` directory run
 
 ```bash
 npm run install-stack --vers=3.0.2
@@ -135,7 +139,7 @@ Where `3.0.2` is the version of Node-RED you want to use in the stack.
 ### Running FlowFuse
 
 A number of `npm` tasks are defined in the `package.json` file of this repository.
-To get started from the `flowforge` directory use:
+To get started from the `flowfuse` directory use:
 
 ```bash
 npm run serve
@@ -176,7 +180,7 @@ If you are developing locally and need to enable external email sending, you can
 If you need to develop features covered by the Billing EE feature, you will need
 to configure the platform with a set of valid Stripe API keys and an EE license.
 
-The *development-only* EE licence is provided in `flowforge/forge/licensing/index.js`. This
+The *development-only* EE licence is provided in `flowfuse/forge/licensing/index.js`. This
 licence is not valid for production usage.
 
 For FlowForge Inc. employees the configuration is provided in 1Password as 'Stripe Testing Configuration'.
