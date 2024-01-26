@@ -9,7 +9,7 @@ navOrder: 2
 
 ### Install Device Agent Software
 
-1. Open your Command Prompt (CMD) as an administrator.
+1. Open a Terminal/Command Prompt as an root/administrative user
 2. Run the following commands in sequence:
 
 Windows:
@@ -19,7 +19,7 @@ cd c:\opt\flowfuse-device
 npm install -g @flowfuse/device-agent
 flowfuse-device-agent -w --ui-user admin --ui-pass password --ui-port 8081
 ```
-Linux:
+Linux/MacOS:
 ```bash
 mkdir /opt/flowfuse-device
 cd /opt/flowfuse-device
@@ -28,10 +28,10 @@ flowfuse-device-agent -w --ui-user admin --ui-pass password --ui-port 8081
 ```
 
 Note: The flags used in the command above have the following meanings:
-- -w: Run the device agent in web user interface mode.
-- --ui-user: Specify the username for the web user interface.
-- --ui-pass: Specify the password for the web user interface.
-- --ui-port: Specify the port for the web user interface.
+- `-ui`: Run the device agent in web user interface mode.
+- `--ui-user`: Specify the username for the web user interface.
+- `--ui-pass`: Specify the password for the web user interface.
+- `--ui-port`: Specify the port for the web user interface.
 - You can find more details about these flags [here](https://flowfuse.com/docs/device-agent/running/).
 
 ### Add Device in FlowFuse
@@ -43,7 +43,7 @@ Note: The flags used in the command above have the following meanings:
 <img src="images/add_device.png" width=500 />
 
 ### Configure Device Agent
-1. Click **Copy to Clipboard** to copy the device configuration.
+1. Click **Copy to Clipboard** and copy the **Device Configuration**.
 
 <img src="images/config_yml.png" width=500 />
 
@@ -101,9 +101,9 @@ Note: The flags used in the command above have the following meanings:
 5. Click **Create.**
 
 ### Restore Device from Snapshot
-1. Naviage to Devices Menu.
+1. Navigate to Devices Menu.
 2. Select the Device needing to be restored.
-3. Navigate to Shapshots menu.
+3. Navigate to Snapshots menu.
 
 <img src="images/deploySnapshot.png" width=500 />
 
