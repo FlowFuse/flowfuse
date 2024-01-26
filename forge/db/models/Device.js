@@ -105,7 +105,7 @@ module.exports = {
     finders: function (M) {
         return {
             instance: {
-                async refreshAuthTokens ({ refreshOTC = false }) {
+                async refreshAuthTokens ({ refreshOTC = false } = {}) {
                     const accessToken = await Controllers.AccessToken.createTokenForDevice(this)
                     const credentialSecret = crypto.randomBytes(32).toString('hex')
                     this.credentialSecret = credentialSecret
