@@ -239,6 +239,7 @@ If local PostgreSQL database instance is used, upgrading to this version, using 
 3. Delete postgresql statefulset and secret
 
    ```bash
+   CURRENT_VERSION=$(kubectl --namespace default exec postgresql-postgresql-0 -- bash -c 'echo $BITNAMI_IMAGE_VERSION')
    kubectl --namespace default delete statefulset.app flowforge-postgresql
    kubectl --namespace default delete secret flowforge-postgresql
    ```
@@ -246,8 +247,6 @@ If local PostgreSQL database instance is used, upgrading to this version, using 
 4. Get database image version and perform the upgrade  
 
    ```bash
-   CURRENT_VERSION=$(kubectl --namespace defualt exec postgresql-postgresql-0 -- bash -c 'echo $BITNAMI_IMAGE_VERSION')
-
    helm upgrade --install --atomic \
       --namespace default  \ 
       --values $path/to/your/values.yaml \
