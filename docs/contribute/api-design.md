@@ -113,14 +113,14 @@ The following properties will then be available on the `request`:
 and Instance. No changes have been made to the underlying APIs - that will be evaluated
 as part of 1.6.
 
-Routes under `forge/routes/api/project.js` that relate to a specific project,
+Routes under `forge/routes/api/project.js` that relate to a specific instance,
 must use `:projectId` as the placeholder in the route. A request preHandler will
-use that to ensure the requesting user has permission to access the project.
+use that to ensure the requesting user has permission to access the instance.
 
 The following properties will then be available on the `request`:
 
- - `request.project` - the project
- - `request.teamMembership` - the requesting user's role on the team that owns the project
+ - `request.project` - the instance (previously called "project")
+ - `request.teamMembership` - the requesting user's role on the team that owns the instance
 
 
 ### User/role permissions

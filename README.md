@@ -1,6 +1,6 @@
 <div align="center"> <a href="https://flowfuse.com/">
     <img
-      src="https://github.com/flowforge/website/blob/main/src/handbook/images/logos/ff-logo--wordmark--light.png"
+      src="https://github.com/FlowFuse/website/blob/main/src/handbook/images/logos/ff-logo--wordmark--light.png"
       width="300"
       height="auto"
     />
