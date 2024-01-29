@@ -282,12 +282,14 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const includeInstances = true
-        const applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances })
+        const includeApplicationDevices = true
+
+        const applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances, includeApplicationDevices })
 
         reply.send({
             // meta: {},
             count: applications.length,
-            applications: await app.db.views.Application.teamApplicationList(applications, { includeInstances })
+            applications: await app.db.views.Application.teamApplicationList(applications, { includeInstances, includeApplicationDevices })
         })
     })
 
