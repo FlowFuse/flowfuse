@@ -315,7 +315,9 @@ module.exports = async (options = {}) => {
             frameguard: {
                 action: 'deny'
             },
-            referrerPolicy: 'origin-when-cross-origin'
+            referrerPolicy: {
+                policy: 'origin-when-cross-origin'
+            }
         })
 
         // Routes : the HTTP routes
