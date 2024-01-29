@@ -27,6 +27,7 @@ module.exports = {
         this.hasMany(M.Project, { as: 'Instances' })
         this.belongsTo(M.Team, { foreignKey: { allowNull: false } })
         this.hasMany(M.DeviceGroup, { onDelete: 'CASCADE' })
+        this.hasMany(M.Device) // also via instance and device group
     },
     finders: function (M) {
         return {
@@ -46,7 +47,7 @@ module.exports = {
                         ]
                     })
                 },
-                byTeam: async (teamIdOrHash, { includeInstances = false, includeInstanceStorageFlow = false } = {}) => {
+                byTeam: async (teamIdOrHash, { includeInstances = false, includeApplicationDevices = false, includeInstanceStorageFlow = false } = {}) => {
                     let id = teamIdOrHash
                     if (typeof teamIdOrHash === 'string') {
                         id = M.Team.decodeHashid(teamIdOrHash)
@@ -92,6 +93,14 @@ module.exports = {
                         }
 
                         includes.push(include)
+                    }
+
+                    // Also include devices via device groups and via instances
+                    if (includeApplicationDevices) {
+                        includes.push({
+                            model: M.Device,
+                            attributes: ['hashid', 'id', 'name', 'links', 'state', 'updatedAt']
+                        })
                     }
 
                     return this.findAll({

@@ -67,16 +67,20 @@ module.exports = function (app) {
             type: 'object',
             allOf: [{ $ref: 'ApplicationSummary' }],
             properties: {
-                instances: { type: 'array', items: { type: 'object', additionalProperties: true } }
+                instances: { type: 'array', items: { type: 'object', additionalProperties: true } },
+                devices: { type: 'array', items: { type: 'object', additionalProperties: true } }
             },
             additionalProperties: true
         }
     })
-    async function teamApplicationList (applications, { includeInstances = false } = {}) {
+    async function teamApplicationList (applications, { includeInstances = false, includeApplicationDevices = false } = {}) {
         return applications.map((application) => {
             const summary = applicationSummary(application)
             if (includeInstances) {
                 summary.instances = app.db.views.Project.instancesSummaryList(application.Instances)
+            }
+            if (includeApplicationDevices) {
+                summary.devices = application.Devices.map(app.db.views.Device.deviceSummary)
             }
             return summary
         })
