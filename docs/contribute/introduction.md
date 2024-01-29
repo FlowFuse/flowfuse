@@ -32,9 +32,9 @@ Repository    | Description
 [FlowFuse](https://github.com/FlowFuse/flowfuse) | This is the core of the platform.
 [forge-ui-components](https://github.com/FlowFuse/forge-ui-components) | Common UI components used in the platform.
 [installer](https://github.com/FlowFuse/installer) | The installer for the platform
-[driver-localfs](https://github.com/FlowFuse/driver-localfs) | The LocalFS driver. This deploys projects to the local system.
-[driver-docker](https://github.com/FlowFuse/driver-docker) | The Docker driver. This deploys projects as containers in a Docker-managed environment.
-[driver-k8s](https://github.com/FlowFuse/driver-k8s) | The Kubernetes driver. This deploys projects as containers in a Kubernetes-managed environment.
+[driver-localfs](https://github.com/FlowFuse/driver-localfs) | The LocalFS driver. This deploys instances to the local system.
+[driver-docker](https://github.com/FlowFuse/driver-docker) | The Docker driver. This deploys instances as containers in a Docker-managed environment.
+[driver-k8s](https://github.com/FlowFuse/driver-k8s) | The Kubernetes driver. This deploys instances as containers in a Kubernetes-managed environment.
 [nr-launcher](https://github.com/FlowFuse/nr-launcher) | The launcher application used to start and monitor an individual instance of Node-RED in the FlowFuse platform. This includes a number of Node-RED plugins used to integrate with the FlowFuse platform.
 
 ### Setting Up A Development Environment
@@ -226,8 +226,7 @@ Free trials are implemented as a Stripe Credit that is applied when a FlowFuse u
 creates their first team and completed billing sign up.
 
 To enable trials, set the `billing.stripe.new_customer_free_credit` value to a credit amount in cents.
-For a totally free trial, this amount should match the cost of the Stripe product for the project
-type to be trialed to be trialed.
+For a totally free trial, this amount should match the cost of the Stripe product for the project type to be trialed to be trialed.
 
 The Stripe webhook forwarder must be running as the credit is handled as part of the webhook handling.
 
