@@ -215,6 +215,23 @@ Option        | Description
 --------------|------------
 `fileStore.url`  | The URL of the FlowFuse File Server to use. Default: not set
 
+## Enabling Persistent File Storage - File Nodes
+
+These nodes are enabled by default on the FlowFuse Cloud platform. If you're
+running a self-hosted environment you should follow the next steps.
+
+FlowFuse file nodes replace the core Node-RED file nodes. To make use of these
+nodes, the FlowFuse platform Administrator must ensure the core file nodes are 
+not loaded.
+
+This is done by adding `10-file.js` in the **Exclude nodes by filename** 
+section of your instance settings under the **Palette** section.
+
+This setting is modifiable only by a Team owner and only if it has not been
+locked in the [template](/docs/user/concepts.md#template) by the platform Administrator.
+
+[Click here](/docs/user/filenodes.md), to learn more about the usage of the FlowFuse File Nodes.
+
 ## Content Security Policy
 
 Option        | Description
