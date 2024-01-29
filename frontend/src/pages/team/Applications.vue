@@ -3,7 +3,7 @@
         <template #header>
             <ff-page-header title="Applications">
                 <template #context>
-                    A list of applications belonging to this Team.
+                    View all of your Node-RED instances.
                 </template>
                 <template #help-header>
                     Applications
@@ -76,6 +76,27 @@
                         </ul>
                         <div v-else class="ff-no-data">
                             This Application currently has no attached Node-RED Instances.
+                        </div>
+                        <ul v-if="application.devices.size > 0" class="ff-applications-list-instances">
+                            <label>Devices</label>
+                            <li v-for="devices in Array.from(application.devices.values())" :key="devices.id" @click.stop="openInstance(instance)">
+                                <span class="flex justify-center mr-3">
+                                    <IconNodeRedSolid class="ff-icon ff-icon-lg text-red-800" />
+                                </span>
+                                <div class="ff-applications-list--instance">
+                                    <label>{{ devices.name }}</label>
+                                    <span>{{ devices.url }}</span>
+                                </div>
+                                <div>Statuses</div>
+                                <div class="text-sm">
+                                    Bla bla
+                                </div>
+                                Link
+                                Polling
+                            </li>
+                        </ul>
+                        <div v-else class="ff-no-data">
+                            This Application currently has no attached devices.
                         </div>
                     </li>
                 </ul>
@@ -195,11 +216,21 @@ export default {
                         application.instances = new Map()
                     }
 
-                    const { instances, ...applicationProps } = applicationData
+                    const { instances, devices, ...applicationProps } = applicationData
                     instances.forEach((instanceData) => {
                         application.instances.set(instanceData.id, {
                             ...application.instances.get(instanceData.id),
                             ...instanceData
+                        })
+                    })
+
+                    if (!application.devices) {
+                        application.devices = new Map()
+                    }
+                    devices.forEach((deviceData) => {
+                        application.devices.set(deviceData.id, {
+                            ...application.devices.get(deviceData.id),
+                            ...deviceData
                         })
                     })
 
