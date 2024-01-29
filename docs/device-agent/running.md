@@ -53,12 +53,10 @@ Web UI Options
   --ui-pass string    Web UI password. Required if --ui is specified
   --ui-runtime mins   Time the Web UI server is permitted to run. Default: 10
 
-Quick Connect command
+Setup command
 
-  -q, --qc           Quick Connect a device agent. This will pull the device.yml file from the
-                     FlowFuse server, setup your device then exit
-  -o, --otc string   One time code. Required for Quick Connect
-  -u, --ff-url url   URL of FlowFuse. Required for Quick Connect
+  -o, --otc string   Setup device using a one time code
+  -u, --ff-url url   URL of FlowFuse. Required for setup
 
 Global Options
 

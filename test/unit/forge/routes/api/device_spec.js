@@ -444,7 +444,7 @@ describe('Device API', async function () {
                 method: 'POST',
                 url: '/api/v1/devices',
                 body: {
-                    quickConnect: true
+                    setup: true
                 },
                 headers: {
                     Authorization: `Bearer ${otcToken}` // using the one-time-code as the session token

@@ -12,27 +12,60 @@
                     </p>
                 </template>
                 <template v-if="hasCredentials">
-                    <p>
-                        To connect your device to the platform, use the following
-                        configuration. This will need to be placed on your device.
-                    </p>
-                    <p class="mt-4">
-                        See the
-                        <a
-                            href="https://flowfuse.com/docs/device-agent/register/#connect-the-device" target="_blank"
-                            rel="noreferrer"
-                        >Connect Your Device</a> documentation for more information.
-                    </p>
-
-                    <p class="font-bold mt-4"><i>Make a note of this configuration, as this is the only time you will see it.</i></p>
-                    <pre class="overflow-auto text-sm p-4 my-2 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
-
                     <template v-if="otc">
-                        <p class="mt-6">
-                            Alternatively, you can use the following Quick Connect command:
+                        <p>
+                            With the <a href="https://flowfuse.com/docs/device-agent/">FlowFuse Device Agent</a> installed on your device, run the following command to setup its connection to the platform:
                         </p>
-                        <pre class="overflow-auto text-xs font-light p-4 mt-2 border rounded bg-gray-800 text-gray-200">{{ otcCommand }}</pre>
-                        <p class="text-gray-600 italic text-xs">Note: the Quick Connect command is single use, expires in 24h and requires device-agent v2.1 or later.</p>
+                        <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">{{ otcCommand }}</pre>
+                        <div class="flex flex-row justify-end space-x-2 -mt-1">
+                            <ff-button kind="tertiary" size="small" @click="copy(otcCommand)">
+                                <template #icon-right><ClipboardCopyIcon /></template>
+                                <span class="">Copy</span>
+                            </ff-button>
+                        </div>
+                        <p class="text-gray-600 italic text-sm -mt-6">
+                            <span>Notes:</span>
+                            <ul class="list-disc list-inside ml-2">
+                                <li>this command is single use and expires in 24h.</li>
+                                <li>requires device-agent v2.1 or later (follow the manual setup below for older versions).</li>
+                            </ul>
+                        </p>
+
+                        <details class="mt-4">
+                            <summary class="mt-6">Manual setup...</summary>
+                            <p class="mt-4">
+                                Place the below configuration on your device.
+                                See the <a href="https://flowfuse.com/docs/device-agent/">device agent documentation</a> for instructions on how to do this.
+                            </p>
+                            <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
+                            <div class="flex flex-row justify-end space-x-2 -mt-1">
+                                <ff-button kind="tertiary" size="small" class="ml-4" @click="downloadCredentials()">
+                                    <template #icon-right><DocumentDownloadIcon /></template>
+                                    <span class="">Download</span>
+                                </ff-button>
+                                <ff-button kind="tertiary" size="small" @click="copy(credentials)">
+                                    <template #icon-right><ClipboardCopyIcon /></template>
+                                    <span class="">Copy</span>
+                                </ff-button>
+                            </div>
+                        </details>
+                    </template>
+                    <template v-else>
+                        <p>
+                            Place the below configuration on your device.
+                            See the <a href="https://flowfuse.com/docs/device-agent/">device agent documentation</a> for instructions on how to do this.
+                        </p>
+                        <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
+                        <div class="flex flex-row justify-end space-x-2 -mt-1">
+                            <ff-button kind="tertiary" size="small" class="ml-4" @click="downloadCredentials()">
+                                <template #icon-right><DocumentDownloadIcon /></template>
+                                <span class="">Download</span>
+                            </ff-button>
+                            <ff-button kind="tertiary" size="small" @click="copy(credentials)">
+                                <template #icon-right><ClipboardCopyIcon /></template>
+                                <span class="">Copy</span>
+                            </ff-button>
+                        </div>
                     </template>
                 </template>
             </form>
@@ -43,14 +76,6 @@
                 <ff-button kind="danger" class="ml-4" @click="regenerateCredentials()">Regenerate configuration</ff-button>
             </template>
             <template v-else>
-                <ff-button v-if="clipboardSupported && !otc" kind="secondary" @click="copy(credentials)">Copy to Clipboard</ff-button>
-                <DropdownMenu v-if="clipboardSupported && otc" buttonClass="ff-btn ff-btn--secondary" :options="copyButtonOptions">
-                    Copy to Clipboard
-                </DropdownMenu>
-                <ff-button kind="secondary" @click="downloadCredentials()">
-                    <template #icon-left><DocumentDownloadIcon /></template>
-                    <span class="mr-2 whitespace-nowrap">Download device-{{ device.id }}.yml</span>
-                </ff-button>
                 <ff-button class="ml-4" @click="close()">Done</ff-button>
             </template>
         </template>
@@ -59,19 +84,18 @@
 
 <script>
 // import devicesApi from '../../../../api/devices'
-import { DocumentDownloadIcon } from '@heroicons/vue/outline'
+import { ClipboardCopyIcon, DocumentDownloadIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
 import deviceApi from '../../../../api/devices.js'
-import DropdownMenu from '../../../../components/DropdownMenu.vue'
 import clipboardMixin from '../../../../mixins/Clipboard.js'
 import Alerts from '../../../../services/alerts.js'
 
 export default {
     name: 'DeviceCredentialsDialog',
     components: {
-        DocumentDownloadIcon,
-        DropdownMenu
+        ClipboardCopyIcon,
+        DocumentDownloadIcon
     },
     mixins: [clipboardMixin],
     props: ['team'],
@@ -116,7 +140,7 @@ export default {
             return this.device?.credentials?.otc
         },
         otcCommand: function () {
-            return `flowfuse-device-agent --qc -o ${this.otc} -u ${this.settings.base_url}`
+            return `flowfuse-device-agent -o ${this.otc} -u ${this.settings.base_url}`
         },
         credentials: function () {
             let result = ''
@@ -132,15 +156,6 @@ brokerUsername: ${this.device.credentials.broker.username}
 brokerPassword: ${this.device.credentials.broker.password}
 `
                 }
-            }
-            return result
-        },
-        copyButtonOptions: function () {
-            const result = [
-                { name: 'Device Configuration', action: () => this.copy(this.credentials), disabled: false }
-            ]
-            if (this.otc) {
-                result.push({ name: 'Quick Connect command', action: () => this.copy(this.otcCommand), disabled: false })
             }
             return result
         }

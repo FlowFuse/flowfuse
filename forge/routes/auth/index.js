@@ -100,7 +100,7 @@ async function init (app, opts) {
                     }
                     if (accessToken.ownerType === 'device' && request.session.scope?.includes('device:otc')) {
                         request.session.provisioning = {
-                            quickConnect: true,
+                            otcSetup: true,
                             deviceId: +accessToken.ownerId // convert to number
                         }
                         // delete one time code immediately (spent)

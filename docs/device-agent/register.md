@@ -31,7 +31,7 @@ This dialog contains all the information needed to connect the device to the pla
 
 1. **Copy to Clipboard**:
    * **Device Configuration**. See [Copy method](#copy-method) below.
-   * **Quick Connect command**. See [Quick Connect method](#quick-connect-method) below.
+   * **Setup command**. See [Setup command method](#setup-command-method) below.
 2. **Download Configuration file**:
    * See [Download method](#download-method) below.
 
@@ -60,7 +60,7 @@ the configuration file locally.
 Before you can connect a device to the platform, the device must have
 a **Device Configuration** file or a **Device Provisioning Configuration** 
 file present in its working directory. There are three ways to do this:
-1. Copy the Quick Connect command and run it in a terminal window on the device.
+1. Copy the Setup command and run it in a terminal window on the device.
 2. Copy the configuration file to the device using its built in Web UI.
    * _The Device Agent must be running and the command line flag for the Web UI must be enabled._
    * _See [Command Line Options](./running.md#device-agent-command-line-options) for more information._
@@ -68,11 +68,11 @@ file present in its working directory. There are three ways to do this:
 [Working Directory](./install.md#working-directory).
 
 
-### Quick Connect method
+### Setup command method
 
-The Quick Connect method was introduced in FlowFuse V2.1. This is the fastest way to connect a device to the platform. This method 
+The Setup command method was introduced in FlowFuse V2.1. This is the fastest way to connect a device to the platform.
 
-1. Copy the **Quick Connect** command to the clipboard.
+1. Copy the **Setup** command to the clipboard.
 2. Open a terminal window to the device and paste or type in the command.
 3. The device agent connect to the platform, retrieve the device configuration.
 
@@ -80,8 +80,8 @@ Upon completion, the terminal window will report that the device has connected t
 will output a new `command` for you to use to start the device agent with the new configuration.
 
 NOTES
-* The Quick Connect command is only valid for 24h. If you do not use it within this time, you will need to [regenerate](#regenerating-configurations) it.
-* The 3 word One-Time-Code (OTC) contained in the Quick Connect command is single use and is deleted immediately upon use.
+* The Setup command is only valid for 24h. If you do not use it within this time, you will need to [regenerate](#regenerating-configurations) it.
+* The 3 word One-Time-Code (OTC) contained in the Setup command is single use and is deleted immediately upon use.
 
 ### Copy method
 

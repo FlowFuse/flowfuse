@@ -103,7 +103,7 @@ module.exports = async function (app) {
     })
 
     /**
-     * Create a device (including auto-provisioning and Quick Connect with One-Time-Code)
+     * Create a device (including auto-provisioning and setup with One-Time-Code)
      * @name /api/v1/devices
      * @static
      * @memberof forge.routes.api.devices
@@ -113,11 +113,11 @@ module.exports = async function (app) {
             async (request, reply) => {
                 // * If this is a Device Provisioning action: verify the device has the required scope
                 //   & session has been populated with provisioning data
-                // * If this is a Device Quick connect with a One time code, verify the code is valid and return the credentials
+                // * If this is a Device setup with a One time code, verify the code is valid and return the credentials
                 // * If this is a User action: verify the user has the required role
                 if (request.session.provisioning) {
-                    if (request.session.provisioning?.quickConnect) {
-                        // A request is being made to quick connect a device using a One-Time-Code.
+                    if (request.session.provisioning?.otcSetup) {
+                        // A request is being made to setup a device using a One-Time-Code.
                         // NOTE: If the token (OTC) was not valid, the request would have been rejected by
                         // the verifySession decorator & request.session.provisioning would not be populated
                         // Essentially, we are good to go
@@ -153,13 +153,13 @@ module.exports = async function (app) {
                         allOf: [
                             { required: ['name'] },
                             { required: ['team'] },
-                            { not: { required: ['quickConnect'] } } // quickConnect is not allowed when creating a device
+                            { not: { required: ['setup'] } } // setup is not allowed when creating a device
                         ]
                     },
                     {
                         allOf: [
-                            { required: ['quickConnect'] },
-                            { not: { required: ['name'] } }, // neither of name or team are allowed when quick connecting a device
+                            { required: ['setup'] }, // when provided, setup must be `true` (see enum below)
+                            { not: { required: ['name'] } }, // neither of name or team are allowed when setting up a device
                             { not: { required: ['team'] } }
                         ]
                     }
@@ -168,8 +168,8 @@ module.exports = async function (app) {
                     name: { type: 'string' },
                     type: { type: 'string' },
                     team: { type: 'string' },
-                    quickConnect: { type: 'boolean', enum: [true] }, // enum only permits a value of true
-                    agentHost: { type: 'string' } // optional, for audit log
+                    setup: { type: 'boolean', enum: [true] }, // enum only permits a value of true for setup
+                    agentHost: { type: 'string' } // future, for audit log
                 }
             },
             response: {
@@ -187,11 +187,11 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const provisioningMode = !!request.session.provisioning
-        const quickConnectMode = !!request.body.quickConnect && !!request.session.provisioning
+        const otcSetupMode = request.body.setup === true && request.session.provisioning?.otcSetup === true
         let team, project
         // Additional checks. (initial membership/team/token checks done in preHandler and auth verifySession decorator)
-        if (provisioningMode || quickConnectMode) {
-            if (quickConnectMode) {
+        if (provisioningMode || otcSetupMode) {
+            if (otcSetupMode) {
                 const device = await app.db.models.Device.byId(request.session.provisioning.deviceId)
                 if (device) {
                     const credentials = await device.refreshAuthTokens({ refreshOTC: false })
