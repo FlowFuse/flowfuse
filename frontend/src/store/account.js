@@ -148,6 +148,13 @@ const actions = {
             const user = await userApi.getUser()
             state.commit('login', user)
 
+            if (window._ffhstc) {
+                const _hsq = window._hsq = window._hsq || []
+                _hsq.push(['identify', {
+                    email: user.email,
+                    id: user.id
+                }])
+            }
             // User is logged in
             if (router.currentRoute.value.name === 'VerifyEmail' && user.email_verified === false) {
                 // This page has `meta.requiresLogin = false` as it needs to be
@@ -278,6 +285,9 @@ const actions = {
         userApi.logout()
             .catch(_ => {})
             .finally(() => {
+                if (window._hsq) {
+                    window._hsq.push(['revokeCookieConsent'])
+                }
                 window.location = '/'
             })
     },
