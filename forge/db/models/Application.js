@@ -2,7 +2,7 @@
  * An application definition
  * @namespace forge.db.models.Application
  */
-const { DataTypes, Op } = require('sequelize')
+const { DataTypes, Op, literal } = require('sequelize')
 
 const { KEY_SETTINGS, KEY_HA } = require('./ProjectSettings')
 
@@ -47,7 +47,7 @@ module.exports = {
                         ]
                     })
                 },
-                byTeam: async (teamIdOrHash, { includeInstances = false, includeApplicationDevices = false, includeInstanceStorageFlow = false } = {}) => {
+                byTeam: async (teamIdOrHash, { includeInstances = false, includeApplicationDevices = false, includeInstanceStorageFlow = false, associationsLimit = null } = {}) => {
                     let id = teamIdOrHash
                     if (typeof teamIdOrHash === 'string') {
                         id = M.Team.decodeHashid(teamIdOrHash)
@@ -92,20 +92,56 @@ module.exports = {
                             })
                         }
 
+                        if (associationsLimit) {
+                            include.limit = associationsLimit
+                        }
+
                         includes.push(include)
                     }
 
-                    // Also include devices via device groups and via instances
                     if (includeApplicationDevices) {
-                        includes.push({
+                        const include = {
                             model: M.Device,
                             attributes: ['hashid', 'id', 'name', 'links', 'state', 'updatedAt']
-                        })
+                        }
+
+                        if (associationsLimit) {
+                            include.limit = associationsLimit
+                        }
+
+                        includes.push(include)
                     }
 
-                    return this.findAll({
+                    const query = {
                         include: includes
-                    })
+                    }
+
+                    if (associationsLimit) {
+                        query.attributes = {
+                            include: [
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "Projects" AS "instance"
+                                        WHERE
+                                        "instance"."ApplicationId" = "Application"."id"
+                                    )`),
+                                    'instanceCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "Devices" AS "device"
+                                        WHERE
+                                        "device"."ApplicationId" = "Application"."id"
+                                    )`),
+                                    'deviceCount'
+                                ]
+                            ]
+                        }
+                    }
+
+                    return this.findAll(query)
                 }
             },
             instance: {

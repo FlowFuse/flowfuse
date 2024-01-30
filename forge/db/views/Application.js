@@ -1,3 +1,5 @@
+const { properties } = require('../../containers/wrapper')
+
 module.exports = function (app) {
     app.addSchema({
         $id: 'Application',
@@ -66,24 +68,61 @@ module.exports = function (app) {
         items: {
             type: 'object',
             allOf: [{ $ref: 'ApplicationSummary' }],
-            properties: {
-                instances: { type: 'array', items: { type: 'object', additionalProperties: true } },
-                devices: { type: 'array', items: { type: 'object', additionalProperties: true } }
-            },
+            anyOf: [{ // should be oneOf but blocked by https://github.com/fastify/fast-json-stringify/issues/642
+                properties: {
+                    instances: { $ref: 'InstanceSummaryList' },
+                    devices: { $ref: 'DeviceSummaryList' }
+                }
+            }, {
+                properties: {
+                    instancesSummary: {
+                        type: 'object',
+                        properties: {
+                            count: { type: 'number' },
+                            instances: { $ref: 'InstanceSummaryList' }
+                        }
+                    },
+                    devicesSummary: {
+                        type: 'object',
+                        properties: {
+                            count: { type: 'number' },
+                            devices: { $ref: 'DeviceSummaryList' }
+                        }
+                    }
+                }
+            }],
             additionalProperties: true
         }
     })
-    async function teamApplicationList (applications, { includeInstances = false, includeApplicationDevices = false } = {}) {
-        return applications.map((application) => {
+    async function teamApplicationList (applications, { includeInstances = false, includeApplicationDevices = false, associationsLimit = null } = {}) {
+        const outout = applications.map((application) => {
             const summary = applicationSummary(application)
             if (includeInstances) {
-                summary.instances = app.db.views.Project.instancesSummaryList(application.Instances)
+                if (associationsLimit) {
+                    summary.instancesSummary = {
+                        instances: app.db.views.Project.instancesSummaryList(application.Instances),
+                        count: application.get('instanceCount')
+                    }
+                } else {
+                    summary.instances = app.db.views.Project.instancesSummaryList(application.Instances)
+                }
             }
             if (includeApplicationDevices) {
-                summary.devices = application.Devices.map(app.db.views.Device.deviceSummary)
+                if (associationsLimit) {
+                    summary.devicesSummary = {
+                        devices: application.Devices.map(app.db.views.Device.deviceSummary),
+                        count: application.get('deviceCount')
+                    }
+                } else {
+                    summary.devices = application.Devices.map(app.db.views.Device.deviceSummary)
+                }
             }
             return summary
         })
+
+        console.log(outout)
+
+        return outout
     }
 
     app.addSchema({

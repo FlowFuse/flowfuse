@@ -260,6 +260,9 @@ module.exports = async function (app) {
         schema: {
             summary: 'Get a list of the teams applications',
             tags: ['Teams'],
+            query: {
+                associationsLimit: { type: 'number' }
+            },
             params: {
                 type: 'object',
                 properties: {
@@ -283,13 +286,14 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const includeInstances = true
         const includeApplicationDevices = true
+        const associationsLimit = request.query.associationsLimit
 
-        const applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances, includeApplicationDevices })
+        const applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances, includeApplicationDevices, associationsLimit })
 
         reply.send({
             // meta: {},
             count: applications.length,
-            applications: await app.db.views.Application.teamApplicationList(applications, { includeInstances, includeApplicationDevices })
+            applications: await app.db.views.Application.teamApplicationList(applications, { includeInstances, includeApplicationDevices, associationsLimit })
         })
     })
 

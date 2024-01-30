@@ -107,6 +107,13 @@ module.exports = function (app) {
             links: { $ref: 'LinksMeta' }
         }
     })
+    app.addSchema({
+        $id: 'DeviceSummaryList',
+        type: 'array',
+        items: {
+            $ref: 'DeviceSummary'
+        }
+    })
     function deviceSummary (device, { includeSnapshotIds = false } = {}) {
         if (device) {
             const result = device.toJSON ? device.toJSON() : device
