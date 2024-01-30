@@ -75,6 +75,11 @@ class DeviceCommsHandler {
                 const payload = JSON.parse(status.status)
                 await this.app.db.controllers.Device.updateState(device, payload)
 
+                if (payload === null) {
+                    // This device is busy updating - don't interrupt it
+                    return
+                }
+
                 // If the status state===unknown, the device is waiting for confirmation
                 // it has the right details. Always response with an 'update' command in
                 // this scenario
