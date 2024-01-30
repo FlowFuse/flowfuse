@@ -135,8 +135,42 @@ module.exports = function (app) {
         }
     }
 
+    app.addSchema({
+        $id: 'DeviceStatus',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            lastSeenAt: { nullable: true, type: 'string' },
+            lastSeenMs: { nullable: true, type: 'number' },
+            status: { type: 'string' },
+            mode: { type: 'string' },
+            isDeploying: { type: 'boolean' }
+        }
+    })
+    app.addSchema({
+        $id: 'DeviceStatusList',
+        type: 'array',
+        items: {
+            $ref: 'DeviceStatus'
+        }
+    })
+    async function deviceStatusList (devicesArray) {
+        return devicesArray.map((device) => {
+            const summary = deviceSummary(device)
+            return {
+                id: summary.id,
+                lastSeenAt: summary.lastSeenAt,
+                lastSeenMs: summary.lastSeenMs,
+                status: summary.status,
+                mode: summary.mode,
+                isDeploying: summary.isDeploying
+            }
+        })
+    }
+
     return {
         device,
-        deviceSummary
+        deviceSummary,
+        deviceStatusList
     }
 }

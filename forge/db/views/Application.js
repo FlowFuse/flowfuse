@@ -92,7 +92,7 @@ module.exports = function (app) {
         }
     })
     async function teamApplicationList (applications, { includeInstances = false, includeApplicationDevices = false, associationsLimit = null } = {}) {
-        const outout = applications.map((application) => {
+        return applications.map((application) => {
             const summary = applicationSummary(application)
             if (includeInstances) {
                 if (associationsLimit) {
@@ -116,37 +116,35 @@ module.exports = function (app) {
             }
             return summary
         })
-
-        console.log(outout)
-
-        return outout
     }
 
     app.addSchema({
-        $id: 'ApplicationInstanceStatusList',
+        $id: 'ApplicationAssociationsStatusList',
         type: 'array',
         items: {
             type: 'object',
             allOf: [{ $ref: 'ApplicationSummary' }],
             properties: {
                 id: { type: 'string' },
-                instances: { $ref: 'InstanceStatusList' }
+                instances: { $ref: 'InstanceStatusList' },
+                devices: { $ref: 'DeviceStatusList' }
             },
             additionalProperties: true
         }
     })
-    async function applicationInstanceStatusList (applicationsArray) {
+    async function applicationAssociationsStatusList (applicationsArray) {
         return Promise.all(applicationsArray.map(async (application) => {
             return {
                 id: application.hashid,
-                instances: await app.db.views.Project.instanceStatusList(application.Instances)
+                instances: await app.db.views.Project.instanceStatusList(application.Instances),
+                devices: await app.db.views.Device.deviceStatusList(application.Devices)
             }
         }))
     }
 
     return {
         application,
-        applicationInstanceStatusList,
+        applicationAssociationsStatusList,
         teamApplicationList,
         applicationSummary
     }

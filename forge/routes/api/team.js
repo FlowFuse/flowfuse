@@ -291,14 +291,13 @@ module.exports = async function (app) {
         const applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances, includeApplicationDevices, associationsLimit })
 
         reply.send({
-            // meta: {},
             count: applications.length,
             applications: await app.db.views.Application.teamApplicationList(applications, { includeInstances, includeApplicationDevices, associationsLimit })
         })
     })
 
     /**
-     * List team appplication instances statuses
+     * List team application associations (devices and instances) statuses
      * @name /api/v1/teams:teamId/applications/status
      * @memberof forge.routes.api.application
      */
@@ -307,6 +306,9 @@ module.exports = async function (app) {
         schema: {
             summary: 'Get a list of the teams applications statuses',
             tags: ['Teams'],
+            query: {
+                associationsLimit: { type: 'number' }
+            },
             params: {
                 type: 'object',
                 properties: {
@@ -319,7 +321,7 @@ module.exports = async function (app) {
                     properties: {
                         // meta: { $ref: 'PaginationMeta' },
                         count: { type: 'number' },
-                        applications: { $ref: 'ApplicationInstanceStatusList' }
+                        applications: { $ref: 'ApplicationAssociationsStatusList' }
                     }
                 },
                 '4xx': {
@@ -328,15 +330,18 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances: true, includeInstanceStorageFlow: true })
+        const includeInstances = true
+        const includeApplicationDevices = true
+        const associationsLimit = request.query.associationsLimit
+
+        const applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances, includeApplicationDevices, includeInstanceStorageFlow: true, associationsLimit })
         if (!applications) {
             return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
-        const instancesByApplicationWithStatus = await app.db.views.Application.applicationInstanceStatusList(applications)
+        const applicationsWithAssociationsStatuses = await app.db.views.Application.applicationAssociationsStatusList(applications)
         reply.send({
-            // meta: {},
-            count: instancesByApplicationWithStatus.length,
-            applications: instancesByApplicationWithStatus
+            count: applicationsWithAssociationsStatuses.length,
+            applications: applicationsWithAssociationsStatuses
         })
     })
 

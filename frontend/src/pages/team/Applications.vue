@@ -42,7 +42,7 @@
                             <span class="!inline-block !flex-shrink !flex-grow italic text-gray-500 dark:text-gray-400 truncate"> {{ application.description }} </span>
                             <label class="!inline-block italic text-gray-400 text-sm whitespace-nowrap flex-shrink-0 flex-grow-0">
                                 {{ application.instanceCount }} Instance{{ application.instanceCount === 1 ? '' : 's' }},
-                                {{ application.deviceCount }} Device{{ application.deviceCount === 1 ? '' : 's' }}associationsLimit
+                                {{ application.deviceCount }} Device{{ application.deviceCount === 1 ? '' : 's' }}
                             </label>
                         </div>
                         <ul v-if="application.instances.size > 0" class="ff-applications-list-instances">
@@ -153,6 +153,9 @@ import permissionsMixin from '../../mixins/Permissions.js'
 import Alerts from '../../services/alerts.js'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 import InstanceEditorLinkCell from '../instance/components/cells/InstanceEditorLink.vue'
+
+const ASSOCIATIONS_LIMIT = 3
+
 export default {
     name: 'TeamApplications',
     components: {
@@ -205,7 +208,7 @@ export default {
             if (this.team.id) {
                 this.applications = new Map()
 
-                const applicationsPromise = teamApi.getTeamApplications(this.team.id, { associationsLimit: 3 })
+                const applicationsPromise = teamApi.getTeamApplications(this.team.id, { associationsLimit: ASSOCIATIONS_LIMIT })
 
                 // Not waited for as it can resolve in any order
                 this.updateInstanceStatuses()
@@ -247,19 +250,31 @@ export default {
             this.loading = false
         },
         async updateInstanceStatuses () {
-            const instanceStatusesByApplication = (await teamApi.getTeamApplicationsInstanceStatuses(this.team.id)).applications
+            const applicationsAssociationsStatuses = (await teamApi.getTeamApplicationsAssociationsStatuses(this.team.id, { associationsLimit: ASSOCIATIONS_LIMIT })).applications
 
-            instanceStatusesByApplication.forEach((applicationData) => {
+            applicationsAssociationsStatuses.forEach((applicationData) => {
                 const application = this.applications.get(applicationData.id) || {}
+
                 if (!application.instances) {
                     application.instances = new Map()
                 }
 
-                const { instances: instanceStatuses, ...applicationProps } = applicationData
+                if (!application.devices) {
+                    application.devices = new Map()
+                }
+
+                const { instances: instanceStatuses, devices: deviceStatuses, ...applicationProps } = applicationData
                 instanceStatuses.forEach((instanceStatusData) => {
                     application.instances.set(instanceStatusData.id, {
                         ...application.instances.get(instanceStatusData.id),
                         ...instanceStatusData
+                    })
+                })
+
+                deviceStatuses.forEach((deviceStatusData) => {
+                    application.devices.set(deviceStatusData.id, {
+                        ...application.devices.get(deviceStatusData.id),
+                        ...deviceStatusData
                     })
                 })
 
