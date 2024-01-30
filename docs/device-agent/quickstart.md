@@ -17,18 +17,18 @@ Windows:
 mkdir c:\opt\flowfuse-device
 cd c:\opt\flowfuse-device
 npm install -g @flowfuse/device-agent
-flowfuse-device-agent -w --ui-user admin --ui-pass password --ui-port 8081
+flowfuse-device-agent -ui --ui-user admin --ui-pass password --ui-port 8081
 ```
 Linux/MacOS:
 ```bash
 mkdir /opt/flowfuse-device
 cd /opt/flowfuse-device
 npm install -g @flowfuse/device-agent
-flowfuse-device-agent -w --ui-user admin --ui-pass password --ui-port 8081
+flowfuse-device-agent -ui --ui-user admin --ui-pass password --ui-port 8081
 ```
 
 Note: The flags used in the command above have the following meanings:
-- `-ui`: Run the device agent in web user interface mode.
+- `-ui`: Start the device agents web-based user interface.
 - `--ui-user`: Specify the username for the web user interface.
 - `--ui-pass`: Specify the password for the web user interface.
 - `--ui-port`: Specify the port for the web user interface.
@@ -43,9 +43,9 @@ Note: The flags used in the command above have the following meanings:
 <img src="images/add_device.png" width=500 />
 
 ### Configure Device Agent
-1. Click **Copy to Clipboard** and copy the **Device Configuration**.
+1. Expand the Manual setup section, click the **Copy** button below the **Device Configuration**.
 
-<img src="images/config_yml.png" width=500 />
+<img src="images/config_yml2.png" width=500 />
 
 2. Open a new browser tab and navigate to the IP address of the device using the port defined when starting up the device agent.  **\<\<ip of device>>:\<\<port>>**, e.g., localhost:8081
 3. Paste the copied device configuration into the **Agent Configuration** field. This configuration contains vital information instructing the device on how to communicate with FlowFuse. It's crucial to keep this information secure and not share it with unauthorized individuals.

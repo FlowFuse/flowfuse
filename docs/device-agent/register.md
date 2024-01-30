@@ -23,17 +23,15 @@ _for a single device_
    * If you do not wish to assign the device to an **Application** at this time, you can do so later.
 4. Click **Add**
 
-Once the device has been registered, you will be shown the **Device Configuration** dialog.
+Once the device has been registered, you will be shown the **Device Configuration** dialog which
+contains all the information needed to connect the device to the platform.
 
-<img src="images/config_yml.png" width=500 />
+By default, you are offered the [Setup command](#setup-command-method) method that was introduced in FlowFuse V2.1.
+<img src="images/config_yml1.png" width=500 />
 
-This dialog contains all the information needed to connect the device to the platform and provides the following options:
-
-1. **Copy to Clipboard**:
-   * **Device Configuration**. See [Copy method](#copy-method) below.
-   * **Setup command**. See [Setup command method](#setup-command-method) below.
-2. **Download Configuration file**:
-   * See [Download method](#download-method) below.
+For older versions of the device agent, you can expand the the **Manual Setup** section
+and use the configuration data with the [Copy](#copy-method) or the [Download](#download-method) methods instead.
+<img src="images/config_yml2.png" width=500 />
 
 Repeat these steps for each device you want to connect to the platform.
 
@@ -176,7 +174,7 @@ To regenerate device configurations:
    running. Click **Regenerate Configuration** to continue.
 
 You will then be shown the **Device Configuration** dialog again with a new
-configuration to copy or download.
+setup command and the manual configuration to copy or download.
 
 ## Deleting a device
 
