@@ -76,7 +76,7 @@ const deleteTeam = async (teamId) => {
  * @param {string} teamId The Team ID (hash) to get applications and instances for
  * @returns An array of application objects containing an array of instances
  */
-const getTeamApplications = async (teamId, { associationsLimit = 1 } = {}) => {
+const getTeamApplications = async (teamId, { associationsLimit } = {}) => {
     const options = {}
     if (associationsLimit) {
         options.params = { associationsLimit }

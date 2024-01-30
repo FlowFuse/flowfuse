@@ -204,7 +204,7 @@ export default {
             if (this.team.id) {
                 this.applications = new Map()
 
-                const applicationsPromise = teamApi.getTeamApplications(this.team.id)
+                const applicationsPromise = teamApi.getTeamApplications(this.team.id, { associationsLimit: 3 })
 
                 // Not waited for as it can resolve in any order
                 this.updateInstanceStatuses()
@@ -216,8 +216,8 @@ export default {
                         application.instances = new Map()
                     }
 
-                    const { instances, devices, ...applicationProps } = applicationData
-                    instances.forEach((instanceData) => {
+                    const { instancesSummary, devicesSummary, ...applicationProps } = applicationData
+                    instancesSummary.instances.forEach((instanceData) => {
                         application.instances.set(instanceData.id, {
                             ...application.instances.get(instanceData.id),
                             ...instanceData
@@ -227,7 +227,7 @@ export default {
                     if (!application.devices) {
                         application.devices = new Map()
                     }
-                    devices.forEach((deviceData) => {
+                    devicesSummary.devices.forEach((deviceData) => {
                         application.devices.set(deviceData.id, {
                             ...application.devices.get(deviceData.id),
                             ...deviceData
