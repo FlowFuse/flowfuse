@@ -14,7 +14,7 @@
                 <template v-if="hasCredentials">
                     <template v-if="otc">
                         <p>
-                            With the <a href="https://flowfuse.com/docs/device-agent/">FlowFuse Device Agent</a> installed on your device, run the following command to setup its connection to the platform:
+                            With the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">FlowFuse Device Agent</a> installed on your device, run the following command to setup its connection to the platform:
                         </p>
                         <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">{{ otcCommand }}</pre>
                         <div class="flex flex-row justify-end space-x-2 -mt-1">
@@ -35,7 +35,7 @@
                             <summary class="mt-6">Manual setup...</summary>
                             <p class="mt-4">
                                 Place the below configuration on your device.
-                                See the <a href="https://flowfuse.com/docs/device-agent/">device agent documentation</a> for instructions on how to do this.
+                                See the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">Device Agent documentation</a> for instructions on how to do this.
                             </p>
                             <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
                             <div class="flex flex-row justify-end space-x-2 -mt-1">
@@ -53,7 +53,7 @@
                     <template v-else>
                         <p>
                             Place the below configuration on your device.
-                            See the <a href="https://flowfuse.com/docs/device-agent/">device agent documentation</a> for instructions on how to do this.
+                            See the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">Device Agent documentation</a> for instructions on how to do this.
                         </p>
                         <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
                         <div class="flex flex-row justify-end space-x-2 -mt-1">
