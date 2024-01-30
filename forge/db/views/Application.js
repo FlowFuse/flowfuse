@@ -68,29 +68,26 @@ module.exports = function (app) {
         items: {
             type: 'object',
             allOf: [{ $ref: 'ApplicationSummary' }],
-            anyOf: [{ // should be oneOf but blocked by https://github.com/fastify/fast-json-stringify/issues/642
-                properties: {
-                    instances: { $ref: 'InstanceSummaryList' },
-                    devices: { $ref: 'DeviceSummaryList' }
-                }
-            }, {
-                properties: {
-                    instancesSummary: {
-                        type: 'object',
-                        properties: {
-                            count: { type: 'number' },
-                            instances: { $ref: 'InstanceSummaryList' }
-                        }
-                    },
-                    devicesSummary: {
-                        type: 'object',
-                        properties: {
-                            count: { type: 'number' },
-                            devices: { $ref: 'DeviceSummaryList' }
-                        }
+            properties: {
+                instances: { $ref: 'InstanceSummaryList' },
+                devices: { $ref: 'DeviceSummaryList' },
+
+                // should be using oneOf but blocked by https://github.com/fastify/fast-json-stringify/issues/642
+                instancesSummary: {
+                    type: 'object',
+                    properties: {
+                        count: { type: 'number' },
+                        instances: { $ref: 'InstanceSummaryList' }
+                    }
+                },
+                devicesSummary: {
+                    type: 'object',
+                    properties: {
+                        count: { type: 'number' },
+                        devices: { $ref: 'DeviceSummaryList' }
                     }
                 }
-            }],
+            },
             additionalProperties: true
         }
     })
