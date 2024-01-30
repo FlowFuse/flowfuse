@@ -110,3 +110,13 @@ rate_limits:
 # Create Default Admin                          #
 #################################################
 # create_admin: false
+
+#################################################
+# Support Widget Configuration                  #
+#################################################
+
+support:
+  enabled: true
+  frontend:
+    hubspot:
+      trackingcode: 26586079

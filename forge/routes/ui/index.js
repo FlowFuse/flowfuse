@@ -26,6 +26,7 @@ module.exports = async function (app) {
      * Inject Analytics Tools
      * feConfig - the 'frontend' portion of our flowforge.yml
      */
+
     async function injectAnalytics (config) {
         if (!cachedIndex) {
             const telemetry = config.telemetry
@@ -60,9 +61,27 @@ module.exports = async function (app) {
 
             if (support?.enabled && support.frontend?.hubspot?.trackingcode) {
                 const trackingCode = support.frontend.hubspot.trackingcode
+
+                const hubspotScript = `
+                <script type="text/javascript">
+                    document.addEventListener('DOMContentLoaded', function() {
+                        fetch('/api/v1/user')
+                            .then(response => response.json())
+                            .then(user => {
+                                var _hsq = window._hsq = window._hsq || [];
+                                _hsq.push(["identify",{
+                                    email: user.email,
+                                    id: user.id
+                                }]);
+                            })
+                            .catch(error => console.error('Error:', error));
+                    });
+                </script>`
+
                 injection += `<!-- Start of HubSpot Embed Code -->
                 <script type="text/javascript" id="hs-script-loader" async defer src="//js-eu1.hs-scripts.com/${trackingCode}.js"></script>
-              <!-- End of HubSpot Embed Code -->`
+                ${hubspotScript}
+                <!-- End of HubSpot Embed Code -->`
             }
 
             if (telemetry.frontend?.sentry?.dsn) {
