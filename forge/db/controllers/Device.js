@@ -15,7 +15,7 @@ module.exports = {
         device.set('lastSeenAt', literal('CURRENT_TIMESTAMP'))
         if (!state) {
             // We have received a `null` state from the device. That means it
-            // is busy updating itself. Update out local state to infer as much
+            // is busy updating itself. Update our local state to infer as much
             // as we can from that
             device.set('state', 'updating')
         } else {
