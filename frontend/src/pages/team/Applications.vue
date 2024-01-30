@@ -41,7 +41,8 @@
                             <span class="flex flex-shrink-0 flex-grow-0 whitespace-nowrap"><TemplateIcon class="ff-icon text-gray-600" />{{ application.name }}</span>
                             <span class="!inline-block !flex-shrink !flex-grow italic text-gray-500 dark:text-gray-400 truncate"> {{ application.description }} </span>
                             <label class="!inline-block italic text-gray-400 text-sm whitespace-nowrap flex-shrink-0 flex-grow-0">
-                                {{ application.instances.size }} Instance{{ application.instances.size === 1 ? '' : 's' }}
+                                {{ application.instanceCount }} Instance{{ application.instanceCount === 1 ? '' : 's' }},
+                                {{ application.deviceCount }} Device{{ application.deviceCount === 1 ? '' : 's' }}associationsLimit
                             </label>
                         </div>
                         <ul v-if="application.instances.size > 0" class="ff-applications-list-instances">
@@ -233,6 +234,9 @@ export default {
                             ...deviceData
                         })
                     })
+
+                    application.instanceCount = instancesSummary.count
+                    application.deviceCount = devicesSummary.count
 
                     this.applications.set(applicationData.id, {
                         ...application,
