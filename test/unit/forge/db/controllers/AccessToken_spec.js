@@ -153,6 +153,21 @@ describe('AccessToken controller', function () {
                 token.expiresAt.getTime().should.be.above(Date.now() + (1000 * 60 * 60 * 23)) // 23 hours
                 token.expiresAt.getTime().should.be.below(Date.now() + (1000 * 60 * 60 * 25)) // 25 hours
             })
+            it.only('returns null for unknown token', async function () {
+                ;(await app.db.models.AccessToken.count()).should.equal(0)
+                const dbDevice = await app.db.models.Device.byId(TestObjects.device.hashid)
+                const originalCredentials = await dbDevice.refreshAuthTokens({ refreshOTC: true })
+                ;(await app.db.models.AccessToken.count()).should.equal(2) // should have 2 tokens, one for the device, one for the otc
+
+                // check otc was actually created
+                originalCredentials.should.have.property('otc').and.be.a.String()
+
+                const badOTC = originalCredentials.otc + '-bad'
+                const otcBase64 = Buffer.from(badOTC).toString('base64')
+
+                const token = await AccessTokenController.getOrExpire(otcBase64)
+                should(token).be.null()
+            })
             it('recreates one-time-code token, there can only be one', async function () {
                 // Premise:
                 // A device can only have one otc at a time in the AccessToken table

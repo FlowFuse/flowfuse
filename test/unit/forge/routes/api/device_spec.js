@@ -466,6 +466,33 @@ describe('Device API', async function () {
             const accessTokenAfter = await app.db.models.AccessToken.findOne(otcTokenClause)
             should.not.exist(accessTokenAfter)
         })
+        it.only('returns 404 for invalid OTC', async function () {
+            // create an app device, generate one-time-code for quick connect
+            const device1 = await factory.createDevice({ name: 'device1' }, TestObjects.ATeam, null, TestObjects.Application1)
+            const dbDevice = await app.db.models.Device.byId(device1.hashid)
+            const initialCredentials = await dbDevice.refreshAuthTokens({ refreshOTC: true })
+            const otc = initialCredentials.otc
+            // attempt to quick connect the device using a bad one-time-code
+            const badOtcToken = Buffer.from(otc + 'bad').toString('base64')
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/devices',
+                body: {
+                    setup: true
+                },
+                headers: {
+                    Authorization: `Bearer ${badOtcToken}`
+                }
+            })
+
+            response.statusCode.should.equal(401)
+
+            // ensure token is not spent
+            const otcToken = Buffer.from(otc).toString('base64')
+            const otcTokenClause = { where: { token: sha256(otcToken) } }
+            const accessTokenBefore = await app.db.models.AccessToken.findOne(otcTokenClause)
+            should.exist(accessTokenBefore)
+        })
     })
 
     describe('Get device details', async function () {
