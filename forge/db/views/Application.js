@@ -1,5 +1,3 @@
-const { properties } = require('../../containers/wrapper')
-
 module.exports = function (app) {
     app.addSchema({
         $id: 'Application',

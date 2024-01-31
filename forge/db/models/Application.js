@@ -94,6 +94,20 @@ module.exports = {
 
                         if (associationsLimit) {
                             include.limit = associationsLimit
+                            include.order = [['mostRecentAuditLogCreatedAt', 'DESC'], ['updatedAt', 'DESC']]
+                            include.attributes = {
+                                include: [...include.attributes, [
+                                    literal(`(
+                                        SELECT createdAt
+                                        FROM "AuditLogs"
+                                        WHERE "AuditLogs"."entityId" = "project"."id"
+                                        AND "AuditLogs"."entityType" = 'project'
+                                        ORDER BY "createdAt" DESC
+                                        LIMIT 1
+                                    )`),
+                                    'mostRecentAuditLogCreatedAt'
+                                ]]
+                            }
                         }
 
                         includes.push(include)
@@ -107,6 +121,20 @@ module.exports = {
 
                         if (associationsLimit) {
                             include.limit = associationsLimit
+                            include.order = [['mostRecentAuditLogCreatedAt', 'DESC'], ['updatedAt', 'DESC']]
+                            include.attributes = {
+                                include: [...include.attributes, [
+                                    literal(`(
+                                        SELECT createdAt
+                                        FROM "AuditLogs"
+                                        WHERE "AuditLogs"."entityId" = "device"."id"
+                                        AND "AuditLogs"."entityType" = 'device'
+                                        ORDER BY "createdAt" DESC
+                                        LIMIT 1
+                                    )`),
+                                    'mostRecentAuditLogCreatedAt'
+                                ]]
+                            }
                         }
 
                         includes.push(include)
