@@ -134,7 +134,8 @@ module.exports = function (app) {
                 type: 'object',
                 additionalProperties: true
             },
-            mostRecentAuditLogCreatedAt: { type: 'string' }
+            mostRecentAuditLogCreatedAt: { type: 'string' },
+            mostRecentAuditLogEvent: { type: 'string' }
         }
     })
     function projectSummary (project) {
@@ -148,6 +149,9 @@ module.exports = function (app) {
         }
         if (project.get('mostRecentAuditLogCreatedAt')) {
             result.mostRecentAuditLogCreatedAt = new Date(project.get('mostRecentAuditLogCreatedAt'))
+        }
+        if (project.get('mostRecentAuditLogEvent')) {
+            result.mostRecentAuditLogEvent = project.get('mostRecentAuditLogEvent')
         }
         const settingsSettingsRow = project.ProjectSettings?.find((projectSettingsRow) => projectSettingsRow.key === KEY_SETTINGS)
         if (settingsSettingsRow) {

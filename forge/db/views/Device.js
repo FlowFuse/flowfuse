@@ -105,7 +105,8 @@ module.exports = function (app) {
             mode: { type: 'string' },
             isDeploying: { type: 'boolean' },
             links: { $ref: 'LinksMeta' },
-            mostRecentAuditLogCreatedAt: { type: 'string' }
+            mostRecentAuditLogCreatedAt: { type: 'string' },
+            mostRecentAuditLogEvent: { type: 'string' }
         }
     })
     app.addSchema({
@@ -132,6 +133,9 @@ module.exports = function (app) {
             }
             if (device.get('mostRecentAuditLogCreatedAt')) {
                 filtered.mostRecentAuditLogCreatedAt = new Date(device.get('mostRecentAuditLogCreatedAt'))
+            }
+            if (device.get('mostRecentAuditLogEvent')) {
+                filtered.mostRecentAuditLogEvent = device.get('mostRecentAuditLogEvent')
             }
             return filtered
         } else {

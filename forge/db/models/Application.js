@@ -106,6 +106,16 @@ module.exports = {
                                         LIMIT 1
                                     )`),
                                     'mostRecentAuditLogCreatedAt'
+                                ], [
+                                    literal(`(
+                                        SELECT event
+                                        FROM "AuditLogs"
+                                        WHERE "AuditLogs"."entityId" = "project"."id"
+                                        AND "AuditLogs"."entityType" = 'project'
+                                        ORDER BY "createdAt" DESC
+                                        LIMIT 1
+                                    )`),
+                                    'mostRecentAuditLogEvent'
                                 ]]
                             }
                         }
@@ -133,6 +143,16 @@ module.exports = {
                                         LIMIT 1
                                     )`),
                                     'mostRecentAuditLogCreatedAt'
+                                ], [
+                                    literal(`(
+                                        SELECT event
+                                        FROM "AuditLogs"
+                                        WHERE "AuditLogs"."entityId" = "device"."id"
+                                        AND "AuditLogs"."entityType" = 'device'
+                                        ORDER BY "createdAt" DESC
+                                        LIMIT 1
+                                    )`),
+                                    'mostRecentAuditLogEvent'
                                 ]]
                             }
                         }
