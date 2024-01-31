@@ -466,7 +466,7 @@ describe('Device API', async function () {
             const accessTokenAfter = await app.db.models.AccessToken.findOne(otcTokenClause)
             should.not.exist(accessTokenAfter)
         })
-        it.only('returns 404 for invalid OTC', async function () {
+        it('returns 404 for invalid OTC', async function () {
             // create an app device, generate one-time-code for quick connect
             const device1 = await factory.createDevice({ name: 'device1' }, TestObjects.ATeam, null, TestObjects.Application1)
             const dbDevice = await app.db.models.Device.byId(device1.hashid)

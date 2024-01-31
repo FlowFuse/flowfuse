@@ -153,7 +153,7 @@ describe('AccessToken controller', function () {
                 token.expiresAt.getTime().should.be.above(Date.now() + (1000 * 60 * 60 * 23)) // 23 hours
                 token.expiresAt.getTime().should.be.below(Date.now() + (1000 * 60 * 60 * 25)) // 25 hours
             })
-            it.only('returns null for unknown token', async function () {
+            it('returns null for unknown token', async function () {
                 ;(await app.db.models.AccessToken.count()).should.equal(0)
                 const dbDevice = await app.db.models.Device.byId(TestObjects.device.hashid)
                 const originalCredentials = await dbDevice.refreshAuthTokens({ refreshOTC: true })
