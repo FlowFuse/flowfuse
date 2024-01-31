@@ -195,12 +195,18 @@ describe('DeviceCommsHandler', function () {
             client.clearReceived()
         })
         it('tells a device to stop if it sends logs without active sockets', async function () {
+            this.timeout(35000)
             client.emit('logs/device', {
                 id: TestObjects.device.hashid,
                 logs: 'mxx'
             })
             // This task happens asynchronously - so need to give it a chance
             // to happen
+            await sleep(31000)
+            client.emit('logs/device', {
+                id: TestObjects.device.hashid,
+                logs: 'mxx'
+            })
             await sleep(100)
             const msg = client.received()[0]
             msg.should.have.property('topic', `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.device.hashid}/command`)
