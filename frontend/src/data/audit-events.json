@@ -138,5 +138,6 @@
         "device.developer-mode.enabled": "Developer Mode Enabled",
         "device.remote-access.disabled": "Remote Access Disabled",
         "device.remote-access.enabled": "Remote Access Enabled",
+        "device.assigned": "Device Assigned"
     }
 }
