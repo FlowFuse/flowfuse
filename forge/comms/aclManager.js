@@ -112,7 +112,9 @@ module.exports = function (app) {
                 // - ff/v1/<team>/d/<device>/logs
                 { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/logs$/ },
                 // Receive broadcast response notification
-                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/response(\/[^/]+)?$/ }
+                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/response(\/[^/]+)?$/ },
+                // ff/v1/<team>/d/<device>/logs/heartbeat
+                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/logs\/heartbeat$/ }
             ],
             pub: [
                 // Send commands to project launchers
@@ -162,15 +164,27 @@ module.exports = function (app) {
                 // - ff/v1/<team>/d/<device>/response[/<instance>]
                 { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/response(\/[^/]+)?$/, verify: 'checkTeamAndObjectIds' }
             ]
+        },
+        frontend: {
+            // TODO check the verify function is safe
+            sub: [
+                // - ff/v1/<team>/d/<device/logs
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/logs$/, verify: 'checkDeviceIsAssigned' }
+            ],
+            pub: [
+                // - ff/v1/<team>/d/<device/logs/heartbeat
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/logs\/heartbeat$/, verify: 'checkDeviceIsAssigned' }
+            ]
         }
     }
 
     return {
         verify: async function (username, topic, accessLevel) {
-            // Three types of client
+            // Four types of client
             // - forge_platform
             // - project:<teamid>:<projectid>
             // - device:<teamid>:<deviceid>
+            // - frontend:<teamid>:<deviceid>
 
             let allowed = false
             let aclList = []
@@ -184,6 +198,8 @@ module.exports = function (app) {
                 aclList = ACLS.project[aclType]
             } else if (/^device:/.test(username)) {
                 aclList = ACLS.device[aclType]
+            } else if (/^frontend:/.test(username)) {
+                aclList = ACLS.frontend[aclType]
             } else {
                 return false
             }

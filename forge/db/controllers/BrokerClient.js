@@ -7,9 +7,12 @@ module.exports = {
     authenticateCredentials: async function (app, username, password) {
         const user = await app.db.models.BrokerClient.findOne({
             where: { username },
-            attributes: ['password']
+            attributes: ['username', 'password']
         })
         if (compareHash(password || '', user ? user.password : '')) {
+            if (username.startsWith('frontend:')) {
+                await user.destroy()
+            }
             return true
         }
         return false
@@ -102,6 +105,35 @@ module.exports = {
             })
             return {
                 // Devices should default to the public url if set
+                url: app.config.broker.public_url || app.config.broker.url || null,
+                username,
+                password
+            }
+        }
+        return null
+    },
+
+    createClientForFrontend: async function (app, device) {
+        if (app.comms) {
+            const existingClient = await app.db.models.BrokerClient.findOne({
+                where: {
+                    ownerId: '' + device.id,
+                    ownerType: 'frontend'
+                }
+            })
+            if (existingClient) {
+                await existingClient.destroy()
+            }
+
+            const username = `frontend:${device.Team.hashid}:${device.hashid}`
+            const password = generateToken(32, 'ffbf')
+            await app.db.models.BrokerClient.create({
+                username,
+                password,
+                ownerId: '' + device.id,
+                ownerType: 'frontend'
+            })
+            return {
                 url: app.config.broker.public_url || app.config.broker.url || null,
                 username,
                 password

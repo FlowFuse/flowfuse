@@ -57,10 +57,18 @@ class CommsClient extends EventEmitter {
                             status: message.toString()
                         })
                     } else if (messageType === 'logs') {
-                        this.emit('logs/device', {
-                            id: ownerId,
-                            logs: message.toString()
-                        })
+                        if (topicParts[6] && topicParts[6] === 'heartbeat') {
+                            // track frontends
+                            this.emit('logs/heartbeat', {
+                                id: `${topicParts[2]}:${ownerId}`,
+                                timestamp: Date.now()
+                            })
+                        } else {
+                            this.emit('logs/device', {
+                                id: ownerId,
+                                logs: message.toString()
+                            })
+                        }
                     } else if (messageType === 'response') {
                         const response = {
                             id: ownerId,
@@ -78,7 +86,9 @@ class CommsClient extends EventEmitter {
                 // Device logs - not shared subscription
                 'ff/v1/+/d/+/logs',
                 // Device response - not shared subscription
-                'ff/v1/+/d/+/response/' + this.platformId
+                'ff/v1/+/d/+/response/' + this.platformId,
+                // Device logs heartbeat
+                'ff/v1/+/d/+/logs/heartbeat'
             ])
         }
     }

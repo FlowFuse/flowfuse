@@ -592,6 +592,39 @@ module.exports = async function (app) {
         app.comms.devices.streamLogs(team.hashid, request.device.hashid, connection.socket)
     })
 
+    app.post('/:deviceId/logs', {
+        preHandler: app.needsPermission('device:read'),
+        schema: {
+            summary: 'Start device logging',
+            tags: ['Devices'],
+            params: {
+                type: 'object',
+                properties: {
+                    deviceId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        url: { type: 'string' },
+                        username: { type: 'string' },
+                        password: { type: 'string' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        reply.send(await app.db.controllers.BrokerClient.createClientForFrontend(request.device))
+        const team = await app.db.models.Team.byId(request.device.TeamId)
+        setTimeout(() => {
+            app.comms.devices.sendCommand(team.hashid, request.device.hashid, 'startLog', '')
+        }, 1000)
+    })
+
     /**
      * Set device operating mode
      * @name /api/v1/devices/:deviceId/mode

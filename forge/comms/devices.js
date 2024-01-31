@@ -53,13 +53,18 @@ class DeviceCommsHandler {
         this.app = app
         this.client = client
         this.deviceLogClients = {}
+        this.deviceLogHeartbeats = {}
         /** @type {Object.<string, typeof CommandResponseMonitor>} */
         this.inFlightCommands = {}
+        // this.deviceLogHeartbeatInterval = -1
 
         // Listen for any incoming device status events
         client.on('status/device', (status) => { this.handleStatus(status) })
         client.on('logs/device', (log) => { this.forwardLog(log) })
         client.on('response/device', (response) => { this.handleCommandResponse(response) })
+        client.on('logs/heartbeat', (beat) => {
+            this.deviceLogHeartbeats[beat.id] = beat.timestamp
+        })
     }
 
     async handleStatus (status) {
@@ -380,12 +385,20 @@ class DeviceCommsHandler {
             socketInfo.sockets.forEach(s => s.send(log.logs))
         } else {
             // The device has sent some logs that no-one is listening for. We should
-            // tell the device to step sending them
+            // tell the device to step sending them if nobody is listening after another 30 seconds
             const deviceId = log.id
             this.app.db.models.Device.byId(deviceId).then(device => {
                 if (device) {
-                    this.sendCommand(device.Team.hashid, deviceId, 'stopLog', '')
-                    this.app.log.info(`Disable device logging ${deviceId}`)
+                    if (this.deviceLogHeartbeats[`${device.Team.hashid}:${device.hashid}`]) {
+                        const delta = Date.now() - this.deviceLogHeartbeats[`${device.Team.hashid}:${device.hashid}`]
+                        if (delta > 30000) {
+                            this.sendCommand(device.Team.hashid, deviceId, 'stopLog', '')
+                            this.app.log.info(`Disable device logging ${deviceId}`)
+                        }
+                    } else {
+                        this.app.log.info(`Adding unknown log heartbeat ${deviceId}`)
+                        this.deviceLogHeartbeats[`${device.Team.hashid}:${device.hashid}`] = Date.now()
+                    }
                 }
                 return true
             }).catch(_ => {
