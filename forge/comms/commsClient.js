@@ -1,3 +1,4 @@
+const { randomBytes } = require('crypto')
 const EventEmitter = require('events')
 
 const mqtt = require('mqtt')
@@ -20,7 +21,7 @@ class CommsClient extends EventEmitter {
         if (this.app.config.broker.url !== ':test:') {
             /** @type {MQTT.IClientOptions} */
             const brokerConfig = {
-                clientId: 'forge_platform',
+                clientId: 'forge_platform:' + randomBytes(8).toString('hex'),
                 username: 'forge_platform',
                 password: await this.app.settings.get('commsToken'),
                 reconnectPeriod: 5000
