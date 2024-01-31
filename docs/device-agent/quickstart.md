@@ -17,7 +17,7 @@ Windows:
 mkdir c:\opt\flowfuse-device
 cd c:\opt\flowfuse-device
 npm install -g @flowfuse/device-agent
-flowfuse-device-agent -ui --ui-user admin --ui-pass password --ui-port 8081
+flowfuse-device-agent --ui --ui-user admin --ui-pass password --ui-port 8081
 ```
 Linux/MacOS:
 ```bash
