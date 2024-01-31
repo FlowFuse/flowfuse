@@ -24,11 +24,11 @@ Linux/MacOS:
 mkdir /opt/flowfuse-device
 cd /opt/flowfuse-device
 npm install -g @flowfuse/device-agent
-flowfuse-device-agent -ui --ui-user admin --ui-pass password --ui-port 8081
+flowfuse-device-agent --ui --ui-user admin --ui-pass password --ui-port 8081
 ```
 
 Note: The flags used in the command above have the following meanings:
-- `-ui`: Start the device agents web-based user interface.
+- `--ui`: Start the device agents web-based user interface.
 - `--ui-user`: Specify the username for the web user interface.
 - `--ui-pass`: Specify the password for the web user interface.
 - `--ui-port`: Specify the port for the web user interface.
