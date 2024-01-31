@@ -45,6 +45,7 @@
                                 {{ application.deviceCount }} Device{{ application.deviceCount === 1 ? '' : 's' }}
                             </label>
                         </div>
+
                         <ul v-if="application.instances.size > 0" class="ff-applications-list-instances">
                             <label>Instances</label>
                             <li v-for="instance in Array.from(application.instances.values())" :key="instance.id" @click.stop="openInstance(instance)">
@@ -57,7 +58,11 @@
                                 </div>
                                 <div><InstanceStatusBadge :status="instance.meta?.state" :optimisticStateChange="instance.optimisticStateChange" :pendingStateChange="instance.pendingStateChange" /></div>
                                 <div class="text-sm">
-                                    <span v-if="instance.flowLastUpdatedSince" class="flex flex-col">
+                                    <span v-if="instance.mostRecentAuditLogCreatedAt" class="flex flex-col">
+                                        {{ AuditEvents[instance.mostRecentAuditLogEvent] }}
+                                        <label class="text-xs text-gray-400"><DaysSince :date="instance.mostRecentAuditLogCreatedAt" /></label>
+                                    </span>
+                                    <span v-else-if="instance.flowLastUpdatedSince" class="flex flex-col">
                                         <label class="text-xs text-gray-400">Last Updated: </label>
                                         {{ instance.flowLastUpdatedSince || 'never' }}
                                     </span>
@@ -78,26 +83,40 @@
                         <div v-else class="ff-no-data">
                             This Application currently has no attached Node-RED Instances.
                         </div>
+                        <div v-if="application.instanceCount > application.instances.size" class="ff-applications-list--details">
+                            Only the {{ application.instances.size }} <router-link :to="`/application/${application.id}/instances`" class="ff-link">instances</router-link>  with the most recent activity are being displayed.
+                        </div>
+
                         <ul v-if="application.devices.size > 0" class="ff-applications-list-instances">
                             <label>Devices</label>
-                            <li v-for="devices in Array.from(application.devices.values())" :key="devices.id" @click.stop="openInstance(instance)">
-                                <span class="flex justify-center mr-3">
-                                    <IconNodeRedSolid class="ff-icon ff-icon-lg text-red-800" />
-                                </span>
+                            <li v-for="device in Array.from(application.devices.values())" :key="device.id" @click.stop="openDevice(device)">
+                                <DeviceModeBadge :mode="device.mode" type="icon" class="flex justify-center mr-3" />
                                 <div class="ff-applications-list--instance">
-                                    <label>{{ devices.name }}</label>
-                                    <span>{{ devices.url }}</span>
+                                    <label>{{ device.name }}</label>
+                                    <span>{{ device.url }}</span>
                                 </div>
-                                <div>Statuses</div>
+                                <div><StatusBadge :status="device.status" /></div>
                                 <div class="text-sm">
-                                    Bla bla
+                                    <span v-if="device.mostRecentAuditLogCreatedAt" class="flex flex-col">
+                                        {{ AuditEvents[device.mostRecentAuditLogEvent] }}
+                                        <label class="text-xs text-gray-400"><DaysSince :date="device.mostRecentAuditLogCreatedAt" /></label>
+                                    </span>
+                                    <span v-else class="text-gray-400 italic">
+                                        Last Seen:
+                                        <label class="text-xs text-gray-400"><DaysSince :date="device.lastSeenAt" /></label>
+                                    </span>
                                 </div>
-                                Link
-                                Polling
+                                <div class="flex justify-end text-sm">
+                                    Open Editor
+                                </div>
                             </li>
                         </ul>
                         <div v-else class="ff-no-data">
                             This Application currently has no attached devices.
+                        </div>
+
+                        <div v-if="application.deviceCount > application.devices.size" class="ff-applications-list--details">
+                            Only the {{ application.devices.size }} <router-link :to="`/application/${application.id}/devices`" class="ff-link">devices</router-link> with the most recent activity are being displayed.
                         </div>
                     </li>
                 </ul>
@@ -148,9 +167,13 @@ import { PlusSmIcon, TemplateIcon } from '@heroicons/vue/outline'
 import teamApi from '../../api/team.js'
 import EmptyState from '../../components/EmptyState.vue'
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
+import StatusBadge from '../../components/StatusBadge.vue'
 import IconNodeRedSolid from '../../components/icons/NodeRedSolid.js'
 import permissionsMixin from '../../mixins/Permissions.js'
 import Alerts from '../../services/alerts.js'
+import AuditEventsService from '../../services/audit-events.js'
+import DaysSince from '../application/Snapshots/components/cells/DaysSince.vue'
+import DeviceModeBadge from '../device/components/DeviceModeBadge.vue'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 import InstanceEditorLinkCell from '../instance/components/cells/InstanceEditorLink.vue'
 
@@ -159,12 +182,15 @@ const ASSOCIATIONS_LIMIT = 3
 export default {
     name: 'TeamApplications',
     components: {
+        DaysSince,
+        DeviceModeBadge,
         EmptyState,
+        IconNodeRedSolid,
         InstanceEditorLinkCell,
         InstanceStatusBadge,
         InstanceStatusPolling,
         PlusSmIcon,
-        IconNodeRedSolid,
+        StatusBadge,
         TemplateIcon
     },
     mixins: [permissionsMixin],
@@ -176,6 +202,11 @@ export default {
         teamMembership: {
             type: Object,
             required: true
+        }
+    },
+    setup () {
+        return {
+            AuditEvents: AuditEventsService.get()
         }
     },
     data () {
@@ -211,7 +242,7 @@ export default {
                 const applicationsPromise = teamApi.getTeamApplications(this.team.id, { associationsLimit: ASSOCIATIONS_LIMIT })
 
                 // Not waited for as it can resolve in any order
-                this.updateInstanceStatuses()
+                this.updateApplicationAssociationStatuses()
 
                 const applications = (await applicationsPromise).applications
                 applications.forEach((applicationData) => {
@@ -249,7 +280,7 @@ export default {
             }
             this.loading = false
         },
-        async updateInstanceStatuses () {
+        async updateApplicationAssociationStatuses () {
             const applicationsAssociationsStatuses = (await teamApi.getTeamApplicationsAssociationsStatuses(this.team.id, { associationsLimit: ASSOCIATIONS_LIMIT })).applications
 
             applicationsAssociationsStatuses.forEach((applicationData) => {
@@ -304,6 +335,14 @@ export default {
                 name: 'Instance',
                 params: {
                     id: instance.id
+                }
+            })
+        },
+        openDevice (device) {
+            this.$router.push({
+                name: 'Device',
+                params: {
+                    id: device.id
                 }
             })
         }

@@ -27,6 +27,10 @@
         &:hover {
             cursor: pointer;
             border-color: $ff-blue-600;
+
+            .ff-icon {
+                color: $ff-blue-600;
+            }
         }
     }
     .ff-applications-list--instance {
@@ -80,4 +84,12 @@
             }
         }
     }
+}
+
+.ff-applications-list--details {
+    background-color: $ff-grey-100;
+    color: $ff-grey-400;
+    font-size: 0.875rem;
+    margin-bottom: 12px;
+    text-align: center;
 }
