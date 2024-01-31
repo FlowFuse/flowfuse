@@ -32,7 +32,7 @@
                         </p>
 
                         <details class="mt-4">
-                            <summary class="mt-6">Manual setup...</summary>
+                            <summary class="mt-6">Show manual setup instructions</summary>
                             <p class="mt-4">
                                 Place the below configuration on your device.
                                 See the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">Device Agent documentation</a> for instructions on how to do this.
