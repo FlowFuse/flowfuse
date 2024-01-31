@@ -2,14 +2,7 @@ const crypto = require('crypto')
 const querystring = require('querystring')
 const { URL } = require('url')
 
-const { LRUCache } = require('lru-cache') // https://www.npmjs.com/package/lru-cache
-
 const { base64URLEncode, sha256, URLEncode } = require('../../db/utils')
-
-const requestCache = new LRUCache({
-    ttl: 1000 * 60 * 10, // 10 minutes,
-    max: 100
-})
 
 function badRequest (reply, error, description) {
     // This format is defined by the OAuth standard - do not change
@@ -30,6 +23,15 @@ function redirectInvalidRequest (reply, redirectURI, error, errorDescription, st
 }
 
 module.exports = async function (app) {
+    const requestCache = {
+        set: async function (id, value) {
+            return app.db.models.OAuthSession.create({ id, value })
+        },
+        get: async function (id) {
+            return app.db.models.OAuthSession.getAndRemoveById(id)
+        }
+    }
+
     app.addContentTypeParser('application/x-www-form-urlencoded', { parseAs: 'string' }, function (req, body, done) {
         try {
             const json = querystring.parse(body)
@@ -118,7 +120,7 @@ module.exports = async function (app) {
             code_challenge_method
         }
         const requestId = base64URLEncode(crypto.randomBytes(32))
-        requestCache.set(requestId, requestObject)
+        await requestCache.set(requestId, requestObject)
 
         const isNodeRED = /^(editor($|-))|httpAuth-/.test(scope)
         if (isNodeRED) {
@@ -147,8 +149,7 @@ module.exports = async function (app) {
         }
     }, async function (request, reply) {
         const requestId = request.params.code
-        const requestObject = requestCache.get(requestId)
-        requestCache.delete(requestId)
+        const requestObject = await requestCache.get(requestId)
 
         if (!requestObject) {
             return badRequest(reply, 'invalid_request', 'Invalid request')
@@ -198,7 +199,7 @@ module.exports = async function (app) {
                 }
                 requestObject.userId = request.session.User.id
                 requestObject.code = base64URLEncode(crypto.randomBytes(32))
-                requestCache.set(requestObject.code, requestObject)
+                await requestCache.set(requestObject.code, requestObject)
                 const responseUrl = new URL(requestObject.redirect_uri)
 
                 responseUrl.search = querystring.stringify({
@@ -217,8 +218,7 @@ module.exports = async function (app) {
         }
     }, async function (request, reply) {
         const requestId = request.params.code
-        const requestObject = requestCache.get(requestId)
-        requestCache.delete(requestId)
+        const requestObject = await requestCache.get(requestId)
         if (!requestObject) {
             return badRequest(reply, 'invalid_request', 'Invalid request')
         }
@@ -277,8 +277,7 @@ module.exports = async function (app) {
             if (!code_verifier) {
                 return badRequest(reply, 'invalid_request', 'Invalid code_verifier')
             }
-            const requestObject = requestCache.get(code)
-            requestCache.delete(code)
+            const requestObject = await requestCache.get(code)
 
             if (!requestObject) {
                 badRequest(reply, 'invalid_request', 'Invalid code')
