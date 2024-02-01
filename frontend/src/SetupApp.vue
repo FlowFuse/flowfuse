@@ -26,7 +26,7 @@ const views = [
     Start,
     CreateAdminUser,
     License,
-    Options,
+    // Options,
     Final,
     ErrorPage
 ]
