@@ -76,7 +76,7 @@ FlowFuse supports managing Node-RED on your own hardware.
 ## Working with Teams
 
  - [Team management](/docs/user/team/README.md) - How to add and remove users from a team.
- - [Role based access control](/docs/user/team/README.md/#role-based-access-control) - Which privileges are granted to different roles.
+ - [Role based access control](/docs/user/team/README.md#role-based-access-control) - Which privileges are granted to different roles.
 
 ## Working with Files and Context
 
