@@ -14,26 +14,25 @@ the platform.
 
 <a href="https://marketplace.digitalocean.com/apps/flowforge"><img src="https://upload.wikimedia.org/wikipedia/commons/f/ff/DigitalOcean_logo.svg"  width="150" height="75"></a>
 
-See also the [Digital Ocean Step by Step Manual](./docker/digital-ocean.md)
+See also the [Digital Ocean Step by Step Manual](/docs/install/docker/digital-ocean.md)
 
 <br>
 <a href="https://aws.amazon.com/marketplace/pp/prodview-3ycrknfg67rug?sr=0-1&ref_=beagle&applicationId=AWSMPContessa"><img src="https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg"  width="150" height="75"></a>
 
-See also the [AWS Step by Step Manual](./docker/aws-marketplace.md)
-
+See also the [AWS Step by Step Manual](/docs/install/docker/aws-marketplace.md)
 ## Deployment Models
 
 Model      | Description        
 -----------|--------------------
-[Local](./local/README.md)           | Runs the Node-RED instances on the same machine running the core FlowFuse application. The instances are exposed on different TCP ports. This is intended for smaller deployments, such as for evaluation, or personal use.
-[Docker](./docker/README.md)         | Run the platform in a Docker Compose based environment.
-[Kubernetes](./kubernetes/README.md) | Run the platform in a full Kubernetes based environment.
+[Local](/docs/install/local/README.md)           | Runs the Node-RED instances on the same machine running the core FlowFuse application. The instances are exposed on different TCP ports. This is intended for smaller deployments, such as for evaluation, or personal use.
+[Docker](/docs/install/docker/README.md)         | Run the platform in a Docker Compose based environment.
+[Kubernetes](/docs/install/kubernetes/README.md) | Run the platform in a full Kubernetes based environment.
 
 
 If you are just getting started with FlowFuse and want to evaluate what it can do,
-we recommend starting with the [Local model](./local/README.md).
+we recommend starting with the [Local model](/docs/install/local/README.md).
 
 ## Upgrading FlowFuse
 
-If you are upgrading FlowFuse, please refer to the [Upgrade Guide](../upgrade/README.md)
+If you are upgrading FlowFuse, please refer to the [Upgrade Guide](/docs/upgrade/README.md)
 for any specific actions required.

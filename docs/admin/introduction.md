@@ -6,11 +6,11 @@ navOrder: 1
 
 ## Getting started
 
- - [Understanding the FlowFuse Architecture](../contribute/architecture.md)
- - [Install/Upgrade](../install) - requirements, deployment models, installation methods and upgrading
- - [`flowforge.yml` configuration](../install/configuration.md) - base platform configuration, done before you run.
- - [First Run Setup](../install/first-run.md) - create your admin user
- - [FlowFuse Concepts](../user/concepts.md)
+ - [Understanding the FlowFuse Architecture](/docs/contribute/architecture.md)
+ - [Install/Upgrade](/docs/install) - requirements, deployment models, installation methods and upgrading
+ - [`flowforge.yml` configuration](/docs/install/configuration.md) - base platform configuration, done before you run.
+ - [First Run Setup](/docs/install/first-run.md) - create your admin user
+ - [FlowFuse Concepts](/docs/user/concepts.md)
  - [Usage Telemetry](/docs/admin/telemetry.md)
  - [Single-Sign On](/docs/admin/sso/)
  - [Licensing](/docs/admin/licensing.md)
@@ -135,13 +135,13 @@ It is *not* possible to edit a stack that is being used by Instances.
 For Deployment specific information about working with stacks, refer to the
 documentation of your chosen deployment model:
 
- - [Local Stacks](../install/local/stacks.md)
- - [Docker Stacks](../install/docker/stacks.md)
- - [Kubernetes Stacks](../install/kubernetes/stacks.md)
+ - [Local Stacks](/docs/install/local/stacks.md)
+ - [Docker Stacks](/docs/install/docker/stacks.md)
+ - [Kubernetes Stacks](/docs/install/kubernetes/stacks.md)
 
 ### Managing Templates
 
-With [templates](../user/concepts/#template) administrators
+With [templates](/docs/user/concepts/#template) administrators
 can apply Node-RED configuration options as default.
 For these options, the administrator can lock the selected value so users cannot change
 them, or keep them editable by end-users.
