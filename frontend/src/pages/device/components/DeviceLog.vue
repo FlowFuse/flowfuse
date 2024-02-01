@@ -80,6 +80,10 @@ export default {
                 this.connectMQTT()
             })
 
+            this.client.on('error', () => {
+                // where to report error?
+            })
+
             this.client.on('message', (topic, message) => {
                 const m = JSON.parse(message)
                 if (!Array.isArray(m)) {
