@@ -75,6 +75,11 @@ export default {
                 }, 20000)
             })
 
+            this.client.on('offline', () => {
+                this.client = null
+                this.connectMQTT()
+            })
+
             this.client.on('message', (topic, message) => {
                 const m = JSON.parse(message)
                 if (!Array.isArray(m)) {
