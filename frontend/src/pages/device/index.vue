@@ -241,11 +241,10 @@ export default {
     async mounted () {
         this.mounted = true
         await this.loadDevice()
-        this.checkFeatures()
         this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME)
     },
     unmounted () {
-        this.pollTimer.stop()
+        this.pollTimer?.stop()
     },
     methods: {
         pollTimerElapsed: async function () {

@@ -166,10 +166,10 @@ export default {
     },
     mounted () {
         this.refreshDevice()
-        createPollTimer(this.refreshDevice, 10000)
+        this.pollTimer = createPollTimer(this.refreshDevice, 10000)
     },
     unmounted () {
-        this.polltimer.stop()
+        this.polltimer?.stop()
     },
     methods: {
         refreshDevice: function () {
