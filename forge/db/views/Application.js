@@ -41,23 +41,34 @@ module.exports = function (app) {
             id: { type: 'string' },
             name: { type: 'string' },
             description: { type: 'string' },
-            links: { $ref: 'LinksMeta' }
+            links: { $ref: 'LinksMeta' },
+            deviceGroupCount: { type: 'number' },
+            snapshotCount: { type: 'number' },
+            pipelineCount: { type: 'number' }
         },
         additionalProperties: true
     })
-    function applicationSummary (application) {
+    function applicationSummary (application, { detailed = false } = {}) {
         // application could already be a vanilla object,
         // or a database model object.
         if (Object.hasOwn(application, 'get')) {
             application = application.get({ plain: true })
         }
 
-        return {
+        const summary = {
             id: application.hashid,
             name: application.name,
             description: application.description,
             links: application.links
         }
+
+        if (detailed) {
+            summary.deviceGroupCount = application.get('deviceGroupCount')
+            summary.snapshotCount = application.get('snapshotCount')
+            summary.pipelineCount = application.get('pipelineCount')
+        }
+
+        return summary
     }
 
     app.addSchema({
@@ -89,11 +100,11 @@ module.exports = function (app) {
             additionalProperties: true
         }
     })
-    async function teamApplicationList (applications, { includeInstances = false, includeApplicationDevices = false, associationsLimit = null } = {}) {
+    async function teamApplicationList (applications, { includeInstances = false, includeApplicationDevices = false, includeApplicationSummary = false } = {}) {
         return applications.map((application) => {
-            const summary = applicationSummary(application)
+            const summary = applicationSummary(application, { detailed: includeApplicationSummary })
             if (includeInstances) {
-                if (associationsLimit) {
+                if (includeApplicationSummary) {
                     summary.instancesSummary = {
                         instances: app.db.views.Project.instancesSummaryList(application.Instances),
                         count: application.get('instanceCount')
@@ -103,7 +114,7 @@ module.exports = function (app) {
                 }
             }
             if (includeApplicationDevices) {
-                if (associationsLimit) {
+                if (includeApplicationSummary) {
                     summary.devicesSummary = {
                         devices: application.Devices.map(app.db.views.Device.deviceSummary),
                         count: application.get('deviceCount')

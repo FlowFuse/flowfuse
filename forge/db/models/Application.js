@@ -47,7 +47,7 @@ module.exports = {
                         ]
                     })
                 },
-                byTeam: async (teamIdOrHash, { includeInstances = false, includeApplicationDevices = false, includeInstanceStorageFlow = false, associationsLimit = null } = {}) => {
+                byTeam: async (teamIdOrHash, { includeInstances = false, includeApplicationDevices = false, includeInstanceStorageFlow = false, associationsLimit = null, includeApplicationSummary = false } = {}) => {
                     let id = teamIdOrHash
                     if (typeof teamIdOrHash === 'string') {
                         id = M.Team.decodeHashid(teamIdOrHash)
@@ -116,7 +116,8 @@ module.exports = {
                                         LIMIT 1
                                     )`),
                                     'mostRecentAuditLogEvent'
-                                ]]
+                                ]
+                                ]
                             }
                         }
 
@@ -164,26 +165,50 @@ module.exports = {
                         include: includes
                     }
 
-                    if (associationsLimit) {
+                    if (includeApplicationSummary) {
                         query.attributes = {
                             include: [
                                 [
                                     literal(`(
                                         SELECT COUNT(*)
-                                        FROM "Projects" AS "instance"
-                                        WHERE
-                                        "instance"."ApplicationId" = "Application"."id"
+                                        FROM "Projects" AS "Instances"
+                                        WHERE "Instances"."ApplicationId" = "Application"."id"
                                     )`),
                                     'instanceCount'
                                 ],
                                 [
                                     literal(`(
                                         SELECT COUNT(*)
-                                        FROM "Devices" AS "device"
-                                        WHERE
-                                        "device"."ApplicationId" = "Application"."id"
+                                        FROM "Devices"
+                                        WHERE "Devices"."ApplicationId" = "Application"."id"
                                     )`),
                                     'deviceCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT count(*)
+                                        FROM "DeviceGroups"
+                                        WHERE "DeviceGroups"."applicationId" = "application"."id"
+                                    )`),
+                                    'deviceGroupCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT count(*)
+                                        FROM "ProjectSnapshots"
+                                        LEFT JOIN "Devices" ON "Devices"."id" = "ProjectSnapshots"."DeviceId"
+                                        LEFT JOIN "Projects" ON "Projects"."id" = "ProjectSnapshots"."ProjectId"
+                                        WHERE "Devices"."ApplicationId" = "application"."id" OR "Projects"."ApplicationId" = "application"."id"
+                                    )`),
+                                    'snapshotCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT count(*)
+                                        FROM "Pipelines"
+                                        WHERE "Pipelines"."applicationId" = "application"."id"
+                                    )`),
+                                    'pipelineCount'
                                 ]
                             ]
                         }
