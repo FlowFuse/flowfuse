@@ -71,16 +71,16 @@
                                 </div>
                                 <div><InstanceStatusBadge :status="instance.meta?.state" :optimisticStateChange="instance.optimisticStateChange" :pendingStateChange="instance.pendingStateChange" /></div>
                                 <div class="text-sm">
-                                    <span v-if="instance.mostRecentAuditLogCreatedAt" class="flex flex-col">
+                                    <span v-if="!instance.mostRecentAuditLogCreatedAt || (instance.flowLastUpdatedAt > instance.mostRecentAuditLogCreatedAt)" class="flex flex-col">
+                                        Flows deployed
+                                        <label class="text-xs text-gray-400">{{ instance.flowLastUpdatedSince || 'never' }}</label>
+                                    </span>
+                                    <span v-else-if="instance.mostRecentAuditLogCreatedAt" class="flex flex-col">
                                         {{ AuditEvents[instance.mostRecentAuditLogEvent] }}
                                         <label class="text-xs text-gray-400"><DaysSince :date="instance.mostRecentAuditLogCreatedAt" /></label>
                                     </span>
-                                    <span v-else-if="instance.flowLastUpdatedSince" class="flex flex-col">
-                                        <label class="text-xs text-gray-400">Last Updated: </label>
-                                        {{ instance.flowLastUpdatedSince || 'never' }}
-                                    </span>
                                     <span v-else class="text-gray-400 italic">
-                                        flows never deployed
+                                        Flows never deployed
                                     </span>
                                 </div>
                                 <InstanceEditorLinkCell
@@ -115,7 +115,7 @@
                                         <label class="text-xs text-gray-400"><DaysSince :date="device.mostRecentAuditLogCreatedAt" /></label>
                                     </span>
                                     <span v-else class="text-gray-400 italic">
-                                        Last Seen:
+                                        Device seen
                                         <label class="text-xs text-gray-400"><DaysSince :date="device.lastSeenAt" /></label>
                                     </span>
                                 </div>
