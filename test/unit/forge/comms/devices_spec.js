@@ -221,11 +221,11 @@ describe('DeviceCommsHandler', function () {
             const response = await app.inject({
                 method: 'POST',
                 url: `/api/v1/devices/${TestObjects.applicationDevice.hashid}/logs`,
-                cookies: { sid: TestObjects.tokens.alice }  
+                cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
             const body = response.json()
-            body.should.have.property('url',':test:')
+            body.should.have.property('url', ':test:')
             body.should.have.property('username')
             body.should.have.property('password')
             body.username.should.startWith('frontend:')
