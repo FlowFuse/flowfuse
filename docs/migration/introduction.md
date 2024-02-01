@@ -17,7 +17,7 @@ server and have created the target Node-RED instance.
 ## Migrating the flows and credentials
 
 Install the Node-RED tools plugin as explained
-[in the documentation](./node-red-tools.md). After you created a snapshot for
+[in the documentation](/docs/migration/node-red-tools.md). After you created a snapshot for
 the target instance you'll have copied over the flows and credentials.
 
 ## Migrating Environment Variables
