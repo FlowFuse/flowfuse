@@ -605,7 +605,7 @@ describe('Broker Auth API', async function () {
                 TestObjects.DeviceA = await factory.createDevice({ name: 'my device', type: 'test device' }, TestObjects.ATeam, null, null)
                 const applicaiton = await factory.createApplication({
                     name: 'A-team Application',
-                    description: 'A-team Application description',
+                    description: 'A-team Application description'
                 }, TestObjects.ATeam)
                 await TestObjects.DeviceA.setApplication(applicaiton)
                 deviceUsername = `device:${TestObjects.ATeam.hashid}:${TestObjects.DeviceA.hashid}`
@@ -869,7 +869,7 @@ describe('Broker Auth API', async function () {
                         })
                     })
                 })
-                describe('device log topics', async function() {
+                describe('device log topics', async function () {
                     it('can publish its logs', async function () {
                         await allowWrite({
                             username: deviceUsername,
