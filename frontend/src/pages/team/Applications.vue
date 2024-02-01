@@ -119,8 +119,14 @@
                                         <label class="text-xs text-gray-400"><DaysSince :date="device.lastSeenAt" /></label>
                                     </span>
                                 </div>
+
                                 <div class="flex justify-end text-sm">
-                                    Open Editor
+                                    <EditorLink
+                                        :url="device.editor?.url"
+                                        :editorDisabled="false"
+                                        :disabled="!device.editor?.enabled || !device.editor?.connected"
+                                        disabledReason="Device must be running, in developer mode and have the editor enabled and connected"
+                                    />
                                 </div>
                             </li>
                         </ul>
@@ -187,6 +193,7 @@ import Alerts from '../../services/alerts.js'
 import AuditEventsService from '../../services/audit-events.js'
 import DaysSince from '../application/Snapshots/components/cells/DaysSince.vue'
 import DeviceModeBadge from '../device/components/DeviceModeBadge.vue'
+import EditorLink from '../instance/components/EditorLink.vue'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 import InstanceEditorLinkCell from '../instance/components/cells/InstanceEditorLink.vue'
 
@@ -197,6 +204,7 @@ export default {
     components: {
         DaysSince,
         DeviceModeBadge,
+        EditorLink,
         EmptyState,
         IconNodeRedSolid,
         InstanceEditorLinkCell,

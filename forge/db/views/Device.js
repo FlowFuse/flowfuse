@@ -116,7 +116,7 @@ module.exports = function (app) {
             $ref: 'DeviceSummary'
         }
     })
-    function deviceSummary (device, { includeSnapshotIds = false } = {}) {
+    function deviceSummary (device, { includeEditor = false } = {}) {
         if (device) {
             const result = device.toJSON ? device.toJSON() : device
             const filtered = {
@@ -152,7 +152,8 @@ module.exports = function (app) {
             lastSeenMs: { nullable: true, type: 'number' },
             status: { type: 'string' },
             mode: { type: 'string' },
-            isDeploying: { type: 'boolean' }
+            isDeploying: { type: 'boolean' },
+            editor: { type: 'object', additionalProperties: true }
         }
     })
     app.addSchema({
@@ -162,10 +163,11 @@ module.exports = function (app) {
             $ref: 'DeviceStatus'
         }
     })
-    async function deviceStatusList (devicesArray) {
+    async function deviceStatusList (devicesArray, { includeEditor = false } = {}) {
         return devicesArray.map((device) => {
             const summary = deviceSummary(device)
-            return {
+
+            const filtered = {
                 id: summary.id,
                 lastSeenAt: summary.lastSeenAt,
                 lastSeenMs: summary.lastSeenMs,
@@ -173,6 +175,14 @@ module.exports = function (app) {
                 mode: summary.mode,
                 isDeploying: summary.isDeploying
             }
+
+            if (includeEditor && app.license.active() && summary.status === 'running' && summary.mode === 'developer' && app.comms?.devices?.tunnelManager) {
+                /** @type {import("../../ee/lib/deviceEditor/DeviceTunnelManager").DeviceTunnelManager} */
+                const tunnelManager = app.comms.devices.tunnelManager
+                filtered.editor = tunnelManager.getTunnelStatus(summary.hashid) || {}
+            }
+
+            return filtered
         })
     }
 

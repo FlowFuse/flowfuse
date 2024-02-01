@@ -79,7 +79,7 @@ import Dialog from '../../services/dialog.js'
 import { InstanceStateMutator } from '../../utils/InstanceStateMutator.js'
 
 import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
-import InstanceEditorLink from './components/InstanceEditorLink.vue'
+import InstanceEditorLink from './components/EditorLink.vue'
 import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
 
 export default {

@@ -1,7 +1,7 @@
 <template>
     <ff-button
         v-if="!isVisitingAdmin"
-        v-ff-tooltip:left="disabledReason"
+        v-ff-tooltip:left="(editorDisabled || disabled) ? disabledReason : undefined"
         kind="secondary"
         data-action="open-editor"
         :disabled="editorDisabled || disabled || !url"
