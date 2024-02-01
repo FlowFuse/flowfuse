@@ -217,6 +217,20 @@ describe('DeviceCommsHandler', function () {
             sockets[0].received().should.have.length(0)
             sockets[1].received().should.have.length(0)
         })
+        it('provide MQTT credentials for Device logs', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${TestObjects.applicationDevice.hashid}/logs`,
+                cookies: { sid: TestObjects.tokens.alice }  
+            })
+            response.statusCode.should.equal(200)
+            const body = response.json()
+            body.should.have.property('url',':test:')
+            body.should.have.property('username')
+            body.should.have.property('password')
+            body.username.should.startWith('frontend:')
+            body.password.should.startWith('ffbf_')
+        })
     })
 
     describe('Device Status', function () {
