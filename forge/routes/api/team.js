@@ -290,6 +290,8 @@ module.exports = async function (app) {
 
         const applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances, includeApplicationDevices, associationsLimit })
 
+        console.log(applications)
+
         reply.send({
             count: applications.length,
             applications: await app.db.views.Application.teamApplicationList(applications, { includeInstances, includeApplicationDevices, associationsLimit })
@@ -335,6 +337,7 @@ module.exports = async function (app) {
         const associationsLimit = request.query.associationsLimit
 
         const applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances, includeApplicationDevices, includeInstanceStorageFlow: true, associationsLimit })
+        console.log(applications)
         if (!applications) {
             return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }

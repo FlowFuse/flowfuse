@@ -56,7 +56,7 @@ module.exports = fp(async function (app, _opts) {
         }
     }
 
-    dbOptions.logging = !!app.config.db.logging
+    dbOptions.logging = console.log
 
     const sequelize = new Sequelize(dbOptions)
 

@@ -115,6 +115,7 @@ module.exports = {
         this.belongsTo(M.ProjectTemplate)
         this.hasMany(M.ProjectSnapshot)
         this.hasOne(M.StorageFlow)
+        this.hasMany(M.AuditLog, { foreignKey: 'entityId' })
     },
     hooks: function (M, app) {
         return {

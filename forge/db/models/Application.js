@@ -2,7 +2,7 @@
  * An application definition
  * @namespace forge.db.models.Application
  */
-const { DataTypes, Op, literal } = require('sequelize')
+const { DataTypes, Op, literal, col } = require('sequelize')
 
 const { KEY_SETTINGS, KEY_HA } = require('./ProjectSettings')
 
@@ -94,8 +94,20 @@ module.exports = {
 
                         if (associationsLimit) {
                             include.limit = associationsLimit
-                            include.order = [['mostRecentAuditLogCreatedAt', 'DESC'], ['updatedAt', 'DESC']]
-                            include.attributes = {
+                            include.order = [[M.AuditLog, 'createdAt', 'DESC'], ['updatedAt', 'DESC']]
+                            include.include.push({
+                                model: M.AuditLog,
+                                attributes: ['createdAt', 'event'],
+                                where: {
+                                    entityType: 'project'
+                                },
+                                required: false, // LEFT JOIN
+                                order: [['createdAt', 'DESC']],
+                                separate: true,
+                                limit: 1
+                            })
+
+                            /* = {
                                 include: [...include.attributes, [
                                     literal(`(
                                         SELECT createdAt
@@ -117,7 +129,7 @@ module.exports = {
                                     )`),
                                     'mostRecentAuditLogEvent'
                                 ]]
-                            }
+                            } */
                         }
 
                         includes.push(include)
