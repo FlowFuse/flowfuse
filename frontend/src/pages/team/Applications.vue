@@ -106,7 +106,7 @@
                                 <DeviceModeBadge :mode="device.mode" type="icon" class="flex justify-center mr-3" />
                                 <div class="ff-applications-list--instance">
                                     <label>{{ device.name }}</label>
-                                    <span>{{ device.url }}</span>
+                                    <span>{{ device.editor?.url }}</span>
                                 </div>
                                 <div><StatusBadge :status="device.status" /></div>
                                 <div class="text-sm">

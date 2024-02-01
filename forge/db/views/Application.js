@@ -146,7 +146,7 @@ module.exports = function (app) {
             return {
                 id: application.hashid,
                 instances: await app.db.views.Project.instanceStatusList(application.Instances),
-                devices: await app.db.views.Device.deviceStatusList(application.Devices)
+                devices: await app.db.views.Device.deviceStatusList(application.Devices, { includeEditor: true })
             }
         }))
     }
