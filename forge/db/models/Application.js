@@ -188,7 +188,7 @@ module.exports = {
                                     literal(`(
                                         SELECT count(*)
                                         FROM "DeviceGroups"
-                                        WHERE "DeviceGroups"."applicationId" = "application"."id"
+                                        WHERE "DeviceGroups"."ApplicationId" = "application"."id"
                                     )`),
                                     'deviceGroupCount'
                                 ],
