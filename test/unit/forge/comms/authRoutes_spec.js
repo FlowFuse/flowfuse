@@ -601,19 +601,23 @@ describe('Broker Auth API', async function () {
             let deviceStatusTopic
             let deviceLogTopic
             let frontendUsername
+            let frontendTopic
             async function setupDeviceTestObjects () {
                 TestObjects.DeviceA = await factory.createDevice({ name: 'my device', type: 'test device' }, TestObjects.ATeam, null, null)
-                const applicaiton = await factory.createApplication({
-                    name: 'A-team Application',
-                    description: 'A-team Application description'
-                }, TestObjects.ATeam)
-                await TestObjects.DeviceA.setApplication(applicaiton)
                 deviceUsername = `device:${TestObjects.ATeam.hashid}:${TestObjects.DeviceA.hashid}`
                 deviceCommandTopic = `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.DeviceA.hashid}/command`
                 deviceStatusTopic = `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.DeviceA.hashid}/status`
                 deviceLogTopic = `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.DeviceA.hashid}/logs`
 
-                frontendUsername = `frontend:${TestObjects.ATeam.hashid}:${TestObjects.DeviceA.hashid}`
+                TestObjects.DeviceB = await factory.createDevice({ name: 'my device b', type: 'test device' }, TestObjects.ATeam, null, null)
+                const applicaiton = await factory.createApplication({
+                    name: 'A-team Application',
+                    description: 'A-team Application description'
+                }, TestObjects.ATeam)
+                await TestObjects.DeviceB.setApplication(applicaiton)
+
+                frontendUsername = `frontend:${TestObjects.ATeam.hashid}:${TestObjects.DeviceB.hashid}`
+                frontendTopic = `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.DeviceB.hashid}/logs`
 
                 // Create a second project in the team
                 TestObjects.ProjectB = await app.db.models.Project.create({ name: 'project2', type: '', url: '' })
@@ -879,13 +883,13 @@ describe('Broker Auth API', async function () {
                     it('frontend can subscribe to device logs', async function () {
                         await allowRead({
                             username: frontendUsername,
-                            topic: deviceLogTopic
+                            topic: frontendTopic
                         })
                     })
                     it('frontend can publish heartbeat', async function () {
                         await allowWrite({
                             username: frontendUsername,
-                            topic: `${deviceLogTopic}/heartbeat`
+                            topic: `${frontendTopic}/heartbeat`
                         })
                     })
                 })
