@@ -67,6 +67,7 @@ module.exports = fp(async function (app, _opts) {
         controllers,
         utils
     }
+
     app.decorate('db', db)
 
     app.addHook('onClose', async (_) => {
@@ -76,15 +77,8 @@ module.exports = fp(async function (app, _opts) {
     await sequelize.authenticate()
 
     await migrations.init(app)
+    await migrations.applyPendingMigrations()
 
-    if (migrations.hasPendingMigrations()) {
-        app.log.info('Database has pending migrations')
-        if (!app.config.db.migrations || app.config.db.migrations.auto !== false) {
-            await migrations.applyPendingMigrations()
-        } else if (!app.config.db.migrations || !app.config.db.migrations.skipCheck) {
-            throw new Error('Unapplied migrations')
-        }
-    }
     await models.init(app)
     await views.init(app)
     await controllers.init(app)
