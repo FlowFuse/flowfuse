@@ -94,7 +94,7 @@
                             </li>
                         </ul>
                         <div v-else class="ff-no-data">
-                            This Application currently has no attached Node-RED Instances.
+                            This Application currently has no <router-link :to="`/application/${application.id}/instances`" class="ff-link">attached Node-RED Instances</router-link>.
                         </div>
                         <div v-if="application.instanceCount > application.instances.size" class="ff-applications-list--details">
                             Only the {{ application.instances.size }} <router-link :to="`/application/${application.id}/instances`" class="ff-link">instances</router-link>  with the most recent activity are being displayed.
@@ -131,7 +131,7 @@
                             </li>
                         </ul>
                         <div v-else class="ff-no-data">
-                            This Application currently has no attached devices.
+                            This Application currently has no <router-link :to="`/application/${application.id}/devices`" class="ff-link">attached devices</router-link>.
                         </div>
 
                         <div v-if="application.deviceCount > application.devices.size" class="ff-applications-list--details">
