@@ -25,9 +25,7 @@
                 </template>
                 <span>{{ item.date }}</span>
                 <span>{{ "  " }}</span>
-                <span>[{{ item.level }}]</span>
-                <span v-if="item.level !=='system'">{{ "   " }}</span>
-                <span v-else>{{ " " }}</span>
+                <span>{{ `[${item.level || ''}]`.padEnd(10, ' ') }}</span>
                 <span class="flex-grow break-all whitespace-pre-wrap inline-flex">{{ item.msg }}</span>
                 <br v-if="itemIdx !== filteredLogEntries.length - 1">
             </span>
