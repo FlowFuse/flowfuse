@@ -1,14 +1,14 @@
 describe('FlowForge - Application - Empty State', () => {
     beforeEach(() => {
         cy.login('bob', 'bbPassword')
-        cy.intercept('GET', '/api/v1/teams/*/applications', (req) => {
+        cy.intercept('GET', '/api/v1/teams/*/applications*', (req) => {
             // stub an empty state response
             req.reply({
                 count: 0,
                 applications: []
             })
         }).as('getTeamApplications')
-        cy.intercept('GET', '/api/v1/teams/*/applications/status', (req) => {
+        cy.intercept('GET', '/api/v1/teams/*/applications/status*', (req) => {
             // stub an empty state response
             req.reply({
                 count: 0,
