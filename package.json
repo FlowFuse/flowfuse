@@ -94,6 +94,7 @@
         "pino": "^8.15.1",
         "pino-pretty": "^10.0.0",
         "qrcode": "^1.5.3",
+        "random-words": "~2.0.0",
         "semver": "~7.5.4",
         "sequelize": "^6.33.0",
         "sqlite3": "^5.1.6",

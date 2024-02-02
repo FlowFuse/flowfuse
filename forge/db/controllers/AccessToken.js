@@ -1,8 +1,10 @@
 const { Op } = require('sequelize')
 
-const { generateToken, sha256 } = require('../utils')
+const { generateToken, sha256, randomPhrase } = require('../utils')
 
 const DEFAULT_TOKEN_SESSION_EXPIRY = 1000 * 60 * 30 // 30 mins session - with refresh token support
+
+const DEFAULT_DEVICE_OTC_EXPIRY = 1000 * 60 * 60 * 24 // 24 hours
 
 module.exports = {
     /**
@@ -76,6 +78,30 @@ module.exports = {
             ownerType: 'device'
         })
         return { token }
+    },
+
+    createDeviceOTC: async function (app, device) {
+        const existing = await app.db.models.AccessToken.findOne({
+            where: {
+                ownerId: '' + device.id,
+                ownerType: 'device',
+                scope: 'device:otc'
+            }
+        })
+        if (existing) {
+            await existing.destroy()
+        }
+        const otc = randomPhrase(3, 2, 15, '-') // 3 words, min 2 chars, max 15 chars, separated by '-'
+        const token = Buffer.from(otc).toString('base64')
+        const data = {
+            token,
+            expiresAt: Date.now() + DEFAULT_DEVICE_OTC_EXPIRY,
+            scope: 'device:otc',
+            ownerId: '' + device.id,
+            ownerType: 'device'
+        }
+        await app.db.models.AccessToken.create(data)
+        return { otc }
     },
 
     /**
