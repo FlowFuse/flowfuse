@@ -209,6 +209,6 @@ forge:
 
 ## Upgrade
 
-All technical aspects of the upgrade Flowfuse on Kubernetes managed by Helm are maintained in our repository.
+All technical aspects of the upgrade process of Flowfuse application running on Kubernetes and managed by Helm chart are maintained in our repository.
 Please refer to the [Flowfuse Helm Chart documentation](https://github.com/FlowFuse/helm/blob/main/helm/flowforge/README.md#upgrading-chart) for more details
 about the upgrade process.
