@@ -188,121 +188,158 @@ describe('Team API', function () {
         })
     })
 
-    describe('Get list of a teams applications and their instances', async function () {
+    describe('Get list of a teams applications, their instances and their devices', async function () {
         beforeEach(async function () {
             TestObjects.TeamAApp = await app.db.models.Application.create({ name: 'team-a-application', TeamId: TestObjects.ATeam.id })
             TestObjects.TeamAApp2 = await app.db.models.Application.create({ name: 'team-a-application-2', TeamId: TestObjects.ATeam.id })
             TestObjects.TeamBApp = await app.db.models.Application.create({ name: 'team-b-application', TeamId: TestObjects.BTeam.id })
         })
 
-        it('for an admin lists all the applications in a team', async function () {
-            const response = await app.inject({
-                method: 'GET',
-                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/applications`,
-                cookies: { sid: TestObjects.tokens.alice }
+        describe('Full list of application associations', async function () {
+            it('for an admin lists all the applications in a team', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.BTeam.hashid}/applications`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(200)
+
+                // TODO Enhance test
+                const result = response.json()
+                result.should.have.property('count', 1)
+                result.should.have.property('applications').and.have.a.lengthOf(1)
+                result.applications[0].should.have.property('id', TestObjects.TeamBApp.hashid)
+                result.applications[0].should.have.property('name', 'team-b-application')
             })
 
-            response.statusCode.should.equal(200)
+            it('for an owner lists all the applications in a team', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.BTeam.hashid}/applications`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
 
-            // TODO Enhance test
-            const result = response.json()
-            result.should.have.property('count', 1)
-            result.should.have.property('applications').and.have.a.lengthOf(1)
-            result.applications[0].should.have.property('id', TestObjects.TeamBApp.hashid)
-            result.applications[0].should.have.property('name', 'team-b-application')
+                response.statusCode.should.equal(200)
+
+                const result = response.json()
+                result.should.have.property('count', 1)
+                result.should.have.property('applications').and.have.a.lengthOf(1)
+                should(result.applications.some((application) => application.name === 'team-b-application')).equal(true)
+            })
+
+            it('for an member lists all the applications in a team', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/applications`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+
+                response.statusCode.should.equal(200)
+
+                const result = response.json()
+                result.should.have.property('count', 3)
+                result.should.have.property('applications').and.have.a.lengthOf(3)
+                should(result.applications.some((application) => application.name === 'team-a-application')).equal(true)
+                should(result.applications.some((application) => application.name === 'team-a-application-2')).equal(true)
+            })
+
+            it('lists all instances within each application', async function () {
+                const secondInstance = await app.factory.createInstance({ name: 'second-instance' }, app.application, app.stack, app.template, app.projectType)
+
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/applications`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+
+                response.statusCode.should.equal(200)
+
+                const result = response.json()
+                const application = result.applications.find((application) => application.name === app.application.name)
+
+                application.should.have.property('instances').and.have.a.lengthOf(2)
+
+                should(application.instances.some((instance) => instance.name === app.project.name)).equal(true)
+                should(application.instances.some((instance) => instance.name === secondInstance.name)).equal(true)
+            })
+
+            it('includes the instance URL for each accounting for httpAdminRoot', async function () {
+                const instance = await app.factory.createInstance({ name: 'another-instance' }, app.application, app.stack, app.template, app.projectType, { start: true })
+                await instance.updateSetting(KEY_SETTINGS, { httpAdminRoot: '/editor' })
+
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/applications`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+
+                response.statusCode.should.equal(200)
+
+                const result = response.json()
+                const application = result.applications.find((application) => application.name === app.application.name)
+
+                application.should.have.property('instances').and.have.a.lengthOf(2)
+
+                const instanceDetails = application.instances.find((instance) => instance.name === 'another-instance')
+
+                instanceDetails.should.have.property('id', instance.id)
+                instanceDetails.should.have.property('url', 'http://another-instance.example.com/editor') // from stub driver
+            })
+
+            it('lists all devices within each application', async function () {
+                await app.factory.createDevice({ name: 'device-1', type: 'test-device' }, TestObjects.ATeam, null, app.application)
+                await app.factory.createDevice({ name: 'device-2', type: 'test-device' }, TestObjects.ATeam, null, app.application)
+                await app.factory.createDevice({ name: 'device-3', type: 'test-device' }, TestObjects.ATeam, null, app.application)
+                await app.factory.createDevice({ name: 'device-4', type: 'test-device' }, TestObjects.ATeam, null, app.application)
+                await app.factory.createDevice({ name: 'device-5', type: 'test-device' }, TestObjects.ATeam, null, app.application)
+
+                await app.factory.createDevice({ name: 'device-b-team', type: 'test-device' }, TestObjects.BTeam, null, TestObjects.TeamBApp)
+                await app.factory.createDevice({ name: 'device-other-app', type: 'test-device' }, TestObjects.ATeam, null, TestObjects.TeamAApp2)
+
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/applications`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+
+                response.statusCode.should.equal(200)
+
+                const result = response.json()
+                const application = result.applications.find((application) => application.name === app.application.name)
+
+                application.should.have.property('devices').and.have.a.lengthOf(5)
+
+                should(application.devices.map((device) => device.name)).match(['device-1', 'device-2', 'device-3', 'device-4', 'device-5'])
+            })
+
+            it('fails if a user is not member of the team', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/applications`,
+                    cookies: { sid: TestObjects.tokens.chris }
+                })
+
+                response.statusCode.should.equal(404)
+
+                const result = response.json()
+                result.should.have.property('code', 'not_found')
+                result.should.have.property('error')
+            })
         })
 
-        it('for an owner lists all the applications in a team', async function () {
-            const response = await app.inject({
-                method: 'GET',
-                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/applications`,
-                cookies: { sid: TestObjects.tokens.bob }
-            })
-
-            response.statusCode.should.equal(200)
-
-            const result = response.json()
-            result.should.have.property('count', 1)
-            result.should.have.property('applications').and.have.a.lengthOf(1)
-            should(result.applications.some((application) => application.name === 'team-b-application')).equal(true)
-        })
-
-        it('for an member lists all the applications in a team', async function () {
-            const response = await app.inject({
-                method: 'GET',
-                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/applications`,
-                cookies: { sid: TestObjects.tokens.bob }
-            })
-
-            response.statusCode.should.equal(200)
-
-            const result = response.json()
-            result.should.have.property('count', 3)
-            result.should.have.property('applications').and.have.a.lengthOf(3)
-            should(result.applications.some((application) => application.name === 'team-a-application')).equal(true)
-            should(result.applications.some((application) => application.name === 'team-a-application-2')).equal(true)
-        })
-
-        it('lists all instances within each application', async function () {
-            const secondInstance = await app.factory.createInstance({ name: 'second-instance' }, app.application, app.stack, app.template, app.projectType)
-
-            const response = await app.inject({
-                method: 'GET',
-                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/applications`,
-                cookies: { sid: TestObjects.tokens.bob }
-            })
-
-            response.statusCode.should.equal(200)
-
-            const result = response.json()
-            const application = result.applications.find((application) => application.name === app.application.name)
-
-            application.should.have.property('instances').and.have.a.lengthOf(2)
-
-            should(application.instances.some((instance) => instance.name === app.project.name)).equal(true)
-            should(application.instances.some((instance) => instance.name === secondInstance.name)).equal(true)
-        })
-
-        it('includes the instance URL for each accounting for httpAdminRoot', async function () {
-            const instance = await app.factory.createInstance({ name: 'another-instance' }, app.application, app.stack, app.template, app.projectType, { start: true })
-            await instance.updateSetting(KEY_SETTINGS, { httpAdminRoot: '/editor' })
-
-            const response = await app.inject({
-                method: 'GET',
-                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/applications`,
-                cookies: { sid: TestObjects.tokens.bob }
-            })
-
-            response.statusCode.should.equal(200)
-
-            const result = response.json()
-            const application = result.applications.find((application) => application.name === app.application.name)
-
-            application.should.have.property('instances').and.have.a.lengthOf(2)
-
-            const instanceDetails = application.instances.find((instance) => instance.name === 'another-instance')
-
-            instanceDetails.should.have.property('id', instance.id)
-            instanceDetails.should.have.property('url', 'http://another-instance.example.com/editor') // from stub driver
-        })
-
-        it('fails if a user is not member of the team', async function () {
-            const response = await app.inject({
-                method: 'GET',
-                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/applications`,
-                cookies: { sid: TestObjects.tokens.chris }
-            })
-
-            response.statusCode.should.equal(404)
-
-            const result = response.json()
-            result.should.have.property('code', 'not_found')
-            result.should.have.property('error')
+        describe('Summary list of application and application associations', async function () {
+            it('includes counts of associated objects for each application')
+            // instanceCount, deviceCount, deviceGroupCount, snapshotCount, pipelineCount
+            it('with a subset of application instances including most recent audit log')
+            // application.instancesSummary: mostRecentAuditLogCreatedAt, mostRecentAuditLogEvent
+            it('with all a subset of application devices including most recent audit log')
+            // application.devicesSummary: mostRecentAuditLogCreatedAt, mostRecentAuditLogEvent
         })
     })
 
-    describe('Get list of a teams applications, their instances and their statuses', async function () {
-        it('lists all instances within each application', async function () {
+    describe('Get list of a teams applications statuses', async function () {
+        it('with all instances and their status', async function () {
             const secondInstance = await app.factory.createInstance({ name: 'second-instance' }, app.application, app.stack, app.template, app.projectType, { start: false })
             const thirdInstance = await app.factory.createInstance({ name: 'third-instance' }, app.application, app.stack, app.template, app.projectType, { start: false })
 
@@ -335,6 +372,9 @@ describe('Team API', function () {
             const thirdInstanceStatus = application.instances.find((instance) => instance.id === thirdInstance.id)
             thirdInstanceStatus.meta.should.have.property('state', 'starting')
         })
+
+        it('with all devices, their status, and a link to the device editor')
+        // app.comms.devices.tunnelManager
     })
 
     describe('Get list of a teams projects', async function () {
