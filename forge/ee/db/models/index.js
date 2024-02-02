@@ -115,8 +115,6 @@ async function init (app) {
             }
         }
     })
-
-    await sequelize.sync()
 }
 
 module.exports.init = init
