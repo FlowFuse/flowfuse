@@ -10,17 +10,25 @@
     </div>
     <div v-else :class="showOfflineBanner ? 'forge-log-offline-background' : ''" class="mx-auto text-xs border bg-gray-800 text-gray-200 rounded p-2 font-mono">
         <div v-if="prevCursor" class="flex">
-            <a class=" text-center w-full hover:text-blue-400 cursor-pointer pb-1" @click="loadPrevious">Load earlier...</a>
+            <a class="text-center w-full hover:text-blue-400 cursor-pointer pb-1" @click="loadPrevious">Load earlier...</a>
         </div>
-        <div
-            v-for="(item, itemIdx) in filteredLogEntries" :key="itemIdx"
-            data-el="instance-log-row"
-            class="flex" :class="'forge-log-entry-level-' + item.level"
-        >
-            <div v-if="instance.ha?.replicas !== undefined" class="w-14 flex-shrink-0">[{{ item.src }}]</div>
-            <div class="w-40 flex-shrink-0">{{ item.date }}</div>
-            <div class="w-20 flex-shrink-0 align-right">[{{ item.level }}]</div>
-            <div class="flex-grow break-all whitespace-pre-wrap">{{ item.msg }}</div>
+        <div v-if="filteredLogEntries.length > 0">
+            <span
+                v-for="(item, itemIdx) in filteredLogEntries"
+                :key="itemIdx"
+                class="whitespace-pre-wrap"
+                :class="'forge-log-entry-level-' + item.level"
+                data-el="instance-log-row"
+            >
+                <template v-if="instance.ha?.replicas !== undefined">
+                    [{{ item.src }}]
+                </template>
+                <span>{{ item.date }}</span>
+                <span>{{ "  " }}</span>
+                <span>{{ `[${item.level || ''}]`.padEnd(10, ' ') }}</span>
+                <span class="flex-grow break-all whitespace-pre-wrap inline-flex">{{ item.msg }}</span>
+                <br v-if="itemIdx !== filteredLogEntries.length - 1">
+            </span>
         </div>
     </div>
 </template>
