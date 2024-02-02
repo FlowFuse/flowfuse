@@ -98,9 +98,9 @@ module.exports = {
                             include.attributes = {
                                 include: [...include.attributes, [
                                     literal(`(
-                                        SELECT createdAt
+                                        SELECT "createdAt"
                                         FROM "AuditLogs"
-                                        WHERE "AuditLogs"."entityId" = "project"."id"
+                                        WHERE "AuditLogs"."entityId" = cast("Project"."id" as VARCHAR)
                                         AND "AuditLogs"."entityType" = 'project'
                                         ORDER BY "createdAt" DESC
                                         LIMIT 1
@@ -108,9 +108,9 @@ module.exports = {
                                     'mostRecentAuditLogCreatedAt'
                                 ], [
                                     literal(`(
-                                        SELECT event
+                                        SELECT "event"
                                         FROM "AuditLogs"
-                                        WHERE "AuditLogs"."entityId" = "project"."id"
+                                        WHERE "AuditLogs"."entityId" = cast("Project"."id" as VARCHAR)
                                         AND "AuditLogs"."entityType" = 'project'
                                         ORDER BY "createdAt" DESC
                                         LIMIT 1
@@ -136,9 +136,9 @@ module.exports = {
                             include.attributes = {
                                 include: [...include.attributes, [
                                     literal(`(
-                                        SELECT createdAt
+                                        SELECT "createdAt"
                                         FROM "AuditLogs"
-                                        WHERE "AuditLogs"."entityId" = "device"."id"
+                                        WHERE "AuditLogs"."entityId" = cast("Device"."id" as VARCHAR)
                                         AND "AuditLogs"."entityType" = 'device'
                                         ORDER BY "createdAt" DESC
                                         LIMIT 1
@@ -146,9 +146,9 @@ module.exports = {
                                     'mostRecentAuditLogCreatedAt'
                                 ], [
                                     literal(`(
-                                        SELECT event
+                                        SELECT "event"
                                         FROM "AuditLogs"
-                                        WHERE "AuditLogs"."entityId" = "device"."id"
+                                        WHERE "AuditLogs"."entityId" = cast("Device"."id" as VARCHAR)
                                         AND "AuditLogs"."entityType" = 'device'
                                         ORDER BY "createdAt" DESC
                                         LIMIT 1
@@ -188,7 +188,7 @@ module.exports = {
                                     literal(`(
                                         SELECT count(*)
                                         FROM "DeviceGroups"
-                                        WHERE "DeviceGroups"."ApplicationId" = "application"."id"
+                                        WHERE "DeviceGroups"."ApplicationId" = "Application"."id"
                                     )`),
                                     'deviceGroupCount'
                                 ],
@@ -198,7 +198,7 @@ module.exports = {
                                         FROM "ProjectSnapshots"
                                         LEFT JOIN "Devices" ON "Devices"."id" = "ProjectSnapshots"."DeviceId"
                                         LEFT JOIN "Projects" ON "Projects"."id" = "ProjectSnapshots"."ProjectId"
-                                        WHERE "Devices"."ApplicationId" = "application"."id" OR "Projects"."ApplicationId" = "application"."id"
+                                        WHERE "Devices"."ApplicationId" = "Application"."id" OR "Projects"."ApplicationId" = "Application"."id"
                                     )`),
                                     'snapshotCount'
                                 ],
@@ -206,7 +206,7 @@ module.exports = {
                                     literal(`(
                                         SELECT count(*)
                                         FROM "Pipelines"
-                                        WHERE "Pipelines"."applicationId" = "application"."id"
+                                        WHERE "Pipelines"."ApplicationId" = "Application"."id"
                                     )`),
                                     'pipelineCount'
                                 ]
