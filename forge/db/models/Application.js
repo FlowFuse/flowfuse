@@ -29,7 +29,7 @@ module.exports = {
         this.hasMany(M.DeviceGroup, { onDelete: 'CASCADE' })
         this.hasMany(M.Device) // also via instance and device group
     },
-    finders: function (M) {
+    finders: function (M, app) {
         return {
             static: {
                 byId: async function (idOrHash) {
@@ -201,16 +201,23 @@ module.exports = {
                                         WHERE "Devices"."ApplicationId" = "Application"."id" OR "Projects"."ApplicationId" = "Application"."id"
                                     )`),
                                     'snapshotCount'
-                                ],
-                                [
-                                    literal(`(
-                                        SELECT count(*)
-                                        FROM "Pipelines"
-                                        WHERE "Pipelines"."ApplicationId" = "Application"."id"
-                                    )`),
-                                    'pipelineCount'
                                 ]
+
                             ]
+                        }
+
+                        // Non-EE licensed instances might not have the Pipeline table
+                        // You can add a license without a restart, so we also need to check if the Model is loaded
+                        // If the model is loaded, it can be assumed the table exists
+                        if (app.license.active() && app.db.models.Pipeline) {
+                            query.attributes.include.push([
+                                literal(`(
+                                    SELECT count(*)
+                                    FROM "Pipelines"
+                                    WHERE "Pipelines"."ApplicationId" = "Application"."id"
+                                )`),
+                                'pipelineCount'
+                            ])
                         }
                     }
 
