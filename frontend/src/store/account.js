@@ -278,6 +278,9 @@ const actions = {
         userApi.logout()
             .catch(_ => {})
             .finally(() => {
+                if (window._hsq) {
+                    window._hsq.push(['revokeCookieConsent'])
+                }
                 window.location = '/'
             })
     },

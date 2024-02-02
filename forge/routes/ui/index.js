@@ -61,6 +61,7 @@ module.exports = async function (app) {
             if (support?.enabled && support.frontend?.hubspot?.trackingcode) {
                 const trackingCode = support.frontend.hubspot.trackingcode
                 injection += `<!-- Start of HubSpot Embed Code -->
+                <script type="text/javascript">window._ffhstc = "${trackingCode}"</script>
                 <script type="text/javascript" id="hs-script-loader" async defer src="//js-eu1.hs-scripts.com/${trackingCode}.js"></script>
               <!-- End of HubSpot Embed Code -->`
             }
