@@ -119,6 +119,16 @@ Option        | Description
 
 See [here](./email_providers.md) for example configuration with common email providers.
 
+### AWS SES Email
+
+There is also support for using AWS SES email, this is mainly intended to be used when deployed on AWS EKS.
+
+This assumes that the instance is running with a Service Account that has a AWS Role with SES access enabled.
+
+Option        | Description
+`email.ses.region` | The AWS region to connect to
+
+
 ## Telemetry configuration
 
 By default, the platform will send anonymous usage information back to us at FlowForge Inc.
