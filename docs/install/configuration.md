@@ -126,6 +126,7 @@ There is also support for using AWS SES email, this is mainly intended to be use
 This assumes that the instance is running with a Service Account that has a AWS Role with SES access enabled.
 
 Option        | Description
+--------------|------------
 `email.ses.region` | The AWS region to connect to
 
 
