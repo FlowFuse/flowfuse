@@ -151,7 +151,8 @@
     </template>
     <template v-else-if="entry.event === 'account.logout' || entry.event === 'auth.logout' || entry.event === 'auth.login.revoke'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.trigger?.name">User '{{ entry.trigger.name }}' has logged out.</span>
+        <span v-if="!error && entry.trigger?.id === null && entry.event === 'auth.login.revoke'">Node-RED user has logged out.</span>
+        <span v-else-if="!error && entry.trigger?.name">User '{{ entry.trigger.name }}' has logged out.</span>
         <span v-else-if="!error">User data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'account.forgot-password'">
