@@ -14,6 +14,13 @@ const sha256 = value => crypto.createHash('sha256').update(value).digest().toStr
 
 let app
 
+/** @type {typeof import('random-words')} */
+let randomWords
+
+(async () => {
+    randomWords = (await import('random-words'))
+})()
+
 /**
  * Generate a properly formed where-object for sequelize findAll, that applies
  * the required pagination, search and filter logic
@@ -115,6 +122,37 @@ function getCanonicalEmail (email, options = { removeDotsForDomains: ['gmail.', 
     return `${local}@${domain}`
 }
 
+/**
+ * Generate a random 1 or more random strings
+ * @param {Number} [count=1] - Number of strings to generate
+ * @param {Number} [minLength=2] - Minimum length of each string
+ * @param {Number} [maxLength=15] - Maximum length of each string
+ * @param {Number} [wordsPerString=1] - Number of words in each string
+ * @returns {Array<String>} - Array of random strings
+ */
+function randomStrings (count = 1, minLength = 2, maxLength = 15, wordsPerString = 1) {
+    const words = randomWords.generate({
+        exactly: count || 1,
+        minLength: minLength || 2,
+        maxLength: maxLength || 15,
+        wordsPerString: wordsPerString || 1
+    })
+    words.sort(() => Math.random() - 0.5) // a bit of extra randomness additional to the default behaviour of `random-words` lib method
+    return words
+}
+
+/**
+ * Generate a random phrase
+ * @param {Number} [wordCount=3] - Number of words in the phrase
+ * @param {Number} [minLength=2] - Minimum length of each word
+ * @param {Number} [maxLength=15] - Maximum length of each word
+ * @param {String} [separator='-'] - Separator between words
+ * @returns {String} - Random phrase
+ */
+function randomPhrase (wordCount = 3, minLength = 2, maxLength = 15, separator = '-') {
+    return randomStrings(wordCount, minLength, maxLength).join(separator)
+}
+
 module.exports = {
     init: _app => { app = _app },
     generateToken: (length, prefix) => (prefix ? prefix + '_' : '') + base64URLEncode(crypto.randomBytes(length || 32)),
@@ -143,5 +181,7 @@ module.exports = {
         return hashids[type]
     },
     buildPaginationSearchClause,
-    getCanonicalEmail
+    getCanonicalEmail,
+    randomStrings,
+    randomPhrase
 }

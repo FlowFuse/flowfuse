@@ -14,6 +14,11 @@ function identify (userId, set, setonce) {
             ...setonce
         })
     }
+    const _hsq = window._hsq = window._hsq || []
+    _hsq.push(['identify', {
+        id: userId,
+        email: set.email
+    }])
 }
 
 /**

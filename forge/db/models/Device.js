@@ -105,7 +105,7 @@ module.exports = {
     finders: function (M) {
         return {
             instance: {
-                async refreshAuthTokens () {
+                async refreshAuthTokens ({ refreshOTC = false } = {}) {
                     const accessToken = await Controllers.AccessToken.createTokenForDevice(this)
                     const credentialSecret = crypto.randomBytes(32).toString('hex')
                     this.credentialSecret = credentialSecret
@@ -113,6 +113,10 @@ module.exports = {
                     const result = {
                         token: accessToken.token,
                         credentialSecret
+                    }
+                    if (refreshOTC) {
+                        const oneTimeCode = await Controllers.AccessToken.createDeviceOTC(this)
+                        result.otc = oneTimeCode.otc
                     }
                     const broker = await Controllers.BrokerClient.createClientForDevice(this)
                     if (broker) {
@@ -122,7 +126,7 @@ module.exports = {
                 },
                 async getAccessToken () {
                     return M.AccessToken.findOne({
-                        where: { ownerId: '' + this.id, ownerType: 'device' }
+                        where: { ownerId: '' + this.id, ownerType: 'device', scope: 'device' }
                     })
                 },
                 async updateSettingsHash (settings) {

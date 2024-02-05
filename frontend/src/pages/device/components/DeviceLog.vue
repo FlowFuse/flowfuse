@@ -1,21 +1,18 @@
 <template>
     <ff-loading v-if="loading" message="Loading Logs..." />
-    <div
-        v-if="device?.status && device?.status !== 'stopped'"
-        class="mx-auto text-xs border bg-gray-800 text-gray-200 rounded p-2 font-mono"
-    >
-        <div
+    <div v-if="device?.status && device?.status !== 'stopped'" class="mx-auto text-xs border bg-gray-800 text-gray-200 rounded p-2 font-mono">
+        <span
             v-for="(item, itemIdx) in logEntries"
             :key="itemIdx"
-            class="flex"
+            class="whitespace-pre-wrap"
             :class="'forge-log-entry-level-' + item.level"
         >
-            <div class="w-40 flex-shrink-0">{{ item.date }}</div>
-            <div class="w-20 flex-shrink-0 align-right">[{{ item.level }}]</div>
-            <div class="flex-grow break-all whitespace-pre-wrap">
-                {{ item.msg.replace(/^[\n]*/, "") }}
-            </div>
-        </div>
+            <span>{{ item.date }}</span>
+            <span>{{ "  " }}</span>
+            <span>{{ `[${item.level || ''}]`.padEnd(10, ' ') }}</span>
+            <span class="flex-grow break-all whitespace-pre-wrap">{{ item.msg.replace(/^[\n]*/, '') }}</span>
+            <br v-if="itemIdx !== logEntries.length - 1">
+        </span>
     </div>
     <div v-else>Logs unavailable</div>
 </template>

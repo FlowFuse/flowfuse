@@ -98,6 +98,14 @@ async function init (app, opts) {
                     if (accessToken.ownerType === 'team' && request.session.scope?.includes('device:provision')) {
                         request.session.provisioning = await app.db.views.AccessToken.provisioningTokenSummary(accessToken)
                     }
+                    if (accessToken.ownerType === 'device' && request.session.scope?.includes('device:otc')) {
+                        request.session.provisioning = {
+                            otcSetup: true,
+                            deviceId: +accessToken.ownerId // convert to number
+                        }
+                        // delete one time code immediately (spent)
+                        await accessToken.destroy()
+                    }
                     if (accessToken.ownerType === 'user') {
                         request.session.User = await app.db.models.User.findOne({ where: { id: parseInt(accessToken.ownerId) } })
                         // Unlike a cookie based session, we'll allow user tokens to continue

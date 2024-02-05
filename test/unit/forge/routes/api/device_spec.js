@@ -1,4 +1,5 @@
 const should = require('should') // eslint-disable-line
+const { sha256 } = require('../../../../../forge/db/utils')
 const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
@@ -9,6 +10,8 @@ describe('Device API', async function () {
     let app
     /** @type {import('../../../../../forge/db/controllers/AccessToken') */
     let AccessTokenController
+    /** @type {import('../../../../lib/TestModelFactory')} */
+    let factory
     let projectInstanceCount = 0
     const generateProjectName = () => 'test-project' + (projectInstanceCount++)
 
@@ -72,7 +75,7 @@ describe('Device API', async function () {
         }
         app = await setup(setupConfig)
         AccessTokenController = app.db.controllers.AccessToken
-
+        factory = app.factory
         // alice : admin
         // bob
         // chris
@@ -371,6 +374,7 @@ describe('Device API', async function () {
             })
         })
     })
+
     describe('Generate Device credentials', function () {
         it('regenerates a devices credentials', async function () {
             const response = await app.inject({
@@ -384,6 +388,12 @@ describe('Device API', async function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
             const device = response.json()
+
+            // check that the OTC is a string, length of 8 or more & made up of xx-xx-xx where xx is 2 or more characters
+            device.credentials.should.have.property('otc').and.be.a.String()
+            device.credentials.otc.length.should.be.greaterThanOrEqual(8)
+            device.credentials.otc.should.match(/^\w{2,}-\w{2,}-\w{2,}$/)
+
             device.credentials.should.have.property('token')
             device.credentials.should.have.property('credentialSecret')
             device.credentials.should.have.property('broker')
@@ -399,6 +409,12 @@ describe('Device API', async function () {
 
             response2.statusCode.should.equal(200)
             const newCreds = response2.json()
+
+            // check that the OTC is a string, length of 8 or more & made up of xx-xx-xx where xx is 2 or more characters
+            newCreds.should.have.property('otc').and.be.a.String()
+            newCreds.otc.length.should.be.greaterThanOrEqual(8)
+            newCreds.otc.should.match(/^\w{2,}-\w{2,}-\w{2,}$/)
+
             newCreds.should.have.property('token')
             newCreds.should.have.property('credentialSecret')
             newCreds.should.have.property('broker')
@@ -406,11 +422,76 @@ describe('Device API', async function () {
             newCreds.broker.should.have.property('username')
             newCreds.broker.should.have.property('password')
 
-            newCreds.token.should.not.equal(device.credentials.token)
+            newCreds.otc.should.not.equal(device.credentials.otc) // OTC should be different
+            newCreds.token.should.not.equal(device.credentials.token) // token should be different
             newCreds.credentialSecret.should.not.equal(device.credentials.credentialSecret)
             newCreds.broker.url.should.equal(device.credentials.broker.url)
             newCreds.broker.username.should.equal(device.credentials.broker.username)
             newCreds.broker.password.should.not.equal(device.credentials.broker.password)
+        })
+        it('regenerates a devices credentials when a device quick connects', async function () {
+            // create an app device, generate one-time-code for quick connect
+            const device1 = await factory.createDevice({ name: 'device1' }, TestObjects.ATeam, null, TestObjects.Application1)
+            const dbDevice = await app.db.models.Device.byId(device1.hashid)
+            const initialCredentials = await dbDevice.refreshAuthTokens({ refreshOTC: true })
+            const otcToken = Buffer.from(initialCredentials.otc).toString('base64')
+            const otcTokenClause = { where: { token: sha256(otcToken) } }
+            const accessTokenBefore = await app.db.models.AccessToken.findOne(otcTokenClause)
+            should.exist(accessTokenBefore)
+
+            // quick connect the device using the one-time-code
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/devices',
+                body: {
+                    setup: true
+                },
+                headers: {
+                    Authorization: `Bearer ${otcToken}` // using the one-time-code as the session token
+                }
+            })
+            response.statusCode.should.equal(200)
+
+            // check the OTC is not refreshed and is not returned in the response
+            const result = response.json()
+            result.should.have.property('credentials').and.be.an.Object()
+            const newCreds = result.credentials
+            newCreds.should.not.have.property('otc')
+            newCreds.credentialSecret.should.not.equal(initialCredentials.credentialSecret)
+            newCreds.broker.url.should.equal(initialCredentials.broker.url)
+            newCreds.broker.username.should.equal(initialCredentials.broker.username)
+            newCreds.broker.password.should.not.equal(initialCredentials.broker.password)
+
+            // ensure the otc was deleted from the db (used / spent)
+            const accessTokenAfter = await app.db.models.AccessToken.findOne(otcTokenClause)
+            should.not.exist(accessTokenAfter)
+        })
+        it('returns 404 for invalid OTC', async function () {
+            // create an app device, generate one-time-code for quick connect
+            const device1 = await factory.createDevice({ name: 'device1' }, TestObjects.ATeam, null, TestObjects.Application1)
+            const dbDevice = await app.db.models.Device.byId(device1.hashid)
+            const initialCredentials = await dbDevice.refreshAuthTokens({ refreshOTC: true })
+            const otc = initialCredentials.otc
+            // attempt to quick connect the device using a bad one-time-code
+            const badOtcToken = Buffer.from(otc + 'bad').toString('base64')
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/devices',
+                body: {
+                    setup: true
+                },
+                headers: {
+                    Authorization: `Bearer ${badOtcToken}`
+                }
+            })
+
+            response.statusCode.should.equal(401)
+
+            // ensure token is not spent
+            const otcToken = Buffer.from(otc).toString('base64')
+            const otcTokenClause = { where: { token: sha256(otcToken) } }
+            const accessTokenBefore = await app.db.models.AccessToken.findOne(otcTokenClause)
+            should.exist(accessTokenBefore)
         })
     })
 
