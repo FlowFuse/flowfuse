@@ -329,12 +329,152 @@ describe('Team API', function () {
         })
 
         describe('Summary list of application and application associations', async function () {
-            it('includes counts of associated objects for each application')
-            // instanceCount, deviceCount, deviceGroupCount, snapshotCount, pipelineCount
-            it('with a subset of application instances including most recent audit log')
-            // application.instancesSummary: mostRecentAuditLogCreatedAt, mostRecentAuditLogEvent
-            it('with all a subset of application devices including most recent audit log')
-            // application.devicesSummary: mostRecentAuditLogCreatedAt, mostRecentAuditLogEvent
+            it('includes counts of associated objects for each application', async function () {
+                // Two instances
+                const instanceOne = await app.factory.createInstance(
+                    { name: 'application-1-instance-1' },
+                    TestObjects.TeamAApp,
+                    app.stack,
+                    app.template,
+                    app.projectType,
+                    { start: false }
+                )
+                await app.factory.createInstance(
+                    { name: 'application-1-instance-2' },
+                    TestObjects.TeamAApp,
+                    app.stack,
+                    app.template,
+                    app.projectType,
+                    { start: false }
+                )
+
+                // 1 device (one is assigned to the instance)
+                await app.factory.createDevice({ name: 'not-counted-assigned-to-instance-device', type: 'type2' }, TestObjects.ATeam, instanceOne)
+                const device = await app.factory.createDevice({ name: 'counted-assigned-to-application-device', type: 'type2' }, TestObjects.ATeam, null, TestObjects.TeamAApp)
+
+                // 3 device groups
+                await app.factory.createApplicationDeviceGroup({}, TestObjects.TeamAApp)
+                await app.factory.createApplicationDeviceGroup({}, TestObjects.TeamAApp)
+                await app.factory.createApplicationDeviceGroup({}, TestObjects.TeamAApp)
+
+                // 2 snapshots, one instance and one device
+                await app.factory.createSnapshot({ name: 'snapshot 1' }, instanceOne, TestObjects.alice)
+                await app.factory.createDeviceSnapshot({ name: 'snapshot 2' }, device, TestObjects.alice)
+
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${app.team.hashid}/applications?associationsLimit=3`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(200)
+
+                const result = response.json()
+                result.applications.should.have.a.lengthOf(3) // two above plus default
+
+                const applicationOne = result.applications.find((application) => application.name === TestObjects.TeamAApp.name)
+
+                applicationOne.instancesSummary.should.have.property('count', 2)
+                applicationOne.devicesSummary.should.have.property('count', 1)
+                applicationOne.should.have.property('deviceGroupCount', 3)
+                applicationOne.should.have.property('snapshotCount', 2)
+                // pipelineCount is not included for non EE
+
+                const applicationTwo = result.applications.find((application) => application.name === TestObjects.TeamAApp2.name)
+
+                applicationTwo.instancesSummary.should.have.property('count', 0)
+                applicationTwo.devicesSummary.should.have.property('count', 0)
+                applicationTwo.should.have.property('deviceGroupCount', 0)
+                applicationTwo.should.have.property('snapshotCount', 0)
+                // pipelineCount is not included for non EE
+            })
+
+            it('with a subset of application instances including most recent audit log', async function () {
+                // Three instances
+                const instanceOne = await app.factory.createInstance(
+                    { name: 'application-1-instance-1' },
+                    TestObjects.TeamAApp,
+                    app.stack,
+                    app.template,
+                    app.projectType,
+                    { start: false }
+                )
+                await app.factory.createInstance(
+                    { name: 'application-1-instance-2' },
+                    TestObjects.TeamAApp,
+                    app.stack,
+                    app.template,
+                    app.projectType,
+                    { start: false }
+                )
+                const instanceThree = await app.factory.createInstance(
+                    { name: 'application-1-instance-3' },
+                    TestObjects.TeamAApp,
+                    app.stack,
+                    app.template,
+                    app.projectType,
+                    { start: false }
+                )
+
+                // Fake audit log entry for first and last instance
+                await app.auditLog.Project.project.suspended(null, null, instanceOne)
+                await app.auditLog.Project.project.created(null, null, null, instanceThree)
+
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${app.team.hashid}/applications?associationsLimit=2`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(200)
+                const result = response.json()
+
+                const applicationOne = result.applications.find((application) => application.name === TestObjects.TeamAApp.name)
+
+                // Only two of three included, based on mostRecentAuditLogCreatedAt
+                applicationOne.instancesSummary.should.have.property('count', 3)
+                applicationOne.instancesSummary.instances.should.have.lengthOf(2)
+
+                // Most recent audit log included
+                applicationOne.instancesSummary.instances[0].should.have.property('mostRecentAuditLogCreatedAt')
+                applicationOne.instancesSummary.instances[0].should.have.property('mostRecentAuditLogEvent', 'project.suspended')
+
+                applicationOne.instancesSummary.instances[1].should.have.property('mostRecentAuditLogCreatedAt')
+                applicationOne.instancesSummary.instances[1].should.have.property('mostRecentAuditLogEvent', 'project.created')
+            })
+
+            it('with all a subset of application devices including most recent audit log', async function () {
+                // 3 assigned devices
+                const deviceOne = await app.factory.createDevice({ name: 'device-1', type: 'type2' }, TestObjects.ATeam, null, TestObjects.TeamAApp)
+                await app.factory.createDevice({ name: 'device-2', type: 'type2' }, TestObjects.ATeam, null, TestObjects.TeamAApp)
+                const deviceThree = await app.factory.createDevice({ name: 'device-3', type: 'type2' }, TestObjects.ATeam, null, TestObjects.TeamAApp)
+
+                // Fake audit log entry for first and last device
+                await app.auditLog.Device.device.assigned(null, null, TestObjects.TeamAApp, deviceOne)
+                await app.auditLog.Device.device.developerMode.enabled(null, null, TestObjects.TeamAApp, deviceThree)
+
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${app.team.hashid}/applications?associationsLimit=2`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(200)
+                const result = response.json()
+
+                const applicationOne = result.applications.find((application) => application.name === TestObjects.TeamAApp.name)
+
+                // Only two of three included, based on mostRecentAuditLogCreatedAt
+                applicationOne.devicesSummary.should.have.property('count', 3)
+                applicationOne.devicesSummary.devices.should.have.lengthOf(2)
+
+                // Most recent audit log included
+                applicationOne.devicesSummary.devices[0].should.have.property('mostRecentAuditLogCreatedAt')
+                applicationOne.devicesSummary.devices[0].should.have.property('mostRecentAuditLogEvent', 'device.assigned')
+
+                applicationOne.devicesSummary.devices[1].should.have.property('mostRecentAuditLogCreatedAt')
+                applicationOne.devicesSummary.devices[1].should.have.property('mostRecentAuditLogEvent', 'device.developer-mode.enabled')
+            })
         })
     })
 

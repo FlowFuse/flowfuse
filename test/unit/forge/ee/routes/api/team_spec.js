@@ -53,4 +53,39 @@ describe('Team API - with billing enabled', function () {
             response.statusCode.should.equal(200)
         })
     })
+
+    describe('Applications List', async function () {
+        it('additionally includes the pipelineCount for each application', async function () {
+            await login('alice', 'aaPassword')
+
+            const TeamAApp = await app.factory.createApplication({ name: 'team-a-application' }, app.team)
+            const TeamAApp2 = await app.factory.createApplication({ name: 'team-a-application-2' }, app.team)
+
+            // 3/1 pipelines
+            await app.factory.createPipeline({ name: 'pipeline 1' }, TeamAApp)
+            await app.factory.createPipeline({ name: 'pipeline 2' }, TeamAApp)
+            await app.factory.createPipeline({ name: 'pipeline 3' }, TeamAApp)
+
+            await app.factory.createPipeline({ name: 'pipeline 4' }, TeamAApp2)
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${app.team.hashid}/applications?associationsLimit=3`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            response.statusCode.should.equal(200)
+
+            const result = response.json()
+            result.applications.should.have.a.lengthOf(3)
+
+            const applicationOne = result.applications.find((application) => application.name === TeamAApp.name)
+
+            applicationOne.should.have.property('pipelineCount', 3)
+
+            const applicationTwo = result.applications.find((application) => application.name === TeamAApp2.name)
+
+            applicationTwo.should.have.property('pipelineCount', 1)
+        })
+    })
 })
