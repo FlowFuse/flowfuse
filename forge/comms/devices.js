@@ -60,23 +60,22 @@ class DeviceCommsHandler {
 
         // Listen for any incoming device status events
         client.on('status/device', (status) => { this.handleStatus(status) })
-        //client.on('logs/device', (log) => { this.forwardLog(log) })
         client.on('response/device', (response) => { this.handleCommandResponse(response) })
         client.on('logs/heartbeat', (beat) => {
             this.deviceLogHeartbeats[beat.id] = beat.timestamp
         })
 
-        this.deviceLogHeartbeatInterval = setInterval( () => {
+        this.deviceLogHeartbeatInterval = setInterval(() => {
             const now = Date.now()
             for (const [key, value] of Object.entries(this.deviceLogHeartbeats)) {
-                if (now - value > 40000) {
+                if (now - value > 25000) {
                     const parts = key.split(':')
                     this.sendCommand(parts[0], parts[1], 'stopLog', '')
                     this.app.log.info(`Disable device logging ${parts[1]}`)
                     delete this.deviceLogHeartbeats[key]
                 }
             }
-        }, 60000)
+        }, 30000)
     }
 
     async handleStatus (status) {
@@ -379,7 +378,7 @@ class DeviceCommsHandler {
      * Shutdown log heartbeat interval
      */
     async stopLogWatcher () {
-        for (const [key, value] of Object.entries(this.deviceLogHeartbeats)) {
+        for (const [key] of Object.entries(this.deviceLogHeartbeats)) {
             const parts = key.split(':')
             try {
                 await this.sendCommandAsync(parts[0], parts[1], 'stopLog', '')

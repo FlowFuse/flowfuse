@@ -63,7 +63,7 @@ class CommsClient extends EventEmitter {
                                 id: `${topicParts[2]}:${ownerId}`,
                                 timestamp: Date.now()
                             })
-                        } 
+                        }
                     } else if (messageType === 'response') {
                         const response = {
                             id: ownerId,
