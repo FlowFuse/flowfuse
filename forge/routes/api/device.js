@@ -583,15 +583,6 @@ module.exports = async function (app) {
         }
     })
 
-    // Websocket end point
-    app.get('/:deviceId/logs', {
-        websocket: true,
-        preHandler: app.needsPermission('device:read')
-    }, async (connection, request) => {
-        const team = await app.db.models.Team.byId(request.device.TeamId)
-        app.comms.devices.streamLogs(team.hashid, request.device.hashid, connection.socket)
-    })
-
     app.post('/:deviceId/logs', {
         preHandler: app.needsPermission('device:read'),
         schema: {

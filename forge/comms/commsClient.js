@@ -63,12 +63,7 @@ class CommsClient extends EventEmitter {
                                 id: `${topicParts[2]}:${ownerId}`,
                                 timestamp: Date.now()
                             })
-                        } else {
-                            this.emit('logs/device', {
-                                id: ownerId,
-                                logs: message.toString()
-                            })
-                        }
+                        } 
                     } else if (messageType === 'response') {
                         const response = {
                             id: ownerId,
@@ -83,8 +78,6 @@ class CommsClient extends EventEmitter {
                 '$share/platform/ff/v1/+/l/+/status',
                 // Device status - shared subscription
                 '$share/platform/ff/v1/+/d/+/status',
-                // Device logs - not shared subscription
-                'ff/v1/+/d/+/logs',
                 // Device response - not shared subscription
                 'ff/v1/+/d/+/response/' + this.platformId,
                 // Device logs heartbeat

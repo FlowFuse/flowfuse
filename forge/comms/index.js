@@ -51,6 +51,7 @@ module.exports = fp(async function (app, _opts) {
         })
         app.addHook('onClose', async (_) => {
             app.log.info('Comms shutdown')
+            await deviceCommsHandler.stopLogWatcher()
             await client.disconnect()
         })
     } else {
