@@ -466,4 +466,26 @@ describe('Audit Log > Formatters', async function () {
             Formatters.updatesObject('key', undefined, 1, 'something_else')
         }).throw()
     })
+
+    describe('Formats Node-RED audit log entries', async function () {
+        it('Includes the event data for `flows.set` event', async function () {
+            // can get away with passing empty objects here
+            // as we test format for each object in following tests
+            const entry = Formatters.formatLogEntry({
+                hashid: '<hashid>',
+                UserId: {},
+                User: {},
+                event: 'flows.set',
+                createdAt: '<datetime>',
+                entityId: '<entityId>',
+                entityType: '<entityType>',
+                body: { type: 'full', ip: '127.0.0.1' }
+            })
+
+            should(entry).have.property('body')
+            should(entry.body).be.an.Object()
+            should(entry.body).have.property('type', 'full')
+            should(entry.body).have.property('ip', '127.0.0.1')
+        })
+    })
 })
