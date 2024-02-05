@@ -88,4 +88,39 @@ describe('Team API - with billing enabled', function () {
             applicationTwo.should.have.property('pipelineCount', 1)
         })
     })
+
+    describe('Applications Status List', async function () {
+        it('includes device editor links if enabled', async function () {
+            await login('alice', 'aaPassword')
+
+            const device1 = await app.factory.createDevice({ name: 'device-1', type: 'test-device', lastSeenAt: new Date(), mode: 'developer', state: 'running' }, app.team, null, app.application)
+
+            app.comms.devices.tunnelManager.newTunnel(device1.id, 'token12e')
+            sinon.stub(app.comms.devices.tunnelManager, 'isConnected').returns(true)
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${app.team.hashid}/applications/status`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            response.statusCode.should.equal(200)
+
+            const result = response.json()
+
+            const devices = result.applications[0].devices
+
+            devices.should.have.lengthOf(1)
+
+            const device = devices[0]
+
+            device.should.have.property('status', 'running')
+            device.should.have.property('mode', 'developer')
+            device.should.have.property('editor')
+
+            device.editor.should.have.property('url', '/api/v1/devices/1/editor/proxy/?access_token=token12e')
+            device.editor.should.have.property('enabled', true)
+            device.editor.should.have.property('connected', true)
+        })
+    })
 })

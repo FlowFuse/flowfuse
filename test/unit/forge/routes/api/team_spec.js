@@ -513,8 +513,41 @@ describe('Team API', function () {
             thirdInstanceStatus.meta.should.have.property('state', 'starting')
         })
 
-        it('with all devices, their status, and a link to the device editor')
-        // app.comms.devices.tunnelManager
+        it('with all devices and their status', async function () {
+            const device1 = await app.factory.createDevice({ name: 'device-1', type: 'test-device', lastSeenAt: new Date(), mode: 'developer', state: 'running' }, TestObjects.ATeam, null, app.application)
+            const device2 = await app.factory.createDevice({ name: 'device-2', type: 'test-device', state: 'updating' }, TestObjects.ATeam, null, app.application)
+            const device3 = await app.factory.createDevice({ name: 'device-3', type: 'test-device', state: 'suspended' }, TestObjects.ATeam, null, app.application)
+            await app.factory.createDevice({ name: 'device-4', type: 'test-device', lastSeenAt: new Date(), state: 'running' }, TestObjects.ATeam, null, app.application)
+            await app.factory.createDevice({ name: 'device-5', type: 'test-device' }, TestObjects.ATeam, null, app.application)
+
+            await app.factory.createDevice({ name: 'device-b-team', type: 'test-device' }, TestObjects.BTeam, null, TestObjects.TeamBApp)
+            await app.factory.createDevice({ name: 'device-other-app', type: 'test-device' }, TestObjects.ATeam, null, TestObjects.TeamAApp2)
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/applications/status`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+
+            response.statusCode.should.equal(200)
+
+            const result = response.json()
+
+            const devices = result.applications[0].devices
+
+            devices.should.have.lengthOf(5)
+
+            devices.find((device) => device.id === device1.hashid).should.have.property('mode', 'developer')
+            devices.find((device) => device.id === device1.hashid).should.have.property('status', 'running')
+
+            devices.find((device) => device.id === device2.hashid).should.have.property('mode', 'autonomous')
+            devices.find((device) => device.id === device2.hashid).should.have.property('status', 'updating')
+
+            devices.find((device) => device.id === device3.hashid).should.have.property('mode', 'autonomous')
+            devices.find((device) => device.id === device3.hashid).should.have.property('status', 'suspended')
+
+            // Device editor links are only for EE customers
+        })
     })
 
     describe('Get list of a teams projects', async function () {
