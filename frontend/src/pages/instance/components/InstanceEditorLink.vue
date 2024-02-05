@@ -1,6 +1,5 @@
 <template>
     <ff-button
-        v-if="!isVisitingAdmin"
         v-ff-tooltip:left="disabledReason"
         kind="secondary"
         data-action="open-editor"
@@ -12,12 +11,6 @@
         </template>
         {{ editorDisabled ? 'Editor Disabled' : 'Open Editor' }}
     </ff-button>
-    <button v-else v-ff-tooltip:left="'Unable to open editor when visiting as an admin'" class="ff-btn ff-btn--secondary" disabled>
-        {{ editorDisabled ? 'Editor Disabled' : 'Open Editor' }}
-        <span class="ff-btn--icon ff-btn--icon-right">
-            <ExternalLinkIcon />
-        </span>
-    </button>
 </template>
 
 <script>
