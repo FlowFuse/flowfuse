@@ -150,7 +150,6 @@ module.exports = async function (app) {
     }, async function (request, reply) {
         const requestId = request.params.code
         const requestObject = await requestCache.get(requestId)
-
         if (!requestObject) {
             return badRequest(reply, 'invalid_request', 'Invalid request')
         }
@@ -166,12 +165,14 @@ module.exports = async function (app) {
                     }
                     const project = await app.db.models.Project.byId(authClient.ownerId)
                     const teamMembership = await request.session.User.getTeamMembership(project.TeamId)
-                    if (!teamMembership) {
+                    if (!teamMembership && !request.session.User.admin) {
+                        // This user is neither a team member, nor an admin - reject
                         return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
                     }
                     const isEditor = /^editor($|-)/.test(requestObject.scope)
                     if (isEditor) {
-                        const canReadFlows = app.hasPermission(teamMembership, 'project:flows:view')
+                        // Allow admin users to have read-access to flows
+                        const canReadFlows = request.session.User.admin || app.hasPermission(teamMembership, 'project:flows:view')
                         const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit')
                         const canReadHTTP = app.hasPermission(teamMembership, 'project:flows:http')
                         if (!canReadFlows && !canWriteFlows) {
@@ -195,6 +196,10 @@ module.exports = async function (app) {
                     } else {
                         // This is the httpNode middleware checking access. All
                         // team members are allowed to access the httpNode routes
+                        if (!teamMembership) {
+                            // This is an admin who isn't a team member - reject the request
+                            return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
+                        }
                     }
                 }
                 requestObject.userId = request.session.User.id
@@ -308,7 +313,8 @@ module.exports = async function (app) {
 
                 const project = await app.db.models.Project.byId(authClient.ownerId)
                 const teamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: project.TeamId, UserId: requestObject.userId } })
-                const canReadFlows = app.hasPermission(teamMembership, 'project:flows:view')
+                const user = await app.db.models.User.findOne({ where: { id: requestObject.userId }, attributes: ['admin'] })
+                const canReadFlows = user.admin || app.hasPermission(teamMembership, 'project:flows:view')
                 const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit')
                 const canReadHTTP = app.hasPermission(teamMembership, 'project:flows:http')
                 const isEditor = /^editor($|-)/.test(requestObject.scope)
@@ -381,8 +387,9 @@ module.exports = async function (app) {
                 // Check the owner of the existing session still has access to the project
                 // this client is owned by
                 const project = await app.db.models.Project.byId(authClient.ownerId)
+                const user = await app.db.models.User.findOne({ where: { id: parseInt(existingToken.ownerId) }, attributes: ['admin'] })
                 const teamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: project.TeamId, UserId: parseInt(existingToken.ownerId) } })
-                const canReadFlows = app.hasPermission(teamMembership, 'project:flows:view')
+                const canReadFlows = user.admin || app.hasPermission(teamMembership, 'project:flows:view')
                 const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit')
 
                 if (!canReadFlows && !canWriteFlows) {
