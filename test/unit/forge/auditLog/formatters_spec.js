@@ -484,8 +484,9 @@ describe('Audit Log > Formatters', async function () {
 
             should(entry).have.property('body')
             should(entry.body).be.an.Object()
-            should(entry.body).have.property('type', 'full')
-            should(entry.body).have.property('ip', '127.0.0.1')
+            entry.body.should.have.property('flowsSet').and.be.an.Object()
+            entry.body.flowsSet.should.only.have.keys('type')
+            entry.body.flowsSet.type.should.equal('full')
         })
     })
 })
