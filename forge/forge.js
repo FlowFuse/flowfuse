@@ -314,6 +314,9 @@ module.exports = async (options = {}) => {
             strictTransportSecurity,
             frameguard: {
                 action: 'deny'
+            },
+            referrerPolicy: {
+                policy: 'origin-when-cross-origin'
             }
         })
 

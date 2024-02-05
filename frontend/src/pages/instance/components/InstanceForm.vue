@@ -77,7 +77,7 @@
                 <BlueprintSelection :blueprints="blueprints" @selected="selectBlueprint" />
             </template>
             <template v-else>
-                <div v-if="creatingNew && flowBlueprintsEnabled && atLeastOneFlowBlueprint">
+                <div v-if="creatingNew && flowBlueprintsEnabled && atLeastOneFlowBlueprint && !isCopyProject">
                     <div class="max-w-sm" data-form="blueprint">
                         <label class="block text-sm font-medium text-gray-800 mb-2">Blueprint:</label>
                         <BlueprintTileSmall :blueprint="selectedBlueprint" />
@@ -673,7 +673,7 @@ export default {
             this.input.stack = this.stacks[0]?.id
         },
         async loadBlueprints () {
-            if (!this.flowBlueprintsEnabled) {
+            if (!this.flowBlueprintsEnabled || this.isCopyProject) {
                 return []
             }
 

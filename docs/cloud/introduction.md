@@ -6,7 +6,7 @@ navTitle: Introduction
 # FlowFuse Cloud
 
 FlowFuse Cloud is a hosted service allowing users to sign-up and start creating Node-RED instances without having to install and manage their own instance of FlowFuse.
-The [Concepts](../user/concepts.md) remain the same, but we run the platform for you.
+The [Concepts](/docs/user/concepts.md) remain the same, but we run the platform for you.
 
 ## 14-day Free Trial
 
@@ -30,7 +30,7 @@ they know what is happening.
 ## Billing
 
 Customers are billed at the team level for each Node-RED instance they create. This is a recurring monthly charge.
-See the [Billing](./billing.md) page for more detailed answers about billing.
+See the [Billing](/docs/cloud/billing.md) page for more detailed answers about billing.
 
 ## Support
 
@@ -48,8 +48,8 @@ and click the button to resend it.
 ## Node-RED on FlowFuse Cloud
 
 FlowFuse currently offers Node-RED 2.2 and 3.0 to customers. When creating a
-new instance a [Stack](../user/concepts.md#stack) is chosen, which later
-can be [upgraded to a later version](../user/changestack.md).
+new instance a [Stack](/docs/user/concepts.md#stack) is chosen, which later
+can be [upgraded to a later version](/docs/user/changestack.md).
 
 Each Node-RED can install custom modules as advertised in the [Flow Library](https://flows.nodered.org).
 
@@ -141,4 +141,4 @@ can evaluate what will be required to enable it.
 Before you can delete your account, teams you own must either be deleted or have at least 1 other owner.
 Once this is done, you can remove your account by going to the "User Settings" page and clicking the "Delete Account" button.
 
-See also: [cancelling your subscription](./billing.md#cancelling-your-subscription).
+See also: [cancelling your subscription](/docs/cloud/billing.md#cancelling-your-subscription).

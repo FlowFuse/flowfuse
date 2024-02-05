@@ -39,24 +39,29 @@ The following command line options are available:
 Options
 
   -c, --config file     Device configuration file. Default: device.yml
-  -d, --dir dir         Where the agent should store its state. Default: /opt/flowforge-device 
+  -d, --dir dir         Where the agent should store its state. Default: /opt/flowfuse-device
   -i, --interval secs
   -p, --port number
   -m, --moduleCache     Use local npm module cache rather than install
 
 Web UI Options
 
-  -w, --ui            Start the Web UI Server (optional, does not run by default)       
-  --ui-host string    Web UI server host. Default: (0.0.0.0) (listen on all interfaces) 
+  -w, --ui            Start the Web UI Server (optional, does not run by default)
+  --ui-host string    Web UI server host. Default: (0.0.0.0) (listen on all interfaces)
   --ui-port number    Web UI server port. Default: 1879
   --ui-user string    Web UI username. Required if --ui is specified
   --ui-pass string    Web UI password. Required if --ui is specified
   --ui-runtime mins   Time the Web UI server is permitted to run. Default: 10
 
+Setup command
+
+  -o, --otc string   Setup device using a one time code
+  -u, --ff-url url   URL of FlowFuse. Required for setup
+
 Global Options
 
-  -h, --help       print out helpful usage information 
-  --version        print out version information       
+  -h, --help       print out helpful usage information
+  --version        print out version information
   -v, --verbose    turn on debugging output
 ```
 

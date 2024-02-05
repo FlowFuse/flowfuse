@@ -17,7 +17,7 @@ import CreateAdminUser from './pages/setup/CreateAdminUser.vue'
 import ErrorPage from './pages/setup/ErrorPage.vue'
 import Final from './pages/setup/Final.vue'
 import License from './pages/setup/License.vue'
-import Options from './pages/setup/Options.vue'
+// import Options from './pages/setup/Options.vue'
 import Start from './pages/setup/Start.vue'
 
 // To add more views in the setup dialogs, add them to this list.
@@ -26,7 +26,7 @@ const views = [
     Start,
     CreateAdminUser,
     License,
-    Options,
+    // Options,
     Final,
     ErrorPage
 ]

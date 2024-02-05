@@ -22,14 +22,14 @@ const ignoreFolders = [
 // URLs we expect to be invalid, and that's okay
 const exceptions = [
     'forge.example.com',
-    'github.com/flowforge/admin',
-    'github.com/flowforge/docker-compose',
-    'github.com/flowforge/nodered.snap',
-    'github.com/flowforge/flowforge-data',
-    'github.com/flowforge/ctrlx-node-red-example',
-    'github.com/flowforge/CloudProject',
-    'github.com/flowforge/content',
-    'github.com/flowforge/security',
+    'github.com/FlowFuse/admin',
+    'github.com/FlowFuse/docker-compose',
+    'github.com/FlowFuse/nodered.snap',
+    'github.com/FlowFuse/flowforge-data',
+    'github.com/FlowFuse/ctrlx-node-red-example',
+    'github.com/FlowFuse/CloudProject',
+    'github.com/FlowFuse/content',
+    'github.com/FlowFuse/security',
     'github.com/orgs/flowforge/projects',
     '/support'
 ]

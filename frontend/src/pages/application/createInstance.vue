@@ -130,6 +130,7 @@ export default {
         createInstance (instanceDetails, copyParts) {
             const createPayload = { ...instanceDetails, applicationId: this.application.id }
             if (this.sourceInstance?.id) {
+                delete createPayload.flowBlueprintId
                 createPayload.sourceProject = {
                     id: this.sourceInstanceId,
                     options: { ...copyParts }

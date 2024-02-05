@@ -6,15 +6,20 @@ describe('AccessToken controller', function () {
     let app
     /** @type {import('../../../../../forge/db/controllers/AccessToken') */
     let AccessTokenController
+    /** @type {import('../../../../lib/TestModelFactory')} */
+    let factory
     const TestObjects = {}
 
     before(async function () {
         app = await setup()
+        factory = app.factory
         AccessTokenController = app.db.controllers.AccessToken
         TestObjects.alice = await app.db.models.User.byUsername('alice')
         TestObjects.team = await app.db.models.Team.byName('ATeam')
         TestObjects.project = await app.db.models.Project.create({ name: 'project', type: '', url: '' })
         await TestObjects.team.addProject(TestObjects.project)
+        TestObjects.application = app.application
+        TestObjects.device = await factory.createDevice({ name: 'device' }, TestObjects.team, null, TestObjects.application)
     })
 
     after(async function () {
@@ -124,6 +129,78 @@ describe('AccessToken controller', function () {
             const editedToken = await AccessTokenController.getOrExpire(result.token)
             should.exist(editedToken)
             editedToken.should.have.property('scope', ['device:provision', 'name:Provisioning Token'])
+        })
+
+        describe('Device Quick Connect One-Time-Code', function () {
+            it('creates a one-time-code token and a device access token', async function () {
+                ;(await app.db.models.AccessToken.count()).should.equal(0)
+                const dbDevice = await app.db.models.Device.byId(TestObjects.device.hashid)
+                const originalCredentials = await dbDevice.refreshAuthTokens({ refreshOTC: true })
+                ;(await app.db.models.AccessToken.count()).should.equal(2) // should have 2 tokens, one for the device, one for the otc
+
+                // check otc is a string in the format ss-ss-ss (3 groups of 2 or more characters)
+                originalCredentials.should.have.property('otc').and.be.a.String()
+                originalCredentials.otc.should.match(/^\w{2,}-\w{2,}-\w{2,}$/)
+
+                const otcBase64 = Buffer.from(originalCredentials.otc).toString('base64')
+
+                const token = await AccessTokenController.getOrExpire(otcBase64)
+                should.exist(token)
+                token.should.have.property('scope', ['device:otc'])
+                token.should.have.property('ownerId', '' + TestObjects.device.id)
+                token.should.have.property('ownerType', 'device')
+                token.should.have.property('expiresAt').and.be.a.Date()
+                token.expiresAt.getTime().should.be.above(Date.now() + (1000 * 60 * 60 * 23)) // 23 hours
+                token.expiresAt.getTime().should.be.below(Date.now() + (1000 * 60 * 60 * 25)) // 25 hours
+            })
+            it('returns null for unknown token', async function () {
+                ;(await app.db.models.AccessToken.count()).should.equal(0)
+                const dbDevice = await app.db.models.Device.byId(TestObjects.device.hashid)
+                const originalCredentials = await dbDevice.refreshAuthTokens({ refreshOTC: true })
+                ;(await app.db.models.AccessToken.count()).should.equal(2) // should have 2 tokens, one for the device, one for the otc
+
+                // check otc was actually created
+                originalCredentials.should.have.property('otc').and.be.a.String()
+
+                const badOTC = originalCredentials.otc + '-bad'
+                const otcBase64 = Buffer.from(badOTC).toString('base64')
+
+                const token = await AccessTokenController.getOrExpire(otcBase64)
+                should(token).be.null()
+            })
+            it('recreates one-time-code token, there can only be one', async function () {
+                // Premise:
+                // A device can only have one otc at a time in the AccessToken table
+                // Calling createDeviceOTC() will create a new otc, and delete any existing otc for the device
+
+                ;(await app.db.models.AccessToken.count()).should.equal(0)
+                const initialOTC = await AccessTokenController.createDeviceOTC(TestObjects.device)
+                ;(await app.db.models.AccessToken.count()).should.equal(1)
+
+                // check otc is a string in the format ss-ss-ss (3 groups of 2 or more characters)
+                initialOTC.should.have.property('otc').and.be.a.String()
+                initialOTC.otc.should.match(/^\w{2,}-\w{2,}-\w{2,}$/)
+
+                // create a new otc for the same device
+                const newOTC = await AccessTokenController.createDeviceOTC(TestObjects.device)
+                ;(await app.db.models.AccessToken.count()).should.equal(1) // should still only have 1 token
+
+                // should be different
+                newOTC.should.have.property('otc').and.be.a.String()
+                newOTC.otc.should.match(/^\w{2,}-\w{2,}-\w{2,}$/)
+                newOTC.otc.should.not.equal(initialOTC.otc)
+            })
+            it('does not create a one-time-code when refreshing device tokens with `refreshOTC: false`', async function () {
+                ;(await app.db.models.AccessToken.count()).should.equal(0)
+                const dbDevice = await app.db.models.Device.byId(TestObjects.device.hashid)
+                const creds = await dbDevice.refreshAuthTokens({ refreshOTC: false })
+                ;(await app.db.models.AccessToken.count()).should.equal(1) // should have 1 token, one for the device
+                creds.should.not.have.property('otc')
+                // double check the token in the db is NOT an otc token
+                const tokens = await app.db.models.AccessToken.findAll()
+                tokens.should.have.length(1)
+                tokens[0].should.have.property('scope', ['device'])
+            })
         })
     })
 

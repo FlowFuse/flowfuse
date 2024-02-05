@@ -153,6 +153,7 @@ module.exports = async function (app) {
                     name: { type: 'string' },
                     username: { type: 'string' },
                     password: { type: 'string' },
+                    email: { type: 'string' },
                     isAdmin: { type: 'boolean' },
                     createDefaultTeam: { type: 'boolean' }
                 }

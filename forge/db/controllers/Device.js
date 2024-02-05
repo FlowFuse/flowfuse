@@ -12,29 +12,35 @@ module.exports = {
         return device.activeSnapshotId !== device.targetSnapshotId
     },
     updateState: async function (app, device, state) {
-        if (state.state) {
-            device.set('state', state.state)
-        }
-        if (state.agentVersion) {
-            device.set('agentVersion', state.agentVersion)
-        }
         device.set('lastSeenAt', literal('CURRENT_TIMESTAMP'))
-        if (!state.snapshot || state.snapshot === '0') {
-            if (device.activeSnapshotId !== null) {
-                device.set('activeSnapshotId', null)
-            }
+        if (!state) {
+            // We have received a `null` state from the device. That means it
+            // is busy updating itself. Update our local state to infer as much
+            // as we can from that
+            device.set('state', 'updating')
         } else {
-            // Update the activeSnapshotId if valid and not already set
-            const snapshotId = app.db.models.ProjectSnapshot.decodeHashid(state.snapshot)
-            // hashid.decode returns an array of values, not the raw value.
-            if (snapshotId?.length > 0 && snapshotId !== device.activeSnapshotId) {
-                // Check to see if snapshot exists
-                if (await app.db.models.ProjectSnapshot.count({ where: { id: snapshotId }, limit: 1 }) > 0) {
-                    device.set('activeSnapshotId', snapshotId[0])
+            if (state.state) {
+                device.set('state', state.state)
+            }
+            if (state.agentVersion) {
+                device.set('agentVersion', state.agentVersion)
+            }
+            if (!state.snapshot || state.snapshot === '0') {
+                if (device.activeSnapshotId !== null) {
+                    device.set('activeSnapshotId', null)
+                }
+            } else {
+                // Update the activeSnapshotId if valid and not already set
+                const snapshotId = app.db.models.ProjectSnapshot.decodeHashid(state.snapshot)
+                // hashid.decode returns an array of values, not the raw value.
+                if (snapshotId?.length > 0 && snapshotId !== device.activeSnapshotId) {
+                    // Check to see if snapshot exists
+                    if (await app.db.models.ProjectSnapshot.count({ where: { id: snapshotId }, limit: 1 }) > 0) {
+                        device.set('activeSnapshotId', snapshotId[0])
+                    }
                 }
             }
         }
-
         await device.save()
     },
     /**
@@ -80,7 +86,20 @@ module.exports = {
             } else {
                 delete payload.application // exclude application property to avoid triggering the wrong kind of update on the device
             }
-            app.comms.devices.sendCommand(device.Team.hashid, device.hashid, 'update', payload)
+
+            // ensure the device has a team association
+            let team = device.Team
+            if (!team) {
+                // reload the device with the team association
+                const _device = await app.db.models.Device.byId(device.id)
+                team = _device?.Team
+                if (!team) {
+                    app.log.warn(`Failed to send update command to device ${device.hashid} as it has no team association`)
+                    return
+                }
+            }
+            // send out update command
+            app.comms.devices.sendCommand(team.hashid, device.hashid, 'update', payload)
         }
     },
     /**

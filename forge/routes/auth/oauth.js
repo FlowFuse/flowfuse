@@ -2,14 +2,7 @@ const crypto = require('crypto')
 const querystring = require('querystring')
 const { URL } = require('url')
 
-const { LRUCache } = require('lru-cache') // https://www.npmjs.com/package/lru-cache
-
 const { base64URLEncode, sha256, URLEncode } = require('../../db/utils')
-
-const requestCache = new LRUCache({
-    ttl: 1000 * 60 * 10, // 10 minutes,
-    max: 100
-})
 
 function badRequest (reply, error, description) {
     // This format is defined by the OAuth standard - do not change
@@ -30,6 +23,15 @@ function redirectInvalidRequest (reply, redirectURI, error, errorDescription, st
 }
 
 module.exports = async function (app) {
+    const requestCache = {
+        set: async function (id, value) {
+            return app.db.models.OAuthSession.create({ id, value })
+        },
+        get: async function (id) {
+            return app.db.models.OAuthSession.getAndRemoveById(id)
+        }
+    }
+
     app.addContentTypeParser('application/x-www-form-urlencoded', { parseAs: 'string' }, function (req, body, done) {
         try {
             const json = querystring.parse(body)
@@ -118,7 +120,7 @@ module.exports = async function (app) {
             code_challenge_method
         }
         const requestId = base64URLEncode(crypto.randomBytes(32))
-        requestCache.set(requestId, requestObject)
+        await requestCache.set(requestId, requestObject)
 
         const isNodeRED = /^(editor($|-))|httpAuth-/.test(scope)
         if (isNodeRED) {
@@ -147,9 +149,7 @@ module.exports = async function (app) {
         }
     }, async function (request, reply) {
         const requestId = request.params.code
-        const requestObject = requestCache.get(requestId)
-        requestCache.delete(requestId)
-
+        const requestObject = await requestCache.get(requestId)
         if (!requestObject) {
             return badRequest(reply, 'invalid_request', 'Invalid request')
         }
@@ -165,12 +165,14 @@ module.exports = async function (app) {
                     }
                     const project = await app.db.models.Project.byId(authClient.ownerId)
                     const teamMembership = await request.session.User.getTeamMembership(project.TeamId)
-                    if (!teamMembership) {
+                    if (!teamMembership && !request.session.User.admin) {
+                        // This user is neither a team member, nor an admin - reject
                         return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
                     }
                     const isEditor = /^editor($|-)/.test(requestObject.scope)
                     if (isEditor) {
-                        const canReadFlows = app.hasPermission(teamMembership, 'project:flows:view')
+                        // Allow admin users to have read-access to flows
+                        const canReadFlows = request.session.User.admin || app.hasPermission(teamMembership, 'project:flows:view')
                         const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit')
                         const canReadHTTP = app.hasPermission(teamMembership, 'project:flows:http')
                         if (!canReadFlows && !canWriteFlows) {
@@ -194,11 +196,15 @@ module.exports = async function (app) {
                     } else {
                         // This is the httpNode middleware checking access. All
                         // team members are allowed to access the httpNode routes
+                        if (!teamMembership) {
+                            // This is an admin who isn't a team member - reject the request
+                            return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
+                        }
                     }
                 }
                 requestObject.userId = request.session.User.id
                 requestObject.code = base64URLEncode(crypto.randomBytes(32))
-                requestCache.set(requestObject.code, requestObject)
+                await requestCache.set(requestObject.code, requestObject)
                 const responseUrl = new URL(requestObject.redirect_uri)
 
                 responseUrl.search = querystring.stringify({
@@ -217,8 +223,7 @@ module.exports = async function (app) {
         }
     }, async function (request, reply) {
         const requestId = request.params.code
-        const requestObject = requestCache.get(requestId)
-        requestCache.delete(requestId)
+        const requestObject = await requestCache.get(requestId)
         if (!requestObject) {
             return badRequest(reply, 'invalid_request', 'Invalid request')
         }
@@ -277,8 +282,7 @@ module.exports = async function (app) {
             if (!code_verifier) {
                 return badRequest(reply, 'invalid_request', 'Invalid code_verifier')
             }
-            const requestObject = requestCache.get(code)
-            requestCache.delete(code)
+            const requestObject = await requestCache.get(code)
 
             if (!requestObject) {
                 badRequest(reply, 'invalid_request', 'Invalid code')
@@ -309,7 +313,8 @@ module.exports = async function (app) {
 
                 const project = await app.db.models.Project.byId(authClient.ownerId)
                 const teamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: project.TeamId, UserId: requestObject.userId } })
-                const canReadFlows = app.hasPermission(teamMembership, 'project:flows:view')
+                const user = await app.db.models.User.findOne({ where: { id: requestObject.userId }, attributes: ['admin'] })
+                const canReadFlows = user.admin || app.hasPermission(teamMembership, 'project:flows:view')
                 const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit')
                 const canReadHTTP = app.hasPermission(teamMembership, 'project:flows:http')
                 const isEditor = /^editor($|-)/.test(requestObject.scope)
@@ -382,8 +387,9 @@ module.exports = async function (app) {
                 // Check the owner of the existing session still has access to the project
                 // this client is owned by
                 const project = await app.db.models.Project.byId(authClient.ownerId)
+                const user = await app.db.models.User.findOne({ where: { id: parseInt(existingToken.ownerId) }, attributes: ['admin'] })
                 const teamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: project.TeamId, UserId: parseInt(existingToken.ownerId) } })
-                const canReadFlows = app.hasPermission(teamMembership, 'project:flows:view')
+                const canReadFlows = user.admin || app.hasPermission(teamMembership, 'project:flows:view')
                 const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit')
 
                 if (!canReadFlows && !canWriteFlows) {

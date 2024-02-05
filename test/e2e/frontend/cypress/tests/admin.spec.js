@@ -79,7 +79,6 @@ describe('FlowFuse platform admin users', () => {
         cy.wait('@getInstance')
 
         cy.get('[data-el="banner-project-as-admin"]').should('exist')
-        cy.get('[data-action="open-editor"]').should('not.exist')
     })
 
     it("can view devices from teams they're not a member of", () => {
