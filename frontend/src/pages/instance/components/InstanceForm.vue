@@ -673,7 +673,7 @@ export default {
             this.input.stack = this.stacks[0]?.id
         },
         async loadBlueprints () {
-            if (!this.flowBlueprintsEnabled) {
+            if (!this.flowBlueprintsEnabled || this.isCopyProject) {
                 return []
             }
 
