@@ -111,6 +111,20 @@
             </div>
             <LockSetting v-model="editable.policy.modules_denyList" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.modules_denyList" />
         </div>
+
+        <FormHeading class="pt-8">Logging</FormHeading>
+        <div class="flex flex-col sm:flex-row">
+            <div class="w-full max-w-md sm:mr-8">
+                <FormRow v-model="editable.settings.passThroughLogging" type="checkbox" :disabled="!editTemplate && !editable.policy.passThroughLogging">
+                    Have Node-RED logs printed to Standard Out
+                    <template #description>
+                        Prints JSON formatted logs to Standard Out so they can be ingested by a logging service.
+                    </template>
+                    <template #append><ChangeIndicator :value="editable.changed.settings.passThroughLogging" /></template>
+                </FormRow>
+            </div>
+            <LockSetting v-model="editable.policy.passThroughLogging" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.passThroughLogging" />
+        </div>
     </form>
 </template>
 
