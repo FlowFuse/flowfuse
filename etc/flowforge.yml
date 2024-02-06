@@ -110,3 +110,4 @@ rate_limits:
 # Create Default Admin                          #
 #################################################
 # create_admin: false
+# create_admin_access_token: false
