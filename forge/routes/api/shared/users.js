@@ -102,6 +102,11 @@ module.exports = {
                 }
             }
             if (request.body.username) {
+                if (!request.body.username.match(/^[a-z0-9-_]+$/)) {
+                    const err = new Error('Invalid username')
+                    err.code = 'invalid_user'
+                    throw err
+                }
                 user.username = request.body.username
             }
             if (request.body.tcs_accepted) {
