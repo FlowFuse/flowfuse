@@ -453,7 +453,7 @@ describe('Team API', function () {
 
                 // Fake audit log entry for first and last device
                 await app.auditLog.Device.device.assigned(null, null, TestObjects.TeamAApp, deviceOne)
-                await app.auditLog.Device.device.developerMode.enabled(null, null, TestObjects.TeamAApp, deviceThree)
+                await app.auditLog.Device.device.developerMode.enabled(null, null, deviceThree)
 
                 const response = await app.inject({
                     method: 'GET',
@@ -471,11 +471,13 @@ describe('Team API', function () {
                 applicationOne.devicesSummary.devices.should.have.lengthOf(2)
 
                 // Most recent audit log included
-                applicationOne.devicesSummary.devices[0].should.have.property('mostRecentAuditLogCreatedAt')
-                applicationOne.devicesSummary.devices[0].should.have.property('mostRecentAuditLogEvent', 'device.assigned')
+                const deviceOneSummary = applicationOne.devicesSummary.devices.find((device) => device.name === 'device-1')
+                deviceOneSummary.should.have.property('mostRecentAuditLogCreatedAt')
+                deviceOneSummary.should.have.property('mostRecentAuditLogEvent', 'device.assigned')
 
-                applicationOne.devicesSummary.devices[1].should.have.property('mostRecentAuditLogCreatedAt')
-                applicationOne.devicesSummary.devices[1].should.have.property('mostRecentAuditLogEvent', 'device.developer-mode.enabled')
+                const deviceThreeSummary = applicationOne.devicesSummary.devices.find((device) => device.name === 'device-3')
+                deviceThreeSummary.should.have.property('mostRecentAuditLogCreatedAt')
+                deviceThreeSummary.should.have.property('mostRecentAuditLogEvent', 'device.developer-mode.enabled')
             })
         })
     })
@@ -538,7 +540,8 @@ describe('Team API', function () {
 
             const result = response.json()
 
-            const devices = result.applications[0].devices
+            const application = result.applications.find((application) => application.id === app.application.hashid)
+            const devices = application.devices
 
             devices.should.have.lengthOf(5)
 

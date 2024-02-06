@@ -133,11 +133,20 @@
         "platform.team.deleted": "Team Deleted"
     },
     "device": {
+        "context.delete": "Context Key Deleted",
+        "device.assigned": "Device Assigned",
         "device.credentials.generated": "Device Credential Generated",
         "device.developer-mode.disabled": "Developer Mode Disabled",
         "device.developer-mode.enabled": "Developer Mode Enabled",
         "device.remote-access.disabled": "Remote Access Disabled",
         "device.remote-access.enabled": "Remote Access Enabled",
-        "device.assigned": "Device Assigned"
+        "device.start-failed": "Device Start Failed",
+        "flows.reloaded": "Flows Reloaded",
+        "flows.set": "Flow Deployed",
+        "library.set": "Saved to Library",
+        "nodes.install": "Third-Party Nodes Installed",
+        "nodes.remove": "Third-Party Nodes Removed",
+        "safe-mode": "Node-RED has been placed in Safe Mode",
+        "settings.update": "Node-RED Settings Updated"
     }
 }

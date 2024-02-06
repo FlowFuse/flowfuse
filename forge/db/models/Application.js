@@ -94,7 +94,7 @@ module.exports = {
 
                         if (associationsLimit) {
                             include.limit = associationsLimit
-                            include.order = [['mostRecentAuditLogCreatedAt', 'DESC'], ['updatedAt', 'DESC']]
+                            include.order = [['mostRecentAuditLogCreatedAt', 'DESC NULLS LAST'], ['updatedAt', 'DESC']]
                             include.attributes = {
                                 include: [...include.attributes, [
                                     literal(`(
@@ -132,7 +132,7 @@ module.exports = {
 
                         if (associationsLimit) {
                             include.limit = associationsLimit
-                            include.order = [['mostRecentAuditLogCreatedAt', 'DESC'], ['updatedAt', 'DESC']]
+                            include.order = [['mostRecentAuditLogCreatedAt', 'DESC NULLS LAST'], ['updatedAt', 'DESC']]
                             include.attributes = {
                                 include: [...include.attributes, [
                                     literal(`(
