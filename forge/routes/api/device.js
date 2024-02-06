@@ -624,13 +624,38 @@ module.exports = async function (app) {
         }
     })
 
-    // Websocket end point
-    app.get('/:deviceId/logs', {
-        websocket: true,
-        preHandler: app.needsPermission('device:read')
-    }, async (connection, request) => {
+    app.post('/:deviceId/logs', {
+        preHandler: app.needsPermission('device:read'),
+        schema: {
+            summary: 'Start device logging',
+            tags: ['Devices'],
+            params: {
+                type: 'object',
+                properties: {
+                    deviceId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        url: { type: 'string' },
+                        username: { type: 'string' },
+                        password: { type: 'string' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
         const team = await app.db.models.Team.byId(request.device.TeamId)
-        app.comms.devices.streamLogs(team.hashid, request.device.hashid, connection.socket)
+        setTimeout(() => {
+            app.comms.devices.sendCommand(team.hashid, request.device.hashid, 'startLog', '')
+            app.log.info(`Enable device logging ${request.device.hashid} in team ${team.hashid}`)
+        }, 1000)
+        reply.send(await app.db.controllers.BrokerClient.createClientForFrontend(request.device))
     })
 
     /**

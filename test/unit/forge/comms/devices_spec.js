@@ -55,6 +55,7 @@ describe('DeviceCommsHandler', function () {
     before(async function () {
         return setupCE()
     })
+
     after(async function () {
         await app.close()
     })
@@ -90,126 +91,19 @@ describe('DeviceCommsHandler', function () {
     }
 
     describe('Device Logs', function () {
-        let commsHandler
-        let client
-        const sockets = []
-        before(function () {
-            client = mockSocket()
-            commsHandler = DeviceCommsHandler(app, client)
-        })
-
-        it('tells a device to start streaming logs', async function () {
-            sockets.push(mockSocket())
-            commsHandler.streamLogs(TestObjects.ATeam.hashid, TestObjects.device.hashid, sockets[0])
-
-            client.received().should.have.length(1)
-            const msg = client.received()[0]
-            msg.should.have.property('topic', `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.device.hashid}/command`)
-            msg.should.have.property('payload')
-            const payload = JSON.parse(msg.payload)
-            payload.should.have.property('command', 'startLog')
-            client.clearReceived()
-        })
-        it('streams logs to socket', async function () {
-            client.emit('logs/device', {
-                id: TestObjects.device.hashid,
-                logs: 'm1'
+        it('provide MQTT credentials for Device logs', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${TestObjects.applicationDevice.hashid}/logs`,
+                cookies: { sid: TestObjects.tokens.alice }
             })
-            sockets[0].received().should.have.length(1)
-            sockets[0].received()[0].should.equal('m1')
-            sockets[0].clearReceived()
-        })
-        it('supports multiple active ws connections', async function () {
-            sockets.push(mockSocket())
-            commsHandler.streamLogs(TestObjects.ATeam.hashid, TestObjects.device.hashid, sockets[1])
-            // Already streaming, so should not trigger another command
-            client.received().should.have.length(0)
-
-            client.emit('logs/device', {
-                id: TestObjects.device.hashid,
-                logs: 'm2'
-            })
-            sockets[0].received().should.have.length(1)
-            sockets[0].received()[0].should.equal('m2')
-            sockets[0].clearReceived()
-            // New socket should receive previous messages
-            sockets[1].received().should.have.length(2)
-            sockets[1].received()[0].should.equal('m1')
-            sockets[1].received()[1].should.equal('m2')
-            sockets[1].clearReceived()
-        })
-        it('handles socket close', async function () {
-            // Close sockets[1] - verify sockets[0] still gets messages
-            sockets[1].emit('close')
-            // Still got an active socket, so no command should be sent
-            client.received().should.have.length(0)
-
-            client.emit('logs/device', {
-                id: TestObjects.device.hashid,
-                logs: 'm3'
-            })
-            // Existing socket should still receive it
-            sockets[0].received().should.have.length(1)
-            sockets[0].clearReceived()
-            sockets[1].received().should.have.length(0)
-        })
-        it('caches last 10 messages', async function () {
-            // Send 8 more messages so 11 have been sent in total
-            for (let i = 4; i < 12; i++) {
-                client.emit('logs/device', {
-                    id: TestObjects.device.hashid,
-                    logs: `m${i}`
-                })
-            }
-            // soc0 already received m1-m3
-            sockets[0].received().should.have.length(8)
-            sockets[0].clearReceived()
-
-            // soc2
-            sockets.push(mockSocket())
-            commsHandler.streamLogs(TestObjects.ATeam.hashid, TestObjects.device.hashid, sockets[2])
-            // Already streaming, so should not trigger another command
-            client.received().should.have.length(0)
-
-            await sleep(50)
-            // Should only have received 10 messages, starting with m2
-            sockets[2].received().should.have.length(10)
-            sockets[2].received()[0].should.equal('m2')
-            sockets[2].received()[9].should.equal('m11')
-
-            // Close the socket
-            sockets[2].emit('close')
-            await sleep(10)
-        })
-
-        it('handles socket close - last remaining', async function () {
-            // Close sockets[0] - verify command sent to stop
-            sockets[0].emit('close')
-            // Still got an active socket, so no command should be sent
-            client.received().should.have.length(1)
-            const msg = client.received()[0]
-            msg.should.have.property('topic', `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.device.hashid}/command`)
-            msg.should.have.property('payload')
-            const payload = JSON.parse(msg.payload)
-            payload.should.have.property('command', 'stopLog')
-            client.clearReceived()
-        })
-        it('tells a device to stop if it sends logs without active sockets', async function () {
-            client.emit('logs/device', {
-                id: TestObjects.device.hashid,
-                logs: 'mxx'
-            })
-            // This task happens asynchronously - so need to give it a chance
-            // to happen
-            await sleep(100)
-            const msg = client.received()[0]
-            msg.should.have.property('topic', `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.device.hashid}/command`)
-            msg.should.have.property('payload')
-            const payload = JSON.parse(msg.payload)
-            payload.should.have.property('command', 'stopLog')
-
-            sockets[0].received().should.have.length(0)
-            sockets[1].received().should.have.length(0)
+            response.statusCode.should.equal(200)
+            const body = response.json()
+            body.should.have.property('url', ':test:')
+            body.should.have.property('username')
+            body.should.have.property('password')
+            body.username.should.startWith('frontend:')
+            body.password.should.startWith('ffbf_')
         })
     })
 
@@ -226,6 +120,10 @@ describe('DeviceCommsHandler', function () {
 
         after(function () {
             app.comms.devices = oldHandler
+        })
+
+        afterEach(function () {
+            app.comms.devices.stopLogWatcher()
         })
 
         it('handles the device is not found', async function () {
@@ -328,6 +226,9 @@ describe('DeviceCommsHandler', function () {
         })
         afterEach(function () {
             client.clearReceived()
+        })
+        after(function () {
+            commsHandler.stopLogWatcher()
         })
 
         it('Times out command', async function () {

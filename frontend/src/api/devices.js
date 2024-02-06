@@ -181,6 +181,11 @@ const getDeviceAuditLog = async (deviceId, params, cursor, limit) => {
     return client.get(url, { params }).then(res => res.data)
 }
 
+const getDeviceLogCreds = async (deviceId) => {
+    const url = `/api/v1/devices/${deviceId}/logs`
+    return client.post(url).then(res => res.data)
+}
+
 export default {
     create,
     getDevice,
@@ -199,5 +204,6 @@ export default {
     getDeviceSnapshots,
     deleteSnapshot,
     setSnapshotAsTarget,
-    getDeviceAuditLog
+    getDeviceAuditLog,
+    getDeviceLogCreds
 }
