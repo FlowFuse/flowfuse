@@ -171,6 +171,19 @@ const formatLogEntry = (auditLogDbRow) => {
                 formatted.body.context = { key: body.key, scope: body.scope, store: body.store }
             }
 
+            // format log entries for know Node-RED audit events
+            if (formatted.event === 'flows.set') {
+                formatted.body = formatted.body || {}
+                formatted.body.flowsSet = formatted.body?.flowsSet || { type: body.type }
+            }
+            // TODO: Add other known Node-RED audit events
+            // including: 'nodes.install', 'nodes.remove', 'library.set'
+            // this will permit audit viewer to access the details of the event
+            // via the body.xxx object and thus permit the UI to display the details
+            // instead of the current generic message
+            // e.g. to show _which_ module was installed or removed
+            // e.g. to show _which_ library was set
+
             const roleObj = body?.role && roleObject(body.role)
             if (roleObj) {
                 if (formatted.body?.user) {

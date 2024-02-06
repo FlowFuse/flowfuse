@@ -151,7 +151,8 @@
     </template>
     <template v-else-if="entry.event === 'account.logout' || entry.event === 'auth.logout' || entry.event === 'auth.login.revoke'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.trigger?.name">User '{{ entry.trigger.name }}' has logged out.</span>
+        <span v-if="!error && entry.trigger?.id === null && entry.event === 'auth.login.revoke'">Node-RED user has logged out.</span>
+        <span v-else-if="!error && entry.trigger?.name">User '{{ entry.trigger.name }}' has logged out.</span>
         <span v-else-if="!error">User data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'account.forgot-password'">
@@ -522,8 +523,17 @@
         <span>Node-RED editor user settings have been updated.</span>
     </template>
     <template v-else-if="entry.event === 'flows.set'">
-        <label>{{ AuditEvents[entry.event] }}</label>
-        <span>A new flow has been deployed</span>
+        <template v-if="entry.body?.flowsSet?.type === 'reload'">
+            <label>{{ AuditEvents["flows.reloaded"] }}</label>
+            <span>Flows have been reloaded</span>
+        </template>
+        <template v-else>
+            <label>{{ AuditEvents[entry.event] }}</label>
+            <span v-if="entry.body?.flowsSet.type === 'full'">Deploy type 'full'</span>
+            <span v-else-if="entry.body?.flowsSet.type === 'flows'">Deploy type 'flows'</span>
+            <span v-else-if="entry.body?.flowsSet.type === 'nodes'">Deploy type 'nodes'</span>
+            <span v-else>Flows deployed</span>
+        </template>
     </template>
     <template v-else-if="entry.event === 'library.set'">
         <label>{{ AuditEvents[entry.event] }}</label>
