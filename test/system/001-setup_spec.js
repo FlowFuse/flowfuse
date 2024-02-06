@@ -127,6 +127,23 @@ describe('First run setup', function () {
             adminUser.email.should.equal('alice@example.com')
             adminUser.email_verified.should.equal(true)
         })
+        it('should reject admin username', async function () {
+            const response = await forge.inject({
+                method: 'POST',
+                url: '/setup/create-user',
+                payload: {
+                    _csrf: CSRF_TOKEN,
+                    name: 'Alice Skywalker',
+                    email: 'alice@example.com',
+                    username: 'alice <test>',
+                    password: '12345678'
+                },
+                cookies: CSRF_COOKIE
+            })
+            const body = response.json()
+            response.statusCode.should.equal(400)
+            body.should.have.property('error', 'invalid username')
+        })
         it('status should report admin created', async function () {
             const response = await forge.inject({
                 method: 'GET',
