@@ -351,6 +351,20 @@ describe('Users API', async function () {
 
                 await harry.destroy()
             })
+            it('user can not set invalid username', async function () {
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/users/${TestObjects.alice.hashid}`,
+                    payload: {
+                        username: '<img src="foo.png">'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(400)
+                const body = response.json()
+                body.should.have.property('code', 'invalid_request')
+                body.should.have.property('error', 'Error: Invalid username')
+            })
         })
     })
 
