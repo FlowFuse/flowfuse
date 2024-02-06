@@ -1,5 +1,5 @@
 <template>
-    <label class="!inline-block italic text-gray-400 text-sm whitespace-nowrap flex-shrink-0 flex-grow-0">
+    <label class="!inline-block italic text-gray-400 text-sm whitespace-nowrap flex-shrink-0 flex-grow-0" data-el="application-summary">
         {{ label }}
     </label>
 </template>

@@ -436,11 +436,13 @@ describe('Team API', function () {
                 applicationOne.instancesSummary.instances.should.have.lengthOf(2)
 
                 // Most recent audit log included
-                applicationOne.instancesSummary.instances[0].should.have.property('mostRecentAuditLogCreatedAt')
-                applicationOne.instancesSummary.instances[0].should.have.property('mostRecentAuditLogEvent', 'project.suspended')
+                const instanceOneSummary = applicationOne.instancesSummary.instances.find((instance) => instance.name === 'application-1-instance-1')
+                instanceOneSummary.should.have.property('mostRecentAuditLogCreatedAt')
+                instanceOneSummary.should.have.property('mostRecentAuditLogEvent', 'project.suspended')
 
-                applicationOne.instancesSummary.instances[1].should.have.property('mostRecentAuditLogCreatedAt')
-                applicationOne.instancesSummary.instances[1].should.have.property('mostRecentAuditLogEvent', 'project.created')
+                const instanceThreeSummary = applicationOne.instancesSummary.instances.find((instance) => instance.name === 'application-1-instance-3')
+                instanceThreeSummary.should.have.property('mostRecentAuditLogCreatedAt')
+                instanceThreeSummary.should.have.property('mostRecentAuditLogEvent', 'project.created')
             })
 
             it('with all a subset of application devices including most recent audit log', async function () {
@@ -514,14 +516,17 @@ describe('Team API', function () {
         })
 
         it('with all devices and their status', async function () {
+            const otherApp = await app.db.models.Application.create({ name: 'other-app', TeamId: TestObjects.ATeam.id })
+            const otherTeamApp = await app.db.models.Application.create({ name: 'other-team-app', TeamId: TestObjects.BTeam.id })
+
             const device1 = await app.factory.createDevice({ name: 'device-1', type: 'test-device', lastSeenAt: new Date(), mode: 'developer', state: 'running' }, TestObjects.ATeam, null, app.application)
             const device2 = await app.factory.createDevice({ name: 'device-2', type: 'test-device', state: 'updating' }, TestObjects.ATeam, null, app.application)
             const device3 = await app.factory.createDevice({ name: 'device-3', type: 'test-device', state: 'suspended' }, TestObjects.ATeam, null, app.application)
             await app.factory.createDevice({ name: 'device-4', type: 'test-device', lastSeenAt: new Date(), state: 'running' }, TestObjects.ATeam, null, app.application)
             await app.factory.createDevice({ name: 'device-5', type: 'test-device' }, TestObjects.ATeam, null, app.application)
 
-            await app.factory.createDevice({ name: 'device-b-team', type: 'test-device' }, TestObjects.BTeam, null, TestObjects.TeamBApp)
-            await app.factory.createDevice({ name: 'device-other-app', type: 'test-device' }, TestObjects.ATeam, null, TestObjects.TeamAApp2)
+            await app.factory.createDevice({ name: 'device-other-team-app', type: 'test-device' }, TestObjects.BTeam, null, otherTeamApp)
+            await app.factory.createDevice({ name: 'device-other-app', type: 'test-device' }, TestObjects.ATeam, null, otherApp)
 
             const response = await app.inject({
                 method: 'GET',

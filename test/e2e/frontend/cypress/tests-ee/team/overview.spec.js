@@ -53,7 +53,7 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
 
         cy.get('[data-el="applications-list"] > li').first().within(() => {
             cy.contains('application-2')
-            cy.contains('2 Instances, 2 Devices, 1 Device Group, 3 Snapshots')
+            cy.get('[data-el="application-summary"]').should('have.text', '2 Instances, 2 Devices, 1 Device Group, 3 Snapshots')
 
             cy.get('[data-el="application-instances"]').find('li').should('have.length', 2)
             cy.get('[data-el="application-instances"]').first().within(() => {
