@@ -35,7 +35,7 @@
         <div class="space-y-6">
             <ff-loading v-if="loading" message="Loading Applications..." />
             <template v-else-if="!loading && applications.size > 0">
-                <ul class="ff-applications-list">
+                <ul class="ff-applications-list" data-el="applications-list">
                     <li v-for="application in Array.from(applications.values())" :key="application.id">
                         <div class="ff-application-list--app gap-x-4 flex items-center !justify-start" data-action="view-application" @click="openApplication(application)">
                             <span class="flex flex-shrink-0 flex-grow-0 whitespace-nowrap"><TemplateIcon class="ff-icon text-gray-600" />{{ application.name }}</span>
@@ -43,7 +43,7 @@
                             <ApplicationSummaryLabel :application="application" />
                         </div>
 
-                        <ul v-if="application.instances.size > 0" class="ff-applications-list-instances">
+                        <ul v-if="application.instances.size > 0" class="ff-applications-list-instances" data-el="application-instances">
                             <label>Instances</label>
                             <li v-for="instance in Array.from(application.instances.values())" :key="instance.id" @click.stop="openInstance(instance)">
                                 <span class="flex justify-center mr-3">
@@ -56,7 +56,7 @@
                                 <div><InstanceStatusBadge :status="instance.meta?.state" :optimisticStateChange="instance.optimisticStateChange" :pendingStateChange="instance.pendingStateChange" /></div>
                                 <div class="text-sm">
                                     <span v-if="!instance.mostRecentAuditLogCreatedAt || (instance.flowLastUpdatedAt > instance.mostRecentAuditLogCreatedAt)" class="flex flex-col">
-                                        Flows deployed
+                                        Flows last deployed
                                         <label class="text-xs text-gray-400">{{ instance.flowLastUpdatedSince || 'never' }}</label>
                                     </span>
                                     <span v-else-if="instance.mostRecentAuditLogCreatedAt" class="flex flex-col">
@@ -84,7 +84,7 @@
                             Only the {{ application.instances.size }} <router-link :to="`/application/${application.id}/instances`" class="ff-link">instances</router-link>  with the most recent activity are being displayed.
                         </div>
 
-                        <ul v-if="application.devices.size > 0" class="ff-applications-list-instances">
+                        <ul v-if="application.devices.size > 0" class="ff-applications-list-instances" data-el="application-devices">
                             <label>Devices</label>
                             <li v-for="device in Array.from(application.devices.values())" :key="device.id" @click.stop="openDevice(device)">
                                 <DeviceModeBadge :mode="device.mode" type="icon" class="flex justify-center mr-3" />
@@ -98,9 +98,12 @@
                                         {{ AuditEvents[device.mostRecentAuditLogEvent] }}
                                         <label class="text-xs text-gray-400"><DaysSince :date="device.mostRecentAuditLogCreatedAt" /></label>
                                     </span>
-                                    <span v-else class="text-gray-400 italic">
-                                        Device seen
-                                        <label class="text-xs text-gray-400"><DaysSince :date="device.lastSeenAt" /></label>
+                                    <span v-else class="flex flex-col">
+                                        Device last seen
+                                        <label class="text-xs text-gray-400">
+                                            <DaysSince v-if="device.lastSeenAt" :date="device.lastSeenAt" />
+                                            <template v-else>never</template>
+                                        </label>
                                     </span>
                                 </div>
 
