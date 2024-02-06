@@ -71,7 +71,7 @@ class DeviceCommsHandler {
                 if (now - value > 25000) {
                     const parts = key.split(':')
                     this.sendCommand(parts[0], parts[1], 'stopLog', '')
-                    this.app.log.info(`Disable device logging ${parts[1]}`)
+                    this.app.log.info(`Disable device logging ${parts[1]} in team ${parts[0]}`)
                     delete this.deviceLogHeartbeats[key]
                 }
             }

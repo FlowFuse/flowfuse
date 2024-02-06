@@ -653,6 +653,7 @@ module.exports = async function (app) {
         const team = await app.db.models.Team.byId(request.device.TeamId)
         setTimeout(() => {
             app.comms.devices.sendCommand(team.hashid, request.device.hashid, 'startLog', '')
+            app.log.info(`Enable device logging ${request.device.hashid} in team ${team.hashid}`)
         }, 1000)
         reply.send(await app.db.controllers.BrokerClient.createClientForFrontend(request.device))
     })
