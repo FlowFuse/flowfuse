@@ -104,7 +104,7 @@ module.exports = {
             if (request.body.username) {
                 if (!/^[a-z0-9-_]+$/.test(request.body.username)) {
                     const err = new Error('Invalid username')
-                    err.code = 'invalid_user'
+                    err.code = 'invalid_request'
                     throw err
                 }
                 user.username = request.body.username
