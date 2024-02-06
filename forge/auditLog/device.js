@@ -22,6 +22,9 @@ module.exports = {
                 }
                 await log('device.unassigned', actionedBy, device.id, generateBody(bodyData))
             },
+            async startFailed (actionedBy, error, device) {
+                await log('device.start-failed', actionedBy || 0, device?.id, generateBody({ error }))
+            },
             credentials: {
                 async generated (actionedBy, error, device) {
                     await log('device.credential.generated', actionedBy, device?.id, generateBody({ error, device }))

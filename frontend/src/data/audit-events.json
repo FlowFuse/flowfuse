@@ -84,6 +84,7 @@
         "safe-mode": "Node-RED has been placed in Safe Mode",
         "settings.update": "Node-RED Settings Updated",
         "flows.set": "Flow Deployed",
+        "flows.reloaded": "Flows Reloaded",
         "library.set": "Saved to Library",
         "nodes.install": "Third-Party Nodes Installed",
         "nodes.remove": "Third-Party Nodes Removed",
@@ -138,9 +139,14 @@
         "device.developer-mode.disabled": "Developer Mode Disabled",
         "device.remote-access.enabled": "Remote Access Enabled",
         "device.remote-access.disabled": "Remote Access Disabled",
-        "device.developer-mode.enabled": "Developer Mode Enabled",
-        "device.developer-mode.disabled": "Developer Mode Disabled",
-        "device.remote-access.enabled": "Remote Access Enabled",
-        "device.remote-access.disabled": "Remote Access Disabled"
+        "device.start-failed": "Device Start Failed",
+        "safe-mode": "Node-RED has been placed in Safe Mode",
+        "settings.update": "Node-RED Settings Updated",
+        "flows.set": "Flow Deployed",
+        "flows.reloaded": "Flows Reloaded",
+        "library.set": "Saved to Library",
+        "nodes.install": "Third-Party Nodes Installed",
+        "nodes.remove": "Third-Party Nodes Removed",
+        "context.delete": "Context Key Deleted"
     }
 }
