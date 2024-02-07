@@ -22,6 +22,7 @@ Option | Description
 `support_contact` | a URL or string with contact details for the administrator e.g `mailto:support@example.com` or `https://support.example.com` . Defaults to the email address of the first admin user or `the administrator` if no email address set.
 `create_admin` | If set to `true` will create a default admin user on first run, the username/password is written to the logs. Default: `false`
 `create_admin_access_token` | If set to `true` an access token (ffpat) is created for the default admin user on first run. Its value is written to the logs. Default: `false`
+`license` | Can be used to pass in a license key for FlowFuse. Default not set
 
 
 NOTE: Changing the `base_url` and `domain` after Node-RED instances have been created is possible, but the original hostname and domain must remain active in order to access the instances and for an them to be able to access the FlowFuse resources.
