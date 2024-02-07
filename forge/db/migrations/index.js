@@ -28,14 +28,13 @@ async function init (_app) {
         createdAt: false
     })
     await MetaVersion.sync()
-    await checkPendingMigrations()
 }
 
-async function getCurrentVersion () {
-    return await MetaVersion.findOne({ order: [['id', 'DESC']] })
+async function getCurrentVersion (transaction) {
+    return await MetaVersion.findOne({ order: [['id', 'DESC']], transaction })
 }
 
-async function checkPendingMigrations () {
+async function checkPendingMigrations (transaction) {
     let migrationFiles = await fs.readdir(MIGRATIONS_DIR)
     migrationFiles = migrationFiles.filter(name => /^\d\d\d\d\d\d\d\d-\d\d-.*\.js$/.test(name))
     migrationFiles.sort()
@@ -44,15 +43,29 @@ async function checkPendingMigrations () {
 
     if (tables.length === 1) {
         // We only have the MetaVersion table. This means this is a brand-new
-        // database. We don't want to apply any migrations but we do want to
-        // initialise the MetaVersion table to know they have been pre-applied
+        // database that we need to initialise the structure of. This is
+        // done by applying the migrations starting from the initialise-database-structure
+        // migration
+        let found = false
+        pendingMigrations = []
         for (let i = 0; i < migrationFiles.length; i++) {
-            await MetaVersion.create({ version: migrationFiles[i] })
+            if (migrationFiles[i] === '20240202-01-initialise-database-structure.js') {
+                // This is the init migration. We want to run this one and any that
+                // come after it.
+                found = true
+            }
+            if (!found) {
+                // This is an older migration we can skip running and just mark as done
+                await MetaVersion.create({ version: migrationFiles[i] }, { transaction })
+            } else {
+                // This is migration we need to run
+                pendingMigrations.push(migrationFiles[i])
+            }
         }
     } else {
         // We have a populated database. Need to check if there are any migrations
         // to apply
-        const currentVersion = await getCurrentVersion()
+        const currentVersion = await getCurrentVersion(transaction)
 
         // If currentVersion is null, then all migrations are needed
         let found = !currentVersion
@@ -69,27 +82,55 @@ async function checkPendingMigrations () {
     }
 }
 
-async function applyMigration (filename) {
+async function applyMigration (filename, transaction) {
     const queryInterface = app.db.sequelize.getQueryInterface()
     const migration = require('./' + filename)
     app.log.info(' - %s', filename)
     await migration.up(queryInterface)
-    await MetaVersion.create({ version: filename })
+    await MetaVersion.create({ version: filename }, { transaction })
 }
+
 async function applyPendingMigrations () {
-    if (pendingMigrations.length > 0) {
-        app.log.info('Applying migrations:')
-        for (let i = 0; i < pendingMigrations.length; i++) {
-            await applyMigration(pendingMigrations[i])
+    let pendingTransaction
+    // For postgres, we want to hold a lock on the MetaVersions table so we can
+    // be certain we're the only process applying the migrations.
+    if (app.config.db.type === 'postgres') {
+        pendingTransaction = await app.db.sequelize.transaction()
+    }
+    try {
+        if (pendingTransaction) {
+            // If another process holds the lock already, this will block until
+            // the lock is released
+            await app.db.sequelize.query('LOCK TABLE "MetaVersions" IN ACCESS EXCLUSIVE MODE', { transaction: pendingTransaction })
         }
-        app.log.info('Finished applying migrations')
-        await checkPendingMigrations()
+        // Check to see what we need to apply
+        await checkPendingMigrations(pendingTransaction)
+        if (pendingMigrations.length > 0) {
+            app.log.info('Database has pending migrations')
+            if (!app.config.db.migrations || app.config.db.migrations.auto !== false) {
+                app.log.info('Applying migrations:')
+                for (let i = 0; i < pendingMigrations.length; i++) {
+                    await applyMigration(pendingMigrations[i], pendingTransaction)
+                }
+                app.log.info('Finished applying migrations')
+                // Update our view of what's pending
+                await checkPendingMigrations(pendingTransaction)
+            } else if (!app.config.db.migrations || !app.config.db.migrations.skipCheck) {
+                throw new Error('Unapplied migrations')
+            }
+        }
+        if (pendingTransaction) {
+            await pendingTransaction.commit()
+        }
+    } catch (err) {
+        if (pendingTransaction) {
+            await pendingTransaction.rollback()
+        }
+        throw err
     }
 }
 
 module.exports = {
     init,
-    getCurrentVersion,
-    hasPendingMigrations: _ => pendingMigrations.length > 0,
     applyPendingMigrations
 }

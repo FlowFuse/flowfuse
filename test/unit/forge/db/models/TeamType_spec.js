@@ -1,6 +1,9 @@
 const should = require('should') // eslint-disable-line
 const setup = require('../setup')
 
+let objectCount = 0
+const generateName = (root = 'object') => `${root}-${objectCount++}`
+
 describe('TeamType model', function () {
     let app
 
@@ -14,7 +17,7 @@ describe('TeamType model', function () {
     describe('getInstanceTypeProperty', async function () {
         it('Should read the (nested) property from an instances config when passed a hashid', async function () {
             const teamType = await app.db.models.TeamType.create({
-                name: 'Test Team Type',
+                name: generateName('Test Team Type'),
                 properties: {
                     instances: {
                         one: {
@@ -38,18 +41,16 @@ describe('TeamType model', function () {
             properties.instances[instanceType.hashid] = {
                 active: true
             }
-
             const teamType = await app.db.models.TeamType.create({
-                name: 'Test Team Type',
+                name: generateName('Test Team Type'),
                 properties
             })
-
             teamType.getInstanceTypeProperty(instanceType, 'active').should.equal(true)
         })
 
         it('Should return the default value if property is not found', async function () {
             const teamType = await app.db.models.TeamType.create({
-                name: 'Test Team Type',
+                name: generateName('Test Team Type'),
                 properties: {
                     instances: {
                         one: {
@@ -63,7 +64,7 @@ describe('TeamType model', function () {
 
         it('Should also return the default value if property is null', async function () {
             const teamType = await app.db.models.TeamType.create({
-                name: 'Test Team Type',
+                name: generateName('Test Team Type'),
                 properties: {
                     instances: {
                         one: {

@@ -42,7 +42,7 @@ module.exports = {
     deleteSubscription: async function (app, team) {
         const subscription = await team.getSubscription()
         if (subscription) {
-            subscription.destroy()
+            await subscription.destroy()
         }
         return null
     },
