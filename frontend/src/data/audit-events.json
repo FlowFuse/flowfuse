@@ -136,7 +136,7 @@
     "device": {
         "context.delete": "Context Key Deleted",
         "device.assigned": "Device Assigned",
-        "device.credentials.generated": "Device Credential Generated",
+        "device.credential.generated": "Device Credential Generated",
         "device.developer-mode.disabled": "Developer Mode Disabled",
         "device.developer-mode.enabled": "Developer Mode Enabled",
         "device.remote-access.disabled": "Remote Access Disabled",
