@@ -60,7 +60,7 @@
                                         <label class="text-xs text-gray-400">{{ instance.flowLastUpdatedSince || 'never' }}</label>
                                     </span>
                                     <span v-else-if="instance.mostRecentAuditLogCreatedAt" class="flex flex-col">
-                                        {{ AuditEvents[instance.mostRecentAuditLogEvent] }}
+                                        {{ labelForAuditLogEntry(instance.mostRecentAuditLogEvent) }}
                                         <label class="text-xs text-gray-400"><DaysSince :date="instance.mostRecentAuditLogCreatedAt" /></label>
                                     </span>
                                     <span v-else class="text-gray-400 italic">
@@ -95,7 +95,7 @@
                                 <div><StatusBadge :status="device.status" /></div>
                                 <div class="text-sm">
                                     <span v-if="device.mostRecentAuditLogCreatedAt" class="flex flex-col">
-                                        {{ AuditEvents[device.mostRecentAuditLogEvent] }}
+                                        {{ labelForAuditLogEntry(device.mostRecentAuditLogEvent) }}
                                         <label class="text-xs text-gray-400"><DaysSince :date="device.mostRecentAuditLogCreatedAt" /></label>
                                     </span>
                                     <span v-else class="flex flex-col">
@@ -356,6 +356,17 @@ export default {
                     id: device.id
                 }
             })
+        },
+        labelForAuditLogEntry (eventName) {
+            if (!eventName) return 'Unknown Event'
+            if (this.AuditEvents[eventName]) {
+                return this.AuditEvents[eventName]
+            }
+            let labelText = eventName
+            labelText = labelText.replace(/[-._:]/g, ' ')
+            labelText = labelText.replace(/\b\w/g, l => l.toUpperCase())
+            labelText = labelText.replace(/([a-z])([A-Z])/g, '$1 $2')
+            return labelText
         }
     }
 }
