@@ -86,7 +86,7 @@ module.exports = function (app) {
         if (app.license.active() && result.mode === 'developer' && app.comms?.devices?.tunnelManager) {
             /** @type {import("../../ee/lib/deviceEditor/DeviceTunnelManager").DeviceTunnelManager} */
             const tunnelManager = app.comms.devices.tunnelManager
-            filtered.editor = tunnelManager.getTunnelStatus(result.hashid) || {}
+            filtered.editor = tunnelManager.getTunnelStatus(device.id) || {}
         }
 
         return filtered
@@ -104,10 +104,19 @@ module.exports = function (app) {
             status: { type: 'string' },
             mode: { type: 'string' },
             isDeploying: { type: 'boolean' },
-            links: { $ref: 'LinksMeta' }
+            links: { $ref: 'LinksMeta' },
+            mostRecentAuditLogCreatedAt: { type: 'string' },
+            mostRecentAuditLogEvent: { type: 'string' }
         }
     })
-    function deviceSummary (device, { includeSnapshotIds = false } = {}) {
+    app.addSchema({
+        $id: 'DeviceSummaryList',
+        type: 'array',
+        items: {
+            $ref: 'DeviceSummary'
+        }
+    })
+    function deviceSummary (device, { includeEditor = false } = {}) {
         if (device) {
             const result = device.toJSON ? device.toJSON() : device
             const filtered = {
@@ -122,14 +131,64 @@ module.exports = function (app) {
                 isDeploying: app.db.controllers.Device.isDeploying(device),
                 links: result.links
             }
+            if (device.get('mostRecentAuditLogCreatedAt')) {
+                filtered.mostRecentAuditLogCreatedAt = new Date(device.get('mostRecentAuditLogCreatedAt'))
+            }
+            if (device.get('mostRecentAuditLogEvent')) {
+                filtered.mostRecentAuditLogEvent = device.get('mostRecentAuditLogEvent')
+            }
             return filtered
         } else {
             return null
         }
     }
 
+    app.addSchema({
+        $id: 'DeviceStatus',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            lastSeenAt: { nullable: true, type: 'string' },
+            lastSeenMs: { nullable: true, type: 'number' },
+            status: { type: 'string' },
+            mode: { type: 'string' },
+            isDeploying: { type: 'boolean' },
+            editor: { type: 'object', additionalProperties: true }
+        }
+    })
+    app.addSchema({
+        $id: 'DeviceStatusList',
+        type: 'array',
+        items: {
+            $ref: 'DeviceStatus'
+        }
+    })
+    async function deviceStatusList (devicesArray, { includeEditor = false } = {}) {
+        return devicesArray.map((device) => {
+            const summary = deviceSummary(device)
+
+            const filtered = {
+                id: summary.id,
+                lastSeenAt: summary.lastSeenAt,
+                lastSeenMs: summary.lastSeenMs,
+                status: summary.status,
+                mode: summary.mode,
+                isDeploying: summary.isDeploying
+            }
+
+            if (includeEditor && app.license.active() && summary.status === 'running' && summary.mode === 'developer' && app.comms?.devices?.tunnelManager) {
+                /** @type {import("../../ee/lib/deviceEditor/DeviceTunnelManager").DeviceTunnelManager} */
+                const tunnelManager = app.comms.devices.tunnelManager
+                filtered.editor = tunnelManager.getTunnelStatus(device.id) || {}
+            }
+
+            return filtered
+        })
+    }
+
     return {
         device,
-        deviceSummary
+        deviceSummary,
+        deviceStatusList
     }
 }

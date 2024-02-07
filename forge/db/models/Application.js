@@ -2,7 +2,7 @@
  * An application definition
  * @namespace forge.db.models.Application
  */
-const { DataTypes, Op } = require('sequelize')
+const { DataTypes, Op, literal } = require('sequelize')
 
 const { KEY_SETTINGS, KEY_HA } = require('./ProjectSettings')
 
@@ -27,8 +27,9 @@ module.exports = {
         this.hasMany(M.Project, { as: 'Instances' })
         this.belongsTo(M.Team, { foreignKey: { allowNull: false } })
         this.hasMany(M.DeviceGroup, { onDelete: 'CASCADE' })
+        this.hasMany(M.Device) // also via instance and device group
     },
-    finders: function (M) {
+    finders: function (M, app) {
         return {
             static: {
                 byId: async function (idOrHash) {
@@ -46,7 +47,7 @@ module.exports = {
                         ]
                     })
                 },
-                byTeam: async (teamIdOrHash, { includeInstances = false, includeInstanceStorageFlow = false } = {}) => {
+                byTeam: async (teamIdOrHash, { includeInstances = false, includeApplicationDevices = false, includeInstanceStorageFlow = false, associationsLimit = null, includeApplicationSummary = false } = {}) => {
                     let id = teamIdOrHash
                     if (typeof teamIdOrHash === 'string') {
                         id = M.Team.decodeHashid(teamIdOrHash)
@@ -91,12 +92,136 @@ module.exports = {
                             })
                         }
 
+                        if (associationsLimit) {
+                            include.limit = associationsLimit
+                            include.order = [['mostRecentAuditLogCreatedAt', 'DESC NULLS LAST'], ['updatedAt', 'DESC']]
+                            include.attributes = {
+                                include: [...include.attributes, [
+                                    literal(`(
+                                        SELECT "createdAt"
+                                        FROM "AuditLogs"
+                                        WHERE "AuditLogs"."entityId" = cast("Project"."id" as VARCHAR)
+                                        AND "AuditLogs"."entityType" = 'project'
+                                        ORDER BY "createdAt" DESC
+                                        LIMIT 1
+                                    )`),
+                                    'mostRecentAuditLogCreatedAt'
+                                ], [
+                                    literal(`(
+                                        SELECT "event"
+                                        FROM "AuditLogs"
+                                        WHERE "AuditLogs"."entityId" = cast("Project"."id" as VARCHAR)
+                                        AND "AuditLogs"."entityType" = 'project'
+                                        ORDER BY "createdAt" DESC
+                                        LIMIT 1
+                                    )`),
+                                    'mostRecentAuditLogEvent'
+                                ]
+                                ]
+                            }
+                        }
+
                         includes.push(include)
                     }
 
-                    return this.findAll({
+                    if (includeApplicationDevices) {
+                        const include = {
+                            model: M.Device,
+                            attributes: ['hashid', 'id', 'name', 'links', 'state', 'mode', 'updatedAt']
+                        }
+
+                        if (associationsLimit) {
+                            include.limit = associationsLimit
+                            include.order = [['mostRecentAuditLogCreatedAt', 'DESC NULLS LAST'], ['updatedAt', 'DESC']]
+                            include.attributes = {
+                                include: [...include.attributes, [
+                                    literal(`(
+                                        SELECT "createdAt"
+                                        FROM "AuditLogs"
+                                        WHERE "AuditLogs"."entityId" = cast("Device"."id" as VARCHAR)
+                                        AND "AuditLogs"."entityType" = 'device'
+                                        ORDER BY "createdAt" DESC
+                                        LIMIT 1
+                                    )`),
+                                    'mostRecentAuditLogCreatedAt'
+                                ], [
+                                    literal(`(
+                                        SELECT "event"
+                                        FROM "AuditLogs"
+                                        WHERE "AuditLogs"."entityId" = cast("Device"."id" as VARCHAR)
+                                        AND "AuditLogs"."entityType" = 'device'
+                                        ORDER BY "createdAt" DESC
+                                        LIMIT 1
+                                    )`),
+                                    'mostRecentAuditLogEvent'
+                                ]]
+                            }
+                        }
+
+                        includes.push(include)
+                    }
+
+                    const query = {
                         include: includes
-                    })
+                    }
+
+                    if (includeApplicationSummary) {
+                        query.attributes = {
+                            include: [
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "Projects" AS "Instances"
+                                        WHERE "Instances"."ApplicationId" = "Application"."id"
+                                    )`),
+                                    'instanceCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "Devices"
+                                        WHERE "Devices"."ApplicationId" = "Application"."id"
+                                    )`),
+                                    'deviceCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT count(*)
+                                        FROM "DeviceGroups"
+                                        WHERE "DeviceGroups"."ApplicationId" = "Application"."id"
+                                    )`),
+                                    'deviceGroupCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT count(*)
+                                        FROM "ProjectSnapshots"
+                                        LEFT JOIN "Devices" ON "Devices"."id" = "ProjectSnapshots"."DeviceId"
+                                        LEFT JOIN "Projects" ON "Projects"."id" = "ProjectSnapshots"."ProjectId"
+                                        WHERE "Devices"."ApplicationId" = "Application"."id" OR "Projects"."ApplicationId" = "Application"."id"
+                                    )`),
+                                    'snapshotCount'
+                                ]
+
+                            ]
+                        }
+
+                        // Non-EE licensed instances might not have the Pipeline table
+                        // You can add a license without a restart, so we also need to check if the Model is loaded
+                        // If the model is loaded, it can be assumed the table exists
+                        if (app.license.active() && app.db.models.Pipeline) {
+                            query.attributes.include.push([
+                                literal(`(
+                                    SELECT count(*)
+                                    FROM "Pipelines"
+                                    WHERE "Pipelines"."ApplicationId" = "Application"."id"
+                                )`),
+                                'pipelineCount'
+                            ])
+                        }
+                    }
+
+                    return this.findAll(query)
                 }
             },
             instance: {

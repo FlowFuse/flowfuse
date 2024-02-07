@@ -1,3 +1,5 @@
+const sinon = require('sinon')
+
 const Roles = require('../../forge/lib/roles')
 
 module.exports = class TestModelFactory {
@@ -227,6 +229,43 @@ module.exports = class TestModelFactory {
             description: ''
         }
         return await this.forge.db.controllers.ProjectSnapshot.createSnapshot(project, user, {
+            ...defaultSnapshotDetails,
+            ...snapshotDetails
+        })
+    }
+
+    async createDeviceSnapshot (snapshotDetails, device, user) {
+        const defaultSnapshotDetails = {
+            name: 'unnamed-snapshot',
+            description: ''
+        }
+
+        // Only stub once if called multiple times
+        if (!this.forge.comms.devices.sendCommandAwaitReply.restore) {
+            sinon.stub(this.forge.comms.devices, 'sendCommandAwaitReply').resolves({
+                flows: [{ custom: 'custom-flows' }],
+                credentials: {
+                    $: {
+                        key: 'value'
+                    }
+                },
+                package: {
+                    modules: {
+                        custom: 'custom-module'
+                    }
+                }
+            })
+        }
+
+        // createDeviceSnapshot expects a hydrated device object
+        if (!device.Team) {
+            device.Team = await device.getTeam()
+        }
+        if (!device.Application) {
+            device.Application = await device.getApplication()
+        }
+
+        return await this.forge.db.controllers.ProjectSnapshot.createDeviceSnapshot(device.Application, device, user, {
             ...defaultSnapshotDetails,
             ...snapshotDetails
         })

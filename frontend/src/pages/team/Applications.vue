@@ -3,7 +3,7 @@
         <template #header>
             <ff-page-header title="Applications">
                 <template #context>
-                    A list of applications belonging to this Team.
+                    View all of your Node-RED instances.
                 </template>
                 <template #help-header>
                     Applications
@@ -35,16 +35,15 @@
         <div class="space-y-6">
             <ff-loading v-if="loading" message="Loading Applications..." />
             <template v-else-if="!loading && applications.size > 0">
-                <ul class="ff-applications-list">
+                <ul class="ff-applications-list" data-el="applications-list">
                     <li v-for="application in Array.from(applications.values())" :key="application.id">
                         <div class="ff-application-list--app gap-x-4 flex items-center !justify-start" data-action="view-application" @click="openApplication(application)">
                             <span class="flex flex-shrink-0 flex-grow-0 whitespace-nowrap"><TemplateIcon class="ff-icon text-gray-600" />{{ application.name }}</span>
                             <span class="!inline-block !flex-shrink !flex-grow italic text-gray-500 dark:text-gray-400 truncate"> {{ application.description }} </span>
-                            <label class="!inline-block italic text-gray-400 text-sm whitespace-nowrap flex-shrink-0 flex-grow-0">
-                                {{ application.instances.size }} Instance{{ application.instances.size === 1 ? '' : 's' }}
-                            </label>
+                            <ApplicationSummaryLabel :application="application" />
                         </div>
-                        <ul v-if="application.instances.size > 0" class="ff-applications-list-instances">
+
+                        <ul v-if="application.instances.size > 0" class="ff-applications-list-instances" data-el="application-instances">
                             <label>Instances</label>
                             <li v-for="instance in Array.from(application.instances.values())" :key="instance.id" @click.stop="openInstance(instance)">
                                 <span class="flex justify-center mr-3">
@@ -56,12 +55,16 @@
                                 </div>
                                 <div><InstanceStatusBadge :status="instance.meta?.state" :optimisticStateChange="instance.optimisticStateChange" :pendingStateChange="instance.pendingStateChange" /></div>
                                 <div class="text-sm">
-                                    <span v-if="instance.flowLastUpdatedSince" class="flex flex-col">
-                                        <label class="text-xs text-gray-400">Last Updated: </label>
-                                        {{ instance.flowLastUpdatedSince || 'never' }}
+                                    <span v-if="!instance.mostRecentAuditLogCreatedAt || (instance.flowLastUpdatedAt > instance.mostRecentAuditLogCreatedAt)" class="flex flex-col">
+                                        Flows last deployed
+                                        <label class="text-xs text-gray-400">{{ instance.flowLastUpdatedSince || 'never' }}</label>
+                                    </span>
+                                    <span v-else-if="instance.mostRecentAuditLogCreatedAt" class="flex flex-col">
+                                        {{ AuditEvents[instance.mostRecentAuditLogEvent] }}
+                                        <label class="text-xs text-gray-400"><DaysSince :date="instance.mostRecentAuditLogCreatedAt" /></label>
                                     </span>
                                     <span v-else class="text-gray-400 italic">
-                                        flows never deployed
+                                        Flows never deployed
                                     </span>
                                 </div>
                                 <InstanceEditorLinkCell
@@ -75,7 +78,51 @@
                             </li>
                         </ul>
                         <div v-else class="ff-no-data">
-                            This Application currently has no attached Node-RED Instances.
+                            This Application currently has no <router-link :to="`/application/${application.id}/instances`" class="ff-link">attached Node-RED Instances</router-link>.
+                        </div>
+                        <div v-if="application.instanceCount > application.instances.size" class="ff-applications-list--details">
+                            Only the {{ application.instances.size }} <router-link :to="`/application/${application.id}/instances`" class="ff-link">instances</router-link>  with the most recent activity are being displayed.
+                        </div>
+
+                        <ul v-if="application.devices.size > 0" class="ff-applications-list-instances" data-el="application-devices">
+                            <label>Devices</label>
+                            <li v-for="device in Array.from(application.devices.values())" :key="device.id" @click.stop="openDevice(device)">
+                                <DeviceModeBadge :mode="device.mode" type="icon" class="flex justify-center mr-3" />
+                                <div class="ff-applications-list--instance">
+                                    <label>{{ device.name }}</label>
+                                    <span>{{ device.editor?.url }}</span>
+                                </div>
+                                <div><StatusBadge :status="device.status" /></div>
+                                <div class="text-sm">
+                                    <span v-if="device.mostRecentAuditLogCreatedAt" class="flex flex-col">
+                                        {{ AuditEvents[device.mostRecentAuditLogEvent] }}
+                                        <label class="text-xs text-gray-400"><DaysSince :date="device.mostRecentAuditLogCreatedAt" /></label>
+                                    </span>
+                                    <span v-else class="flex flex-col">
+                                        Device last seen
+                                        <label class="text-xs text-gray-400">
+                                            <DaysSince v-if="device.lastSeenAt" :date="device.lastSeenAt" />
+                                            <template v-else>never</template>
+                                        </label>
+                                    </span>
+                                </div>
+
+                                <div class="flex justify-end text-sm">
+                                    <EditorLink
+                                        :url="device.editor?.url"
+                                        :editorDisabled="false"
+                                        :disabled="!device.editor?.enabled || !device.editor?.connected"
+                                        disabledReason="Device must be running, in developer mode and have the editor enabled and connected"
+                                    />
+                                </div>
+                            </li>
+                        </ul>
+                        <div v-else class="ff-no-data">
+                            This Application currently has no <router-link :to="`/application/${application.id}/devices`" class="ff-link">attached devices</router-link>.
+                        </div>
+
+                        <div v-if="application.deviceCount > application.devices.size" class="ff-applications-list--details">
+                            Only the {{ application.devices.size }} <router-link :to="`/application/${application.id}/devices`" class="ff-link">devices</router-link> with the most recent activity are being displayed.
                         </div>
                     </li>
                 </ul>
@@ -126,20 +173,35 @@ import { PlusSmIcon, TemplateIcon } from '@heroicons/vue/outline'
 import teamApi from '../../api/team.js'
 import EmptyState from '../../components/EmptyState.vue'
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
+import StatusBadge from '../../components/StatusBadge.vue'
 import IconNodeRedSolid from '../../components/icons/NodeRedSolid.js'
 import permissionsMixin from '../../mixins/Permissions.js'
 import Alerts from '../../services/alerts.js'
+import AuditEventsService from '../../services/audit-events.js'
+import DaysSince from '../application/Snapshots/components/cells/DaysSince.vue'
+import DeviceModeBadge from '../device/components/DeviceModeBadge.vue'
+import EditorLink from '../instance/components/EditorLink.vue'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 import InstanceEditorLinkCell from '../instance/components/cells/InstanceEditorLink.vue'
+
+import ApplicationSummaryLabel from './components/ApplicationSummaryLabel.vue'
+
+const ASSOCIATIONS_LIMIT = 3
+
 export default {
     name: 'TeamApplications',
     components: {
+        ApplicationSummaryLabel,
+        DaysSince,
+        DeviceModeBadge,
+        EditorLink,
         EmptyState,
+        IconNodeRedSolid,
         InstanceEditorLinkCell,
         InstanceStatusBadge,
         InstanceStatusPolling,
         PlusSmIcon,
-        IconNodeRedSolid,
+        StatusBadge,
         TemplateIcon
     },
     mixins: [permissionsMixin],
@@ -151,6 +213,11 @@ export default {
         teamMembership: {
             type: Object,
             required: true
+        }
+    },
+    setup () {
+        return {
+            AuditEvents: AuditEventsService.get()
         }
     },
     data () {
@@ -183,10 +250,10 @@ export default {
             if (this.team.id) {
                 this.applications = new Map()
 
-                const applicationsPromise = teamApi.getTeamApplications(this.team.id)
+                const applicationsPromise = teamApi.getTeamApplications(this.team.id, { associationsLimit: ASSOCIATIONS_LIMIT })
 
                 // Not waited for as it can resolve in any order
-                this.updateInstanceStatuses()
+                this.updateApplicationAssociationStatuses()
 
                 const applications = (await applicationsPromise).applications
                 applications.forEach((applicationData) => {
@@ -195,13 +262,26 @@ export default {
                         application.instances = new Map()
                     }
 
-                    const { instances, ...applicationProps } = applicationData
-                    instances.forEach((instanceData) => {
+                    const { instancesSummary, devicesSummary, ...applicationProps } = applicationData
+                    instancesSummary.instances.forEach((instanceData) => {
                         application.instances.set(instanceData.id, {
                             ...application.instances.get(instanceData.id),
                             ...instanceData
                         })
                     })
+
+                    if (!application.devices) {
+                        application.devices = new Map()
+                    }
+                    devicesSummary.devices.forEach((deviceData) => {
+                        application.devices.set(deviceData.id, {
+                            ...application.devices.get(deviceData.id),
+                            ...deviceData
+                        })
+                    })
+
+                    application.instanceCount = instancesSummary.count
+                    application.deviceCount = devicesSummary.count
 
                     this.applications.set(applicationData.id, {
                         ...application,
@@ -211,20 +291,32 @@ export default {
             }
             this.loading = false
         },
-        async updateInstanceStatuses () {
-            const instanceStatusesByApplication = (await teamApi.getTeamApplicationsInstanceStatuses(this.team.id)).applications
+        async updateApplicationAssociationStatuses () {
+            const applicationsAssociationsStatuses = (await teamApi.getTeamApplicationsAssociationsStatuses(this.team.id, { associationsLimit: ASSOCIATIONS_LIMIT })).applications
 
-            instanceStatusesByApplication.forEach((applicationData) => {
+            applicationsAssociationsStatuses.forEach((applicationData) => {
                 const application = this.applications.get(applicationData.id) || {}
+
                 if (!application.instances) {
                     application.instances = new Map()
                 }
 
-                const { instances: instanceStatuses, ...applicationProps } = applicationData
+                if (!application.devices) {
+                    application.devices = new Map()
+                }
+
+                const { instances: instanceStatuses, devices: deviceStatuses, ...applicationProps } = applicationData
                 instanceStatuses.forEach((instanceStatusData) => {
                     application.instances.set(instanceStatusData.id, {
                         ...application.instances.get(instanceStatusData.id),
                         ...instanceStatusData
+                    })
+                })
+
+                deviceStatuses.forEach((deviceStatusData) => {
+                    application.devices.set(deviceStatusData.id, {
+                        ...application.devices.get(deviceStatusData.id),
+                        ...deviceStatusData
                     })
                 })
 
@@ -254,6 +346,14 @@ export default {
                 name: 'Instance',
                 params: {
                     id: instance.id
+                }
+            })
+        },
+        openDevice (device) {
+            this.$router.push({
+                name: 'Device',
+                params: {
+                    id: device.id
                 }
             })
         }

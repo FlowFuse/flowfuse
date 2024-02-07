@@ -3,7 +3,7 @@ describe('FlowForge - Team', () => {
     beforeEach(() => {
         cy.login('alice', 'aaPassword')
         cy.home()
-        cy.intercept('GET', '/api/v1/teams/*/applications').as('getTeamApplications')
+        cy.intercept('GET', '/api/v1/teams/*/applications*').as('getTeamApplications')
         cy.intercept('DELETE', '/api/v1/teams/*').as('deleteTeam')
     })
 

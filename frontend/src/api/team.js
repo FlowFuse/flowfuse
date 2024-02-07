@@ -76,18 +76,26 @@ const deleteTeam = async (teamId) => {
  * @param {string} teamId The Team ID (hash) to get applications and instances for
  * @returns An array of application objects containing an array of instances
  */
-const getTeamApplications = async (teamId) => {
-    const result = await client.get(`/api/v1/teams/${teamId}/applications`)
+const getTeamApplications = async (teamId, { associationsLimit } = {}) => {
+    const options = {}
+    if (associationsLimit) {
+        options.params = { associationsLimit }
+    }
+    const result = await client.get(`/api/v1/teams/${teamId}/applications`, options)
     return result.data
 }
 
 /**
- * Get a list of applications, their instances, and the status of each instance
- * @param {string} teamId The Team ID (hash) to get applications and instances for
- * @returns An array of application ids containing an array of instance statuses
+ * Get a list of applications, their instances, their devices, and the status of each
+ * @param {string} teamId The Team ID (hash) to get statuses for
+ * @returns An array of application ids containing an array of instance and device statuses
  */
-const getTeamApplicationsInstanceStatuses = async (teamId) => {
-    const result = await client.get(`/api/v1/teams/${teamId}/applications/status`)
+const getTeamApplicationsAssociationsStatuses = async (teamId, { associationsLimit } = {}) => {
+    const options = {}
+    if (associationsLimit) {
+        options.params = { associationsLimit }
+    }
+    const result = await client.get(`/api/v1/teams/${teamId}/applications/status`, options)
 
     result.data.applications.forEach((application) => {
         application.instances.forEach((instance) => {
@@ -357,7 +365,7 @@ export default {
     updateTeam,
     getTeams,
     getTeamApplications,
-    getTeamApplicationsInstanceStatuses,
+    getTeamApplicationsAssociationsStatuses,
     getTeamInstances,
     getTeamInstancesList,
     getTeamMembers,

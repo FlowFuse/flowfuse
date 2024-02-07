@@ -9,7 +9,7 @@
 
 <script>
 import StatusBadge from '../../../../components/StatusBadge.vue'
-import InstanceEditorLink from '../InstanceEditorLink.vue'
+import InstanceEditorLink from '../EditorLink.vue'
 
 export default {
     name: 'InstanceEditorLinkCell',
