@@ -558,5 +558,27 @@ describe('Stack API', function () {
             result.stacks[0].should.have.property('name', 'stack1')
             result.stacks[1].should.have.property('name', 'stack2')
         })
+
+        it('lists all stacks for a given ProjectType', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/stacks',
+                query: { projectType: TestObjects.projectType1.hashid },
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            const result = response.json()
+            result.stacks.should.have.length(1)
+            result.stacks[0].should.have.property('name', 'stack1')
+        })
+        it('lists no stacks for an invalid ProjectType', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/stacks',
+                query: { projectType: 'invalid' },
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            const result = response.json()
+            result.stacks.should.have.length(0)
+        })
     })
 })

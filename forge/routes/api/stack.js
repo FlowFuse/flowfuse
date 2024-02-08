@@ -59,8 +59,16 @@ module.exports = async function (app) {
         }
         if (request.query.projectType) {
             const projectTypeId = app.db.models.ProjectType.decodeHashid(request.query.projectType)
-            if (projectTypeId) {
+            if (projectTypeId && projectTypeId.length > 0) {
                 filter.ProjectTypeId = projectTypeId[0]
+            } else {
+                // An invalid ProjectTypeID; return empty set of stacks
+                reply.send({
+                    meta: {},
+                    count: 0,
+                    stacks: []
+                })
+                return
             }
         }
         const stacks = await app.db.models.ProjectStack.getAll(paginationOptions, filter)
@@ -296,7 +304,7 @@ module.exports = async function (app) {
             if (!stack.ProjectTypeId) {
                 // This is assigning the stack to a project type for the first time
                 // We'll allow that as part of the migration of legacy stacks
-                if (projectTypeId) {
+                if (projectTypeId && projectTypeId.length > 0) {
                     stack.ProjectTypeId = projectTypeId[0]
                     updates.push('ProjectTypeId', null, projectTypeId[0], 'created')
                     // We can also assign any projects using this stack to the same project-type
@@ -305,6 +313,9 @@ module.exports = async function (app) {
                             ProjectStackId: stack.id
                         }
                     })
+                } else {
+                    reply.code(400).send({ code: 'invalid_request', error: 'Invalid projectType' })
+                    return
                 }
             } else if (stack.ProjectTypeId !== projectTypeId[0]) {
                 reply.code(400).send({ code: 'invalid_request', error: 'Cannot change stack project type' })
