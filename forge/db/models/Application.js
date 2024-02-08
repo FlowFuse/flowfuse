@@ -94,7 +94,8 @@ module.exports = {
 
                         if (associationsLimit) {
                             include.limit = associationsLimit
-                            include.order = [['mostRecentAuditLogCreatedAt', 'DESC NULLS LAST'], ['updatedAt', 'DESC']]
+                            include.order = [['updatedAt', 'DESC']]
+                            /*
                             include.attributes = {
                                 include: [...include.attributes, [
                                     literal(`(
@@ -118,7 +119,7 @@ module.exports = {
                                     'mostRecentAuditLogEvent'
                                 ]
                                 ]
-                            }
+                            } */
                         }
 
                         includes.push(include)
@@ -127,13 +128,13 @@ module.exports = {
                     if (includeApplicationDevices) {
                         const include = {
                             model: M.Device,
-                            attributes: ['hashid', 'id', 'name', 'links', 'state', 'mode', 'updatedAt']
+                            attributes: ['hashid', 'id', 'name', 'links', 'state', 'mode', 'updatedAt', 'lastSeenAt']
                         }
 
                         if (associationsLimit) {
                             include.limit = associationsLimit
-                            include.order = [['mostRecentAuditLogCreatedAt', 'DESC NULLS LAST'], ['updatedAt', 'DESC']]
-                            include.attributes = {
+                            include.order = [['lastSeenAt', 'DESC NULLS LAST'], ['updatedAt', 'DESC']]
+                            /* include.attributes = {
                                 include: [...include.attributes, [
                                     literal(`(
                                         SELECT "createdAt"
@@ -155,7 +156,7 @@ module.exports = {
                                     )`),
                                     'mostRecentAuditLogEvent'
                                 ]]
-                            }
+                            } */
                         }
 
                         includes.push(include)
