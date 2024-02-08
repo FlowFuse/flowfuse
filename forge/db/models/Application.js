@@ -95,31 +95,9 @@ module.exports = {
                         if (associationsLimit) {
                             include.limit = associationsLimit
                             include.order = [['updatedAt', 'DESC']]
-                            /*
                             include.attributes = {
-                                include: [...include.attributes, [
-                                    literal(`(
-                                        SELECT "createdAt"
-                                        FROM "AuditLogs"
-                                        WHERE "AuditLogs"."entityId" = cast("Project"."id" as VARCHAR)
-                                        AND "AuditLogs"."entityType" = 'project'
-                                        ORDER BY "createdAt" DESC
-                                        LIMIT 1
-                                    )`),
-                                    'mostRecentAuditLogCreatedAt'
-                                ], [
-                                    literal(`(
-                                        SELECT "event"
-                                        FROM "AuditLogs"
-                                        WHERE "AuditLogs"."entityId" = cast("Project"."id" as VARCHAR)
-                                        AND "AuditLogs"."entityType" = 'project'
-                                        ORDER BY "createdAt" DESC
-                                        LIMIT 1
-                                    )`),
-                                    'mostRecentAuditLogEvent'
-                                ]
-                                ]
-                            } */
+                                include: [...include.attributes]
+                            }
                         }
 
                         includes.push(include)
@@ -134,29 +112,6 @@ module.exports = {
                         if (associationsLimit) {
                             include.limit = associationsLimit
                             include.order = [['lastSeenAt', 'DESC NULLS LAST'], ['updatedAt', 'DESC']]
-                            /* include.attributes = {
-                                include: [...include.attributes, [
-                                    literal(`(
-                                        SELECT "createdAt"
-                                        FROM "AuditLogs"
-                                        WHERE "AuditLogs"."entityId" = cast("Device"."id" as VARCHAR)
-                                        AND "AuditLogs"."entityType" = 'device'
-                                        ORDER BY "createdAt" DESC
-                                        LIMIT 1
-                                    )`),
-                                    'mostRecentAuditLogCreatedAt'
-                                ], [
-                                    literal(`(
-                                        SELECT "event"
-                                        FROM "AuditLogs"
-                                        WHERE "AuditLogs"."entityId" = cast("Device"."id" as VARCHAR)
-                                        AND "AuditLogs"."entityType" = 'device'
-                                        ORDER BY "createdAt" DESC
-                                        LIMIT 1
-                                    )`),
-                                    'mostRecentAuditLogEvent'
-                                ]]
-                            } */
                         }
 
                         includes.push(include)
