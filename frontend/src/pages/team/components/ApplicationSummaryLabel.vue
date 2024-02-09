@@ -4,6 +4,7 @@
             v-ff-tooltip:bottom="`${application.instanceCount} x Instance${application.instanceCount > 1 ? 's' : ''}`"
             :to="`/application/${application.id}/instances`"
             :icon="IconNodeRedSolid"
+            :class="{'text-gray-400': application.instanceCount === 0}"
             iconColor="text-red-700"
         >
             {{ application.instanceCount }}
@@ -13,6 +14,7 @@
             v-ff-tooltip:bottom="`${application.deviceCount} x Device${application.deviceCount > 1 ? 's' : ''}`"
             :to="`/application/${application.id}/devices`"
             :icon="IconDeviceSolid"
+            :class="{'text-gray-400': application.deviceCount === 0}"
         >
             {{ application.deviceCount }}
         </IconLink>
@@ -21,6 +23,7 @@
             v-ff-tooltip:bottom="`${application.deviceGroupCount} x Device Group${application.deviceGroupCount > 1 ? 's' : ''}`"
             :to="`/application/${application.id}/device-groups`"
             :icon="DeviceGroupSolidIcon"
+            :class="{'text-gray-400': application.deviceGroupCount === 0}"
             iconColor="text-teal-800"
         >
             {{ application.deviceGroupCount }}
@@ -30,6 +33,7 @@
             v-ff-tooltip:bottom="`${application.snapshotCount} x Snapshot${application.snapshotCount > 1 ? 's' : ''}`"
             :to="`/application/${application.id}/snapshots`"
             :icon="IconSnapshotSolid"
+            :class="{'text-gray-400': application.snapshotCount === 0}"
         >
             {{ application.snapshotCount }}
         </IconLink>
@@ -38,6 +42,7 @@
             v-ff-tooltip:bottom="`${application.pipelineCount} x Pipeline${application.pipelineCount > 1 ? 's' : ''}`"
             :to="`/application/${application.id}/pipelines`"
             :icon="IconPipelineSolid"
+            :class="{'text-gray-400': application.pipelineCount === 0}"
         >
             {{ application.pipelineCount || 0 }}
         </IconLink>
