@@ -90,9 +90,12 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                     cy.contains('application-2')
 
                     cy.get('[data-el="application-summary"]').should(($div) => {
-                        const text = $div.text()
+                        const labels = $div.find('a span').map(function () { return this.innerText })
+
+                        const text = labels.toArray().join(', ')
+
                         // Test should pass for single test of full suite (objects persist between tests)
-                        expect(text).to.match(/2 Instances, 2 Devices, 2 Device Groups, 8 Snapshots, 4 Pipelines|2 Instances, 2 Devices, 1 Device Group, 3 Snapshots/)
+                        expect(text).to.match(/2 x Instances, 2 x Devices, 2 x Device Groups, 8 x Snapshots, 4 x Pipelines|2 x Instances, 2 x Devices, 1 x Device Group, 3 x Snapshots/)
                     })
 
                     cy.get('[data-el="application-instances"]').find('li').should('have.length', 2)
