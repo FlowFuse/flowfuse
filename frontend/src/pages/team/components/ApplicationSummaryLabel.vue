@@ -1,63 +1,57 @@
 <template>
     <div data-el="application-summary" class="flex flex-wrap space-x-2">
-        <a
+        <IconLink
             v-if="application.instanceCount > 0"
-            href="#"
-            class="flex space-x-2 justify-between px-2"
+            :to="`/application/${application.id}/instances`"
             :title="`${application.instanceCount} Instance${application.instanceCount === 1 ? '' : 's'}`"
-            style="border: 1px solid #D1D5DB;padding:5px;border-radius:5px;min-width:50px;"
+            :icon="IconNodeRedSolid"
+            iconColor="text-red-700"
         >
-            <IconNodeRedSolid class="ff-icon text-red-700" />
             {{ application.instanceCount }}
-        </a>
+        </IconLink>
 
-        <a
+        <IconLink
             v-if="application.deviceCount > 0"
-            href="#"
-            class="flex space-x-2 justify-between px-2"
+            :to="`/application/${application.id}/devices`"
             :title="`${application.deviceCount} Devices${application.deviceCount === 1 ? '' : 's'}`"
-            style="border: 1px solid #D1D5DB;padding:5px;border-radius:5px;min-width:50px;"
+            :icon="IconNodeRedSolid"
         >
-            <IconDeviceSolid class="ff-icon text-teal-700" />
-            {{ application.instanceCount }}
-        </a>
+            {{ application.deviceCount }}
+        </IconLink>
 
-        <a
+        <IconLink
             v-if="application.deviceGroupCount > 0"
-            href="#"
-            class="flex space-x-2 justify-between px-2"
+            :to="`/application/${application.id}/device-groups`"
             :title="`${application.deviceGroupCount} Device Group${application.deviceGroupCount === 1 ? '' : 's'}`"
-            style="border: 1px solid #D1D5DB;padding:5px;border-radius:5px;min-width:50px;"
+            :icon="DeviceGroupSolidIcon"
+            iconColor="text-teal-800"
         >
-            <DeviceGroupSolidIcon class="ff-icon text-teal-800" />
             {{ application.deviceGroupCount }}
-        </a>
+        </IconLink>
 
-        <a
+        <IconLink
             v-if="application.snapshotCount > 0"
-            href="#"
-            class="flex space-x-2 justify-between px-2"
+            :to="`/application/${application.id}/snapshots`"
             :title="`${application.snapshotCount} Snapshot${application.snapshotCount === 1 ? '' : 's'}`"
-            style="border: 1px solid #D1D5DB;padding:5px;border-radius:5px;min-width:50px;"
+            :icon="IconSnapshotSolid"
         >
-            <IconSnapshotSolid class="ff-icon text-teal-700" />
             {{ application.snapshotCount }}
-        </a>
+        </IconLink>
 
-        <a
+        <IconLink
             v-if="application.pipelineCount > 0"
-            href="#"
-            class="flex space-x-2 justify-between px-2"
+            :to="`/application/${application.id}/pipelines`"
             :title="`${application.pipelineCount} Pipeline${application.pipelineCount === 1 ? '' : 's'}`"
-            style="border: 1px solid #D1D5DB;padding:5px;border-radius:5px;min-width:50px;"
+            :icon="IconPipelineSolid"
         >
-            <IconPipelineSolid class="ff-icon text-teal-700" />
             {{ application.pipelineCount }}
-        </a>
+        </IconLink>
     </div>
 </template>
 
 <script>
+import IconLink from '../../../components/IconLink.vue'
+
 import DeviceGroupSolidIcon from '../../../components/icons/DeviceGroupSolid.js'
 import IconDeviceSolid from '../../../components/icons/DeviceSolid.js'
 import IconNodeRedSolid from '../../../components/icons/NodeRedSolid.js'
@@ -67,17 +61,59 @@ import IconSnapshotSolid from '../../../components/icons/SnapshotSolid.js'
 export default {
     name: 'ApplicationSummaryLabel',
     components: {
-        IconNodeRedSolid,
-        IconSnapshotSolid,
-        IconDeviceSolid,
-        DeviceGroupSolidIcon,
-        IconPipelineSolid
+        IconLink
     },
     props: {
         application: {
             type: Object,
             required: true
         }
+    },
+    setup () {
+        return {
+            IconNodeRedSolid,
+            IconSnapshotSolid,
+            IconDeviceSolid,
+            DeviceGroupSolidIcon,
+            IconPipelineSolid
+        }
     }
 }
 </script>
+
+<style lang="scss">
+@import '../../../ui-components/stylesheets/ff-colors.scss';
+@import '../../../ui-components/stylesheets/ff-utility.scss';
+
+.ff-icon-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+
+  border-radius: $ff-unit-sm;
+  border: 1px solid $ff-grey-300;
+
+  height: 28px;
+  padding: $ff-unit-sm 5px;
+
+  font-size: $ff-funit-sm;
+  line-height: 20px;
+
+  svg {
+    margin-right: 5px;
+  }
+
+  &:hover {
+    cursor: pointer;
+    border-color: $ff-blue-600;
+
+    color: $ff-blue-600;;
+    background-color: $ff-grey-50;
+
+    .ff-icon {
+        color: $ff-blue-600;
+    }
+  }
+}
+</style>
