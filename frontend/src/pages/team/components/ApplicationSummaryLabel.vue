@@ -39,7 +39,7 @@
             :to="`/application/${application.id}/pipelines`"
             :icon="IconPipelineSolid"
         >
-            {{ application.pipelineCount }}
+            {{ application.pipelineCount || 0 }}
         </IconLink>
     </div>
 </template>
