@@ -14,6 +14,8 @@ module.exports = async function (app) {
     const projectAuditLogger = getProjectLogger(app)
     /** @type {import('../../db/controllers/AuditLog')} */
     const auditLogController = app.db.controllers.AuditLog
+    /** @type {import('../../db/controllers/ProjectSnapshot')} */
+    const snapshotController = app.db.controllers.ProjectSnapshot
 
     app.addHook('preHandler', app.verifySession)
 
@@ -124,5 +126,25 @@ module.exports = async function (app) {
         }
 
         response.status(200).send()
+
+        // if this is a deploy event, perform an auto snapshot
+        if (event === 'flows.set' && ['full', 'flows', 'nodes'].includes(auditEvent.type)) {
+            // TODO: check device auto snapshot option is enabled
+            if (request.device.autoSnapshot || true) { // eslint-disable-line no-constant-condition
+                setImmediate(async () => {
+                    // when after the response is sent & IO is done, perform the snapshot
+                    try {
+                        const meta = { user: request.session.User }
+                        const options = { clean: true, setAsTarget: false }
+                        const snapshot = await snapshotController.doDeviceAutoSnapshot(request.device, auditEvent.type, options, meta)
+                        if (!snapshot) {
+                            throw new Error('Auto snapshot was not successful')
+                        }
+                    } catch (error) {
+                        console.warn('Error occurred during auto snapshot', error)
+                    }
+                })
+            }
+        }
     })
 }

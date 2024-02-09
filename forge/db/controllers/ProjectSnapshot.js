@@ -1,3 +1,153 @@
+const { Op } = require('sequelize')
+const DEVICE_AUTO_SNAPSHOT_LIMIT = 10
+const DEVICE_AUTO_SNAPSHOT_PREFIX = 'Auto Snapshot'
+
+const deviceAutoSnapshotUtils = {
+    deployTypeEnum: {
+        full: 'Full',
+        flows: 'Modified Flows',
+        nodes: 'Modified Nodes'
+    },
+    // nameRegex should start with prefix then have - and then a date in the format YYYY-MM-DD HH:MM:SS
+    nameRegex: new RegExp(`^${DEVICE_AUTO_SNAPSHOT_PREFIX} - \\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$`),
+    prefix: DEVICE_AUTO_SNAPSHOT_PREFIX,
+    autoBackupLimit: DEVICE_AUTO_SNAPSHOT_LIMIT,
+    generateName: () => `${DEVICE_AUTO_SNAPSHOT_PREFIX} - ${new Date().toLocaleString('sv-SE')}`, // "base - YYYY-MM-DD HH:MM:SS"
+    generateDescription: (deploymentType = '') => {
+        const deployInfo = deviceAutoSnapshotUtils.deployTypeEnum[deploymentType]
+            ? `'${deviceAutoSnapshotUtils.deployTypeEnum[deploymentType]}' deployment`
+            : 'deployment'
+        return `${deviceAutoSnapshotUtils.prefix} taken following a ${deployInfo} made on the Device`
+    },
+    isAutoSnapshot: function (snapshot) {
+        return deviceAutoSnapshotUtils.nameRegex.test(snapshot.name)
+    },
+    getAutoSnapshots: async function (app, device, excludeInUse = true) {
+        // const pattern = deviceAutoSnapshotUtils.nameRegex
+        // ^ regex is not supported by sqlite!
+        // instead, since we know how long the prefix is, we can just check the length is correct
+        // and that it matches the pattern using the `like` operator
+        const pattern = `${DEVICE_AUTO_SNAPSHOT_PREFIX} - %-%-% %:%:%`
+        const expectedLength = 35 // 35 is the length of the "prefix - yyyy-mm-dd hh:mm:ss" string
+        const snapshots = await app.db.models.ProjectSnapshot.findAll({
+            where: {
+                DeviceId: device.id,
+                // name: { [Op.regexp]: pattern }
+                name: {
+                    [Op.and]: [
+                        { [Op.like]: pattern },
+                        { [Op.and]: { [Op.gte]: expectedLength } }
+                    ]
+                }
+            },
+            order: [['id', 'ASC']]
+        })
+
+        // ensure that the snapshots are actually auto snapshots (use the regex to verify)
+        const snapshotsMatchingRegex = snapshots.filter(deviceAutoSnapshotUtils.isAutoSnapshot)
+
+        // if we're not excluding "in use" snapshots, we can just return the matching snapshots
+        if (!excludeInUse) {
+            return snapshotsMatchingRegex
+        }
+
+        // candidates for deletion are those that are not in use
+        let autoSnapshotIds = snapshotsMatchingRegex.map((snapshot) => snapshot.id)
+
+        // utility function to remove items from an array
+        const removeFromArray = (baseList, removeList) => baseList.filter((item) => !removeList.includes(item))
+
+        // since we're excluding "in use" snapshots, we need to check the
+        // device, device groups and pipeline stage device group tables
+        // for any of these snapshots being set as the active/targetSnapshotId
+
+        // get all devices that have this snapshot as the target or active snapshot
+        const snapshotsInUseInDevices = await app.db.models.Device.findAll({
+            where: {
+                [Op.or]: [
+                    { targetSnapshotId: { [Op.in]: autoSnapshotIds } },
+                    { activeSnapshotId: { [Op.in]: autoSnapshotIds } }
+                ]
+            }
+        })
+        const inUseAsTarget = snapshotsInUseInDevices.map((device) => device.targetSnapshotId)
+        const inUseAsActive = snapshotsInUseInDevices.map((device) => device.activeSnapshotId)
+        autoSnapshotIds = removeFromArray(autoSnapshotIds, inUseAsTarget)
+        autoSnapshotIds = removeFromArray(autoSnapshotIds, inUseAsActive)
+
+        // get all device groups that have this snapshot as the target snapshot
+        const snapshotsInUseInDeviceGroups = await app.db.models.DeviceGroup.findAll({
+            where: {
+                targetSnapshotId: { [Op.in]: autoSnapshotIds }
+            }
+        })
+        const inGroupAsTarget = snapshotsInUseInDeviceGroups.map((group) => group.targetSnapshotId)
+        autoSnapshotIds = removeFromArray(autoSnapshotIds, inGroupAsTarget)
+
+        // get all pipeline stage device groups that have this snapshot as the target snapshot
+        const snapshotsInUseInPipelineStage = await app.db.models.PipelineStageDeviceGroup.findAll({
+            where: {
+                targetSnapshotId: { [Op.in]: autoSnapshotIds }
+            }
+        })
+        const inPipelineStageAsTarget = snapshotsInUseInPipelineStage.map((stage) => stage.targetSnapshotId)
+        autoSnapshotIds = removeFromArray(autoSnapshotIds, inPipelineStageAsTarget)
+
+        return snapshots.filter((snapshot) => autoSnapshotIds.includes(snapshot.id))
+    },
+    cleanupAutoSnapshots: async function (app, device, limit = DEVICE_AUTO_SNAPSHOT_LIMIT) {
+        const snapshots = await app.db.controllers.ProjectSnapshot.getDeviceAutoSnapshots(device, true)
+        if (snapshots.length > limit) {
+            const toDelete = snapshots.slice(0, snapshots.length - limit)
+            await Promise.all(toDelete.map((snapshot) => snapshot.destroy()))
+        }
+    },
+    doAutoSnapshot: async function (app, device, deploymentType, options, meta) {
+        // eslint-disable-next-line no-useless-catch
+        try {
+            const saneSnapshotOptions = {
+                name: deviceAutoSnapshotUtils.generateName(),
+                description: deviceAutoSnapshotUtils.generateDescription(deploymentType),
+                setAsTarget: options?.setAsTarget === true
+            }
+
+            // things to do & consider:
+            // 1. create a snapshot from the device
+            // 2. log the snapshot creation in audit log
+            // 3. delete older auto snapshots if the limit is reached (10)
+            //    do NOT delete any snapshots that are currently in use by an target (instance/device/device group)
+            const user = meta?.user || { id: null } // if no user is available, use `null` (system user)
+
+            // 1. create a snapshot from the device
+            const snapShot = await app.db.controllers.ProjectSnapshot.createDeviceSnapshot(
+                device.Application,
+                device,
+                user,
+                saneSnapshotOptions
+            )
+            snapShot.User = user
+
+            // 2. log the snapshot creation in audit log
+            // TODO: device snapshot:  implement audit log
+            // await deviceAuditLogger.device.snapshot.created(request.session.User, null, request.device, snapShot)
+
+            // 3. clean up older auto snapshots
+            if (options?.clean === true) {
+                await app.db.controllers.ProjectSnapshot.cleanupDeviceAutoSnapshots(device)
+            }
+
+            return snapShot
+        } catch (error) {
+            // TODO: device snapshot:  implement audit log
+            // await deviceAuditLogger.device.snapshot.created(request.session.User, error, request.device, null)
+            throw error
+        }
+    }
+}
+
+// freeze the object to prevent accidental changes
+Object.freeze(deviceAutoSnapshotUtils)
+
 module.exports = {
     /**
      * Creates a snapshot of the current state of a project.
@@ -168,5 +318,12 @@ module.exports = {
         result.flows.credentials = app.db.controllers.Project.exportCredentials(credentials || {}, keyToDecrypt, options.credentialSecret)
 
         return result
-    }
+    },
+
+    getDeviceAutoSnapshotDescription: deviceAutoSnapshotUtils.generateDescription,
+    getDeviceAutoSnapshotName: deviceAutoSnapshotUtils.generateName,
+    getDeviceAutoSnapshots: deviceAutoSnapshotUtils.getAutoSnapshots,
+    isDeviceAutoSnapshot: deviceAutoSnapshotUtils.isAutoSnapshot,
+    cleanupDeviceAutoSnapshots: deviceAutoSnapshotUtils.cleanupAutoSnapshots,
+    doDeviceAutoSnapshot: deviceAutoSnapshotUtils.doAutoSnapshot
 }
