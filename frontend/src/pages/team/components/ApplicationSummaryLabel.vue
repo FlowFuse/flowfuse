@@ -2,6 +2,7 @@
     <div data-el="application-summary" class="flex flex-wrap space-x-2">
         <IconLink
             v-if="application.instanceCount > 0"
+            v-ff-tooltip:bottom="`${application.instanceCount} x Instance${application.instanceCount > 1 ? 's' : ''}`"
             :to="`/application/${application.id}/instances`"
             :title="`${application.instanceCount} Instance${application.instanceCount === 1 ? '' : 's'}`"
             :icon="IconNodeRedSolid"
@@ -12,15 +13,17 @@
 
         <IconLink
             v-if="application.deviceCount > 0"
+            v-ff-tooltip:bottom="`${application.deviceCount} x Device${application.deviceCount > 1 ? 's' : ''}`"
             :to="`/application/${application.id}/devices`"
             :title="`${application.deviceCount} Devices${application.deviceCount === 1 ? '' : 's'}`"
-            :icon="IconNodeRedSolid"
+            :icon="IconDeviceSolid"
         >
             {{ application.deviceCount }}
         </IconLink>
 
         <IconLink
             v-if="application.deviceGroupCount > 0"
+            v-ff-tooltip:bottom="`${application.deviceGroupCount} x Device Group${application.deviceGroupCount > 1 ? 's' : ''}`"
             :to="`/application/${application.id}/device-groups`"
             :title="`${application.deviceGroupCount} Device Group${application.deviceGroupCount === 1 ? '' : 's'}`"
             :icon="DeviceGroupSolidIcon"
@@ -31,6 +34,7 @@
 
         <IconLink
             v-if="application.snapshotCount > 0"
+            v-ff-tooltip:bottom="`${application.snapshotCount} x Snapshot${application.snapshotCount > 1 ? 's' : ''}`"
             :to="`/application/${application.id}/snapshots`"
             :title="`${application.snapshotCount} Snapshot${application.snapshotCount === 1 ? '' : 's'}`"
             :icon="IconSnapshotSolid"
@@ -40,6 +44,7 @@
 
         <IconLink
             v-if="application.pipelineCount > 0"
+            v-ff-tooltip:bottom="`${application.pipelineCount} x Pipeline${application.pipelineCount > 1 ? 's' : ''}`"
             :to="`/application/${application.id}/pipelines`"
             :title="`${application.pipelineCount} Pipeline${application.pipelineCount === 1 ? '' : 's'}`"
             :icon="IconPipelineSolid"
