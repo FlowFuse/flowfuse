@@ -38,7 +38,7 @@
                 <ul class="ff-applications-list" data-el="applications-list">
                     <li v-for="application in Array.from(applications.values())" :key="application.id">
                         <div class="ff-application-list--app gap-x-4 flex items-center !justify-start" data-action="view-application" @click="openApplication(application)">
-                            <span class="flex flex-shrink-0 flex-grow-0 whitespace-nowrap"><TemplateIcon class="ff-icon text-gray-600" />{{ application.name }}</span>
+                            <span class="ff-application-list--icon flex flex-shrink-0 flex-grow-0 whitespace-nowrap"><TemplateIcon class="ff-icon text-gray-600" />{{ application.name }}</span>
                             <span class="!inline-block !flex-shrink !flex-grow italic text-gray-500 dark:text-gray-400 truncate"> {{ application.description }} </span>
                             <ApplicationSummaryLabel :application="application" />
                         </div>
