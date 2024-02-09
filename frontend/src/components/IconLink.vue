@@ -5,7 +5,7 @@
         class="ff-icon-link"
         :title="title"
     >
-        <a :href="href" @click.stop="navigate">
+        <a :href="href" class="flex" @click.stop="navigate">
             <component :is="icon" :class="`ff-icon ${iconColor}`" />
             <slot />
         </a>
