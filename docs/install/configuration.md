@@ -151,6 +151,8 @@ Option        | Description
 `telemetry.frontend.posthog.apiurl` | The API URL for PostHog, either 'https://app.posthog.com' or 'https://eu.posthog.com'. Default: `https://app.posthog.com`
 `telemetry.frontend.posthog.apikey` | The API key provided to you from your own PostHog account. Default: `null`
 `telemetry.frontend.posthog.capture_pageview` | FlowFuse is designed as to provide custom posthog `$pageview` events that provide more detail on navigation than the default, and suit a single page application better. As such, we recommend setting this to false in order to prevent duplicate `pageleave`/`pageview` events firing. Default: `true`
+`telemetry.frontend.google.tag` | A Google Tag Manager ID. Default: `null`
+`telemetry.frontend.google.events` | An object with keys matching the names of tag events to be enabled and any payload values. Default `null`
 
 
 ## Rate Limiting configuration
