@@ -5,20 +5,30 @@
     flex-direction: column;
     gap: 18px;
     > li {
-        background-color: $ff-grey-100;
-        border-color: $ff-grey-300;
-        border-style: solid;
-        border-radius: 6px;
-        border-width: 1px;
+        > * {
+            border-left: 1px solid $ff-grey-300;
+            border-right: 1px solid $ff-grey-300;
+            background-color: $ff-grey-100;
+        }
+
+        > :first-child {
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            border-top: 1px solid $ff-grey-300;
+        }
+
+        > :last-child {
+            border-bottom-left-radius: 6px;
+            border-bottom-right-radius: 6px;
+            border-bottom: 1px solid $ff-grey-300;
+        }
     }
     .ff-application-list--app {
         background-color: white;
         display: flex;
         justify-content: space-between;
         padding: 18px;
-        border-bottom: 1px solid $ff-grey-300;
-        border-top-left-radius: 6px;
-        border-top-right-radius: 6px;
+        border: 1px solid $ff-grey-300;
         >span {
             display: flex;
             align-items: center;
@@ -28,7 +38,7 @@
             cursor: pointer;
             border-color: $ff-blue-600;
 
-            .ff-icon {
+            .ff-application-list--icon .ff-icon {
                 color: $ff-blue-600;
             }
         }
@@ -87,9 +97,8 @@
 }
 
 .ff-applications-list--details {
-    background-color: $ff-grey-100;
     color: $ff-grey-400;
     font-size: 0.875rem;
-    margin-bottom: 12px;
+    padding-bottom: 12px;
     text-align: center;
 }
