@@ -73,8 +73,16 @@ export default {
         }
     },
     async mounted () {
-        this.stats = await adminApi.getStats()
-        this.license = await adminApi.getLicenseDetails()
+        try {
+            this.stats = await adminApi.getStats()
+            this.license = await adminApi.getLicenseDetails()
+        } catch (err) {
+            if (err.response.status === 403) {
+                this.$router.push('/')
+            } else {
+                throw err
+            }
+        }
         this.settings = await Settings.getSettings()
     }
 }
