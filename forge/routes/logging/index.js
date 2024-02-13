@@ -129,8 +129,17 @@ module.exports = async function (app) {
 
         // if this is a deploy event, perform an auto snapshot
         if (event === 'flows.set' && ['full', 'flows', 'nodes'].includes(auditEvent.type)) {
-            // TODO: check device auto snapshot option is enabled
-            if (request.device.autoSnapshot || true) { // eslint-disable-line no-constant-condition
+            if (!app.config.features.enabled('deviceAutoSnapshot')) {
+                return // device auto snapshot feature is not available
+            }
+
+            const teamType = await request.device.Team.getTeamType()
+            const deviceAutoSnapshotEnabledForTeam = teamType.getFeatureProperty('deviceAutoSnapshot', false)
+            if (!deviceAutoSnapshotEnabledForTeam) {
+                return // not enabled for team
+            }
+            const deviceAutoSnapshotEnabledForDevice = await request.device.getSetting('autoSnapshot')
+            if (deviceAutoSnapshotEnabledForDevice === true) {
                 setImmediate(async () => {
                     // when after the response is sent & IO is done, perform the snapshot
                     try {

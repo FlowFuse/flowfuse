@@ -10,7 +10,12 @@ const Controllers = require('../controllers')
 const { buildPaginationSearchClause } = require('../utils')
 
 const ALLOWED_SETTINGS = {
-    env: 1
+    env: 1,
+    autoSnapshot: 1
+}
+
+const DEFAULT_SETTINGS = {
+    autoSnapshot: true
 }
 
 module.exports = {
@@ -140,6 +145,9 @@ module.exports = {
                         result[setting.key] = setting.value
                     })
                     result.env = Controllers.Device.insertPlatformSpecificEnvVars(this, result.env) // add platform specific device env vars
+                    if (!Object.prototype.hasOwnProperty.call(result, 'autoSnapshot')) {
+                        result.autoSnapshot = DEFAULT_SETTINGS.autoSnapshot
+                    }
                     return result
                 },
                 async updateSettings (obj) {
@@ -161,7 +169,7 @@ module.exports = {
                         if (key === 'env' && value && Array.isArray(value)) {
                             value = Controllers.Device.removePlatformSpecificEnvVars(value) // remove platform specific values
                         }
-                        const result = await M.ProjectSettings.upsert({ DeviceId: this.id, key, value })
+                        const result = await M.DeviceSettings.upsert({ DeviceId: this.id, key, value })
                         await this.updateSettingsHash()
                         await this.save()
                         return result
@@ -177,7 +185,7 @@ module.exports = {
                         }
                         return result.value
                     }
-                    return undefined
+                    return DEFAULT_SETTINGS[key]
                 },
                 async getLatestSnapshot () {
                     const snapshots = await this.getProjectSnapshots({

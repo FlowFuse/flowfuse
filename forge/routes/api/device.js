@@ -4,6 +4,7 @@ const { Roles } = require('../../lib/roles')
 
 const DeviceLive = require('./deviceLive')
 const DeviceSnapshots = require('./deviceSnapshots.js')
+const hasProperty = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key)
 
 /**
  * Project Device api routes
@@ -552,7 +553,7 @@ module.exports = async function (app) {
     })
 
     app.put('/:deviceId/settings', {
-        preHandler: app.needsPermission('device:edit-env'),
+        preHandler: app.needsPermission('device:edit-env'), // members only
         schema: {
             summary: 'Update a devices settings',
             tags: ['Devices'],
@@ -565,7 +566,8 @@ module.exports = async function (app) {
             body: {
                 type: 'object',
                 properties: {
-                    env: { type: 'array', items: { type: 'object', additionalProperties: true } }
+                    env: { type: 'array', items: { type: 'object', additionalProperties: true } },
+                    autoSnapshot: { type: 'boolean' }
                 }
             },
             response: {
@@ -578,15 +580,51 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        if (request.teamMembership?.role === Roles.Owner) {
-            await request.device.updateSettings(request.body)
-        } else {
-            const bodySettingsEnvOnly = {
-                env: request.body.env
+        const updates = new app.auditLog.formatters.UpdatesCollection()
+        const currentSettings = await request.device.getAllSettings()
+        // remove any extra properties from env to ensure they match the format of the body data
+        // and prevent updates from being logged for unchanged values
+        currentSettings.env = (currentSettings.env || []).map(e => ({ name: e.name, value: e.value }))
+        const captureUpdates = (key) => {
+            if (key === 'env') {
+                // transform the env array to a map for better logging format
+                const currentEnv = currentSettings.env.reduce((acc, e) => {
+                    acc[e.name] = e.value
+                    return acc
+                }, {})
+                const newEnv = request.body.env.reduce((acc, e) => {
+                    acc[e.name] = e.value
+                    return acc
+                }, {})
+                updates.pushDifferences({ env: currentEnv }, { env: newEnv })
+            } else {
+                updates.pushDifferences({ [key]: currentSettings[key] }, { [key]: request.body[key] })
             }
-            await request.device.updateSettings(bodySettingsEnvOnly)
+        }
+        if (request.teamMembership?.role === Roles.Owner) {
+            // owner is permitted to update all settings
+            await request.device.updateSettings(request.body)
+            const keys = Object.keys(request.body)
+            // capture key/val updates sent in body
+            keys.forEach(key => captureUpdates(key, currentSettings[key], request.body[key]))
+        } else {
+            // members are only permitted to update the env and autoSnapshot settings
+            const settings = {}
+            if (hasProperty(request.body, 'env')) {
+                settings.env = request.body.env
+                captureUpdates('env', currentSettings.env, request.body.env)
+            }
+            if (hasProperty(request.body, 'autoSnapshot')) {
+                settings.autoSnapshot = request.body.autoSnapshot
+                captureUpdates('autoSnapshot', currentSettings.autoSnapshot, request.body.autoSnapshot)
+            }
+            await request.device.updateSettings(settings)
         }
         await app.db.controllers.Device.sendDeviceUpdateCommand(request.device)
+        // Log the updates
+        if (updates.length > 0) {
+            await app.auditLog.Device.device.settings.updated(request.session.User.id, null, request.device, updates)
+        }
         reply.send({ status: 'okay' })
     })
 
@@ -605,7 +643,8 @@ module.exports = async function (app) {
                 200: {
                     type: 'object',
                     properties: {
-                        env: { type: 'array', items: { type: 'object', additionalProperties: true } }
+                        env: { type: 'array', items: { type: 'object', additionalProperties: true } },
+                        autoSnapshot: { type: 'boolean' }
                     }
                 },
                 '4xx': {
@@ -619,7 +658,8 @@ module.exports = async function (app) {
             reply.send(settings)
         } else {
             reply.send({
-                env: settings?.env
+                env: settings?.env,
+                autoSnapshot: settings?.autoSnapshot
             })
         }
     })

@@ -117,6 +117,7 @@ const iconMap = {
         'platform.settings.update',
         'team.settings.updated',
         'project.settings.updated',
+        'device.settings.updated',
         'team.type.changed'
     ],
     'user-profile': [

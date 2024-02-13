@@ -79,7 +79,7 @@
                     <FormRow v-model="input.properties.features.customCatalogs" type="checkbox">Custom NPM Catalogs</FormRow>
                     <FormRow v-model="input.properties.features.deviceGroups" type="checkbox">Device Groups</FormRow>
                     <FormRow v-model="input.properties.features.emailAlerts" type="checkbox">Email Alerts</FormRow>
-                    <div />
+                    <FormRow v-model="input.properties.features.deviceAutoSnapshot" type="checkbox">Device Auto Snapshot</FormRow>
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
                 </div>
