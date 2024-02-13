@@ -58,6 +58,12 @@ module.exports = async function (app) {
             </script>`
             }
 
+            if (telemetry.frontend.google?.tag) {
+                const tag = telemetry.frontend.google.tag
+                injection += `<script async src="https://www.googletagmanager.com/gtag/js?id=${tag}"></script>`
+                injection += `<script> window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', '${tag}'); </script>`
+            }
+
             if (support?.enabled && support.frontend?.hubspot?.trackingcode) {
                 const trackingCode = support.frontend.hubspot.trackingcode
                 injection += `<!-- Start of HubSpot Embed Code -->

@@ -194,6 +194,9 @@ export default {
                     this.emailSent = true
                 }
                 this.busy = false
+                if (gtag && settings.adword?.events?.conversion) {
+                    gtag('event', 'conversion', settings.adword.google.events.conversion)
+                }
             }).catch(err => {
                 console.error(err.response.data)
                 this.busy = false

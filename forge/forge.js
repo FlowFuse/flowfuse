@@ -287,6 +287,16 @@ module.exports = async (options = {}) => {
                     contentSecurityPolicy.directives['connect-src'] = ['*.ingest.sentry.io']
                 }
             }
+            if (runtimeConfig.telemetry?.frontend?.google) {
+                const googleDomains = [
+                    'www.googletagmanager.com'
+                ]
+                if (contentSecurityPolicy.directives['script-src'] && Array.isArray(contentSecurityPolicy.directives['script-src'])) {
+                    contentSecurityPolicy.directives['script-src'].push(...googleDomains)
+                } else {
+                    contentSecurityPolicy.directives['script-src'] = googleDomains
+                }
+            }
             if (runtimeConfig.support?.enabled && runtimeConfig.support.frontend?.hubspot?.trackingcode) {
                 const hubspotDomains = [
                     'js-eu1.hs-analytics.com',
