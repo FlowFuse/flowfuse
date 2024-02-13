@@ -194,6 +194,9 @@ export default {
                     this.emailSent = true
                 }
                 this.busy = false
+                if (gtag && this.settings.adwords?.events?.conversion) { // eslint-disable-line no-undef
+                    gtag('event', 'conversion', this.settings.adwords.events.conversion) // eslint-disable-line no-undef
+                }
             }).catch(err => {
                 console.error(err.response.data)
                 this.busy = false

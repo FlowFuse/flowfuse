@@ -106,6 +106,15 @@ module.exports = async function (app) {
                     publicSettings[prop] = value
                 }
             })
+
+            if (app.config.telemetry?.frontend?.google?.tag) {
+                const adwords = {
+                    tag: app.config.telemetry.frontend.google.tag,
+                    events: app.config.telemetry?.frontend?.google?.events
+                }
+                publicSettings.adwords = adwords
+            }
+
             reply.send(publicSettings)
         }
     })
