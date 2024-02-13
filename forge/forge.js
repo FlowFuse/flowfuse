@@ -289,12 +289,43 @@ module.exports = async (options = {}) => {
             }
             if (runtimeConfig.telemetry?.frontend?.google) {
                 const googleDomains = [
-                    'www.googletagmanager.com'
+                    'www.googletagmanager.com',
+                    'www.google.com',
+                    'www.google.co.uk',
+                    'google.com',
+                    'googleads.g.doubleclick.net',
+                    'www.googleservices.com'
                 ]
                 if (contentSecurityPolicy.directives['script-src'] && Array.isArray(contentSecurityPolicy.directives['script-src'])) {
                     contentSecurityPolicy.directives['script-src'].push(...googleDomains)
                 } else {
                     contentSecurityPolicy.directives['script-src'] = googleDomains
+                }
+                const googleImageDomains = [
+                    'www.google.com',
+                    'www.google.co.uk',
+                    'googleads.g.doubleclick.net'
+                ]
+                if (contentSecurityPolicy.directives['img-src'] && Array.isArray(contentSecurityPolicy.directives['img-src'])) {
+                    contentSecurityPolicy.directives['img-src'].push(...googleImageDomains)
+                } else {
+                    contentSecurityPolicy.directives['img-src'] = googleImageDomains
+                }
+                const googleConnectDomains = [
+                    'google.com'
+                ]
+                if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
+                    contentSecurityPolicy.directives['connect-src'].push(...googleConnectDomains)
+                } else {
+                    contentSecurityPolicy.directives['connect-src'] = googleConnectDomains
+                }
+                const googleFrameDomains = [
+                    'td.doubleclick.net'
+                ]
+                if (contentSecurityPolicy.directives['frame-src'] && Array.isArray(contentSecurityPolicy.directives['frame-src'])) {
+                    contentSecurityPolicy.directives['frame-src'].push(...googleFrameDomains)
+                } else {
+                    contentSecurityPolicy.directives['frame-src'] = googleFrameDomains
                 }
             }
             if (runtimeConfig.support?.enabled && runtimeConfig.support.frontend?.hubspot?.trackingcode) {
