@@ -116,6 +116,6 @@ Only the last 10 auto snapshots are kept, others are deleted on a first in first
 * The device will not receive any updates from the platform while in Developer Mode.
 * The device must be online and connected to the platform to enable "Editor Access".
 * To minimise server and device resources, it is recommended to disable "Editor Access" when not actively developing flows on a device.
-* Auto snapshots were introduced in FlowFuse V2.2 and require Device Agent V2.1 or later.
+* Auto snapshots were introduced in FlowFuse V2.1.
 * Auto snapshots are only supported for devices assigned to an application.
 * If an auto snapshot is set as the target snapshot for a device or assigned to a pipeline stage, it will not be auto cleaned up meaning it is possible to have more than 10 auto snapshots.
