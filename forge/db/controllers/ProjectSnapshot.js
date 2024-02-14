@@ -113,12 +113,7 @@ const deviceAutoSnapshotUtils = {
             await app.db.models.ProjectSnapshot.destroy({ where: { id: { [Op.in]: toDelete } } })
         }
     },
-    doAutoSnapshot: async function (app, device, deploymentType, options, meta) {
-        // sanitise options
-        options = options || {}
-        options.clean = options.clean ?? true // default to true
-        options.setAsTarget = options.setAsTarget ?? false // default to false
-
+    doAutoSnapshot: async function (app, device, deploymentType, { clean = true, setAsTarget = false } = {}, meta) {
         // eslint-disable-next-line no-useless-catch
         try {
             // if not permitted, throw an error
@@ -140,7 +135,7 @@ const deviceAutoSnapshotUtils = {
             const saneSnapshotOptions = {
                 name: deviceAutoSnapshotUtils.generateName(),
                 description: deviceAutoSnapshotUtils.generateDescription(deploymentType),
-                setAsTarget: options?.setAsTarget === true
+                setAsTarget
             }
 
             // things to do & consider:
@@ -164,7 +159,7 @@ const deviceAutoSnapshotUtils = {
             // await deviceAuditLogger.device.snapshot.created(request.session.User, null, request.device, snapShot)
 
             // 3. clean up older auto snapshots
-            if (options?.clean === true) {
+            if (clean === true) {
                 await app.db.controllers.ProjectSnapshot.cleanupDeviceAutoSnapshots(device)
             }
 
