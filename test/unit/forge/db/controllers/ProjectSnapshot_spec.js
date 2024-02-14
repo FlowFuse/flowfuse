@@ -205,6 +205,12 @@ describe('ProjectSnapshot controller', function () {
                     app.TestObjects.device2 = await app.db.models.Device.byId(device2.id, { include: app.db.models.Team })
                 })
 
+                after(async function () {
+                    // delete devices we created in before()
+                    await app.TestObjects.device1.destroy()
+                    await app.TestObjects.device2.destroy()
+                })
+
                 it('creates an autoSnapshot for a device following a \'full\' deploy', async function () {
                     const device = app.TestObjects.device1
                     const meta = { user: { id: null } } // simulate node-red situation (i.e. user is null)
@@ -238,8 +244,8 @@ describe('ProjectSnapshot controller', function () {
                     const device2 = app.TestObjects.device2
                     // create a snapshot and set it as target for device2
                     const snapshot1 = await app.db.controllers.ProjectSnapshot.doDeviceAutoSnapshot(device, 'flows', { setAsTarget: true }, { user: { id: null } })
-                    snapshot1.update({ description: 'Auto Snapshot - 1' }) // update description to make it clear the round-robin cleanup is working
-                    device2.update({ targetSnapshotId: snapshot1.id })
+                    await snapshot1.update({ description: 'Auto Snapshot - 1' }) // update description to make it clear the round-robin cleanup is working
+                    await device2.update({ targetSnapshotId: snapshot1.id })
 
                     // create snapshots
                     const meta = { user: { id: null } } // simulate node-red situation (i.e. user is null)
