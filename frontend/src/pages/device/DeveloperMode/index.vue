@@ -108,7 +108,6 @@ import { mapState } from 'vuex'
 
 import deviceApi from '../../../api/devices.js'
 
-
 // components
 import InfoCard from '../../../components/InfoCard.vue'
 import InfoCardRow from '../../../components/InfoCardRow.vue'
