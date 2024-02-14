@@ -82,22 +82,26 @@ const deviceAutoSnapshotUtils = {
         candidateIds = removeFromArray(candidateIds, inUseAsActive)
 
         // Check `DeviceGroups` table
-        const snapshotsInUseInDeviceGroups = await app.db.models.DeviceGroup.findAll({
-            where: {
-                targetSnapshotId: { [Op.in]: candidateIds }
-            }
-        })
-        const inGroupAsTarget = snapshotsInUseInDeviceGroups.map((group) => group.targetSnapshotId)
-        candidateIds = removeFromArray(candidateIds, inGroupAsTarget)
+        if (app.db.models.DeviceGroup) {
+            const snapshotsInUseInDeviceGroups = await app.db.models.DeviceGroup.findAll({
+                where: {
+                    targetSnapshotId: { [Op.in]: candidateIds }
+                }
+            })
+            const inGroupAsTarget = snapshotsInUseInDeviceGroups.map((group) => group.targetSnapshotId)
+            candidateIds = removeFromArray(candidateIds, inGroupAsTarget)
+        }
 
         // Check `PipelineStageDeviceGroups` table
-        const snapshotsInUseInPipelineStage = await app.db.models.PipelineStageDeviceGroup.findAll({
-            where: {
-                targetSnapshotId: { [Op.in]: candidateIds }
-            }
-        })
-        const inPipelineStageAsTarget = snapshotsInUseInPipelineStage.map((stage) => stage.targetSnapshotId)
-        candidateIds = removeFromArray(candidateIds, inPipelineStageAsTarget)
+        if (app.db.models.PipelineStageDeviceGroup) {
+            const snapshotsInUseInPipelineStage = await app.db.models.PipelineStageDeviceGroup.findAll({
+                where: {
+                    targetSnapshotId: { [Op.in]: candidateIds }
+                }
+            })
+            const inPipelineStageAsTarget = snapshotsInUseInPipelineStage.map((stage) => stage.targetSnapshotId)
+            candidateIds = removeFromArray(candidateIds, inPipelineStageAsTarget)
+        }
 
         return autoSnapshots.filter((snapshot) => candidateIds.includes(snapshot.id))
     },
@@ -110,6 +114,11 @@ const deviceAutoSnapshotUtils = {
         }
     },
     doAutoSnapshot: async function (app, device, deploymentType, options, meta) {
+        // sanitise options
+        options = options || {}
+        options.clean = options.clean ?? true // default to true
+        options.setAsTarget = options.setAsTarget ?? false // default to false
+
         // eslint-disable-next-line no-useless-catch
         try {
             // if not permitted, throw an error
