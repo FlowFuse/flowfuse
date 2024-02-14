@@ -229,7 +229,7 @@ describe('Logging API', function () {
         it.skip('Adds module to instance settings for modules.install event', async function () {
             // future
         })
-        describe.only('When an audit event for flows.set is received', function () {
+        describe('When an audit event for flows.set is received', function () {
             async function injectFlowSetEvent (app, device, token, deployType) {
                 const url = `/logging/device/${device.hashid}/audit`
                 const response = await app.inject({

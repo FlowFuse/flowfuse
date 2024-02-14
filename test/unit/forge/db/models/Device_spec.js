@@ -81,7 +81,7 @@ describe('Device model', function () {
             should(settings).be.an.Object().and.have.a.property('env').of.Array()
             settings.env.length.should.equal(initialEnvCount + 1) // count should be +1
         })
-        it.only('is not updated when the device option autoSnapshot is changed', async function () {
+        it('is not updated when the device option autoSnapshot is changed', async function () {
             const device = await app.db.models.Device.create({ name: 'D1', type: 'PI', credentialSecret: '' })
             const initialSettingsHash = device.settingsHash
             const initialSettings = await device.getAllSettings()

@@ -154,7 +154,7 @@ describe('ProjectSnapshot controller', function () {
             snapshot.flows.flows[0].should.have.property('id', '123')
         })
     })
-    describe.only('device auto snapshot', function () {
+    describe('device auto snapshot', function () {
         describe('when deviceAutoSnapshot feature is not enabled', function () {
             it('throws an error', async function () {
                 const meta = { user: { id: null } } // simulate node-red situation (i.e. user is null)
