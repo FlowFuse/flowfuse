@@ -127,32 +127,34 @@ module.exports = async function (app) {
 
         response.status(200).send()
 
-        // if this is a deploy event, perform an auto snapshot
-        if (event === 'flows.set' && ['full', 'flows', 'nodes'].includes(auditEvent.type)) {
-            if (!app.config.features.enabled('deviceAutoSnapshot')) {
-                return // device auto snapshot feature is not available
-            }
+        // For application owned devices, perform an auto snapshot
+        if (request.device.isApplicationOwned) {
+            if (event === 'flows.set' && ['full', 'flows', 'nodes'].includes(auditEvent.type)) {
+                if (!app.config.features.enabled('deviceAutoSnapshot')) {
+                    return // device auto snapshot feature is not available
+                }
 
-            const teamType = await request.device.Team.getTeamType()
-            const deviceAutoSnapshotEnabledForTeam = teamType.getFeatureProperty('deviceAutoSnapshot', false)
-            if (!deviceAutoSnapshotEnabledForTeam) {
-                return // not enabled for team
-            }
-            const deviceAutoSnapshotEnabledForDevice = await request.device.getSetting('autoSnapshot')
-            if (deviceAutoSnapshotEnabledForDevice === true) {
-                setImmediate(async () => {
-                    // when after the response is sent & IO is done, perform the snapshot
-                    try {
-                        const meta = { user: request.session.User }
-                        const options = { clean: true, setAsTarget: false }
-                        const snapshot = await snapshotController.doDeviceAutoSnapshot(request.device, auditEvent.type, options, meta)
-                        if (!snapshot) {
-                            throw new Error('Auto snapshot was not successful')
+                const teamType = await request.device.Team.getTeamType()
+                const deviceAutoSnapshotEnabledForTeam = teamType.getFeatureProperty('deviceAutoSnapshot', false)
+                if (!deviceAutoSnapshotEnabledForTeam) {
+                    return // not enabled for team
+                }
+                const deviceAutoSnapshotEnabledForDevice = await request.device.getSetting('autoSnapshot')
+                if (deviceAutoSnapshotEnabledForDevice === true) {
+                    setImmediate(async () => {
+                        // when after the response is sent & IO is done, perform the snapshot
+                        try {
+                            const meta = { user: request.session.User }
+                            const options = { clean: true, setAsTarget: false }
+                            const snapshot = await snapshotController.doDeviceAutoSnapshot(request.device, auditEvent.type, options, meta)
+                            if (!snapshot) {
+                                throw new Error('Auto snapshot was not successful')
+                            }
+                        } catch (error) {
+                            console.warn('Error occurred during auto snapshot', error)
                         }
-                    } catch (error) {
-                        console.warn('Error occurred during auto snapshot', error)
-                    }
-                })
+                    })
+                }
             }
         }
     })

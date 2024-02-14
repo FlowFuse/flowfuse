@@ -42,7 +42,7 @@
                         </div>
                     </template>
                 </InfoCardRow>
-                <InfoCardRow v-if="autoSnapshotFeatureEnabled" property="Auto Snapshot:">
+                <InfoCardRow v-if="autoSnapshotFeatureEnabled && deviceIsApplicationOwned" property="Auto Snapshot:">
                     <template #value>
                         <div class="flex gap-9 items-center">
                             <div class="font-medium forge-badge" :class="'forge-status-' + (autoSnapshotEnabled ? 'running' : 'stopped')">
@@ -173,6 +173,9 @@ export default {
         },
         autoSnapshotFeatureEnabled () {
             return this.autoSnapshotFeatureEnabledForTeam && this.autoSnapshotFeatureEnabledForPlatform
+        },
+        deviceIsApplicationOwned () {
+            return this.device.ownerType === 'application'
         }
     },
     watch: {
