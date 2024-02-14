@@ -207,16 +207,17 @@ describe('ProjectSnapshot controller', function () {
                 const device2 = await factory.createDevice({ name: 'device 2' }, team, null, application)
                 app.TestObjects.device1 = await app.db.models.Device.byId(device1.id, { include: app.db.models.Team })
                 app.TestObjects.device2 = await app.db.models.Device.byId(device2.id, { include: app.db.models.Team })
-            })
-            beforeEach(async function () {
+
                 // stub sendCommandAwaitReply to fake the device response
                 /** @type {DeviceCommsHandler} */
                 const commsHandler = app.comms.devices
                 sinon.stub(commsHandler, 'sendCommandAwaitReply').resolves({})
             })
-            afterEach(async function () {
-                sinon.restore()
-                app.db.models.ProjectSnapshot.destroy({ where: {} })
+            after(async function () {
+                // un-stub app.comms.devices.sendCommandAwaitReply
+                if (app.comms.devices.sendCommandAwaitReply.restore) {
+                    app.comms.devices.sendCommandAwaitReply.restore()
+                }
             })
             it('creates an autoSnapshot for a device following a \'full\' deploy', async function () {
                 const device = app.TestObjects.device1
