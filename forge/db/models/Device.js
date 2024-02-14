@@ -79,7 +79,7 @@ module.exports = {
                     await app.auditLog.Platform.platform.license.overage('system', null, devices)
                 }
             },
-            beforeSave: async (device, options) => {
+            afterSave: async (device, options) => {
                 // since `id`, `name` and `type` are added as FF_DEVICE_xx env vars, we
                 // should update the settings checksum if they are modified
                 if (device.changed('name') || device.changed('type') || device.changed('id')) {
@@ -136,6 +136,7 @@ module.exports = {
                 },
                 async updateSettingsHash (settings) {
                     const _settings = settings || await this.getAllSettings()
+                    delete _settings.autoSnapshot // autoSnapshot is not part of the settings hash
                     this.settingsHash = hashSettings(_settings)
                 },
                 async getAllSettings () {
