@@ -14,9 +14,9 @@ const deviceAutoSnapshotUtils = {
     generateName: () => `${DEVICE_AUTO_SNAPSHOT_PREFIX} - ${new Date().toLocaleString('sv-SE')}`, // "base - YYYY-MM-DD HH:MM:SS"
     generateDescription: (deploymentType = '') => {
         const deployInfo = deviceAutoSnapshotUtils.deployTypeEnum[deploymentType]
-            ? `'${deviceAutoSnapshotUtils.deployTypeEnum[deploymentType]}' deployment`
+            ? `${deviceAutoSnapshotUtils.deployTypeEnum[deploymentType]} deployment`
             : 'deployment'
-        return `${deviceAutoSnapshotUtils.prefix} taken following a ${deployInfo} made on the Device`
+        return `Device ${deviceAutoSnapshotUtils.prefix} taken following a ${deployInfo}`
     },
     isAutoSnapshot: function (snapshot) {
         return deviceAutoSnapshotUtils.nameRegex.test(snapshot.name)
