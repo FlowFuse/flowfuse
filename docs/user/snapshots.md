@@ -60,7 +60,7 @@ To set the **Device Target** of an application owned device:
 1. Go to the devices's page and select the **Snapshots** tab.
 2. In the list of snapshots available, a "Deploy Snapshot" button will be displayed
    for each snapshot as you hover over it.
-3. You will be asked to confirm - click **Set Target** to continue.
+3. You will be asked to confirm - click the **Confirm** button to set it as the target snapshot.
 
 This will cause the snapshot to be pushed out to the device the
 next time it checks in.
