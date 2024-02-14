@@ -124,14 +124,12 @@ describe('ProjectSnapshot controller', function () {
                 }
             })
         })
-        after(async function () {
-            // un-stub app.comms.devices.sendCommandAwaitReply
-            if (app.comms.devices.sendCommandAwaitReply.restore) {
-                app.comms.devices.sendCommandAwaitReply.restore()
-            }
-            await app.close()
+        afterEach(async function () {
+            app.comms.devices.sendCommandAwaitReply.resetHistory()
         })
-
+        after(async function () {
+            app.comms.devices.sendCommandAwaitReply.restore()
+        })
         it('creates a snapshot of a device owned by an application', async function () {
             const user = await app.db.models.User.byUsername('alice')
             const options = {
