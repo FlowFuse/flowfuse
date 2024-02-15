@@ -1,3 +1,65 @@
+#### 2.1.0: Release
+
+ - Implement device auto snapshot (#3481) @Steve-Mcl
+ - Bump marked from 11.2.0 to 12.0.0 (#3470) @app/dependabot
+ - Add Google analytics support (#3479) @hardillb
+ - Ensure Admin Settings page only shown to Admin users (#3478) @hardillb
+ - Use icons for the application summary (#3467) @Pezmc
+ - Bump @aws-sdk/client-ses from 3.504.0 to 3.511.0 (#3469) @app/dependabot
+ - Bump @fastify/cookie from 9.2.0 to 9.3.1 (#3471) @app/dependabot
+ - Bump mocha from 10.2.0 to 10.3.0 (#3468) @app/dependabot
+ - Bump mqtt from 5.3.4 to 5.3.5 (#3472) @app/dependabot
+ - Improve performance of Audit Log entry page (#3465) @Pezmc
+ - Validate projectType param on stacks api (#3464) @knolleary
+ - Add license to configuration documentation (#3460) @hardillb
+ - Home Screen: Follow up, device audit log entry (#3462) @Pezmc
+ - Generate database structure via migration (#3436) @knolleary
+ - Home Screen Improvements: Add devices, activity log, and application summary (#3427) @Pezmc
+ - Enforce Username constraint in both front and backend (#3459) @hardillb
+ - Make device log streaming scale across multiple forge apps (#3419) @hardillb
+ - Device agent instance node-red audit logs (#3447) @Steve-Mcl
+ - Update documentation of database configuration when installing with Helm Chart (#3385) @ppawlowski
+ - Replace helm upgrade instructions with link to Helm documentation (#3435) @ppawlowski
+ - feat: enable custom password and generate access token during initialization for ff-admin (#2996) @AllanOricil
+ - Bump dotenv from 16.3.1 to 16.4.1 (#3450) @app/dependabot
+ - Bump mini-css-extract-plugin from 2.7.6 to 2.8.0 (#3451) @app/dependabot
+ - Bump css-loader from 6.9.1 to 6.10.0 (#3449) @app/dependabot
+ - Allow admin read-only access to instances (#3452) @knolleary
+ - Bump @aws-sdk/client-ses from 3.421.0 to 3.504.0 (#3453) @app/dependabot
+ - Remove blueprints from instance duplication (#3446) @hardillb
+ - Fix copy/paste formatting of device logs (#3440) @knolleary
+ - Identify user to hubspot api if tracking enabled (#3411) @knolleary
+ - Fix Formatting of Copy/Paste of NR Logs (#3087) @sumitshinde-84
+ - Bump nodemailer from 6.9.8 to 6.9.9 (#3438) @app/dependabot
+ - Document AWS SES configuration (#3431) @hardillb
+ - Add support for Quick Connect device to the core (#3388) @Steve-Mcl
+ - Remove setup wizard telemetry screen (#3429) @hardillb
+ - SEO docs fix (#3432) @MarianRaphael
+ - Offer link to trial license as part of Setup (#3428) @hardillb
+ - Request a Trial Enterprise License (#3424) @MarianRaphael
+ - Update community forum (#3422) @MarianRaphael
+ - fix seo docs links (#3420) @MarianRaphael
+ - Limit referers to just origin for cross origin (#3399) @hardillb
+ - Move oauth session state to the database (#3418) @knolleary
+ - Ensure platform has a unqiue mqtt client id (#3417) @knolleary
+ - Handle null status events from devices (#3409) @knolleary
+ - Add `email` to list of valid arguments for create use (#3406) @hardillb
+ - Bump marked from 10.0.0 to 11.2.0 (#3405) @app/dependabot
+ - Bump css-loader from 6.9.0 to 6.9.1 (#3401) @app/dependabot
+ - Bump @sentry/webpack-plugin from 2.10.2 to 2.10.3 (#3402) @app/dependabot
+ - Bump sqlite3 from 5.1.6 to 5.1.7 (#3403) @app/dependabot
+ - Bump @babel/preset-env from 7.23.3 to 7.23.9 (#3404) @app/dependabot
+ - Quieten down `Device.Team` is `null` exceptions (#3356) @Steve-Mcl
+ - Make refs to k8s-flowforge-kubeconfig.yaml consitent (#3387) @hardillb
+ - docs: Update branding and verbiage (#3397) @ZJvandeWeg
+ - Docs improvements for FlowFuse File Nodes (#3396) @MarianRaphael
+ - DeviceEditor: clear request cache when reply handled (#3395) @knolleary
+ - Update flowforge to flowfuse on /introduction (#3393) @Yndira-FlowForge
+ - fix bash command formatting in Testing against PostgreSQL (#3390) @Steve-Mcl
+ - Add SSO CTA to Team Settings page (#3380) @knolleary
+ - Allow telemetry ping to be disabled by tests (#3382) @knolleary
+ - Update Digital-Ocean K8s install docs (#3359) @hardillb
+
 #### 2.0.1: Release
 
  - Bump @vitejs/plugin-vue from 5.0.2 to 5.0.3 (#3373) @app/dependabot
