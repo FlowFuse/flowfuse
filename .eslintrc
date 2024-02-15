@@ -56,7 +56,7 @@
         "n/no-missing-require": "error",
 
         // plugin:no-only-tests
-        "no-only-tests/no-only-tests": "warning",
+        "no-only-tests/no-only-tests": "warn",
 
         // plugin:promise
         "promise/catch-or-return": ["error", { "allowFinally": true }]
