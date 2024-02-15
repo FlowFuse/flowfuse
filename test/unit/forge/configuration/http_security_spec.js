@@ -2,8 +2,8 @@ const should = require('should') // eslint-disable-line
 
 const FF_UTIL = require('flowforge-test-utils')
 
-describe('Check HTTP Security Headers set', async () => {
-    describe('CSP Headers', async () => {
+describe('Check HTTP Security Headers set', () => {
+    describe('CSP Headers', () => {
         let app
 
         afterEach(async function () {
@@ -12,6 +12,7 @@ describe('Check HTTP Security Headers set', async () => {
 
         it('CSP Report only should be disabled', async function () {
             const config = {
+                housekeeper: false,
                 content_security_policy: {
                     enabled: false
                 }
@@ -30,6 +31,7 @@ describe('Check HTTP Security Headers set', async () => {
 
         it('CSP Report only should be enabled', async function () {
             const config = {
+                housekeeper: false,
                 content_security_policy: {
                     enabled: true,
                     report_only: true,
@@ -51,6 +53,7 @@ describe('Check HTTP Security Headers set', async () => {
 
         it('CSP should be enabled', async function () {
             const config = {
+                housekeeper: false,
                 content_security_policy: {
                     enabled: true
                 }
@@ -70,6 +73,7 @@ describe('Check HTTP Security Headers set', async () => {
 
         it('CSP should be enabled, custom directives', async function () {
             const config = {
+                housekeeper: false,
                 content_security_policy: {
                     enabled: true,
                     directives: {
@@ -91,6 +95,7 @@ describe('Check HTTP Security Headers set', async () => {
 
         it('CSP should be enabled with plausible', async function () {
             const config = {
+                housekeeper: false,
                 telemetry: {
                     frontend: {
                         plausible: {
@@ -116,6 +121,7 @@ describe('Check HTTP Security Headers set', async () => {
 
         it('CSP should be enabled with posthog', async function () {
             const config = {
+                housekeeper: false,
                 telemetry: {
                     frontend: {
                         posthog: {
@@ -141,6 +147,7 @@ describe('Check HTTP Security Headers set', async () => {
 
         it('CSP should be enabled with hubspot', async function () {
             const config = {
+                housekeeper: false,
                 support: {
                     enabled: true,
                     frontend: {
@@ -167,6 +174,7 @@ describe('Check HTTP Security Headers set', async () => {
 
         it('CSP should be enabled with hubspot and posthog', async function () {
             const config = {
+                housekeeper: false,
                 support: {
                     enabled: true,
                     frontend: {
@@ -199,6 +207,7 @@ describe('Check HTTP Security Headers set', async () => {
         })
         it('CSP should be enabled with hubspot and posthog empty directive', async function () {
             const config = {
+                housekeeper: false,
                 support: {
                     enabled: true,
                     frontend: {
@@ -233,6 +242,7 @@ describe('Check HTTP Security Headers set', async () => {
         })
         it('CSP with sentry.io', async function () {
             const config = {
+                housekeeper: false,
                 telemetry: {
                     frontend: {
                         sentry: 'foo'
@@ -264,6 +274,7 @@ describe('Check HTTP Security Headers set', async () => {
 
         it('HTST not set', async function () {
             const config = {
+                housekeeper: false,
                 base_url: 'http://localhost:9999'
             }
             app = await FF_UTIL.setupApp(config)
