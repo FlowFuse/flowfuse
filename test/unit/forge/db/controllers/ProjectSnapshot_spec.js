@@ -211,6 +211,14 @@ describe('ProjectSnapshot controller', function () {
                     await app.TestObjects.device2.destroy()
                 })
 
+                beforeEach(async function () {
+                    console.info('Test started')
+                })
+
+                afterEach(async function () {
+                    console.info('Test Finished')
+                })
+
                 it('creates an autoSnapshot for a device following a \'full\' deploy', async function () {
                     const device = app.TestObjects.device1
                     const meta = { user: { id: null } } // simulate node-red situation (i.e. user is null)
