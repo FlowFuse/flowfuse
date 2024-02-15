@@ -93,7 +93,8 @@ const deviceAutoSnapshotUtils = {
         }
 
         // Check `PipelineStageDeviceGroups` table
-        if (app.db.models.PipelineStageDeviceGroup) {
+        const isLicensed = app.license.active()
+        if (isLicensed && app.db.models.PipelineStageDeviceGroup) {
             const snapshotsInUseInPipelineStage = await app.db.models.PipelineStageDeviceGroup.findAll({
                 where: {
                     targetSnapshotId: { [Op.in]: candidateIds }
