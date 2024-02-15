@@ -142,6 +142,7 @@
         "device.remote-access.disabled": "Remote Access Disabled",
         "device.remote-access.enabled": "Remote Access Enabled",
         "device.start-failed": "Device Start Failed",
+        "device.settings.updated": "Device Settings Updated",
         "flows.reloaded": "Flows Reloaded",
         "flows.set": "Flow Deployed",
         "library.set": "Saved to Library",

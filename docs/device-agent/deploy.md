@@ -91,6 +91,13 @@ in the Developer Mode options panel.
 You will be prompted to give the snapshot a name and description. See [Snapshots](../user/snapshots.md) for more information
 about working with snapshots.
 
+**Auto Device Snapshots**
+
+For devices that are assigned to an application, the platform will automatically create a snapshot of the device
+when it detects flows modified. This snapshot will be created with the name "Auto Snapshot - yyyy-mm-dd hh:mm-ss".
+Only the last 10 auto snapshots are kept, others are deleted on a first in first out basis.
+
+
 ### Important Notes
 
 * Remote access to the editor requires Device Agent v0.8.0 or later.
@@ -109,3 +116,6 @@ about working with snapshots.
 * The device will not receive any updates from the platform while in Developer Mode.
 * The device must be online and connected to the platform to enable "Editor Access".
 * To minimise server and device resources, it is recommended to disable "Editor Access" when not actively developing flows on a device.
+* Auto snapshots were introduced in FlowFuse V2.1.
+* Auto snapshots are only supported for devices assigned to an application.
+* If an auto snapshot is set as the target snapshot for a device or assigned to a pipeline stage, it will not be auto cleaned up meaning it is possible to have more than 10 auto snapshots.

@@ -25,4 +25,7 @@ module.exports = fp(async function (app, opts) {
 
     // Set the Custom Catalogs Flag
     app.config.features.register('customCatalogs', true, true)
+
+    // Set the Device Auto Snapshot Feature Flag
+    app.config.features.register('deviceAutoSnapshot', true, true)
 }, { name: 'app.ee.lib' })

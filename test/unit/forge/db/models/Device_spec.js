@@ -70,7 +70,6 @@ describe('Device model', function () {
         })
         it('is updated when the device env vars are changed', async function () {
             const device = await app.db.models.Device.create({ name: 'D1', type: 'PI', credentialSecret: '' })
-            await device.save()
             const initialSettingsHash = device.settingsHash
             const initialSettings = await device.getAllSettings()
             initialSettings.should.have.a.property('env').and.be.an.Array()
@@ -81,6 +80,16 @@ describe('Device model', function () {
             const settings = await device.getAllSettings()
             should(settings).be.an.Object().and.have.a.property('env').of.Array()
             settings.env.length.should.equal(initialEnvCount + 1) // count should be +1
+        })
+        it('is not updated when the device option autoSnapshot is changed', async function () {
+            const device = await app.db.models.Device.create({ name: 'D1', type: 'PI', credentialSecret: '' })
+            const initialSettingsHash = device.settingsHash
+            const initialSettings = await device.getAllSettings()
+            initialSettings.should.have.a.property('autoSnapshot', true) // should be true by default
+            await device.updateSettings({ autoSnapshot: false })
+            device.settingsHash.should.equal(initialSettingsHash)
+            const settings = await device.getAllSettings()
+            should(settings).be.an.Object().and.have.a.property('autoSnapshot', false)
         })
     })
 })

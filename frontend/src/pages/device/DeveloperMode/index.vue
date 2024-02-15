@@ -21,6 +21,7 @@
                                     :disabled="!editorCanBeEnabled || closingTunnel || !editorEnabled"
                                     kind="primary"
                                     size="small"
+                                    class="w-20 whitespace-nowrap"
                                     @click="closeTunnel"
                                 >
                                     <span v-if="closingTunnel">Disabling...</span>
@@ -31,9 +32,46 @@
                                     :disabled="!editorCanBeEnabled || openingTunnel || editorEnabled"
                                     kind="danger"
                                     size="small"
+                                    class="w-20 whitespace-nowrap"
                                     @click="openTunnel"
                                 >
                                     <span v-if="openingTunnel">Enabling...</span>
+                                    <span v-else>Enable</span>
+                                </ff-button>
+                            </div>
+                        </div>
+                    </template>
+                </InfoCardRow>
+                <InfoCardRow v-if="autoSnapshotFeatureEnabled && deviceIsApplicationOwned" property="Auto Snapshot:">
+                    <template #value>
+                        <div class="flex gap-9 items-center">
+                            <div class="font-medium forge-badge" :class="'forge-status-' + (autoSnapshotEnabled ? 'running' : 'stopped')">
+                                <span v-if="autoSnapshotEnabled">enabled</span>
+                                <span v-else>disabled</span>
+                            </div>
+                            <div class="space-x-2 flex align-center">
+                                <ff-button
+                                    v-if="autoSnapshotEnabled"
+                                    v-ff-tooltip:bottom="'Automatically take a snapshot of the<br>device after every flow deployment.<br>Only the last 10 snapshots are kept'"
+                                    :disabled="savingAutoSnapshotSetting || !autoSnapshotEnabled"
+                                    kind="primary"
+                                    size="small"
+                                    class="w-20 whitespace-nowrap"
+                                    @click="toggleAutoSnapshotSetting"
+                                >
+                                    <span v-if="savingAutoSnapshotSetting">Saving...</span>
+                                    <span v-else>Disable</span>
+                                </ff-button>
+                                <ff-button
+                                    v-if="!autoSnapshotEnabled"
+                                    v-ff-tooltip:bottom="'Automatically take a snapshot of the<br>device after every flow deployment.<br>Only the last 10 snapshots are kept'"
+                                    :disabled="savingAutoSnapshotSetting || autoSnapshotEnabled"
+                                    kind="danger"
+                                    size="small"
+                                    class="w-20 whitespace-nowrap"
+                                    @click="toggleAutoSnapshotSetting"
+                                >
+                                    <span v-if="savingAutoSnapshotSetting">Saving...</span>
                                     <span v-else>Enable</span>
                                 </ff-button>
                             </div>
@@ -68,6 +106,8 @@ import { BeakerIcon } from '@heroicons/vue/outline'
 import semver from 'semver'
 import { mapState } from 'vuex'
 
+import deviceApi from '../../../api/devices.js'
+
 // components
 import InfoCard from '../../../components/InfoCard.vue'
 import InfoCardRow from '../../../components/InfoCardRow.vue'
@@ -100,11 +140,13 @@ export default {
     data () {
         return {
             agentSupportsDeviceAccess: false,
-            busy: false
+            busy: false,
+            savingAutoSnapshotSetting: false,
+            autoSnapshotEnabled: false
         }
     },
     computed: {
-        ...mapState('account', ['features']),
+        ...mapState('account', ['team', 'teamMembership', 'features']),
         developerMode: function () {
             return this.device?.mode === 'developer'
         },
@@ -122,6 +164,18 @@ export default {
         },
         createSnapshotDisabled () {
             return this.device.ownerType !== 'application' && this.device.ownerType !== 'instance'
+        },
+        autoSnapshotFeatureEnabledForTeam () {
+            return !!this.team.type.properties.features?.deviceAutoSnapshot
+        },
+        autoSnapshotFeatureEnabledForPlatform () {
+            return this.features.deviceAutoSnapshot
+        },
+        autoSnapshotFeatureEnabled () {
+            return this.autoSnapshotFeatureEnabledForTeam && this.autoSnapshotFeatureEnabledForPlatform
+        },
+        deviceIsApplicationOwned () {
+            return this.device.ownerType === 'application'
         }
     },
     watch: {
@@ -137,6 +191,7 @@ export default {
         if (this.device && this.device.mode !== 'developer') {
             this.redirect()
         }
+        this.getSettings()
     },
     methods: {
         redirect () {
@@ -173,6 +228,21 @@ export default {
             }
             alerts.emit('Failed to create snapshot from the device.', 'warning')
             this.busy = false
+        },
+        async toggleAutoSnapshotSetting () {
+            try {
+                this.savingAutoSnapshotSetting = true
+                await deviceApi.updateSettings(this.device.id, { autoSnapshot: !this.autoSnapshotEnabled })
+                this.autoSnapshotEnabled = !this.autoSnapshotEnabled
+            } finally {
+                this.savingAutoSnapshotSetting = false
+            }
+        },
+        async getSettings () {
+            if (this.device) {
+                const settings = await deviceApi.getSettings(this.device.id)
+                this.autoSnapshotEnabled = settings.autoSnapshot
+            }
         }
     }
 }

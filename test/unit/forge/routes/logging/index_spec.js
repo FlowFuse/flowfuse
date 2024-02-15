@@ -229,5 +229,80 @@ describe('Logging API', function () {
         it.skip('Adds module to instance settings for modules.install event', async function () {
             // future
         })
+        describe('When an audit event for flows.set is received', function () {
+            async function injectFlowSetEvent (app, device, token, deployType) {
+                const url = `/logging/device/${device.hashid}/audit`
+                const response = await app.inject({
+                    method: 'POST',
+                    url,
+                    headers: {
+                        authorization: `Bearer ${token}`
+                    },
+                    payload: { event: 'flows.set', type: deployType }
+                })
+                return response
+            }
+            before(async function () {
+                app.config.features.register('deviceAutoSnapshot', true, true)
+                // Enable deviceAutoSnapshot feature for default team type
+                const defaultTeamType = await app.db.models.TeamType.findOne({ where: { name: 'starter' } })
+                const defaultTeamTypeProperties = defaultTeamType.properties
+                defaultTeamTypeProperties.features.deviceAutoSnapshot = true
+                defaultTeamType.properties = defaultTeamTypeProperties
+                await defaultTeamType.save()
+
+                // stub sendCommandAwaitReply to fake the device response
+                /** @type {DeviceCommsHandler} */
+                const commsHandler = app.comms.devices
+                sinon.stub(commsHandler, 'sendCommandAwaitReply').resolves({})
+
+                // stub ProjectSnapshot controller `doDeviceAutoSnapshot`
+                sinon.stub(app.db.controllers.ProjectSnapshot, 'doDeviceAutoSnapshot').resolves({})
+
+                // spy app.config.features.enabled function
+                sinon.spy(app.config.features, 'enabled')
+            })
+            afterEach(async function () {
+                app.comms.devices.sendCommandAwaitReply.reset()
+                app.db.controllers.ProjectSnapshot.doDeviceAutoSnapshot.reset()
+                app.config.features.enabled.resetHistory()
+            })
+            after(async function () {
+                app.config.features.register('deviceAutoSnapshot', false, false)
+                app.comms.devices.sendCommandAwaitReply.restore()
+                app.db.controllers.ProjectSnapshot.doDeviceAutoSnapshot.restore()
+                app.config.features.enabled.restore()
+            })
+            it('Generates a snapshot for device when deploy type === full', async function () {
+                app.config.features.enabled.resetHistory()
+                const response = await injectFlowSetEvent(app, TestObjects.device1, TestObjects.tokens.device1, 'full')
+                response.should.have.property('statusCode', 200)
+                // wait a moment for the (stubbed) methods to be called asynchronously
+                // then check if the `doDeviceAutoSnapshot` method was called
+                // with the expected arguments
+                await new Promise(resolve => setTimeout(resolve, 25))
+                app.config.features.enabled.called.should.be.true() // the API calls `app.config.features.enabled` to check if the feature is enabled
+                app.db.controllers.ProjectSnapshot.doDeviceAutoSnapshot.called.should.be.true()
+                const args = app.db.controllers.ProjectSnapshot.doDeviceAutoSnapshot.lastCall.args
+                args.should.have.length(4)
+                should(args[0]).be.an.Object().and.have.property('id', TestObjects.device1.id)
+                args[1].should.equal('full')
+                should(args[2]).be.an.Object().and.deepEqual({ clean: true, setAsTarget: false })
+                should(args[3]).be.an.Object()
+                args[3].should.have.property('user')
+            })
+            it('Does not generates a snapshot for device if the deploy type is not one of full, flows or nodes', async function () {
+                app.config.features.enabled.resetHistory()
+                const response = await injectFlowSetEvent(app, TestObjects.device1, TestObjects.tokens.device1, 'bad-deploy-type')
+                // response should be 200 even if the deploy type is not valid
+                // that is because the audit event was processed successfully.
+                // The auto snapshot feature is simply spawned and not awaited.
+                response.should.have.property('statusCode', 200) // 200 is expected (the audit event was processed successfully)
+                // wait a moment for the (stubbed) methods to be (not) called
+                await new Promise(resolve => setTimeout(resolve, 25))
+                app.config.features.enabled.called.should.be.false() // should not have reached the feature.enabled check in the API call
+                app.db.controllers.ProjectSnapshot.doDeviceAutoSnapshot.called.should.be.false()
+            })
+        })
     })
 })

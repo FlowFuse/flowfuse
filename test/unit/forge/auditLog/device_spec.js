@@ -3,7 +3,7 @@ const should = require('should') // eslint-disable-line
 const FF_UTIL = require('flowforge-test-utils')
 
 // Declare a dummy getLoggers function for type hint only
-/** @type {import('../../../../forge/auditLog/application').getLoggers} */
+/** @type {import('../../../../forge/auditLog/device').getLoggers} */
 const getLoggers = (app) => { return {} }
 
 describe('Audit Log > Device', async function () {
@@ -123,5 +123,20 @@ describe('Audit Log > Device', async function () {
         logEntry.body.should.only.have.keys('application', 'device')
         logEntry.body.application.should.only.have.keys('id', 'name')
         logEntry.body.device.should.only.have.keys('id', 'name')
+    })
+
+    it('Provides a logger for changing a settings of a device', async function () {
+        await logger.device.settings.updated(ACTIONED_BY, null, DEVICE, [{ key: 'name', old: 'old', new: 'new' }])
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'device.settings.updated')
+        logEntry.should.have.property('scope', { id: DEVICE.hashid, type: 'device' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('device', 'updates')
+        logEntry.body.device.should.only.have.keys('id', 'name')
+        logEntry.body.device.id.should.equal(DEVICE.hashid)
+        logEntry.body.updates.should.have.length(1)
+        logEntry.body.updates[0].should.eql({ key: 'name', old: 'old', new: 'new' })
     })
 })

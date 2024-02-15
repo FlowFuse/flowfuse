@@ -365,6 +365,11 @@
         <span v-if="!error && entry.body?.device && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been set as the target for Application owned device '{{ entry.body.device.name }}'.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'device.settings.updated'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.device">Device '{{ entry.body.device?.name }}' has had the following changes made to its settings: <AuditEntryUpdates :updates="entry.body.updates" /></span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
+    </template>
 
     <!-- Application Device Group Events -->
     <template v-else-if="entry.event === 'application.deviceGroup.updated'">

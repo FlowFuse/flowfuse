@@ -45,6 +45,11 @@ module.exports = {
                 async disabled (actionedBy, error, device) {
                     await log('device.remote-access.disabled', actionedBy, device?.id, generateBody({ error, device }))
                 }
+            },
+            settings: {
+                async updated (actionedBy, error, device, updates) {
+                    await log('device.settings.updated', actionedBy, device?.id, generateBody({ error, device, updates }))
+                }
             }
         }
 
