@@ -179,7 +179,7 @@ describe('ProjectSnapshot controller', function () {
                 const team = app.TestObjects.team1
                 const device = await factory.createDevice({ name: 'device' }, team, null, application)
                 const deviceWithTeam = await app.db.models.Device.byId(device.id, { include: app.db.models.Team })
-                deviceWithTeam.updateSettings({ autoSnapshot: false })
+                await deviceWithTeam.updateSettings({ autoSnapshot: false })
                 const meta = { user: { id: null } } // simulate node-red situation (i.e. user is null)
                 const options = { setAsTarget: false }
                 const auditEventType = 'full' // simulate node-red audit event
