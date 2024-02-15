@@ -5,7 +5,7 @@ const should = require('should') // eslint-disable-line
 const { decryptCreds } = require('../../../../lib/credentials')
 const setup = require('../setup')
 
-describe('ProjectSnapshot controller', function () {
+describe.only('ProjectSnapshot controller', function () {
     // Use standard test data.
     let app
     let projectInstanceCount = 0
@@ -211,6 +211,14 @@ describe('ProjectSnapshot controller', function () {
                     await app.TestObjects.device2.destroy()
                 })
 
+                beforeEach(async function () {
+                    console.info('Test started')
+                })
+
+                afterEach(async function () {
+                    console.info('Test Finished')
+                })
+
                 it('creates an autoSnapshot for a device following a \'full\' deploy', async function () {
                     const device = app.TestObjects.device1
                     const meta = { user: { id: null } } // simulate node-red situation (i.e. user is null)
@@ -224,6 +232,7 @@ describe('ProjectSnapshot controller', function () {
                     snapshot.should.have.a.property('description')
                     snapshot.description.should.match(/Device Auto Snapshot taken following a Full deployment/)
                 })
+
                 it('only keeps 10 autoSnapshots for a device', async function () {
                     const device = app.TestObjects.device1
                     const meta = { user: { id: null } } // simulate node-red situation (i.e. user is null)
@@ -239,6 +248,7 @@ describe('ProjectSnapshot controller', function () {
                     snapshots[0].description.should.equal('Auto Snapshot - 3') // note ss 1 & 2 were auto cleaned up
                     snapshots[9].description.should.equal('Auto Snapshot - 12')
                 })
+
                 it('keeps 11 autoSnapshots for a device if one of them is assigned as target snapshot to another device', async function () {
                     const device = app.TestObjects.device1
                     const device2 = app.TestObjects.device2
