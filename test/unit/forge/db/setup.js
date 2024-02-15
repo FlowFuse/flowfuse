@@ -4,6 +4,7 @@ const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 module.exports = async function (config = {}) {
+    config.housekeeper = config.housekeeper || false
     const forge = await FF_UTIL.setupApp(config)
     const factory = new TestModelFactory(forge)
     /*

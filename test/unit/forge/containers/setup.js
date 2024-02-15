@@ -5,6 +5,7 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 // Should pull out the common bits to one place
 
 module.exports = async function (config = {}) {
+    config.housekeeper = config.housekeeper || false
     const forge = await FF_UTIL.setupApp(config)
     /*
         alice (admin)
