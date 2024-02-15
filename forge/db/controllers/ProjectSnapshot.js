@@ -106,20 +106,14 @@ const deviceAutoSnapshotUtils = {
         return autoSnapshots.filter((snapshot) => candidateIds.includes(snapshot.id))
     },
     cleanupAutoSnapshots: async function (app, device, limit = DEVICE_AUTO_SNAPSHOT_LIMIT) {
-        console.info('cleanupAutoSnapshots', device.id, limit)
-
         // get all auto snapshots for the device (where not in use)
         const snapshots = await app.db.controllers.ProjectSnapshot.getDeviceAutoSnapshots(device, true, 0)
         if (snapshots.length > limit) {
             const toDelete = snapshots.slice(0, snapshots.length - limit).map((snapshot) => snapshot.id)
             await app.db.models.ProjectSnapshot.destroy({ where: { id: { [Op.in]: toDelete } } })
         }
-
-        console.info('cleanupAutoSnapshotsDone', device.id, limit)
     },
     doAutoSnapshot: async function (app, device, deploymentType, { clean = true, setAsTarget = false } = {}, meta) {
-        console.info('doAutoSnapshot', device.id, deploymentType, { clean, setAsTarget }, meta)
-
         // eslint-disable-next-line no-useless-catch
         try {
             // if not permitted, throw an error
@@ -169,12 +163,8 @@ const deviceAutoSnapshotUtils = {
                 await app.db.controllers.ProjectSnapshot.cleanupDeviceAutoSnapshots(device)
             }
 
-            console.info('doAutoSnapshotEnd', device.id, deploymentType, { clean, setAsTarget }, meta)
-
             return snapShot
         } catch (error) {
-            console.error('doAutoSnapshotError', 'creating device auto snapshot', error)
-
             // TODO: device snapshot:  implement audit log
             // await deviceAuditLogger.device.snapshot.created(request.session.User, error, request.device, null)
             throw error

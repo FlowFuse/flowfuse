@@ -5,7 +5,7 @@ const should = require('should') // eslint-disable-line
 const { decryptCreds } = require('../../../../lib/credentials')
 const setup = require('../setup')
 
-describe.only('ProjectSnapshot controller', function () {
+describe('ProjectSnapshot controller', function () {
     // Use standard test data.
     let app
     let projectInstanceCount = 0
@@ -211,14 +211,6 @@ describe.only('ProjectSnapshot controller', function () {
                     await app.TestObjects.device2.destroy()
                 })
 
-                beforeEach(async function () {
-                    console.info('Test started')
-                })
-
-                afterEach(async function () {
-                    console.info('Test Finished')
-                })
-
                 it('creates an autoSnapshot for a device following a \'full\' deploy', async function () {
                     const device = app.TestObjects.device1
                     const meta = { user: { id: null } } // simulate node-red situation (i.e. user is null)
@@ -264,7 +256,7 @@ describe.only('ProjectSnapshot controller', function () {
                         const ss = await app.db.controllers.ProjectSnapshot.doDeviceAutoSnapshot(device, 'nodes', options, meta)
                         await ss.update({ description: `Auto Snapshot - ${i}` }) // update description to make it clear the round-robin cleanup is working
                     }
-                    const snapshots = await app.db.models.ProjectSnapshot.findAll({ where: { DeviceId: device.id } })
+                    const snapshots = await app.db.models.ProjectSnapshot.findAll({ where: { DeviceId: device.id }, order: [['id', 'ASC']] })
 
                     // even though 13 snapshots were created in total, only 10+1 (1 is in use) are kept
                     snapshots.should.have.length(11)
