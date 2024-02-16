@@ -30,6 +30,8 @@
 import { ChevronLeftIcon, CogIcon, CollectionIcon, ColorSwatchIcon, DatabaseIcon, DesktopComputerIcon, TemplateIcon, UserGroupIcon, UsersIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
+import adminApi from '../../api/admin.js'
+
 import NavItem from '../../components/NavItem.vue'
 import SideNavigation from '../../components/SideNavigation.vue'
 
@@ -64,7 +66,16 @@ export default {
             ]
         }
     },
-    mounted () {
+    async mounted () {
+        try {
+            await adminApi.getLicenseDetails()
+        } catch (err) {
+            if (err.response?.status === 403 || !err.response) {
+                this.$router.push('/')
+            } else {
+                throw err
+            }
+        }
         this.mounted = true
     }
 }

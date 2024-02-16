@@ -52,10 +52,6 @@ module.exports = async function (app) {
             // Default behaviour
             filter = { active: true }
         } else if (request.query.filter === 'inactive') {
-            if (!request.session.User.admin) {
-                reply.status(403).send({ code: 'unauthorized', error: 'unauthorized' })
-                return
-            }
             filter = { active: false }
         } else if (/^replacedBy:/.test(request.query.filter)) {
             const filterStack = app.db.models.ProjectStack.decodeHashid(request.query.filter.substring(11))
