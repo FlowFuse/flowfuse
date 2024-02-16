@@ -77,7 +77,6 @@ export default {
             this.stats = await adminApi.getStats()
             this.license = await adminApi.getLicenseDetails()
         } catch (err) {
-            
             if (err.response?.status === 403 || !err.response) {
                 this.$router.push('/')
             } else {

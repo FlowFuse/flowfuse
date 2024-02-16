@@ -217,7 +217,12 @@ export default {
         },
         loadInactiveItems: async function () {
             this.loadingInactive = true
-            const result = await stacksApi.getStacks(this.nextInactiveCursor, 30, 'inactive')
+            let result
+            try {
+                result = await stacksApi.getStacks(this.nextInactiveCursor, 30, 'inactive')
+            } catch (err) {
+                this.$router.push('/')
+            }
             this.nextInactiveCursor = result.meta.next_cursor
             result.stacks.forEach(stack => {
                 if (stack.projectType) {

@@ -37,7 +37,13 @@ export default {
             this.users = (await UsersAPI.getUsers()).users
         },
         async loadEntries (params = new URLSearchParams(), cursor = undefined) {
-            this.logEntries = (await AdminAPI.getPlatformAuditLog(params, cursor, 200)).log
+            try {
+                this.logEntries = (await AdminAPI.getPlatformAuditLog(params, cursor, 200)).log
+            } catch (err) {
+                if (err.response?.status === 403) {
+                    this.$router.push('/')
+                }
+            }
         }
     }
 }

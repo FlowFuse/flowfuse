@@ -115,7 +115,14 @@ export default {
                 this.loading = true
                 this.nextCursor = null
             }
-            const result = await usersApi.getUsers(this.nextCursor, 30, this.userSearch)
+            let result
+            try {
+                result = await usersApi.getUsers(this.nextCursor, 30, this.userSearch)
+            } catch (err) {
+                if (err.response?.status === 403) {
+                    this.$router.push('/')
+                }
+            }
             if (reload) {
                 this.users = []
             }
