@@ -529,7 +529,7 @@ describe('Stack API', function () {
                 method: 'GET',
                 url: '/api/v1/stacks',
                 query: { filter: 'inactive' },
-                cookies: { sid: TestObjects.tokens.bob }
+                cookies: { sid: TestObjects.tokens.alice }
             })
             const result = response.json()
             result.should.have.property('stacks')
