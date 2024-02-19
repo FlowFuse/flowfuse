@@ -93,7 +93,7 @@ describe('License API', async function () {
      * @returns the forge application
      */
     async function getApp (license) {
-        return await FF_UTIL.setupApp({ license })
+        return await FF_UTIL.setupApp({ housekeeper: false, license })
     }
 
     describe('unlicensed', function () {

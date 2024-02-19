@@ -3,6 +3,7 @@ const TestModelFactory = require('../../../lib/TestModelFactory')
 const FF_UTIL = require('flowforge-test-utils')
 
 module.exports = async function (config = {}) {
+    config.housekeeper = config.housekeeper || false
     const forge = await FF_UTIL.setupApp(config)
     await forge.db.models.PlatformSettings.upsert({ key: 'setup:initialised', value: true })
 
