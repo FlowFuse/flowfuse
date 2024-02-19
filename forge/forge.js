@@ -257,6 +257,15 @@ module.exports = async (options = {}) => {
                 }
             }
 
+            if (runtimeConfig.broker?.public_url) {
+                const mqttBrokerHost = new URL(runtimeConfig.broker?.public_url).host
+                if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
+                    contentSecurityPolicy.directives['connect-src'].push(mqttBrokerHost)
+                } else {
+                    contentSecurityPolicy.directives['connect-src'] = [mqttBrokerHost]
+                }
+            }
+
             if (runtimeConfig.telemetry.frontend?.plausible?.domain) {
                 if (contentSecurityPolicy.directives['script-src'] && Array.isArray(contentSecurityPolicy.directives['script-src'])) {
                     contentSecurityPolicy.directives['script-src'].push('plausible.io')
