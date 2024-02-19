@@ -273,7 +273,6 @@ describe('Check HTTP Security Headers set', async () => {
             headers.should.have.property('content-security-policy')
             const csp = response.headers['content-security-policy']
             csp.split(';').should.containEql('connect-src \'self\' mqtt.example.com')
-            console.log(csp)
         })
     })
 
