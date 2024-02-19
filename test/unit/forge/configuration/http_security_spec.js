@@ -253,6 +253,28 @@ describe('Check HTTP Security Headers set', async () => {
             const csp = response.headers['content-security-policy']
             csp.split(';').should.containEql('connect-src \'self\' *.ingest.sentry.io')
         })
+        it('CSP with MQTT broker', async function () {
+            const config = {
+                housekeeper: false,
+                broker: {
+                    public_url: 'wss://mqtt.example.com'
+                },
+                content_security_policy: {
+                    enabled: true
+                }
+            }
+            app = await FF_UTIL.setupApp(config)
+            const response = await app.inject({
+                method: 'GET',
+                url: '/'
+            })
+
+            const headers = response.headers
+            headers.should.have.property('content-security-policy')
+            const csp = response.headers['content-security-policy']
+            csp.split(';').should.containEql('connect-src \'self\' mqtt.example.com')
+            console.log(csp)
+        })
     })
 
     describe('HSTS Headers', async () => {
