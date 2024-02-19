@@ -79,6 +79,7 @@ export default {
             } catch (err) {
                 if (err.response?.status === 403) {
                     this.$router.push('/')
+                    return
                 }
             }
             if (reload) {
