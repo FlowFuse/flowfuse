@@ -414,7 +414,14 @@ export default {
             this.$refs.disablePlatformStatsToken.close()
             this.platformStatsToken = ''
             this.platformStatsTokenEnabled = false
-            adminApi.deleteStatsAccessToken().then(result => {}).catch(err => { console.warn('Error disabling stats token', err) })
+            adminApi.deleteStatsAccessToken()
+                .then(result => {})
+                .catch(err => {
+                    if (err.response?.status === 403) {
+                        this.$router.push('/')
+                    }
+                    console.warn('Error disabling stats token', err)
+                })
         }
     }
 }

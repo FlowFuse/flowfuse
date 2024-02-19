@@ -73,7 +73,15 @@ export default {
                 this.loading = true
                 this.nextCursor = null
             }
-            const result = await teamsApi.getTeams(this.nextCursor, 30, this.teamSearch)
+            let result
+            try {
+                result = await teamsApi.getTeams(this.nextCursor, 30, this.teamSearch)
+            } catch (err) {
+                if (err.response?.status === 403) {
+                    this.$router.push('/')
+                    return
+                }
+            }
             if (reload) {
                 this.teams = []
             }
