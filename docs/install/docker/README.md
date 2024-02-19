@@ -150,12 +150,12 @@ You will also need to update the `etc/flowforge.yml` file to change the `broker.
 
 ## Running FlowFuse
 
-We need to manually download the `flowforge/node-red` container that will be used for the default stack.
+We need to manually download the `flowfuse/node-red` container that will be used for the default stack.
 
 This is done with this command:
 
 ```bash
-docker pull flowforge/node-red
+docker pull flowfuse/node-red
 ```
 
 Once that completes we can start FlowFuse:
@@ -219,17 +219,18 @@ fileStore:
    docker-compose -p flowforge down
    ```
 - Download the latest Source code tar.gz [here](https://github.com/FlowFuse/docker-compose/releases/latest/)
-- Uncompress the tar file: `tar -xzvf v1.y.y.tar.gz`. A new directory should appear `docker-compose-1.y.y`
+- Uncompress the tar file: `tar -xzvf v2.y.y.tar.gz`. A new directory should appear `docker-compose-2.y.y`
 - Pull the latest version of the containers from Docker hub
-     - `docker pull flowforge/forge-docker`
-     - `docker pull flowforge/node-red`
-     - `docker pull flowforge/file-server`
+     - `docker pull flowfuse/forge-docker`
+     - `docker pull flowfuse/node-red`
+     - `docker pull flowfuse/file-server`
 - Copy the `db` (and the `certs` & `acme` if using HTTPS certs) directory from the old version directory to the new (this will probably require root due to file ownership)
     ```bash
     sudo cp -r docker-compose-x.x.x/db docker-compose-y.y.y/db
     ```
 - Compare the old `docker-compose.yml` to the version supplied with the new version, copy over any changes made, 
-e.g. enabling HTTPS/TLS Certificates and setting the `VIRUAL_HOST` environment variables.
+    e.g. enabling HTTPS/TLS Certificates and setting the `VIRUAL_HOST` environment variables 
+    Ensure the new container names are used starting with `flowfuse/` not `flowforge/`
 - Compare the old `flowforge.yml` to the new version, and copy over variables specific to your set-up: url, broker, etc.
 - Start the new version in the new directory 
    ```bash
