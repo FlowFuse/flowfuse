@@ -179,7 +179,7 @@ module.exports = function (app) {
             if (includeEditor && app.license.active() && summary.status === 'running' && summary.mode === 'developer' && app.comms?.devices?.tunnelManager) {
                 /** @type {import("../../ee/lib/deviceEditor/DeviceTunnelManager").DeviceTunnelManager} */
                 const tunnelManager = app.comms.devices.tunnelManager
-                filtered.editor = tunnelManager.getTunnelStatus(summary.hashid) || {}
+                filtered.editor = tunnelManager.getTunnelStatus(summary.id) || {}
             }
 
             return filtered
