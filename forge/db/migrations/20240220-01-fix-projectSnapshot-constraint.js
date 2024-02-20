@@ -45,10 +45,7 @@ module.exports = {
             await context.changeColumn('ProjectSnapshots', 'UserId', {
                 type: DataTypes.INTEGER,
                 allowNull: true,
-                defaultValue: null,
-                references: { model: 'Users', key: 'id' },
-                onDelete: 'SET NULL',
-                onUpdate: 'CASCADE'
+                defaultValue: null
             })
         }
     },
