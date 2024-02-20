@@ -1,6 +1,6 @@
 name: 🐜 Report a bug
 description: File a bug on the FlowFuse platform
-labels: [needs-triage]
+labels: [needs-triage, bug]
 body:
 - type: textarea
   attributes:
