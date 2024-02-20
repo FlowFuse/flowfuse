@@ -118,7 +118,7 @@ describe('Team API - with billing enabled', function () {
             device.should.have.property('mode', 'developer')
             device.should.have.property('editor')
 
-            device.editor.should.have.property('url', '/api/v1/devices/1/editor/proxy/?access_token=token12e')
+            device.editor.should.have.property('url', `/api/v1/devices/${device1.hashid}/editor/proxy/?access_token=token12e`)
             device.editor.should.have.property('enabled', true)
             device.editor.should.have.property('connected', true)
         })
