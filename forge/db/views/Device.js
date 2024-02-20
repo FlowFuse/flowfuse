@@ -86,7 +86,7 @@ module.exports = function (app) {
         if (app.license.active() && result.mode === 'developer' && app.comms?.devices?.tunnelManager) {
             /** @type {import("../../ee/lib/deviceEditor/DeviceTunnelManager").DeviceTunnelManager} */
             const tunnelManager = app.comms.devices.tunnelManager
-            filtered.editor = tunnelManager.getTunnelStatus(device.id) || {}
+            filtered.editor = tunnelManager.getTunnelStatus(result.hashid) || {}
         }
 
         return filtered
@@ -179,7 +179,7 @@ module.exports = function (app) {
             if (includeEditor && app.license.active() && summary.status === 'running' && summary.mode === 'developer' && app.comms?.devices?.tunnelManager) {
                 /** @type {import("../../ee/lib/deviceEditor/DeviceTunnelManager").DeviceTunnelManager} */
                 const tunnelManager = app.comms.devices.tunnelManager
-                filtered.editor = tunnelManager.getTunnelStatus(device.id) || {}
+                filtered.editor = tunnelManager.getTunnelStatus(summary.hashid) || {}
             }
 
             return filtered
