@@ -28,4 +28,7 @@ module.exports = fp(async function (app, opts) {
 
     // Set the Device Auto Snapshot Feature Flag
     app.config.features.register('deviceAutoSnapshot', true, true)
+
+    // Set the Instance Auto Snapshot Feature Flag
+    app.config.features.register('instanceAutoSnapshot', true, true)
 }, { name: 'app.ee.lib' })
