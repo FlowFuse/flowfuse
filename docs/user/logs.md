@@ -16,6 +16,8 @@ The log information is kept back to the last time the instance container was res
 
 <img src="images/projectlog.png" width="500" />
 
+Node-RED logs can also be output from the Containers/Pods that run Instances on Docker or Kubernetes. This is enabled by the `forge.logPassthrough` option. More details can be found in the [Configuration](../install/configuration.md) documentation.
+
 ## Audit Log
 
 The Audit Log tab on the application and instance views shows key events that have happened.
