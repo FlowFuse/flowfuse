@@ -95,7 +95,7 @@ describe('Team API - with billing enabled', function () {
 
             const device1 = await app.factory.createDevice({ name: 'device-1', type: 'test-device', lastSeenAt: new Date(), mode: 'developer', state: 'running' }, app.team, null, app.application)
 
-            app.comms.devices.tunnelManager.newTunnel(device1.id, 'token12e')
+            app.comms.devices.tunnelManager.newTunnel(device1.hashid, 'token12e')
             sinon.stub(app.comms.devices.tunnelManager, 'isConnected').returns(true)
 
             const response = await app.inject({
@@ -118,7 +118,7 @@ describe('Team API - with billing enabled', function () {
             device.should.have.property('mode', 'developer')
             device.should.have.property('editor')
 
-            device.editor.should.have.property('url', '/api/v1/devices/1/editor/proxy/?access_token=token12e')
+            device.editor.should.have.property('url', `/api/v1/devices/${device1.hashid}/editor/proxy/?access_token=token12e`)
             device.editor.should.have.property('enabled', true)
             device.editor.should.have.property('connected', true)
         })
