@@ -78,6 +78,35 @@ module.exports = async function (app) {
         }
 
         response.status(200).send()
+
+        // perform an auto snapshot
+        if (event === 'flows.set' && ['full', 'flows', 'nodes'].includes(auditEvent.type)) {
+            if (!app.config.features.enabled('instanceAutoSnapshot')) {
+                return // device auto snapshot feature is not available
+            }
+
+            const teamType = await request.project.Team.getTeamType()
+            const instanceAutoSnapshotEnabledForTeam = teamType.getFeatureProperty('instanceAutoSnapshot', false)
+            if (!instanceAutoSnapshotEnabledForTeam) {
+                return // not enabled for team
+            }
+            const instanceAutoSnapshotEnabledForProject = true // FUTURE: await request.project.getSetting('autoSnapshot')
+            if (instanceAutoSnapshotEnabledForProject === true) {
+                setImmediate(async () => {
+                    // when after the response is sent & IO is done, perform the snapshot
+                    try {
+                        const meta = { user: request.session.User }
+                        const options = { clean: true, setAsTarget: false }
+                        const snapshot = await snapshotController.doInstanceAutoSnapshot(request.project, auditEvent.type, options, meta)
+                        if (!snapshot) {
+                            throw new Error('Auto snapshot was not successful')
+                        }
+                    } catch (error) {
+                        console.warn('Error occurred during auto snapshot', error)
+                    }
+                })
+            }
+        }
     })
 
     /**
