@@ -76,12 +76,14 @@ Option        | Description
 --------------|------------
 `driver.options.start_port` | The port number to start assigning to Node-RED instances as they are created. Default: `12080`
 `driver.options.node_path` | The path to find the node.js executable - useful if Node.js has been installed with `nvm` so isn't necessarily on the system path.
+`driver.options.logPassthrough` | Prints the Node-RED logs in JSON format to stdout of the nr-launcher process
 
 ### Docker Driver options
 
 Option        | Description
 --------------|------------
 `driver.options.socket` | The path to the Docker control unix domain socket. Default `/var/run/docker.sock`
+`driver.options.logPassthrough` | Prints the Node-RED logs in JSON format to stdout of the Instance containers
 
 ### Kubernetes Driver options
 
@@ -90,6 +92,7 @@ Option        | Description
 `driver.options.namespace` | The namespace to run Node-RED instances in. Default: `flowforge`
 `driver.options.cloudProvider` | Enables specific options for certain platforms e.g. `aws`. Default: not set
 `driver.options.projectSelector` | A YAML object containing node annotations to use to filter which nodes Node-RED instances run on. Default: `role: projects`
+`driver.options.logPassthrough` | Prints the Node-RED logs in JSON format to stdout of the instance pods. This should be set with the `forge.logPassthrough=true` Helm chart value.
 
 ## MQTT Broker configuration
 
