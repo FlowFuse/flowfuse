@@ -173,6 +173,75 @@ describe('Logging API', function () {
             args[1].should.equal('@flowfuse/newmodule')
             args[2].should.equal('*')
         })
+
+        describe('When an audit event for flows.set is received', function () {
+            async function injectFlowSetEvent (app, project, token, deployType) {
+                const url = `/logging/${project.id}/audit`
+                const response = await app.inject({
+                    method: 'POST',
+                    url,
+                    headers: {
+                        authorization: `Bearer ${token}`
+                    },
+                    payload: { event: 'flows.set', type: deployType }
+                })
+                return response
+            }
+            before(async function () {
+                app.config.features.register('instanceAutoSnapshot', true, true)
+                // Enable instanceAutoSnapshot feature for default team type
+                const defaultTeamType = await app.db.models.TeamType.findOne({ where: { name: 'starter' } })
+                const defaultTeamTypeProperties = defaultTeamType.properties
+                defaultTeamTypeProperties.features.instanceAutoSnapshot = true
+                defaultTeamType.properties = defaultTeamTypeProperties
+                await defaultTeamType.save()
+
+                // stub ProjectSnapshot controller `doInstanceAutoSnapshot`
+                sinon.stub(app.db.controllers.ProjectSnapshot, 'doInstanceAutoSnapshot').resolves({})
+
+                // spy app.config.features.enabled function
+                sinon.spy(app.config.features, 'enabled')
+            })
+            afterEach(async function () {
+                app.db.controllers.ProjectSnapshot.doInstanceAutoSnapshot.reset()
+                app.config.features.enabled.resetHistory()
+            })
+            after(async function () {
+                app.config.features.register('instanceAutoSnapshot', false, false)
+                app.db.controllers.ProjectSnapshot.doInstanceAutoSnapshot.restore()
+                app.config.features.enabled.restore()
+            })
+            it('Generates a snapshot for instance when deploy type === full', async function () {
+                app.config.features.enabled.resetHistory()
+                const response = await injectFlowSetEvent(app, TestObjects.project1, TestObjects.tokens.project1, 'full')
+                response.should.have.property('statusCode', 200)
+                // wait a moment for the (stubbed) methods to be called asynchronously
+                // then check if the `doInstanceAutoSnapshot` method was called
+                // with the expected arguments
+                await new Promise(resolve => setTimeout(resolve, 25))
+                app.config.features.enabled.called.should.be.true() // the API calls `app.config.features.enabled` to check if the feature is enabled
+                app.db.controllers.ProjectSnapshot.doInstanceAutoSnapshot.called.should.be.true()
+                const args = app.db.controllers.ProjectSnapshot.doInstanceAutoSnapshot.lastCall.args
+                args.should.have.length(4)
+                should(args[0]).be.an.Object().and.have.property('id', TestObjects.project1.id)
+                args[1].should.equal('full')
+                should(args[2]).be.an.Object().and.deepEqual({ clean: true, setAsTarget: false })
+                should(args[3]).be.an.Object()
+                args[3].should.have.property('user')
+            })
+            it('Does not generates a snapshot for instance if the deploy type is not one of full, flows or nodes', async function () {
+                app.config.features.enabled.resetHistory()
+                const response = await injectFlowSetEvent(app, TestObjects.project1, TestObjects.tokens.project1, 'bad-deploy-type')
+                // response should be 200 even if the deploy type is not valid
+                // that is because the audit event was processed successfully.
+                // The auto snapshot feature is simply spawned and not awaited.
+                response.should.have.property('statusCode', 200) // 200 is expected (the audit event was processed successfully)
+                // wait a moment for the (stubbed) methods to be (not) called
+                await new Promise(resolve => setTimeout(resolve, 25))
+                app.config.features.enabled.called.should.be.false() // should not have reached the feature.enabled check in the API call
+                app.db.controllers.ProjectSnapshot.doInstanceAutoSnapshot.called.should.be.false()
+            })
+        })
     })
     describe('device instance audit logging', function () {
         it('Accepts valid token', async function () {
