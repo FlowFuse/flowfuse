@@ -17,7 +17,7 @@ They can also be pushed to devices connected to the instance.
 
 To create a snapshot:
 
-1. Go to the instance's page and select **Snapshots** in the sidebar.
+1. Go to the instance's page and select the **Snapshots** tab.
 2. Click the **Create Snapshot** button.
 3. You will be prompted to give the snapshot a **name** and optional **description**.
 4. Click **Create**
@@ -29,7 +29,7 @@ The list of snapshots will update with the newly created entry at the top.
 
 To delete a snapshot:
 
-1. Go to the instance's page and select **Snapshots** in the sidebar.
+1. Go to the instance's page and select the **Snapshots** tab.
 2. Open the dropdown menu to the right of the snapshot you want to delete and
    select the **Delete snapshot** option.
 3. You will be asked to confirm - click **Delete** to continue.
@@ -80,3 +80,16 @@ Snapshots in a local copy of Node-RED and push them back into your FlowFuse
 managed Node-RED instances.
 
 For more information, see the [Node-RED Tools Plugin guide](/docs/migration/node-red-tools.md).
+
+## Auto Snapshots
+
+FlowFuse can automatically create snapshots whenever flows are deployed
+to the instance. This is useful for tracking changes, and rolling back.
+
+FlowFuse will label these snapshots as "Auto snapshot - yyyy-mm-dd hh:mm:ss".
+A limit of 10 auto snapshots will be kept, with the oldest being deleted when a new one is created.
+
+Devices can optionally disable auto snapshots, in the developer mode tab. This can be helpful to
+avoid excessive data usage when a device is in the field or on a cellular connection.
+
+NOTE: This feature is available to instances and application assigned devices only.
