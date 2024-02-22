@@ -11,6 +11,19 @@ module.exports = {
         // Active snapshot does not match target, consider this device deploying
         return device.activeSnapshotId !== device.targetSnapshotId
     },
+    // Set the connected state of a device without needing to retrieve the model
+    // first. This is used when the platform is shutting down to proactively mark
+    // the devices as not-connected.
+    setConnected: function (app, deviceHashId, isConnected) {
+        const deviceId = app.db.models.Device.decodeHashid(deviceHashId)
+        if (deviceId?.length > 0) {
+            app.db.models.Device.update({
+                editorConnected: isConnected
+            }, {
+                where: { id: deviceId }
+            })
+        }
+    },
     updateState: async function (app, device, state) {
         device.set('lastSeenAt', literal('CURRENT_TIMESTAMP'))
         if (!state) {
@@ -25,6 +38,7 @@ module.exports = {
             if (state.agentVersion) {
                 device.set('agentVersion', state.agentVersion)
             }
+            device.set('editorAffinity', state.affinity || null)
             if (!state.snapshot || state.snapshot === '0') {
                 if (device.activeSnapshotId !== null) {
                     device.set('activeSnapshotId', null)
