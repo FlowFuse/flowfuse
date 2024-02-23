@@ -101,6 +101,13 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const result = app.db.views.Device.device(request.device)
+        app.log.info(`NOL: Clearing top-level FFSESSION cookie for device ${request.device.hashid}`)
+        // ingress-nginx will set a cookie on /api/v1/devices - which will cannot allow to override
+        // that of the device-specific cookie. So clear it out.
+        if (request.cookies.FFSESSION) {
+            app.log.info('NOL: Clearing FFSESSION cookie on generic path')
+            reply.clearCookie('FFSESSION', { path: '/api/v1/devices' })
+        }
         if (result.editor && result.editor.enabled) {
             if (result.editor.connected && !result.editor.local) {
                 // This device has the editor enabled, is connected, but not to
@@ -112,7 +119,6 @@ module.exports = async function (app) {
 
                     // TODO: remove before shipping
                     app.log.info(`NOL: Setting FFSESSION cookies to known affinity for device ${request.device.hashid} : ${request.device.editorAffinity}`)
-
                     reply.setCookie('FFSESSION', request.device.editorAffinity, {
                         httpOnly: true,
                         path: request.url,
@@ -130,7 +136,6 @@ module.exports = async function (app) {
                     // We have to clear both the top level cookie and the one for
                     // this specific device.
                     reply.clearCookie('FFSESSION', { path: request.url })
-                    reply.clearCookie('FFSESSION', { path: '/api/v1/devices' })
                 }
             }
         }
