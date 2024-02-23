@@ -109,33 +109,48 @@ module.exports = async function (app) {
             reply.clearCookie('FFSESSION', { path: '/api/v1/devices/' })
         }
         if (result.editor && result.editor.enabled) {
-            if (result.editor.connected && !result.editor.local) {
-                // This device has the editor enabled, is connected, but not to
-                // this local platform instance. We need to clear the session
-                // cookies so the client gets routed to another platform instance
-                if (request.device.editorAffinity) {
-                    // In this case, we *know* the cookie used by the device, so
-                    // use that.
+            if (result.editor.connected) {
+                if (!result.editor.local) {
+                    // This device has the editor enabled, is connected, but not to
+                    // this local platform instance. We need to clear the session
+                    // cookies so the client gets routed to another platform instance
+                    if (request.device.editorAffinity) {
+                        // In this case, we *know* the cookie used by the device, so
+                        // use that.
 
-                    // TODO: remove before shipping
-                    app.log.info(`NOL: Setting FFSESSION cookies to known affinity for device ${request.device.hashid} : ${request.device.editorAffinity}`)
-                    reply.setCookie('FFSESSION', request.device.editorAffinity, {
-                        httpOnly: true,
-                        path: request.url,
-                        // By default, it will uriEncode the value, which changes | to %7C
-                        // We don't want that change to happen, so provide a cleaner
-                        // encode function
-                        encode: s => s
-                    })
+                        // TODO: remove before shipping
+                        app.log.info(`NOL: Setting FFSESSION cookies to known affinity for device ${request.device.hashid} : ${request.device.editorAffinity}`)
+                        reply.setCookie('FFSESSION', request.device.editorAffinity, {
+                            httpOnly: true,
+                            path: request.url,
+                            // By default, it will uriEncode the value, which changes | to %7C
+                            // We don't want that change to happen, so provide a cleaner
+                            // encode function
+                            encode: s => s
+                        })
+                    } else {
+                        // TODO: remove before shipping
+                        app.log.info(`NOL: Clearing FFSESSION cookies as we don't have affinity for device ${request.device.hashid}`)
+                        // An older device agent doesn't tell us about its affinity cookie
+                        // So the best we can do is clear the session cookies and have
+                        // the load balancer pick another route to try
+                        // We have to clear both the top level cookie and the one for
+                        // this specific device.
+                        reply.clearCookie('FFSESSION', { path: request.url })
+                    }
                 } else {
-                    // TODO: remove before shipping
-                    app.log.info(`NOL: Clearing FFSESSION cookies as we don't have affinity for device ${request.device.hashid}`)
-                    // An older device agent doesn't tell us about its affinity cookie
-                    // So the best we can do is clear the session cookies and have
-                    // the load balancer pick another route to try
-                    // We have to clear both the top level cookie and the one for
-                    // this specific device.
-                    reply.clearCookie('FFSESSION', { path: request.url })
+                    if (!request.device.editorAffinity && request.cookies.FFSESSION) {
+                        // Connected locally. For a legacy device agent, we need to ensure
+                        // the affinity cookie, if present, is set on the device-scoped path.
+                        reply.setCookie('FFSESSION', request.cookies.FFSESSION, {
+                            httpOnly: true,
+                            path: request.url,
+                            // By default, it will uriEncode the value, which changes | to %7C
+                            // We don't want that change to happen, so provide a cleaner
+                            // encode function
+                            encode: s => s
+                        })
+                    }
                 }
             }
         }
