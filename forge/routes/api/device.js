@@ -115,7 +115,11 @@ module.exports = async function (app) {
 
                     reply.setCookie('FFSESSION', request.device.editorAffinity, {
                         httpOnly: true,
-                        path: request.url
+                        path: request.url,
+                        // By default, it will uriEncode the value, which changes | to %7C
+                        // We don't want that change to happen, so provide a cleaner
+                        // encode function
+                        encode: s => s
                     })
                 } else {
                     // TODO: remove before shipping
