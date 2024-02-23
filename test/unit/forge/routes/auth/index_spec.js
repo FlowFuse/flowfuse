@@ -134,7 +134,7 @@ describe('Accounts API', async function () {
 
             // TODO: check user audit logs - expect 'account.xxx-yyy' { code: '', error, '' }
         })
-        it.only('rejects bad username', async function () {
+        it('rejects bad username', async function () {
             app.settings.set('user:signup', true)
 
             await expectRejection({
