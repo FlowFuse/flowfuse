@@ -106,7 +106,7 @@ module.exports = async function (app) {
         // that of the device-specific cookie. So clear it out.
         if (request.cookies.FFSESSION) {
             app.log.info('NOL: Clearing FFSESSION cookie on generic path')
-            reply.clearCookie('FFSESSION', { path: '/api/v1/devices' })
+            reply.clearCookie('FFSESSION', { path: '/api/v1/devices/' })
         }
         if (result.editor && result.editor.enabled) {
             if (result.editor.connected && !result.editor.local) {
