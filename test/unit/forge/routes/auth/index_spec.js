@@ -134,6 +134,16 @@ describe('Accounts API', async function () {
 
             // TODO: check user audit logs - expect 'account.xxx-yyy' { code: '', error, '' }
         })
+        it('rejects bad username', async function () {
+            app.settings.set('user:signup', true)
+
+            await expectRejection({
+                username: 'bad@user!',
+                password: '12345678',
+                name: 'u1.2',
+                email: 'u1@example.com'
+            }, /invalid username/)
+        })
 
         it('Limits how many users can be created when unlicensed', async function () {
             app.settings.set('user:signup', true)
