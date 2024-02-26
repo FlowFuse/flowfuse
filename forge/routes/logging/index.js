@@ -102,7 +102,7 @@ module.exports = async function (app) {
                             throw new Error('Auto snapshot was not successful')
                         }
                     } catch (error) {
-                        console.warn('Error occurred during auto snapshot', error)
+                        app.log.error('Error occurred during auto snapshot', error)
                     }
                 })
             }
@@ -180,7 +180,7 @@ module.exports = async function (app) {
                                 throw new Error('Auto snapshot was not successful')
                             }
                         } catch (error) {
-                            console.warn('Error occurred during auto snapshot', error)
+                            app.log.error('Error occurred during auto snapshot', error)
                         }
                     })
                 }
