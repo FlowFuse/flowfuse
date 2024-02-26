@@ -92,4 +92,4 @@ A limit of 10 auto snapshots will be kept, with the oldest being deleted when a 
 Devices can optionally disable auto snapshots, in the developer mode tab. This can be helpful to
 avoid excessive data usage when a device is in the field or on a cellular connection.
 
-NOTE: This feature is available to instances and application assigned devices only.
+NOTE: This feature is only available to Team and Enterprise tier teams
