@@ -68,6 +68,16 @@
                                 </div>
                             </td>
                         </tr>
+                        <tr class="border-b">
+                            <td class="font-medium">Protected Instance</td>
+                            <td class="py-2">
+                                <div class="flex">
+                                    <span v-if="instance.protected?.enabled">Enabled</span>
+                                    <span v-else>Disabled</span>
+                                    <router-link class="mt-0.5 ml-3" :to="{ name: 'InstanceSettingsProtect'}"><LinkIcon class="w-4" /></router-link>
+                                </div>
+                            </td>
+                        </tr>
                     </table>
                 </div>
                 <div class="ff-instance-info">

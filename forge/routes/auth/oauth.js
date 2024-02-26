@@ -1,7 +1,8 @@
 const crypto = require('crypto')
 const querystring = require('querystring')
 const { URL } = require('url')
-const { KEY_PROTECTED } =  require('../../db/models/ProjectSettings')
+
+const { KEY_PROTECTED } = require('../../db/models/ProjectSettings')
 
 const { base64URLEncode, sha256, URLEncode } = require('../../db/utils')
 
