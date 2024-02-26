@@ -1,6 +1,7 @@
 const crypto = require('crypto')
 const querystring = require('querystring')
 const { URL } = require('url')
+const { KEY_PROTECTED } =  require('../../db/models/ProjectSettings')
 
 const { base64URLEncode, sha256, URLEncode } = require('../../db/utils')
 
@@ -172,8 +173,9 @@ module.exports = async function (app) {
                     const isEditor = /^editor($|-)/.test(requestObject.scope)
                     if (isEditor) {
                         // Allow admin users to have read-access to flows
+                        const protected = await project.getSetting(KEY_PROTECTED)
                         const canReadFlows = request.session.User.admin || app.hasPermission(teamMembership, 'project:flows:view')
-                        const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit')
+                        const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit') && !protected?.enabled
                         const canReadHTTP = app.hasPermission(teamMembership, 'project:flows:http')
                         if (!canReadFlows && !canWriteFlows) {
                             if (!canReadHTTP) {
@@ -315,7 +317,8 @@ module.exports = async function (app) {
                 const teamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: project.TeamId, UserId: requestObject.userId } })
                 const user = await app.db.models.User.findOne({ where: { id: requestObject.userId }, attributes: ['admin'] })
                 const canReadFlows = user.admin || app.hasPermission(teamMembership, 'project:flows:view')
-                const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit')
+                const protected = await project.getSetting(KEY_PROTECTED)
+                const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit') && !protected?.enabled
                 const canReadHTTP = app.hasPermission(teamMembership, 'project:flows:http')
                 const isEditor = /^editor($|-)/.test(requestObject.scope)
 

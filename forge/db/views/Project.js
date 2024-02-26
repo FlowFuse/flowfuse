@@ -1,4 +1,4 @@
-const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA } = require('../models/ProjectSettings')
+const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA, KEY_PROTECTED } = require('../models/ProjectSettings')
 
 module.exports = function (app) {
     app.addSchema({
@@ -26,6 +26,10 @@ module.exports = function (app) {
             },
             stack: { $ref: 'StackSummary' },
             ha: {
+                type: 'object',
+                additionalProperties: true
+            },
+            protected: {
                 type: 'object',
                 additionalProperties: true
             }
@@ -68,6 +72,10 @@ module.exports = function (app) {
         if (app.config.features.enabled('ha')) {
             const settingsHARow = proj.ProjectSettings?.find(row => row.key === KEY_HA)
             result.ha = settingsHARow?.value || { disabled: true }
+        }
+        if (app.config.features.enabled('protectedInstance')) {
+            const settingsProtectedRow = proj.ProjectSettings?.find(row => row.key === KEY_PROTECTED)
+            result.protected = settingsProtectedRow?.value || { enabled: false }
         }
 
         if (proj.Application) {

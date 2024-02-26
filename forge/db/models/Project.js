@@ -17,7 +17,7 @@ const { DataTypes, Op } = require('sequelize')
 
 const Controllers = require('../controllers')
 
-const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA } = require('./ProjectSettings')
+const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA, KEY_PROTECTED } = require('./ProjectSettings')
 
 const BANNED_NAME_LIST = [
     'www',
@@ -358,7 +358,8 @@ module.exports = {
                                 [Op.or]: [
                                     { key: KEY_SETTINGS },
                                     { key: KEY_HOSTNAME },
-                                    { key: KEY_HA }
+                                    { key: KEY_HA },
+                                    { key: KEY_PROTECTED }
                                 ]
                             },
                             required: false

@@ -42,12 +42,24 @@ module.exports = async function (app) {
     app.get('/', {
         preHandler: app.needsPermission('project:read')
     }, async (request, reply) => {
-
+        reply.send(await request.project.getProtectedInstanceState() || {})
     })
 
     app.put('/', {
         preHandler: app.needsPermission('project:edit')
     }, async (request, reply) => {
+        await request.project.updateProtectedInstanceState({ enabled: request.body.enabled || {} })
+        reply.send(await request.project.getProtectedInstanceState() || { enabled: false })
+    })
 
+    app.delete('/', {
+        preHandler: app.needsPermission('project:edit')
+    }, async (request, reply) => {
+        const existingProtected = await request.project.getProtectedInstanceState() || {}
+        if (Object.hasOwn(existingProtected, 'enabled')) {
+            await request.project.updateProtectedInstanceState(undefined)
+        } else {
+            reply.send({})
+        }
     })
 }
