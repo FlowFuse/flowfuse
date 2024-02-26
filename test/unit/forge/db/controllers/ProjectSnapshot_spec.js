@@ -25,8 +25,15 @@ describe('ProjectSnapshot controller', function () {
         await app.db.models.ProjectSnapshot.destroy({ where: {} })
     })
     describe('createSnapshot (instance)', function () {
-        async function createProject () {
-            let project = await app.db.models.Project.create({ name: 'project-' + (projectInstanceCount++), type: '', url: '' })
+        async function createProject (application = null, team = null) {
+            const options = { name: 'project-' + (projectInstanceCount++), type: '', url: '' }
+            if (application) {
+                options.ApplicationId = application.id
+            }
+            if (team) {
+                options.TeamId = team.id
+            }
+            let project = await app.db.models.Project.create(options)
             await project.updateSetting('credentialSecret', crypto.randomBytes(32).toString('hex'))
             // Reload to ensure all models are attached
             project = await app.db.models.Project.byId(project.id)
@@ -100,6 +107,122 @@ describe('ProjectSnapshot controller', function () {
             const keyHash = crypto.createHash('sha256').update(credSecret).digest()
             const creds = decryptCreds(keyHash, snapshot.flows.credentials)
             creds.should.have.only.keys('456')
+        })
+
+        describe('auto snapshots', function () {
+            it('throws an error when instanceAutoSnapshot feature is not enabled', async function () {
+                const meta = { user: { id: null } } // simulate node-red situation (i.e. user is null)
+                const options = { setAsTarget: false }
+                const auditEventType = 'full' // simulate node-red audit event
+                await app.db.controllers.ProjectSnapshot.doInstanceAutoSnapshot({}, auditEventType, options, meta).should.be.rejectedWith('Instance auto snapshot feature is not available')
+            })
+            it('throws an error when team type feature flag instanceAutoSnapshot is not enabled', async function () {
+                app.config.features.register('instanceAutoSnapshot', true, true)
+                const project = { Team: app.TestObjects.team1 }
+                const meta = { user: { id: null } } // simulate node-red situation (i.e. user is null)
+                const options = { setAsTarget: false }
+                const auditEventType = 'full' // simulate node-red audit event
+                await app.db.controllers.ProjectSnapshot.doInstanceAutoSnapshot(project, auditEventType, options, meta).should.be.rejectedWith('Instance auto snapshot is not enabled for the team')
+            })
+
+            describe('with instanceAutoSnapshot feature enabled', function () {
+                before(async function () {
+                    app.config.features.register('instanceAutoSnapshot', true, true)
+                    // Enable instanceAutoSnapshot feature for default team type
+                    const teamType = await app.db.models.TeamType.findOne({ where: { id: app.TestObjects.team1.TeamTypeId } })
+                    const teamTypeProperties = teamType.properties
+                    teamTypeProperties.features.instanceAutoSnapshot = true
+                    teamType.properties = teamTypeProperties
+                    await teamType.save()
+                    app.TestObjects.project1 = await createProject(app.TestObjects.application1, app.TestObjects.team1)
+                })
+
+                after(async function () {
+                    await app.TestObjects.project1.destroy()
+                })
+
+                it('creates an autoSnapshot for a device following a \'full\' deploy', async function () {
+                    const project = app.TestObjects.project1
+                    const meta = { user: { id: null } } // simulate node-red situation (i.e. user is null)
+                    const options = { clean: true, setAsTarget: false }
+                    const auditEventType = 'full' // simulate node-red audit event
+                    const snapshot = await app.db.controllers.ProjectSnapshot.doInstanceAutoSnapshot(project, auditEventType, options, meta)
+                    should(snapshot).be.an.Object()
+                    snapshot.should.have.a.property('id')
+                    snapshot.should.have.a.property('name')
+                    snapshot.name.should.match(/Auto Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
+                    snapshot.should.have.a.property('description')
+                    snapshot.description.should.match(/Instance Auto Snapshot taken following a Full deployment/)
+                })
+
+                it('only keeps 10 autoSnapshots for an instance', async function () {
+                    const project = app.TestObjects.project1
+                    const meta = { user: { id: null } } // simulate node-red situation (i.e. user is null)
+                    const options = undefined // use fn defined default options this time
+                    // perform 12 autoSnapshots
+                    for (let i = 1; i <= 12; i++) {
+                        const ss = await app.db.controllers.ProjectSnapshot.doInstanceAutoSnapshot(project, 'full', options, meta)
+                        await ss.update({ description: `Auto Snapshot - ${i}` }) // update description to make it clear the round-robin cleanup is working
+                    }
+                    const snapshots = await app.db.models.ProjectSnapshot.findAll({ where: { ProjectId: project.id } })
+                    // even though 12 snapshots were created in total, only 10 are kept
+                    snapshots.should.have.length(10)
+                    snapshots[0].description.should.equal('Auto Snapshot - 3') // note ss 1 & 2 were auto cleaned up
+                    snapshots[9].description.should.equal('Auto Snapshot - 12')
+                })
+
+                it('keeps 11 autoSnapshots for an instance when one of them is assigned as target snapshot to a device', async function () {
+                    const project = app.TestObjects.project1
+                    // create a device
+                    const application = app.TestObjects.application1
+                    const team = app.TestObjects.team1
+                    const device1 = await factory.createDevice({ name: 'device 1' }, team, null, application)
+                    app.TestObjects.device1 = await app.db.models.Device.byId(device1.id, { include: app.db.models.Team })
+                    // create a snapshot and set it as target for device1
+                    const snapshot1 = await app.db.controllers.ProjectSnapshot.doInstanceAutoSnapshot(project, 'flows', { setAsTarget: true }, { user: { id: null } })
+                    await snapshot1.update({ description: 'Auto Snapshot - 1' }) // update description to make it clear the round-robin cleanup is working
+                    await device1.update({ targetSnapshotId: snapshot1.id })
+
+                    // create snapshots
+                    const meta = { user: { id: null } } // simulate node-red situation (i.e. user is null)
+                    const options = { clean: true, setAsTarget: false }
+                    for (let i = 2; i <= 13; i++) {
+                        const ss = await app.db.controllers.ProjectSnapshot.doInstanceAutoSnapshot(project, 'nodes', options, meta)
+                        await ss.update({ description: `Auto Snapshot - ${i}` }) // update description to make it clear the round-robin cleanup is working
+                    }
+                    const snapshots = await app.db.models.ProjectSnapshot.findAll({ where: { ProjectId: project.id }, order: [['id', 'ASC']] })
+
+                    // even though 13 snapshots were created in total, only 11 are kept (1 is in use)
+                    snapshots.should.have.length(11)
+                    snapshots[0].description.should.equal('Auto Snapshot - 1') // ss 1 is in use & therefore not cleaned up
+                    snapshots[1].description.should.equal('Auto Snapshot - 4') // ss 2 & 3 were auto cleaned up
+                    snapshots[10].description.should.equal('Auto Snapshot - 13') // this was the last one created
+                })
+                it('keeps 11 autoSnapshots for an instance when one of them is assigned as the instances target snapshot', async function () {
+                    const project = app.TestObjects.project1
+                    // create a snapshot and set it as target for this instances devices
+                    const snapshot1 = await app.db.controllers.ProjectSnapshot.doInstanceAutoSnapshot(project, 'flows', { setAsTarget: true }, { user: { id: null } })
+                    await snapshot1.update({ description: 'Auto Snapshot - 101' }) // update description to make it clear the round-robin cleanup is working
+                    project.updateSettings({ targetSnapshotId: snapshot1.id })
+                    await project.updateSetting('deviceSettings', {
+                        targetSnapshot: snapshot1.id
+                    })
+                    // create snapshots
+                    const meta = { user: { id: null } } // simulate node-red situation (i.e. user is null)
+                    const options = { clean: true, setAsTarget: false }
+                    for (let i = 2; i <= 13; i++) {
+                        const ss = await app.db.controllers.ProjectSnapshot.doInstanceAutoSnapshot(project, 'nodes', options, meta)
+                        await ss.update({ description: `Auto Snapshot - ${i + 100}` }) // update description to make it clear the round-robin cleanup is working
+                    }
+                    const snapshots = await app.db.models.ProjectSnapshot.findAll({ where: { ProjectId: project.id }, order: [['id', 'ASC']] })
+
+                    // even though 13 snapshots were created in total, 11 are kept (10x auto snapshots + snapshot101 which is in use)
+                    snapshots.should.have.length(11)
+                    snapshots[0].description.should.equal('Auto Snapshot - 101') // ss 101 is in use & therefore not cleaned up
+                    snapshots[1].description.should.equal('Auto Snapshot - 104') // ss 102 & 103 were auto cleaned up
+                    snapshots[10].description.should.equal('Auto Snapshot - 113') // this was the last one created
+                })
+            })
         })
     })
     // describe('exportProject', function () {
