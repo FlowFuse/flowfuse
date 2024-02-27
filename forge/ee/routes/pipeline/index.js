@@ -3,7 +3,7 @@ const { ValidationError } = require('sequelize')
 const { KEY_PROTECTED } = require('../../../db/models/ProjectSettings.js')
 const { ControllerError } = require('../../../lib/errors.js')
 const { registerPermissions } = require('../../../lib/permissions')
-const { Roles, TeamRoles } = require('../../../lib/roles.js')
+const { Roles } = require('../../../lib/roles.js')
 
 // Declare getLogger functions to provide type hints / quick code nav / code completion
 /** @type {import('../../../../forge/auditLog/team').getLoggers} */
@@ -520,9 +520,12 @@ module.exports = async function (app) {
             // Test before source snapshot is taken
             if (targetInstance) {
                 const protected = await targetInstance.getSetting(KEY_PROTECTED)
-                if (protected?.enabled && teamMembership.role !== TeamRoles.Owner) {
+                if (protected?.enabled && teamMembership.role !== Roles.Owner) {
                     // reject
-                    return reply.code(401).send({ code: 'protected_instance', error: 'Only Owner can Deploy to target instance' })
+                    reply.code(403).send({ code: 'protected_instance', error: 'Only Owner can Deploy to target instance' })
+                    console.log('not owner')
+                    repliedEarly = true
+                    return
                 }
             }
 

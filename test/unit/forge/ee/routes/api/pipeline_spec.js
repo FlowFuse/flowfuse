@@ -98,10 +98,21 @@ describe('Pipelines API', function () {
             password: 'ppPassword'
         })
 
+        const userBob = await TestObjects.factory.createUser({
+            admin: false,
+            username: 'bob',
+            name: 'Bob Kenobi',
+            email: 'bob@example.com',
+            password: 'bbPassword'
+        })
+
         const team1 = await TestObjects.factory.createTeam({ name: 'PTeam' })
         await team1.addUser(userPez, { through: { role: Roles.Owner } })
+        await TestObjects.team.addUser(userBob, { through: { role: Roles.Member } })
 
         await login('pez', 'ppPassword')
+
+        await login('bob', 'bbPassword')
 
         await login('alice', 'aaPassword')
     })
@@ -2515,6 +2526,61 @@ describe('Pipelines API', function () {
 
                 response.statusCode.should.equal(400)
             })
+        })
+    })
+
+    describe('Work with Protected Instances', function () {
+        async function isDeployComplete (instance) {
+            const instanceStatusResponse = (await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${instance.id}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })).json()
+
+            return instanceStatusResponse?.meta?.isDeploying === false
+        }
+
+        function waitForDeployToComplete (instance) {
+            return new Promise((resolve, reject) => {
+                const refreshIntervalId = setInterval(async () => {
+                    if (await isDeployComplete(instance)) {
+                        clearInterval(refreshIntervalId)
+                        resolve()
+                    }
+                }, 250)
+            })
+        }
+
+        beforeEach(async function () {
+            const factory = app.factory
+
+            await TestObjects.instanceTwo.updateProtectedInstanceState({enabled: true})
+            TestObjects.stageTwo = await factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
+        })
+
+        after(async function () {
+            await TestObjects.instanceTwo.updateProtectedInstanceState({enabled: false})
+        })
+
+        it('should allow Owner to deploy to Protected Instance', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageOne.hashid}/deploy`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            
+            response.statusCode.should.equal(200)
+
+            await waitForDeployToComplete(TestObjects.instanceTwo)
+        })
+
+        it('should not allow Member to deploy to Protected Instance', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageOne.hashid}/deploy`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(403)
         })
     })
 
