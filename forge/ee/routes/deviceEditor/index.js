@@ -146,6 +146,19 @@ module.exports = async function (app) {
     })
 
     /**
+     * Get device editor state and url
+     * @name /api/v1/devices/:deviceId/editor
+     * @memberof module:forge/routes/api/device
+     */
+    app.get('/', {
+        preHandler: app.needsPermission('device:editor'),
+        config: { rateLimit: false } // never rate limit this route
+    }, async (request, reply) => {
+        const tunnelManager = getTunnelManager()
+        reply.send(tunnelManager.getTunnelStatus(request.device))
+    })
+
+    /**
      * HTTP GET: verify adminAuth token
      * As this will be called by NR auth, this endpoint cannot be protected by the
      * normal forge auth middleware
