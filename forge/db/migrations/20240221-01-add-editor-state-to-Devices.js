@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 
 /**
- * Add ProjectSnapshots table
+ * Add editorAffinity details to Devices table
  */
 const { DataTypes } = require('sequelize')
 
