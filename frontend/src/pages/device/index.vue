@@ -311,47 +311,45 @@ export default {
         },
         async openTunnel (launchEditor = false) {
             try {
-                console.warn(`openTunnel launchEditor:${launchEditor} ${JSON.stringify(this.device.editor)}`)
                 if (this.device.status === 'running') {
                     if (this.device.editor?.enabled && this.device.editor?.connected && this.device.editor?.local) {
-                        console.warn(' - open editor')
                         this.openEditor()
                     } else {
-                        console.warn(' - show dialog')
                         this.openingTunnel = true
                         this.$refs.dialog.show()
 
                         // Polls the tunnel status until we see it connected to the
                         // 'local' platform instance - will give up after 10 attempts
-                        const pollTunnelStatus = (attempt = 0, timeout = 500) => {
-                            console.warn(' - pollTunnelStatus', attempt, timeout)
+                        const pollTunnelStatus = (done, attempt = 0, timeout = 500) => {
                             if (attempt < 10) {
                                 this.openTunnelTimeout = setTimeout(async () => {
                                     await this.loadDevice()
-                                    console.warn(` - poll result ${JSON.stringify(this.device.editor)}`)
                                     if (this.device.editor?.enabled && this.device.editor?.connected) {
                                         if (this.device.editor?.local) {
                                             if (launchEditor) {
-                                                console.warn(' - open editor')
                                                 this.openEditor()
                                             }
                                         } else {
-                                            pollTunnelStatus(attempt + 1, 200)
+                                            pollTunnelStatus(done, attempt + 1, 200)
+                                            return
                                         }
                                     }
+                                    done()
                                 }, timeout)
                             }
                         }
 
                         try {
                             if (!this.device.editor?.enabled || !this.device.editor?.connected) {
-                                console.warn(' - enabling editor tunnel')
                                 // * Enable Device Editor (Step 1) - (browser->frontendApi) User clicks button to "Enable Editor"
                                 const result = await deviceApi.enableEditorTunnel(this.device.id)
                                 this.updateTunnelStatus(result)
                             }
-                            pollTunnelStatus()
-                        } finally {
+                            pollTunnelStatus(() => {
+                                this.$refs.dialog.close()
+                                this.openingTunnel = false
+                            })
+                        } catch (err) {
                             this.$refs.dialog.close()
                             this.openingTunnel = false
                         }
