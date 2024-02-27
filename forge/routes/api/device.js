@@ -101,11 +101,9 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const result = app.db.views.Device.device(request.device)
-        app.log.info(`NOL: Clearing top-level FFSESSION cookie for device ${request.device.hashid}`)
         // ingress-nginx will set a cookie on /api/v1/devices - which will cannot allow to override
         // that of the device-specific cookie. So clear it out.
         if (request.cookies.FFSESSION) {
-            app.log.info('NOL: Clearing FFSESSION cookie on generic path')
             reply.clearCookie('FFSESSION', { path: '/api/v1/devices/' })
         }
         if (result.editor && result.editor.enabled) {
@@ -118,8 +116,6 @@ module.exports = async function (app) {
                         // In this case, we *know* the cookie used by the device, so
                         // use that.
 
-                        // TODO: remove before shipping
-                        app.log.info(`NOL: Setting FFSESSION cookies to known affinity for device ${request.device.hashid} : ${request.device.editorAffinity}`)
                         reply.setCookie('FFSESSION', request.device.editorAffinity, {
                             httpOnly: true,
                             path: request.url,
@@ -129,8 +125,6 @@ module.exports = async function (app) {
                             encode: s => s
                         })
                     } else {
-                        // TODO: remove before shipping
-                        app.log.info(`NOL: Clearing FFSESSION cookies as we don't have affinity for device ${request.device.hashid}`)
                         // An older device agent doesn't tell us about its affinity cookie
                         // So the best we can do is clear the session cookies and have
                         // the load balancer pick another route to try

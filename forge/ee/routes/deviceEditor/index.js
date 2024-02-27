@@ -84,8 +84,7 @@ module.exports = async function (app) {
         const tunnelManager = getTunnelManager()
         const deviceId = request.device.hashid
         const teamId = team.hashid
-
-        if (request.device.editorEnabled === mode) {
+        if (!!request.device.editorToken === mode) {
             // if this request is to `enable` tunnel and the tunnel is already enabled, return the current state
             // however, if it is not `connected`, then we need to refresh the tunnel
             if (mode === true) {
@@ -116,12 +115,13 @@ module.exports = async function (app) {
                     await request.device.save()
                 }
             } catch (error) {
+                request.device.editorToken = ''
+                await request.device.save()
                 err = error
             }
             await request.device.reload()
             // * Enable Device Editor (Step 11) - (forge:HTTP->frontendApi) Send tunnel status back to frontend
             const tunnelStatus = tunnelManager.getTunnelStatus(request.device) || {}
-
             if (err) {
                 tunnelStatus.error = err.message
                 tunnelStatus.code = err.code || 'enable_editor_failed'
