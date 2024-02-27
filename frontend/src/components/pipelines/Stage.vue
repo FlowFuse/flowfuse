@@ -9,12 +9,6 @@
                 </span>
             </div>
             <div class="ff-pipeline-actions">
-                <span>
-                    <LockClosedIcon
-                        v-if="stage.instance?.protected?.enabled"
-                        class="ff-icon"
-                    />
-                </span>
                 <span
                     data-action="stage-edit"
                     @click="edit"
@@ -58,6 +52,10 @@
                             </span>
                         </div>
                     </router-link>
+                    <LockClosedIcon
+                        v-if="stage.instance?.protected?.enabled"
+                        class="ff-icon"
+                    />
                 </div>
                 <div v-if="stage.stageType == StageType.DEVICE" class="ff-pipeline-stage-type">
                     <router-link class="flex gap-2 items-center" :to="{name: 'Device', params: { id: stage.device.id }}">
