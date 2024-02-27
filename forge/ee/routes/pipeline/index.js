@@ -519,8 +519,8 @@ module.exports = async function (app) {
             // Only Owners can trigger a pipeline to a protected instance
             // Test before source snapshot is taken
             if (targetInstance) {
-                const protected = await targetInstance.getSetting(KEY_PROTECTED)
-                if (protected?.enabled && teamMembership.role !== Roles.Owner) {
+                const protectedInstance = await targetInstance.getSetting(KEY_PROTECTED)
+                if (protectedInstance?.enabled && teamMembership.role !== Roles.Owner) {
                     // reject
                     reply.code(403).send({ code: 'protected_instance', error: 'Only Owner can Deploy to target instance' })
                     repliedEarly = true
