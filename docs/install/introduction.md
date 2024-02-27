@@ -49,3 +49,16 @@ we recommend starting with the [Local model](/docs/install/local/README.md).
 
 If you are upgrading FlowFuse, please refer to the [Upgrade Guide](/docs/upgrade/README.md)
 for any specific actions required.
+
+## Do You Need Help? Installation Service
+
+If you need assistance, request our complimentary Installation Service, and we will help you install FlowFuse.
+
+<script charset="utf-8" type="text/javascript" src="//js-eu1.hsforms.net/forms/embed/v2.js"></script>
+<script>
+  hbspt.forms.create({
+    region: "eu1",
+    portalId: "26586079",
+    formId: "22edc659-d098-4767-aeb1-6480daae41ad"
+  });
+</script>
