@@ -14,16 +14,18 @@
             <template #input>&nbsp;</template>
         </FormRow>
         <template v-if="!isProtected">
-            <ff-button :disabled="!protectedFeatureAvailable" kind="secondary" date-nav="enable-protect" @click="enableProtected()">Enable Protected Mode</ff-button>
+            <ff-button :disabled="!isOwner" kind="secondary" date-nav="enable-protect" @click="enableProtected()">Enable Protected Mode</ff-button>
         </template>
         <template v-else>
-            <ff-button :disabled="!protectedFeatureAvailable" kind="secondary" data-nav="disable-protect" @click="disableProtected()">Disable Protected Mode</ff-button>
+            <ff-button :disabled="!isOwner" kind="secondary" data-nav="disable-protect" @click="disableProtected()">Disable Protected Mode</ff-button>
         </template>
     </template>
 </template>
 
 <script>
 import { mapState } from 'vuex'
+
+import { Roles } from '../../../../../forge/lib/roles.js'
 
 import InstanceApi from '../../../api/instances.js'
 
@@ -52,13 +54,18 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'features']),
+        ...mapState('account', ['team', 'teamMembership', 'features']),
         isProtected () {
             return this.instance?.protected?.enabled
         },
         protectedFeatureAvailable () {
             const flag = this.team.type.properties.features?.protectedInstance
             return flag === undefined || flag
+        },
+        isOwner () {
+            const flag = this.team.type.properties.features?.protectedInstance
+            const enabled = flag === undefined || flag
+            return this.teamMembership.role === Roles.Owner && enabled
         }
     },
     methods: {

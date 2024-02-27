@@ -410,7 +410,8 @@ module.exports = {
                             where: {
                                 [Op.or]: [
                                     { key: KEY_SETTINGS },
-                                    { key: KEY_HA }
+                                    { key: KEY_HA },
+                                    { key: KEY_PROTECTED }
                                 ]
                             },
                             required: false

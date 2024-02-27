@@ -142,6 +142,10 @@ module.exports = function (app) {
                 type: 'object',
                 additionalProperties: true
             },
+            protected: {
+                type: 'object',
+                additionalProperties: true
+            },
             mostRecentAuditLogCreatedAt: { type: 'string' },
             mostRecentAuditLogEvent: { type: 'string' }
         }
@@ -172,6 +176,10 @@ module.exports = function (app) {
         if (app.config.features.enabled('ha')) {
             const settingsHARow = project.ProjectSettings?.find(row => row.key === KEY_HA)
             result.ha = settingsHARow?.value || { disabled: true }
+        }
+        if (app.config.features.enabled('protectedInstance')) {
+            const settingsProtectedRow = project.ProjectSettings?.find(row => row.key === KEY_PROTECTED)
+            result.protected = settingsProtectedRow?.value || { enabled: false }
         }
         return result
     }
