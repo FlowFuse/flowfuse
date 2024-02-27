@@ -523,7 +523,6 @@ module.exports = async function (app) {
                 if (protected?.enabled && teamMembership.role !== Roles.Owner) {
                     // reject
                     reply.code(403).send({ code: 'protected_instance', error: 'Only Owner can Deploy to target instance' })
-                    console.log('not owner')
                     repliedEarly = true
                     return
                 }

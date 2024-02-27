@@ -2554,12 +2554,12 @@ describe('Pipelines API', function () {
         beforeEach(async function () {
             const factory = app.factory
 
-            await TestObjects.instanceTwo.updateProtectedInstanceState({enabled: true})
+            await TestObjects.instanceTwo.updateProtectedInstanceState({ enabled: true })
             TestObjects.stageTwo = await factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
         })
 
         after(async function () {
-            await TestObjects.instanceTwo.updateProtectedInstanceState({enabled: false})
+            await TestObjects.instanceTwo.updateProtectedInstanceState({ enabled: false })
         })
 
         it('should allow Owner to deploy to Protected Instance', async function () {
@@ -2568,7 +2568,6 @@ describe('Pipelines API', function () {
                 url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageOne.hashid}/deploy`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
-            
             response.statusCode.should.equal(200)
 
             await waitForDeployToComplete(TestObjects.instanceTwo)
