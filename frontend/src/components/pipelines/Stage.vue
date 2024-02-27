@@ -9,6 +9,12 @@
                 </span>
             </div>
             <div class="ff-pipeline-actions">
+                <span>
+                    <LockClosedIcon
+                        v-if="stage.instance?.protected?.enabled"
+                        class="ff-icon"
+                    />
+                </span>
                 <span
                     data-action="stage-edit"
                     @click="edit"
@@ -146,7 +152,7 @@
 </template>
 
 <script>
-import { ExclamationIcon, PencilAltIcon, PlayIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/outline'
+import { ExclamationIcon, LockClosedIcon, PencilAltIcon, PlayIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/outline'
 
 import PipelineAPI, { StageAction, StageType } from '../../api/pipeline.js'
 
@@ -171,6 +177,7 @@ export default {
         IconDeviceSolid,
         IconNodeRedSolid,
         InstanceStatusBadge,
+        LockClosedIcon,
         PencilAltIcon,
         PlayIcon,
         PlusCircleIcon,
