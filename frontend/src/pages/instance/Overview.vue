@@ -68,20 +68,6 @@
                                 </div>
                             </td>
                         </tr>
-                        <tr v-if="team.type.properties.features?.protectedInstance" class="border-b">
-                            <td class="font-medium">Protected Instance</td>
-                            <td class="py-2">
-                                <div class="flex">
-                                    <template v-if="instance.protected?.enabled">
-                                        <span>Enabled</span> <LockClosedIcon class="w-4" />
-                                    </template>
-                                    <template v-else>
-                                        <span>Disabled</span> <LockOpenIcon class="w-4" />
-                                    </template>
-                                    <router-link class="mt-0.5 ml-3" :to="{ name: 'InstanceSettingsProtect'}"><LinkIcon class="w-4" /></router-link>
-                                </div>
-                            </td>
-                        </tr>
                     </table>
                 </div>
                 <div class="ff-instance-info">
@@ -130,7 +116,7 @@
 </template>
 
 <script>
-import { ExternalLinkIcon, LinkIcon, LockClosedIcon, LockOpenIcon, ServerIcon, TemplateIcon, TrendingUpIcon } from '@heroicons/vue/outline'
+import { ExternalLinkIcon, LinkIcon, ServerIcon, TemplateIcon, TrendingUpIcon } from '@heroicons/vue/outline'
 
 import { mapState } from 'vuex'
 
@@ -150,8 +136,6 @@ export default {
         FormHeading,
         InstanceStatusBadge,
         LinkIcon,
-        LockClosedIcon,
-        LockOpenIcon,
         ServerIcon,
         StatusBadge,
         TemplateIcon,

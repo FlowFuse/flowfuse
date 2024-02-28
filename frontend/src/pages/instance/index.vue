@@ -17,6 +17,9 @@
                     <router-link v-if="instance.ha?.replicas !== undefined" :to="{name: 'InstanceSettingsHA', params: { id: instance.id }}" @click.stop>
                         <StatusBadge class="ml-2 text-gray-400 hover:text-blue-600" status="high-availability" />
                     </router-link>
+                    <router-link v-if="instance.protected?.enabled" :to="{ name: 'InstanceSettingsProtect'}" @click.stop>
+                        <StatusBadge class="ml-2 text-gray-400 hover:text-blue-600" status="protected" text="Protected" />
+                    </router-link>
                 </template>
                 <template #context>
                     Application:
