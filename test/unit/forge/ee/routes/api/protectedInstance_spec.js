@@ -1,10 +1,10 @@
-const setup = require('../../setup')
 const TestModelFactory = require('../../../../../lib/TestModelFactory.js')
+const setup = require('../../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 
-describe.only('Protected Instance API', function () {
+describe('Protected Instance API', function () {
     const TestObjects = {
         tokens: {},
         /** @type {TestModelFactory} */
@@ -41,12 +41,10 @@ describe.only('Protected Instance API', function () {
             email: 'bob@example.com',
             password: 'bbPassword'
         })
-
         await TestObjects.team.addUser(userBob, { through: { role: Roles.Member } })
 
         await login('alice', 'aaPassword')
         await login('bob', 'bbPassword')
-
     })
 
     after(async function () {
@@ -57,27 +55,42 @@ describe.only('Protected Instance API', function () {
         const response = await app.inject({
             method: 'PUT',
             url: `/api/v1/projects/${TestObjects.instance.id}/protectInstance`,
-            body: { enabled: true},
+            body: { enabled: true },
             cookies: { sid: TestObjects.tokens.alice }
         })
         response.statusCode.should.equal(200)
     })
-
-    it('Forbid Member to change protected status', async function () {
+    it('forbid Member to change protected status', async function () {
         const response = await app.inject({
             method: 'PUT',
             url: `/api/v1/projects/${TestObjects.instance.id}/protectInstance`,
-            body: { enabled: true},
+            body: { enabled: true },
             cookies: { sid: TestObjects.tokens.bob }
         })
         response.statusCode.should.equal(403)
     })
-
-    // const response = await app.inject({
-    //     method: 'DELETE',
-    //     url: `/api/vi/project/${TestObjects.instanceTwo.hashid}/protectedInstance`,
-    //     cookies: { sid: TestObjects.tokens.alice }
-    // })
-    // response.statusCode.should.equal(200)
-
+    it('allow Owner to clear protected status', async function () {
+        const response = await app.inject({
+            method: 'DELETE',
+            url: `/api/v1/projects/${TestObjects.instance.id}/protectInstance`,
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        response.statusCode.should.equal(200)
+    })
+    it('forbid Member to clear protected status', async function () {
+        const response = await app.inject({
+            method: 'DELETE',
+            url: `/api/v1/projects/${TestObjects.instance.id}/protectInstance`,
+            cookies: { sid: TestObjects.tokens.bob }
+        })
+        response.statusCode.should.equal(403)
+    })
+    it('allow Member to read protected status', async function () {
+        const response = await app.inject({
+            method: 'GET',
+            url: `/api/v1/projects/${TestObjects.instance.id}/protectInstance`,
+            cookies: { sid: TestObjects.tokens.bob }
+        })
+        response.statusCode.should.equal(200)
+    })
 })
