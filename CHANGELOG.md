@@ -1,3 +1,23 @@
+#### 2.1.1: Release
+
+ - Set disableRequestedAuthnContext in SAML strategy (#3519) @knolleary
+ - Installation Service (#3521) @MarianRaphael
+ - Implement instance auto snapshots (#3507) @Steve-Mcl
+ - Enforce username rules on create (#3514) @hardillb
+ - Bump sinon from 16.1.0 to 17.0.1 (#3497) @app/dependabot
+ - Improve logPassthrough documentation (#3506) @hardillb
+ - Fix NOT NULL constraint on `ProjectSnapshots.UserId` (#3503) @Steve-Mcl
+ - fix device editor tunnel status indicator (#3504) @Steve-Mcl
+ - Bump ip from 2.0.0 to 2.0.1 (#3505) @app/dependabot
+ - Add bug label to template (#3502) @MarianRaphael
+ - Update information about local PostgreSQL (#3493) @ppawlowski
+ - Update docker docs to new container names (#3492) @hardillb
+ - docs: Kube stacks %s/flowforge/flowfuse/ (#3386) @ZJvandeWeg
+ - Add the broker to the CSP allowed list (#3484) @hardillb
+ - Add timeout failure mode to Admin Settings access control (#3491) @hardillb
+ - Disable housekeeper in testing (#3483) @Pezmc
+ - Fix link in k8s updgrade instructions (#3489) @hardillb
+
 #### 2.1.0: Release
 
  - Implement device auto snapshot (#3481) @Steve-Mcl
