@@ -49,6 +49,11 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('project:edit')
     }, async (request, reply) => {
         await request.project.updateProtectedInstanceState({ enabled: request.body.enabled || {} })
+        if (request.body?.enabled) {
+            await app.auditLog.Project.project.protected(request.session.User, null, request.project)
+        } else {
+            await app.auditLog.Project.project.unprotected(request.session.User, null, request.project)
+        }
         reply.send(await request.project.getProtectedInstanceState() || { enabled: false })
     })
 
@@ -57,6 +62,7 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const existingProtected = await request.project.getProtectedInstanceState() || {}
         if (Object.hasOwn(existingProtected, 'enabled')) {
+            await app.auditLog.Project.project.unprotected(request.session.User, null, request.project)
             await request.project.updateProtectedInstanceState(undefined)
         } else {
             reply.send({})

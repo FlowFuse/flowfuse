@@ -69,7 +69,9 @@ const iconMap = {
         'project.start-failed',
         'project.stopped',
         'project.restarted',
-        'project.suspended'
+        'project.suspended',
+        'project.protected',
+        'project.unprotected'
     ],
     'project-types': [
         'platform.project-type.created',

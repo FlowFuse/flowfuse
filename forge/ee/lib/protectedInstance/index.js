@@ -2,16 +2,17 @@ const { KEY_PROTECTED } = require('../../../db/models/ProjectSettings')
 
 module.exports.init = function (app) {
     // Register protected instance feature flag
-    app.config.features.register('protectedInstance', true)
+    app.config.features.register('protectedInstance', true, true)
 
     /**
      * Check if Protected status allowed
      */
     async function isProtectedInstanceAllowed (team, projectType) {
         const teamType = await team.getTeamType()
-        if (!teamType.getFeatureProperty('protectedInstance', true)) {
-            return false
+        if (teamType.getFeatureProperty('protectedInstance', false)) {
+            return true
         }
+        return false
     }
 
     app.db.models.Project.prototype.getProtectedInstanceState = async function () {

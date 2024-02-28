@@ -68,7 +68,7 @@
                                 </div>
                             </td>
                         </tr>
-                        <tr class="border-b">
+                        <tr v-if="team.type.properties.features?.protectedInstance" class="border-b">
                             <td class="font-medium">Protected Instance</td>
                             <td class="py-2">
                                 <div class="flex">
@@ -175,7 +175,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
+        ...mapState('account', ['team', 'teamMembership']),
         instanceRunning () {
             return this.instance?.meta?.state === 'running'
         },

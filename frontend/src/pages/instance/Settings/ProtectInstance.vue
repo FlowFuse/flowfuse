@@ -7,8 +7,8 @@
             <template #description>
                 <p class="mb-3">
                     Protected Mode prevents all team members from editing flows directly.
-                    Only team Owners will be able to view the editor and trigger deployments
-                    to this instance using the Pipelines feature.
+                    All team members get Read Only access to the Node-RED Editor and only
+                    Team Owners can trigger a DevOps Pipeline deploy to the Instance
                 </p>
             </template>
             <template #input>&nbsp;</template>

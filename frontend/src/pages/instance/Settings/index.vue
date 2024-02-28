@@ -62,7 +62,7 @@ export default {
                 if (this.features.ha) {
                     this.sideNavigation.push({ name: 'High Availability', path: './ha' })
                 }
-                if (this.features.protectedInstance) {
+                if (this.features.protectedInstance && this.team.type.properties.features?.protectedInstance) {
                     this.sideNavigation.push({ name: 'Protect Instance', path: './protectInstance' })
                 }
                 this.sideNavigation.push({ name: 'Editor', path: './editor' })
