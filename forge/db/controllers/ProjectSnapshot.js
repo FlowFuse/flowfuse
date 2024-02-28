@@ -1,23 +1,34 @@
 const { Op } = require('sequelize')
 const DEVICE_AUTO_SNAPSHOT_LIMIT = 10
 const DEVICE_AUTO_SNAPSHOT_PREFIX = 'Auto Snapshot' // Any changes to the format should be reflected in frontend/src/pages/device/Snapshots/index.vue
+const DEPLOY_TYPE_ENUM = {
+    full: 'Full',
+    flows: 'Modified Flows',
+    nodes: 'Modified Nodes'
+}
+
+const autoSnapshotUtils = {
+    getPrefix: (item) => {
+        return item.constructor.name === 'Device' ? DEVICE_AUTO_SNAPSHOT_PREFIX : INSTANCE_AUTO_SNAPSHOT_PREFIX
+    },
+    getItemType: (item) => {
+        if (item.constructor.name === 'Project') {
+            return 'Instance'
+        }
+        return item.constructor.name
+    },
+    nameRegex: (prefix) => new RegExp(`^${prefix} - \\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$`), // e.g "Auto Snapshot - 2023-02-01 12:34:56"
+    generateName: (prefix) => `${prefix} - ${new Date().toLocaleString('sv-SE')}`, // "base - YYYY-MM-DD HH:MM:SS"
+    generateDescription: (prefix, itemType, deploymentType = '') => {
+        const deployInfo = DEPLOY_TYPE_ENUM[deploymentType]
+            ? `${DEPLOY_TYPE_ENUM[deploymentType]} deployment`
+            : 'deployment'
+        return `${itemType} ${prefix} taken following a ${deployInfo}`
+    }
+}
 
 const deviceAutoSnapshotUtils = {
-    deployTypeEnum: {
-        full: 'Full',
-        flows: 'Modified Flows',
-        nodes: 'Modified Nodes'
-    },
-    nameRegex: new RegExp(`^${DEVICE_AUTO_SNAPSHOT_PREFIX} - \\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$`), // e.g "Auto Snapshot - 2023-02-01 12:34:56"
-    prefix: DEVICE_AUTO_SNAPSHOT_PREFIX,
-    autoBackupLimit: DEVICE_AUTO_SNAPSHOT_LIMIT,
-    generateName: () => `${DEVICE_AUTO_SNAPSHOT_PREFIX} - ${new Date().toLocaleString('sv-SE')}`, // "base - YYYY-MM-DD HH:MM:SS"
-    generateDescription: (deploymentType = '') => {
-        const deployInfo = deviceAutoSnapshotUtils.deployTypeEnum[deploymentType]
-            ? `${deviceAutoSnapshotUtils.deployTypeEnum[deploymentType]} deployment`
-            : 'deployment'
-        return `Device ${deviceAutoSnapshotUtils.prefix} taken following a ${deployInfo}`
-    },
+    nameRegex: autoSnapshotUtils.nameRegex(DEVICE_AUTO_SNAPSHOT_PREFIX),
     isAutoSnapshot: function (snapshot) {
         return deviceAutoSnapshotUtils.nameRegex.test(snapshot.name)
     },
@@ -132,10 +143,11 @@ const deviceAutoSnapshotUtils = {
             if (!deviceAutoSnapshotEnabledForTeam) {
                 throw new Error('Device auto snapshot is not enabled for the team')
             }
-
+            const prefix = autoSnapshotUtils.getPrefix(device)
+            const itemType = autoSnapshotUtils.getItemType(device)
             const saneSnapshotOptions = {
-                name: deviceAutoSnapshotUtils.generateName(),
-                description: deviceAutoSnapshotUtils.generateDescription(deploymentType),
+                name: autoSnapshotUtils.generateName(prefix),
+                description: autoSnapshotUtils.generateDescription(prefix, itemType, deploymentType),
                 setAsTarget
             }
 
@@ -173,8 +185,173 @@ const deviceAutoSnapshotUtils = {
     }
 }
 
+const INSTANCE_AUTO_SNAPSHOT_LIMIT = 10
+const INSTANCE_AUTO_SNAPSHOT_PREFIX = 'Auto Snapshot' // Any changes to the format should be reflected in frontend/src/pages/device/Snapshots/index.vue
+
+const instanceAutoSnapshotUtils = {
+    nameRegex: autoSnapshotUtils.nameRegex(INSTANCE_AUTO_SNAPSHOT_PREFIX),
+    isAutoSnapshot: function (snapshot) {
+        return instanceAutoSnapshotUtils.nameRegex.test(snapshot.name)
+    },
+    /**
+     * Get all auto snapshots for a project instance
+     *
+     * NOTE: If a `limit` of 10 is provided and some of the snapshots are in use, the actual number of snapshots returned may be less than 10
+     * @param {Object} app - the forge application object
+     * @param {Object} project - a project (model) instance
+     * @param {boolean} [excludeInUse=true] - whether to exclude snapshots that are currently in use by a device, device group or pipeline stage device group
+     * @param {number} [limit=0] - the maximum number of snapshots to query in the database (0 means no limit)
+     */
+    getAutoSnapshots: async function (app, project, excludeInUse = true, limit = 0) {
+        // TODO: the snapshots table should really have a an indexed `type` column to distinguish between auto and manual snapshots
+        // for now, as per MVP, we'll use the name pattern to identify auto snapshots
+
+        // Get snapshots
+        const possibleAutoSnapshots = await app.db.models.ProjectSnapshot.findAll({
+            where: {
+                ProjectId: project.id,
+                // name: { [Op.regexp]: instanceAutoSnapshotUtils.nameRegex } // regex is not supported by sqlite!
+                name: { [Op.like]: `${INSTANCE_AUTO_SNAPSHOT_PREFIX} - %-%-% %:%:%` }
+            },
+            order: [['id', 'ASC']]
+        })
+
+        // Filter out any snapshots that don't match the regex
+        const autoSnapshots = possibleAutoSnapshots.filter(instanceAutoSnapshotUtils.isAutoSnapshot)
+
+        // if caller _wants_ all, including those "in use", we can just return here
+        if (!excludeInUse) {
+            return autoSnapshots
+        }
+        // utility function to remove items from an array
+        const removeFromArray = (baseList, removeList) => baseList.filter((item) => !removeList.includes(item))
+
+        // candidates for are those that are not in use
+        let candidateIds = autoSnapshots.map((snapshot) => snapshot.id)
+
+        // since we're excluding "in use" snapshots, we need to check the following tables:
+        // * project>settings>deviceSettings
+        // * device
+        // * device groups
+        // * pipeline stage device group
+        // If any of these snapshots are set as active/target, remove them from the candidates list
+
+        // Check `Devices` table
+        const query = {
+            where: {
+                [Op.or]: [
+                    { targetSnapshotId: { [Op.in]: candidateIds } }
+                ]
+            }
+        }
+        if (typeof limit === 'number' && limit > 0) {
+            query.limit = limit
+        }
+        const snapshotsInUseInDevices = await app.db.models.Device.findAll(query)
+        const inUseAsTarget = snapshotsInUseInDevices.map((device) => device.targetSnapshotId)
+        const inUseAsActive = snapshotsInUseInDevices.map((device) => device.activeSnapshotId)
+        candidateIds = removeFromArray(candidateIds, inUseAsTarget)
+        candidateIds = removeFromArray(candidateIds, inUseAsActive)
+
+        // Check `DeviceGroups` table
+        if (app.db.models.DeviceGroup) {
+            const snapshotsInUseInDeviceGroups = await app.db.models.DeviceGroup.findAll({
+                where: {
+                    targetSnapshotId: { [Op.in]: candidateIds }
+                }
+            })
+            const inGroupAsTarget = snapshotsInUseInDeviceGroups.map((group) => group.targetSnapshotId)
+            candidateIds = removeFromArray(candidateIds, inGroupAsTarget)
+        }
+
+        // Check `PipelineStageDeviceGroups` table
+        const isLicensed = app.license.active()
+        if (isLicensed && app.db.models.PipelineStageDeviceGroup) {
+            const snapshotsInUseInPipelineStage = await app.db.models.PipelineStageDeviceGroup.findAll({
+                where: {
+                    targetSnapshotId: { [Op.in]: candidateIds }
+                }
+            })
+            const inPipelineStageAsTarget = snapshotsInUseInPipelineStage.map((stage) => stage.targetSnapshotId)
+            candidateIds = removeFromArray(candidateIds, inPipelineStageAsTarget)
+        }
+
+        // check instance settings key for device settings
+        const instanceDeviceSettings = await project.getSetting('deviceSettings')
+        if (instanceDeviceSettings?.targetSnapshot) {
+            candidateIds = removeFromArray(candidateIds, [instanceDeviceSettings.targetSnapshot])
+        }
+
+        return autoSnapshots.filter((snapshot) => candidateIds.includes(snapshot.id))
+    },
+    cleanupAutoSnapshots: async function (app, project, limit = INSTANCE_AUTO_SNAPSHOT_LIMIT) {
+        // get all auto snapshots for the instance (where not in use)
+        const snapshots = await app.db.controllers.ProjectSnapshot.getInstanceAutoSnapshots(project, true, 0)
+        if (snapshots.length > limit) {
+            const toDelete = snapshots.slice(0, snapshots.length - limit).map((snapshot) => snapshot.id)
+            await app.db.models.ProjectSnapshot.destroy({ where: { id: { [Op.in]: toDelete } } })
+        }
+    },
+    doAutoSnapshot: async function (app, project, deploymentType, { clean = true, setAsTarget = false } = {}, meta) {
+        // eslint-disable-next-line no-useless-catch
+        try {
+            // if not permitted, throw an error
+            if (!project) {
+                throw new Error('Instance is required')
+            }
+            if (!app.config.features.enabled('instanceAutoSnapshot')) {
+                throw new Error('Instance auto snapshot feature is not available')
+            }
+
+            const teamType = await project.Team.getTeamType()
+            const deviceAutoSnapshotEnabledForTeam = teamType.getFeatureProperty('instanceAutoSnapshot', false)
+            if (!deviceAutoSnapshotEnabledForTeam) {
+                throw new Error('Instance auto snapshot is not enabled for the team')
+            }
+            const prefix = autoSnapshotUtils.getPrefix(project)
+            const itemType = autoSnapshotUtils.getItemType(project)
+            const saneSnapshotOptions = {
+                name: autoSnapshotUtils.generateName(prefix),
+                description: autoSnapshotUtils.generateDescription(prefix, itemType, deploymentType),
+                setAsTarget
+            }
+
+            // things to do & consider:
+            // 1. create a snapshot from the instance
+            // 2. log the snapshot creation in audit log
+            // 3. delete older auto snapshots if the limit is reached (10)
+            //    do NOT delete any snapshots that are currently in use by an target (instance/device/device group)
+            const user = meta?.user || { id: null } // if no user is available, use `null` (system user)
+
+            // 1. create a snapshot from the instance
+            const snapShot = await app.db.controllers.ProjectSnapshot.createSnapshot(
+                project,
+                user,
+                saneSnapshotOptions
+            )
+            snapShot.User = user
+
+            // 2. log the snapshot creation in audit log
+            // TODO: project snapshot: implement audit log
+            // await projectAuditLogger.project.snapshot.created(request.session.User, null, request.project, snapShot)
+
+            // 3. clean up older auto snapshots
+            if (clean === true) {
+                await app.db.controllers.ProjectSnapshot.cleanupInstanceAutoSnapshots(project)
+            }
+
+            return snapShot
+        } catch (error) {
+            // TODO: project snapshot:  implement audit log
+            // await projectAuditLogger.project.snapshot.created(request.session.User, error, request.project, null)
+            throw error
+        }
+    }
+}
+
 // freeze the object to prevent accidental changes
 Object.freeze(deviceAutoSnapshotUtils)
+Object.freeze(instanceAutoSnapshotUtils)
 
 module.exports = {
     /**
@@ -348,10 +525,13 @@ module.exports = {
         return result
     },
 
-    getDeviceAutoSnapshotDescription: deviceAutoSnapshotUtils.generateDescription,
-    getDeviceAutoSnapshotName: deviceAutoSnapshotUtils.generateName,
     getDeviceAutoSnapshots: deviceAutoSnapshotUtils.getAutoSnapshots,
     isDeviceAutoSnapshot: deviceAutoSnapshotUtils.isAutoSnapshot,
     cleanupDeviceAutoSnapshots: deviceAutoSnapshotUtils.cleanupAutoSnapshots,
-    doDeviceAutoSnapshot: deviceAutoSnapshotUtils.doAutoSnapshot
+    doDeviceAutoSnapshot: deviceAutoSnapshotUtils.doAutoSnapshot,
+
+    getInstanceAutoSnapshots: instanceAutoSnapshotUtils.getAutoSnapshots,
+    isInstanceAutoSnapshot: instanceAutoSnapshotUtils.isAutoSnapshot,
+    cleanupInstanceAutoSnapshots: instanceAutoSnapshotUtils.cleanupAutoSnapshots,
+    doInstanceAutoSnapshot: instanceAutoSnapshotUtils.doAutoSnapshot
 }
