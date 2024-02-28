@@ -11,6 +11,7 @@
             <div class="ff-pipeline-actions">
                 <span
                     data-action="stage-edit"
+                    v-ff-tooltip:right="'Edit Pipeline Stage'"
                     @click="edit"
                 >
                     <PencilAltIcon
@@ -20,6 +21,7 @@
                 </span>
                 <span
                     data-action="stage-delete"
+                    v-ff-tooltip:right="'Delete Pipeline Stage'"
                     @click="deleteStage"
                 >
                     <TrashIcon
@@ -31,6 +33,7 @@
                     v-if="stage.stageType !== StageType.DEVICEGROUP"
                     data-action="stage-run"
                     :class="{'ff-disabled': !playEnabled || !pipeline?.id || deploying || inDeveloperMode}"
+                    v-ff-tooltip:right="'Run Pipeline Stage'"
                     @click="runStage"
                 >
                     <PlayIcon
@@ -52,10 +55,6 @@
                             </span>
                         </div>
                     </router-link>
-                    <LockClosedIcon
-                        v-if="stage.instance?.protected?.enabled"
-                        class="ff-icon"
-                    />
                 </div>
                 <div v-if="stage.stageType == StageType.DEVICE" class="ff-pipeline-stage-type">
                     <router-link class="flex gap-2 items-center" :to="{name: 'Device', params: { id: stage.device.id }}">
@@ -134,6 +133,12 @@
                         Prompt to select snapshot
                     </template>
                 </span>
+            </div>
+            <div v-if="stage.instance?.protected?.enabled" class="ff-pipeline-stage-row">
+                <label>Instance Protected:</label>
+                <div v-ff-tooltip:right="'Instance Protected'">
+                    <LockClosedIcon class="ff-icon" />
+                </div>
             </div>
         </div>
         <div v-else class="flex justify-center py-6">No Instance or Device Bound</div>
