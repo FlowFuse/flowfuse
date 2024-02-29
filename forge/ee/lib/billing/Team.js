@@ -197,8 +197,37 @@ module.exports = function (app) {
      * Gets counts of instance types in this team that are billable
      * @returns object
      */
-
     app.db.models.Team.prototype.getBillableInstanceCountByType = async function () {
         return await this.instanceCountByType({ state: { [Op.notIn]: ['suspended', 'deleting'] } })
+    }
+
+    // Overload the default checkDeviceCreateAllowed to add EE/billing checks
+    // Move the base function sideways
+    app.db.models.Team.prototype._checkDeviceCreateAllowed = app.db.models.Team.prototype.checkDeviceCreateAllowed
+    /**
+     * Overloads the default checkDeviceCreateAllowed to include billing
+     * and trial checks
+     */
+    app.db.models.Team.prototype.checkDeviceCreateAllowed = async function () {
+        // First do base checks. This will throw an error if instanceType limit
+        // has been reached
+        await this._checkDeviceCreateAllowed()
+
+        const subscription = await this.getSubscription()
+        if (subscription) {
+            if (subscription.isActive() || subscription.isUnmanaged()) {
+                // Billing setup - allowed to create projects
+                return
+            }
+            if (subscription.isTrial() && !subscription.isTrialEnded()) {
+                // Trial mode - no billing setup yet
+                return
+            }
+        }
+        // Every valid check will have returned before now.
+        const err = new Error()
+        err.code = 'billing_required'
+        err.error = 'Team billing not configured'
+        throw err
     }
 }

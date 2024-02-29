@@ -234,13 +234,15 @@ module.exports = async function (app) {
             team = teamMembership.get('Team')
         }
 
-        const teamDeviceLimit = await team.getDeviceLimit()
-        if (teamDeviceLimit > -1) {
-            const currentDeviceCount = await team.deviceCount()
-            if (currentDeviceCount >= teamDeviceLimit) {
-                reply.code(400).send({ code: 'device_limit_reached', error: 'Team device limit reached' })
-                return
-            }
+        try {
+            await team.checkDeviceCreateAllowed()
+        } catch (err) {
+            return reply
+                .code(err.statusCode || 400)
+                .send({
+                    code: err.code || 'unexpected_error',
+                    error: err.error || err.message
+                })
         }
 
         try {

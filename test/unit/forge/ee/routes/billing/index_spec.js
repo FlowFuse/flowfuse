@@ -1,3 +1,5 @@
+const sleep = require('util').promisify(setTimeout)
+
 const should = require('should')
 const sinon = require('sinon')
 
@@ -938,6 +940,44 @@ describe('Billing routes', function () {
                         reject(err)
                     }
                 }, START_DELAY + 150)
+            })
+        })
+        describe('Create Device', function () {
+            it('Fails to create device if billing is not setup', async function () {
+                const noBillingTeam = await app.factory.createTeam({ name: generateName('noBillingTeam') })
+                await noBillingTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/devices',
+                    body: {
+                        name: 'my device',
+                        type: 'test device',
+                        team: noBillingTeam.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(400)
+                const result = response.json()
+                result.should.have.property('code', 'billing_required')
+            })
+            it('Creates device if billing is setup', async function () {
+                // TestObjects.ATeam already has a subscription created via ../../setup
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/devices',
+                    body: {
+                        name: 'my device',
+                        type: 'test device',
+                        team: TestObjects.ATeam.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                // The billing update happens async to the response - so let that happen
+                await sleep(100)
+                // Check we updated stripe
+                stripe.subscriptions.update.called.should.be.true()
             })
         })
 

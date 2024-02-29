@@ -12,7 +12,9 @@ async function setup (config = {}) {
         billing: {
             stripe: {
                 key: 1234,
-                new_customer_free_credit: 1000
+                new_customer_free_credit: 1000,
+                device_price: 'd123',
+                device_product: 'd456'
             }
         },
         ...config
