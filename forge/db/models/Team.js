@@ -339,6 +339,18 @@ module.exports = {
                     await this.ensureTeamTypeExists()
                     return this.TeamType.getProperty('devices.limit', -1)
                 },
+                checkDeviceCreateAllowed: async function () {
+                    const deviceLimit = await this.getDeviceLimit()
+                    if (deviceLimit > -1) {
+                        const currentDeviceCount = await this.deviceCount()
+                        if (currentDeviceCount >= deviceLimit) {
+                            const err = new Error()
+                            err.code = 'device_limit_reached'
+                            err.error = 'Team device limit reached'
+                            throw err
+                        }
+                    }
+                },
                 isInstanceTypeAvailable: async function (instanceType) {
                     await this.ensureTeamTypeExists()
                     return this.TeamType.getInstanceTypeProperty(instanceType, 'active', false)
