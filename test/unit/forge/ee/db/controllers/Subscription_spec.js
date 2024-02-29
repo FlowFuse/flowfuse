@@ -3,7 +3,7 @@ const setup = require('../../setup')
 
 describe('Subscription controller', function () {
     let app
-    let stripe
+
     beforeEach(async function () {
         setup.setupStripe()
         app = await setup()
