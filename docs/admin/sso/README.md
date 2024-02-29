@@ -156,6 +156,8 @@ FlowFuse Setting | Entra Setting
 
 Within the `SAML Signing Certificate` configuration, the `Signing Option` must be set to `Sign SAML response and assertion`.
 
+The `Unique User Identifier (Name ID)` claim must be configured to return the value of the `user.mail` source attribute.
+
 #### Group Membership Configuration
 
 By default, when enabled, Entra will share group assertions under the name `http://schemas.microsoft.com/ws/2008/06/identity/claims/groups` and provides the groups as a list of object ids.
@@ -223,4 +225,32 @@ SAML 2.0 configuration. Expand the 'Attributes' section and add a `Group Attribu
 
 The name must match the `Group Assertion Name` in the FlowFuse SSO configuration (default: `ff-roles`).
 You can optionally add a filter of `ff-` so that it only returns groups used by FlowFuse.
+
+
+### Keycloak
+
+Within your Keycloak Admin Console, create a new Client with the following settings:
+
+Under the General Settings:
+ - Set `Client type` to `SAML`
+ - Set the `Client ID` to the `Entity ID / Issuer` value from the FlowFuse SSO configuration.
+
+Under the Login Settings:
+ - Set `Valid redirect URIs` to the `ACS URL` value from the FlowFuse SSO configuration.
+
+Once created and you are shown the full client configuration, make the following additional changes:
+ - Set `Name ID format` to `email`
+
+Save the changes.
+
+Next, select the 'Download adapter config' option under the 'Action' dropdown menu. Select the
+'Mod Auth Mellon files' format and click Download.
+
+This will download a zip file. Extract the zip and open the `idp-metadata.xml` file in a text editor.
+
+The final task is to copy some of the contents of the XML file into the FlowFuse SSO configuration.
+
+ - Copy the value of the `entityID` attribute into the `Identity Provider Issuer ID / URL` property
+ - Find one of the `md:SingleSignOnService` tags and copy the value of its `Location` attribute into the `Identity Provider Single Sign-On URL` property
+ - Copy the contents of the `ds:X509Certificate` tag into the `X.509 Certificate Public Key` property
 
