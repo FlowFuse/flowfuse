@@ -183,7 +183,7 @@ Request move to production from sandbox (need to include examples of emails bein
 ```
 
 ```bash
-IAM_POLICY_ARN=$(aws iam create-policy --policy-name FlowForgeSendEmail --policy-document file://ses_policy.json | jq -r .Policy.Arn)
+IAM_POLICY_ARN=$(aws iam create-policy --policy-name FlowForgeSendEmail --policy-document file://ses_policy.json --output json | jq -r .Policy.Arn)
 ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
 OIDC_PROVIDER=$(aws eks describe-cluster --name flowforge --query "cluster.identity.oidc.issuer" --output text | sed -e "s/^https:\/\///")
 
