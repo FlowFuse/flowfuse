@@ -10,7 +10,7 @@ const isObject = (obj) => {
  * @param {{ error?, team?, project?, sourceProject?, targetProject?, device?, sourceDevice?, targetDevice?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, pipeline?, pipelineStage?, pipelineStageTarget?, role?, projectType?, info?, deviceGroup?, interval?, threshold? } == {}} objects objects to include in body
  * @returns {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, pipeline?, pipelineStage?, pipelineStageTarget?, role?, projectType? info?, deviceGroup?, interval?, threshold? }}
  */
-const generateBody = ({ error, team, application, project, sourceProject, targetProject, device, sourceDevice, targetDevice, user, stack, billingSession, subscription, license, updates, snapshot, pipeline, pipelineStage, pipelineStageTarget, role, projectType, info, deviceGroup, interval, threshold } = {}) => {
+const generateBody = ({ error, team, application, project, sourceProject, targetProject, device, sourceDevice, targetDevice, user, stack, billingSession, subscription, license, updates, snapshot, pipeline, pipelineStage, pipelineStageTarget, role, projectType, info, deviceGroup, interval, threshold, token } = {}) => {
     const body = {}
 
     if (isObject(error) || typeof error === 'string') {
@@ -87,6 +87,10 @@ const generateBody = ({ error, team, application, project, sourceProject, target
         body.deviceGroup = deviceGroupObject(deviceGroup)
     }
 
+    if (isObject(token)) {
+        body.token = token
+    }
+
     if (interval) {
         body.interval = interval
     }
@@ -161,7 +165,8 @@ const formatLogEntry = (auditLogDbRow) => {
                 pipelineStage: body?.pipelineStage,
                 pipelineStageTarget: body?.pipelineStageTarget,
                 interval: body?.interval,
-                threshold: body?.threshold
+                threshold: body?.threshold,
+                token: body?.token
             })
 
             // if body has the keys:  `key`, `scope`, and `store` AND `store` === 'memory' or 'persistent'
