@@ -60,6 +60,10 @@ metadata:
 iam:
   withOIDC: true
 
+addons:
+  - name: aws-ebs-csi-driver
+    resolveConflicts: overwrite
+
 nodeGroups:
   - name: management
     labels:
@@ -71,7 +75,7 @@ nodeGroups:
       allow: false
     iam:
       withAddonPolicies:
-        efs: true
+        ebs: true
   - name: instance
     labels: 
       role: "projects"
