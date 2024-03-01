@@ -57,6 +57,9 @@ metadata:
   name: FlowFuse
   region: eu-west-1
 
+iam:
+  withOIDC: true
+
 nodeGroups:
   - name: management
     labels:
@@ -80,11 +83,6 @@ nodeGroups:
     volumeSize:
     ssh:
       allow: false
-```
-
-Add OIDC provider for the Load Balancer and IAM roles
-```bash
-eksctl utils associate-iam-oidc-provider --cluster flowforge --approve
 ```
 
 ## Ingress Controller
