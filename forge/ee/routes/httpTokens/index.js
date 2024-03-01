@@ -44,24 +44,49 @@ module.exports = async function (app) {
     app.post('/', {
         preHandler: app.needsPermission('project:edit')
     }, async (request, reply) => {
-        const body = request.body
-        const token = await app.db.controllers.AccessToken.createHTTPNodeToken(request.project, body.name, body.scope, body.expiresAt)
-        reply.send(token || {})
+        try {
+            const body = request.body
+            const token = await app.db.controllers.AccessToken.createHTTPNodeToken(request.project, body.name, body.scope, body.expiresAt)
+            await app.auditLog.Project.project.httpToken.created(request.session.User, null, request.project, body)
+            reply.send(token || {})
+        } catch (err) {
+            const resp = { code: 'unexpected_error', error: err.toString() }
+            reply.code(400).send(resp)
+        }updatedAt
     })
 
     app.put('/:id', {
         preHandler: app.needsPermission('project:edit')
     }, async (request, reply) => {
-        const body = request.body
-        const token = await app.db.controllers.AccessToken.updateHTTPNodeToken(request.project, request.params.id, body.scope, body.expiresAt)
-        delete token.token
-        reply.send(token || {})
+        const updates = new app.auditLog.formatters.UpdatesCollection()
+        try {            
+            const id = isNaN(parseInt(request.params.id)) ? tokenId : parseInt(request.params.id)
+            const oldToken = await app.db.models.AccessToken.byId(id)
+            const body = request.body
+            const token = await app.db.controllers.AccessToken.updateHTTPNodeToken(request.project, request.params.id, body.scope, body.expiresAt)
+            updates.pushDifferences({ expiresAt: oldToken.expiresAt, scope: oldToken.scope.join(',') }, { expiresAt: body.expiresAt, scope: body.scope })
+            await app.auditLog.Project.project.httpToken.updated(request.session.User, null, request.project, updates)
+            delete token.token
+            reply.send(token || {})
+        } catch (err) {
+            const resp = { code: 'unexpected_error', error: err.toString() }
+            reply.code(400).send(resp)
+        }
     })
 
     app.delete('/:id', {
         preHandler: app.needsPermission('project:edit')
     }, async (request, reply) => {
-        await app.db.controllers.AccessToken.revokeHTTPNodeToken(request.project, request.params.id)
-        reply.send({})
+        // const updates = new app.auditLog.formatters.UpdatesCollection()
+        try {
+            const id = isNaN(parseInt(request.params.id)) ? tokenId : parseInt(request.params.id)
+            const oldToken = await app.db.models.AccessToken.byId(id)
+            await app.db.controllers.AccessToken.revokeHTTPNodeToken(request.project, request.params.id)
+            await app.auditLog.Project.project.httpToken.deleted(request.session.User, null, request.project, { name: oldToken.name })
+            reply.code(201).send()
+        } catch (err) {
+            const resp = { code: 'unexpected_error', error: err.toString() }
+            reply.code(400).send(resp)
+        }
     })
 }
