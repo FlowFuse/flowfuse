@@ -52,15 +52,15 @@ module.exports = async function (app) {
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
             reply.code(400).send(resp)
-        }updatedAt
+        }
     })
 
     app.put('/:id', {
         preHandler: app.needsPermission('project:edit')
     }, async (request, reply) => {
         const updates = new app.auditLog.formatters.UpdatesCollection()
-        try {            
-            const id = isNaN(parseInt(request.params.id)) ? tokenId : parseInt(request.params.id)
+        try {
+            const id = isNaN(parseInt(request.params.id)) ? request.params.id : parseInt(request.params.id)
             const oldToken = await app.db.models.AccessToken.byId(id)
             const body = request.body
             const token = await app.db.controllers.AccessToken.updateHTTPNodeToken(request.project, request.params.id, body.scope, body.expiresAt)
@@ -77,9 +77,8 @@ module.exports = async function (app) {
     app.delete('/:id', {
         preHandler: app.needsPermission('project:edit')
     }, async (request, reply) => {
-        // const updates = new app.auditLog.formatters.UpdatesCollection()
         try {
-            const id = isNaN(parseInt(request.params.id)) ? tokenId : parseInt(request.params.id)
+            const id = isNaN(parseInt(request.params.id)) ? request.params.id : parseInt(request.params.id)
             const oldToken = await app.db.models.AccessToken.byId(id)
             await app.db.controllers.AccessToken.revokeHTTPNodeToken(request.project, request.params.id)
             await app.auditLog.Project.project.httpToken.deleted(request.session.User, null, request.project, { name: oldToken.name })
