@@ -108,6 +108,17 @@ module.exports = {
                         attributes: ['id', 'name', 'scope', 'expiresAt']
                     })
                     return tokens
+                },
+                getProjectHTTPTokens: async (project) => {
+                    const tokens = this.findAll({
+                        where: {
+                            ownerType: 'http',
+                            ownerId: '' + project.id
+                        },
+                        order: [['id', 'ASC']],
+                        attributes: ['id', 'name', 'scope', 'expiresAt']
+                    })
+                    return tokens
                 }
             },
             instance: {
