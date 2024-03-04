@@ -42,11 +42,9 @@ module.exports = {
             for (let i = 0; i < userSessions.length; i++) {
                 const token = userSessions[i].accessToken
                 try {
-                    console.log("revoking token", token)
                     await app.containers.revokeUserToken(instance, token)
                 } catch (error) {
-                    console.log(error)
-                    app.log.warn(`Failed to revoke token for Instance ${instanceId}: ${error.toString()}`) // log error but continue to delete session
+                    app.log.warn(`Failed to revoke token for Instance ${instance.id}: ${error.toString()}`) // log error but continue to delete session
                 }
             }
             sessions.session = '{}'

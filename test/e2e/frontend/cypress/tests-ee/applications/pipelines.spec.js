@@ -724,7 +724,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
     it('can not push to a protected instance', () => {
         cy.intercept('GET', '/api/v1/applications/*/pipelines').as('getPipelines')
         cy.intercept('POST', '/api/v1/pipelines').as('createPipeline')
-        
+
         // Protect Instance
         cy.visit(`/application/${application.id}`)
         cy.get('[data-el="cloud-instances"] table tbody tr:nth-of-type(2)').click()
@@ -732,7 +732,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.get('[data-el="section-side-menu"] li:nth-of-type(4)').click()
         cy.get('[data-nav="enable-protect"]').click()
 
-        cy.get('div.forge-badge.forge-status-protected')
+        cy.get('[data-el="protected-pill"]')
 
         cy.get('[data-nav="disable-protect"]')
 
@@ -800,7 +800,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.visit(`/application/${application.id}/pipelines`)
         cy.wait('@getPipelines')
-        
+
         // Tidy Up
         cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
             cy.contains('Stage 1')
