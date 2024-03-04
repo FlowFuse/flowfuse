@@ -389,7 +389,7 @@ async function init (app, opts) {
             return
         }
 
-        if (/^(admin|root)$/.test(request.body.username) || !/^[a-z0-9-_]+$/.test(request.body.username)) {
+        if (/^(admin|root)$/.test(request.body.username) || !/^[a-z0-9-_]+$/i.test(request.body.username)) {
             const resp = { code: 'invalid_username', error: 'invalid username' }
             await app.auditLog.User.account.register(userInfo, resp, userInfo)
             reply.code(400).send(resp)
