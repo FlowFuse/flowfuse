@@ -57,6 +57,13 @@ metadata:
   name: FlowFuse
   region: eu-west-1
 
+iam:
+  withOIDC: true
+
+addons:
+  - name: aws-ebs-csi-driver
+    resolveConflicts: overwrite
+
 nodeGroups:
   - name: management
     labels:
@@ -68,7 +75,7 @@ nodeGroups:
       allow: false
     iam:
       withAddonPolicies:
-        efs: true
+        ebs: true
   - name: instance
     labels: 
       role: "projects"
@@ -82,18 +89,13 @@ nodeGroups:
       allow: false
 ```
 
-Add OIDC provider for the Load Balancer and IAM roles
-```bash
-eksctl utils associate-iam-oidc-provider --cluster flowforge --approve
-```
-
 ## Ingress Controller
 
 ### Nginx Ingress
 
 It is recommended to run the Nginx Ingress controller even on AWS EKS (The AWS ALB load balancer currently appears to only support up to 100 Ingress Targets which limits the number of Instance/Projects that can be run).
 
-Create a `nginx-values.ymal` file to pass the values to the nginx helm file.
+Create a `nginx-values.yaml` file to pass the values to the nginx helm file.
 
 You will need to replace the ARN for the SSL certificate created earlier
 
@@ -185,7 +187,7 @@ Request move to production from sandbox (need to include examples of emails bein
 ```
 
 ```bash
-IAM_POLICY_ARN=$(aws iam create-policy --policy-name FlowForgeSendEmail --policy-document file://ses_policy.json | jq -r .Policy.Arn)
+IAM_POLICY_ARN=$(aws iam create-policy --policy-name FlowForgeSendEmail --policy-document file://ses_policy.json --output json | jq -r .Policy.Arn)
 ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
 OIDC_PROVIDER=$(aws eks describe-cluster --name flowforge --query "cluster.identity.oidc.issuer" --output text | sed -e "s/^https:\/\///")
 
