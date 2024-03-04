@@ -21,9 +21,11 @@ module.exports.init = function (app) {
 
     app.db.models.Project.prototype.updateProtectedInstanceState = async function (protectedConfig) {
         if (!protectedConfig) {
+            app.db.controllers.StorageSession.removeAllUsersFromInstance(this)
             return this.removeSetting(KEY_PROTECTED)
         }
         if (Object.hasOwn(protectedConfig, 'enabled')) {
+            app.db.controllers.StorageSession.removeAllUsersFromInstance(this)
             return this.updateSetting(KEY_PROTECTED, protectedConfig)
         }
     }

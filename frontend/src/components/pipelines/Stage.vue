@@ -134,7 +134,7 @@
                     </template>
                 </span>
             </div>
-            <div v-if="stage.instance?.protected?.enabled" class="ff-pipeline-stage-row">
+            <div v-if="stage.instance?.protected?.enabled" class="ff-pipeline-stage-row" data-el="protected-marker">
                 <label>Instance Protected:</label>
                 <div v-ff-tooltip:right="'Only Team Owner can deploy to this Instance'">
                     <LockClosedIcon class="ff-icon" />

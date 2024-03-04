@@ -14,7 +14,7 @@
             <template #input>&nbsp;</template>
         </FormRow>
         <template v-if="!isProtected">
-            <ff-button :disabled="!isOwner" kind="secondary" date-nav="enable-protect" @click="enableProtected()">Enable Protected Mode</ff-button>
+            <ff-button :disabled="!isOwner" kind="secondary" data-nav="enable-protect" @click="enableProtected()">Enable Protected Mode</ff-button>
         </template>
         <template v-else>
             <ff-button :disabled="!isOwner" kind="secondary" data-nav="disable-protect" @click="disableProtected()">Disable Protected Mode</ff-button>
