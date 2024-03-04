@@ -164,7 +164,25 @@ module.exports = async function (app) {
                 properties: {
                     name: { type: 'string' },
                     description: { type: 'string' },
-                    flows: { type: 'array', items: { type: 'object' } },
+                    flows: {
+                        oneOf: [
+                            {
+                                // This format matches the snapshot object in the database, the schema `ExportedSnapshot` and the
+                                // original snapshot object format returned by `createSnapshot` function in `controllers/ProjectSnapshot.js`
+                                type: 'object',
+                                properties: {
+                                    flows: { type: 'array', items: { type: 'object' } },
+                                    credentials: { type: 'object' }
+                                }
+                            },
+                            {
+                                // Alt API format
+                                // This format matches the format of the exported project object created by `exportProject` function in `controllers/Project.js`
+                                // and supports the format expected by `createSnapshot` function in `services/snapshots.js`
+                                type: 'array', items: { type: 'object' }
+                            }
+                        ]
+                    },
                     credentials: { type: 'object' },
                     credentialSecret: { type: 'string' },
                     settings: {
