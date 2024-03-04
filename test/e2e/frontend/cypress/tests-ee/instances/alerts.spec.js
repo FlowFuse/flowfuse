@@ -28,7 +28,7 @@ describe('FlowFuse EE - Instance - Alerts', () => {
         navigateToInstanceSettings('BTeam', 'instance-2-1')
 
         // check Alerts in list and click
-        cy.get('[data-el="section-side-menu"] li').should('have.length', 7)
+        cy.get('[data-el="section-side-menu"] li').should('have.length', 8)
         cy.get('[data-el="section-side-menu"] li:last a').contains('Alerts')
         cy.get('[data-el="section-side-menu"] li:last').click()
 
