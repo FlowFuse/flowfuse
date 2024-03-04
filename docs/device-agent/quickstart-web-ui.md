@@ -1,6 +1,6 @@
 ---
-navTitle: Quick Start
-navOrder: 2
+navTitle: Quick Start with Web UI
+navOrder: 3
 ---
 
 # Developing Flows on Your Device
@@ -13,7 +13,6 @@ If you do not already have the device agent installed, follow the [install instr
 
 _NOTE: It is good practice to keep your Device Agent up to date. Update instructions are also provided in the link above._
 
-_NOTE: If you do not have access to a terminal, follow the [Quick Start with Web UI](./quickstart-web-ui.md) guide._
 
 ### Step 1: Add a new Device
 1. Open your web browser and go to your FlowFuse application page.
@@ -21,20 +20,26 @@ _NOTE: If you do not have access to a terminal, follow the [Quick Start with Web
 3. Click **Add Device.**
 4. Fill in the **Device Name** & **Device Type** and select an **Application**
 
-    <img src="images/add_device.png" />
+    <img src="images/add_device.png" width=500 />
 6. Click **Add**
 7. You will be presented with a **Device Configuration** that you will need in the next step. _(Do not close this window just yet.)_
 
-    <img src="images/config_yml2a.png"/>
+    <img src="images/config_yml2.png" width=500 />
 
-### Step 2: Connect the Device
-1. Open a Terminal/Command Prompt.
-2. Paste the command copied from the previous step and run it.
+### Step 2: Start the Device Agent with the Web UI enabled
+1. If you have access to a Terminal/Command Prompt and run the following command:
+    ```bash
+    flowfuse-device-agent --ui --ui-user admin --ui-pass password --ui-port 8081
+    ```
+    _You can find more details about the Device Agent flags [here](https://flowfuse.com/docs/device-agent/running/)_
+2. If the Device Agent is pre-installed on your hardware, follow the manufacturers instructions to start the device agent with the Web UI enabled.
+3. Copy the device configuration from the previous step and paste it into the **Agent Configuration** field. 
 
-    <img src="images/device_cli.png" />
+   <img src="images/device_gui.png" width=500 />
+
+4. Click `Apply.`
 
 Your device is now added to FlowFuse and ready to be used.
-
 
 ## Develop on Device
 ### Enable Developer Mode
@@ -51,13 +56,11 @@ Your device is now added to FlowFuse and ready to be used.
 
 7. Clicking **Device Editor** will launch the editor.
 
-    <img src="images/nr_editor.png" />
-
+    <img src="images/nr_editor.png" width=500 />
 
 ## Next Steps
 
-Now you have a device connected to the platform, there are many features you can use to manage and monitor your devices.
-Here are a few to get you started:
+Now you have a device connected to the platform, there are many features you can use to manage and monitor your devices.  Here are a few to get you started:
 
 * [Snapshots](../user/snapshots.md)
 * [Pipelines](../user/devops-pipelines.md)
