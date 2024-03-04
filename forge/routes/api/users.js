@@ -174,7 +174,7 @@ module.exports = async function (app) {
             email: request.body.email,
             admin: !!request.body.isAdmin
         }
-        if (/^(admin|root)$/.test(request.body.username) || !/^[a-z0-9-_]+$/.test(request.body.username)) {
+        if (/^(admin|root)$/.test(request.body.username) || !/^[a-z0-9-_]+$/i.test(request.body.username)) {
             const resp = { code: 'invalid_username', error: 'invalid username' }
             await app.auditLog.User.users.userCreated(request.session.User, resp, logUserInfo)
             reply.code(400).send(resp)
