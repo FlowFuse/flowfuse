@@ -29,9 +29,8 @@ contains all the information needed to connect the device to the platform.
 By default, you are offered the [Setup command](#setup-command-method) method that was introduced in FlowFuse V2.1.
 <img src="images/config_yml1.png" width=500 />
 
-For older versions of the device agent, you can expand the the **Manual Setup** section
-and use the configuration data with the [Copy](#copy-method) or the [Download](#download-method) methods instead.
-<img src="images/config_yml2.png" width=500 />
+_For older versions of the device agent, you can expand the the **Manual Setup** section
+and use the configuration data with the [Copy](#copy-method) or the [Download](#download-method) methods instead._
 
 Repeat these steps for each device you want to connect to the platform.
 
