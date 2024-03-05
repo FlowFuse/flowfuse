@@ -13,7 +13,7 @@ If you do not already have the device agent installed, follow the [install instr
 
 _NOTE: It is good practice to keep your Device Agent up to date. Update instructions are also provided in the link above._
 
-_NOTE: If you do not have access to a terminal, follow the [Quick Start with Web UI](./quickstart-web-ui.md) guide._
+_NOTE: If you prefer to use the Device Agent WEB UI, follow the [Quick Start with Web UI](./quickstart-web-ui.md) guide._
 
 ### Step 1: Add a new Device
 1. Open your web browser and go to your FlowFuse application page.
