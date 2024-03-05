@@ -33,10 +33,10 @@
             </div>
         </div>
         <div class="space-x-4 whitespace-nowrap">
-            <ff-button size="small" :disabled="!unsavedChanges" @click="saveSettings()">Save settings</ff-button>
+            <ff-button data-action="new-token" size="small" :disabled="!unsavedChanges" @click="saveSettings()">Save settings</ff-button>
         </div>
     </form>
-    <TokenDialog ref="tokenDialog" :project="project" @token-created="newTokenDone" @token-updated="getTokens" />
+    <TokenDialog ref="tokenDialog" data-el="http-token-diag" :project="project" @token-created="newTokenDone" @token-updated="getTokens" />
     <TokenCreated ref="tokenCreated" />
 </template>
 
