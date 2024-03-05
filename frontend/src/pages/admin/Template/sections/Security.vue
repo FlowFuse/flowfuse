@@ -1,5 +1,5 @@
 <template>
-    <form class="space-y-4" @submit.prevent>
+    <form class="space-y-4" data-el="http-auth" @submit.prevent>
         <FormHeading>HTTP Node Security</FormHeading>
         <div class="flex flex-col sm:flex-row sm:ml-4">
             <div class="space-y-4 w-full max-w-md sm:mr-8">
