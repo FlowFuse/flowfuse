@@ -24,7 +24,7 @@ _NOTE: It is good practice to keep your Device Agent up to date. Update instruct
 6. Click **Add**
 7. You will be presented with a **Device Configuration** that you will need in the next step. _(Do not close this window just yet.)_
 
-    <img src="images/config_yml2.png" width=500 />
+    <img src="images/config_yml2b.png" width=500 />
 
 ### Step 2: Start the Device Agent with the Web UI enabled
 1. If you have access to a Terminal/Command Prompt and run the following command:
