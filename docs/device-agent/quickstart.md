@@ -34,7 +34,7 @@ _NOTE: If you do not have access to a terminal, follow the [Quick Start with Web
     <img src="images/device_cli.png" />
 3. Start the Device Agent using the command instructed by the device agent output e.g:
    ```bash
-   flowfuse-device=agent -d /opt/flowfuse-device
+   flowfuse-device-agent
    ```
 
 Your device is now connected to FlowFuse and ready to be used.
