@@ -260,7 +260,7 @@ module.exports = {
     createHTTPNodeToken: async function (app, project, name, scope = [''], expiresAt) {
         const projectId = (project && typeof project === 'object') ? project.id : project
         const token = generateToken(32, 'ffhttp')
-        await app.db.models.AccessToken.create({
+        const tok = await app.db.models.AccessToken.create({
             token,
             expiresAt,
             name,
@@ -268,7 +268,7 @@ module.exports = {
             ownerId: projectId,
             ownerType: 'http'
         })
-        return { token }
+        return { id: tok.id, token }
     },
     updateHTTPNodeToken: async function (app, project, tokenId, scope = [''], expiresAt) {
         const projectId = (project && typeof project === 'object') ? project.id : project
