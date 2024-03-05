@@ -22,8 +22,8 @@ _NOTE: If you do not have access to a terminal, follow the [Quick Start with Web
 4. Fill in the **Device Name** & **Device Type** and select an **Application**
 
     <img src="images/add_device.png" />
-6. Click **Add**
-7. You will be presented with a **Device Configuration** that you will need in the next step. _(Do not close this window just yet.)_
+5. Click **Add**
+6. You will be presented with a **Device Configuration** that you will need in the next step. _(Do not close this window just yet.)_
 
     <img src="images/config_yml2a.png"/>
 
@@ -32,8 +32,12 @@ _NOTE: If you do not have access to a terminal, follow the [Quick Start with Web
 2. Paste the command copied from the previous step and run it.
 
     <img src="images/device_cli.png" />
+3. Start the Device Agent using the command instructed by the device agent output e.g:
+   ```bash
+   flowfuse-device=agent -d /opt/flowfuse-device
+   ```
 
-Your device is now added to FlowFuse and ready to be used.
+Your device is now connected to FlowFuse and ready to be used.
 
 
 ## Develop on Device
@@ -49,7 +53,7 @@ Your device is now added to FlowFuse and ready to be used.
 
     <img src="images/editorEnabled.png"/>
 
-7. Clicking **Device Editor** will launch the editor.
+6. Clicking **Device Editor** will launch the editor.
 
     <img src="images/nr_editor.png" />
 
