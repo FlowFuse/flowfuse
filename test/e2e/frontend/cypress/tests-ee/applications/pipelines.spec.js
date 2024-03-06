@@ -793,8 +793,10 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.visit(`/application/${application.id}/pipelines`)
         cy.wait('@getPipelines')
 
-        cy.get('[data-el="protected-marker"]').should('exist')
-        cy.get('[data-el="ff-pipeline-stage"]:first [data-action="stage-run"]').should('have.class', 'ff-disabled')
+        cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
+            cy.get('[data-el="protected-marker"]').should('exist')
+            cy.get('[data-el="ff-pipeline-stage"]:first [data-action="stage-run"]').should('have.class', 'ff-disabled')
+        })
 
         cy.logout()
         cy.login('bob', 'bbPassword')
@@ -802,7 +804,9 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.visit(`/application/${application.id}/pipelines`)
         cy.wait('@getPipelines')
 
-        cy.get('[data-el="ff-pipeline-stage"]:first [data-action="stage-run"]').should('not.have.class', 'ff-disabled')
+        cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
+            cy.get('[data-el="ff-pipeline-stage"]:first [data-action="stage-run"]').should('not.have.class', 'ff-disabled')
+        })
 
         // Tidy Up
         cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
