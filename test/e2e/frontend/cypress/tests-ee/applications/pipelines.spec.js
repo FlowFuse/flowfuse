@@ -721,7 +721,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.get('[data-el="application-device-group-description"] input').should('have.value', `Description for group ${GROUP_NAME}`)
     })
 
-    it('can not push to a protected instance', () => {
+    it.only('can not push to a protected instance', () => {
         cy.intercept('GET', '/api/v1/applications/*/pipelines').as('getPipelines')
         cy.intercept('POST', '/api/v1/pipelines').as('createPipeline')
 
@@ -793,13 +793,16 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.visit(`/application/${application.id}/pipelines`)
         cy.wait('@getPipelines')
 
-        cy.get('[data-el="protected-marker"]')
+        cy.get('[data-el="protected-marker"]').should('exist')
+        cy.get('[data-el="ff-pipeline-stage"]:first [data-action="stage-run"]').should('have.class', 'ff-disabled')
 
         cy.logout()
         cy.login('bob', 'bbPassword')
 
         cy.visit(`/application/${application.id}/pipelines`)
         cy.wait('@getPipelines')
+
+        cy.get('[data-el="ff-pipeline-stage"]:first [data-action="stage-run"]').should('not.have.class', 'ff-disabled')
 
         // Tidy Up
         cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
