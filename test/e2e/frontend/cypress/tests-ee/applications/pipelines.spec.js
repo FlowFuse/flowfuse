@@ -721,7 +721,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.get('[data-el="application-device-group-description"] input').should('have.value', `Description for group ${GROUP_NAME}`)
     })
 
-    it.only('can not push to a protected instance', () => {
+    it('can not push to a protected instance', () => {
         cy.intercept('GET', '/api/v1/applications/*/pipelines').as('getPipelines')
         cy.intercept('POST', '/api/v1/pipelines').as('createPipeline')
 
