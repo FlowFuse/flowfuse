@@ -106,7 +106,7 @@ module.exports = {
                     if (includeApplicationDevices) {
                         const include = {
                             model: M.Device,
-                            attributes: ['hashid', 'id', 'name', 'links', 'state', 'mode', 'updatedAt', 'lastSeenAt']
+                            attributes: ['hashid', 'id', 'name', 'links', 'state', 'mode', 'updatedAt', 'lastSeenAt', 'editorConnected', 'editorToken']
                         }
 
                         if (associationsLimit) {

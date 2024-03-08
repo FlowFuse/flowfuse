@@ -29,6 +29,9 @@ module.exports = {
         settingsHash: { type: DataTypes.STRING, allowNull: true },
         agentVersion: { type: DataTypes.STRING, allowNull: true },
         mode: { type: DataTypes.STRING, allowNull: true, defaultValue: 'autonomous' },
+        editorAffinity: { type: DataTypes.STRING, defaultValue: '' },
+        editorToken: { type: DataTypes.STRING, defaultValue: '' },
+        editorConnected: { type: DataTypes.BOOLEAN, defaultValue: false },
         /** @type {'instance'|'application'|null} a virtual column that signifies the parent type e.g. `"instance"`, `"application"` */
         ownerType: {
             type: DataTypes.VIRTUAL(DataTypes.ENUM('instance', 'application', null)),

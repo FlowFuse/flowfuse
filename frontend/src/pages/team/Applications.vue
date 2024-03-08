@@ -113,7 +113,7 @@
                                     <EditorLink
                                         :url="device.editor?.url"
                                         :editorDisabled="false"
-                                        :disabled="!device.editor?.enabled || !device.editor?.connected"
+                                        :disabled="!device.editor?.enabled || !device.editor?.connected || !device.editor?.local"
                                         disabledReason="Device must be running, in developer mode and have the editor enabled and connected"
                                     />
                                 </div>
