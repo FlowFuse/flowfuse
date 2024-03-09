@@ -1,5 +1,5 @@
 <template>
-    <span v-ff-tooltip:left="toggleTip">
+    <span v-ff-tooltip:bottom="toggleTip">
         <ff-toggle-switch
             v-model="developerModeLocal"
             mode="async"
