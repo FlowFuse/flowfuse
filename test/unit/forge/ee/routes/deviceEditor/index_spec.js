@@ -19,7 +19,8 @@ describe('Device Editor API', function () {
         await login('alice', 'aaPassword')
 
         app.device = await app.factory.createDevice({
-            name: 'device1'
+            name: 'device1',
+            mode: 'developer'
         }, app.team, app.instance)
 
         app.failingDevice = await app.factory.createDevice({
@@ -74,11 +75,11 @@ describe('Device Editor API', function () {
     async function getDeviceEditorStatus (device, token) {
         const response = await app.inject({
             method: 'GET',
-            url: `/api/v1/devices/${device}/editor`,
+            url: `/api/v1/devices/${device}`,
             cookies: { sid: token }
         })
         response.statusCode.should.equal(200)
-        return JSON.parse(response.body)
+        return JSON.parse(response.body).editor || { enabled: false }
     }
 
     async function setDeviceEditorStatus (device, token, enabled) {
@@ -122,13 +123,11 @@ describe('Device Editor API', function () {
             result.should.have.property('connected', false)
             // now watch for `tunnelManager.closeTunnel` then `tunnelManager.newTunnel` being called
             const closeTunnelSpy = sinon.spy(app.comms.devices.tunnelManager, 'closeTunnel')
-            const newTunnelSpy = sinon.spy(app.comms.devices.tunnelManager, 'newTunnel')
             // now enable the tunnel again
             const result2 = await setDeviceEditorStatus(app.device.hashid, TestObjects.tokens.alice, true)
             result2.should.have.property('enabled', true)
             // check that the tunnel was closed and re-created
             closeTunnelSpy.calledWith(app.device.hashid).should.equal(true)
-            newTunnelSpy.calledWith(app.device.hashid).should.equal(true)
         })
 
         it('enable editor mode', async function () {
@@ -206,7 +205,7 @@ describe('Device Editor API', function () {
             closeReason.should.equal('Invalid token')
         })
         it('Proxy HTTP GET - fails if device ws not connected', async function () {
-            const status = await getDeviceEditorStatus(app.device.hashid, TestObjects.tokens.alice)
+            const status = await setDeviceEditorStatus(app.device.hashid, TestObjects.tokens.alice, true)
             status.should.have.property('connected', false)
             const response = await app.inject({
                 method: 'GET',
@@ -230,6 +229,7 @@ describe('Device Editor API', function () {
         describe('device websocket can connect with correct token', async function () {
             let ws
             it('connects the websocket', async function () {
+                await setDeviceEditorStatus(app.device.hashid, TestObjects.tokens.alice, true)
                 // We should still have the valid token from the previous test
                 TestObjects.tokens.should.have.property(app.device.hashid)
                 const token = TestObjects.tokens[app.device.hashid]

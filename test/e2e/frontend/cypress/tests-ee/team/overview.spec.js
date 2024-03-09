@@ -50,7 +50,8 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                         deviceOne.editor = {
                             url: 'http://editor.example.com',
                             enabled: true,
-                            connected: true
+                            connected: true,
+                            local: true
                         }
 
                         const deviceTwo = res.body.applications[0].devices.find((device) => device.id === deviceTwoId)

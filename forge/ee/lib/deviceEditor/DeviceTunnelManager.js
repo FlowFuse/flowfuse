@@ -47,11 +47,17 @@ class DeviceTunnelManager {
         /** @type {ForgeApplication}  Forge application (Fastify app) */
         this.app = app
         this.#tunnels = new Map()
-
+        this.closing = false
         this.app.addHook('onClose', async (_) => {
-            Object.keys(this.#tunnels).forEach(deviceId => {
+            this.closing = true
+            for (const deviceId of this.#tunnels.keys()) {
+                // Proactively mark the device as not-connected. We cannot
+                // wait for the socket-close event as that happens async to
+                // the shutdown and could happen *after* the database connection
+                // is closed.
+                await this.app.db.controllers.Device.setConnected(deviceId, false)
                 this.closeTunnel(deviceId)
-            })
+            }
         })
     }
 
@@ -75,7 +81,7 @@ class DeviceTunnelManager {
         // create a new tunnel object & add to list
         manager.#tunnels.set(deviceId, createNewTunnel(deviceId, token))
 
-        return !!manager.#getTunnel(deviceId)
+        return !!manager.getTunnel(deviceId)
     }
 
     /**
@@ -84,7 +90,7 @@ class DeviceTunnelManager {
      * @private
      * @returns { DeviceTunnel } Null if no tunnel exists or if a token is provided but does not match
      */
-    #getTunnel (deviceId) {
+    getTunnel (deviceId) {
         let tunnel = null
         if (this.#tunnels.has(deviceId)) {
             tunnel = this.#tunnels.get(deviceId) || null
@@ -94,21 +100,29 @@ class DeviceTunnelManager {
 
     /**
      * Get existing tunnel for device
-     * @param {String} deviceId Device ID
+     * @param {Device} device Device
      */
-    getTunnelStatus (deviceId) {
-        const exists = this.#tunnels.has(deviceId)
-        if (!exists) {
-            return { enabled: false }
+    getTunnelStatus (device) {
+        // const exists = this.#tunnels.has(device.hashid)
+        // if (!exists) {
+        //     return { enabled: false }
+        // }
+        if (!device.editorToken) {
+            return {
+                enabled: false
+            }
         }
-        const url = this.getTunnelUrl(deviceId)
-        const enabled = this.isEnabled(deviceId)
-        const connected = this.isConnected(deviceId)
-        return { url, enabled, connected, affinity: this.#getTunnel(deviceId)?.affinity }
+        const result = {
+            enabled: !!device.editorToken,
+            url: `/api/v1/devices/${device.hashid}/editor/proxy/?access_token=${device.editorToken}`,
+            connected: device.editorConnected,
+            local: !!this.#tunnels.get(device.hashid)?.socket
+        }
+        return result
     }
 
     closeTunnel (deviceId) {
-        const tunnel = this.#getTunnel(deviceId)
+        const tunnel = this.getTunnel(deviceId)
         if (tunnel) {
             tunnel.socket?.close()
             // Close all of the editor websockets that were using this tunnel
@@ -122,43 +136,17 @@ class DeviceTunnelManager {
         }
     }
 
-    getTunnelUrl (deviceId) {
-        const tunnel = this.#getTunnel(deviceId)
-        if (tunnel) {
-            return `/api/v1/devices/${deviceId}/editor/proxy/?access_token=${tunnel.token}`
-        }
-        return ''
-    }
-
-    setTunnelAffinity (deviceId, affinity) {
-        const tunnel = this.#getTunnel(deviceId)
-        if (tunnel) {
-            tunnel.affinity = affinity
-        }
-    }
-
-    isEnabled (deviceId) {
-        const tunnel = this.#getTunnel(deviceId)
-        return !!(tunnel && tunnel.token)
-    }
-
-    isConnected (deviceId) {
-        const tunnel = this.#getTunnel(deviceId)
-        return !!(tunnel && tunnel.socket)
-    }
-
     /**
      * setup the tunnel socket properties and event handlers for the specified device
-     * @param {String} deviceId The device ID
-     * @param {String} token The token to use for the tunnel
+     * @param {Device} device The device
      * @param {SocketStream} inboundDeviceConnection The websocket connection from the device
      * @returns {Boolean} True if the tunnel was started successfully
      */
-    initTunnel (deviceId, token, inboundDeviceConnection) {
+    async initTunnel (device, inboundDeviceConnection) {
         const manager = this
 
-        const tunnel = manager.#getTunnel(deviceId)
-        if (!tunnel || manager.verifyToken(deviceId, token) === false) {
+        const tunnel = manager.getTunnel(device.hashid)
+        if (!tunnel) {
             return false
         }
 
@@ -167,6 +155,9 @@ class DeviceTunnelManager {
             tunnel.socket.close()
         }
         tunnel.socket = inboundDeviceConnection.socket
+        // Set it on the local model instance
+        device.editorConnected = true
+        await device.save()
 
         // Handle messages sent from the device
         tunnel.socket.on('message', msg => {
@@ -217,13 +208,20 @@ class DeviceTunnelManager {
         tunnel.socket.on('close', () => {
             // The ws connection from the device has closed.
             delete tunnel.socket
-
             // Close all of the editor websockets
             for (const [id, wsSocket] of Object.entries(tunnel.forwardedWS)) {
                 wsSocket.close()
                 delete tunnel.forwardedWS[id]
             }
-            this.app.log.info(`Device ${deviceId} tunnel closed. id:${tunnel.id}`)
+            this.#tunnels.delete(device.hashid)
+            if (!this.closing) {
+                // Only update the database if we aren't in the process of
+                // shutting down - as the database connection may have already
+                // closed in that case.
+                device.editorConnected = false
+                device.save()
+            }
+            this.app.log.info(`Device ${device.hashid} tunnel closed. id:${tunnel.id}`)
         })
 
         /** @type {httpHandler} */
@@ -266,7 +264,7 @@ class DeviceTunnelManager {
             const wsToDevice = connection.socket
             tunnel.forwardedWS[requestId] = wsToDevice
 
-            this.app.log.info(`Device ${deviceId} tunnel id:${tunnel.id} - new editor connection req:${requestId} `)
+            this.app.log.info(`Device ${device.hashid} tunnel id:${tunnel.id} - new editor connection req:${requestId} `)
 
             wsToDevice.on('message', msg => {
                 // Forward messages sent by the editor down to the device
@@ -278,7 +276,7 @@ class DeviceTunnelManager {
                 }))
             })
             wsToDevice.on('close', msg => {
-                this.app.log.info(`Device ${deviceId} tunnel id:${tunnel.id} - editor connection closed req:${requestId} `)
+                this.app.log.info(`Device ${device.hashid} tunnel id:${tunnel.id} - editor connection closed req:${requestId} `)
                 // The editor has closed its websocket. Send notification to the
                 // device so it can close its corresponing connection
                 // console.info(`[${tunnel.id}] [${requestId}] E>R closed`)
@@ -293,18 +291,8 @@ class DeviceTunnelManager {
                 }
             })
         }
-        this.app.log.info(`Device ${deviceId} tunnel connected. id:${tunnel.id}`)
+        this.app.log.info(`Device ${device.hashid} tunnel connected. id:${tunnel.id}`)
         return true
-    }
-
-    verifyToken (deviceId, token) {
-        const tunnel = this.#getTunnel(deviceId)
-        if (tunnel) {
-            if (token && tunnel.token === token) {
-                return true
-            }
-        }
-        return false
     }
 
     /**
@@ -314,7 +302,7 @@ class DeviceTunnelManager {
      * @param {FastifyReply} reply reply
      */
     handleHTTP (deviceId, request, reply) {
-        const tunnel = this.#getTunnel(deviceId)
+        const tunnel = this.getTunnel(deviceId)
         const connected = !!(tunnel && tunnel.socket)
         if (connected) {
             tunnel._handleHTTP(request, reply)
@@ -330,7 +318,7 @@ class DeviceTunnelManager {
      * @param {FastifyRequest} request request
      */
     handleWS (deviceId, connection, request) {
-        const tunnel = this.#getTunnel(deviceId)
+        const tunnel = this.getTunnel(deviceId)
         const connected = !!(tunnel && tunnel.socket)
         if (connected) {
             tunnel._handleWS(connection, request)
@@ -372,8 +360,7 @@ function createNewTunnel (deviceId, token) {
         forwardedWS: {},
         token,
         _handleHTTP: null,
-        _handleWS: null,
-        affinity: null
+        _handleWS: null
     }
     return tunnel
 }

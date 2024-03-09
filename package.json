@@ -62,7 +62,7 @@
         "@fastify/passport": "^2.3.0",
         "@fastify/rate-limit": "^9.1.0",
         "@fastify/routes": "^5.1.0",
-        "@fastify/static": "^6.10.2",
+        "@fastify/static": "^7.0.1",
         "@fastify/swagger": "^8.10.1",
         "@fastify/swagger-ui": "^2.1.0",
         "@fastify/websocket": "^8.1.0",
