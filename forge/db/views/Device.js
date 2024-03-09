@@ -47,7 +47,7 @@ module.exports = function (app) {
                 id: result.hashid,
                 lastSeenAt: result.lastSeenAt,
                 lastSeenMs: result.lastSeenAt ? (Date.now() - new Date(result.lastSeenAt).valueOf()) : null,
-                status: result.state || 'offline',
+                status: app.db.controllers.Device.getInflightState(device) || result.state || 'offline',
                 mode: result.mode || 'autonomous',
                 isDeploying: app.db.controllers.Device.isDeploying(device)
             }
@@ -64,7 +64,7 @@ module.exports = function (app) {
             activeSnapshot: app.db.views.ProjectSnapshot.snapshotSummary(device.activeSnapshot),
             targetSnapshot: app.db.views.ProjectSnapshot.snapshotSummary(device.targetSnapshot),
             links: result.links,
-            status: result.state || 'offline',
+            status: app.db.controllers.Device.getInflightState(device) || result.state || 'offline',
             agentVersion: result.agentVersion,
             mode: result.mode || 'autonomous',
             ownerType: result.ownerType,
@@ -126,7 +126,7 @@ module.exports = function (app) {
                 type: result.type,
                 lastSeenAt: result.lastSeenAt,
                 lastSeenMs: result.lastSeenAt ? (Date.now() - new Date(result.lastSeenAt).valueOf()) : null,
-                status: result.state || 'offline',
+                status: app.db.controllers.Device.getInflightState(device) || result.state || 'offline',
                 mode: result.mode || 'autonomous',
                 isDeploying: app.db.controllers.Device.isDeploying(device),
                 links: result.links
