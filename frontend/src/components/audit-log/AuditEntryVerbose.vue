@@ -138,6 +138,38 @@
         <span v-else-if="!error">Provisioning data not found in audit entry.</span>
     </template>
 
+    <!-- Device Actions Events -->
+    <template v-else-if="entry.event === 'device.started'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.device">Device '{{ entry.body.device?.name }}' was started.</span>
+        <span v-else-if="!error">Device data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'device.start-failed'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.device">Something went wrong, and we were unable to start Device '{{ entry.body.device.name }}'. Please check the logs to find out more.</span>
+        <span v-else-if="!error">Device data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'device.restarted'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.device">Device '{{ entry.body.device.name }}' was restarted.</span>
+        <span v-else-if="!error">Device data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'device.restart-failed'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.device">Something went wrong, and we were unable to restart Device '{{ entry.body.device.name }}'. Please check the logs to find out more.</span>
+        <span v-else-if="!error">Device data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'device.suspended'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.device">Device '{{ entry.body.device.name }}' was suspended.</span>
+        <span v-else-if="!error">Device data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'device.suspend-failed'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.device">Something went wrong, and we were unable to suspend Device '{{ entry.body.device.name }}'. Please check the logs to find out more.</span>
+        <span v-else-if="!error">Device data not found in audit entry.</span>
+    </template>
+
     <!-- Account Scoped Events -->
     <template v-else-if="entry.event === 'account.register'">
         <label>{{ AuditEvents[entry.event] }}</label>
@@ -571,7 +603,8 @@
     <!-- Catch All -->
     <template v-else>
         <label>{{ computeLabelForUnknown(entry) }}</label>
-        <span>We have no details available for event type{{ entry?.event ? ` '${entry.event}'` : '' }}</span>
+        <span v-if="error && entry.body.error.message">{{ entry.body.error.message }}</span>
+        <span v-else>We have no details available for event type{{ entry?.event ? ` '${entry.event}'` : '' }}</span>
     </template>
 
     <template v-if="error">
