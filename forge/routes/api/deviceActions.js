@@ -20,7 +20,7 @@ module.exports = async function (app) {
     app.post('/start', {
         preHandler: app.needsPermission('device:change-status'),
         schema: {
-            summary: 'Start an Device',
+            summary: 'Start Node-RED',
             tags: ['Device Actions'],
             params: {
                 type: 'object',
@@ -76,7 +76,7 @@ module.exports = async function (app) {
     app.post('/restart', {
         preHandler: app.needsPermission('device:change-status'),
         schema: {
-            summary: 'Restart a device',
+            summary: 'Restart Node-RED',
             tags: ['Device Actions'],
             params: {
                 type: 'object',
@@ -136,7 +136,7 @@ module.exports = async function (app) {
     app.post('/suspend', {
         preHandler: app.needsPermission('device:change-status'),
         schema: {
-            summary: 'Suspend a device',
+            summary: 'Suspend Node-RED',
             tags: ['Device Actions'],
             params: {
                 type: 'object',
