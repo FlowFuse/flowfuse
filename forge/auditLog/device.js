@@ -32,13 +32,13 @@ module.exports = {
                 await log('device.suspended', actionedBy, device?.id, generateBody({ error, device }))
             },
             async startFailed (actionedBy, error, device) {
-                await log('device.start-failed', actionedBy || 0, device?.id, generateBody({ error }))
+                await log('device.start-failed', actionedBy || 0, device?.id, generateBody({ error, device }))
             },
             async restartFailed (actionedBy, error, device) {
-                await log('device.restart-failed', actionedBy || 0, device?.id, generateBody({ error }))
+                await log('device.restart-failed', actionedBy || 0, device?.id, generateBody({ error, device }))
             },
             async suspendFailed (actionedBy, error, device) {
-                await log('device.suspend-failed', actionedBy || 0, device?.id, generateBody({ error }))
+                await log('device.suspend-failed', actionedBy || 0, device?.id, generateBody({ error, device }))
             },
             credentials: {
                 async generated (actionedBy, error, device) {
