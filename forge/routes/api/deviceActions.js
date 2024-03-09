@@ -44,7 +44,7 @@ module.exports = async function (app) {
         // check to see if comms is enabled
         const deviceComms = getDeviceComms(app)
         if (!deviceComms) {
-            reply.code(400).send({ code: 'action_not_possible', error: 'Action requires MQTT broker' })
+            reply.code(400).send({ code: 'invalid_request', error: 'Action requires Device Comms' })
             return
         }
         try {
@@ -100,7 +100,7 @@ module.exports = async function (app) {
         // check to see if comms is enabled
         const deviceComms = getDeviceComms(app)
         if (!deviceComms) {
-            reply.code(400).send({ code: 'action_not_possible', error: 'Action requires MQTT broker' })
+            reply.code(400).send({ code: 'invalid_request', error: 'Action requires Device Comms' })
             return
         }
         try {
@@ -160,7 +160,7 @@ module.exports = async function (app) {
         // check to see if comms is enabled
         const deviceComms = getDeviceComms(app)
         if (!deviceComms) {
-            reply.code(400).send({ code: 'action_not_possible', error: 'Action requires MQTT broker' })
+            reply.code(400).send({ code: 'invalid_request', error: 'Action requires Device Comms' })
             return
         }
         try {
