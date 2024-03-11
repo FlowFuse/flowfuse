@@ -124,7 +124,7 @@ export default {
                 // of permissive
                 return true
             }
-            return SemVer.satisfies(SemVer.coerce(launcherVersion), '>2.1.1')
+            return SemVer.satisfies(SemVer.coerce(launcherVersion), '>=2.1.1')
         }
     },
     watch: {
