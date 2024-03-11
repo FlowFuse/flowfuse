@@ -204,11 +204,7 @@ export default {
     getHTTPTokens,
     createHTTPToken,
     updateHTTPToken,
-<<<<<<< HEAD
-    deleteHTTPToken
-=======
     deleteHTTPToken,
     enableProtectedMode,
     disableProtectedMode
->>>>>>> refs/remotes/origin/httpNodeAuth-token
 }
