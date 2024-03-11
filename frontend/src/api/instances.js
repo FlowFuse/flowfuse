@@ -174,6 +174,15 @@ const deleteHTTPToken = async (instanceId, tokenId) => {
     return client.delete(`/api/v1/projects/${instanceId}/httpTokens/${tokenId}`)
 }
 
+const enableProtectedMode = async (instanceId) => {
+    const protectedConfig = { enabled: true }
+    return client.put(`/api/v1/projects/${instanceId}/protectInstance`, protectedConfig)
+}
+
+const disableProtectedMode = async (instanceId) => {
+    return client.delete(`/api/v1/projects/${instanceId}/protectInstance`)
+}
+
 export default {
     create,
     getInstance,
@@ -195,5 +204,11 @@ export default {
     getHTTPTokens,
     createHTTPToken,
     updateHTTPToken,
+<<<<<<< HEAD
     deleteHTTPToken
+=======
+    deleteHTTPToken,
+    enableProtectedMode,
+    disableProtectedMode
+>>>>>>> refs/remotes/origin/httpNodeAuth-token
 }

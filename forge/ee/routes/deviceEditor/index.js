@@ -84,44 +84,44 @@ module.exports = async function (app) {
         const tunnelManager = getTunnelManager()
         const deviceId = request.device.hashid
         const teamId = team.hashid
-
-        const currentState = tunnelManager.getTunnelStatus(deviceId)
-        if (currentState.enabled === mode) {
+        if (!!request.device.editorToken === mode) {
             // if this request is to `enable` tunnel and the tunnel is already enabled, return the current state
             // however, if it is not `connected`, then we need to refresh the tunnel
-            if (mode === true && currentState.connected === false) {
+            if (mode === true) {
                 // close any existing tunnel from this side
                 // then skip through to the next block of code to permit the connection to be refreshed
                 tunnelManager.closeTunnel(deviceId)
             } else {
-                reply.send(currentState)
+                reply.send(tunnelManager.getTunnelStatus(request.device))
                 return
             }
         }
 
         if (mode) {
-            // Generate a random access token for editor, open a tunnel and start the editor
-            const accessToken = await generateToken(16, `ffde_${deviceId}`)
-            // prepare the tunnel but dont start it (the remote device will initiate the connection)
-            // * Enable Device Editor (Step 3) - (frontendApi:HTTP->forge) Create Tunnel
-            tunnelManager.newTunnel(deviceId, accessToken)
+            // Generate an access token for the device and store on the Device object itself.
+            // The format of the token (ffde_<deviceHash>_<random>) is required by the Device Agent - do not change it
+            request.device.editorToken = generateToken(16, `ffde_${request.device.hashid}`)
+            await request.device.save()
             let err = null
             try {
                 // * Enable Device Editor (Step 4) - (forge) Enable Editor Request. This call resolves after steps 5 ~ 10
-                const cmdResponse = await app.comms.devices.enableEditor(teamId, deviceId, accessToken)
+                const cmdResponse = await app.comms.devices.enableEditor(teamId, deviceId, request.device.editorToken)
                 if (cmdResponse.error) {
                     throw new Error('No Node-RED running on Device')
                 }
+                // The device tells us what affinity cookie it received (if any)
                 if (cmdResponse.affinity) {
-                    tunnelManager.setTunnelAffinity(deviceId, cmdResponse.affinity)
+                    request.device.editorAffinity = cmdResponse.affinity
+                    await request.device.save()
                 }
             } catch (error) {
-                // ensure any attempt to enable the editor is cleaned up if an error occurs
-                tunnelManager.closeTunnel(deviceId)
+                request.device.editorToken = ''
+                await request.device.save()
                 err = error
             }
+            await request.device.reload()
             // * Enable Device Editor (Step 11) - (forge:HTTP->frontendApi) Send tunnel status back to frontend
-            const tunnelStatus = tunnelManager.getTunnelStatus(deviceId) || {}
+            const tunnelStatus = tunnelManager.getTunnelStatus(request.device) || {}
             if (err) {
                 tunnelStatus.error = err.message
                 tunnelStatus.code = err.code || 'enable_editor_failed'
@@ -134,6 +134,9 @@ module.exports = async function (app) {
                 reply.send(tunnelStatus)
             }
         } else if (!mode) {
+            request.device.editorToken = ''
+            request.device.editorAffinity = ''
+            await request.device.save()
             await app.comms.devices.disableEditor(teamId, deviceId)
             tunnelManager.closeTunnel(deviceId)
             await app.auditLog.Team.team.device.remoteAccess.disabled(request.session.User, null, team, request.device)
@@ -152,7 +155,7 @@ module.exports = async function (app) {
         config: { rateLimit: false } // never rate limit this route
     }, async (request, reply) => {
         const tunnelManager = getTunnelManager()
-        reply.send(tunnelManager.getTunnelStatus(request.device.hashid))
+        reply.send(tunnelManager.getTunnelStatus(request.device))
     })
 
     /**
@@ -166,9 +169,8 @@ module.exports = async function (app) {
             allowAnonymous: true,
             rateLimit: false // never rate limit this route
         }
-    }, async (request, reply) => {
-        const tunnelManager = getTunnelManager()
-        if (tunnelManager.verifyToken(request.params.deviceId, request.headers['x-access-token'])) {
+    }, (request, reply) => {
+        if (request.device.editorToken === request.headers['x-access-token']) {
             reply.code(200).send({ username: 'forge', permissions: '*' })
             return
         }
@@ -186,16 +188,18 @@ module.exports = async function (app) {
             rateLimit: false // never rate limit this route
         },
         websocket: true
-    }, (connection, request) => {
-        // * Enable Device Editor (Step 9) - (device:WS->forge) websocket connect request from device
+    }, async (connection, request) => {
         // This is the inbound websocket connection from the device
-        const deviceId = request.params.deviceId
         const token = request.params.access_token
-        const tunnelManager = getTunnelManager()
-        const tunnelInfo = tunnelManager.getTunnelStatus(deviceId)
-        if (tunnelInfo && tunnelInfo.enabled) {
-            if (tunnelManager.verifyToken(deviceId, token)) {
-                const tunnelSetupOK = tunnelManager.initTunnel(deviceId, token, connection)
+        if (request.device.editorToken) {
+            if (token === request.device.editorToken) {
+                const tunnelManager = getTunnelManager()
+                const tunnel = tunnelManager.getTunnel(request.device.hashid)
+                if (!tunnel) {
+                    // Create the tunnel object
+                    tunnelManager.newTunnel(request.device.hashid, request.device.editorToken)
+                }
+                const tunnelSetupOK = await tunnelManager.initTunnel(request.device, connection)
                 if (!tunnelSetupOK) {
                     connection.socket.close(4000, 'Tunnel setup failed')
                 }
@@ -234,7 +238,7 @@ module.exports = async function (app) {
             } else {
                 // For a websocket comms request
                 if (/\/comms$/.test(request.url)) {
-                    const status = getTunnelManager().getTunnelStatus(request.params.deviceId)
+                    const status = getTunnelManager().getTunnelStatus(request.device)
                     if (!status?.connected) {
                         reply.code(502).send('The connection to the editor is currently unavailable')
                     }
@@ -247,7 +251,7 @@ module.exports = async function (app) {
             const tunnelManager = getTunnelManager()
             if (tunnelManager.handleHTTP(request.params.deviceId, request, reply)) {
                 return
-            } else if (tunnelManager.getTunnelStatus(request.params.deviceId)?.enabled) {
+            } else if (tunnelManager.getTunnelStatus(request.device)?.enabled) {
                 // Enabled, but not connected
                 reply.code(502).send('The connection to the editor is currently unavailable') // Bad Gateway (tunnel exists but it has lost connection or is in an intermediate state)
                 return
@@ -287,7 +291,7 @@ module.exports = async function (app) {
             } else {
                 // For a websocket comms request
                 if (/\/comms$/.test(request.url)) {
-                    const status = getTunnelManager().getTunnelStatus(request.params.deviceId)
+                    const status = getTunnelManager().getTunnelStatus(request.device)
                     if (!status?.connected) {
                         reply.code(502).send('The connection to the editor is currently unavailable')
                     }
@@ -299,7 +303,7 @@ module.exports = async function (app) {
             const tunnelManager = getTunnelManager()
             if (tunnelManager.handleHTTP(request.params.deviceId, request, reply)) {
                 return // handled
-            } else if (tunnelManager.getTunnelStatus(request.params.deviceId)?.enabled) {
+            } else if (tunnelManager.getTunnelStatus(request.device)?.enabled) {
                 reply.code(502).send() // Bad Gateway (tunnel exists but it has lost connection or is in an intermediate state)
                 return
             }

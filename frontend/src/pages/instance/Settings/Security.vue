@@ -124,7 +124,11 @@ export default {
                 // of permissive
                 return true
             }
+<<<<<<< HEAD
             return SemVer.satisfies(SemVer.coerce(launcherVersion), '>=2.1.1')
+=======
+            return SemVer.satisfies(SemVer.coerce(launcherVersion), '>2.1.1')
+>>>>>>> refs/remotes/origin/httpNodeAuth-token
         }
     },
     watch: {

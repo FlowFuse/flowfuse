@@ -1,6 +1,8 @@
 const {
-    DataTypes, ValidationError
+    DataTypes, Op, ValidationError
 } = require('sequelize')
+
+const { KEY_HA, KEY_PROTECTED, KEY_SETTINGS } = require('../../../db/models/ProjectSettings')
 
 const SNAPSHOT_ACTIONS = {
     // Any changes to this list *must* be made via migration.
@@ -244,7 +246,20 @@ module.exports = {
                         include: [
                             {
                                 association: 'Instances',
-                                attributes: ['hashid', 'id', 'name', 'url', 'updatedAt']
+                                attributes: ['hashid', 'id', 'name', 'url', 'updatedAt'],
+                                include: [
+                                    {
+                                        model: M.ProjectSettings,
+                                        where: {
+                                            [Op.or]: [
+                                                { key: KEY_SETTINGS },
+                                                { key: KEY_HA },
+                                                { key: KEY_PROTECTED }
+                                            ]
+                                        },
+                                        required: false
+                                    }
+                                ]
                             },
                             devicesInclude,
                             deviceGroupsInclude

@@ -1,5 +1,6 @@
 const sinon = require('sinon')
 
+const should = require('should')  // eslint-disable-line
 const setup = require('../../setup')
 
 describe('Team API - with billing enabled', function () {
@@ -95,8 +96,12 @@ describe('Team API - with billing enabled', function () {
 
             const device1 = await app.factory.createDevice({ name: 'device-1', type: 'test-device', lastSeenAt: new Date(), mode: 'developer', state: 'running' }, app.team, null, app.application)
 
-            app.comms.devices.tunnelManager.newTunnel(device1.hashid, 'token12e')
-            sinon.stub(app.comms.devices.tunnelManager, 'isConnected').returns(true)
+            // app.comms.devices.tunnelManager.newTunnel(device1.hashid, 'token12e')
+            sinon.stub(app.comms.devices.tunnelManager, 'getTunnelStatus').returns({
+                enabled: true,
+                url: `/api/v1/devices/${device1.hashid}/editor/proxy/?access_token=token12e`,
+                connected: true
+            })
 
             const response = await app.inject({
                 method: 'GET',

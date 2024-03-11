@@ -6,6 +6,7 @@ import InstanceSettingsEnvVar from './Environment.vue'
 import InstanceSettingsGeneral from './General.vue'
 import InstanceSettingsHA from './HighAvailability.vue'
 import InstanceSettingsPalette from './Palette.vue'
+import InstanceSettingsProtect from './ProtectInstance.vue'
 import InstanceSettingsSecurity from './Security.vue'
 
 export default [
@@ -16,6 +17,7 @@ export default [
     { path: 'palette', component: InstanceSettingsPalette },
     { path: 'danger', component: InstanceSettingsDanger },
     { path: 'ha', name: 'InstanceSettingsHA', component: InstanceSettingsHA },
+    { path: 'protectInstance', name: 'InstanceSettingsProtect', component: InstanceSettingsProtect },
     {
         name: 'ChangeInstanceType',
         path: 'change-type',

@@ -7,109 +7,63 @@ navOrder: 2
 
 ## Add Device to FlowFuse
 
-### Install Device Agent Software
+### Prerequisites
 
-1. Open a Terminal/Command Prompt as an root/administrative user
-2. Run the following commands in sequence:
+If you do not already have the device agent installed, follow the [install instructions](./install.md), otherwise, proceed to the next step.
 
-Windows:
-```bash
-mkdir c:\opt\flowfuse-device
-cd c:\opt\flowfuse-device
-npm install -g @flowfuse/device-agent
-flowfuse-device-agent --ui --ui-user admin --ui-pass password --ui-port 8081
-```
-Linux/MacOS:
-```bash
-mkdir /opt/flowfuse-device
-cd /opt/flowfuse-device
-npm install -g @flowfuse/device-agent
-flowfuse-device-agent --ui --ui-user admin --ui-pass password --ui-port 8081
-```
+_NOTE: It is good practice to keep your Device Agent up to date. Update instructions are also provided in the link above._
 
-Note: The flags used in the command above have the following meanings:
-- `--ui`: Start the device agents web-based user interface.
-- `--ui-user`: Specify the username for the web user interface.
-- `--ui-pass`: Specify the password for the web user interface.
-- `--ui-port`: Specify the port for the web user interface.
-- You can find more details about these flags [here](https://flowfuse.com/docs/device-agent/running/).
+_NOTE: If you prefer to use the Device Agent WEB UI, follow the [Quick Start with Web UI](./quickstart-web-ui.md) guide._
 
-### Add Device in FlowFuse
+### Step 1: Add a new Device
 1. Open your web browser and go to your FlowFuse application page.
 2. Navigate to the **Devices** section.
 3. Click **Add Device.**
-4. Fill in the **Device Name** and **Device Type,** then click **Add.**
+4. Fill in the **Device Name** & **Device Type** and select an **Application**
 
-<img src="images/add_device.png" width=500 />
+    <img src="images/add_device.png" />
+5. Click **Add**
+6. You will be presented with a **Device Configuration** that you will need in the next step. _(Do not close this window just yet.)_
 
-### Configure Device Agent
-1. Expand the Manual setup section, click the **Copy** button below the **Device Configuration**.
+    <img src="images/config_yml2a.png"/>
 
-<img src="images/config_yml2.png" width=500 />
+### Step 2: Connect the Device
+1. Open a Terminal/Command Prompt.
+2. Paste the command copied from the previous step and run it.
 
-2. Open a new browser tab and navigate to the IP address of the device using the port defined when starting up the device agent.  **\<\<ip of device>>:\<\<port>>**, e.g., localhost:8081
-3. Paste the copied device configuration into the **Agent Configuration** field. This configuration contains vital information instructing the device on how to communicate with FlowFuse. It's crucial to keep this information secure and not share it with unauthorized individuals.
+    <img src="images/device_cli.png" />
+3. Start the Device Agent using the command instructed by the device agent output e.g:
+   ```bash
+   flowfuse-device-agent
+   ```
 
-<img src="images/device_gui.png" width=500 />
+Your device is now connected to FlowFuse and ready to be used.
 
-4. Click `Apply.`
-
-### Link Device to Application
-1. Return to the **Devices** section in your FlowFuse application page.
-2. Locate your newly added device and click its menu.
-
-<img src="images/addtoapp.png" width=500 />
-
-3. Choose to add the device to your application and click **Add.**
-
-<img src="images/addtodevice.png" width=500 />
 
 ## Develop on Device
 ### Enable Developer Mode
 1. Navigate to **Applications** and select the application your device was added to.
 2. Go to the **Devices** tab within the application.
 3. Locate your newly added device and **click** on your device.
-4. Then Click **Enable Developer Mode.**
+4. Then Click **Developer Mode** toggle button on upper right.
 
-<img src="images/developer.png" width=200 />
+    <img src="images/developer.png" />
 
-5. Under the **Developer Mode** settings, click **Enable** for **Editor Access.**
+5. This will enable editor access for your device.
 
-<img src="images/developerMode.png" width=500 />
+    <img src="images/editorEnabled.png"/>
 
-6. Access has now been granted to edit the Node-RED instance.
+6. Clicking **Device Editor** will launch the editor.
 
-<img src="images/editorEnabled.png" width=200 />
-
-7. Clicking Device Editor will navigate you to a window for edits to your Node-Red instance.
-
-<img src="images/nr_editor.png" width=500 />
+    <img src="images/nr_editor.png" />
 
 
-## Snapshots
-### Take Device Snapshot
-1. Navigate to Devices Menu.
-2. Select device that you would like to take a snapshot of.
+## Next Steps
 
-<img src="images/snapshotMenu.png" width=500 />
+Now you have a device connected to the platform, there are many features you can use to manage and monitor your devices.
+Here are a few to get you started:
 
-3. Select **Create Snapshot.**
-4. Enter **Name** and **Description** if desired.
-
-<img src="images/snapshotCreate.png" width=500 />
-
-5. Click **Create.**
-
-### Restore Device from Snapshot
-1. Navigate to Devices Menu.
-2. Select the Device needing to be restored.
-3. Navigate to Snapshots menu.
-
-<img src="images/deploySnapshot.png" width=500 />
-
-
-4. Hover over the Snapshot desired to be restored from and select **Deploy Snapshot.**
-
-<img src="images/confirmSnapshot.png" width=500 />
-
-5. Select **Confirm.**
+* [Snapshots](../user/snapshots.md)
+* [Pipelines](../user/devops-pipelines.md)
+* [Environment Variables](../user/envvar.md)
+* [Logs](../user/logs.md)

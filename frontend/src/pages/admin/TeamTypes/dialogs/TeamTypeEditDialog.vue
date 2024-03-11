@@ -80,8 +80,9 @@
                     <FormRow v-model="input.properties.features.deviceGroups" type="checkbox">Device Groups</FormRow>
                     <FormRow v-model="input.properties.features.emailAlerts" type="checkbox">Email Alerts</FormRow>
                     <FormRow v-model="input.properties.features.deviceAutoSnapshot" type="checkbox">Device Auto Snapshot</FormRow>
+                    <FormRow v-model="input.properties.features.protectedInstance" type="checkbox">Protected Instances</FormRow>
                     <FormRow v-model="input.properties.features.instanceAutoSnapshot" type="checkbox">Instance Auto Snapshot</FormRow>
-                    <div />
+                    <!-- <span /> to make the grid work nicely, only needed if there is an odd number of checkbox features -->
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
                 </div>
@@ -173,6 +174,9 @@ export default {
                     }
                     if (this.input.properties.features.emailAlerts === undefined) {
                         this.input.properties.features.emailAlerts = false
+                    }
+                    if (this.input.properties.features.protectedInstance === undefined) {
+                        this.input.properties.features.protectedInstance = false
                     }
                     if (this.input.properties.billing.proration === undefined) {
                         this.input.properties.billing.proration = 'always_invoice'
