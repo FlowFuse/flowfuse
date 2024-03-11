@@ -454,8 +454,12 @@ export default {
                 await deviceApi.startDevice(this.device)
                 this.deviceStateMutator.setStateAsPendingFromServer()
             } catch (err) {
-                console.warn('Device start request failed.', err)
-                Alerts.emit('Device start request failed.', 'warning')
+                let message = 'Device start request failed.'
+                if (err.response?.data?.error) {
+                    message = err.response.data.error
+                }
+                console.warn(message, err)
+                Alerts.emit(message, 'warning')
                 this.deviceStateMutator.restoreState()
             }
         },
@@ -465,9 +469,12 @@ export default {
                 await deviceApi.restartDevice(this.device)
                 this.deviceStateMutator.setStateAsPendingFromServer()
             } catch (err) {
-                console.warn('Device restart request failed.', err)
-                Alerts.emit('Device restart request failed.', 'warning')
-                this.deviceStateMutator.restoreState()
+                let message = 'Device restart request failed.'
+                if (err.response?.data?.error) {
+                    message = err.response.data.error
+                }
+                console.warn(message, err)
+                Alerts.emit(message, 'warning')
             }
         },
         showConfirmDeleteDialog () {
@@ -498,9 +505,12 @@ export default {
                     this.deviceStateMutator.setStateAsPendingFromServer()
                     Alerts.emit('Device suspend request succeeded.', 'confirmation')
                 }).catch(err => {
-                    console.warn(err)
-                    Alerts.emit('Device suspend request failed.', 'warning')
-                    this.deviceStateMutator.restoreState()
+                    let message = 'Device suspend request failed.'
+                    if (err.response?.data?.error) {
+                        message = err.response.data.error
+                    }
+                    console.warn(message, err)
+                    Alerts.emit(message, 'warning')
                 })
             })
         }

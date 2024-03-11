@@ -44,7 +44,7 @@ module.exports = async function (app) {
         // check to see if comms is enabled
         const deviceComms = getDeviceComms(app)
         if (!deviceComms) {
-            reply.code(400).send({ code: 'invalid_request', error: 'Action requires Device Comms' })
+            reply.code(400).send({ code: 'no_device_comms', error: 'Actions are not available' })
             return
         }
         try {
@@ -100,7 +100,7 @@ module.exports = async function (app) {
         // check to see if comms is enabled
         const deviceComms = getDeviceComms(app)
         if (!deviceComms) {
-            reply.code(400).send({ code: 'invalid_request', error: 'Action requires Device Comms' })
+            reply.code(400).send({ code: 'no_device_comms', error: 'Actions are not available' })
             return
         }
         try {
@@ -109,7 +109,7 @@ module.exports = async function (app) {
                 return
             }
             app.db.controllers.Device.setInflightState(request.device, 'restarting')
-            const result = await deviceComms.sendCommandAwaitReply(request.device.Team.hashid, request.device.hashid, 'action', { action: 'restart' })
+            const result = await deviceComms.sendCommandAwaitReply(request.device.Team.hashid, request.device.hashid, 'actionXXXXXXXXXXXXXXXXXXXXXX', { action: 'restart' })
             if (typeof result !== 'object' || result?.success !== true) {
                 const error = new Error(result?.error?.error || 'Restart request failed, device did not respond correctly.')
                 error.code = result?.error?.code || 'restart_failed'
@@ -160,7 +160,7 @@ module.exports = async function (app) {
         // check to see if comms is enabled
         const deviceComms = getDeviceComms(app)
         if (!deviceComms) {
-            reply.code(400).send({ code: 'invalid_request', error: 'Action requires Device Comms' })
+            reply.code(400).send({ code: 'no_device_comms', error: 'Actions are not available' })
             return
         }
         try {
