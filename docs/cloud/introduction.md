@@ -22,7 +22,7 @@ plan you want to upgrade the team to.
 Otherwise, at the end of the 14-day trial period, any instances created in the team
 will be suspended. This means they will no longer be running and the
 editor will not be accessible. Users will need to add their Billing details at which
-point they will be able to restart their suspended Node-RED isntances.
+point they will be able to restart their suspended Node-RED instances.
 
 We will email users about their trial when it is nearing the end to ensure
 they know what is happening.
