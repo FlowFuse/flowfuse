@@ -6,9 +6,13 @@
                     Token name
                 </FormRow>
                 <ff-checkbox v-model="input.expires" data-form="expiry-toggle" label="Add Expiry Date" />
-                <FormRow v-model="input.expiresAt" data-form="token-expiry" type="date" :disabled="!input.expires">
+                <FormRow :disabled="!input.expires" :error="dateError">
                     Expires
-                    <!-- <template v-slot:description>Expires</template> -->
+                    <template #input>
+                        <div class="ff-input ff-text-input">
+                            <input v-model="input.expiresAt" type="date" :min="new Date(Date.now() + 60 * 60 * 24 * 1000).toISOString().split('T')[0]" max="2199-12-31" :disabled="!input.expires">
+                        </div>
+                    </template>
                 </FormRow>
             </form>
         </template>
@@ -55,7 +59,7 @@ export default {
                     this.input.expires = false
                 } else {
                     this.input.expires = true
-                    this.input.expiresAt = row.expiresAt.split('T')[0] // `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`
+                    this.input.expiresAt = row.expiresAt.split('T')[0]
                 }
                 this.edit = true
                 this.$refs.dialog.show()
@@ -90,12 +94,22 @@ export default {
             }
             if (!this.input.expires) {
                 return false
-            } else {
-                if (this.input.expiresAt) {
-                    return false
+            }
+            return this.dateError !== ''
+        },
+        dateError () {
+            if (this.input.expires) {
+                const dateEntered = new Date(this.input.expiresAt)
+                const tomorrow = new Date()
+                tomorrow.setDate(tomorrow.getDate() + 1)
+                tomorrow.setHours(0, 0, 0, 0)
+                if (dateEntered instanceof Date && !isNaN(dateEntered) && dateEntered >= tomorrow) {
+                    return ''
+                } else {
+                    return 'Date must be at in the future'
                 }
             }
-            return true
+            return ''
         }
     },
     methods: {
