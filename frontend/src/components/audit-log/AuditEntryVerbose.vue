@@ -449,6 +449,16 @@
         <span v-if="!error && entry.body?.project">Instance '{{ entry.body.project.name }}' was assigned to the '{{ entry.body.pipelineStage.name }}' Stage in the '{{ entry.body.pipeline.name }}' Pipeline</span>
         <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'project.protected'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.project">Instance '{{ entry.body.project.name }}' was placed into Protected State</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'project.unprotected'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.project">Instance '{{ entry.body.project.name }}' was un protected</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
+    </template>
     <template v-else-if="entry.event === 'project.device.assigned'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.project">Device '{{ entry.body.device?.name }}' was assigned to Instance '{{ entry.body.project?.name }}'</span>

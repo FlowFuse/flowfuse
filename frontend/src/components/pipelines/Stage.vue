@@ -10,6 +10,7 @@
             </div>
             <div class="ff-pipeline-actions">
                 <span
+                    v-ff-tooltip:right="'Edit Pipeline Stage'"
                     data-action="stage-edit"
                     @click="edit"
                 >
@@ -19,6 +20,7 @@
                     />
                 </span>
                 <span
+                    v-ff-tooltip:right="'Delete Pipeline Stage'"
                     data-action="stage-delete"
                     @click="deleteStage"
                 >
@@ -29,6 +31,7 @@
                 </span>
                 <span
                     v-if="stage.stageType !== StageType.DEVICEGROUP"
+                    v-ff-tooltip:right="'Run Pipeline Stage'"
                     data-action="stage-run"
                     :class="{'ff-disabled': !playEnabled || !pipeline?.id || deploying || inDeveloperMode}"
                     @click="runStage"
@@ -131,6 +134,12 @@
                     </template>
                 </span>
             </div>
+            <div v-if="stage.instance?.protected?.enabled" class="ff-pipeline-stage-row" data-el="protected-marker">
+                <label>Instance Protected:</label>
+                <div v-ff-tooltip:right="'Only Team Owner can deploy to this Instance'">
+                    <LockClosedIcon class="ff-icon" />
+                </div>
+            </div>
         </div>
         <div v-else class="flex justify-center py-6">No Instance or Device Bound</div>
         <DeployStageDialog
@@ -146,7 +155,7 @@
 </template>
 
 <script>
-import { ExclamationIcon, PencilAltIcon, PlayIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/outline'
+import { ExclamationIcon, LockClosedIcon, PencilAltIcon, PlayIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/outline'
 
 import PipelineAPI, { StageAction, StageType } from '../../api/pipeline.js'
 
@@ -171,6 +180,7 @@ export default {
         IconDeviceSolid,
         IconNodeRedSolid,
         InstanceStatusBadge,
+        LockClosedIcon,
         PencilAltIcon,
         PlayIcon,
         PlusCircleIcon,

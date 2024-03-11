@@ -21,6 +21,14 @@
                 </div>
             </template>
         </FormRow>
+        <FormRow v-if="features.protectInstance && input.protectInstance" v-model="input.protectInstance" type="uneditable">
+            <template #default>Instance Protected</template>
+            <template #input>
+                <div>
+                    Protected {{ input.protectInstance.enabled }}
+                </div>
+            </template>
+        </FormRow>
         <FormRow v-model="input.stackDescription" type="uneditable">
             Stack
         </FormRow>

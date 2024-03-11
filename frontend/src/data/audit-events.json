@@ -63,6 +63,8 @@
         "project.suspended": "Instance Suspended",
         "project.copied": "Instance Copied",
         "project.imported": "Instance Imported",
+        "project.protected": "Project Protected",
+        "project.unprotected": "Project Unprotected",
         "project.assigned-to-pipeline-stage": "Instance Assigned to DevOps Pipeline Stage",
         "project.device.assigned": "Device Assigned to Instance",
         "project.device.unassigned": "Device Unassigned from Instance",

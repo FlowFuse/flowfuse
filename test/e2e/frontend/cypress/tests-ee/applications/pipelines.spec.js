@@ -720,4 +720,116 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.get('[data-el="application-device-group-name"] input').should('have.value', GROUP_NAME)
         cy.get('[data-el="application-device-group-description"] input').should('have.value', `Description for group ${GROUP_NAME}`)
     })
+
+    it('can not push to a protected instance', () => {
+        cy.intercept('GET', '/api/v1/applications/*/pipelines').as('getPipelines')
+        cy.intercept('POST', '/api/v1/pipelines').as('createPipeline')
+
+        // Protect Instance
+        cy.visit(`/application/${application.id}`)
+        cy.get('[data-el="cloud-instances"] table tbody tr:nth-of-type(2)').click()
+        cy.get('[data-nav="instance-settings"').click()
+        cy.get('[data-el="section-side-menu"] li:nth-of-type(4)').click()
+        cy.get('[data-nav="enable-protect"]').click()
+
+        cy.get('[data-el="protected-pill"]')
+
+        cy.get('[data-nav="disable-protect"]')
+
+        cy.visit(`/application/${application.id}/pipelines`)
+        cy.wait('@getPipelines')
+
+        // Create pipeline
+        const PIPELINE_NAME = `My New Pipeline - ${Math.random().toString(36).substring(2, 7)}`
+
+        // Add pipeline
+        cy.get('[data-action="pipeline-add"]').click()
+        cy.get('[data-form="pipeline-form"]').should('be.visible')
+
+        cy.get('[data-form="pipeline-name"] input').type(PIPELINE_NAME)
+        cy.get('[data-action="create-pipeline"]').click()
+
+        cy.wait('@createPipeline')
+
+        cy.get('[data-el="pipelines-list"]').should('contain', PIPELINE_NAME)
+
+        // Add stage 1
+        cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
+            cy.get('[data-action="add-stage"]').click()
+        })
+
+        cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 1')
+
+        cy.get('[data-form="stage-instance"] .ff-dropdown').click()
+        cy.get('[data-form="stage-instance"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="stage-instance"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+
+        cy.get('[data-form="stage-action"] .ff-dropdown').click()
+        cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+
+        cy.get('[data-action="add-stage"]').click()
+
+        // Add stage 2
+        cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
+            cy.get('[data-action="add-stage"]').click()
+        })
+
+        cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 2')
+
+        cy.get('[data-form="stage-instance"] .ff-dropdown').click()
+        cy.get('[data-form="stage-instance"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="stage-instance"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+
+        cy.get('[data-form="stage-action"] .ff-dropdown').click()
+        cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:last').click()
+
+        cy.get('[data-action="add-stage"]').click()
+
+        cy.logout()
+        cy.login('eddy', 'eePassword')
+
+        cy.visit(`/application/${application.id}/pipelines`)
+        cy.wait('@getPipelines')
+
+        cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
+            cy.get('[data-el="protected-marker"]').should('exist')
+            cy.get('[data-el="ff-pipeline-stage"]:first [data-action="stage-run"]').should('have.class', 'ff-disabled')
+        })
+
+        cy.logout()
+        cy.login('bob', 'bbPassword')
+
+        cy.visit(`/application/${application.id}/pipelines`)
+        cy.wait('@getPipelines')
+
+        cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
+            cy.get('[data-el="ff-pipeline-stage"]:first [data-action="stage-run"]').should('not.have.class', 'ff-disabled')
+        })
+
+        // Tidy Up
+        cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
+            cy.contains('Stage 1')
+            cy.contains('Stage 2')
+
+            cy.get('[data-action="delete-pipeline"]').click()
+        })
+
+        cy.get('[data-el="platform-dialog"]')
+            .should('be.visible')
+            .within(() => {
+                /* eslint-disable cypress/require-data-selectors */
+                cy.get('.ff-dialog-header').contains('Delete Pipeline')
+                cy.get('button.ff-btn.ff-btn--danger').click()
+                /* eslint-enable */
+            })
+
+        // Remove Protected status
+        cy.visit(`/application/${application.id}`)
+        cy.get('[data-el="cloud-instances"] table tbody tr:nth-of-type(2)').click()
+        cy.get('[data-nav="instance-settings"').click()
+        cy.get('[data-el="section-side-menu"] li:nth-of-type(4)').click()
+        cy.get('[data-nav="disable-protect"]').click()
+    })
 })

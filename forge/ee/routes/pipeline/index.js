@@ -1,5 +1,6 @@
 const { ValidationError } = require('sequelize')
 
+const { KEY_PROTECTED } = require('../../../db/models/ProjectSettings.js')
 const { ControllerError } = require('../../../lib/errors.js')
 const { registerPermissions } = require('../../../lib/permissions')
 const { Roles } = require('../../../lib/roles.js')
@@ -494,6 +495,7 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const user = request.session.User
+        const teamMembership = request.teamMembership
 
         let repliedEarly = false
         let sourceDeployed, deployTarget
@@ -513,6 +515,18 @@ module.exports = async function (app) {
                 request.pipeline,
                 sourceStage
             )
+
+            // Only Owners can trigger a pipeline to a protected instance
+            // Test before source snapshot is taken
+            if (targetInstance) {
+                const protectedInstance = await targetInstance.getSetting(KEY_PROTECTED)
+                if (protectedInstance?.enabled && teamMembership.role !== Roles.Owner) {
+                    // reject
+                    reply.code(403).send({ code: 'protected_instance', error: 'Only Owner can Deploy to target instance' })
+                    repliedEarly = true
+                    return
+                }
+            }
 
             let sourceSnapshot
             if (sourceInstance) {

@@ -32,5 +32,23 @@ module.exports = {
                 }
             }
         }
+    },
+    async removeAllUsersFromInstance (app, instance) {
+        const sessions = await app.db.models.StorageSession.byProject(instance.id)
+        if (sessions) {
+            const sessionInfo = JSON.parse(sessions.sessions)
+            const userSessions = Object.values(sessionInfo)
+            // remove all sessions for this Instance
+            for (let i = 0; i < userSessions.length; i++) {
+                const token = userSessions[i].accessToken
+                try {
+                    await app.containers.revokeUserToken(instance, token)
+                } catch (error) {
+                    app.log.warn(`Failed to revoke token for Instance ${instance.id}: ${error.toString()}`) // log error but continue to delete session
+                }
+            }
+            sessions.session = '{}'
+            await sessions.save()
+        }
     }
 }

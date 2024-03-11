@@ -149,6 +149,15 @@ const disableHAMode = async (instanceId) => {
     return client.delete(`/api/v1/projects/${instanceId}/ha`)
 }
 
+const enableProtectedMode = async (instanceId) => {
+    const protectedConfig = { enabled: true }
+    return client.put(`/api/v1/projects/${instanceId}/protectInstance`, protectedConfig)
+}
+
+const disableProtectedMode = async (instanceId) => {
+    return client.delete(`/api/v1/projects/${instanceId}/protectInstance`)
+}
+
 export default {
     create,
     getInstance,
@@ -166,5 +175,7 @@ export default {
     updateInstanceDeviceSettings,
     rollbackInstance,
     enableHAMode,
-    disableHAMode
+    disableHAMode,
+    enableProtectedMode,
+    disableProtectedMode
 }

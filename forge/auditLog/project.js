@@ -37,6 +37,12 @@ module.exports = {
             async assignedToPipelineStage (actionedBy, error, project, pipeline, pipelineStage) {
                 await log('project.assigned-to-pipeline-stage', actionedBy, project?.id, generateBody({ error, project, pipeline, pipelineStage }))
             },
+            async protected (actionedBy, error, project) {
+                await log('project.protected', actionedBy, project?.id, generateBody({ error, project }))
+            },
+            async unprotected (actionedBy, error, project) {
+                await log('project.unprotected', actionedBy, project?.id, generateBody({ error, project }))
+            },
             device: {
                 async unassigned (actionedBy, error, project, device) {
                     await log('project.device.unassigned', actionedBy, project?.id, generateBody({ error, project, device }))
