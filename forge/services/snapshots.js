@@ -81,6 +81,14 @@ module.exports.generateDeploySnapshotDescription = (
 
 module.exports.createSnapshot = async (app, instance, user, snapshotProps) => {
     const fullInstanceObject = await app.db.models.Project.byId(instance.id)
+    if (snapshotProps.flows && typeof snapshotProps.flows === 'object' && Array.isArray(snapshotProps.flows.flows)) {
+        // ProjectSnapshot.createSnapshot function in `controllers/ProjectSnapshot.js`
+        // expects the flows and credentials to be separate properties
+        const credentials = snapshotProps.flows.credentials
+        const flows = snapshotProps.flows.flows
+        snapshotProps.credentials = credentials
+        snapshotProps.flows = flows
+    }
 
     const snapShot = await app.db.controllers.ProjectSnapshot.createSnapshot(
         fullInstanceObject, // expects Project.byId for all extra props

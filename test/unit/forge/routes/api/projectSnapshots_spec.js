@@ -131,27 +131,28 @@ describe('Project Snapshots API', function () {
     /**
      * A flavor of 'create snapshot' while allow partial/full override of project's (denoted by "projectId") aspect,
      * one of the [flows, credentials, settings].
-     * @param {*} projectId also known as "instance id" - id of project A
-     * @param {*} token auth token
-     * @param {*} credentialSecret credentials secret of project A
-     *
-     * @param {*} setAsTarget: boolean flag, indicates whether this snapshot should be set as target for project
-     *
-     * @param {*} snapshot just our snapshot
-
+     * @param {String} projectId also known as "instance id" - id of project A
+     * @param {String} token auth token
+     * @param {String} credentialSecret credentials secret of project A
+     * @param {Boolean} setAsTarget: indicates whether this snapshot should be set as target for project
+     * @param {Object} snapshot the snapshot object
+     * @param {Boolean} alt: boolean flag, indicates whether the snapshot object is in alternative format where flows and credentials are in separate objects
      * @return {Promise<*>}
      */
     async function importSnapshot (projectId,
         token,
         credentialSecret,
         setAsTarget,
-        snapshot) {
+        snapshot,
+        alt = true) {
         if (!snapshot || !credentialSecret) {
             return { statusCode: 500 }
         }
         const proto = { ...snapshot }
-        proto.credentials = proto.flows.credentials
-        proto.flows = proto.flows.flows
+        if (alt) {
+            proto.credentials = proto.flows.credentials
+            proto.flows = proto.flows.flows
+        }
 
         return await app.inject({
             method: 'POST',
@@ -313,7 +314,9 @@ describe('Project Snapshots API', function () {
     describe('Export a snapshot', function () {
         const projectCredentialsSecretA = 'keyA'
         const projectCredentialsSecretB = 'keyB'
-
+        afterEach(async function () {
+            await app.db.models.ProjectSnapshot.destroy({ where: {} })
+        })
         it('Non-team member cannot export project snapshot', async function () {
             // Chris (non-member) cannot export ("create" permission at the moment) in ATeam
             const response = await exportSnapshot(TestObjects.project1.id,
@@ -425,8 +428,8 @@ describe('Project Snapshots API', function () {
             exportResult.should.have.property('user')
             exportResult.user.should.have.property('id', TestObjects.alice.hashid)
 
-            exportResult.should.have.property('flows')
-            exportResult.flows.should.have.property('flows')
+            exportResult.should.have.property('flows').and.be.an.Object()
+            exportResult.flows.should.have.property('flows').and.be.an.Array()
             exportResult.flows.flows.should.have.lengthOf(1)
             exportResult.flows.flows[0].should.have.property('id', 'node1')
 
@@ -447,7 +450,8 @@ describe('Project Snapshots API', function () {
                 TestObjects.tokens.alice,
                 projectCredentialsSecretB,
                 true,
-                exportResult)
+                exportResult,
+                false) // false means the snapshot objects flows and credentials are in the same object
 
             importResponse.statusCode.should.equal(200)
             const importResult = importResponse.json()
@@ -473,12 +477,175 @@ describe('Project Snapshots API', function () {
                     TestObjects.alice,
                     options)
 
-            snapshotViaController.should.have.property('flows')
+            snapshotViaController.should.have.property('flows').and.be.an.Object()
             snapshotViaController.flows.should.have.only.keys('flows', 'credentials')
-            snapshotViaController.flows.flows.should.have.length(1)
+            snapshotViaController.flows.flows.should.be.an.Array().and.have.length(1)
             snapshotViaController.flows.flows[0].should.have.property('id', aFlowSignificatorNodeId)
-            snapshotViaController.flows.credentials.should.have.only.keys('$')
-            snapshotViaController.should.have.property('settings')
+            snapshotViaController.flows.credentials.should.be.an.Object().and.have.only.keys('$')
+            snapshotViaController.should.have.property('settings').and.be.an.Object()
+            snapshotViaController.settings.should.have.property('env')
+
+            // verify result has the proper env
+            snapshotViaController.settings.env.should.have.property(aEnvSignificator)
+            snapshotViaController.settings.env.should.have.property(aEnvSignificator)
+            snapshotViaController.settings.env.should.have.property('FF_INSTANCE_ID', TestObjects.project2.id)
+
+            // verify that credentials belong to Project B
+            const iDecryptedCreds = decryptCredentials(keyHashB, snapshotViaController.flows.credentials)
+            JSON.stringify(iDecryptedCreds).should.equal(JSON.stringify(bCredsRaw))
+
+            // verify we have expected number of snapshots now (2)
+            await validateProjectSnapshotsBase(
+                TestObjects.project2.id,
+                TestObjects.tokens.alice,
+                2
+            )
+        })
+        it('Export project A snapshot and apply it to project B (Alt API format)', async function () {
+            const aCreds = { testCreds: 'abc' }
+            const bCredsRaw = { testCreds: 'def' }
+
+            const aFlowSignificatorNodeId = 'node1alt'
+            const bFlowSignificatorNodeId = 'node2alt'
+
+            const aEnvSignificator = 'one'
+            const bEnvSignificator = 'three'
+
+            await addFlowsToProject(app,
+                TestObjects.project1.id,
+                TestObjects.tokens.project,
+                TestObjects.tokens.alice,
+                [{ id: aFlowSignificatorNodeId }],
+                aCreds,
+                projectCredentialsSecretA,
+                {
+                    httpAdminRoot: '/test-red',
+                    dashboardUI: '/test-dash',
+                    env: [
+                        { name: aEnvSignificator, value: 'a' },
+                        { name: 'two', value: 'b' }
+                    ]
+                }
+            )
+
+            await addFlowsToProject(app,
+                TestObjects.project2.id,
+                TestObjects.tokens.project2,
+                TestObjects.tokens.alice,
+                [{ id: bFlowSignificatorNodeId }],
+                bCredsRaw,
+                projectCredentialsSecretB,
+                {
+                    httpAdminRoot: '/test-red-2',
+                    dashboardUI: '/test-dash-2',
+                    env: [
+                        { name: bEnvSignificator, value: 'c' },
+                        { name: 'four', value: 'd' }
+                    ]
+                }
+            )
+
+            const snapshotName = 'test-project-snapshot-03alt'
+            const response = await createSnapshot(TestObjects.project1.id, snapshotName, TestObjects.tokens.alice)
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('id')
+            result.should.have.property('name', snapshotName)
+            result.should.have.property('createdAt')
+            result.should.have.property('updatedAt')
+            result.should.have.property('user')
+            result.user.should.have.property('id', TestObjects.alice.hashid)
+
+            const snapshotObj = await app.db.models.ProjectSnapshot.byId(result.id)
+            const snapshot = snapshotObj.toJSON()
+            snapshot.flows.should.have.property('flows')
+            snapshot.flows.flows.should.have.lengthOf(1)
+            snapshot.flows.flows[0].should.have.property('id', 'node1alt')
+            snapshot.flows.should.have.property('credentials')
+            snapshot.flows.credentials.should.have.property('$')
+            snapshot.settings.should.have.property('settings')
+            snapshot.settings.settings.should.have.property('httpAdminRoot', '/test-red')
+            snapshot.settings.settings.should.have.property('dashboardUI', '/test-dash')
+            snapshot.settings.should.have.property('env')
+            snapshot.settings.env.should.have.property('one', 'a')
+            snapshot.settings.env.should.have.property('two', 'b')
+            snapshot.settings.should.have.property('modules')
+
+            // we consider in this test that credentials of Project B will be used.
+            // If credentials of Project A are fine, credentials can be left blank in request
+            const exportResponse = await exportSnapshot(
+                TestObjects.project1.id,
+                result.id,
+                projectCredentialsSecretB,
+                TestObjects.tokens.alice,
+                bCredsRaw)
+            exportResponse.statusCode.should.equal(200)
+
+            const exportResult = exportResponse.json()
+
+            // verify the integrity of exported snapshot
+            exportResult.should.have.property('id', result.id)
+            exportResult.should.have.property('name', snapshotName)
+            exportResult.should.have.property('createdAt')
+            exportResult.should.have.property('updatedAt')
+            exportResult.should.have.property('user')
+            exportResult.user.should.have.property('id', TestObjects.alice.hashid)
+
+            exportResult.should.have.property('flows').and.be.an.Object()
+            exportResult.flows.should.have.property('flows').and.be.an.Array()
+            exportResult.flows.flows.should.have.lengthOf(1)
+            exportResult.flows.flows[0].should.have.property('id', 'node1alt')
+
+            // verify credentials of exported snapshot. Should belong to Project B according to setup above
+            exportResult.flows.should.have.property('credentials')
+            exportResult.flows.credentials.should.have.only.keys('$')
+
+            const credSecretB = await TestObjects.project2.getCredentialSecret()
+            const keyHashB = crypto.createHash('sha256').update(credSecretB).digest()
+
+            const decryptedCreds = decryptCredentials(keyHashB, exportResult.flows.credentials)
+            JSON.stringify(decryptedCreds).should.equal(JSON.stringify(bCredsRaw))
+
+            // time to create this snapshot on project B
+            // check that public API works
+            const importResponse = await importSnapshot(
+                TestObjects.project2.id,
+                TestObjects.tokens.alice,
+                projectCredentialsSecretB,
+                true,
+                exportResult,
+                true // true means the snapshot objects flows and credentials are nested in the flows object
+            )
+            importResponse.statusCode.should.equal(200)
+            const importResult = importResponse.json()
+            importResult.should.have.property('id')
+            importResult.should.have.property('name', snapshotName)
+
+            await validateProjectSnapshotsBase(
+                TestObjects.project2.id,
+                TestObjects.tokens.alice,
+                1,
+                importResult.id
+            )
+
+            // create this snapshot once again via controller to verify the imported snapshot integrity
+            const options = { ...exportResult, name: 'test-project-snapshot-04alt' }
+            options.credentials = options.flows.credentials
+            options.flows = options.flows.flows
+            options.credentialSecret = credSecretB
+
+            const snapshotViaController =
+                await app.db.controllers.ProjectSnapshot.createSnapshot(
+                    TestObjects.project2,
+                    TestObjects.alice,
+                    options)
+
+            snapshotViaController.should.have.property('flows').and.be.an.Object()
+            snapshotViaController.flows.should.have.only.keys('flows', 'credentials')
+            snapshotViaController.flows.flows.should.be.an.Array().and.have.length(1)
+            snapshotViaController.flows.flows[0].should.have.property('id', aFlowSignificatorNodeId)
+            snapshotViaController.flows.credentials.should.be.an.Object().and.have.only.keys('$')
+            snapshotViaController.should.have.property('settings').and.be.an.Object()
             snapshotViaController.settings.should.have.property('env')
 
             // verify result has the proper env
