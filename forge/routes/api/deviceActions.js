@@ -109,7 +109,7 @@ module.exports = async function (app) {
                 return
             }
             app.db.controllers.Device.setInflightState(request.device, 'restarting')
-            const result = await deviceComms.sendCommandAwaitReply(request.device.Team.hashid, request.device.hashid, 'actionXXXXXXXXXXXXXXXXXXXXXX', { action: 'restart' })
+            const result = await deviceComms.sendCommandAwaitReply(request.device.Team.hashid, request.device.hashid, 'action', { action: 'restart' })
             if (typeof result !== 'object' || result?.success !== true) {
                 const error = new Error(result?.error?.error || 'Restart request failed, device did not respond correctly.')
                 error.code = result?.error?.code || 'restart_failed'
