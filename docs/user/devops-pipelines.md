@@ -114,3 +114,16 @@ It is only used as a target stage for deploying to a group of devices.
 This option is only applicable when the Stage Type is an Instance.
 
 When a pipeline stage with this action is deployed to, the same snapshot will be deployed to all devices connected to the defined instance.
+
+## Protected Instances
+
+It is now possible to mark an instance as Protected. This means that all team members (including Owners) only have Read Only access to the Node-RED Editor
+and updates to the flows can only be made by a Team Owner running a DevOps pipeline that targets the instance.
+
+Protected mode is activated under Instance > Settings > Protect Instance
+
+<img src="./images/protected-instance.png" width="100%" />
+
+A Protected Instance will be marked by a status badge next to it's running state. Click on this badge will take you to the Settings page.
+
+<img src="./images/protected-instance-pill.png" width="100%" />

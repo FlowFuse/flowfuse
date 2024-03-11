@@ -17,6 +17,7 @@
         <CloudUploadIcon v-if="status === 'loading'" class="w-4 h-4" />
         <AnimIconInstalling v-if="status === 'installing'" class="w-3 h-3" />
         <SupportIcon v-if="status === 'safe'" class="w-4 h-4" />
+        <LockClosedIcon v-if="status === 'protected'" class="w-4 h-4" />
         <span class="ml-1">{{ text === null ? status : text }}</span>
     </div>
 </template>
@@ -28,6 +29,7 @@ import {
     ExclamationCircleIcon,
     ExclamationIcon,
     InformationCircleIcon,
+    LockClosedIcon,
     PlayIcon,
     RefreshIcon,
     StopIcon,
@@ -44,6 +46,7 @@ export default {
         ExclamationCircleIcon,
         ExclamationIcon,
         InformationCircleIcon,
+        LockClosedIcon,
         PlayIcon,
         StopIcon,
         SupportIcon,

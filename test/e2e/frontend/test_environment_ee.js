@@ -43,6 +43,7 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
     const defaultTeamType = await flowforge.db.models.TeamType.findOne({ where: { name: 'starter' } })
     const defaultTeamTypeProperties = defaultTeamType.properties
     defaultTeamTypeProperties.features.deviceGroups = true
+    defaultTeamTypeProperties.features.protectedInstance = true
     defaultTeamType.properties = defaultTeamTypeProperties
     await defaultTeamType.save()
 

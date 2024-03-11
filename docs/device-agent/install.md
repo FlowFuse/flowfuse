@@ -26,7 +26,7 @@ command is on the path:
 sudo npm install -g @flowfuse/device-agent
 ```
 
-### Windows
+### Windows (run elevated[^1])
 
 ```bash
 npm install -g @flowfuse/device-agent
@@ -76,11 +76,13 @@ sudo mkdir /opt/flowfuse-device
 sudo chown -R $USER /opt/flowfuse-device
 ```
 
-#### Windows (run elevated)
+#### Windows (run elevated[^1])
 
 ```bash
 mkdir c:\opt\flowfuse-device
+icacls c:\opt\flowfuse-device /grant "user":F /T
 ```
+_where `"user"` is the service account that will run the device agent (ideally, this is NOT an admin account)_
 
 ### Listen Port
 
@@ -111,11 +113,14 @@ new package to ensure you continue to receive the latest updates.
 ### Linux/MacOS
 
 ```bash
-sudo npm install -g @flowfuse/device-agent
+sudo npm install -g @flowfuse/device-agent@latest
 ```
 
-### Windows
+### Windows (run elevated[^1])
 
 ```bash
-npm install -g @flowfuse/device-agent
+npm install -g @flowfuse/device-agent@latest
 ```
+
+
+[^1]: Run `powershell -Command "Start-Process 'cmd' -Verb runAs` to launching an elevated command prompt window (e.g. as an admin user)

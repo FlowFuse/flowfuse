@@ -57,6 +57,10 @@
 <script>
 import { ChevronRightIcon, PencilAltIcon, TrashIcon } from '@heroicons/vue/outline'
 
+import { mapState } from 'vuex'
+
+import { Roles } from '../../../../forge/lib/roles.js'
+
 import ApplicationAPI from '../../api/application.js'
 import { StageType } from '../../api/pipeline.js'
 
@@ -110,6 +114,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['team', 'teamMembership']),
         saveRowEnabled () {
             return this.scopedPipeline.name?.length > 0
         },
@@ -214,6 +219,9 @@ export default {
             if (!endofPipeline) {
                 // we are mid-pipeline
                 const nextStage = this.pipeline.stages[$index + 1]
+                if (nextStage.instance?.protected?.enabled && this.teamMembership.role !== Roles.Owner) {
+                    return false
+                }
                 if (nextStage.device?.mode === 'developer') {
                     // cannot push to a device in Developer Mode
                     return false

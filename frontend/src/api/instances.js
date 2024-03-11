@@ -172,6 +172,15 @@ const updateHTTPToken = async (instanceId, tokenId, scope, expiresAt) => {
 
 const deleteHTTPToken = async (instanceId, tokenId) => {
     return client.delete(`/api/v1/projects/${instanceId}/httpTokens/${tokenId}`)
+
+const enableProtectedMode = async (instanceId) => {
+    const protectedConfig = { enabled: true }
+    return client.put(`/api/v1/projects/${instanceId}/protectInstance`, protectedConfig)
+}
+
+const disableProtectedMode = async (instanceId) => {
+    return client.delete(`/api/v1/projects/${instanceId}/protectInstance`)
+
 }
 
 export default {
@@ -195,5 +204,7 @@ export default {
     getHTTPTokens,
     createHTTPToken,
     updateHTTPToken,
-    deleteHTTPToken
+    deleteHTTPToken,
+    enableProtectedMode,
+    disableProtectedMode
 }

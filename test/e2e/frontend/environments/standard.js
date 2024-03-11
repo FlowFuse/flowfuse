@@ -59,6 +59,9 @@ module.exports = async function (settings = {}, config = {}) {
     // non admin, not in any team but will be invited and removed as required
     const userDave = await factory.createUser({ username: 'dave', name: 'Dave Vader', email: 'dave@example.com', password: 'ddPassword', email_verified: true, password_expired: false })
 
+    // team member
+    const userEddy = await factory.createUser({ username: 'eddy', name: 'Edward Organa', email: 'eddy@example.com', email_verified: true, password: 'eePassword' })
+
     // Platform Setup
     const template = await factory.createProjectTemplate({ name: 'template1' }, userAlice)
     const stack = await factory.createStack({ name: 'stack1' }, projectType)
@@ -126,6 +129,7 @@ module.exports = async function (settings = {}, config = {}) {
     /// Team 2
     const team2 = await factory.createTeam({ name: 'BTeam' })
     await team2.addUser(userBob, { through: { role: Roles.Owner } })
+    await team2.addUser(userEddy, { through: { role: Roles.Member } })
 
     // Create pending invite for Dave to join BTeam
     await factory.createInvitation(team2, userBob, userDave)

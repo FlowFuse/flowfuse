@@ -159,7 +159,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
+        ...mapState('account', ['team', 'teamMembership']),
         instanceRunning () {
             return this.instance?.meta?.state === 'running'
         },

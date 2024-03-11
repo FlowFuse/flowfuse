@@ -76,6 +76,20 @@ describe('Accounts API', async function () {
             // TODO: check user audit logs - expect 'account.xxx-yyy' { status: 'okay', ... }
         })
 
+        it('allows user to register - mixed case username', async function () {
+            app.settings.set('user:signup', true)
+
+            const response = await registerUser({
+                username: 'MixedCaseUserName',
+                password: '12345678',
+                name: 'MixedCaseUserName',
+                email: 'MixedCaseUserName@example.com'
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('username', 'MixedCaseUserName')
+            result.should.have.property('id')
+        })
         it('rejects reserved user names', async function () {
             app.settings.set('user:signup', true)
 
@@ -111,6 +125,14 @@ describe('Accounts API', async function () {
                 password: '12345678',
                 name: 'u1.2',
                 email: 'u1-2@example.com'
+            }, /Username or email not available/)
+
+            // Try with uppercase
+            await expectRejection({
+                username: 'U1',
+                password: '12345678',
+                name: 'u1.3',
+                email: 'u1-3@example.com'
             }, /Username or email not available/)
 
             // TODO: check user audit logs - expect 'account.xxx-yyy' { code: '', error, '' }
