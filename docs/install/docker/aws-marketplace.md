@@ -47,7 +47,7 @@ You can do this in 2 ways
     ssh -i aws-ssh.pem ubuntu@xxx.xxx.xxx.xxx
     ```
 
-2. Using the "Connect" button on the EC2 console.
+2. Using the "Connect" button on the EC2 console. Be sure to change the username from `root` to `ubuntu`
      ![AWS EC2 Console](../images/aws-console-connect.png)
 
 Once logged in you will be presented with a wizard to set the domain and confirm by entering `1` or `2` to enter the domain again.
