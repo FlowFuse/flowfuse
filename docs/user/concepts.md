@@ -22,6 +22,7 @@ them when _snapshots_ are created of the instance.
    - [Template](#template)
    - [Snapshot](#instance-snapshot)
  - [Device](#device)
+ - [Device Action](#device-actions)
  - [Device Groups](#device-groups)
 
 
@@ -158,6 +159,22 @@ the remote device.
 To further simplify device registration, Provisioning Tokens can be created to allow 
 devices to automatically connect to a team without having to manually register them first.
 The token can also be configured to assign a device directly to a Node-RED instance within the team.
+
+### Device Actions
+
+**Introduced in FlowFuse 2.2**
+
+Devices have an action dropdown menu that can request the device agent to suspend, start and restart the
+Node-RED instance running on the device.
+
+This is useful when you want to temporarily stop Node-RED, restart it to pick up updates or to aid diagnosing issues.
+
+While a device is suspended, the Device Agent will continue to run and report device status
+to the platform, but your Node-RED flows will not stopped. If the Device Agent is restarted,
+Node-RED will be continue to be suspended. In order to exit suspended mode, start action must be requested.
+
+NOTE: Device Actions require FlowFuse to be configured with a broker. 
+Please contact your FlowFuse administrator for more information or see the [broker configuration](../install/configuration.md#mqtt-broker-configuration) documentation.
 
 ### Device Groups
 
