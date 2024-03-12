@@ -120,6 +120,35 @@ module.exports = {
         } else if (idCount === 0) {
             throw new PipelineControllerError('invalid_input', 'An instance, device or device group is required when creating a new pipeline stage', 400)
         }
+        if (options.instanceId) {
+            const instance = await app.db.models.Project.findOne({
+                where: { id: options.instanceId, ApplicationId: pipeline.ApplicationId },
+                attributes: ['id']
+            })
+            if (!instance) {
+                throw new PipelineControllerError('invalid_input', 'Invalid instance')
+            }
+        }
+        if (options.deviceId) {
+            const deviceId = (typeof options.deviceId === 'string') ? app.db.models.Device.decodeHashid(options.deviceId) : options.deviceId
+            const device = await app.db.models.Device.findOne({
+                where: { id: deviceId, ApplicationId: pipeline.ApplicationId },
+                attributes: ['id']
+            })
+            if (!device) {
+                throw new PipelineControllerError('invalid_input', 'Invalid device')
+            }
+        }
+        if (options.deviceGroupId) {
+            const deviceGroupId = (typeof options.deviceGroupId === 'string') ? app.db.models.DeviceGroup.decodeHashid(options.deviceGroupId) : options.deviceGroupId
+            const deviceGroup = await app.db.models.DeviceGroup.findOne({
+                where: { id: deviceGroupId, ApplicationId: pipeline.ApplicationId },
+                attributes: ['id']
+            })
+            if (!deviceGroup) {
+                throw new PipelineControllerError('invalid_input', 'Invalid device group')
+            }
+        }
 
         let source
         options.PipelineId = pipeline.id
@@ -147,7 +176,6 @@ module.exports = {
         const transaction = await app.db.sequelize.transaction()
         try {
             const stage = await app.db.models.PipelineStage.create(options, { transaction })
-
             if (options.instanceId) {
                 await stage.addInstanceId(options.instanceId, { transaction })
             } else if (options.deviceId) {

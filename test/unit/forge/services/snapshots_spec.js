@@ -103,11 +103,10 @@ describe('Snapshots Service', function () {
 
         before(async function () {
             const application = await FACTORY.createApplication({ name: 'application1' }, TEAM)
-
-            const instance = await APP.db.models.Project.create({ name: 'snaphot-instance-1', type: '', url: '' })
-            const instanceTwo = await APP.db.models.Project.create({ name: 'snaphot-instance-2', type: '', url: '' })
-            const instanceThree = await APP.db.models.Project.create({ name: 'snaphot-instance-3', type: '', url: '' })
-            const instanceFlour = await APP.db.models.Project.create({ name: 'snaphot-instance-4', type: '', url: '' })
+            const instance = await APP.db.models.Project.create({ name: 'snaphot-instance-1', type: '', url: '', ApplicationId: application.id })
+            const instanceTwo = await APP.db.models.Project.create({ name: 'snaphot-instance-2', type: '', url: '', ApplicationId: application.id })
+            const instanceThree = await APP.db.models.Project.create({ name: 'snaphot-instance-3', type: '', url: '', ApplicationId: application.id })
+            const instanceFlour = await APP.db.models.Project.create({ name: 'snaphot-instance-4', type: '', url: '', ApplicationId: application.id })
 
             pipeline = await FACTORY.createPipeline({ name: 'pipeline-1' }, application)
 

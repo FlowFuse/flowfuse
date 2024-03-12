@@ -215,6 +215,35 @@ describe('Pipelines API', function () {
 
                     response.statusCode.should.equal(400)
                 })
+
+                it('Rejects if instance owned by another application', async function () {
+                    const application2 = await TestObjects.factory.createApplication({ name: 'application-1 2' }, TestObjects.team)
+                    const instanceThree = await TestObjects.factory.createInstance(
+                        { name: 'instance-three' },
+                        application2,
+                        app.stack,
+                        app.template,
+                        app.projectType,
+                        { start: false }
+                    )
+                    const pipelineId = TestObjects.pipeline.hashid
+
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/pipelines/${pipelineId}/stages`,
+                        payload: {
+                            name: 'stage-two',
+                            instanceId: instanceThree.id,
+                            action: 'prompt'
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
+                    const body = await response.json()
+                    response.statusCode.should.equal(400)
+                    body.should.have.property('code', 'invalid_input')
+                    body.should.have.property('error').match(/Invalid instance/)
+                })
             })
         })
 
@@ -264,6 +293,28 @@ describe('Pipelines API', function () {
 
                     response.statusCode.should.equal(400)
                 })
+                it('Rejects if device owned by another application', async function () {
+                    const application2 = await TestObjects.factory.createApplication({ name: 'application-1 2' }, TestObjects.team)
+                    const otherDevice = await TestObjects.factory.createDevice({ name: 'device-b', type: 'dog' }, TestObjects.team, null, application2)
+
+                    const pipelineId = TestObjects.pipeline.hashid
+
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/pipelines/${pipelineId}/stages`,
+                        payload: {
+                            name: 'stage-two',
+                            deviceId: otherDevice.hashid,
+                            action: 'prompt'
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
+                    const body = await response.json()
+                    response.statusCode.should.equal(400)
+                    body.should.have.property('code', 'invalid_input')
+                    body.should.have.property('error').match(/Invalid device/)
+                })
             })
         })
 
@@ -311,6 +362,27 @@ describe('Pipelines API', function () {
                     const body = await response.json()
                     body.should.have.property('code', 'invalid_input')
                     body.should.have.property('error').match(/A Device Group cannot be the first stage/)
+                })
+                it('Rejects a pipeline stage if the device group owned by another application', async function () {
+                    const application2 = await TestObjects.factory.createApplication({ name: 'application-1 2' }, TestObjects.team)
+                    const otherDeviceGroup = await TestObjects.factory.createApplicationDeviceGroup({ name: 'device-group-c' }, application2)
+
+                    const pipelineId = TestObjects.pipeline.hashid
+
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/pipelines/${pipelineId}/stages`,
+                        payload: {
+                            name: 'stage-two',
+                            deviceGroupId: otherDeviceGroup.hashid,
+                            action: 'prompt'
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(400)
+                    const body = await response.json()
+                    body.should.have.property('code', 'invalid_input')
+                    body.should.have.property('error').match(/Invalid device group/)
                 })
             })
 
