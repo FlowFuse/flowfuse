@@ -176,6 +176,7 @@ export default {
             mounted: false,
             device: null,
             agentSupportsDeviceAccess: false,
+            agentSupportsActions: false,
             openingTunnel: false,
             closingTunnel: false,
             /** @type {import('../../utils/timers.js').PollTimer} */
@@ -313,6 +314,7 @@ export default {
                 this.deviceStateMutator.clearState()
             }
             this.agentSupportsDeviceAccess = this.device.agentVersion && semver.gte(this.device.agentVersion, '0.8.0')
+            this.agentSupportsActions = this.device.agentVersion && semver.gte(this.device.agentVersion, '2.3.0')
             this.$store.dispatch('account/setTeam', this.device.team.slug)
         },
         deviceRefresh: async function () {
@@ -447,36 +449,6 @@ export default {
         deviceChanged () {
             this.deviceStateMutator = new DeviceStateMutator(this.device)
         },
-        async startDevice () {
-            this.deviceStateMutator.setStateOptimistically('starting')
-
-            try {
-                await deviceApi.startDevice(this.device)
-                this.deviceStateMutator.setStateAsPendingFromServer()
-            } catch (err) {
-                let message = 'Device start request failed.'
-                if (err.response?.data?.error) {
-                    message = err.response.data.error
-                }
-                console.warn(message, err)
-                Alerts.emit(message, 'warning')
-                this.deviceStateMutator.restoreState()
-            }
-        },
-        async restartDevice () {
-            this.deviceStateMutator.setStateOptimistically('restarting')
-            try {
-                await deviceApi.restartDevice(this.device)
-                this.deviceStateMutator.setStateAsPendingFromServer()
-            } catch (err) {
-                let message = 'Device restart request failed.'
-                if (err.response?.data?.error) {
-                    message = err.response.data.error
-                }
-                console.warn(message, err)
-                Alerts.emit(message, 'warning')
-            }
-        },
         showConfirmDeleteDialog () {
             Dialog.show({
                 header: 'Delete Device',
@@ -493,7 +465,70 @@ export default {
                 }
             })
         },
+        /**
+         * Checks agent version and shows warning if known old version is present. Returns true if the action can proceed
+         * @param {string} [message] - optional message to show in confirmation dialog. If omitted, no confirmation is shown
+         */
+        preActionChecks (message) {
+            if (this.device.agentVersion && !this.agentSupportsActions) {
+                // if agent version is present but is less than required version, show warning and halt
+                Alerts.emit('Device Agent V2.3 or greater is required to perform this action.', 'warning')
+                return false
+            }
+            if (!message) {
+                // no message means silent operation, no need to show confirmation
+                return true
+            }
+            if (!this.device.agentVersion) {
+                // if agent version is missing, be optimistic and give it a go, but show warning
+                Alerts.emit(`${message}.  NOTE: The device agent version is not known, the action may timeout`, 'warning')
+            } else {
+                Alerts.emit(message, 'confirmation')
+            }
+            return true
+        },
+        async startDevice () {
+            const preCheckOk = this.preActionChecks('Starting device...')
+            if (!preCheckOk) {
+                return
+            }
+            this.deviceStateMutator.setStateOptimistically('starting')
+            try {
+                await deviceApi.startDevice(this.device)
+                this.deviceStateMutator.setStateAsPendingFromServer()
+            } catch (err) {
+                let message = 'Device start request failed.'
+                if (err.response?.data?.error) {
+                    message = err.response.data.error
+                }
+                console.warn(message, err)
+                Alerts.emit(message, 'warning')
+                this.deviceStateMutator.restoreState()
+            }
+        },
+        async restartDevice () {
+            const preCheckOk = this.preActionChecks('Restarting device...')
+            if (!preCheckOk) {
+                return
+            }
+            this.deviceStateMutator.setStateOptimistically('restarting')
+            try {
+                await deviceApi.restartDevice(this.device)
+                this.deviceStateMutator.setStateAsPendingFromServer()
+            } catch (err) {
+                let message = 'Device restart request failed.'
+                if (err.response?.data?.error) {
+                    message = err.response.data.error
+                }
+                console.warn(message, err)
+                Alerts.emit(message, 'warning')
+            }
+        },
         showConfirmSuspendDialog () {
+            const preCheckOk = this.preActionChecks() // silent check
+            if (!preCheckOk) {
+                return
+            }
             Dialog.show({
                 header: 'Suspend Device',
                 text: 'Are you sure you want to suspend this device?',
