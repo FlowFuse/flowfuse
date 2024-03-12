@@ -211,7 +211,10 @@ const iconMap = {
     token: [
         'team.device.provisioning.created',
         'team.device.provisioning.updated',
-        'team.device.provisioning.deleted'
+        'team.device.provisioning.deleted',
+        'project.httpToken.created',
+        'project.httpToken.updated',
+        'project.httpToken.deleted'
     ],
     pipeline: [
         'application.pipeline.created',

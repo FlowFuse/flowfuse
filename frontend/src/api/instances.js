@@ -149,6 +149,31 @@ const disableHAMode = async (instanceId) => {
     return client.delete(`/api/v1/projects/${instanceId}/ha`)
 }
 
+const getHTTPTokens = async (instanceId) => {
+    return client.get(`/api/v1/projects/${instanceId}/httpTokens`).then(res => res.data)
+}
+
+const createHTTPToken = async (instanceId, name, scope, expiresAt) => {
+    const data = {
+        name,
+        scope,
+        expiresAt
+    }
+    return client.post(`/api/v1/projects/${instanceId}/httpTokens`, data).then(res => res.data)
+}
+
+const updateHTTPToken = async (instanceId, tokenId, scope, expiresAt) => {
+    const data = {
+        scope,
+        expiresAt
+    }
+    return client.put(`/api/v1/projects/${instanceId}/httpTokens/${tokenId}`, data).then(res => res.data)
+}
+
+const deleteHTTPToken = async (instanceId, tokenId) => {
+    return client.delete(`/api/v1/projects/${instanceId}/httpTokens/${tokenId}`)
+}
+
 const enableProtectedMode = async (instanceId) => {
     const protectedConfig = { enabled: true }
     return client.put(`/api/v1/projects/${instanceId}/protectInstance`, protectedConfig)
@@ -176,6 +201,10 @@ export default {
     rollbackInstance,
     enableHAMode,
     disableHAMode,
+    getHTTPTokens,
+    createHTTPToken,
+    updateHTTPToken,
+    deleteHTTPToken,
     enableProtectedMode,
     disableProtectedMode
 }

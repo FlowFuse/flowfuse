@@ -256,6 +256,59 @@ module.exports = {
         return token
     },
 
+    // Should these only get added via forge/ee/lib/httpTokens?
+    createHTTPNodeToken: async function (app, project, name, scope = [''], expiresAt) {
+        const projectId = (project && typeof project === 'object') ? project.id : project
+        const token = generateToken(32, 'ffhttp')
+        const tok = await app.db.models.AccessToken.create({
+            token,
+            expiresAt,
+            name,
+            scope,
+            ownerId: projectId,
+            ownerType: 'http'
+        })
+        return { id: tok.id, token }
+    },
+    updateHTTPNodeToken: async function (app, project, tokenId, scope = [''], expiresAt) {
+        const projectId = (project && typeof project === 'object') ? project.id : project
+        const id = isNaN(parseInt(tokenId)) ? tokenId : parseInt(tokenId)
+        const token = await app.db.models.AccessToken.byId(id)
+        if (token) {
+            if (token.ownerType === 'http' && token.ownerId === projectId) {
+                token.scope = scope
+                if (expiresAt === undefined) {
+                    token.expiresAt = null
+                } else {
+                    token.expiresAt = expiresAt
+                }
+                await token.save()
+            } else {
+                throw new Error('Not Authorized')
+            }
+        } else {
+            // should throw unknown token error
+            throw new Error('Not Found')
+        }
+        return token
+    },
+    revokeHTTPNodeToken: async function (app, project, tokenId) {
+        const projectId = (project && typeof project === 'object') ? project.id : project
+        const id = isNaN(parseInt(tokenId)) ? tokenId : parseInt(tokenId)
+        let token = await app.db.models.AccessToken.byId(id)
+        if (token) {
+            if (token.ownerType === 'http' && token.ownerId === projectId) {
+                await token.destroy()
+            } else {
+                throw new Error('Not Authorized')
+            }
+        } else {
+            throw new Error('Not Found')
+        }
+        token = null
+        return token
+    },
+
     refreshToken: async function (app, refreshToken) {
         const existingToken = await app.db.models.AccessToken.byRefreshToken(refreshToken)
         if (existingToken) {

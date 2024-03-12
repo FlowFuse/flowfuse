@@ -77,9 +77,13 @@ Dashboard can be accessed by anyone.
 You can optionally enabled Basic Authentication, with a single hardcoded username
 and password.
 
-Alternatively you can require anyone accessing those routes to be logged into
-FlowFuse. The hosted pages or API endpoints are only available for FlowFuse users that
-have access to the team on FlowFuse and the cloud instance.
+Alternatively with a licensed instance of FlowFuse you can require anyone accessing 
+those routes to be logged into FlowFuse. The hosted pages or API endpoints are only 
+available for FlowFuse users that have access to the team on FlowFuse and the cloud 
+instance.
+
+If using FlowFuse user Authentication you can also generate HTTP Bearer tokens that
+can be used to access APIs hosted in Instances with HTTP-in/HTTP-response nodes.
 
 ## Palette
 

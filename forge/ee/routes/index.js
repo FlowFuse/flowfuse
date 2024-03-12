@@ -20,6 +20,7 @@ module.exports = async function (app) {
         await app.register(require('./ha'), { prefix: '/api/v1/projects/:projectId/ha', logLevel: app.config.logging.http })
         await app.register(require('./protectedInstance'), { prefix: '/api/v1/projects/:projectId/protectInstance', logLevel: app.config.logging.http })
         await app.register(require('./mfa'), { prefix: '/api/v1', logLevel: app.config.logging.http })
+        await app.register(require('./httpTokens'), { prefix: '/api/v1/projects/:projectId/httpTokens', logLevel: app.config.logging.http })
 
         // Important: keep SSO last to avoid its error handling polluting other routes.
         await app.register(require('./sso'), { logLevel: app.config.logging.http })

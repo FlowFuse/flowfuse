@@ -93,6 +93,17 @@ module.exports = {
                 async exported (actionedBy, error, project, snapshot) {
                     await log('project.snapshot.exported', actionedBy, project?.id, generateBody({ error, project, snapshot }))
                 }
+            },
+            httpToken: {
+                async created (actionedBy, error, project, token) {
+                    await log('project.httpToken.created', actionedBy, project?.id, generateBody({ error, project, token }))
+                },
+                async updated (actionedBy, error, project, updates) {
+                    await log('project.httpToken.updated', actionedBy, project?.id, generateBody({ error, project, updates }))
+                },
+                async deleted (actionedBy, error, project, token) {
+                    await log('project.httpToken.deleted', actionedBy, project?.id, generateBody({ error, project, token }))
+                }
             }
         }
 

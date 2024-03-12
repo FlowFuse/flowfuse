@@ -1,20 +1,59 @@
 <template>
     <form class="space-y-6">
         <TemplateSettingsSecurity v-model="editable" :editTemplate="false" :team="team" />
+        <div v-if="editable.settings.httpNodeAuth_type === 'flowforge-user' ">
+            <FormHeading>HTTP Node Bearer Tokens</FormHeading>
+            <div v-if="projectLauncherCompatible">
+                <ff-data-table
+                    data-el="tokens-table"
+                    :rows="tokens" :columns="columns" :show-search="true" search-placeholder="Search Tokens..."
+                    :show-load-more="false"
+                >
+                    <template #actions>
+                        <ff-button data-action="new-token" @click="newToken()">
+                            <template #icon-left>
+                                <PlusSmIcon />
+                            </template>
+                            Add Token
+                        </ff-button>
+                    </template>
+                    <template #context-menu="{row}">
+                        <ff-list-item data-action="edit-token" label="Edit" @click="editToken(row)" />
+                        <ff-list-item data-action="delete-token" label="Delete" @click="deleteToken(row)" />
+                    </template>
+                    <template v-if="tokens.length === 0" #table>
+                        <div class="ff-no-data ff-no-data-large">
+                            You don't have any tokens yet
+                        </div>
+                    </template>
+                </ff-data-table>
+            </div>
+            <div v-else>
+                Upgrade your stack to enable this feature
+            </div>
+        </div>
         <div class="space-x-4 whitespace-nowrap">
-            <ff-button size="small" :disabled="!unsavedChanges" @click="saveSettings()">Save settings</ff-button>
+            <ff-button data-action="new-token" size="small" :disabled="!unsavedChanges" @click="saveSettings()">Save settings</ff-button>
         </div>
     </form>
+    <TokenDialog ref="tokenDialog" data-el="http-token-diag" :project="project" @token-created="newTokenDone" @token-updated="getTokens" />
+    <TokenCreated ref="tokenCreated" />
 </template>
 
 <script>
+import { PlusSmIcon } from '@heroicons/vue/outline'
+import SemVer from 'semver'
 
+import { markRaw } from 'vue'
 import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
+import FormHeading from '../../../components/FormHeading.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import alerts from '../../../services/alerts.js'
+import TokenCreated from '../../account/Security/dialogs/TokenCreated.vue'
+import ExpiryCell from '../../account/components/ExpiryCell.vue'
 import TemplateSettingsSecurity from '../../admin/Template/sections/Security.vue'
 import {
     getObjectValue,
@@ -26,10 +65,16 @@ import {
     templateValidators
 } from '../../admin/Template/utils.js'
 
+import TokenDialog from './dialogs/TokenDialog.vue'
+
 export default {
     name: 'InstanceSettingsSecurity',
     components: {
-        TemplateSettingsSecurity
+        FormHeading,
+        PlusSmIcon,
+        TemplateSettingsSecurity,
+        TokenCreated,
+        TokenDialog
     },
     mixins: [permissionsMixin],
     inheritAttrs: false,
@@ -55,11 +100,32 @@ export default {
                 },
                 errors: {}
             },
-            original: {}
+            original: {},
+            tokens: [],
+            columns: [
+                { label: 'Name', key: 'name', sortable: true },
+                // { label: 'Scope', key: 'scope' },
+                {
+                    label: 'Expires',
+                    key: 'expiresAt',
+                    component: {
+                        is: markRaw(ExpiryCell)
+                    }
+                }
+            ]
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership'])
+        ...mapState('account', ['team', 'teamMembership']),
+        projectLauncherCompatible () {
+            const launcherVersion = this.project?.meta?.versions?.launcher
+            if (!launcherVersion) {
+                // We won't have this for a suspended project - so err on the side
+                // of permissive
+                return true
+            }
+            return SemVer.satisfies(SemVer.coerce(launcherVersion), '>=2.2.0')
+        }
     },
     watch: {
         project: 'getSettings',
@@ -91,6 +157,7 @@ export default {
     mounted () {
         this.checkAccess()
         this.getSettings()
+        this.getTokens()
     },
     methods: {
         checkAccess: async function () {
@@ -142,6 +209,23 @@ export default {
             await InstanceApi.updateInstance(this.project.id, { settings })
             this.$emit('instance-updated')
             alerts.emit('Instance successfully updated.', 'confirmation')
+        },
+        async getTokens () {
+            this.tokens = await InstanceApi.getHTTPTokens(this.project.id)
+        },
+        newToken () {
+            this.$refs.tokenDialog.showCreate()
+        },
+        newTokenDone (token) {
+            this.$refs.tokenCreated.showToken(token)
+            this.getTokens()
+        },
+        editToken (row) {
+            this.$refs.tokenDialog.showEdit(row)
+        },
+        deleteToken: async function (row) {
+            await InstanceApi.deleteHTTPToken(this.project.id, row.id)
+            this.getTokens()
         }
     }
 }
