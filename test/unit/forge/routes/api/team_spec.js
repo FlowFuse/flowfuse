@@ -10,7 +10,7 @@ describe('Team API', function () {
     let app
     const TestObjects = {}
     beforeEach(async function () {
-        const opts = {}
+        const opts = { limits: { teams: 50, instances: 50 } }
         if (this.currentTest.license) {
             opts.license = this.currentTest.license
         }

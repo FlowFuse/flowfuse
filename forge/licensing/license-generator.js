@@ -58,10 +58,9 @@ const { v4: uuidv4 } = require('uuid')
 
         const licenseHolder = await promptly.prompt('License holder name: ')
 
-        const maxUsers = parseInt(await promptly.prompt('Max allowed users: ', { default: '150' }))
-        const maxTeams = parseInt(await promptly.prompt('Max allowed teams: ', { default: '50' }))
-        const maxProjects = parseInt(await promptly.prompt('Max allowed projects: ', { default: '50' }))
-        const maxDevices = parseInt(await promptly.prompt('Max allowed devices: ', { default: '50' }))
+        const maxUsers = parseInt(await promptly.prompt('Max allowed users: ', { default: '5' }))
+        const maxTeams = parseInt(await promptly.prompt('Max allowed teams: ', { default: '5' }))
+        const maxInstances = parseInt(await promptly.prompt('Max allowed instances (hosted + devices): ', { default: '5' }))
 
         const licenseNotes = devLicense
             ? 'Development-mode Only. Not for production'
@@ -96,6 +95,7 @@ const { v4: uuidv4 } = require('uuid')
 
         const licenseDetails = {
             id: licenseId,
+            ver: '2024-03-04', // Used to determined the format of the license.
             iss: 'FlowForge Inc.', // DO NOT CHANGE
             sub: licenseHolder, // Name of the license holder
             nbf: validFrom,
@@ -103,8 +103,7 @@ const { v4: uuidv4 } = require('uuid')
             note: licenseNotes, // Freeform text to associate with license
             users: maxUsers,
             teams: maxTeams,
-            projects: maxProjects,
-            devices: maxDevices,
+            instances: maxInstances,
             tier: licenseTier
         }
 

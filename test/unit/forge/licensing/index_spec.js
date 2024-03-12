@@ -25,6 +25,25 @@ describe('License API', async function () {
     const TEST_LICENSE_4u_5t_6p_7d = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIiwibmJmIjoxNjYyNDIyNDAwLCJleHAiOjc5ODY5MDIzOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjo0LCJ0ZWFtcyI6NSwicHJvamVjdHMiOjYsImRldmljZXMiOjcsImRldiI6dHJ1ZSwiaWF0IjoxNjYyNDc2OTg5fQ.XJfAKSKH0ndmrD8z-GX1eWr7OdMnStIdP0ebtC3mKWvnT22TZK0pUx0jDMPFRROFDAJo_eh50T5OUHHfwSp1YQ' // eslint-disable-line camelcase
 
     /**
+     * Test license: users 4, teams 5, instances 13
+     * {
+            "id": "87f0474c-c721-4332-851f-3cd92736497f",
+            "ver": "2024-03-04",
+            "iss": "FlowForge Inc.",
+            "sub": "FlowFuse Development",
+            "nbf": 1709596800,
+            "exp": 4107888000,
+            "note": "Development-mode Only. Not for production",
+            "users": 4,
+            "teams": 5,
+            "instances": 13,
+            "tier": "enterprise",
+            "dev": true
+        }
+    */
+    const TEST_LICENSE_4u_5t_13i = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijg3ZjA0NzRjLWM3MjEtNDMzMi04NTFmLTNjZDkyNzM2NDk3ZiIsInZlciI6IjIwMjQtMDMtMDQiLCJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGdXNlIERldmVsb3BtZW50IiwibmJmIjoxNzA5NTk2ODAwLCJleHAiOjQxMDc4ODgwMDAsIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjo0LCJ0ZWFtcyI6NSwiaW5zdGFuY2VzIjoxMywidGllciI6ImVudGVycHJpc2UiLCJkZXYiOnRydWUsImlhdCI6MTcwOTY0NjI1M30.X-m4iLzXc5ivBABljZT6pMvYNoqhGYQHU1dMfPVhahkekRPZVSZT1IGKjMMBc8YVZwRoHYuoxjiOmpPyto6_CA' // eslint-disable-line camelcase
+
+    /**
     * Test license (does not include any claims)
     *
     * Details:
@@ -106,19 +125,18 @@ describe('License API', async function () {
         it('Uses default limits when no license applied', async function () {
             app.license.get('users').should.equal(app.license.defaults.users)
             app.license.get('teams').should.equal(app.license.defaults.teams)
-            app.license.get('projects').should.equal(app.license.defaults.projects)
-            app.license.get('devices').should.equal(app.license.defaults.devices)
+            app.license.get('instances').should.equal(app.license.defaults.instances)
         })
 
         it('Gets all usage count and limits (unlicensed)', async function () {
             const usage = await app.license.usage()
             // check usage contains the correct keys
-            usage.should.only.have.keys('users', 'teams', 'projects', 'devices')
+            usage.should.only.have.keys('users', 'teams', 'instances')
             // check each item has the correct keys
             usage.users.should.only.have.keys('resource', 'count', 'limit')
             usage.teams.should.only.have.keys('resource', 'count', 'limit')
-            usage.projects.should.only.have.keys('resource', 'count', 'limit')
-            usage.devices.should.only.have.keys('resource', 'count', 'limit')
+            usage.instances.should.only.have.keys('resource', 'count', 'limit')
+
             // check usage values are correct
             usage.users.count.should.equal(0)
             usage.users.limit.should.equal(app.license.defaults.users)
@@ -128,13 +146,9 @@ describe('License API', async function () {
             usage.teams.limit.should.equal(app.license.defaults.teams)
             usage.teams.resource.should.equal('teams')
 
-            usage.projects.count.should.equal(0)
-            usage.projects.limit.should.equal(app.license.defaults.projects)
-            usage.projects.resource.should.equal('projects')
-
-            usage.devices.count.should.equal(0)
-            usage.devices.limit.should.equal(app.license.defaults.devices)
-            usage.devices.resource.should.equal('devices')
+            usage.instances.count.should.equal(0)
+            usage.instances.limit.should.equal(app.license.defaults.instances)
+            usage.instances.resource.should.equal('instances')
         })
         it('Gets users usage count and limit only (unlicensed)', async function () {
             const usage = await app.license.usage('users')
@@ -156,15 +170,15 @@ describe('License API', async function () {
             usage.teams.limit.should.equal(app.license.defaults.teams)
             usage.teams.resource.should.equal('teams')
         })
-        it('Gets projects usage count and limit only (unlicensed)', async function () {
-            const usage = await app.license.usage('projects')
+        it('Gets instance usage count and limit only (unlicensed)', async function () {
+            const usage = await app.license.usage('instances')
             // check usage contains the correct keys
-            usage.should.only.have.keys('projects')
+            usage.should.only.have.keys('instances')
             // check item has the correct keys
-            usage.projects.should.only.have.keys('resource', 'count', 'limit')
-            usage.projects.count.should.equal(0)
-            usage.projects.limit.should.equal(app.license.defaults.projects)
-            usage.projects.resource.should.equal('projects')
+            usage.instances.should.only.have.keys('resource', 'count', 'limit')
+            usage.instances.count.should.equal(0)
+            usage.instances.limit.should.equal(app.license.defaults.instances)
+            usage.instances.resource.should.equal('instances')
         })
         it('Gets devices usage count and limit only (unlicensed)', async function () {
             const usage = await app.license.usage('devices')
@@ -173,12 +187,12 @@ describe('License API', async function () {
             // check item has the correct keys
             usage.devices.should.only.have.keys('resource', 'count', 'limit')
             usage.devices.count.should.equal(0)
-            usage.devices.limit.should.equal(app.license.defaults.devices)
+            usage.devices.limit.should.equal(app.license.defaults.instances)
             usage.devices.resource.should.equal('devices')
         })
     })
 
-    describe('licensed', function () {
+    describe('licensed - separate projects/devices claims', function () {
         before(async function () {
             app = await getApp(TEST_LICENSE_4u_5t_6p_7d)
         })
@@ -188,11 +202,11 @@ describe('License API', async function () {
         it('Gets all usage count and limits (licensed)', async function () {
             const usage = await app.license.usage()
             // check usage contains the correct keys
-            usage.should.only.have.keys('users', 'teams', 'projects', 'devices')
+            usage.should.only.have.keys('users', 'teams', 'instances', 'devices')
             // check each item has the correct keys
             usage.users.should.only.have.keys('resource', 'count', 'limit')
             usage.teams.should.only.have.keys('resource', 'count', 'limit')
-            usage.projects.should.only.have.keys('resource', 'count', 'limit')
+            usage.instances.should.only.have.keys('resource', 'count', 'limit')
             usage.devices.should.only.have.keys('resource', 'count', 'limit')
             // check usage values are correct
             usage.users.count.should.equal(0)
@@ -203,9 +217,9 @@ describe('License API', async function () {
             usage.teams.limit.should.equal(5)
             usage.teams.resource.should.equal('teams')
 
-            usage.projects.count.should.equal(0)
-            usage.projects.limit.should.equal(6)
-            usage.projects.resource.should.equal('projects')
+            usage.instances.count.should.equal(0)
+            usage.instances.limit.should.equal(6)
+            usage.instances.resource.should.equal('instances')
 
             usage.devices.count.should.equal(0)
             usage.devices.limit.should.equal(7)
@@ -231,15 +245,15 @@ describe('License API', async function () {
             usage.teams.limit.should.equal(5)
             usage.teams.resource.should.equal('teams')
         })
-        it('Gets projects usage count and limit only (licensed)', async function () {
-            const usage = await app.license.usage('projects')
+        it('Gets instance usage count and limit only (licensed)', async function () {
+            const usage = await app.license.usage('instances')
             // check usage contains the correct keys
-            usage.should.only.have.keys('projects')
+            usage.should.only.have.keys('instances')
             // check item has the correct keys
-            usage.projects.should.only.have.keys('resource', 'count', 'limit')
-            usage.projects.count.should.equal(0)
-            usage.projects.limit.should.equal(6)
-            usage.projects.resource.should.equal('projects')
+            usage.instances.should.only.have.keys('resource', 'count', 'limit')
+            usage.instances.count.should.equal(0)
+            usage.instances.limit.should.equal(6)
+            usage.instances.resource.should.equal('instances')
         })
         it('Gets devices usage count and limit only (licensed)', async function () {
             const usage = await app.license.usage('devices')
@@ -260,6 +274,88 @@ describe('License API', async function () {
             app.license.get('devices').should.equal(7)
         })
     })
+
+    describe('licensed - combined instances claims', function () {
+        before(async function () {
+            app = await getApp(TEST_LICENSE_4u_5t_13i)
+        })
+        after(async function () {
+            await app.close()
+        })
+        it('Gets all usage count and limits (licensed)', async function () {
+            const usage = await app.license.usage()
+            // check usage contains the correct keys
+            usage.should.only.have.keys('users', 'teams', 'instances')
+            // check each item has the correct keys
+            usage.users.should.only.have.keys('resource', 'count', 'limit')
+            usage.teams.should.only.have.keys('resource', 'count', 'limit')
+            usage.instances.should.only.have.keys('resource', 'count', 'limit')
+            // check usage values are correct
+            usage.users.count.should.equal(0)
+            usage.users.limit.should.equal(4)
+            usage.users.resource.should.equal('users')
+
+            usage.teams.count.should.equal(0)
+            usage.teams.limit.should.equal(5)
+            usage.teams.resource.should.equal('teams')
+
+            usage.instances.count.should.equal(0)
+            usage.instances.limit.should.equal(13)
+            usage.instances.resource.should.equal('instances')
+        })
+        it('Gets users usage count and limit only (licensed)', async function () {
+            const usage = await app.license.usage('users')
+            // check usage contains the correct keys
+            usage.should.only.have.keys('users')
+            // check item has the correct keys
+            usage.users.should.only.have.keys('resource', 'count', 'limit')
+            usage.users.count.should.equal(0)
+            usage.users.limit.should.equal(4)
+            usage.users.resource.should.equal('users')
+        })
+        it('Gets teams usage count and limit only (licensed)', async function () {
+            const usage = await app.license.usage('teams')
+            // check usage contains the correct keys
+            usage.should.only.have.keys('teams')
+            // check item has the correct keys
+            usage.teams.should.only.have.keys('resource', 'count', 'limit')
+            usage.teams.count.should.equal(0)
+            usage.teams.limit.should.equal(5)
+            usage.teams.resource.should.equal('teams')
+        })
+        it('Gets instance usage count and limit only (licensed)', async function () {
+            const usage = await app.license.usage('instances')
+            // check usage contains the correct keys
+            usage.should.only.have.keys('instances')
+            // check item has the correct keys
+            usage.instances.should.only.have.keys('resource', 'count', 'limit')
+            usage.instances.count.should.equal(0)
+            usage.instances.limit.should.equal(13)
+            usage.instances.resource.should.equal('instances')
+        })
+        it('Gets devices usage count and limit only (licensed)', async function () {
+            // For a combined license, querying the devices usage gives the instances
+            // usage and limits.
+            const usage = await app.license.usage('devices')
+            // check usage contains the correct keys
+            usage.should.only.have.keys('devices')
+            // check item has the correct keys
+            usage.devices.should.only.have.keys('resource', 'count', 'limit')
+            usage.devices.count.should.equal(0)
+            usage.devices.limit.should.equal(13)
+            usage.devices.resource.should.equal('devices')
+        })
+
+        it('Uses license provided limits', async function () {
+            app.license.get('organisation').should.equal('FlowFuse Development')
+            app.license.get('users').should.equal(4)
+            app.license.get('teams').should.equal(5)
+            app.license.get('instances').should.equal(13)
+            should.not.exist(app.license.get('projects'))
+            should.not.exist(app.license.get('devices'))
+        })
+    })
+
     describe('licensed - 0 claims', function () {
         before(async function () {
             app = await getApp(TEST_LICENSE_0_CLAIMS)
@@ -270,10 +366,10 @@ describe('License API', async function () {
         it('Returns 0 as the limit property when querying usage data for a license without claims', async function () {
             app.license.get('organisation').should.equal('FlowForge Inc.')
             const usage = await app.license.usage()
-            usage.should.only.have.keys('users', 'teams', 'projects', 'devices')
+            usage.should.only.have.keys('users', 'teams', 'instances', 'devices')
             usage.users.limit.should.equal(0)
             usage.teams.limit.should.equal(0)
-            usage.projects.limit.should.equal(0)
+            usage.instances.limit.should.equal(0)
             usage.devices.limit.should.equal(0)
         })
 

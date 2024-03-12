@@ -9,7 +9,7 @@ describe('User API', async function () {
     const TestObjects = {}
 
     async function setupApp (license) {
-        const setupConfig = { features: { devices: true } }
+        const setupConfig = { limits: { instances: 50, users: 50 }, features: { devices: true } }
         if (license) {
             setupConfig.license = license
         }

@@ -10,7 +10,11 @@ describe('Project controller', function () {
     // Use standard test data.
     let app
     before(async function () {
-        app = await setup()
+        app = await setup({
+            limits: {
+                instances: 50
+            }
+        })
     })
 
     after(async function () {

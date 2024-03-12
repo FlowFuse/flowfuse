@@ -13,7 +13,11 @@ describe('ProjectSnapshot controller', function () {
     let factory
 
     before(async function () {
-        app = await setup()
+        app = await setup({
+            limits: {
+                instances: 50
+            }
+        })
         factory = app.factory
         app.TestObjects.application1 = await factory.createApplication({ name: 'application-1' }, app.TestObjects.team1)
     })

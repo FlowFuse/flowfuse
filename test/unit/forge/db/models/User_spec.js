@@ -10,7 +10,11 @@ describe('User model', function () {
 
     describe('Model properties', function () {
         before(async function () {
-            app = await setup()
+            app = await setup({
+                limits: {
+                    users: 50
+                }
+            })
         })
         after(async function () {
             await app.close()

@@ -10,14 +10,19 @@ class LicenseDetails {
     constructor (license, claims) {
         // this.license = license;
         this.id = claims.id
+        this.version = claims.ver || ''
         this.note = claims.note
         this.organisation = claims.sub
         this.validFrom = new Date(claims.nbf * 1000)
         this.expiresAt = new Date(claims.exp * 1000)
         this.dev = claims.dev
         this.users = claims.users || 0
-        this.projects = claims.projects || 0
-        this.devices = claims.devices || 0
+        if (Object.hasOwn(claims, 'instances')) {
+            this.instances = claims.instances || 0
+        } else {
+            this.projects = claims.projects || 0
+            this.devices = claims.devices || 0
+        }
         this.teams = claims.teams || 0
         this.tier = claims.tier || 'enterprise'
         Object.freeze(this)

@@ -69,7 +69,11 @@ describe('Device API', async function () {
     }
 
     async function setupApp (license) {
-        const setupConfig = { }
+        const setupConfig = {
+            limits: {
+                instances: 50
+            }
+        }
         if (license) {
             setupConfig.license = license
         }
@@ -357,9 +361,9 @@ describe('Device API', async function () {
             })
             it('Limits how many devices can be created when unlicensed', async function () {
                 // Limited to 2 devices
-                app.license.defaults.devices = 2
-                // Check we're at the starting point we expect
-                ;(await app.db.models.Device.count()).should.equal(0)
+                app.license.defaults.instances = 3
+                // Check we're at the starting point we expect - combined device+instance count = 1
+                ;(await app.license.usage()).instances.count.should.equal(1)
 
                 for (let i = 0; i < 2; i++) {
                     const response = await createDevice({ name: `D${i + 1}`, type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })

@@ -26,7 +26,7 @@ describe('Team Devices API', function () {
     }
 
     before(async function () {
-        const opts = {}
+        const opts = { limits: { instances: 50 } }
         app = await setup(opts)
         AccessTokenController = app.db.controllers.AccessToken
 
