@@ -26,7 +26,7 @@ describe('Project/Device API', async function () {
     }
 
     before(async function () {
-        app = await setup({ features: { devices: true } })
+        app = await setup({ limits: { instances: 50 }, features: { devices: true } })
 
         // alice : admin
         // bob

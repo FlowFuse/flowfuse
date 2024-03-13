@@ -16,6 +16,7 @@ describe('Users API', async function () {
 
     before(async function () {
         app = await setup({
+            limits: { users: 50, instances: 50 },
             features: { devices: true }
         })
 

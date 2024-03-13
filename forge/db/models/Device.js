@@ -69,9 +69,8 @@ module.exports = {
                 // if the product is licensed, we permit overage
                 const isLicensed = app.license.active()
                 if (isLicensed !== true) {
-                    const deviceLimit = app.license.get('devices')
-                    const deviceCount = await M.Device.count()
-                    if (deviceCount >= deviceLimit) {
+                    const { devices } = await app.license.usage('devices')
+                    if (devices.count >= devices.limit) {
                         throw new Error('license limit reached')
                     }
                 }

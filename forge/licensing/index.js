@@ -3,30 +3,38 @@ const fp = require('fastify-plugin')
 const loader = require('./loader')
 
 module.exports = fp(async function (app, opts) {
-    // Dev License:
     /*
+    Dev License:
+    License Details:
     {
+        "id": "a428c0da-51a4-4e75-bb90-e8932b498dda",
+        "ver": "2024-03-04",
         "iss": "FlowForge Inc.",
         "sub": "FlowForge Inc. Development",
-        "nbf": 1662422400,
-        "exp": 7986902399,
+        "nbf": 1709510400,
+        "exp": 7986816000,
         "note": "Development-mode Only. Not for production",
         "users": 150,
         "teams": 50,
-        "projects": 50,
-        "devices": 50,
+        "instances": 100,
+        "tier": "enterprise",
         "dev": true
     }
+    License:
+    ---
+    eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE0MjhjMGRhLTUxYTQtNGU3NS1iYjkwLWU4OTMyYjQ5OGRkYSIsInZlciI6IjIwMjQtMDMtMDQiLCJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNzA5NTEwNDAwLCJleHAiOjc5ODY4MTYwMDAsIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwiaW5zdGFuY2VzIjoxMDAsInRpZXIiOiJlbnRlcnByaXNlIiwiZGV2Ijp0cnVlLCJpYXQiOjE3MDk1NjI5NTZ9.f9ZDE-IelVeM53JsHWyHd9FggZ30CRFCJ_jhxebALwt--TFnmL5d7f9CBd9g6fmGjro_y0ZINBJKkzYPSeXKrw
+    ---
     */
-    // const devLicense = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNDIyNDAwLCJleHAiOjc5ODY5MDIzOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjo1MCwiZGV2Ijp0cnVlLCJpYXQiOjE2NjI0ODI5ODd9.e8Jeppq4aURwWYz-rEpnXs9RY2Y7HF7LJ6rMtMZWdw2Xls6-iyaiKV1TyzQw5sUBAhdUSZxgtiFH5e_cNJgrUg'
 
     // TODO: load license from local file or app.config.XYZ
 
+    // Default to separate licensing for devices/projects.
+    // This will change to combined licensing when we update the defaults
+    let licenseModeCombinedInstances = true
     const defaultLimits = {
-        users: 150,
-        teams: 50,
-        projects: 50,
-        devices: 50
+        users: 5,
+        teams: 5,
+        instances: 5
     }
 
     let userLicense = await app.settings.get('license')
@@ -107,7 +115,7 @@ module.exports = fp(async function (app, opts) {
 
     /**
      * Get usage and limits information for the license (all, or by resource)
-     * @param {'users'|'teams'|'projects'|'devices'} [resource] The name of resource usage to get. Leave null to get all usage
+     * @param {'users'|'teams'|'instances'|'devices'} [resource] The name of resource usage to get. Leave null to get all usage
      * @returns The usage information
      */
     async function usage (resource) {
@@ -126,25 +134,35 @@ module.exports = fp(async function (app, opts) {
                 limit: licenseApi.get('teams')
             }
         }
-        if (!resource || resource === 'projects') {
-            usage.projects = {
-                resource: 'projects',
-                count: await app.db.models.Project.count(),
-                limit: licenseApi.get('projects')
+        if (licenseModeCombinedInstances) {
+            if (!resource || resource === 'instances' || resource === 'devices') {
+                usage[resource || 'instances'] = {
+                    resource: resource || 'instances',
+                    count: (await app.db.models.Project.count()) + (await app.db.models.Device.count()),
+                    limit: licenseApi.get('instances') || (licenseApi.get('projects') + licenseApi.get('devices'))
+                }
             }
-        }
-        if (!resource || resource === 'devices') {
-            usage.devices = {
-                resource: 'devices',
-                count: await app.db.models.Device.count(),
-                limit: licenseApi.get('devices')
+        } else {
+            if (!resource || resource === 'instances') {
+                usage.instances = {
+                    resource: 'instances',
+                    count: await app.db.models.Project.count(),
+                    limit: licenseApi.get('projects')
+                }
+            }
+            if (!resource || resource === 'devices') {
+                usage.devices = {
+                    resource: 'devices',
+                    count: await app.db.models.Device.count(),
+                    limit: licenseApi.get('devices')
+                }
             }
         }
         return usage
     }
 
     async function reportUsage () {
-        const { users, teams, projects, devices } = await usage()
+        const { users, teams, devices, instances } = await usage()
         const logUse = (name, count, limit) => {
             const logger = (count > limit ? app.log.warn : app.log.info).bind(app.log)
             logger(`${name}: ${count}/${limit}`)
@@ -152,8 +170,10 @@ module.exports = fp(async function (app, opts) {
         app.log.info('Usage       : count/limit')
         logUse(' Users      ', users.count, users.limit)
         logUse(' Teams      ', teams.count, teams.limit)
-        logUse(' Projects   ', projects.count, projects.limit)
-        logUse(' Devices    ', devices.count, devices.limit)
+        logUse(' Instances  ', instances.count, instances.limit)
+        if (!licenseModeCombinedInstances) {
+            logUse(' Devices    ', devices.count, devices.limit)
+        }
     }
 
     async function applyLicense (license) {
@@ -172,6 +192,12 @@ module.exports = fp(async function (app, opts) {
             app.log.warn(` Expired      : ${activeLicense.expiresAt.toISOString()}`)
         } else {
             app.log.info(` Expires      : ${activeLicense.expiresAt.toISOString()}`)
+        }
+        if (licenseApi.get('instances') === undefined) {
+            // pre 2.2 license that does not combine instance and device counts
+            licenseModeCombinedInstances = false
+        } else {
+            licenseModeCombinedInstances = true
         }
         await reportUsage()
     }

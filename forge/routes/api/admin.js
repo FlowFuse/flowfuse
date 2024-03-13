@@ -20,11 +20,13 @@ module.exports = async function (app) {
             maxTeams: license.teams,
             teamsByType: {},
             instanceCount: 0,
-            maxInstances: license.projects,
+            maxInstances: license.projects || license.instances,
             instancesByState: {},
             deviceCount: await app.db.models.Device.count(),
-            maxDevices: license.devices,
             devicesByMode: {}
+        }
+        if (Object.hasOwn(license, 'devices')) {
+            result.maxDevices = license.devices
         }
         userCount.forEach(u => {
             result.userCount += u.count

@@ -20,7 +20,7 @@ describe('Project API', function () {
     const TestObjects = {}
 
     async function setupApp (license) {
-        const setupConfig = { domain: 'flowforge.dev' }
+        const setupConfig = { limits: { instances: 50 }, domain: 'flowforge.dev' }
         if (license) {
             setupConfig.license = license
         }

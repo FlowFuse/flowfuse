@@ -27,7 +27,13 @@ describe('Accounts API', async function () {
 
     describe('Register User', async function () {
         before(async function () {
-            app = await setup()
+            app = await setup({
+                limits: {
+                    users: 100,
+                    instances: 100,
+                    teams: 100
+                }
+            })
         })
         after(async function () {
             await app.close()
@@ -37,7 +43,6 @@ describe('Accounts API', async function () {
             app.settings.set('user:signup', false)
             app.settings.set('team:user:invite:external', false)
             app.settings.set('user:team:auto-create', false)
-            app.license.defaults.users = 150
         })
 
         async function expectRejection (opts, reason) {
@@ -170,6 +175,7 @@ describe('Accounts API', async function () {
         it('Limits how many users can be created when unlicensed', async function () {
             app.settings.set('user:signup', true)
             const currentCount = await app.db.models.User.count()
+            const currentLimit = app.license.defaults.users
             app.license.defaults.users = currentCount + 2
             for (let i = currentCount; i < currentCount + 2; i++) {
                 const resp = await registerUser({
@@ -186,7 +192,7 @@ describe('Accounts API', async function () {
                 name: 'u-final',
                 email: 'u-final@example.com'
             }, /license limit reached/)
-
+            app.license.defaults.users = currentLimit
             // TODO: check user audit logs - expect 'account.xxx-yyy' { code: '', error, '' }
         })
 

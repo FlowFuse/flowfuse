@@ -492,16 +492,6 @@ async function init (app, opts) {
         }
     }, async (request, reply) => {
         try {
-            if (app.settings.get('user:team:auto-create')) {
-                const teamLimit = app.license.get('teams')
-                const teamCount = await app.db.models.Team.count()
-                if (teamCount >= teamLimit) {
-                    const resp = { code: 'team_limit_reached', error: 'Unable to auto create user team: license limit reached' }
-                    await app.auditLog.User.account.verify.verifyToken(request.session.User, resp)
-                    reply.code(400).send(resp)
-                    return
-                }
-            }
             let sessionUser
             if (request.sid) {
                 request.session = await app.db.controllers.Session.getOrExpire(request.sid)
@@ -517,29 +507,39 @@ async function init (app, opts) {
                 return
             }
 
-            // only create a personal team if no other teams exist
-            if (app.settings.get('user:team:auto-create') && !((await app.db.models.Team.forUser(verifiedUser)).length)) {
-                let teamTypeId = app.settings.get('user:team:auto-create:teamType')
-
-                if (!teamTypeId) {
-                    // No team type set - pick the 'first' one based on 'order'
-                    const teamTypes = await app.db.models.TeamType.findAll({ where: { active: true }, order: [['order', 'ASC']], limit: 1 })
-                    teamTypeId = teamTypes[0].id
-                } else {
-                    teamTypeId = app.db.models.TeamType.decodeHashid(teamTypeId)
+            if (app.settings.get('user:team:auto-create')) {
+                const teamLimit = app.license.get('teams')
+                const teamCount = await app.db.models.Team.count()
+                if (teamCount >= teamLimit) {
+                    const resp = { code: 'team_limit_reached', error: 'Unable to auto create user team: license limit reached' }
+                    await app.auditLog.User.account.verify.verifyToken(verifiedUser, resp)
+                    reply.code(400).send(resp)
+                    return
                 }
-                const teamProperties = {
-                    name: `Team ${verifiedUser.name}`,
-                    slug: verifiedUser.username,
-                    TeamTypeId: teamTypeId
-                }
-                const team = await app.db.controllers.Team.createTeamForUser(teamProperties, verifiedUser)
-                await app.auditLog.Platform.platform.team.created(request.session?.User || verifiedUser, null, team)
-                await app.auditLog.User.account.verify.autoCreateTeam(request.session?.User || verifiedUser, null, team)
+                // only create a personal team if no other teams exist
+                if (!((await app.db.models.Team.forUser(verifiedUser)).length)) {
+                    let teamTypeId = app.settings.get('user:team:auto-create:teamType')
 
-                if (app.license.active() && app.billing) {
-                    // This checks to see if the team should be in trial mode
-                    await app.billing.setupTrialTeamSubscription(team, verifiedUser)
+                    if (!teamTypeId) {
+                        // No team type set - pick the 'first' one based on 'order'
+                        const teamTypes = await app.db.models.TeamType.findAll({ where: { active: true }, order: [['order', 'ASC']], limit: 1 })
+                        teamTypeId = teamTypes[0].id
+                    } else {
+                        teamTypeId = app.db.models.TeamType.decodeHashid(teamTypeId)
+                    }
+                    const teamProperties = {
+                        name: `Team ${verifiedUser.name}`,
+                        slug: verifiedUser.username,
+                        TeamTypeId: teamTypeId
+                    }
+                    const team = await app.db.controllers.Team.createTeamForUser(teamProperties, verifiedUser)
+                    await app.auditLog.Platform.platform.team.created(request.session?.User || verifiedUser, null, team)
+                    await app.auditLog.User.account.verify.autoCreateTeam(request.session?.User || verifiedUser, null, team)
+
+                    if (app.license.active() && app.billing) {
+                        // This checks to see if the team should be in trial mode
+                        await app.billing.setupTrialTeamSubscription(team, verifiedUser)
+                    }
                 }
             }
 

@@ -11,7 +11,11 @@ describe('Device controller', function () {
     const TestObjects = {}
 
     async function setupCE () {
-        app = await setup()
+        app = await setup({
+            limits: {
+                instances: 50
+            }
+        })
         factory = new TestModelFactory(app)
         await setupTestObjects()
     }

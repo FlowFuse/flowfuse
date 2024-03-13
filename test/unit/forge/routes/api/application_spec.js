@@ -27,7 +27,12 @@ describe('Application API', function () {
     const generateName = (root = 'object') => `${root}-${objectCount++}`
 
     before(async function () {
-        app = await setup()
+        app = await setup({
+            limits: {
+                users: 10,
+                instances: 50
+            }
+        })
 
         // ATeam ( alice  (owner), bob )
         // BTeam ( bob (owner), chris )

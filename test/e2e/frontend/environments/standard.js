@@ -41,6 +41,10 @@ module.exports = async function (settings = {}, config = {}) {
 
     const forge = await Forge({ config })
     await forge.settings.set('setup:initialised', true)
+    forge.license.defaults.users = 50
+    forge.license.defaults.teams = 50
+    forge.license.defaults.instances = 50
+
     const factory = new TestModelFactory(forge)
 
     const projectType = await factory.createProjectType({ name: 'type1' })

@@ -24,7 +24,7 @@ describe('Device model', function () {
 
         it('Does not permit overage when unlicensed', async function () {
             app = await setup({ })
-            app.license.defaults.devices = 2
+            app.license.defaults.instances = 2
 
             ;(await app.db.models.Device.count()).should.equal(0)
 

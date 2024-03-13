@@ -35,7 +35,7 @@ describe('Project model', function () {
             })
         })
         it('Does not permit overage when unlicensed', async function () {
-            app.license.defaults.projects = 2 // override default
+            app.license.defaults.instances = 2 // override default
             ;(await app.db.models.Project.count()).should.equal(0)
             await app.db.models.Project.create({ name: 'p1', type: '', url: '' })
             ;(await app.db.models.Project.count()).should.equal(1)
