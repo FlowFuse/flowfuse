@@ -51,7 +51,7 @@ module.exports = async function (app) {
         try {
             // update device state to starting
             request.device.state = 'starting'
-            request.device.save()
+            await request.device.save()
             const result = await deviceComms.sendCommandAwaitReply(request.device.Team.hashid, request.device.hashid, 'action', { action: 'start' })
             if (typeof result !== 'object' || result?.success !== true) {
                 const error = new Error(result?.error?.error || 'Start request failed, device did not respond correctly.')
@@ -63,7 +63,7 @@ module.exports = async function (app) {
             reply.send({ status: 'okay' })
         } catch (err) {
             request.device.state = deviceCurrentState
-            request.device.save()
+            await request.device.save()
             const resp = { code: err.code || 'unexpected_error', error: err.message }
             let statusCode = err.statusCode || 500
             if (err.message === 'Command timed out') {
@@ -114,7 +114,7 @@ module.exports = async function (app) {
                 return
             }
             request.device.state = 'restarting'
-            request.device.save()
+            await request.device.save()
             const result = await deviceComms.sendCommandAwaitReply(request.device.Team.hashid, request.device.hashid, 'action', { action: 'restart' })
             if (typeof result !== 'object' || result?.success !== true) {
                 const error = new Error(result?.error?.error || 'Restart request failed, device did not respond correctly.')
@@ -126,7 +126,7 @@ module.exports = async function (app) {
             reply.send({ status: 'okay' })
         } catch (err) {
             request.device.state = deviceCurrentState
-            request.device.save()
+            await request.device.save()
             const resp = { code: err.code || 'unexpected_error', error: err.message }
             let statusCode = err.statusCode || 500
             if (err.message === 'Command timed out') {
@@ -177,7 +177,7 @@ module.exports = async function (app) {
                 return
             }
             request.device.state = 'suspending'
-            request.device.save()
+            await request.device.save()
             const result = await deviceComms.sendCommandAwaitReply(request.device.Team.hashid, request.device.hashid, 'action', { action: 'suspend' })
             if (typeof result !== 'object' || result?.success !== true) {
                 const error = new Error(result?.error?.error || 'Suspend request failed, device did not respond correctly.')
@@ -189,7 +189,7 @@ module.exports = async function (app) {
             reply.send({ status: 'okay' })
         } catch (err) {
             request.device.state = deviceCurrentState
-            request.device.save()
+            await request.device.save()
             const resp = { code: err.code || 'unexpected_error', error: err.message }
             let statusCode = err.statusCode || 500
             if (err.message === 'Command timed out') {
