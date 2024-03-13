@@ -1310,7 +1310,7 @@ describe('Device API', async function () {
                 sinon.stub(app.auditLog.Device.device, 'restarted').resolves()
                 sinon.stub(app.auditLog.Device.device, 'restartFailed').resolves()
                 device.state = 'xxx' // set state to something
-                device.save()
+                await device.save()
                 const response = await app.inject({
                     method: 'POST',
                     url: `/api/v1/devices/${device.hashid}/actions/restart`,
@@ -1340,7 +1340,7 @@ describe('Device API', async function () {
                 sinon.stub(app.auditLog.Device.device, 'started').resolves()
                 sinon.stub(app.auditLog.Device.device, 'startFailed').resolves()
                 device.state = 'xxx' // set state to something
-                device.save()
+                await device.save()
                 const response = await app.inject({
                     method: 'POST',
                     url: `/api/v1/devices/${device.hashid}/actions/start`,
@@ -1370,7 +1370,7 @@ describe('Device API', async function () {
                 sinon.stub(app.auditLog.Device.device, 'suspended').resolves()
                 sinon.stub(app.auditLog.Device.device, 'suspendFailed').resolves()
                 device.state = 'xxx' // set state to something
-                device.save()
+                await device.save()
                 const response = await app.inject({
                     method: 'POST',
                     url: `/api/v1/devices/${device.hashid}/actions/suspend`,
@@ -1456,7 +1456,7 @@ describe('Device API', async function () {
             it('offline device times out for restart action', async function () {
                 const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
                 device.state = 'xxx' // set state to something
-                device.save()
+                await device.save()
                 sinon.stub(app.auditLog.Device.device, 'restarted').resolves()
                 sinon.stub(app.auditLog.Device.device, 'restartFailed').resolves()
 
@@ -1497,7 +1497,7 @@ describe('Device API', async function () {
             it('offline device times out for start action', async function () {
                 const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
                 device.state = 'xxx' // set state to something
-                device.save()
+                await device.save()
                 sinon.stub(app.auditLog.Device.device, 'started').resolves()
                 sinon.stub(app.auditLog.Device.device, 'startFailed').resolves()
 
@@ -1538,7 +1538,7 @@ describe('Device API', async function () {
             it('offline device times out for suspend action', async function () {
                 const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
                 device.state = 'xxx' // set state to something
-                device.save()
+                await device.save()
                 sinon.stub(app.auditLog.Device.device, 'suspended').resolves()
                 sinon.stub(app.auditLog.Device.device, 'suspendFailed').resolves()
 
