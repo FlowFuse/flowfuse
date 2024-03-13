@@ -1,45 +1,7 @@
 const SemVer = require('semver')
 const { literal } = require('sequelize')
 
-/**
- * inflightState - when devices are transitioning between states, there
- * is no need to store that in the database. But we do need to know it so the
- * information can be returned on the API.
- */
-const inflightState = { }
-// const inflightDeploys = new Set()
-
 module.exports = {
-    /**
-     * Get the in-flight state of a device
-     * @param {*} app
-     * @param {*} device
-     * @returns the in-flight state
-     */
-    getInflightState: function (app, device) {
-        return inflightState[device.id]
-    },
-
-    /**
-     * Set the in-flight state of a device
-     * @param {*} app
-     * @param {*} device
-     * @param {*} state
-     */
-    setInflightState: function (app, device, state) {
-        inflightState[device.id] = state
-    },
-
-    /**
-     * Set the in-flight state of a device
-     * @param {*} app
-     * @param {*} device
-     */
-    clearInflightState: function (app, device) {
-        delete inflightState[device.id]
-        // inflightDeploys.delete(device.id)
-    },
-
     isDeploying: function (app, device) {
         // Needs to have a target to be considered deploying
         if (!device.targetSnapshotId) {
@@ -94,7 +56,6 @@ module.exports = {
             }
         }
         await device.save()
-        this.clearInflightState(app, device)
     },
     /**
      * Sends the project id, snapshot hash and settings hash to the device
