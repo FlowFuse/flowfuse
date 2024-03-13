@@ -264,13 +264,15 @@ export default {
             const deviceStateChanging = this.device.pendingStateChange || this.device.optimisticStateChange
 
             const result = [
-                {
-                    name: 'Start',
-                    action: this.startDevice,
-                    disabled: deviceStateChanging || this.deviceRunning
-                },
-                { name: 'Restart', action: this.restartDevice, disabled: deviceStateChanging || flowActionsDisabled },
-                { name: 'Suspend', class: ['text-red-700'], action: this.showConfirmSuspendDialog, disabled: deviceStateChanging || flowActionsDisabled }
+                // Start and Suspend are disabled until resolution of the feature is complete
+                // See comments in #3292
+                // {
+                //     name: 'Start',
+                //     action: this.startDevice,
+                //     disabled: deviceStateChanging || this.deviceRunning
+                // },
+                { name: 'Restart', action: this.restartDevice, disabled: deviceStateChanging || flowActionsDisabled }
+                // { name: 'Suspend', class: ['text-red-700'], action: this.showConfirmSuspendDialog, disabled: deviceStateChanging || flowActionsDisabled }
             ]
 
             if (this.hasPermission('device:delete')) {
