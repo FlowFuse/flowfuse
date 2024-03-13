@@ -5,7 +5,7 @@
         <template v-if="splash" #splash-content>
             <div data-el="splash" v-html="splash" />
         </template>
-        <form v-if="!emailSent && !ssoCreated" class="max-w-md m-auto">
+        <form v-if="!emailSent && !ssoCreated" id="ff-sign-up" class="max-w-md m-auto" @submit.prevent="registerUser()">
             <p
                 v-if="settings['branding:account:signUpTopBanner']"
                 data-el="banner-text"
@@ -42,7 +42,7 @@
             </div>
             <label v-if="errors.general" class="pt-3 ff-error-inline">{{ errors.general }}</label>
             <div class="ff-actions pt-2">
-                <ff-button :disabled="!formValid || busy || tooManyRequests" data-action="sign-up" @click="registerUser()">
+                <ff-button type="submit" :disabled="!formValid || busy || tooManyRequests" data-action="sign-up">
                     <span>Sign Up</span>
                     <span class="w-4">
                         <SpinnerIcon v-if="busy || tooManyRequests" class="ff-icon ml-3 !w-3.5" />
