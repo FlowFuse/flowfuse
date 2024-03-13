@@ -194,11 +194,11 @@ export default {
                     this.emailSent = true
                 }
                 this.busy = false
-                if (gtag && this.settings.adwords?.events?.conversion) { // eslint-disable-line no-undef
-                    gtag('event', 'conversion', this.settings.adwords.events.conversion) // eslint-disable-line no-undef
+                if (window.gtag && this.settings.adwords?.events?.conversion) {
+                    window.gtag('event', 'conversion', this.settings.adwords.events.conversion)
                 }
             }).catch(err => {
-                console.error(err.response.data)
+                console.error(err)
                 this.busy = false
                 if (err.response?.data) {
                     if (err.response.data.code === 'invalid_request') {
