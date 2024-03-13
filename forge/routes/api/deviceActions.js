@@ -47,8 +47,11 @@ module.exports = async function (app) {
             reply.code(400).send({ code: 'no_device_comms', error: 'Actions are not available' })
             return
         }
+        const deviceCurrentState = request.device.state
         try {
-            app.db.controllers.Device.setInflightState(request.device, 'starting')
+            // update device state to starting
+            request.device.state = 'starting'
+            request.device.save()
             const result = await deviceComms.sendCommandAwaitReply(request.device.Team.hashid, request.device.hashid, 'action', { action: 'start' })
             if (typeof result !== 'object' || result?.success !== true) {
                 const error = new Error(result?.error?.error || 'Start request failed, device did not respond correctly.')
@@ -59,7 +62,8 @@ module.exports = async function (app) {
             await deviceLogger.device.started(request.session.User, null, request.device)
             reply.send({ status: 'okay' })
         } catch (err) {
-            app.db.controllers.Device.clearInflightState(request.device)
+            request.device.state = deviceCurrentState
+            request.device.save()
             const resp = { code: err.code || 'unexpected_error', error: err.message }
             let statusCode = err.statusCode || 500
             if (err.message === 'Command timed out') {
@@ -103,12 +107,14 @@ module.exports = async function (app) {
             reply.code(400).send({ code: 'no_device_comms', error: 'Actions are not available' })
             return
         }
+        const deviceCurrentState = request.device.state
         try {
-            if (request.device.state === 'suspended') {
+            if (deviceCurrentState === 'suspended') {
                 reply.code(400).send({ code: 'device_suspended', error: 'Device suspended' })
                 return
             }
-            app.db.controllers.Device.setInflightState(request.device, 'restarting')
+            request.device.state = 'restarting'
+            request.device.save()
             const result = await deviceComms.sendCommandAwaitReply(request.device.Team.hashid, request.device.hashid, 'action', { action: 'restart' })
             if (typeof result !== 'object' || result?.success !== true) {
                 const error = new Error(result?.error?.error || 'Restart request failed, device did not respond correctly.')
@@ -119,7 +125,8 @@ module.exports = async function (app) {
             await deviceLogger.device.restarted(request.session.User, null, request.device)
             reply.send({ status: 'okay' })
         } catch (err) {
-            app.db.controllers.Device.clearInflightState(request.device)
+            request.device.state = deviceCurrentState
+            request.device.save()
             const resp = { code: err.code || 'unexpected_error', error: err.message }
             let statusCode = err.statusCode || 500
             if (err.message === 'Command timed out') {
@@ -163,12 +170,14 @@ module.exports = async function (app) {
             reply.code(400).send({ code: 'no_device_comms', error: 'Actions are not available' })
             return
         }
+        const deviceCurrentState = request.device.state
         try {
-            if (request.device.state === 'suspended') {
+            if (deviceCurrentState === 'suspended') {
                 reply.code(400).send({ code: 'device_suspended', error: 'Device suspended' })
                 return
             }
-            app.db.controllers.Device.setInflightState(request.device, 'suspending')
+            request.device.state = 'suspending'
+            request.device.save()
             const result = await deviceComms.sendCommandAwaitReply(request.device.Team.hashid, request.device.hashid, 'action', { action: 'suspend' })
             if (typeof result !== 'object' || result?.success !== true) {
                 const error = new Error(result?.error?.error || 'Suspend request failed, device did not respond correctly.')
@@ -179,7 +188,8 @@ module.exports = async function (app) {
             await deviceLogger.device.suspended(request.session.User, null, request.device)
             reply.send({ status: 'okay' })
         } catch (err) {
-            app.db.controllers.Device.clearInflightState(request.device)
+            request.device.state = deviceCurrentState
+            request.device.save()
             const resp = { code: err.code || 'unexpected_error', error: err.message }
             let statusCode = err.statusCode || 500
             if (err.message === 'Command timed out') {

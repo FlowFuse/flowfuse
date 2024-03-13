@@ -1218,7 +1218,6 @@ describe('Device API', async function () {
                 const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
                 sendCommandAwaitReplyFaker[device.hashid] = () => new Promise((resolve) => { resolve({ success: true }) })
                 sinon.stub(app.auditLog.Device.device, 'restarted').resolves()
-                sinon.spy(app.db.controllers.Device, 'setInflightState')
                 const response = await app.inject({
                     method: 'POST',
                     url: `/api/v1/devices/${device.hashid}/actions/restart`,
@@ -1226,11 +1225,9 @@ describe('Device API', async function () {
                 })
                 response.statusCode.should.equal(200)
 
-                // inflight status
-                app.db.controllers.Device.setInflightState.calledOnce.should.equal(true)
-                app.db.controllers.Device.setInflightState.firstCall.args.should.have.length(2)
-                app.db.controllers.Device.setInflightState.firstCall.args[0].should.be.an.Object() // the device object
-                app.db.controllers.Device.setInflightState.firstCall.args[1].should.equal('restarting')
+                // status
+                await device.reload()
+                device.state.should.equal('restarting')
 
                 // comms
                 app.comms.devices.sendCommandAwaitReply.calledOnce.should.equal(true)
@@ -1251,7 +1248,6 @@ describe('Device API', async function () {
                 const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
                 sendCommandAwaitReplyFaker[device.hashid] = () => new Promise((resolve) => { resolve({ success: true }) })
                 sinon.stub(app.auditLog.Device.device, 'started').resolves()
-                sinon.spy(app.db.controllers.Device, 'setInflightState')
                 const response = await app.inject({
                     method: 'POST',
                     url: `/api/v1/devices/${device.hashid}/actions/start`,
@@ -1259,11 +1255,9 @@ describe('Device API', async function () {
                 })
                 response.statusCode.should.equal(200)
 
-                // inflight status
-                app.db.controllers.Device.setInflightState.calledOnce.should.equal(true)
-                app.db.controllers.Device.setInflightState.firstCall.args.should.have.length(2)
-                app.db.controllers.Device.setInflightState.firstCall.args[0].should.be.an.Object() // the device object
-                app.db.controllers.Device.setInflightState.firstCall.args[1].should.equal('starting')
+                // status
+                await device.reload()
+                device.state.should.equal('starting')
 
                 // comms
                 app.comms.devices.sendCommandAwaitReply.calledOnce.should.equal(true)
@@ -1284,7 +1278,6 @@ describe('Device API', async function () {
                 const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
                 sendCommandAwaitReplyFaker[device.hashid] = () => new Promise((resolve) => { resolve({ success: true }) })
                 sinon.stub(app.auditLog.Device.device, 'suspended').resolves()
-                sinon.spy(app.db.controllers.Device, 'setInflightState')
                 const response = await app.inject({
                     method: 'POST',
                     url: `/api/v1/devices/${device.hashid}/actions/suspend`,
@@ -1292,11 +1285,9 @@ describe('Device API', async function () {
                 })
                 response.statusCode.should.equal(200)
 
-                // inflight status
-                app.db.controllers.Device.setInflightState.calledOnce.should.equal(true)
-                app.db.controllers.Device.setInflightState.firstCall.args.should.have.length(2)
-                app.db.controllers.Device.setInflightState.firstCall.args[0].should.be.an.Object() // the device object
-                app.db.controllers.Device.setInflightState.firstCall.args[1].should.equal('suspending')
+                // status
+                await device.reload()
+                device.state.should.equal('suspending')
 
                 // comms
                 app.comms.devices.sendCommandAwaitReply.calledOnce.should.equal(true)
@@ -1318,8 +1309,8 @@ describe('Device API', async function () {
                 sendCommandAwaitReplyFaker[device.hashid] = () => new Promise((resolve) => { resolve({ success: false }) })
                 sinon.stub(app.auditLog.Device.device, 'restarted').resolves()
                 sinon.stub(app.auditLog.Device.device, 'restartFailed').resolves()
-                sinon.spy(app.db.controllers.Device, 'setInflightState')
-                sinon.spy(app.db.controllers.Device, 'clearInflightState')
+                device.state = 'xxx' // set state to something
+                device.save()
                 const response = await app.inject({
                     method: 'POST',
                     url: `/api/v1/devices/${device.hashid}/actions/restart`,
@@ -1330,13 +1321,9 @@ describe('Device API', async function () {
                 const result = response.json()
                 result.should.have.property('code', 'restart_failed')
 
-                // inflight status
-                app.db.controllers.Device.setInflightState.calledOnce.should.equal(true)
-                app.db.controllers.Device.setInflightState.firstCall.args.should.have.length(2)
-                app.db.controllers.Device.setInflightState.firstCall.args[0].should.be.an.Object() // the device object
-                app.db.controllers.Device.setInflightState.firstCall.args[1].should.equal('restarting')
-
-                app.db.controllers.Device.clearInflightState.calledOnce.should.equal(true)
+                // status
+                await device.reload()
+                device.state.should.equal('xxx') // state should not have been changed
 
                 // audit log
                 app.auditLog.Device.device.restarted.called.should.equal(false)
@@ -1352,8 +1339,8 @@ describe('Device API', async function () {
                 sendCommandAwaitReplyFaker[device.hashid] = () => new Promise((resolve) => { resolve({ success: false }) })
                 sinon.stub(app.auditLog.Device.device, 'started').resolves()
                 sinon.stub(app.auditLog.Device.device, 'startFailed').resolves()
-                sinon.spy(app.db.controllers.Device, 'setInflightState')
-                sinon.spy(app.db.controllers.Device, 'clearInflightState')
+                device.state = 'xxx' // set state to something
+                device.save()
                 const response = await app.inject({
                     method: 'POST',
                     url: `/api/v1/devices/${device.hashid}/actions/start`,
@@ -1364,13 +1351,9 @@ describe('Device API', async function () {
                 const result = response.json()
                 result.should.have.property('code', 'start_failed')
 
-                // inflight status
-                app.db.controllers.Device.setInflightState.calledOnce.should.equal(true)
-                app.db.controllers.Device.setInflightState.firstCall.args.should.have.length(2)
-                app.db.controllers.Device.setInflightState.firstCall.args[0].should.be.an.Object() // the device object
-                app.db.controllers.Device.setInflightState.firstCall.args[1].should.equal('starting')
-
-                app.db.controllers.Device.clearInflightState.calledOnce.should.equal(true)
+                // status
+                await device.reload()
+                device.state.should.equal('xxx') // state should not have been changed
 
                 // audit log
                 app.auditLog.Device.device.started.called.should.equal(false)
@@ -1386,8 +1369,8 @@ describe('Device API', async function () {
                 sendCommandAwaitReplyFaker[device.hashid] = () => new Promise((resolve) => { resolve({ success: false }) })
                 sinon.stub(app.auditLog.Device.device, 'suspended').resolves()
                 sinon.stub(app.auditLog.Device.device, 'suspendFailed').resolves()
-                sinon.spy(app.db.controllers.Device, 'setInflightState')
-                sinon.spy(app.db.controllers.Device, 'clearInflightState')
+                device.state = 'xxx' // set state to something
+                device.save()
                 const response = await app.inject({
                     method: 'POST',
                     url: `/api/v1/devices/${device.hashid}/actions/suspend`,
@@ -1398,13 +1381,9 @@ describe('Device API', async function () {
                 const result = response.json()
                 result.should.have.property('code', 'suspend_failed')
 
-                // inflight status
-                app.db.controllers.Device.setInflightState.calledOnce.should.equal(true)
-                app.db.controllers.Device.setInflightState.firstCall.args.should.have.length(2)
-                app.db.controllers.Device.setInflightState.firstCall.args[0].should.be.an.Object() // the device object
-                app.db.controllers.Device.setInflightState.firstCall.args[1].should.equal('suspending')
-
-                app.db.controllers.Device.clearInflightState.calledOnce.should.equal(true)
+                // status
+                await device.reload()
+                device.state.should.equal('xxx') // state should not have been changed
 
                 // audit log
                 app.auditLog.Device.device.suspended.called.should.equal(false)
@@ -1476,8 +1455,8 @@ describe('Device API', async function () {
             })
             it('offline device times out for restart action', async function () {
                 const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
-                sinon.spy(app.db.controllers.Device, 'setInflightState')
-                sinon.spy(app.db.controllers.Device, 'clearInflightState')
+                device.state = 'xxx' // set state to something
+                device.save()
                 sinon.stub(app.auditLog.Device.device, 'restarted').resolves()
                 sinon.stub(app.auditLog.Device.device, 'restartFailed').resolves()
 
@@ -1495,13 +1474,9 @@ describe('Device API', async function () {
                 response.statusCode.should.equal(400)
                 response.json().should.have.property('code', 'no_response')
 
-                // inflight status
-                app.db.controllers.Device.setInflightState.calledOnce.should.equal(true)
-                app.db.controllers.Device.setInflightState.firstCall.args.should.have.length(2)
-                app.db.controllers.Device.setInflightState.firstCall.args[0].should.be.an.Object() // the device object
-                app.db.controllers.Device.setInflightState.firstCall.args[1].should.equal('restarting')
-
-                app.db.controllers.Device.clearInflightState.calledOnce.should.equal(true)
+                // status
+                await device.reload()
+                device.state.should.equal('xxx') // state should not have been changed
 
                 // Comms
                 app.comms.devices.sendCommandAwaitReply.calledOnce.should.equal(true)
@@ -1521,8 +1496,8 @@ describe('Device API', async function () {
             })
             it('offline device times out for start action', async function () {
                 const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
-                sinon.spy(app.db.controllers.Device, 'setInflightState')
-                sinon.spy(app.db.controllers.Device, 'clearInflightState')
+                device.state = 'xxx' // set state to something
+                device.save()
                 sinon.stub(app.auditLog.Device.device, 'started').resolves()
                 sinon.stub(app.auditLog.Device.device, 'startFailed').resolves()
 
@@ -1540,13 +1515,9 @@ describe('Device API', async function () {
                 response.statusCode.should.equal(400)
                 response.json().should.have.property('code', 'no_response')
 
-                // inflight status
-                app.db.controllers.Device.setInflightState.calledOnce.should.equal(true)
-                app.db.controllers.Device.setInflightState.firstCall.args.should.have.length(2)
-                app.db.controllers.Device.setInflightState.firstCall.args[0].should.be.an.Object() // the device object
-                app.db.controllers.Device.setInflightState.firstCall.args[1].should.equal('starting')
-
-                app.db.controllers.Device.clearInflightState.calledOnce.should.equal(true)
+                // status
+                await device.reload()
+                device.state.should.equal('xxx') // state should not have been changed
 
                 // Comms
                 app.comms.devices.sendCommandAwaitReply.calledOnce.should.equal(true)
@@ -1566,8 +1537,8 @@ describe('Device API', async function () {
             })
             it('offline device times out for suspend action', async function () {
                 const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
-                sinon.spy(app.db.controllers.Device, 'setInflightState')
-                sinon.spy(app.db.controllers.Device, 'clearInflightState')
+                device.state = 'xxx' // set state to something
+                device.save()
                 sinon.stub(app.auditLog.Device.device, 'suspended').resolves()
                 sinon.stub(app.auditLog.Device.device, 'suspendFailed').resolves()
 
@@ -1585,13 +1556,9 @@ describe('Device API', async function () {
                 response.statusCode.should.equal(400)
                 response.json().should.have.property('code', 'no_response')
 
-                // inflight status
-                app.db.controllers.Device.setInflightState.calledOnce.should.equal(true)
-                app.db.controllers.Device.setInflightState.firstCall.args.should.have.length(2)
-                app.db.controllers.Device.setInflightState.firstCall.args[0].should.be.an.Object() // the device object
-                app.db.controllers.Device.setInflightState.firstCall.args[1].should.equal('suspending')
-
-                app.db.controllers.Device.clearInflightState.calledOnce.should.equal(true)
+                // status
+                await device.reload()
+                device.state.should.equal('xxx') // state should not have been changed
 
                 // Comms
                 app.comms.devices.sendCommandAwaitReply.calledOnce.should.equal(true)
