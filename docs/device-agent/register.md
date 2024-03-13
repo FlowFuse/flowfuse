@@ -5,15 +5,18 @@ navOrder: 4
 
 # Register your Device
 
-To connect a device to FlowFuse, it needs a set of credentials and configuration information.
+To connect devices to FlowFuse, you will needs a set of credentials and configuration information.
 
-There are two types of configurations to choose from:
+The best configuration to use will depend on how many devices you want to connect:
 
-* **Device Configuration**: for connecting a single device to the platform
-* **Provisioning Configuration**: for setting up one or more devices to automatically register themselves on the platform
+* **[Single Device Registration](#single-device-registration)**: for connecting a single device, or a small number of devices, to the platform.
+* **[Bulk Registration](#bulk-registration)**: for setting up one or more devices which will automatically register themselves to the platform when the device agent is run.
 
-### Generating "Device Configuration" 
-_for a single device_
+## Single Device Registration
+
+For a single device, or small batch of devices, you can manually register each device individually, naming each device and assigning it to an application.
+
+### Generating "Device Configuration"
 
 1. Go to your teams's **Devices** page.
 2. Click the **Add Device** button.
@@ -26,17 +29,20 @@ _for a single device_
 Once the device has been registered, you will be shown the **Device Configuration** dialog which
 contains all the information needed to connect the device to the platform.
 
-By default, you are offered the [Setup command](#setup-command-method) method that was introduced in FlowFuse V2.1.
-<img src="images/config_yml1.png" width=500 />
+By default, you are offered the [Setup command](#setup-command-method) method that was introduced in FlowFuse V2.1, and provide a one-time passcode with which you can call the `flowfuse-device-agent` to connect to the platform and retrieve the relevant device configuration.
+
+<img src="images/config_yml1.png" width="650px" />
 
 _For older versions of the device agent, you can expand the the **Manual Setup** section
 and use the configuration data with the [Copy](#copy-method) or the [Download](#download-method) methods instead._
 
 Repeat these steps for each device you want to connect to the platform.
 
+## Bulk Registration
 
-### Generating "Provisioning Configuration" 
-_for automatic registration of one or more devices_
+If you have dozens, or hundreds of devices, you can use the **Provisioning Configuration** method. This approach provides you with a single "Provisioning Token" for all of your devices. When passed to the `flowfuse-device-agent`, this token will automatically register your devices with the relevant instance or application. There is no need to "Add Device" each time, as is the case with the [Single Device Registration](#single-device-registration) method.
+
+### Generating "Provisioning Configuration"
 
 1. Go to your teams's **Settings** page.
 2. Open the **Device** tab.
@@ -46,7 +52,10 @@ _for automatic registration of one or more devices_
 
 Once the Provisioning Token has been created, you will be shown the 
 **Device Provisioning Configuration** dialog. This is the only time the 
-platform will show you this information. 
+platform will show you this information.
+
+<img src="images/provisioning-token.png" width="650px" />
+
 Make sure to take a copy or use the **Download** button to save
 the configuration file locally.
 
@@ -57,17 +66,18 @@ the configuration file locally.
 Before you can connect a device to the platform, the device must have
 a **Device Configuration** file or a **Device Provisioning Configuration** 
 file present in its working directory. There are three ways to do this:
-1. Copy the Setup command and run it in a terminal window on the device.
-2. Copy the configuration file to the device using its built in Web UI.
+
+- **[Setup Command](#setup-command):** Copy the Setup Command (with one-time passcode) and run it in a terminal window on the device.
+- **[Device Agent Web UI](#device-agent-web-ui):** Copy the configuration file (`device.yml`) to the device using its built in Web UI.
    * _The Device Agent must be running and the command line flag for the Web UI must be enabled._
    * _See [Command Line Options](./running.md#device-agent-command-line-options) for more information._
-3. Download the configuration file  into the device's 
+- **[Manual Download](#manual-download):** Download the configuration file into the device's 
 [Working Directory](./install.md#working-directory).
 
 
-### Setup command method
+### Setup Command
 
-The Setup command method was introduced in FlowFuse V2.1. This is the fastest way to connect a device to the platform.
+The Setup Command method was introduced in FlowFuse V2.1. This is the fastest way to connect a device to the platform.
 
 1. Copy the **Setup** command to the clipboard.
 2. Open a terminal window to the device and paste or type in the command.
@@ -80,14 +90,14 @@ NOTES
 * The Setup command is only valid for 24h. If you do not use it within this time, you will need to [regenerate](#regenerating-configurations) it.
 * The 3 word One-Time-Code (OTC) contained in the Setup command is single use and is deleted immediately upon use.
 
-### Copy method
+### Device Agent Web UI
 
 If the Device Agent is running with the Web UI enabled, you can download the
 configuration file to the device using the Web UI. This is useful if you don't
 have direct access to the device's file system. Once the configuration file is
 downloaded, the device agent will automatically restart and load the configuration.
 
-### Download method
+### Manual Download
 
 Place the **Device Configuration** or **Device Provisioning Configuration** file on the device
 in the [Working Directory](./install.md#working-directory)
@@ -115,7 +125,10 @@ runs will not need to perform the auto registration again.
 
 ## Assign the device
 
-The next step is to assign the device to a Node-RED instance or application.
+The next step is to assign the device to a Node-RED instance or application. Note, that if
+you've followed [Single Device Registration](#single-device-registration) or 
+[Bulk Reigstration](#bulk-registration) to register your device, it will
+automatically be assigned to an Application or Instance.
 
 ### Assign to Node-RED instance
 
