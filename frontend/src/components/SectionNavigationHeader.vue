@@ -18,7 +18,7 @@
                     </div>
                 </slot>
             </div>
-            <div v-if="hasTools" class="flex-1 flex items-start justify-end">
+            <div v-if="hasTools" class="flex items-start justify-end">
                 <slot name="tools" />
             </div>
         </div>
