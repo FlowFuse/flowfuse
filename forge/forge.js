@@ -283,10 +283,14 @@ module.exports = async (options = {}) => {
                 } else {
                     contentSecurityPolicy.directives['script-src'] = [posthogHost]
                 }
+                const posthogConnect = [
+                    posthogHost,
+                    'eu.i.posthog.com'
+                ]
                 if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
-                    contentSecurityPolicy.directives['connect-src'].push(posthogHost)
+                    contentSecurityPolicy.directives['connect-src'].push(...posthogConnect)
                 } else {
-                    contentSecurityPolicy.directives['connect-src'] = [posthogHost]
+                    contentSecurityPolicy.directives['connect-src'] = posthogConnect
                 }
             }
             if (runtimeConfig.telemetry?.frontend?.sentry) {
@@ -339,12 +343,14 @@ module.exports = async (options = {}) => {
             }
             if (runtimeConfig.support?.enabled && runtimeConfig.support.frontend?.hubspot?.trackingcode) {
                 const hubspotDomains = [
-                    'js-eu1.hs-analytics.com',
+                    'js-eu1.hs-analytics.net',
                     'js-eu1.hs-banner.com',
                     'js-eu1.hs-scripts.com',
                     'js-eu1.hscollectedforms.net',
                     'js-eu1.hubspot.com',
-                    'js-eu1.usemessages.com'
+                    'js-eu1.usemessages.com',
+                    'js-eu1.hubspotfeedback.com',
+                    'js-eu1.hsadspixel.net'
                 ]
                 if (contentSecurityPolicy.directives['script-src'] && Array.isArray(contentSecurityPolicy.directives['script-src'])) {
                     contentSecurityPolicy.directives['script-src'].push(...hubspotDomains)
@@ -363,7 +369,9 @@ module.exports = async (options = {}) => {
                 }
                 const hubspotConnectDomains = [
                     'api-eu1.hubspot.com',
+                    'api-eu1.hubapi.com',
                     'cta-eu1.hubspot.com',
+                    'js-eu1.hs-banner.com',
                     'forms-eu1.hscollectedforms.net'
                 ]
                 if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
