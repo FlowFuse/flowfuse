@@ -14,7 +14,7 @@
                     <ff-nav-breadcrumb>{{ device.name }}</ff-nav-breadcrumb>
                 </template>
                 <template #status>
-                    <div class="space-x-6 flex">
+                    <div class="flex flex-wrap gap-2">
                         <DeviceLastSeenBadge :last-seen-at="device.lastSeenAt" :last-seen-ms="device.lastSeenMs" :last-seen-since="device.lastSeenSince" />
                         <StatusBadge :status="device.status" />
                         <DeviceModeBadge v-if="isDevModeAvailable " :mode="device.mode" />
