@@ -169,7 +169,7 @@ describe('Check HTTP Security Headers set', () => {
             const headers = response.headers
             headers.should.have.property('content-security-policy')
             const csp = response.headers['content-security-policy']
-            csp.split(';').should.containEql('script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' js-eu1.hs-analytics.com js-eu1.hs-banner.com js-eu1.hs-scripts.com js-eu1.hscollectedforms.net js-eu1.hubspot.com js-eu1.usemessages.com')
+            csp.split(';').should.containEql('script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' *.hs-analytics.net *.hs-banner.com *.hs-scripts.com *.hscollectedforms.net *.hubspot.com *.usemessages.com *.hubspotfeedback.com *.hsadspixel.net *.hsforms.net *.hsforms.com')
         })
 
         it('CSP should be enabled with hubspot and posthog', async function () {
@@ -203,7 +203,7 @@ describe('Check HTTP Security Headers set', () => {
             const headers = response.headers
             headers.should.have.property('content-security-policy')
             const csp = response.headers['content-security-policy']
-            csp.split(';').should.containEql('script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' app.posthog.com js-eu1.hs-analytics.com js-eu1.hs-banner.com js-eu1.hs-scripts.com js-eu1.hscollectedforms.net js-eu1.hubspot.com js-eu1.usemessages.com')
+            csp.split(';').should.containEql('script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' app.posthog.com *.hs-analytics.net *.hs-banner.com *.hs-scripts.com *.hscollectedforms.net *.hubspot.com *.usemessages.com *.hubspotfeedback.com *.hsadspixel.net *.hsforms.net *.hsforms.com')
         })
         it('CSP should be enabled with hubspot and posthog empty directive', async function () {
             const config = {
@@ -237,7 +237,7 @@ describe('Check HTTP Security Headers set', () => {
             const headers = response.headers
             headers.should.have.property('content-security-policy')
             const csp = response.headers['content-security-policy']
-            csp.split(';').should.containEql('script-src app.posthog.com js-eu1.hs-analytics.com js-eu1.hs-banner.com js-eu1.hs-scripts.com js-eu1.hscollectedforms.net js-eu1.hubspot.com js-eu1.usemessages.com',
+            csp.split(';').should.containEql('script-src app.posthog.com *.hs-analytics.net *.hs-banner.com *.hs-scripts.com *.hscollectedforms.net *.hubspot.com *.usemessages.com *.hubspotfeedback.com *.hsadspixel.net *.hsforms.net *.hsforms.com',
                 'connect-src app.posthog.com api-eu1.hubspot.com cta-eu1.hubspot.com forms-eu1.hscollectedforms.net')
         })
         it('CSP with sentry.io', async function () {

@@ -283,10 +283,14 @@ module.exports = async (options = {}) => {
                 } else {
                     contentSecurityPolicy.directives['script-src'] = [posthogHost]
                 }
+                const posthogConnect = [
+                    posthogHost,
+                    'eu.i.posthog.com'
+                ]
                 if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
-                    contentSecurityPolicy.directives['connect-src'].push(posthogHost)
+                    contentSecurityPolicy.directives['connect-src'].push(...posthogConnect)
                 } else {
-                    contentSecurityPolicy.directives['connect-src'] = [posthogHost]
+                    contentSecurityPolicy.directives['connect-src'] = posthogConnect
                 }
             }
             if (runtimeConfig.telemetry?.frontend?.sentry) {
@@ -339,12 +343,16 @@ module.exports = async (options = {}) => {
             }
             if (runtimeConfig.support?.enabled && runtimeConfig.support.frontend?.hubspot?.trackingcode) {
                 const hubspotDomains = [
-                    'js-eu1.hs-analytics.com',
-                    'js-eu1.hs-banner.com',
-                    'js-eu1.hs-scripts.com',
-                    'js-eu1.hscollectedforms.net',
-                    'js-eu1.hubspot.com',
-                    'js-eu1.usemessages.com'
+                    '*.hs-analytics.net',
+                    '*.hs-banner.com',
+                    '*.hs-scripts.com',
+                    '*.hscollectedforms.net',
+                    '*.hubspot.com',
+                    '*.usemessages.com',
+                    '*.hubspotfeedback.com',
+                    '*.hsadspixel.net',
+                    '*.hsforms.net',
+                    '*.hsforms.com'
                 ]
                 if (contentSecurityPolicy.directives['script-src'] && Array.isArray(contentSecurityPolicy.directives['script-src'])) {
                     contentSecurityPolicy.directives['script-src'].push(...hubspotDomains)
@@ -352,9 +360,9 @@ module.exports = async (options = {}) => {
                     contentSecurityPolicy.directives['script-src'] = hubspotDomains
                 }
                 const hubspotImageDomains = [
-                    'forms-eu1.hsforms.com',
-                    'track-eu1.hubspot.com',
-                    'perf-eu1.hsforms.com'
+                    '*.hsforms.com',
+                    '*.hubspot.com',
+                    '*.hsforms.net'
                 ]
                 if (contentSecurityPolicy.directives['img-src'] && Array.isArray(contentSecurityPolicy.directives['img-src'])) {
                     contentSecurityPolicy.directives['img-src'].push(...hubspotImageDomains)
@@ -362,9 +370,12 @@ module.exports = async (options = {}) => {
                     contentSecurityPolicy.directives['img-src'] = hubspotImageDomains
                 }
                 const hubspotConnectDomains = [
-                    'api-eu1.hubspot.com',
-                    'cta-eu1.hubspot.com',
-                    'forms-eu1.hscollectedforms.net'
+                    '*.hubspot.com',
+                    '*.hubapi.com',
+                    '*.hsforms.com',
+                    '*.hubspot.com',
+                    '*.hs-banner.com',
+                    '*.hscollectedforms.net'
                 ]
                 if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
                     contentSecurityPolicy.directives['connect-src'].push(...hubspotConnectDomains)
@@ -372,7 +383,9 @@ module.exports = async (options = {}) => {
                     contentSecurityPolicy.directives['connect-src'] = hubspotConnectDomains
                 }
                 const hubspotFrameDomains = [
-                    'app-eu1.hubspot.com'
+                    '*.hubspot.com',
+                    '*.hsforms.com',
+                    '*.hsforms.net'
                 ]
                 if (contentSecurityPolicy.directives['frame-src'] && Array.isArray(contentSecurityPolicy.directives['frame-src'])) {
                     contentSecurityPolicy.directives['frame-src'].push(...hubspotFrameDomains)
