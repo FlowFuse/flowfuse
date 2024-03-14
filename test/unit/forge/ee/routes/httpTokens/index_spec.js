@@ -5,6 +5,7 @@ const should = require('should') // eslint-disable-line
 const setup = require('../../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
+const { Roles } = FF_UTIL.require('forge/lib/roles')
 const { START_DELAY } = FF_UTIL.require('forge/containers/stub/index.js')
 
 describe('NR HTTP Bearer Tokens', function () {
@@ -16,13 +17,29 @@ describe('NR HTTP Bearer Tokens', function () {
         app = await setup()
         await login('alice', 'aaPassword')
 
+        // setup FF Auth for team type
+        const defaultTeamTypeProperties = app.defaultTeamType.properties
+        defaultTeamTypeProperties.features.teamHttpSecurity = true
+        app.defaultTeamType.properties = defaultTeamTypeProperties
+        await app.defaultTeamType.save()
+
+        TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: app.defaultTeamType.id })
+        await TestObjects.BTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+        await app.factory.createSubscription(TestObjects.BTeam)
+
+        TestObjects.application = await app.db.models.Application.create({
+            name: 'B-team Application',
+            description: 'B-team Application description',
+            TeamId: TestObjects.BTeam.id
+        })
+
         // Create a new instance
         const response = await app.inject({
             method: 'POST',
             url: '/api/v1/projects',
             payload: {
                 name: 'test-tokens-project-1',
-                applicationId: app.application.hashid,
+                applicationId: TestObjects.application.hashid,
                 projectType: app.projectType.hashid,
                 template: app.template.hashid,
                 stack: app.stack.hashid
@@ -36,6 +53,7 @@ describe('NR HTTP Bearer Tokens', function () {
 
     after(async function () {
         await app.close()
+        setup.resetStripe()
     })
 
     async function login (username, password) {
