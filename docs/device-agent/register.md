@@ -29,12 +29,12 @@ For a single device, or small batch of devices, you can manually register each d
 Once the device has been registered, you will be shown the **Device Configuration** dialog which
 contains all the information needed to connect the device to the platform.
 
-By default, you are offered the [Setup command](#setup-command-method) method that was introduced in FlowFuse V2.1, and provide a one-time passcode with which you can call the `flowfuse-device-agent` to connect to the platform and retrieve the relevant device configuration.
+By default, you are offered the [Setup command](#setup-command) method that was introduced in FlowFuse V2.1, and provide a one-time passcode with which you can call the `flowfuse-device-agent` to connect to the platform and retrieve the relevant device configuration.
 
 <img src="images/config_yml1.png" width="650px" />
 
 _For older versions of the device agent, you can expand the the **Manual Setup** section
-and use the configuration data with the [Copy](#copy-method) or the [Download](#download-method) methods instead._
+and use the configuration data with the [Device Agent Web UI](#device-agent-web-ui) or the [Manual Download](#manual-download) methods instead._
 
 Repeat these steps for each device you want to connect to the platform.
 
