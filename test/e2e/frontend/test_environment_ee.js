@@ -44,6 +44,7 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
     const defaultTeamTypeProperties = defaultTeamType.properties
     defaultTeamTypeProperties.features.deviceGroups = true
     defaultTeamTypeProperties.features.protectedInstance = true
+    defaultTeamTypeProperties.features.teamHttpSecurity = true
     defaultTeamType.properties = defaultTeamTypeProperties
     await defaultTeamType.save()
 
