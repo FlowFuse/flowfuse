@@ -1,3 +1,38 @@
+#### 2.2.0: Release
+
+ - HTTP Bearer Tokens test for correct flag (#3573) @hardillb
+ - Add device actions (#3548) @Steve-Mcl
+ - Fix CSP domains (#3571) @hardillb
+ - Update sign-up form to use submit event (#3569) @knolleary
+ - Fix GA tracking on create account (#3568) @knolleary
+ - Bump jsonata and @node-red/util (#3567) @app/dependabot
+ - Bump vitest from 1.1.0 to 1.3.1 (#3553) @app/dependabot
+ - Bump postcss from 8.4.33 to 8.4.35 (#3555) @app/dependabot
+ - Update licensing to combine device and instance limits (#3562) @knolleary
+ - Docs: Update the device registration documentation (#3565) @joepavitt
+ - AWS Marketplace login as ubuntu (#3563) @hardillb
+ - Adds validation on PipelineStage create api (#3556) @knolleary
+ - Add Bearer token support to FF Auth (#3535) @hardillb
+ - Bump eslint-plugin-import from 2.29.0 to 2.29.1 (#3554) @app/dependabot
+ - Support both snapshot schemas (#3542) @Steve-Mcl
+ - fix typo in introduction.md (#3558) @Steve-Mcl
+ - Bump html-webpack-plugin from 5.5.4 to 5.6.0 (#3552) @app/dependabot
+ - Bump pino-pretty from 10.2.3 to 10.3.1 (#3551) @app/dependabot
+ - Bump cypress from 13.6.1 to 13.6.6 (#3550) @app/dependabot
+ - Instance Protection (#3520) @hardillb
+ - Update device quick start (#3541) @Steve-Mcl
+ - Improve scalability of device editor (#3511) @knolleary
+ - Bump @fastify/csrf-protection from 6.3.0 to 6.4.1 (#3495) @app/dependabot
+ - Bump @fastify/static from 6.12.0 to 7.0.1 (#3494) @app/dependabot
+ - Bump pino from 8.17.2 to 8.19.0 (#3543) @app/dependabot
+ - Bump fastify from 4.25.2 to 4.26.2 (#3544) @app/dependabot
+ - fix: Allow mixed case in username in admin create api (#3540) @knolleary
+ - fix: allow mixed-case usernames in backend validation (#3537) @hardillb
+ - Update AWS setup documentation (#3536) @ppawlowski
+ - Add docs on keycloak sso (#3530) @knolleary
+ - Bump @aws-sdk/client-ses from 3.511.0 to 3.523.0 (#3525) @app/dependabot
+ - Add billing status check when creating device (#3527) @knolleary
+
 #### 2.1.1: Release
 
  - Set disableRequestedAuthnContext in SAML strategy (#3519) @knolleary
