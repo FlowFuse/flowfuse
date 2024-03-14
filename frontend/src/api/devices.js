@@ -186,6 +186,38 @@ const getDeviceLogCreds = async (deviceId) => {
     return client.post(url).then(res => res.data)
 }
 
+const startDevice = async (device) => {
+    return client.post(`/api/v1/devices/${device.id}/actions/start`).then((res) => {
+        productCaptureDeviceAction('start', device)
+        return res.data
+    })
+}
+const restartDevice = async (device) => {
+    return client.post(`/api/v1/devices/${device.id}/actions/restart`).then((res) => {
+        productCaptureDeviceAction('restart', device)
+        return res.data
+    })
+}
+const suspendDevice = async (device) => {
+    return client.post(`/api/v1/devices/${device.id}/actions/suspend`).then((res) => {
+        productCaptureDeviceAction('suspend', device)
+        return res.data
+    })
+}
+
+function productCaptureDeviceAction (action, device) {
+    if (!device) {
+        return
+    }
+    product.capture(`$ff-device-action:${action}`, null, {
+        team: device.team?.id,
+        application: device.application?.id,
+        instance: device.project?.id,
+        ownerType: device.ownerType,
+        device: device.id
+    })
+}
+
 export default {
     create,
     getDevice,
@@ -205,5 +237,8 @@ export default {
     deleteSnapshot,
     setSnapshotAsTarget,
     getDeviceAuditLog,
-    getDeviceLogCreds
+    getDeviceLogCreds,
+    suspendDevice,
+    restartDevice,
+    startDevice
 }

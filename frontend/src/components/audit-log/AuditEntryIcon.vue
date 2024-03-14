@@ -190,7 +190,13 @@ const iconMap = {
         'team.device.credentials-generated',
         'team.device.credentialsGenerated', // legacy event
         'project.snapshot.deviceTarget', // legacy event
-        'device.credentials.generated'
+        'device.credentials.generated',
+        'device.started',
+        'device.start-failed',
+        'device.restarted',
+        'device.restart-failed',
+        'device.suspended',
+        'device.suspend-failed'
     ],
     'device-group': [
         'application.deviceGroup.created',

@@ -2,6 +2,7 @@
 const { DeviceTunnelManager } = require('../../ee/lib/deviceEditor/DeviceTunnelManager')
 const { Roles } = require('../../lib/roles')
 
+const DeviceActions = require('./deviceActions')
 const DeviceLive = require('./deviceLive')
 const DeviceSnapshots = require('./deviceSnapshots.js')
 const hasProperty = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key)
@@ -38,6 +39,7 @@ module.exports = async function (app) {
 
     app.register(DeviceLive, { prefix: '/:deviceId/live' })
     app.register(DeviceSnapshots, { prefix: '/:deviceId/snapshots' })
+    app.register(DeviceActions, { prefix: '/:deviceId/actions' })
 
     /**
      * Get a list of all devices

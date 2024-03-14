@@ -1,4 +1,6 @@
 const should = require('should') // eslint-disable-line
+const sinon = require('sinon')
+
 const { sha256 } = require('../../../../../forge/db/utils')
 const setup = require('../setup')
 
@@ -1202,6 +1204,430 @@ describe('Device API', async function () {
 
     describe('Device Actions', async function () {
         // POST /api/v1/devices/:deviceId/actions/:action
+        describe('with MQTT comms', async function () {
+            const sendCommandAwaitReplyFaker = {}
+
+            beforeEach(async function () {
+                factory = app.factory
+                sinon.stub(app.comms.devices, 'sendCommandAwaitReply').callsFake(async (...args) => {
+                    const deviceId = args[1]
+                    return sendCommandAwaitReplyFaker[deviceId](...args)
+                })
+                sinon.stub(app.comms.devices, 'sendCommand').resolves()
+            })
+            afterEach(async function () {
+                sinon.restore()
+            })
+            it('team owner can trigger device restart action', async function () {
+                const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
+                sendCommandAwaitReplyFaker[device.hashid] = () => new Promise((resolve) => { resolve({ success: true }) })
+                sinon.stub(app.auditLog.Device.device, 'restarted').resolves()
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/devices/${device.hashid}/actions/restart`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                // status
+                await device.reload()
+                device.state.should.equal('restarting')
+
+                // comms
+                app.comms.devices.sendCommandAwaitReply.calledOnce.should.equal(true)
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[0].should.equal(TestObjects.ATeam.hashid)
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[1].should.equal(device.hashid)
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[2].should.equal('action')
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[3].should.deepEqual({ action: 'restart' })
+
+                // audit log
+                app.auditLog.Device.device.restarted.calledOnce.should.equal(true)
+                app.auditLog.Device.device.restarted.firstCall.args.should.have.length(3)
+                app.auditLog.Device.device.restarted.firstCall.args[0].should.be.an.Object() // the user object
+                should(app.auditLog.Device.device.restarted.firstCall.args[1]).be.Null() // the error object
+                app.auditLog.Device.device.restarted.firstCall.args[2].should.be.an.Object() // the device object
+                app.auditLog.Device.device.restarted.firstCall.args[2].should.have.property('id', device.id)
+            })
+            it.skip('team owner can trigger device start action', async function () {
+                const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
+                sendCommandAwaitReplyFaker[device.hashid] = () => new Promise((resolve) => { resolve({ success: true }) })
+                sinon.stub(app.auditLog.Device.device, 'started').resolves()
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/devices/${device.hashid}/actions/start`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                // status
+                await device.reload()
+                device.state.should.equal('starting')
+
+                // comms
+                app.comms.devices.sendCommandAwaitReply.calledOnce.should.equal(true)
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[0].should.equal(TestObjects.ATeam.hashid)
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[1].should.equal(device.hashid)
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[2].should.equal('action')
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[3].should.deepEqual({ action: 'start' })
+
+                // audit log
+                app.auditLog.Device.device.started.calledOnce.should.equal(true)
+                app.auditLog.Device.device.started.firstCall.args.should.have.length(3)
+                app.auditLog.Device.device.started.firstCall.args[0].should.be.an.Object() // the user object
+                should(app.auditLog.Device.device.started.firstCall.args[1]).be.Null() // the error object
+                app.auditLog.Device.device.started.firstCall.args[2].should.be.an.Object() // the device object
+                app.auditLog.Device.device.started.firstCall.args[2].should.have.property('id', device.id)
+            })
+            it.skip('team owner can trigger device suspend action', async function () {
+                const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
+                sendCommandAwaitReplyFaker[device.hashid] = () => new Promise((resolve) => { resolve({ success: true }) })
+                sinon.stub(app.auditLog.Device.device, 'suspended').resolves()
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/devices/${device.hashid}/actions/suspend`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                // status
+                await device.reload()
+                device.state.should.equal('suspending')
+
+                // comms
+                app.comms.devices.sendCommandAwaitReply.calledOnce.should.equal(true)
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[0].should.equal(TestObjects.ATeam.hashid)
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[1].should.equal(device.hashid)
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[2].should.equal('action')
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[3].should.deepEqual({ action: 'suspend' })
+
+                // audit log
+                app.auditLog.Device.device.suspended.calledOnce.should.equal(true)
+                app.auditLog.Device.device.suspended.firstCall.args.should.have.length(3)
+                app.auditLog.Device.device.suspended.firstCall.args[0].should.be.an.Object() // the user object
+                should(app.auditLog.Device.device.suspended.firstCall.args[1]).be.Null() // the error object
+                app.auditLog.Device.device.suspended.firstCall.args[2].should.be.an.Object() // the device object
+                app.auditLog.Device.device.suspended.firstCall.args[2].should.have.property('id', device.id)
+            })
+            it('restart action returns 400 restart_failed when agent responds with success:false', async function () {
+                const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
+                sendCommandAwaitReplyFaker[device.hashid] = () => new Promise((resolve) => { resolve({ success: false }) })
+                sinon.stub(app.auditLog.Device.device, 'restarted').resolves()
+                sinon.stub(app.auditLog.Device.device, 'restartFailed').resolves()
+                device.state = 'xxx' // set state to something
+                await device.save()
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/devices/${device.hashid}/actions/restart`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(400)
+
+                const result = response.json()
+                result.should.have.property('code', 'restart_failed')
+
+                // status
+                await device.reload()
+                device.state.should.equal('xxx') // state should not have been changed
+
+                // audit log
+                app.auditLog.Device.device.restarted.called.should.equal(false)
+                app.auditLog.Device.device.restartFailed.calledOnce.should.equal(true)
+                app.auditLog.Device.device.restartFailed.firstCall.args.should.have.length(3)
+                app.auditLog.Device.device.restartFailed.firstCall.args[0].should.be.an.Object() // the user object
+                app.auditLog.Device.device.restartFailed.firstCall.args[1].should.be.an.Object() // the error object
+                app.auditLog.Device.device.restartFailed.firstCall.args[2].should.be.an.Object() // the device object
+                app.auditLog.Device.device.restartFailed.firstCall.args[2].should.have.property('id', device.id)
+            })
+            it.skip('start action returns 400 start_failed when agent responds with success:false', async function () {
+                const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
+                sendCommandAwaitReplyFaker[device.hashid] = () => new Promise((resolve) => { resolve({ success: false }) })
+                sinon.stub(app.auditLog.Device.device, 'started').resolves()
+                sinon.stub(app.auditLog.Device.device, 'startFailed').resolves()
+                device.state = 'xxx' // set state to something
+                await device.save()
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/devices/${device.hashid}/actions/start`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(400)
+
+                const result = response.json()
+                result.should.have.property('code', 'start_failed')
+
+                // status
+                await device.reload()
+                device.state.should.equal('xxx') // state should not have been changed
+
+                // audit log
+                app.auditLog.Device.device.started.called.should.equal(false)
+                app.auditLog.Device.device.startFailed.calledOnce.should.equal(true)
+                app.auditLog.Device.device.startFailed.firstCall.args.should.have.length(3)
+                app.auditLog.Device.device.startFailed.firstCall.args[0].should.be.an.Object() // the user object
+                app.auditLog.Device.device.startFailed.firstCall.args[1].should.be.an.Object() // the error object
+                app.auditLog.Device.device.startFailed.firstCall.args[2].should.be.an.Object() // the device object
+                app.auditLog.Device.device.startFailed.firstCall.args[2].should.have.property('id', device.id)
+            })
+            it.skip('suspend action returns 400 suspend_failed when agent responds with success:false', async function () {
+                const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
+                sendCommandAwaitReplyFaker[device.hashid] = () => new Promise((resolve) => { resolve({ success: false }) })
+                sinon.stub(app.auditLog.Device.device, 'suspended').resolves()
+                sinon.stub(app.auditLog.Device.device, 'suspendFailed').resolves()
+                device.state = 'xxx' // set state to something
+                await device.save()
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/devices/${device.hashid}/actions/suspend`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(400)
+
+                const result = response.json()
+                result.should.have.property('code', 'suspend_failed')
+
+                // status
+                await device.reload()
+                device.state.should.equal('xxx') // state should not have been changed
+
+                // audit log
+                app.auditLog.Device.device.suspended.called.should.equal(false)
+                app.auditLog.Device.device.suspendFailed.calledOnce.should.equal(true)
+                app.auditLog.Device.device.suspendFailed.firstCall.args.should.have.length(3)
+                app.auditLog.Device.device.suspendFailed.firstCall.args[0].should.be.an.Object() // the user object
+                app.auditLog.Device.device.suspendFailed.firstCall.args[1].should.be.an.Object() // the error object
+                app.auditLog.Device.device.suspendFailed.firstCall.args[2].should.be.an.Object() // the device object
+                app.auditLog.Device.device.suspendFailed.firstCall.args[2].should.have.property('id', device.id)
+            })
+            it('restart action returns 400 device_suspended when agent is suspended', async function () {
+                const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
+                device.state = 'suspended'
+                await device.save()
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/devices/${device.hashid}/actions/restart`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(400)
+
+                const result = response.json()
+                result.should.have.property('code', 'device_suspended')
+            })
+            it.skip('suspend action returns 400 device_suspended when agent is suspended', async function () {
+                const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
+                device.state = 'suspended'
+                await device.save()
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/devices/${device.hashid}/actions/suspend`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(400)
+
+                const result = response.json()
+                result.should.have.property('code', 'device_suspended')
+            })
+
+            it('team member cannot trigger restart action', async function () {
+                const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
+                sendCommandAwaitReplyFaker[device.hashid] = () => new Promise((resolve) => { resolve({ success: true }) })
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/devices/${device.hashid}/actions/restart`,
+                    cookies: { sid: TestObjects.tokens.chris }
+                })
+                response.statusCode.should.equal(403)
+            })
+            it.skip('team member cannot trigger start action', async function () {
+                const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
+                sendCommandAwaitReplyFaker[device.hashid] = () => new Promise((resolve) => { resolve({ success: true }) })
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/devices/${device.hashid}/actions/start`,
+                    cookies: { sid: TestObjects.tokens.chris }
+                })
+                response.statusCode.should.equal(403)
+            })
+            it.skip('team member cannot trigger suspend action', async function () {
+                const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
+                sendCommandAwaitReplyFaker[device.hashid] = () => new Promise((resolve) => { resolve({ success: true }) })
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/devices/${device.hashid}/actions/suspend`,
+                    cookies: { sid: TestObjects.tokens.chris }
+                })
+                response.statusCode.should.equal(403)
+            })
+            it('offline device times out for restart action', async function () {
+                const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
+                device.state = 'xxx' // set state to something
+                await device.save()
+                sinon.stub(app.auditLog.Device.device, 'restarted').resolves()
+                sinon.stub(app.auditLog.Device.device, 'restartFailed').resolves()
+
+                sendCommandAwaitReplyFaker[device.hashid] = (...args) => {
+                    // return the wrapped function but with a shortened timeout to hurry the test along
+                    args[4] = args[4] || {}
+                    args[4].timeout = 10 // short timeout
+                    return app.comms.devices.sendCommandAwaitReply.wrappedMethod.apply(app.comms.devices, args)
+                }
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/devices/${device.hashid}/actions/restart`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'no_response')
+
+                // status
+                await device.reload()
+                device.state.should.equal('xxx') // state should not have been changed
+
+                // Comms
+                app.comms.devices.sendCommandAwaitReply.calledOnce.should.equal(true)
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[0].should.equal(TestObjects.ATeam.hashid)
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[1].should.equal(device.hashid)
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[2].should.equal('action')
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[3].should.deepEqual({ action: 'restart' })
+
+                // audit log
+                app.auditLog.Device.device.restarted.called.should.equal(false)
+                app.auditLog.Device.device.restartFailed.calledOnce.should.equal(true)
+                app.auditLog.Device.device.restartFailed.firstCall.args.should.have.length(3)
+                app.auditLog.Device.device.restartFailed.firstCall.args[0].should.be.an.Object() // the user object
+                app.auditLog.Device.device.restartFailed.firstCall.args[1].should.be.an.Object() // the error object
+                app.auditLog.Device.device.restartFailed.firstCall.args[2].should.be.an.Object() // the device object
+                app.auditLog.Device.device.restartFailed.firstCall.args[2].should.have.property('id', device.id)
+            })
+            it.skip('offline device times out for start action', async function () {
+                const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
+                device.state = 'xxx' // set state to something
+                await device.save()
+                sinon.stub(app.auditLog.Device.device, 'started').resolves()
+                sinon.stub(app.auditLog.Device.device, 'startFailed').resolves()
+
+                sendCommandAwaitReplyFaker[device.hashid] = (...args) => {
+                    // return the wrapped function but with a shortened timeout to hurry the test along
+                    args[4] = args[4] || {}
+                    args[4].timeout = 10 // short timeout
+                    return app.comms.devices.sendCommandAwaitReply.wrappedMethod.apply(app.comms.devices, args)
+                }
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/devices/${device.hashid}/actions/start`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'no_response')
+
+                // status
+                await device.reload()
+                device.state.should.equal('xxx') // state should not have been changed
+
+                // Comms
+                app.comms.devices.sendCommandAwaitReply.calledOnce.should.equal(true)
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[0].should.equal(TestObjects.ATeam.hashid)
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[1].should.equal(device.hashid)
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[2].should.equal('action')
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[3].should.deepEqual({ action: 'start' })
+
+                // audit log
+                app.auditLog.Device.device.started.called.should.equal(false)
+                app.auditLog.Device.device.startFailed.calledOnce.should.equal(true)
+                app.auditLog.Device.device.startFailed.firstCall.args.should.have.length(3)
+                app.auditLog.Device.device.startFailed.firstCall.args[0].should.be.an.Object() // the user object
+                app.auditLog.Device.device.startFailed.firstCall.args[1].should.be.an.Object() // the error object
+                app.auditLog.Device.device.startFailed.firstCall.args[2].should.be.an.Object() // the device object
+                app.auditLog.Device.device.startFailed.firstCall.args[2].should.have.property('id', device.id)
+            })
+            it.skip('offline device times out for suspend action', async function () {
+                const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
+                device.state = 'xxx' // set state to something
+                await device.save()
+                sinon.stub(app.auditLog.Device.device, 'suspended').resolves()
+                sinon.stub(app.auditLog.Device.device, 'suspendFailed').resolves()
+
+                sendCommandAwaitReplyFaker[device.hashid] = (...args) => {
+                    // return the wrapped function but with a shortened timeout to hurry the test along
+                    args[4] = args[4] || {}
+                    args[4].timeout = 10 // short timeout
+                    return app.comms.devices.sendCommandAwaitReply.wrappedMethod.apply(app.comms.devices, args)
+                }
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/devices/${device.hashid}/actions/suspend`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'no_response')
+
+                // status
+                await device.reload()
+                device.state.should.equal('xxx') // state should not have been changed
+
+                // Comms
+                app.comms.devices.sendCommandAwaitReply.calledOnce.should.equal(true)
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[0].should.equal(TestObjects.ATeam.hashid)
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[1].should.equal(device.hashid)
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[2].should.equal('action')
+                app.comms.devices.sendCommandAwaitReply.firstCall.args[3].should.deepEqual({ action: 'suspend' })
+
+                // audit log
+                app.auditLog.Device.device.suspended.called.should.equal(false)
+                app.auditLog.Device.device.suspendFailed.calledOnce.should.equal(true)
+                app.auditLog.Device.device.suspendFailed.firstCall.args.should.have.length(3)
+                app.auditLog.Device.device.suspendFailed.firstCall.args[0].should.be.an.Object() // the user object
+                app.auditLog.Device.device.suspendFailed.firstCall.args[1].should.be.an.Object() // the error object
+                app.auditLog.Device.device.suspendFailed.firstCall.args[2].should.be.an.Object() // the device object
+                app.auditLog.Device.device.suspendFailed.firstCall.args[2].should.have.property('id', device.id)
+            })
+        })
+        describe('without MQTT comms', async function () {
+            let oldComms
+            before(function () {
+                // Prevent requests to devices hanging the snapshot process
+                oldComms = app.comms
+                app.comms = null
+            })
+            after(function () {
+                app.comms = oldComms
+            })
+            it('restart results in error 400', async function () {
+                const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/devices/${device.hashid}/actions/restart`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(400)
+                const body = response.json()
+                body.should.have.property('code', 'no_device_comms')
+                body.should.have.property('error', 'Actions are not available')
+            })
+            it.skip('start results in error 400', async function () {
+                const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/devices/${device.hashid}/actions/start`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(400)
+                const body = response.json()
+                body.should.have.property('code', 'no_device_comms')
+                body.should.have.property('error', 'Actions are not available')
+            })
+            it.skip('suspend results in error 400', async function () {
+                const device = await factory.createDevice({}, TestObjects.ATeam, null, TestObjects.Application1)
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/devices/${device.hashid}/actions/suspend`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(400)
+                const body = response.json()
+                body.should.have.property('code', 'no_device_comms')
+                body.should.have.property('error', 'Actions are not available')
+            })
+        })
     })
 
     describe('Device Checkin', async function () {

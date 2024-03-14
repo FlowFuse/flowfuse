@@ -97,7 +97,7 @@ Option        | Description
 ## MQTT Broker configuration
 
 By default, the platform runs without an MQTT broker. This restricts some features
-in the platform, such as the Project Nodes and Remote Device Editing.
+in the platform, such as the Project Nodes, Device Actions and Remote Device Editing.
 
 If a broker has been setup in the platform, the following configuration is required:
 

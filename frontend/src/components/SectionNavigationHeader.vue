@@ -1,28 +1,26 @@
 <template>
     <div class="ff-page-header border-b border-gray-300 text-gray-500 justify-between px-7 pt-7 gap-y-4 items-center" data-sentry-unmask>
-        <div class="flex flex-wrap justify-between pb-4">
-            <div class="flex">
-                <div class="w-full flex items-center md:w-auto mr-8 gap-x-2">
-                    <slot name="hero">
-                        <div class="flex-grow items-center inline-flex flex-wrap">
+        <div class="flex flex-wrap justify-between pb-4 gap-y-2">
+            <div class="flex-1 flex items-center md:w-auto mr-8 gap-x-2">
+                <slot name="hero">
+                    <div class="flex-grow items-center grid gap-1">
+                        <div class="inline-flex flex-wrap gap-1">
                             <div class="flex items-center mr-6">
                                 <slot name="breadcrumbs" />
                                 <ff-nav-breadcrumb data-el="page-name">{{ title }}</ff-nav-breadcrumb>
                                 <InformationCircleIcon v-if="hasInfoDialog" class="ml-3 min-w-[20px] ff-icon text-gray-800 cursor-pointer hover:text-blue-700" @click="openInfoDialog()" />
                             </div>
                             <slot name="status" />
-                            <div class="w-full text-sm mt-1">
-                                <slot name="context" />
-                            </div>
                         </div>
-                    </slot>
-                </div>
+                        <div class="w-full text-sm">
+                            <slot name="context" />
+                        </div>
+                    </div>
+                </slot>
             </div>
-            <ul v-if="hasTools">
-                <li class="w-full md:w-auto flex-grow text-right">
-                    <slot name="tools" />
-                </li>
-            </ul>
+            <div v-if="hasTools" class="flex items-start justify-end">
+                <slot name="tools" />
+            </div>
         </div>
         <ff-tabs v-if="tabs" :tabs="tabs" />
     </div>

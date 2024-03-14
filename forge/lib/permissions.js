@@ -71,6 +71,7 @@ const Permissions = {
     'device:delete': { description: 'Delete a Device', role: Roles.Owner },
     'device:edit': { description: 'Edit a Device', role: Roles.Owner },
     'device:edit-env': { description: 'Edit Device Environment Variables', role: Roles.Member },
+    'device:change-status': { description: 'Start/Stop a Device', role: Roles.Owner },
     'device:snapshot:create': { description: 'Create Device Snapshot', role: Roles.Member },
     'device:snapshot:list': { description: 'List Device Snapshots', role: Roles.Viewer },
     'device:snapshot:read': { description: 'View a Device Snapshot', role: Roles.Viewer },
