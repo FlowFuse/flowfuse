@@ -1,4 +1,6 @@
 module.exports = async function (app) {
+    app.config.features.register('httpBearerTokens', true, true)
+
     app.addHook('preHandler', app.verifySession)
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.projectId !== undefined) {

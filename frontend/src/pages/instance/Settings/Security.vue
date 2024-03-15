@@ -1,7 +1,7 @@
 <template>
     <form class="space-y-6">
         <TemplateSettingsSecurity v-model="editable" :editTemplate="false" :team="team" />
-        <div v-if="editable.settings.httpNodeAuth_type === 'flowforge-user' ">
+        <div v-if="!!settings.features.httpBearerTokens && editable.settings.httpNodeAuth_type === 'flowforge-user'">
             <FormHeading>HTTP Node Bearer Tokens</FormHeading>
             <div v-if="projectLauncherCompatible">
                 <ff-data-table
@@ -116,7 +116,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership']),
+        ...mapState('account', ['team', 'teamMembership', 'settings']),
         projectLauncherCompatible () {
             const launcherVersion = this.project?.meta?.versions?.launcher
             if (!launcherVersion) {
@@ -157,7 +157,9 @@ export default {
     mounted () {
         this.checkAccess()
         this.getSettings()
-        this.getTokens()
+        if (this.settings.features.httpBearerTokens) {
+            this.getTokens()
+        }
     },
     methods: {
         checkAccess: async function () {
