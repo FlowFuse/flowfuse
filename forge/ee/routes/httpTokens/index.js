@@ -1,5 +1,4 @@
 module.exports = async function (app) {
-
     app.config.features.register('httpBearerTokens', true, true)
 
     app.addHook('preHandler', app.verifySession)
