@@ -1784,7 +1784,6 @@ describe('Device API', async function () {
             const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
             dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
             await dbDevice.save()
-
             const response = await app.inject({
                 method: 'GET',
                 url: `/api/v1/devices/${device.id}/live/settings`,
@@ -1800,6 +1799,35 @@ describe('Device API', async function () {
             body.should.have.property('env').which.have.property('FF_DEVICE_ID', device.id)
             body.should.have.property('env').which.have.property('FF_DEVICE_NAME', 'Ad1')
             body.should.have.property('env').which.have.property('FF_DEVICE_TYPE', 'Ad1_type')
+            body.should.have.property('features').and.be.an.Object()
+            body.features.should.have.property('projectComms', false)
+            body.features.should.have.property('shared-library', false)
+        })
+        it('device downloads settings with features enabled', async function () {
+            await setupProjectWithSnapshot(true)
+
+            const device = await createDevice({ name: 'Ad1', type: 'Ad1_type', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const dbDevice = await app.db.models.Device.byId(device.id)
+            dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
+            dbDevice.setProject(TestObjects.deviceProject)
+            const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
+            dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
+            await dbDevice.save()
+            app.config.features.register('projectComms', true, true)
+            app.config.features.register('shared-library', true, true)
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/${device.id}/live/settings`,
+                headers: {
+                    authorization: `Bearer ${device.credentials.token}`,
+                    'content-type': 'application/json'
+                }
+            })
+            const body = JSON.parse(response.body)
+            response.statusCode.should.equal(200)
+            body.should.have.property('features').and.be.an.Object()
+            body.features.should.have.property('projectComms', true)
+            body.features.should.have.property('shared-library', true)
         })
     })
 
