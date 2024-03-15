@@ -335,15 +335,36 @@ module.exports = {
                     await this.ensureTeamTypeExists()
                     return this.TeamType.getProperty('users.limit', -1)
                 },
+                getRuntimeLimit: async function () {
+                    await this.ensureTeamTypeExists()
+                    return this.TeamType.getProperty('runtimes.limit', -1)
+                },
                 getDeviceLimit: async function () {
                     await this.ensureTeamTypeExists()
                     return this.TeamType.getProperty('devices.limit', -1)
                 },
                 checkDeviceCreateAllowed: async function () {
+                    // Check for a specific device limit
                     const deviceLimit = await this.getDeviceLimit()
+                    let currentDeviceCount = null
                     if (deviceLimit > -1) {
-                        const currentDeviceCount = await this.deviceCount()
+                        currentDeviceCount = await this.deviceCount()
                         if (currentDeviceCount >= deviceLimit) {
+                            const err = new Error()
+                            err.code = 'device_limit_reached'
+                            err.error = 'Team device limit reached'
+                            throw err
+                        }
+                    }
+                    // Check for a combined instance+device limit
+                    const runtimeLimit = await this.getRuntimeLimit()
+                    if (runtimeLimit > -1) {
+                        if (currentDeviceCount === null) {
+                            currentDeviceCount = await this.deviceCount()
+                        }
+                        const currentInstanceCount = await this.instanceCount()
+                        const currentRuntimeCount = currentDeviceCount + currentInstanceCount
+                        if (currentRuntimeCount >= runtimeLimit) {
                             const err = new Error()
                             err.code = 'device_limit_reached'
                             err.error = 'Team device limit reached'
@@ -389,6 +410,19 @@ module.exports = {
                             const err = new Error()
                             err.code = 'instance_limit_reached'
                             err.error = `Team instance limit reached for type '${instanceType.name}'`
+                            throw err
+                        }
+                    }
+                    // Check for a combined instance+device limit
+                    const runtimeLimit = await this.getRuntimeLimit()
+                    if (runtimeLimit > -1) {
+                        const currentDeviceCount = await this.deviceCount()
+                        const currentInstanceCount = await this.instanceCount()
+                        const currentRuntimeCount = currentDeviceCount + currentInstanceCount
+                        if (currentRuntimeCount >= runtimeLimit) {
+                            const err = new Error()
+                            err.code = 'instance_limit_reached'
+                            err.error = 'Team instance limit reached'
                             throw err
                         }
                     }
@@ -444,12 +478,14 @@ module.exports = {
 
                     const currentInstanceCountsByType = await this.instanceCountByType()
                     const targetInstanceLimits = {}
+                    let totalInstanceCount = 0
                     for (const instanceType of Object.keys(currentInstanceCountsByType)) {
                         if (!teamType.getInstanceTypeProperty(instanceType, 'active', false)) {
                             targetInstanceLimits[instanceType] = 0
                         } else {
                             targetInstanceLimits[instanceType] = teamType.getInstanceTypeProperty(instanceType, 'limit', -1)
                         }
+                        totalInstanceCount += currentInstanceCountsByType[instanceType]
                         if (targetInstanceLimits[instanceType] !== -1 && targetInstanceLimits[instanceType] < currentInstanceCountsByType[instanceType]) {
                             errors.push({
                                 code: 'instance_limit_reached',
@@ -460,6 +496,25 @@ module.exports = {
                             })
                         }
                     }
+                    // Check for a combined instance+device limit
+                    const runtimeLimit = await this.getRuntimeLimit()
+                    if (runtimeLimit > -1) {
+                        const currentRuntimeCount = currentDeviceCount + totalInstanceCount
+                        if (currentRuntimeCount >= runtimeLimit) {
+                            errors.push({
+                                code: 'instance_limit_reached',
+                                error: 'Instance limit reached',
+                                limit: runtimeLimit,
+                                count: currentRuntimeCount
+                            })
+
+                            const err = new Error()
+                            err.code = 'instance_limit_reached'
+                            err.error = 'Team instance limit reached'
+                            throw err
+                        }
+                    }
+
                     if (errors.length > 0) {
                         const message = errors.map(err => `${err.error} (current: ${err.count}, limit: ${err.limit})`).join(', ')
                         const err = new Error(`Unable to change team type: ${message}`)

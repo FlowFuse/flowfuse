@@ -19,7 +19,7 @@
                     <template #description>Use markdown for formatting</template>
                     <template #input><textarea v-model="input.description" class="w-full" rows="6" /></template>
                 </FormRow>
-                <template v-if="features.billing">
+                <template v-if="billingEnabled">
                     <FormHeading>Billing</FormHeading>
                     <div class="grid gap-2 grid-cols-3">
                         <FormRow v-model="input.properties.billing.productId" :type="editDisabled?'uneditable':''">Product Id</FormRow>
@@ -42,9 +42,10 @@
                         </div>
                     </div>
                 </template>
-                <FormHeading>Users</FormHeading>
-                <div class="grid gap-3 grid-cols-8">
-                    <FormRow v-model="input.properties.users.limit"># Limit</FormRow>
+                <FormHeading>Limits</FormHeading>
+                <div class="grid gap-3 grid-cols-3">
+                    <FormRow v-model="input.properties.users.limit"># Users</FormRow>
+                    <FormRow v-model="input.properties.runtimes.limit"># Instances + Devices</FormRow>
                 </div>
                 <div v-for="(instanceType, index) in instanceTypes" :key="index">
                     <FormHeading>Instance Type: {{ instanceType.name }}</FormHeading>
@@ -52,22 +53,22 @@
                     <div v-if="input.properties.instances[instanceType.id].active" class="grid gap-3 grid-cols-4 pl-4">
                         <div class="grid gap-3 grid-cols-2">
                             <FormRow v-model="input.properties.instances[instanceType.id].limit"># Limit</FormRow>
-                            <FormRow v-if="features.billing" v-model="input.properties.instances[instanceType.id].free"># Free</FormRow>
+                            <FormRow v-if="billingEnabled" v-model="input.properties.instances[instanceType.id].free"># Free</FormRow>
                         </div>
-                        <FormRow v-if="features.billing" v-model="input.properties.instances[instanceType.id].productId" :type="editDisabled?'uneditable':''">Product Id</FormRow>
-                        <FormRow v-if="features.billing" v-model="input.properties.instances[instanceType.id].priceId" :type="editDisabled?'uneditable':''">Price Id</FormRow>
-                        <FormRow v-if="features.billing" v-model="input.properties.instances[instanceType.id].description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
+                        <FormRow v-if="billingEnabled" v-model="input.properties.instances[instanceType.id].productId" :type="editDisabled?'uneditable':''">Product Id</FormRow>
+                        <FormRow v-if="billingEnabled" v-model="input.properties.instances[instanceType.id].priceId" :type="editDisabled?'uneditable':''">Price Id</FormRow>
+                        <FormRow v-if="billingEnabled" v-model="input.properties.instances[instanceType.id].description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
                     </div>
                 </div>
                 <FormHeading>Devices</FormHeading>
                 <div class="grid gap-3 grid-cols-4">
                     <div class="grid gap-3 grid-cols-2">
                         <FormRow v-model="input.properties.devices.limit"># Limit</FormRow>
-                        <FormRow v-if="features.billing" v-model="input.properties.devices.free"># Free</FormRow>
+                        <FormRow v-if="billingEnabled" v-model="input.properties.devices.free"># Free</FormRow>
                     </div>
-                    <FormRow v-if="features.billing" v-model="input.properties.devices.productId" :type="editDisabled?'uneditable':''">Product Id</FormRow>
-                    <FormRow v-if="features.billing" v-model="input.properties.devices.priceId" :type="editDisabled?'uneditable':''">Price Id</FormRow>
-                    <FormRow v-if="features.billing" v-model="input.properties.devices.description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
+                    <FormRow v-if="billingEnabled" v-model="input.properties.devices.productId" :type="editDisabled?'uneditable':''">Product Id</FormRow>
+                    <FormRow v-if="billingEnabled" v-model="input.properties.devices.priceId" :type="editDisabled?'uneditable':''">Price Id</FormRow>
+                    <FormRow v-if="billingEnabled" v-model="input.properties.devices.description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
                 </div>
 
                 <FormHeading>Features</FormHeading>
@@ -142,6 +143,7 @@ export default {
                     this.input.active = teamType.active
                     this.input.description = teamType.description
                     this.input.properties.users = teamType.properties?.users || {}
+                    this.input.properties.runtimes = teamType.properties?.runtimes || {}
                     this.input.properties.devices = teamType.properties?.devices || {}
                     this.input.properties.instances = teamType.properties?.instances || {}
                     this.input.properties.features = teamType.properties?.features || {}
@@ -195,6 +197,7 @@ export default {
                             billing: {},
                             trial: {},
                             users: {},
+                            runtimes: {},
                             devices: {},
                             instances: {},
                             features: {}
@@ -233,6 +236,7 @@ export default {
                 order: '0',
                 properties: {
                     billing: {},
+                    runtimes: {},
                     devices: {},
                     users: {},
                     instances: {},
@@ -258,6 +262,9 @@ export default {
             } else {
                 return 'Create team type'
             }
+        },
+        billingEnabled () {
+            return !!this.features.billing
         }
     },
     methods: {
@@ -270,6 +277,7 @@ export default {
                     order: parseInt(this.input.order),
                     properties: {
                         users: { ...this.input.properties.users },
+                        runtimes: { ...this.input.properties.runtimes },
                         devices: { ...this.input.properties.devices },
                         instances: { ...this.input.properties.instances },
                         features: { ...this.input.properties.features }
@@ -287,6 +295,7 @@ export default {
                 }
                 // Ensure all numbers are numbers not strings, and strip any blank values
                 formatNumber(opts.properties.users, 'limit')
+                formatNumber(opts.properties.runtimes, 'limit')
                 formatNumber(opts.properties.devices, 'limit')
                 for (const instanceProperties of Object.values(opts.properties.instances)) {
                     formatNumber(instanceProperties, 'limit')
