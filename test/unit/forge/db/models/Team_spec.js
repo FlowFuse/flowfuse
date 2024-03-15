@@ -12,7 +12,7 @@ describe('Team model', function () {
         let biggerTeamType
         let combinedLimitsTeamType
         before(async function () {
-            app = await setup({})
+            app = await setup({ limits: { instances: 100 } })
 
             pt1 = await app.db.models.ProjectType.create({ name: 'pt1', properties: {}, active: true })
             pt2 = await app.db.models.ProjectType.create({ name: 'pt2', properties: {}, active: true })
@@ -79,8 +79,8 @@ describe('Team model', function () {
                 active: true,
                 order: 1,
                 properties: {
+                    runtimes: { limit: 3 },
                     instances: {
-                        limit: 3,
                         [pt1.hashid]: { active: true },
                         [pt2.hashid]: { active: true },
                         [pt3.hashid]: { active: true }
