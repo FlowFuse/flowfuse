@@ -223,6 +223,11 @@ module.exports = async function (app) {
                 response[key] = settings[key]
             }
         })
+        const teamType = await request.device.Team.getTeamType()
+        response.features = {
+            'shared-library': !!(app.config.features.enabled('shared-library') && teamType.getFeatureProperty('shared-library', true)),
+            projectComms: !!(app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true))
+        }
         reply.send(response)
     })
 }
