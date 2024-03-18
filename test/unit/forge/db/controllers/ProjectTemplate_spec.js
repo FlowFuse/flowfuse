@@ -21,6 +21,8 @@ describe('Project Template controller', function () {
                 httpAdminRoot: '/foo',
                 dashboardUI: '/dashfoo',
                 codeEditor: 'monaco',
+                debugMaxLength: 999,
+                apiMaxLength: '9m',
                 palette: {
                     allowInstall: true,
                     nodesExcludes: 'ex.js',
@@ -38,6 +40,8 @@ describe('Project Template controller', function () {
             result.should.have.property('httpAdminRoot', '/foo')
             result.should.have.property('dashboardUI', '/dashfoo')
             result.should.have.property('codeEditor', 'monaco')
+            result.should.have.property('debugMaxLength', 999)
+            result.should.have.property('apiMaxLength', '9m')
             result.should.have.property('palette')
             result.palette.should.have.property('allowInstall', true)
             result.palette.should.have.property('nodesExcludes', 'ex.js')
@@ -50,6 +54,56 @@ describe('Project Template controller', function () {
             result.should.not.have.property('NOT_ALLOWED')
             result.palette.should.not.have.property('NOT_ALLOWED')
             result.modules.should.not.have.property('NOT_ALLOWED')
+        })
+
+        it('only allow valid values for template values', async function () {
+            try {
+                const result = app.db.controllers.ProjectTemplate.validateSettings({
+                    disableEditor: true,
+                    httpAdminRoot: '/foo',
+                    dashboardUI: '/dashfoo',
+                    codeEditor: 'monaco',
+                    debugMaxLength: 999,
+                    apiMaxLength: '9g',
+                    palette: {
+                        allowInstall: true,
+                        nodesExcludes: 'ex.js',
+                        NOT_ALLOWED: true
+                    },
+                    modules: {
+                        allowInstall: true,
+                        NOT_ALLOWED: true
+                    },
+                    env: [{ name: 'ONE', value: 'FOO' }],
+                    NOT_ALLOWED: true
+                })
+            } catch (err) {
+                err.message.should.eql('Invalid settings.apiMaxLength')
+            }
+
+            try {
+                const result = app.db.controllers.ProjectTemplate.validateSettings({
+                    disableEditor: true,
+                    httpAdminRoot: '/foo',
+                    dashboardUI: '/dashfoo',
+                    codeEditor: 'monaco',
+                    debugMaxLength: '999m',
+                    apiMaxLength: '9m',
+                    palette: {
+                        allowInstall: true,
+                        nodesExcludes: 'ex.js',
+                        NOT_ALLOWED: true
+                    },
+                    modules: {
+                        allowInstall: true,
+                        NOT_ALLOWED: true
+                    },
+                    env: [{ name: 'ONE', value: 'FOO' }],
+                    NOT_ALLOWED: true
+                })
+            } catch (err) {
+                err.message.should.eql('Invalid settings.debugMaxLength')
+            }
         })
 
         it('only passes through settings a template policy allows', async function () {
