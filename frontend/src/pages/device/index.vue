@@ -461,6 +461,8 @@ export default {
                 try {
                     await deviceApi.deleteDevice(this.device.id)
                     Alerts.emit('Successfully deleted the device', 'confirmation')
+                    // Trigger a refresh of team info to resync following device changes
+                    await this.$store.dispatch('account/refreshTeam')
                     this.$router.push({ name: 'TeamDevices', params: { team_slug: this.team.slug } })
                 } catch (err) {
                     Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)

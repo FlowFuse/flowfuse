@@ -8,7 +8,8 @@
             message="Loading Devices..."
         />
         <template v-else>
-            <FeatureUnavailableToTeam v-if="devices.size > 0 && teamDeviceLimitReached" fullMessage="You have reached the device limit for this team." :class="{'mt-0': displayingTeam }" />
+            <FeatureUnavailableToTeam v-if="teamDeviceLimitReached" fullMessage="You have reached the device limit for this team." :class="{'mt-0': displayingTeam }" />
+            <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the runtime limit for this team." :class="{'mt-0': displayingTeam }" />
             <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-lastseen" label="Last Seen" :devices="Array.from(allDeviceStatuses.values())" property="lastseen" :filter="filter" @filter-selected="applyFilter" />
             <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-status" label="Last Known Status" :devices="Array.from(allDeviceStatuses.values())" property="status" :filter="filter" @filter-selected="applyFilter" />
             <ff-data-table
@@ -42,7 +43,7 @@
                         class="font-normal"
                         data-action="register-device"
                         kind="primary"
-                        :disabled="teamDeviceLimitReached"
+                        :disabled="teamDeviceLimitReached || teamRuntimeLimitReached"
                         @click="showCreateDeviceDialog"
                     >
                         <template #icon-left>
@@ -393,13 +394,21 @@ export default {
         teamDeviceCount () {
             return this.team.deviceCount + this.deviceCountDeltaSincePageLoad
         },
+        teamRuntimeLimitReached () {
+            const teamTypeRuntimeLimit = this.team.type.properties?.runtimes?.limit
+            if (teamTypeRuntimeLimit > 0 && (this.teamDeviceCount + this.team.instanceCount) >= teamTypeRuntimeLimit) {
+                // Combined instance+device limit has been reached
+                return true
+            }
+            return false
+        },
         teamDeviceLimitReached () {
             const teamTypeDeviceLimit = this.team.type.properties?.devices?.limit
-            if (!teamTypeDeviceLimit || teamTypeDeviceLimit < 0) {
-                return false
+            if (teamTypeDeviceLimit > 0 && this.teamDeviceCount >= teamTypeDeviceLimit) {
+                // Device specific limit has been reached
+                return true
             }
-
-            return this.teamDeviceCount >= teamTypeDeviceLimit
+            return false
         }
     },
     watch: {
@@ -411,8 +420,13 @@ export default {
         this.fullReloadOfData()
         this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME) // auto starts
     },
-    unmounted () {
+    async unmounted () {
         this.pollTimer.stop()
+        if (this.deviceCountDeltaSincePageLoad !== 0) {
+            // Trigger a refresh of team info to resync following device
+            // changes
+            await this.$store.dispatch('account/refreshTeam')
+        }
     },
     methods: {
         pollTimerElapsed: async function () {

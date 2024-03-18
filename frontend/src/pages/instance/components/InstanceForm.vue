@@ -1,5 +1,6 @@
 <template>
-    <FeatureUnavailableToTeam v-if="teamInstanceLimitReached" fullMessage="You have reached the instance limit for this team." />
+    <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the runtime limit for this team." />
+    <FeatureUnavailableToTeam v-else-if="teamInstanceLimitReached" fullMessage="You have reached the instance limit for this team." />
     <form
         class="space-y-6"
         @submit.prevent="$emit('on-submit', input, copyParts)"
@@ -457,6 +458,10 @@ export default {
                 )
             )
         },
+        teamRuntimeLimitReached () {
+            const teamTypeRuntimeLimit = this.team.type.properties?.runtimes?.limit
+            return (teamTypeRuntimeLimit > 0 && (this.team.deviceCount + this.team.instanceCount) >= teamTypeRuntimeLimit)
+        },
         teamInstanceLimitReached () {
             return this.projectTypes.length > 0 && this.activeProjectTypeCount === 0
         },
@@ -519,7 +524,10 @@ export default {
                 pt.priceInterval = ''
                 pt.currency = ''
                 pt.cost = 0
-                if (teamTypeInstanceProperties) {
+                if (this.teamRuntimeLimitReached) {
+                    // The overall limit has been reached
+                    pt.disabled = true
+                } else if (teamTypeInstanceProperties) {
                     if (!teamTypeInstanceProperties.active) {
                         // This instanceType is disabled for this teamType
                         pt.disabled = true

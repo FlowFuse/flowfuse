@@ -10,8 +10,9 @@ describe('Team model', function () {
         let ATeam
         let smallerTeamType
         let biggerTeamType
+        let combinedLimitsTeamType
         before(async function () {
-            app = await setup({})
+            app = await setup({ limits: { instances: 100 } })
 
             pt1 = await app.db.models.ProjectType.create({ name: 'pt1', properties: {}, active: true })
             pt2 = await app.db.models.ProjectType.create({ name: 'pt2', properties: {}, active: true })
@@ -70,6 +71,25 @@ describe('Team model', function () {
                     features: { }
                 }
             })
+
+            // Create a new teamType with combined limits
+            combinedLimitsTeamType = await app.db.models.TeamType.create({
+                name: 'combined-limits-team-type',
+                description: 'team type description',
+                active: true,
+                order: 1,
+                properties: {
+                    runtimes: { limit: 3 },
+                    instances: {
+                        [pt1.hashid]: { active: true },
+                        [pt2.hashid]: { active: true },
+                        [pt3.hashid]: { active: true }
+                    },
+                    devices: { },
+                    users: { limit: 3 },
+                    features: { }
+                }
+            })
         })
         after(async function () {
             if (app) {
@@ -114,6 +134,11 @@ describe('Team model', function () {
             const deviceLimit = await ATeam.getDeviceLimit()
             deviceLimit.should.equal(2)
         })
+        it('getRuntimeLimit', async function () {
+            const runtimeLimit = await ATeam.getRuntimeLimit()
+            runtimeLimit.should.equal(-1)
+        })
+
         it('isInstanceTypeAvailable', async function () {
             // Check the function handles all the ways an instance type
             // might be provided - object, id or hashid.
@@ -182,6 +207,76 @@ describe('Team model', function () {
             await ATeam.updateTeamType(biggerTeamType)
             const reloadedTeam = await app.db.models.Team.findOne({ where: { name: 'ATeam' } })
             reloadedTeam.TeamTypeId.should.equal(biggerTeamType.id)
+        })
+
+        describe('Combined limits', function () {
+            let CombinedTeam
+            before(async function () {
+                CombinedTeam = await app.db.models.Team.create({ name: 'CombinedTeam', TeamTypeId: combinedLimitsTeamType.id })
+                // Limit of 3 runtimes
+                const application = await app.factory.createApplication({ name: 'ct-app' }, CombinedTeam)
+                // Predefine 1 device and 1 instance
+                const d1 = await app.db.models.Device.create({ name: 'ct-d1', type: 't1', credentialSecret: '' })
+                await CombinedTeam.addDevice(d1)
+
+                await app.db.models.Project.create({
+                    name: 'ct-p1',
+                    type: pt1.id,
+                    url: 'foo',
+                    ApplicationId: application.id,
+                    TeamId: CombinedTeam.id
+                })
+            })
+            it('getRuntimeLimit', async function () {
+                const runtimeLimit = await CombinedTeam.getRuntimeLimit()
+                runtimeLimit.should.equal(3)
+            })
+            it('checkDeviceCreateAllowed', async function () {
+                // Starting with 1 device, 1 instance and limit of 3.
+                // Create is allowed at this point
+                await CombinedTeam.checkDeviceCreateAllowed().should.be.resolved()
+
+                // Create a 3rd runtime
+                const d2 = await app.db.models.Device.create({ name: 'ct-d2', type: 't1', credentialSecret: '' })
+                await CombinedTeam.addDevice(d2)
+
+                // Verify checkDevice rejects request
+                let error
+                try {
+                    await CombinedTeam.checkDeviceCreateAllowed()
+                } catch (err) {
+                    error = err
+                }
+                should.exist(error, 'error not thrown')
+                error.code.should.equal('device_limit_reached')
+
+                await d2.destroy()
+                // Back to 2 runtimes - create should be allowed again
+                await CombinedTeam.checkDeviceCreateAllowed().should.be.resolved()
+            })
+            it('checkInstanceTypeCreateAllowed', async function () {
+                // Starting with 1 device, 1 instance and limit of 3.
+                // Create is allowed at this point
+                await CombinedTeam.checkInstanceTypeCreateAllowed(pt1).should.be.resolved()
+
+                // Create a 3rd runtime
+                const d2 = await app.db.models.Device.create({ name: 'ct-d2', type: 't1', credentialSecret: '' })
+                await CombinedTeam.addDevice(d2)
+
+                // Verify checkDevice rejects request
+                let error
+                try {
+                    await CombinedTeam.checkInstanceTypeCreateAllowed(pt1)
+                } catch (err) {
+                    error = err
+                }
+                should.exist(error, 'error not thrown')
+                error.code.should.equal('instance_limit_reached')
+
+                await d2.destroy()
+                // Back to 2 runtimes - create should be allowed again
+                await CombinedTeam.checkInstanceTypeCreateAllowed(pt1).should.be.resolved()
+            })
         })
     })
     describe('License limits', function () {
