@@ -58,7 +58,7 @@ describe('Project Template controller', function () {
 
         it('only allow valid values for template values', async function () {
             try {
-                const result = app.db.controllers.ProjectTemplate.validateSettings({
+                app.db.controllers.ProjectTemplate.validateSettings({
                     disableEditor: true,
                     httpAdminRoot: '/foo',
                     dashboardUI: '/dashfoo',
@@ -82,7 +82,7 @@ describe('Project Template controller', function () {
             }
 
             try {
-                const result = app.db.controllers.ProjectTemplate.validateSettings({
+                app.db.controllers.ProjectTemplate.validateSettings({
                     disableEditor: true,
                     httpAdminRoot: '/foo',
                     dashboardUI: '/dashfoo',
