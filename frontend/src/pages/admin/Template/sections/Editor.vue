@@ -195,7 +195,7 @@ export default {
             }
         },
         limitAvailable () {
-            if (!this.team) {
+            if (!this.team && this.features.editorLimits) {
                 // If on the Admin Template view, then this option is available
                 return true
             }
