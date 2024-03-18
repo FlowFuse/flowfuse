@@ -88,6 +88,34 @@
             </div>
             <LockSetting v-model="editable.policy.timeZone" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.timeZone" />
         </div>
+        <FormHeading class="pt-8">Limits</FormHeading>
+        <div v-if="limitAvailable">
+            <div class="flex flex-col sm:flex-row">
+                <div class="w-full max-w-md sm:mr-8">
+                    <FormRow v-model="editable.settings.apiMaxLength" :disabled="apiLimitDisabled" type="text">
+                        Max HTTP Payload Size
+                        <template #description>
+                            The maximum number of bytes allowed in a HTTP Request in bytes ('k','m' modifiers allowed)
+                        </template>
+                        <template #append><ChangeIndicator :value="editable.changed.settings.apiMaxLength" /></template>
+                    </FormRow>
+                </div>
+                <LockSetting v-model="editable.policy.apiMaxLength" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.apiMaxLength" />
+            </div>
+            <div class="flex flex-col sm:flex-row">
+                <div class="w-full max-w-md sm:mr-8">
+                    <FormRow v-model="editable.settings.debugMaxLength" :disabled="debugLimitDisabled" type="number">
+                        Max Debug Message Size
+                        <template #description>
+                            The maximum number of characters to show of a message in the Debug Sidebar
+                        </template>
+                        <template #append><ChangeIndicator :value="editable.changed.settings.debugMaxLength" /></template>
+                    </FormRow>
+                </div>
+                <LockSetting v-model="editable.policy.debugMaxLength" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.debugMaxLength" />
+            </div>
+        </div>
+        <FeatureUnavailableToTeam v-if="!limitAvailable" featureName="Set API and Debug Size Limits" />
         <FormHeading class="pt-8">External Modules</FormHeading>
         <div class="flex flex-col sm:flex-row">
             <div class="space-y-4 w-full max-w-md sm:mr-8">
@@ -115,8 +143,11 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
+import FeatureUnavailableToTeam from '../../../../components/banners/FeatureUnavailableToTeam.vue'
 import timezonesData from '../../../../data/timezones.json'
 import ChangeIndicator from '../components/ChangeIndicator.vue'
 import LockSetting from '../components/LockSetting.vue'
@@ -125,6 +156,7 @@ export default {
     components: {
         FormRow,
         FormHeading,
+        FeatureUnavailableToTeam,
         LockSetting,
         ChangeIndicator
     },
@@ -134,6 +166,10 @@ export default {
             default: false
         },
         modelValue: {
+            type: Object,
+            default: null
+        },
+        team: {
             type: Object,
             default: null
         }
@@ -149,6 +185,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['features']),
         editable: {
             get () {
                 return this.modelValue
@@ -156,6 +193,20 @@ export default {
             set (localValue) {
                 this.$emit('update:modelValue', localValue)
             }
+        },
+        limitAvailable () {
+            if (!this.team) {
+                // If on the Admin Template view, then this option is available
+                return true
+            }
+            const flag = this.features.editorLimits && this.team.type.properties.features?.editorLimits
+            return !!flag
+        },
+        apiLimitDisabled () {
+            return !this.editTemplate && !this.editable.policy.apiMaxLength
+        },
+        debugLimitDisabled () {
+            return !this.editTemplate && !this.editable.policy.debugMaxLength
         }
     }
 }
