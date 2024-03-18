@@ -478,7 +478,7 @@ describe('Team Devices API', function () {
                 url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices/provisioning/${TestObjects.provisioningTokens.token2.id}`,
                 cookies: { sid: TestObjects.tokens.alice },
                 payload: {
-                    instance: 'does_not_exist'
+                    instance: 'f4d62a8e-1e96-48d3-99c8-bbf5a763e7fa'
                 }
             })
             response.statusCode.should.equal(400)
