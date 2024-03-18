@@ -48,6 +48,19 @@ describe('Team Devices API', function () {
         // create 1 device for ATeam
         TestObjects.Device1 = await app.factory.createDevice({ name: 'device 1', type: 'test device' }, TestObjects.ATeam, TestObjects.Project1)
 
+        TestObjects.BTeam = await app.factory.createTeam({ name: 'BTeam' })
+        await TestObjects.BTeam.addUser(TestObjects.alice, { through: { role: app.factory.Roles.Roles.Owner } })
+        const BTeamApp = await app.factory.createApplication({ name: 'application-2' }, TestObjects.BTeam)
+
+        TestObjects.BTeamInstance = await app.factory.createInstance(
+            { name: 'project2' },
+            BTeamApp,
+            app.stack,
+            app.template,
+            app.projectType,
+            { start: false }
+        )
+
         TestObjects.tokens = {}
         await login('alice', 'aaPassword')
         await login('bob', 'bbPassword')
@@ -391,6 +404,21 @@ describe('Team Devices API', function () {
             result.should.have.property('code', 'unexpected_error')
             result.should.have.property('error')
         })
+        it('Cannot generate a provisioning token for instance in another team', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices/provisioning`,
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    name: 'My Token',
+                    instance: TestObjects.BTeamInstance.id
+                }
+            })
+            response.statusCode.should.equal(400)
+            const result = response.json()
+            result.should.have.property('code', 'invalid_instance')
+            result.should.have.property('error')
+        })
         it('Edit a provisioning token to assign a project', async function () {
             // PUT /api/v1/team/:teamId/devices/provisioning/:tokenId
             // needsPermission('team:device:provisioning-token:edit')  (must be admin or team owner)
@@ -444,11 +472,31 @@ describe('Team Devices API', function () {
             result.should.have.property('code', 'unauthorized')
             result.should.have.property('error', 'unauthorized')
         })
-        it('Edit a provisioning token to assign a project that does not exist', async function () {
-            // TODO: This should return a 404
+        it('Cannot edit a provisioning token to assign an instance that does not exist', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices/provisioning/${TestObjects.provisioningTokens.token2.id}`,
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    instance: 'does_not_exist'
+                }
+            })
+            response.statusCode.should.equal(400)
+            const result = response.json()
+            result.should.have.property('code', 'invalid_instance')
         })
-        it('Edit a provisioning token to assign a project that is not in the team', async function () {
-            // TODO: This should return a 404
+        it('Cannot edit a provisioning token to assign an instance that is not in the team', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices/provisioning/${TestObjects.provisioningTokens.token2.id}`,
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    instance: TestObjects.BTeamInstance.id
+                }
+            })
+            response.statusCode.should.equal(400)
+            const result = response.json()
+            result.should.have.property('code', 'invalid_instance')
         })
         it('Delete a provisioning token', async function () {
             // DELETE /api/v1/team/:teamId/devices/provisioning/:tokenId
