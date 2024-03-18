@@ -176,6 +176,17 @@ module.exports = async function (app) {
             if (tokenName.length < 1 || tokenName.length > 80) {
                 throw new Error('Token name must be between 1 and 80 characters long')
             }
+            if (instanceId) {
+                const instanceDetails = await app.db.models.Project.findOne({
+                    where: { id: instanceId },
+                    attributes: ['TeamId']
+                })
+                if (!instanceDetails || instanceDetails.TeamId !== team.id) {
+                    const err = new Error('Invalid instance')
+                    err.code = 'invalid_instance'
+                    throw err
+                }
+            }
             const token = await AccessTokenController.createTokenForTeamDeviceProvisioning(tokenName, team, instanceId, expiresAt)
             await app.auditLog.Team.team.device.provisioning.created(request.session.User, null, token.id, tokenName, team, instanceId)
             reply.send(token)
@@ -186,9 +197,9 @@ module.exports = async function (app) {
             } else {
                 responseMessage = err.toString()
             }
-            const resp = { code: 'unexpected_error', error: responseMessage }
+            const resp = { code: err.code || 'unexpected_error', error: responseMessage }
             await app.auditLog.Team.team.device.provisioning.created(request.session.User, resp, '', tokenName, team, instanceId)
-            reply.code(400).send({ code: 'unexpected_error', error: responseMessage })
+            reply.code(400).send(resp)
         }
     })
 
@@ -237,6 +248,17 @@ module.exports = async function (app) {
         try {
             const accessToken = await app.db.models.AccessToken.byId(tokenId)
             if (accessToken) {
+                if (instanceId) {
+                    const instanceDetails = await app.db.models.Project.findOne({
+                        where: { id: instanceId },
+                        attributes: ['TeamId']
+                    })
+                    if (!instanceDetails || instanceDetails.TeamId !== team.id) {
+                        const err = new Error('Invalid instance')
+                        err.code = 'invalid_instance'
+                        throw err
+                    }
+                }
                 const tokenDetails = await app.db.views.AccessToken.provisioningTokenSummary(accessToken)
                 let updatedTokenDetails
                 tokenName = tokenDetails.name || '[unnamed]'
@@ -262,9 +284,9 @@ module.exports = async function (app) {
             } else {
                 responseMessage = err.toString()
             }
-            const resp = { code: 'unexpected_error', error: responseMessage }
+            const resp = { code: err.code || 'unexpected_error', error: responseMessage }
             await app.auditLog.Team.team.device.provisioning.created(request.session.User, resp, tokenId, tokenName, team, instanceId)
-            reply.code(400).send({ code: 'unexpected_error', error: responseMessage })
+            reply.code(400).send(resp)
         }
     })
 
