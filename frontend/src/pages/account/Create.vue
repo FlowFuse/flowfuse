@@ -100,7 +100,10 @@ export default {
             },
             errors: {
                 email: '',
-                password: ''
+                password: '',
+                username: '',
+                name: '',
+                general: ''
             },
             reasons: [
                 { label: 'Business Needs', value: 'business' },
