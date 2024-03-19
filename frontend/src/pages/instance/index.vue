@@ -118,7 +118,7 @@ export default {
     computed: {
         ...mapState('account', ['teamMembership', 'team']),
         isVisitingAdmin: function () {
-            return this.teamMembership.role === Roles.Admin
+            return this.teamMembership?.role === Roles.Admin
         },
         isLoading: function () {
             return this.loading.deleting || this.loading.suspend
