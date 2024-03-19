@@ -2,11 +2,13 @@ name: Create fresh app instance for PR
 
 on:
   pull_request:
-    types: 
-      - synchronize
-      - reopened
-      - closed
-      - labeled
+    branches:
+      - main
+    # types: 
+    #   - synchronize
+    #   - reopened
+    #   - closed
+    #   - labeled
 
 jobs:
   build:
