@@ -90,29 +90,37 @@
         </div>
         <FormHeading class="pt-8">Limits</FormHeading>
         <div v-if="limitAvailable">
-            <div class="flex flex-col sm:flex-row">
-                <div class="w-full max-w-md sm:mr-8">
-                    <FormRow v-model="editable.settings.apiMaxLength" :disabled="apiLimitDisabled" type="text">
-                        Max HTTP Payload Size
-                        <template #description>
-                            The maximum number of bytes allowed in a HTTP Request in bytes ('k','m' modifiers allowed)
-                        </template>
-                        <template #append><ChangeIndicator :value="editable.changed.settings.apiMaxLength" /></template>
-                    </FormRow>
+            <div v-if="limitsLauncherEnabled">
+                <div class="flex flex-col sm:flex-row">
+                    <div class="w-full max-w-md sm:mr-8">
+                        <FormRow v-model="editable.settings.apiMaxLength" :disabled="apiLimitDisabled" type="text">
+                            Max HTTP Payload Size
+                            <template #description>
+                                The maximum number of bytes allowed in a HTTP Request in bytes ('k','m' modifiers allowed)
+                            </template>
+                            <template #append><ChangeIndicator :value="editable.changed.settings.apiMaxLength" /></template>
+                        </FormRow>
+                    </div>
+                    <LockSetting v-model="editable.policy.apiMaxLength" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.apiMaxLength" />
                 </div>
-                <LockSetting v-model="editable.policy.apiMaxLength" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.apiMaxLength" />
+                <div class="flex flex-col sm:flex-row">
+                    <div class="w-full max-w-md sm:mr-8">
+                        <FormRow v-model="editable.settings.debugMaxLength" :disabled="debugLimitDisabled" type="number">
+                            Max Debug Message Size
+                            <template #description>
+                                The maximum number of characters to show of a message in the Debug Sidebar
+                            </template>
+                            <template #append><ChangeIndicator :value="editable.changed.settings.debugMaxLength" /></template>
+                        </FormRow>
+                    </div>
+                    <LockSetting v-model="editable.policy.debugMaxLength" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.debugMaxLength" />
+                </div>
             </div>
-            <div class="flex flex-col sm:flex-row">
-                <div class="w-full max-w-md sm:mr-8">
-                    <FormRow v-model="editable.settings.debugMaxLength" :disabled="debugLimitDisabled" type="number">
-                        Max Debug Message Size
-                        <template #description>
-                            The maximum number of characters to show of a message in the Debug Sidebar
-                        </template>
-                        <template #append><ChangeIndicator :value="editable.changed.settings.debugMaxLength" /></template>
-                    </FormRow>
+            <div v-else class="flex flex-col sm:flex-row">
+                <div class="space-y-4 w-full max-w-md sm:mr-8">
+                    Upgrade your stack to be able to set apiMaxLength or debugMaxLength
+                    <ff-button size="small" to="general">Upgrade</ff-button>
                 </div>
-                <LockSetting v-model="editable.policy.debugMaxLength" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.debugMaxLength" />
             </div>
         </div>
         <FeatureUnavailableToTeam v-if="!limitAvailable" featureName="Set API and Debug Size Limits" />
@@ -143,6 +151,8 @@
 </template>
 
 <script>
+import SemVer from 'semver'
+
 import { mapState } from 'vuex'
 
 import FormHeading from '../../../../components/FormHeading.vue'
@@ -169,6 +179,10 @@ export default {
             type: Object,
             default: null
         },
+        instance: {
+            type: Object,
+            required: true
+        },
         team: {
             type: Object,
             default: null
@@ -193,6 +207,15 @@ export default {
             set (localValue) {
                 this.$emit('update:modelValue', localValue)
             }
+        },
+        limitsLauncherEnabled () {
+            const launcherVersion = this.instance?.meta?.versions?.launcher
+            if (!launcherVersion) {
+                // We won't have this for a suspended project - so err on the side
+                // of permissive
+                return true
+            }
+            return SemVer.satisfies(SemVer.coerce(launcherVersion), '>=2.2.1')
         },
         limitAvailable () {
             if (!this.team && this.features.editorLimits) {
