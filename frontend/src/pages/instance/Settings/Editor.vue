@@ -1,6 +1,6 @@
 <template>
     <form class="space-y-6">
-        <TemplateSettingsEditor v-model="editable" :editTemplate="false" />
+        <TemplateSettingsEditor v-model="editable" :editTemplate="false" :team="team" :instance="project" />
         <div class="space-x-4 whitespace-nowrap">
             <ff-button size="small" :disabled="!unsavedChanges" @click="saveSettings()">Save settings</ff-button>
         </div>

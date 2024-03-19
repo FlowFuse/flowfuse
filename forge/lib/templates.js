@@ -24,7 +24,9 @@ module.exports = {
         'httpNodeAuth_pass',
         'emailAlerts_crash',
         'emailAlerts_safe',
-        'emailAlerts_recipients'
+        'emailAlerts_recipients',
+        'debugMaxLength',
+        'apiMaxLength'
     ],
     passwordTypes: [
         'httpNodeAuth_pass'
@@ -54,7 +56,9 @@ module.exports = {
         httpNodeAuth_pass: '',
         emailAlerts_crash: false,
         emailAlerts_safe: false,
-        emailAlerts_recipients: 'owners'
+        emailAlerts_recipients: 'owners',
+        debugMaxLength: 1000,
+        apiMaxLength: '5m'
     },
     defaultTemplatePolicy: {
         disableEditor: true,
@@ -81,6 +85,8 @@ module.exports = {
         httpNodeAuth_pass: true,
         emailAlerts_crash: true,
         emailAlerts_safe: true,
-        emailAlerts_recipients: true
+        emailAlerts_recipients: true,
+        debugMaxLength: true,
+        apiMaxLength: true
     }
 }
