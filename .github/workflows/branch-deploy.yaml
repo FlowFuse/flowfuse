@@ -137,7 +137,7 @@ jobs:
           if helm status --namespace "pr-${{ env.PR_NUMBER }}" flowfuse-pr-${{ env.PR_NUMBER }} &> /dev/null; then
             echo "initialSetup=true" >> $GITHUB_ENV
           else
-            echo "initialSetup=true" >> $GITHUB_ENV"
+            echo "initialSetup=true" >> $GITHUB_ENV
           fi
 
       - name: Deploy
