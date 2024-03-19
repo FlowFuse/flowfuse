@@ -89,7 +89,7 @@ describe('Node-RED Editor Login', function () {
     async function doEditorLogin (userToken, scope, dashboardOnly = false) {
         const state = base64URLEncode(crypto.randomBytes(16))
         const verifier = base64URLEncode(crypto.randomBytes(32))
-        const redirectCallback = 'http://example.com/auth/callback'
+        const redirectCallback = 'http://example.com/auth/strategy/callback'
         const params = {}
         params.client_id = TestObjects.tokens.Instance1.clientID
         params.scope = scope
@@ -130,7 +130,7 @@ describe('Node-RED Editor Login', function () {
         response2.headers.should.have.property('location')
         // http://example.com/flowforge-nr-tools/auth/callback?code=eANs21GUv7OqN99S2QxJ4tS1BD5RYEzOEfb-lhLUciw&state=YMbFnV1E_2aPwz_Ktca1DQ
         const callbackURL = new URL(response2.headers.location)
-        callbackURL.pathname.should.equal('/auth/callback')
+        callbackURL.pathname.should.equal('/auth/strategy/callback')
         callbackURL.host.should.equal('example.com')
         should.exist(callbackURL.searchParams.get('code'))
         should.exist(callbackURL.searchParams.get('state'))

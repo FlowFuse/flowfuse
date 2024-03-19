@@ -108,7 +108,7 @@ module.exports = async function (app) {
             }
         } else {
             // Ensure redirect_uri path component is correct for the tools plugin
-            if (!/\/flowfuse-nr-tools\/auth\/callback$/.test(redirectURI.pathname)) {
+            if (!/\/flow(fuse|forge)-nr-tools\/auth\/callback$/.test(redirectURI.pathname)) {
                 return badRequest(reply, 'invalid_request', 'Invalid redirect_uri')
             }
             if (scope !== 'ff-plugin') {
