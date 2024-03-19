@@ -387,7 +387,7 @@ module.exports = async function (app) {
             tags: ['Teams'],
             body: {
                 type: 'object',
-                required: ['name'],
+                required: ['name', 'type'],
                 properties: {
                     name: { type: 'string' },
                     type: { type: 'string' },
