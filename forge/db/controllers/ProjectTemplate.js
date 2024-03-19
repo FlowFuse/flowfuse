@@ -204,7 +204,7 @@ module.exports = {
             }
         }
         if (result.debugMaxLenth) {
-            if (!Number.isInteger(result.debugMaxLength)) {
+            if (!Number.isInteger(result.debugMaxLength) || result.debugMaxLength < 0) {
                 throw new Error('Invalid settings.debugMaxLength')
             }
         }
