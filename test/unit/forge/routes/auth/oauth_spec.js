@@ -56,7 +56,7 @@ describe('OAuth', async function () {
             params.state = ''
             params.code_challenge = base64URLEncode(crypto.createHash('sha256').update(verifier).digest())
             params.code_challenge_method = 'S256'
-            params.redirect_uri = callbackURL
+            params.redirect_uri = opts.callbackURL || callbackURL
             const authURL = new URL(authorizationURL)
             authURL.search = new URLSearchParams(params)
             return {
@@ -143,6 +143,37 @@ describe('OAuth', async function () {
             // Return the scope granted to this user
             return result.scope
         }
+
+        it('rejects invalid redirect_uri - non-uri', async function () {
+            const instanceCreds = await app.project.refreshAuthTokens()
+            const clientID = instanceCreds.clientID
+
+            // 1. Initial request - without session cookie
+            const requestOptions = generateOAuthRequest({ clientID, callbackURL: 'garbage-url' })
+            const response = await app.inject({
+                method: 'GET',
+                url: requestOptions.authURL
+            })
+            response.should.have.property('statusCode', 400)
+            const reply = response.json()
+            reply.should.have.property('error', 'invalid_request')
+            reply.description.should.match(/redirect_uri/)
+        })
+        it('rejects invalid redirect_uri - invalid uri', async function () {
+            const instanceCreds = await app.project.refreshAuthTokens()
+            const clientID = instanceCreds.clientID
+
+            // 1. Initial request - without session cookie
+            const requestOptions = generateOAuthRequest({ clientID, callbackURL: 'https://example.com' })
+            const response = await app.inject({
+                method: 'GET',
+                url: requestOptions.authURL
+            })
+            response.should.have.property('statusCode', 400)
+            const reply = response.json()
+            reply.should.have.property('error', 'invalid_request')
+            reply.description.should.match(/redirect_uri/)
+        })
 
         it('redirects non-logged in user to login', async function () {
             const instanceCreds = await app.project.refreshAuthTokens()
