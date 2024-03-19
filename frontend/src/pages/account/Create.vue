@@ -187,7 +187,9 @@ export default {
             if (this.$route.query.code) {
                 this.input.code = this.$route.query.code
             }
-            const opts = { ...this.input, name: this.input.name || this.input.username }
+            const name = this.input.name.trim()
+            const email = this.input.email.trim()
+            const opts = { ...this.input, name: name || this.input.username, email }
             this.busy = true // show spinner
             this.errors.general = '' // clear any previous errors
             userApi.registerUser(opts).then(result => {
