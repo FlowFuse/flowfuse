@@ -216,7 +216,13 @@ export default {
                         }, 10000)
                     } else if (err.response.data.error === 'user registration not enabled') {
                         this.errors.general = 'User registration is not enabled'
+                    } else if (err.response.data.error === 'Validation isEmail on email failed') {
+                        this.errors.email = 'Invalid email address'
+                    } else {
+                        this.errors.general = 'An unexpected error occurred. Please try again later or contact support.'
                     }
+                } else {
+                    this.errors.general = 'An unexpected error occurred. Please try again later or contact support.'
                 }
             })
         }
