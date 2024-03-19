@@ -156,7 +156,7 @@ jobs:
             flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowforge
 
       - name: Initial setup
-        if: ${{ env.initialSetup }} == 'true'
+        if: ${{ env.initialSetup == 'true' }}
         run: |
           DBPASSWORD=$(kubectl --namespace "pr-${{ env.PR_NUMBER }}" get secret flowfuse-pr-${{ env.PR_NUMBER }}-postgresql -o jsonpath='{.data.password}' | base64 -d)
           kubectl run flowfuse-setup-0 \
