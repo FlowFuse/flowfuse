@@ -131,6 +131,15 @@ jobs:
           path: 'helm-repo'
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Check if deployment exists
+        id: check-initial-setup
+        run: |
+          if helm status --namespace "pr-${{ env.PR_NUMBER }}" flowfuse-pr-${{ env.PR_NUMBER }} &> /dev/null; then
+            echo "initialSetup=true" >> $GITHUB_ENV
+          else
+            echo "initialSetup=true" >> $GITHUB_ENV"
+          fi
+
       - name: Deploy
         run: |
           helm upgrade --install \
@@ -147,6 +156,7 @@ jobs:
             flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowforge
 
       - name: Initial setup
+        if: steps.check-initial-setup.outputs.initialSetup == 'true'
         run: |
           DBPASSWORD=$(kubectl --namespace "pr-${{ env.PR_NUMBER }}" get secret flowfuse-pr-${{ env.PR_NUMBER }}-postgresql -o jsonpath='{.data.password}' | base64 -d)
           kubectl run flowfuse-setup-0 \
@@ -202,13 +212,16 @@ jobs:
           curl -k -XPOST \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
-            -d '{"name":"pp-template", "active":true, "settings":{"disableEditor":false,"disableTours":false,"httpAdminRoot":"","dashboardUI":"/ui","codeEditor":"monaco","theme":"forge-light","page":{"title":"FlowFuse","favicon":""},"header":{"title":"FlowFuse","url":""},"timeZone":"UTC","palette":{"allowInstall":true,"nodesExcludes":"","denyList":"","modules":[],"catalogue":["https://catalogue.nodered.org/catalogue.json"],"npmrc":""},"modules":{"allowInstall":true,"denyList":""},"httpNodeAuth":{"type":"","user":"","pass":""},"emailAlerts":{"crash":false,"safe":false,"recipients":"owners"}}, "policy":{"disableEditor":true,"disableTours":true,"httpAdminRoot":true,"dashboardUI":true,"codeEditor":true,"theme":true,"page":{"title":false,"favicon":false},"header":{"title":true,"url":false},"timeZone":true,"palette":{"allowInstall":true,"nodesExcludes":false,"denyList":false,"modules":true,"catalogue":true,"npmrc":true},"modules":{"allowInstall":true,"denyList":false},"httpNodeAuth":{"type":true,"user":true,"pass":true},"emailAlerts":{"crash":true,"safe":true,"recipients":true}}}' \
+            -d '{"name":"initial-template", "active":true, "settings":{"disableEditor":false,"disableTours":false,"httpAdminRoot":"","dashboardUI":"/ui","codeEditor":"monaco","theme":"forge-light","page":{"title":"FlowFuse","favicon":""},"header":{"title":"FlowFuse","url":""},"timeZone":"UTC","palette":{"allowInstall":true,"nodesExcludes":"","denyList":"","modules":[],"catalogue":["https://catalogue.nodered.org/catalogue.json"],"npmrc":""},"modules":{"allowInstall":true,"denyList":""},"httpNodeAuth":{"type":"","user":"","pass":""},"emailAlerts":{"crash":false,"safe":false,"recipients":"owners"}}, "policy":{"disableEditor":true,"disableTours":true,"httpAdminRoot":true,"dashboardUI":true,"codeEditor":true,"theme":true,"page":{"title":false,"favicon":false},"header":{"title":true,"url":false},"timeZone":true,"palette":{"allowInstall":true,"nodesExcludes":false,"denyList":false,"modules":true,"catalogue":true,"npmrc":true},"modules":{"allowInstall":true,"denyList":false},"httpNodeAuth":{"type":true,"user":true,"pass":true},"emailAlerts":{"crash":true,"safe":true,"recipients":true}}}' \
             https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/templates/
           curl -k -XPOST \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
             -d '{"name":"devteam", "type":"'"$teamTypeId"'"}' \
             https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/teams/
+          
+          kubectl rollout restart deployment flowforge
+          kubectl rollout status deployment flowforge
           
       - name: Summary
         run: |
