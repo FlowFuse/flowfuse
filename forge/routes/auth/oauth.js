@@ -79,23 +79,41 @@ module.exports = async function (app) {
         if (!client_id) {
             return badRequest(reply, 'invalid_request', 'Invalid client_id')
         }
+        if (!redirect_uri) {
+            return badRequest(reply, 'invalid_request', 'Invalid redirect_uri')
+        }
+        let redirectURI
+        try {
+            redirectURI = new URL(redirect_uri)
+        } catch (err) {
+            return badRequest(reply, 'invalid_request', 'Invalid redirect_uri')
+        }
         if (client_id !== 'ff-plugin') {
             // Check client_id is valid. Note - no client_secret provided at this point
             const authClient = await app.db.controllers.AuthClient.getAuthClient(client_id)
             if (!authClient) {
                 return badRequest(reply, 'invalid_request', 'Invalid client_id')
             }
+            // Ensure redirect_uri path component is correct
+            if (
+                // HTTP Auth callback
+                !/\/_ffAuth\/callback$/.test(redirectURI.pathname) &&
+                // Admin Auth callback
+                !/\/auth\/strategy\/callback$/.test(redirectURI.pathname)
+            ) {
+                return badRequest(reply, 'invalid_request', 'Invalid redirect_uri')
+            }
             if (!/^(editor($|-))|httpAuth-/.test(scope)) {
                 return redirectInvalidRequest(reply, redirect_uri, 'invalid_request', "Invalid scope '" + scope + "'. Only 'editor[-version]' is supported", state)
             }
         } else {
+            // Ensure redirect_uri path component is correct for the tools plugin
+            if (!/\/flow(fuse|forge)-nr-tools\/auth\/callback$/.test(redirectURI.pathname)) {
+                return badRequest(reply, 'invalid_request', 'Invalid redirect_uri')
+            }
             if (scope !== 'ff-plugin') {
                 return redirectInvalidRequest(reply, redirect_uri, 'invalid_request', "Invalid scope '" + scope + "'. Only 'ff-plugin' is supported", state)
             }
-        }
-
-        if (!redirect_uri) {
-            return badRequest(reply, 'invalid_request', 'Invalid redirect_uri')
         }
         // If anything else missing, redirect with details
         if (request.validationError) {

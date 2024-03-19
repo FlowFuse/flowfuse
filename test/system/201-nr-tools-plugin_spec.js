@@ -123,7 +123,7 @@ describe('Node-RED Tools Plugin', function () {
         const state = base64URLEncode(crypto.randomBytes(16))
         const verifier = base64URLEncode(crypto.randomBytes(32))
         const scope = 'ff-plugin'
-        const redirectCallback = 'http://example.com/flowforge-nr-tools/auth/callback'
+        const redirectCallback = 'http://example.com/flowfuse-nr-tools/auth/callback'
         const params = {}
         params.client_id = 'ff-plugin'
         params.scope = scope
@@ -155,9 +155,9 @@ describe('Node-RED Tools Plugin', function () {
         })
         response2.statusCode.should.equal(302)
         response2.headers.should.have.property('location')
-        // http://example.com/flowforge-nr-tools/auth/callback?code=eANs21GUv7OqN99S2QxJ4tS1BD5RYEzOEfb-lhLUciw&state=YMbFnV1E_2aPwz_Ktca1DQ
+        // http://example.com/flowfuse-nr-tools/auth/callback?code=eANs21GUv7OqN99S2QxJ4tS1BD5RYEzOEfb-lhLUciw&state=YMbFnV1E_2aPwz_Ktca1DQ
         const callbackURL = new URL(response2.headers.location)
-        callbackURL.pathname.should.equal('/flowforge-nr-tools/auth/callback')
+        callbackURL.pathname.should.equal('/flowfuse-nr-tools/auth/callback')
         callbackURL.host.should.equal('example.com')
         should.exist(callbackURL.searchParams.get('code'))
         should.exist(callbackURL.searchParams.get('state'))
