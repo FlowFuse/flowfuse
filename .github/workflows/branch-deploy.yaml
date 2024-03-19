@@ -176,8 +176,40 @@ jobs:
             -- psql -h flowfuse-pr-${{ env.PR_NUMBER }}-postgresql -U forge -d flowforge -c \
             "INSERT INTO public.\"AccessTokens\" (token,\"expiresAt\",scope,\"ownerId\",\"ownerType\",\"refreshToken\",name,\"createdAt\",\"updatedAt\") \
               VALUES ('${{ secrets.INIT_CONFIG_ACCESS_TOKEN_HASH }}',NULL,'','1','user',NULL,'setup','2024-03-18 10:46:54.055+01','2024-03-18 10:46:54.055+01');"
-
-
+          curl -k -XPOST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
+            -d '{"name":"Default", "description":"InitialProject","active": true}' \
+            https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/project-types/
+          projectTypeId=$(curl -k -XGET -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/project-types/ | jq -r '.types[].id')
+          curl -k -XPOST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
+            -d '{"name":"Default","label":"Default", "projectType":"'"$projectTypeId"'","properties":{ "cpu":10,"memory":256,"container":"flowfuse/node-red"}}' \
+            https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/stacks/
+          stackId=$(curl -k -XGET -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/stacks/ | jq -r '.stacks[].id')
+          curl -k -XPUT \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
+            -d '{"properties":{"instances":{"'"$stackId"'":{"active":true}}}}' \
+            https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/project-types/$projectTypeId
+          teamTypeId=$(curl -k -XGET -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/team-types/ | jq -r '.types[].id')
+          curl -k -XPUT \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
+            -d '{"properties":{"users":{"limit":5},"devices":{"limit":10},"instances":{"'"$projectTypeId"'":{"active":true}}}}' \
+            https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/team-types/$teamTypeId
+          curl -k -XPOST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
+            -d '{"name":"pp-template", "active":true, "settings":{"disableEditor":false,"disableTours":false,"httpAdminRoot":"","dashboardUI":"/ui","codeEditor":"monaco","theme":"forge-light","page":{"title":"FlowFuse","favicon":""},"header":{"title":"FlowFuse","url":""},"timeZone":"UTC","palette":{"allowInstall":true,"nodesExcludes":"","denyList":"","modules":[],"catalogue":["https://catalogue.nodered.org/catalogue.json"],"npmrc":""},"modules":{"allowInstall":true,"denyList":""},"httpNodeAuth":{"type":"","user":"","pass":""},"emailAlerts":{"crash":false,"safe":false,"recipients":"owners"}}, "policy":{"disableEditor":true,"disableTours":true,"httpAdminRoot":true,"dashboardUI":true,"codeEditor":true,"theme":true,"page":{"title":false,"favicon":false},"header":{"title":true,"url":false},"timeZone":true,"palette":{"allowInstall":true,"nodesExcludes":false,"denyList":false,"modules":true,"catalogue":true,"npmrc":true},"modules":{"allowInstall":true,"denyList":false},"httpNodeAuth":{"type":true,"user":true,"pass":true},"emailAlerts":{"crash":true,"safe":true,"recipients":true}}}' \
+            https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/templates/
+          curl -k -XPOST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
+            -d '{"name":"devteam", "type":"'"$teamTypeId"'"}' \
+            https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/teams/
+          
       - name: Summary
         run: |
           echo "### :rocket: Deployment succeeded" >> $GITHUB_STEP_SUMMARY
