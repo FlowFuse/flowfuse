@@ -220,8 +220,8 @@ jobs:
             -d '{"name":"devteam", "type":"'"$teamTypeId"'"}' \
             https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/teams/
           
-          kubectl rollout restart deployment flowforge
-          kubectl rollout status deployment flowforge
+          kubectl --namespace "pr-${{ env.PR_NUMBER }}" rollout restart deployment flowforge
+          kubectl --namespace "pr-${{ env.PR_NUMBER }}" rollout status deployment flowforge
           
       - name: Summary
         run: |
