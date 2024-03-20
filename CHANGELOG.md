@@ -1,3 +1,21 @@
+#### 2.2.1: Release
+
+ - Validate kb and km for `apiMaxLength` (#3603) @Steve-Mcl
+ - Bump vue from 3.4.5 to 3.4.21 (#3524) @app/dependabot
+ - Bump vue-router from 4.2.5 to 4.3.0 (#3557) @app/dependabot
+ - Add apiMaxLength & debugMaxLength settings (#3595) @hardillb
+ - Bump copy-webpack-plugin from 11.0.0 to 12.0.2 (#3594) @app/dependabot
+ - Bump @headlessui/vue from 1.7.16 to 1.7.19 (#3592) @app/dependabot
+ - Bump eslint-plugin-n from 16.2.0 to 16.6.2 (#3593) @app/dependabot
+ - Validate redirect_uri in oauth flow (#3600) @knolleary
+ - Change type param to required while creating a team (#3597) @Jayanth-Parthsarathy
+ - Allow for combined device/instance team limits (#3585) @knolleary
+ - Validate instance property on provisioning token api (#3589) @knolleary
+ - Ensure device agent gets feature flags (#3584) @Steve-Mcl
+ - Bump follow-redirects from 1.15.4 to 1.15.6 (#3587) @app/dependabot
+ - Only show http bearer when licensed (#3583) @hardillb
+ - Docs: Fix broken links in the Device registration docs (#3579) @joepavitt
+
 #### 2.2.0: Release
 
  - HTTP Bearer Tokens test for correct flag (#3573) @hardillb
