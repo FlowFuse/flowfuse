@@ -58,7 +58,7 @@ module.exports = {
         emailAlerts_safe: false,
         emailAlerts_recipients: 'owners',
         debugMaxLength: 1000,
-        apiMaxLength: '5m'
+        apiMaxLength: '5mb'
     },
     defaultTemplatePolicy: {
         disableEditor: true,

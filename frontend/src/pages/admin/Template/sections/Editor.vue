@@ -96,7 +96,7 @@
                         <FormRow v-model="editable.settings.apiMaxLength" :disabled="apiLimitDisabled" type="text">
                             Max HTTP Payload Size
                             <template #description>
-                                The maximum number of bytes allowed in a HTTP Request in bytes ('k','m' modifiers allowed)
+                                The maximum number of bytes allowed in a HTTP Request in bytes ('kb','mb' modifiers allowed)
                             </template>
                             <template #append><ChangeIndicator :value="editable.changed.settings.apiMaxLength" /></template>
                         </FormRow>
