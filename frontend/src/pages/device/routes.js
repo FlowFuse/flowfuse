@@ -5,6 +5,7 @@ import DeviceOverview from './Overview.vue'
 import DeviceSettingsDanger from './Settings/Danger.vue'
 import DeviceSettingsEnvironment from './Settings/Environment.vue'
 import DeviceSettingsGeneral from './Settings/General.vue'
+import DeviceSettingsPalette from './Settings/Palette.vue'
 import DeviceSettings from './Settings/index.vue'
 import DeviceSnapshots from './Snapshots/index.vue'
 
@@ -35,6 +36,7 @@ export default [
                 children: [
                     { path: 'general', component: DeviceSettingsGeneral },
                     { path: 'environment', component: DeviceSettingsEnvironment },
+                    { path: 'palette', component: DeviceSettingsPalette },
                     { path: 'danger', component: DeviceSettingsDanger }
                 ]
             },

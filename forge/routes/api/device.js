@@ -619,7 +619,11 @@ module.exports = async function (app) {
                 type: 'object',
                 properties: {
                     env: { type: 'array', items: { type: 'object', additionalProperties: true } },
-                    autoSnapshot: { type: 'boolean' }
+                    autoSnapshot: { type: 'boolean' },
+                    palette: {
+                        type: 'object',
+                        additionalProperties: true
+                    }
                 }
             },
             response: {
@@ -696,7 +700,8 @@ module.exports = async function (app) {
                     type: 'object',
                     properties: {
                         env: { type: 'array', items: { type: 'object', additionalProperties: true } },
-                        autoSnapshot: { type: 'boolean' }
+                        autoSnapshot: { type: 'boolean' },
+                        palette: { type: 'object', additionalProperties: true }
                     }
                 },
                 '4xx': {

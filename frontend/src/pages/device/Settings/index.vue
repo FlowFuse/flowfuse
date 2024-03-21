@@ -43,7 +43,8 @@ export default {
             }
             this.sideNavigation = [
                 { name: 'General', path: './general' },
-                { name: 'Environment', path: './environment' }
+                { name: 'Environment', path: './environment' },
+                { name: 'Palette', path: './palette' }
             ]
             if (this.hasPermission('device:edit')) {
                 this.sideNavigation.push({ name: 'Danger', path: './danger' })
