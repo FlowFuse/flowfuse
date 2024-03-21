@@ -803,6 +803,19 @@ describe('Project Snapshots API', function () {
             const result = response.json()
             result.should.have.property('id', snapshotResult.id)
         })
+        it('Cannot get snapshot for different instance', async function () {
+            // First alice creates one
+            const snapshotResponse = await createSnapshot(TestObjects.project1.id, 'test-project-snapshot-01', TestObjects.tokens.alice)
+            const snapshotResult = snapshotResponse.json()
+
+            // Verify it cannot be retrieved under project2 api
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${TestObjects.project2.id}/snapshots/${snapshotResult.id}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(404)
+        })
     })
 
     describe('Delete a snapshot', function () {
