@@ -404,6 +404,21 @@ describe('Team Devices API', function () {
             result.should.have.property('code', 'unexpected_error')
             result.should.have.property('error')
         })
+        it('Non owner cannot generate a provisioning tokens', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices/provisioning`,
+                cookies: { sid: TestObjects.tokens.chris },
+                payload: {
+                    name: 'Provisioning Token',
+                    instance: TestObjects.Project1.id
+                }
+            })
+            response.statusCode.should.equal(401)
+            const result = response.json()
+            result.should.have.property('code', 'unauthorized')
+            result.should.have.property('error', 'unauthorized')
+        })
         it('Cannot generate a provisioning token for instance in another team', async function () {
             const response = await app.inject({
                 method: 'POST',

@@ -502,6 +502,18 @@ describe('Device API', async function () {
     })
 
     describe('Get device details', async function () {
+        it('non-team member cannot get device details', async function () {
+            const CTeamDevice = await app.db.models.Device.create({ name: 'deviceOne', type: 'something', credentialSecret: 'deviceKey' })
+            await CTeamDevice.setTeam(TestObjects.CTeam)
+
+            // bob should not have access to CTeamDevice
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/${CTeamDevice.hashid}`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(403)
+        })
         it('provides device details including project and team', async function () {
             TestObjects.deviceOne = await app.db.models.Device.create({ name: 'deviceOne', type: 'something', credentialSecret: 'deviceKey' })
             TestObjects.deviceProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
