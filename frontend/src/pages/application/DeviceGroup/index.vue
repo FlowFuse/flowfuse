@@ -77,7 +77,7 @@ export default {
     computed: {
         ...mapState('account', ['teamMembership', 'team']),
         isVisitingAdmin () {
-            return this.teamMembership.role === Roles.Admin
+            return this.teamMembership?.role === Roles.Admin
         },
         navigation () {
             const routes = [
