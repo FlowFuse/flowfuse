@@ -52,8 +52,8 @@
             <ff-button size="small" :disabled="!changed" @click="save">Save Settings</ff-button>
         </form>
     </div>
-    <div v-else>
-        Only available to Application bound instances
+    <div v-else-if>
+        Only available to Application bound instances, Instance bound Devices will inherit from the Instance.
     </div>
 </template>
 
@@ -140,7 +140,7 @@ export default {
             }
             deviceApi.updateSettings(this.device.id, settings)
             this.$emit('device-updated')
-            alerts.emit('Device settings successfully updated. NOTE: changes will be applied once the device restarts.', 'confirmation', 6000)
+            alerts.emit('Device settings successfully updated.', 'confirmation', 6000)
             this.initial.urls = []
             this.initial.urls.push(...this.urls)
             this.initial.npmrc = `${this.npmrc}`
