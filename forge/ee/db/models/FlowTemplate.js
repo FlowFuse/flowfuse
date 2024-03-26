@@ -63,6 +63,19 @@ module.exports = {
                 const rawValue = this.getDataValue('modules') || '{}'
                 return JSON.parse(rawValue)
             }
+        },
+        // The availability column is a JSON array that contains a the teamtype id to signify which teamtypes this template is available on
+        // a null value signifies that the template is available to all teamtypes (current and future ones)
+        availability: {
+            type: DataTypes.TEXT,
+            defaultValue: null,
+            set (value) {
+                this.setDataValue('availability', value ? JSON.stringify(value) : null)
+            },
+            get () {
+                const rawValue = this.getDataValue('availability') || null
+                return JSON.parse(rawValue)
+            }
         }
     },
     hooks: {
@@ -99,6 +112,22 @@ module.exports = {
                             { model: M.User, as: 'createdBy' }
                         ]
                     })
+                },
+                forTeamType: async (teamTypeId, pagination, where = {}) => {
+                    // since sqlite does not support json queries, we have to get all rows and filter them in memory
+                    if (typeof teamTypeId === 'string') {
+                        teamTypeId = M.TeamType.decodeHashid(teamTypeId)
+                    }
+                    const data = await self.getAll(pagination, where)
+                    const rows = data.templates.filter(template => {
+                        if (!template.availability || template.availability.length === 0) {
+                            return true // by default, all templates are available to all teamtypes
+                        }
+                        return template.availability.includes(teamTypeId)
+                    })
+                    data.templates = rows
+                    data.count = rows.length
+                    return data
                 },
                 getAll: async (pagination = {}, where = {}) => {
                     const limit = parseInt(pagination.limit) || 1000

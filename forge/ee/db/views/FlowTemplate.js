@@ -36,11 +36,22 @@ module.exports = function (app) {
         allOf: [{ $ref: 'FlowBlueprintSummary' }],
         properties: {
             flows: { type: 'object', additionalProperties: true },
-            modules: { type: 'object', additionalProperties: true }
+            modules: { type: 'object', additionalProperties: true },
+            availability: {
+                type: ['array', 'null'],
+                items: {
+                    type: 'string'
+                }
+            }
         }
     })
     function flowBlueprint (blueprint) {
         const result = flowBlueprintSummary(blueprint)
+        if (Array.isArray(blueprint.availability)) {
+            result.availability = blueprint.availability.map(id => app.db.models.TeamType.encodeHashid(id))
+        } else {
+            result.availability = null // default (allow all)
+        }
         result.flows = blueprint.flows
         result.modules = blueprint.modules
         return result
