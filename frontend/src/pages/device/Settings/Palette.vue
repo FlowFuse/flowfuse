@@ -52,7 +52,7 @@
             <ff-button size="small" :disabled="!changed" @click="save">Save Settings</ff-button>
         </form>
     </div>
-    <div v-else-if>
+    <div v-else>
         Only available to Application bound instances, Instance bound Devices will inherit from the Instance.
     </div>
 </template>
