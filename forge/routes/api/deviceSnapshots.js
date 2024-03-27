@@ -20,7 +20,7 @@ module.exports = async function (app) {
                     // any of the routes. If that is confirmed, we should add `{ includeFlows: false }`
                     // to the following call to avoid unncessary work
                     request.snapshot = await app.db.models.ProjectSnapshot.byId(request.params.snapshotId)
-                    if (!request.snapshot) {
+                    if (!request.snapshot || request.snapshot.DeviceId !== request.device.id) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return // eslint-disable-line no-useless-return
                     }

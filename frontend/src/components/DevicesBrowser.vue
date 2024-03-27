@@ -122,6 +122,7 @@
                                 v-if="hasPermission('device:create')"
                                 class="font-normal"
                                 kind="primary"
+                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached"
                                 data-action="register-device"
                                 @click="showCreateDeviceDialog"
                             >

@@ -55,6 +55,7 @@ describe('FlowFuse platform admin users', () => {
     it("can view applications and instances from teams they're not a member of", () => {
         cy.intercept('GET', '/api/*/projects/*').as('getInstance')
         cy.intercept('GET', '/api/*/applications/*').as('getApplication')
+        cy.intercept('GET', '/api/*/applications/*/instances').as('getApplicationInstances')
 
         cy.visit('/admin/overview')
 
@@ -70,9 +71,10 @@ describe('FlowFuse platform admin users', () => {
         cy.get('[data-action="view-application"]').contains('application-2').click()
 
         cy.wait('@getApplication')
+        cy.wait('@getApplicationInstances')
 
         cy.get('[data-el="banner-project-as-admin"]').should('exist')
-        cy.get('[data-action="open-editor"]').should('not.exist')
+        cy.get('[data-action="open-editor"]').should('be.disabled')
 
         cy.get('[data-el="cloud-instances"] tr').contains('instance-2-1').click()
 

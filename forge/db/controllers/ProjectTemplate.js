@@ -199,7 +199,7 @@ module.exports = {
             result.httpNodeAuth.pass = hash(result.httpNodeAuth.pass)
         }
         if (result.apiMaxLength) {
-            if (!/^[0-9]+[km]?$/.test(result.apiMaxLength)) {
+            if (!/^\d+(?:kb|mb)$/.test(result.apiMaxLength)) {
                 throw new Error('Invalid settings.apiMaxLength')
             }
         }
