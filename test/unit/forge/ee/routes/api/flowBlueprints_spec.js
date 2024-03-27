@@ -8,7 +8,15 @@ const setup = require('../../setup.js')
 describe('Flow Blueprints API', function () {
     const sandbox = sinon.createSandbox()
 
-    const TestObjects = { tokens: {} }
+    const TestObjects = {
+        tokens: {},
+        team: null,
+        instance: null,
+        team2: null,
+        instance2: null,
+        /** @type {TestModelFactory} */
+        factory: null
+    }
 
     let app
 
@@ -32,7 +40,12 @@ describe('Flow Blueprints API', function () {
         const factory = new TestModelFactory(app)
 
         TestObjects.factory = factory
-
+        TestObjects.team = app.team
+        TestObjects.instance = app.instance
+        TestObjects.stack = app.stack
+        TestObjects.template = app.template
+        TestObjects.projectType = app.projectType
+        TestObjects.application = app.application
         // Admin User
         TestObjects.alice = app.user
         // Non-admin User
@@ -211,6 +224,89 @@ describe('Flow Blueprints API', function () {
 
             result.should.have.property('count', 10)
         })
+        describe('Blueprint availability', function () {
+            before(async function () {
+                // create a 2nd team type tier, project type and stack
+                const teamType2 = await TestObjects.factory.createTeamType({
+                    name: 'enterprise'
+                })
+                const projectType2 = await TestObjects.factory.createProjectType({ name: 'type2' })
+                const stack2 = await TestObjects.factory.createStack({ name: 'stack1-for-type2' }, projectType2)
+
+                // Create a 2nd team, application and instance
+                TestObjects.team2 = await TestObjects.factory.createTeam({ name: 'EnterpriseTeam', TeamTypeId: teamType2.id })
+                TestObjects.application2 = await TestObjects.factory.createApplication({ name: 'EnterpriseApp' }, TestObjects.team2)
+                TestObjects.instance2 = await TestObjects.factory.createInstance(
+                    { name: 'EnterpriseInstance' },
+                    TestObjects.application2,
+                    stack2,
+                    TestObjects.template,
+                    projectType2,
+                    { start: false }
+                )
+
+                // Remove anything created by other tests so we have a clean slate
+                await app.db.models.FlowTemplate.destroy({ where: {} })
+
+                await createBlueprint({
+                    name: 'default-availability',
+                    active: true,
+                    availability: null // All team types
+                }, TestObjects.tokens.alice)
+
+                await createBlueprint({
+                    name: 'none-available',
+                    active: true,
+                    availability: [] // No team types
+                }, TestObjects.tokens.alice)
+
+                await createBlueprint({
+                    name: 'starter-tier-only',
+                    active: true,
+                    availability: [TestObjects.team.TeamType.hashid] // Only available to the default team type
+                }, TestObjects.tokens.alice)
+
+                await createBlueprint({
+                    name: 'enterprise-tier-only',
+                    active: true,
+                    availability: [TestObjects.team2.TeamType.hashid] // Only available to the 2nd project type
+                }, TestObjects.tokens.alice)
+
+                await createBlueprint({
+                    name: 'all-selected',
+                    active: true,
+                    availability: [TestObjects.team.TeamType.hashid, TestObjects.team2.TeamType.hashid] // Available to both team types
+                }, TestObjects.tokens.alice)
+            })
+            it('Lists blueprints available to a starter tier', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/flow-blueprints?filter=all&team=' + TestObjects.team.hashid, // starter team
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                const result = response.json()
+                result.should.have.property('count', 3)
+                result.blueprints.map(b => b.name).should.containDeep([
+                    'default-availability',
+                    'starter-tier-only',
+                    'all-selected'
+                ])
+            })
+            it('Lists blueprints available to an enterprise tier', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/flow-blueprints?filter=all&team=' + TestObjects.team2.hashid, // the enterprise team
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                const result = response.json()
+                result.should.have.property('count', 3)
+                result.blueprints.map(b => b.name).should.containDeep([
+                    'default-availability',
+                    'enterprise-tier-only',
+                    'all-selected'
+                ])
+            })
+        })
     })
 
     describe('Update Flow Template', function () {
@@ -297,6 +393,75 @@ describe('Flow Blueprints API', function () {
             const [statusCode6, resp6] = await updateBlueprint(blueprintId, { flows: { flows: [], credentials: { $: 'foo' } } }, TestObjects.tokens.alice)
             resp6.should.have.property('code', 'unexpected_error')
             statusCode6.should.equal(400)
+        })
+        it('Updates availability', async function () {
+            const name = generateName('flow blueprint with availability')
+            const availability = [] // start with no availability
+            const [statusCode, result] = await createBlueprint({ name, availability }, TestObjects.tokens.alice)
+            statusCode.should.equal(200)
+            const blueprintId = result.id
+
+            // read from DB and confirm availability is an empty array
+            const resp1 = await app.inject({
+                method: 'GET',
+                url: `/api/v1/flow-blueprints/${blueprintId}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            resp1.statusCode.should.equal(200)
+            const resp1Json = resp1.json()
+            resp1Json.should.have.property('availability')
+            resp1Json.availability.should.be.an.Array().and.have.length(0)
+
+            // update it with new availability
+            const team1Availability = [TestObjects.team.TeamType.hashid]
+            const [statusCode1] = await updateBlueprint(blueprintId, { availability: team1Availability }, TestObjects.tokens.alice)
+            statusCode1.should.equal(200)
+
+            // read from DB and confirm availability is now the new value
+            const resp2 = await app.inject({
+                method: 'GET',
+                url: `/api/v1/flow-blueprints/${blueprintId}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            resp2.statusCode.should.equal(200)
+            const resp2Json = resp2.json()
+            resp2Json.should.have.property('availability')
+            resp2Json.availability.should.be.an.Array().and.have.length(1)
+            resp2Json.availability[0].should.equal(TestObjects.team.TeamType.hashid)
+        })
+        it('Discards invalid team types', async function () {
+            const name = generateName('flow blueprint with availability 2')
+            const availability = null // start all availability (null)
+            const [statusCode, result] = await createBlueprint({ name, availability }, TestObjects.tokens.alice)
+            statusCode.should.equal(200)
+            const blueprintId = result.id
+
+            // read from DB and confirm availability is null
+            const resp1 = await app.inject({
+                method: 'GET',
+                url: `/api/v1/flow-blueprints/${blueprintId}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            resp1.statusCode.should.equal(200)
+            const resp1Json = resp1.json()
+            resp1Json.should.have.property('availability').and.equal(null)
+
+            // update it with new availability, 1 good and 2 bad team types
+            const team1Availability = [TestObjects.team.TeamType.hashid, 'bad1', 'bad2']
+            const [statusCode1] = await updateBlueprint(blueprintId, { availability: team1Availability }, TestObjects.tokens.alice)
+            statusCode1.should.equal(200)
+
+            // read from DB and confirm availability is now the new value
+            const resp2 = await app.inject({
+                method: 'GET',
+                url: `/api/v1/flow-blueprints/${blueprintId}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            resp2.statusCode.should.equal(200)
+            const resp2Json = resp2.json()
+            resp2Json.should.have.property('availability')
+            resp2Json.availability.should.be.an.Array().and.have.length(1)
+            resp2Json.availability[0].should.equal(TestObjects.team.TeamType.hashid)
         })
     })
 
