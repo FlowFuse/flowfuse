@@ -96,11 +96,11 @@ export default {
             templateEnvValues: {}
         }
     },
-    mounted () {
-        this.getSettings()
-    },
     computed: {
         ...mapState('account', ['teamMembership'])
+    },
+    mounted () {
+        this.getSettings()
     },
     methods: {
         getSettings: async function () {

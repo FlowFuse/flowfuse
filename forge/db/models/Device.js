@@ -11,7 +11,8 @@ const { buildPaginationSearchClause } = require('../utils')
 
 const ALLOWED_SETTINGS = {
     env: 1,
-    autoSnapshot: 1
+    autoSnapshot: 1,
+    palette: 1
 }
 
 const DEFAULT_SETTINGS = {
