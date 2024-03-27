@@ -177,6 +177,7 @@ describe('FlowForge - Application - Devices - Create', () => {
             cy.get('[data-el="devices-browser"] tbody tr:last-child td a').click()
             cy.get('[data-nav="device-settings"]').click()
             cy.get('[data-el="section-side-menu"] li [data-nav="palette"]').should('exist')
+            cy.get('[data-nav="palette"]').click()
         })
     })
 })
