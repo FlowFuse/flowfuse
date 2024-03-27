@@ -382,7 +382,7 @@ describe('ProjectSnapshot controller', function () {
                         const ss = await app.db.controllers.ProjectSnapshot.doDeviceAutoSnapshot(device, 'full', options, meta)
                         await ss.update({ description: `Auto Snapshot - ${i}` }) // update description to make it clear the round-robin cleanup is working
                     }
-                    const snapshots = await app.db.models.ProjectSnapshot.findAll({ where: { DeviceId: device.id } })
+                    const snapshots = await app.db.models.ProjectSnapshot.findAll({ where: { DeviceId: device.id }, order: [['id', 'ASC']] })
                     // even though 12 snapshots were created in total, only 10 are kept
                     snapshots.should.have.length(10)
                     snapshots[0].description.should.equal('Auto Snapshot - 3') // note ss 1 & 2 were auto cleaned up
