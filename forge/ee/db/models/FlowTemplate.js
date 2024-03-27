@@ -120,8 +120,8 @@ module.exports = {
                     }
                     const data = await self.getAll(pagination, where)
                     const rows = data.templates.filter(template => {
-                        if (!template.availability || template.availability.length === 0) {
-                            return true // by default, all templates are available to all teamtypes
+                        if (!template.availability) {
+                            return true // by default (null), all templates are available to all teamtypes
                         }
                         return template.availability.includes(teamTypeId)
                     })
