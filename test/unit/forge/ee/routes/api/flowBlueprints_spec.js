@@ -149,6 +149,26 @@ describe('Flow Blueprints API', function () {
             const [statusCode1] = await createBlueprint({ name: generateName('bp'), modules: [] }, TestObjects.tokens.alice)
             statusCode1.should.equal(400)
         })
+
+        it('Availability is null by default (available to all team types)', async function () {
+            const [statusCode, resp] = await createBlueprint({ name: generateName('bp') }, TestObjects.tokens.alice)
+            statusCode.should.equal(200)
+            const bp1 = await app.db.models.FlowTemplate.byId(resp.id)
+            bp1.should.have.property('availability', null)
+        })
+        it('Availability is set to empty array', async function () {
+            const [statusCode, resp] = await createBlueprint({ name: generateName('bp'), availability: [] }, TestObjects.tokens.alice)
+            statusCode.should.equal(200)
+            const bp1 = await app.db.models.FlowTemplate.byId(resp.id)
+            bp1.should.have.property('availability').and.be.an.Array().and.have.length(0)
+        })
+        it('Availability is set to an array of team types', async function () {
+            const [statusCode, resp] = await createBlueprint({ name: generateName('bp'), availability: [TestObjects.team.TeamType.hashid] }, TestObjects.tokens.alice)
+            statusCode.should.equal(200)
+            const bp1 = await app.db.models.FlowTemplate.byId(resp.id)
+            bp1.should.have.property('availability').and.be.an.Array().and.have.length(1)
+            bp1.availability[0].should.equal(TestObjects.team.TeamType.id) // note id not hashid
+        })
     })
 
     describe('Get Flow Template', function () {
