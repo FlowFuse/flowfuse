@@ -3,6 +3,7 @@
 .ff-applications-list {
     display: flex;
     flex-direction: column;
+    min-width: fit-content; // prevent content poking out of the container
     gap: 18px;
     > li {
         > * {
