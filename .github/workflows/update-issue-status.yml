@@ -10,3 +10,4 @@ on:
 jobs:
   update_issue_status:
     uses: flowfuse/.github/.github/workflows/record-in-review.yml@main
+    secrets: inherit
