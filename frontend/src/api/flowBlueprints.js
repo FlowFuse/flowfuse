@@ -14,21 +14,46 @@ import client from './client.js'
  */
 
 /**
- * @typedef {object} FlowBlueprint
- * @extends FlowBlueprintSummary
- * @property {object} flows
- * @property {object} modules
+ * @typedef {Object} FlowBlueprintDetails
+ * @property {object} flows - Flow definition
+ * @property {object} modules - Modules used in the flow
+ * @property {Array.<string>} teamTypeScope - Team types allowed to use this blueprint
+ */
+
+/**
+ * @typedef {FlowBlueprintSummary & FlowBlueprintDetails } FlowBlueprint
  */
 
 /**
  * Get all flow blueprints from the backend
- * @param {string} filter - 'active' (default), 'all' or 'inactive'
- * @param {G} cursor
- * @param {number} limit
+ * @param {object} options
+ * @param {object} options.filter - 'active' (default), 'all' or 'inactive'
+ * @param {number} cursor - Cursor for pagination
+ * @param {number} limit - Limit for pagination
  * @returns {Array.<FlowBlueprintSummary>}
  */
 const getFlowBlueprints = async (options = { filter: 'active' }, cursor, limit) => {
     const url = paginateUrl('/api/v1/flow-blueprints', cursor, limit, null, { filter: options.filter })
+    return client.get(url).then(res => {
+        return res.data
+    })
+}
+
+/**
+ * Get flow blueprints available to the current team
+ * @param {string} team - Team ID
+ * @param {object} options
+ * @param {object} options.filter - 'active' (default), 'all' or 'inactive'
+ * @param {number} cursor - Cursor for pagination
+ * @param {number} limit - Limit for pagination
+ * @returns {Array.<FlowBlueprintSummary>}
+ */
+const getFlowBlueprintsForTeam = async (team, options = { filter: 'active' }, cursor, limit) => {
+    const extraParams = {
+        filter: options.filter,
+        team
+    }
+    const url = paginateUrl('/api/v1/flow-blueprints', cursor, limit, null, extraParams)
     return client.get(url).then(res => {
         return res.data
     })
@@ -76,6 +101,7 @@ const updateFlowBlueprint = async (flowBlueprintId, options) => {
 
 export default {
     getFlowBlueprints,
+    getFlowBlueprintsForTeam,
     getFlowBlueprint,
     createFlowBlueprint,
     deleteFlowBlueprint,

@@ -49,6 +49,7 @@ import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
 import FlowBlueprintsApi from '../../../api/flowBlueprints.js'
+import teamTypesApi from '../../../api/teamTypes.js'
 
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 
@@ -72,6 +73,7 @@ export default {
     data () {
         return {
             flowBlueprints: new Map(),
+            teamTypes: [],
             loading: false,
             nextCursor: null,
             columns: [
@@ -111,10 +113,10 @@ export default {
         async showBlueprintForm (flowBlueprint) {
             if (flowBlueprint) {
                 const fullFlowBlueprint = await FlowBlueprintsApi.getFlowBlueprint(flowBlueprint.id)
-                return this.$refs.adminFlowBlueprintDialog.show(fullFlowBlueprint)
+                return this.$refs.adminFlowBlueprintDialog.show(fullFlowBlueprint, this.teamTypes)
             }
 
-            this.$refs.adminFlowBlueprintDialog.show()
+            this.$refs.adminFlowBlueprintDialog.show(null, this.teamTypes)
         },
         showDeleteBlueprint (flowBlueprint) {
             Dialog.show({
@@ -140,6 +142,15 @@ export default {
             result.blueprints.forEach(flowBlueprint => {
                 this.flowBlueprints.set(flowBlueprint.id, flowBlueprint)
             })
+            const teamTypes = (await teamTypesApi.getTeamTypes()).types
+            this.teamTypes = teamTypes.map(tt => {
+                return {
+                    order: tt.order,
+                    id: tt.id,
+                    name: tt.name
+                }
+            })
+            this.teamTypes.sort((A, B) => { return A.order - B.order })
         }
     }
 }

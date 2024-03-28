@@ -45,9 +45,21 @@ module.exports = async function (app) {
         } else if (request.query.filter === 'inactive') {
             filter = { active: false }
         }
-        const flowTemplates = await app.db.models.FlowTemplate.getAll(paginationOptions, filter)
-        flowTemplates.blueprints = flowTemplates.templates.map(ft => app.db.views.FlowTemplate.flowBlueprintSummary(ft))
-        reply.send(flowTemplates)
+
+        if (request.query.team) {
+            const team = await app.db.models.Team.byId(request.query.team)
+            if (!team) {
+                return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+            }
+            const flowTemplates = await app.db.models.FlowTemplate.forTeamType(team.TeamTypeId, paginationOptions, filter)
+            flowTemplates.blueprints = flowTemplates.templates.map(ft => app.db.views.FlowTemplate.flowBlueprintSummary(ft))
+            reply.send(flowTemplates)
+        } else {
+            // get all flow templates - typically for administration purposes
+            const flowTemplates = await app.db.models.FlowTemplate.getAll(paginationOptions, filter)
+            flowTemplates.blueprints = flowTemplates.templates.map(ft => app.db.views.FlowTemplate.flowBlueprintSummary(ft))
+            reply.send(flowTemplates)
+        }
     })
 
     app.get('/:flowBlueprintId', {
@@ -140,7 +152,8 @@ module.exports = async function (app) {
             order: request.body.order,
             default: request.body.default,
             flows: request.body.flows,
-            modules: request.body.modules
+            modules: request.body.modules,
+            teamTypeScope: await sanitiseTeamTypeScope(request.body.teamTypeScope)
         }
         try {
             const flowTemplate = await app.db.models.FlowTemplate.create(properties)
@@ -211,6 +224,7 @@ module.exports = async function (app) {
         if (request.body.modules !== undefined) {
             flowTemplate.modules = request.body.modules
         }
+        flowTemplate.teamTypeScope = await sanitiseTeamTypeScope(request.body.teamTypeScope)
 
         try {
             await flowTemplate.save()
@@ -228,4 +242,24 @@ module.exports = async function (app) {
             reply.code(400).send(resp)
         }
     })
+
+    /**
+     * Sanitise the teamTypeScope array before saving to the database
+     */
+    async function sanitiseTeamTypeScope (teamTypeScope) {
+        // An array signifies that this template is only available to specific teamTypes
+        // An empty array signifies that this template is not available to any teamTypes
+        // A `null` value signifies that this template is available to all teamTypes (current and future ones)
+        try {
+            if (Array.isArray(teamTypeScope)) {
+                const teamTypeIds = teamTypeScope.map(id => Number(app.db.models.TeamType.decodeHashid(id))).filter(id => id)
+                const matchingTeamTypes = await app.db.models.TeamType.findAll({ where: { id: teamTypeIds } })
+                return matchingTeamTypes ? [...matchingTeamTypes.map(tt => tt.id)] : []
+            }
+        } catch (_err) {
+            // If there are any errors, just return null
+            return null
+        }
+        return null
+    }
 }

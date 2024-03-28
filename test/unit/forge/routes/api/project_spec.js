@@ -1038,6 +1038,31 @@ describe('Project API', function () {
                 result.should.have.property('code', 'invalid_flow_blueprint')
             })
 
+            it('Create a project fails when blueprint is not available to the team', async function () {
+                const bp = await app.db.models.FlowTemplate.create({ name: 'Test Blueprint 2', description: 'This is a test blueprint\\n - with markdown\\n - formatted *description*', teamTypeScope: [], category: 'blueprint', active: true, flows: { flows: [] }, modules: { '@flowforge/node-red-dashboard': '0.6.1' } })
+
+                const projectName = generateProjectName()
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/projects',
+                    payload: {
+                        name: projectName,
+                        applicationId: TestObjects.ApplicationA.hashid,
+                        projectType: TestObjects.projectType1.hashid,
+                        template: TestObjects.template1.hashid,
+                        stack: TestObjects.stack1.hashid,
+                        flowBlueprintId: bp.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(400)
+                const result = response.json()
+                result.should.have.property('code', 'invalid_flow_blueprint')
+                result.should.have.property('error')
+                // ensure the error message contains "not allowed for this team"
+                result.error.should.match(/not allowed for this team/)
+            })
+
             it('Create a project fails with source-project and flowBlueprintId', async function () {
                 const projectName = generateProjectName()
                 const response = await app.inject({
