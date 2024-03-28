@@ -2181,6 +2181,45 @@ describe('Project API', function () {
             const { settings: settingsAfter } = await getSettings()
             settingsAfter.should.have.property('theme', 'forge-dark') // should now be forge-dark
         })
+
+        it('Dashboard URL is provided in the instance.settings if flowfuse dashboard is installed', async function () {
+            // GET instance
+            const response1 = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${app.project.id}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            const data1 = response1.json()
+            data1.should.have.property('settings')
+            data1.settings.should.not.have.property('dashboard2UI')
+
+            // Update project settings to add flowfuse dashboard
+            const response2 = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/projects/${app.project.id}`,
+                payload: {
+                    settings: {
+                        palette: {
+                            modules: [
+                                { name: '@flowfuse/node-red-dashboard', version: '~1.5.1', local: true }
+                            ]
+                        }
+                    }
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response2.statusCode.should.equal(200)
+
+            // GET new settings & check dashboard2UI is now populated
+            const response3 = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${app.project.id}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            const data3 = response3.json()
+            data3.should.have.property('settings')
+            data3.settings.should.have.property('dashboard2UI')
+        })
     })
 
     describe('Project import flows & credentials', function () {

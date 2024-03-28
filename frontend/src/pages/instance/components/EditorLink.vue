@@ -4,6 +4,7 @@
         kind="secondary"
         data-action="open-editor"
         :disabled="editorDisabled || disabled || !url"
+        class="whitespace-nowrap"
         @click.stop="openEditor()"
     >
         <template #icon-right>
