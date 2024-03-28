@@ -55,6 +55,9 @@ module.exports = function (app) {
                     // Only return whether a password is set or not
                     result.settings.httpNodeAuth.pass = !!result.settings.httpNodeAuth.pass
                 }
+                if (hasDashboard2UI(settingsSettingsRow.value)) {
+                    result.settings.dashboard2UI = '/dashboard'
+                }
             } else {
                 result.settings = {}
             }
@@ -172,6 +175,10 @@ module.exports = function (app) {
                     disableEditor: settingsSettingsRow.value.disableEditor
                 }
             }
+            if (hasDashboard2UI(settingsSettingsRow.value)) {
+                result.settings = result.settings || {} // Ensure settings exists
+                result.settings.dashboard2UI = '/dashboard'
+            }
         }
         if (app.config.features.enabled('ha')) {
             const settingsHARow = project.ProjectSettings?.find(row => row.key === KEY_HA)
@@ -252,4 +259,11 @@ module.exports = function (app) {
         projectSummary,
         userProjectList
     }
+}
+
+function hasDashboard2UI (settings) {
+    if (Array.isArray(settings?.palette?.modules)) {
+        return settings.palette.modules.find((module) => module.name === '@flowfuse/node-red-dashboard')
+    }
+    return false
 }
