@@ -117,52 +117,33 @@ module.exports.copySnapshot = async (
     {
         importSnapshot,
         setAsTarget,
-        decryptAndReEncryptCredentialsSecret,
         targetSnapshotProperties
     } = {
         importSnapshot: true,
         setAsTarget: false,
-        decryptAndReEncryptCredentialsSecret: null,
         targetSnapshotProperties: null
     }
 ) => {
-    const { settings, flows, name, description } = snapshot.toJSON()
+    const { settings, flows, name, description, credentialSecret } = snapshot.toJSON()
     const snapshotToCopyProps = { settings, flows, name, description }
-
+    let targetInstanceSecret = await toInstance.getCredentialSecret()
+    if (!targetInstanceSecret) {
+        targetInstanceSecret = app.db.models.Project.generateCredentialSecret()
+        await toInstance.updateSetting('credentialSecret', targetInstanceSecret)
+    }
     // Decrypt and re-encrypt credentials
     if (snapshotToCopyProps.flows.credentials) {
-        const oldCredentials = snapshotToCopyProps.flows.credentials
-
-        let targetInstanceSecret = await toInstance.getCredentialSecret()
-        if (!targetInstanceSecret) {
-            targetInstanceSecret = app.db.models.Project.generateCredentialSecret()
-            await toInstance.updateSetting('credentialSecret', targetInstanceSecret)
-        }
-
-        let newCredentials
-        if (!decryptAndReEncryptCredentialsSecret) {
-            app.log.warn(
-                `Assuming credentials from snapshot ${name} (${snapshot.hashid}) are not encrypted as no decryptAndReEncryptCredentialsSecret was passed`
-            )
-            newCredentials = app.db.controllers.Project.exportCredentials(
-                oldCredentials,
-                null,
-                targetInstanceSecret
-            )
-        } else {
-            newCredentials = await app.db.controllers.Project.reEncryptCredentials(
-                flows.credentials,
-                decryptAndReEncryptCredentialsSecret,
-                targetInstanceSecret
-            )
-        }
-
-        snapshotToCopyProps.flows.credentials = newCredentials
+        snapshotToCopyProps.flows.credentials = await app.db.controllers.Project.reEncryptCredentials(
+            snapshotToCopyProps.flows.credentials,
+            credentialSecret,
+            targetInstanceSecret
+        )
     }
 
     const newSnapshot = await app.db.models.ProjectSnapshot.create({
         ...snapshotToCopyProps,
         ...targetSnapshotProperties,
+        credentialSecret: targetInstanceSecret,
         ProjectId: toInstance.id,
         UserId: snapshot.UserId
     })
@@ -171,7 +152,7 @@ module.exports.copySnapshot = async (
         await app.db.controllers.Project.importProjectSnapshot(
             toInstance,
             newSnapshot,
-            { mergeEnvVars: true, decryptAndReEncryptCredentialsSecret }
+            { mergeEnvVars: true }
         )
     }
 

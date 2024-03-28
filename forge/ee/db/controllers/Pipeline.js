@@ -380,13 +380,11 @@ module.exports = {
                 const targetSnapshot = await copySnapshot(app, sourceSnapshot, targetInstance, {
                     importSnapshot: true, // target instance should import the snapshot
                     setAsTarget: setAsTargetForDevices,
-                    decryptAndReEncryptCredentialsSecret: await sourceSnapshot.getCredentialSecret(),
                     targetSnapshotProperties: {
                         name: generateDeploySnapshotName(sourceSnapshot),
                         description: generateDeploySnapshotDescription(sourceStage, targetStage, pipeline, sourceSnapshot)
                     }
                 })
-
                 if (restartTargetInstance) {
                     await targetInstance.reload({ include: [app.db.models.Team] })
                     await app.containers.restartFlows(targetInstance)
