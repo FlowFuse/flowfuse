@@ -103,6 +103,7 @@ import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
 import permissionsMixin from '../../mixins/Permissions.js'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
+import DashboardLinkCell from '../instance/components/cells/DashboardLink.vue'
 import InstanceEditorLinkCell from '../instance/components/cells/InstanceEditorLink.vue'
 
 import DeploymentName from './components/cells/DeploymentName.vue'
@@ -132,10 +133,11 @@ export default {
         ...mapState('account', ['team', 'teamMembership']),
         cloudColumns () {
             return [
-                { label: 'Name', class: ['w-64'], component: { is: markRaw(DeploymentName) } },
-                { label: 'Instance Status', class: ['w-48'], component: { is: markRaw(InstanceStatusBadge), map: { status: 'meta.state' } } },
-                { label: 'Last Deployed', class: ['w-48'], component: { is: markRaw(LastSeen), map: { lastSeenSince: 'flowLastUpdatedSince' } } },
-                { label: '', class: ['w-20'], component: { is: markRaw(InstanceEditorLinkCell) } }
+                { label: 'Name', class: ['w-1/2'], component: { is: markRaw(DeploymentName) } },
+                { label: 'Instance Status', class: ['w-1/5'], component: { is: markRaw(InstanceStatusBadge), map: { status: 'meta.state' } } },
+                { label: 'Last Deployed', class: ['w-1/5'], component: { is: markRaw(LastSeen), map: { lastSeenSince: 'flowLastUpdatedSince' } } },
+                { label: '', component: { is: markRaw(DashboardLinkCell), map: { instance: '_self', hidden: 'hideDashboard2Button' } } },
+                { label: '', component: { is: markRaw(InstanceEditorLinkCell) } }
             ]
         },
         cloudRows () {
@@ -144,7 +146,8 @@ export default {
                 instance.notSuspended = instance.meta?.state !== 'suspended'
                 instance.isHA = instance.ha?.replicas !== undefined
                 instance.disabled = !instance.running || this.isVisitingAdmin || instance.isHA
-
+                instance._self = instance
+                instance.hideDashboard2Button = !instance.settings?.dashboard2UI
                 return instance
             })
         },
