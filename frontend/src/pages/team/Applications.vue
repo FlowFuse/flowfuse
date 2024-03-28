@@ -69,13 +69,20 @@
                                         Flows never deployed
                                     </span>
                                 </div>
-                                <InstanceEditorLinkCell
-                                    :id="instance.id"
-                                    :url="instance.url"
-                                    :editorDisabled="!!(instance.settings?.disableEditor)"
-                                    :disabled="instance.meta?.state !== 'running'"
-                                    :isHA="instance.ha?.replicas !== undefined"
-                                />
+                                <div class="grid grid-flow-col">
+                                    <DashboardLinkCell
+                                        v-if="instance.settings?.dashboard2UI"
+                                        :disabled="instance.meta?.state !== 'running'"
+                                        :instance="instance"
+                                    />
+                                    <InstanceEditorLinkCell
+                                        :id="instance.id"
+                                        :url="instance.url"
+                                        :editorDisabled="!!(instance.settings?.disableEditor)"
+                                        :disabled="instance.meta?.state !== 'running'"
+                                        :isHA="instance.ha?.replicas !== undefined"
+                                    />
+                                </div>
                                 <InstanceStatusPolling :instance="instance" @instance-updated="instanceUpdated" />
                             </li>
                         </ul>
@@ -184,6 +191,7 @@ import DaysSince from '../application/Snapshots/components/cells/DaysSince.vue'
 import DeviceModeBadge from '../device/components/DeviceModeBadge.vue'
 import EditorLink from '../instance/components/EditorLink.vue'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
+import DashboardLinkCell from '../instance/components/cells/DashboardLink.vue'
 import InstanceEditorLinkCell from '../instance/components/cells/InstanceEditorLink.vue'
 
 import ApplicationSummaryLabel from './components/ApplicationSummaryLabel.vue'
@@ -194,6 +202,7 @@ export default {
     name: 'TeamApplications',
     components: {
         ApplicationSummaryLabel,
+        DashboardLinkCell,
         DaysSince,
         DeviceModeBadge,
         EditorLink,
