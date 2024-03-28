@@ -5,8 +5,8 @@ navTitle: FlowFuse Persistent Context
 # FlowFuse Persistent Context
 
 Some Node-RED flows need a way to persist context values between restarts and FlowFuse stack 
-updates but context data is ephemeral by default. With FlowFuse Premium, persistent context 
-storage is possible and it survives restarts, upgrades and more.
+updates but context data is ephemeral by default. With FlowFuse Team and Enterprise tiers,
+persistent context storage is possible and it survives restarts, upgrades and more.
 
 ## Usage
 
