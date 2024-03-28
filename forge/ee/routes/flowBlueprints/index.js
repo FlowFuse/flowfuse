@@ -153,7 +153,7 @@ module.exports = async function (app) {
             default: request.body.default,
             flows: request.body.flows,
             modules: request.body.modules,
-            availability: await sanitiseAvailability(request.body.availability)
+            teamTypeScope: await sanitiseTeamTypeScope(request.body.teamTypeScope)
         }
         try {
             const flowTemplate = await app.db.models.FlowTemplate.create(properties)
@@ -224,7 +224,7 @@ module.exports = async function (app) {
         if (request.body.modules !== undefined) {
             flowTemplate.modules = request.body.modules
         }
-        flowTemplate.availability = await sanitiseAvailability(request.body.availability)
+        flowTemplate.teamTypeScope = await sanitiseTeamTypeScope(request.body.teamTypeScope)
 
         try {
             await flowTemplate.save()
@@ -244,15 +244,15 @@ module.exports = async function (app) {
     })
 
     /**
-     * Sanitise the availability array before saving to the database
+     * Sanitise the teamTypeScope array before saving to the database
      */
-    async function sanitiseAvailability (availability) {
+    async function sanitiseTeamTypeScope (teamTypeScope) {
         // An array signifies that this template is only available to specific teamTypes
         // An empty array signifies that this template is not available to any teamTypes
         // A `null` value signifies that this template is available to all teamTypes (current and future ones)
         try {
-            if (Array.isArray(availability)) {
-                const teamTypeIds = availability.map(id => Number(app.db.models.TeamType.decodeHashid(id))).filter(id => id)
+            if (Array.isArray(teamTypeScope)) {
+                const teamTypeIds = teamTypeScope.map(id => Number(app.db.models.TeamType.decodeHashid(id))).filter(id => id)
                 const matchingTeamTypes = await app.db.models.TeamType.findAll({ where: { id: teamTypeIds } })
                 return matchingTeamTypes ? [...matchingTeamTypes.map(tt => tt.id)] : []
             }

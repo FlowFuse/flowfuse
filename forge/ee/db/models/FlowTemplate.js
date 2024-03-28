@@ -64,16 +64,16 @@ module.exports = {
                 return JSON.parse(rawValue)
             }
         },
-        // The availability column is a JSON array that contains a the teamtype id to signify which teamtypes this template is available on
+        // The teamTypeScope column is a JSON array that contains a the teamtype id to signify which teamtypes this template is available on
         // a null value signifies that the template is available to all teamtypes (current and future ones)
-        availability: {
+        teamTypeScope: {
             type: DataTypes.TEXT,
             defaultValue: null,
             set (value) {
-                this.setDataValue('availability', value ? JSON.stringify(value) : null)
+                this.setDataValue('teamTypeScope', value ? JSON.stringify(value) : null)
             },
             get () {
-                const rawValue = this.getDataValue('availability') || null
+                const rawValue = this.getDataValue('teamTypeScope') || null
                 return JSON.parse(rawValue)
             }
         }
@@ -120,10 +120,10 @@ module.exports = {
                     }
                     const data = await self.getAll(pagination, where)
                     const rows = data.templates.filter(template => {
-                        if (!template.availability) {
+                        if (!template.teamTypeScope) {
                             return true // by default (null), all templates are available to all teamtypes
                         }
-                        return template.availability.includes(teamTypeId)
+                        return template.teamTypeScope.includes(teamTypeId)
                     })
                     data.templates = rows
                     data.count = rows.length

@@ -19,16 +19,16 @@
                     </template>
                 </FormRow>
 
-                <FormRow data-form="availability" wrapper-class="flex flex-col flex-row relative">
-                    Available to team types
+                <FormRow data-form="teamTypeScope" wrapper-class="flex flex-col flex-row relative">
+                    Team Type availability
                     <template #description> Select the team types that can use this blueprint </template>
                     <template #input>
                         <div class="grid gap-1">
                             <div>
-                                <ff-checkbox id="availabilityAll" v-model="availabilityAll" type="checkbox" label="All team types" />
+                                <ff-checkbox id="availableToAll" v-model="availableToAll" type="checkbox" label="All team types" />
                             </div>
-                            <template v-if="!availabilityAll">
-                                <div v-for="teamType in input.availability" :key="teamType.id">
+                            <template v-if="!availableToAll">
+                                <div v-for="teamType in input.teamTypeScope" :key="teamType.id">
                                     <ff-checkbox :id="teamType.id" v-model="teamType.enabled" type="checkbox" :label="teamType.name" />
                                 </div>
                             </template>
@@ -121,9 +121,9 @@ export default {
 
                     flows: flowBlueprint?.flows ? JSON.stringify(flowBlueprint.flows) : '',
                     modules: flowBlueprint?.modules ? JSON.stringify(flowBlueprint.modules) : '',
-                    availability: teamTypes.map(t => ({ id: t.id, name: t.name, enabled: flowBlueprint?.availability?.includes(t.id) || false }))
+                    teamTypeScope: teamTypes.map(t => ({ id: t.id, name: t.name, enabled: flowBlueprint?.teamTypeScope?.includes(t.id) || false }))
                 }
-                this.availabilityAll = !flowBlueprint?.availability
+                this.availableToAll = !flowBlueprint?.teamTypeScope
                 this.errors = {}
                 this.error = null
             }
@@ -141,10 +141,10 @@ export default {
                 defaultStack: '',
                 icon: '',
                 default: false,
-                availability: [],
+                teamTypeScope: [],
                 order: 0
             },
-            availabilityAll: true, // assume all are available by default
+            availableToAll: true, // assume all are available by default
             errors: {},
             error: null
         }
@@ -171,10 +171,10 @@ export default {
                 delete flowBlueprintProps.order
             }
 
-            if (this.availabilityAll) {
-                flowBlueprintProps.availability = null
+            if (this.availableToAll) {
+                flowBlueprintProps.teamTypeScope = null
             } else {
-                flowBlueprintProps.availability = this.input.availability.filter(t => t.enabled).map(t => t.id)
+                flowBlueprintProps.teamTypeScope = this.input.teamTypeScope.filter(t => t.enabled).map(t => t.id)
             }
 
             // Validation
