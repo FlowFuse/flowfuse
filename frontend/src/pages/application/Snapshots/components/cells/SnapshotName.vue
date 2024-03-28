@@ -10,7 +10,7 @@
                         Description
                     </summary>
                     <div
-                        class="whitespace-pre-line absolute border drop-shadow-md rounded bg-white p-2"
+                        class="whitespace-pre-line absolute border drop-shadow-md rounded bg-white p-2 z-10"
                         style="max-width: 300px;"
                     >
                         {{ description }}
