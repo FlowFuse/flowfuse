@@ -176,6 +176,7 @@ module.exports = function (app) {
                 }
             }
             if (hasDashboard2UI(settingsSettingsRow.value)) {
+                result.settings = result.settings || {} // Ensure settings exists
                 result.settings.dashboard2UI = '/dashboard'
             }
         }
