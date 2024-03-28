@@ -799,5 +799,91 @@ describe('Application Device Groups API', function () {
                 updatedDeviceGroup.should.have.property('targetSnapshotId', null)
             })
         })
+        describe('Changing a device owner removes the device from the group', function () {
+            it('Changing a device owner application removes the device from the group', async function () {
+                // Premise:
+                // Create a device in a group
+                // Change device owner to a different application
+                // Check the DeviceGroupId is null
+                const sid = await login('bob', 'bbPassword')
+                const application = TestObjects.application // BTeam application
+                const deviceGroupOne = await factory.createApplicationDeviceGroup({ name: generateName('device-group') }, application)
+
+                const device = await factory.createDevice({ name: generateName('device') }, TestObjects.BTeam, null, application)
+
+                // add the device to the group
+                await app.db.controllers.DeviceGroup.updateDeviceGroupMembership(deviceGroupOne, { addDevices: [device.id] })
+
+                // ensure the device is in the group
+                const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroupOne.hashid)
+                const devices = await updatedDeviceGroup.getDevices()
+                devices.should.have.length(1)
+
+                // set the device owner to a different application
+                const application2 = await factory.createApplication({ name: generateName('application') }, TestObjects.BTeam)
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.hashid}`,
+                    body: {
+                        application: application2.hashid
+                    },
+                    cookies: { sid }
+                })
+
+                // should succeed
+                response.statusCode.should.equal(200)
+
+                // ensure the device is not in the group
+                const updatedDeviceGroup2 = await app.db.models.DeviceGroup.byId(deviceGroupOne.hashid)
+                const devices2 = await updatedDeviceGroup2.getDevices()
+                devices2.should.have.length(0)
+
+                await device.reload()
+                device.should.have.property('DeviceGroupId', null)
+            })
+            it('Clearing device owner removes the device from the group', async function () {
+                // Premise:
+                // Create a device in a group
+                // Change device owner to a different application
+                // Check the DeviceGroupId is null
+                const sid = await login('bob', 'bbPassword')
+                const application = TestObjects.application // BTeam application
+                const deviceGroupOne = await factory.createApplicationDeviceGroup({ name: generateName('device-group') }, application)
+
+                const device = await factory.createDevice({ name: generateName('device') }, TestObjects.BTeam, null, application)
+
+                // add the device to the group
+                await app.db.controllers.DeviceGroup.updateDeviceGroupMembership(deviceGroupOne, { addDevices: [device.id] })
+
+                // ensure the device is in the group
+                const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroupOne.hashid)
+                const devices = await updatedDeviceGroup.getDevices()
+                devices.should.have.length(1)
+
+                await device.reload()
+                device.should.have.property('DeviceGroupId', updatedDeviceGroup.id)
+
+                // clear the device owner
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.hashid}`,
+                    body: {
+                        application: null
+                    },
+                    cookies: { sid }
+                })
+
+                // should succeed
+                response.statusCode.should.equal(200)
+
+                // ensure the device is not in the group
+                const updatedDeviceGroup2 = await app.db.models.DeviceGroup.byId(deviceGroupOne.hashid)
+                const devices2 = await updatedDeviceGroup2.getDevices()
+                devices2.should.have.length(0)
+
+                await device.reload()
+                device.should.have.property('DeviceGroupId', null)
+            })
+        })
     })
 })

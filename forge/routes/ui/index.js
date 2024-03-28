@@ -61,7 +61,7 @@ module.exports = async function (app) {
             if (telemetry.frontend.google?.tag) {
                 const tag = telemetry.frontend.google.tag
                 injection += `<script async src="https://www.googletagmanager.com/gtag/js?id=${tag}"></script>`
-                injection += `<script> window.dataLayer = window.dataLayer || []; window.gtag = function (){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', '${tag}'); </script>`
+                injection += `<script> window.dataLayer = window.dataLayer || []; let gtag = window.gtag = function (){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', '${tag}'); </script>`
             }
 
             if (support?.enabled && support.frontend?.hubspot?.trackingcode) {

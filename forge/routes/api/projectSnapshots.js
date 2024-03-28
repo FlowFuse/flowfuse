@@ -20,7 +20,7 @@ module.exports = async function (app) {
                     // We could single that out (as an uncommon path) and otherwise add { includeFlows: false }
                     // here to avoid loading the full flow object.
                     request.snapshot = await app.db.models.ProjectSnapshot.byId(request.params.snapshotId)
-                    if (!request.snapshot) {
+                    if (!request.snapshot || request.snapshot.ProjectId !== request.project.id) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return // eslint-disable-line no-useless-return
                     }

@@ -442,6 +442,8 @@ module.exports = async function (app) {
                     // Clear its target snapshot, so the next time it calls home
                     // it will stop the current snapshot
                     await device.setTargetSnapshot(null)
+                    // Since the project/application is being cleared, clear the deviceGroup
+                    device.DeviceGroupId = null
                     sendDeviceUpdate = true
                     // disable developer mode
                     device.mode = 'autonomous'
@@ -935,14 +937,13 @@ module.exports = async function (app) {
         // Set the target snapshot to match the project's one
         const deviceSettings = await project.getSetting('deviceSettings')
         device.targetSnapshotId = deviceSettings?.targetSnapshot
+        device.DeviceGroupId = null // not relevant to instances at this time, but no harm in clearing it
         return true
     }
     async function assignDeviceToApplication (device, application) {
         await device.setApplication(application)
-        // Set the target snapshot to match the project's one
-        // TODO
-        // const deviceSettings = await application.getSetting('deviceSettings')
-        // device.targetSnapshotId = deviceSettings?.targetSnapshot
+        // Since the application is being changed, clear the deviceGroup
+        device.DeviceGroupId = null
         return true
     }
     // #endregion

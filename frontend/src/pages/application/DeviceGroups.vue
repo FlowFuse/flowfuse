@@ -135,13 +135,18 @@ export default {
     computed: {
         ...mapState('account', ['features']),
         featureEnabledForTeam () {
-            return !!this.team.type.properties.features?.deviceGroups
+            return !!this.team?.type?.properties?.features?.deviceGroups
         },
         featureEnabledForPlatform () {
-            return this.features.deviceGroups
+            return this.features?.deviceGroups
         },
         featureEnabled () {
             return this.featureEnabledForTeam && this.featureEnabledForPlatform
+        }
+    },
+    watch: {
+        featureEnabled: function (v) {
+            this.loadDeviceGroups()
         }
     },
     mounted () {

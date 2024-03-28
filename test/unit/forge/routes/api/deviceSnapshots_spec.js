@@ -343,6 +343,17 @@ describe('Device Snapshots API', function () {
             const result = response.json()
             result.should.have.property('id', snapshotResult.id)
         })
+        it('Cannot get snapshot for mismatched device', async function () {
+            const snapshotResponse = await createSnapshot(TestObjects.appOwnedDevice.hashid, 'test-device-snapshot-01', TestObjects.tokens.alice, basicDeviceSnapshotWithFlows)
+            const snapshotResult = snapshotResponse.json()
+            // Try to get the snapshot using a different device id
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/${TestObjects.instanceOwnedDevice.hashid}/snapshots/${snapshotResult.id}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(404)
+        })
     })
 
     describe('Delete a snapshot', function () {
