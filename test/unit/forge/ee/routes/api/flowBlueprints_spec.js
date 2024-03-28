@@ -154,20 +154,20 @@ describe('Flow Blueprints API', function () {
             const [statusCode, resp] = await createBlueprint({ name: generateName('bp') }, TestObjects.tokens.alice)
             statusCode.should.equal(200)
             const bp1 = await app.db.models.FlowTemplate.byId(resp.id)
-            bp1.should.have.property('availability', null)
+            bp1.should.have.property('teamTypeScope', null)
         })
         it('Availability is set to empty array', async function () {
-            const [statusCode, resp] = await createBlueprint({ name: generateName('bp'), availability: [] }, TestObjects.tokens.alice)
+            const [statusCode, resp] = await createBlueprint({ name: generateName('bp'), teamTypeScope: [] }, TestObjects.tokens.alice)
             statusCode.should.equal(200)
             const bp1 = await app.db.models.FlowTemplate.byId(resp.id)
-            bp1.should.have.property('availability').and.be.an.Array().and.have.length(0)
+            bp1.should.have.property('teamTypeScope').and.be.an.Array().and.have.length(0)
         })
         it('Availability is set to an array of team types', async function () {
-            const [statusCode, resp] = await createBlueprint({ name: generateName('bp'), availability: [TestObjects.team.TeamType.hashid] }, TestObjects.tokens.alice)
+            const [statusCode, resp] = await createBlueprint({ name: generateName('bp'), teamTypeScope: [TestObjects.team.TeamType.hashid] }, TestObjects.tokens.alice)
             statusCode.should.equal(200)
             const bp1 = await app.db.models.FlowTemplate.byId(resp.id)
-            bp1.should.have.property('availability').and.be.an.Array().and.have.length(1)
-            bp1.availability[0].should.equal(TestObjects.team.TeamType.id) // note id not hashid
+            bp1.should.have.property('teamTypeScope').and.be.an.Array().and.have.length(1)
+            bp1.teamTypeScope[0].should.equal(TestObjects.team.TeamType.id) // note id not hashid
         })
     })
 
@@ -271,31 +271,31 @@ describe('Flow Blueprints API', function () {
                 await createBlueprint({
                     name: 'default-availability',
                     active: true,
-                    availability: null // All team types
+                    teamTypeScope: null // All team types
                 }, TestObjects.tokens.alice)
 
                 await createBlueprint({
                     name: 'none-available',
                     active: true,
-                    availability: [] // No team types
+                    teamTypeScope: [] // No team types
                 }, TestObjects.tokens.alice)
 
                 await createBlueprint({
                     name: 'starter-tier-only',
                     active: true,
-                    availability: [TestObjects.team.TeamType.hashid] // Only available to the default team type
+                    teamTypeScope: [TestObjects.team.TeamType.hashid] // Only available to the default team type
                 }, TestObjects.tokens.alice)
 
                 await createBlueprint({
                     name: 'enterprise-tier-only',
                     active: true,
-                    availability: [TestObjects.team2.TeamType.hashid] // Only available to the 2nd project type
+                    teamTypeScope: [TestObjects.team2.TeamType.hashid] // Only available to the 2nd project type
                 }, TestObjects.tokens.alice)
 
                 await createBlueprint({
                     name: 'all-selected',
                     active: true,
-                    availability: [TestObjects.team.TeamType.hashid, TestObjects.team2.TeamType.hashid] // Available to both team types
+                    teamTypeScope: [TestObjects.team.TeamType.hashid, TestObjects.team2.TeamType.hashid] // Available to both team types
                 }, TestObjects.tokens.alice)
             })
             it('Lists blueprints available to a starter tier', async function () {
@@ -416,12 +416,12 @@ describe('Flow Blueprints API', function () {
         })
         it('Updates availability', async function () {
             const name = generateName('flow blueprint with availability')
-            const availability = [] // start with no availability
-            const [statusCode, result] = await createBlueprint({ name, availability }, TestObjects.tokens.alice)
+            const teamTypeScope = [] // start with no teamTypeScope
+            const [statusCode, result] = await createBlueprint({ name, teamTypeScope }, TestObjects.tokens.alice)
             statusCode.should.equal(200)
             const blueprintId = result.id
 
-            // read from DB and confirm availability is an empty array
+            // read from DB and confirm teamTypeScope is an empty array
             const resp1 = await app.inject({
                 method: 'GET',
                 url: `/api/v1/flow-blueprints/${blueprintId}`,
@@ -429,15 +429,15 @@ describe('Flow Blueprints API', function () {
             })
             resp1.statusCode.should.equal(200)
             const resp1Json = resp1.json()
-            resp1Json.should.have.property('availability')
-            resp1Json.availability.should.be.an.Array().and.have.length(0)
+            resp1Json.should.have.property('teamTypeScope')
+            resp1Json.teamTypeScope.should.be.an.Array().and.have.length(0)
 
-            // update it with new availability
+            // update it with new teamTypeScope
             const team1Availability = [TestObjects.team.TeamType.hashid]
-            const [statusCode1] = await updateBlueprint(blueprintId, { availability: team1Availability }, TestObjects.tokens.alice)
+            const [statusCode1] = await updateBlueprint(blueprintId, { teamTypeScope: team1Availability }, TestObjects.tokens.alice)
             statusCode1.should.equal(200)
 
-            // read from DB and confirm availability is now the new value
+            // read from DB and confirm teamTypeScope is now the new value
             const resp2 = await app.inject({
                 method: 'GET',
                 url: `/api/v1/flow-blueprints/${blueprintId}`,
@@ -445,18 +445,18 @@ describe('Flow Blueprints API', function () {
             })
             resp2.statusCode.should.equal(200)
             const resp2Json = resp2.json()
-            resp2Json.should.have.property('availability')
-            resp2Json.availability.should.be.an.Array().and.have.length(1)
-            resp2Json.availability[0].should.equal(TestObjects.team.TeamType.hashid)
+            resp2Json.should.have.property('teamTypeScope')
+            resp2Json.teamTypeScope.should.be.an.Array().and.have.length(1)
+            resp2Json.teamTypeScope[0].should.equal(TestObjects.team.TeamType.hashid)
         })
         it('Discards invalid team types', async function () {
-            const name = generateName('flow blueprint with availability 2')
-            const availability = null // start all availability (null)
-            const [statusCode, result] = await createBlueprint({ name, availability }, TestObjects.tokens.alice)
+            const name = generateName('flow blueprint with teamTypeScope 2')
+            const teamTypeScope = null // start all teamTypeScope (null)
+            const [statusCode, result] = await createBlueprint({ name, teamTypeScope }, TestObjects.tokens.alice)
             statusCode.should.equal(200)
             const blueprintId = result.id
 
-            // read from DB and confirm availability is null
+            // read from DB and confirm teamTypeScope is null
             const resp1 = await app.inject({
                 method: 'GET',
                 url: `/api/v1/flow-blueprints/${blueprintId}`,
@@ -464,14 +464,14 @@ describe('Flow Blueprints API', function () {
             })
             resp1.statusCode.should.equal(200)
             const resp1Json = resp1.json()
-            resp1Json.should.have.property('availability').and.equal(null)
+            resp1Json.should.have.property('teamTypeScope').and.equal(null)
 
-            // update it with new availability, 1 good and 2 bad team types
+            // update it with new teamTypeScope, 1 good and 2 bad team types
             const team1Availability = [TestObjects.team.TeamType.hashid, 'bad1', 'bad2']
-            const [statusCode1] = await updateBlueprint(blueprintId, { availability: team1Availability }, TestObjects.tokens.alice)
+            const [statusCode1] = await updateBlueprint(blueprintId, { teamTypeScope: team1Availability }, TestObjects.tokens.alice)
             statusCode1.should.equal(200)
 
-            // read from DB and confirm availability is now the new value
+            // read from DB and confirm teamTypeScope is now the new value
             const resp2 = await app.inject({
                 method: 'GET',
                 url: `/api/v1/flow-blueprints/${blueprintId}`,
@@ -479,9 +479,9 @@ describe('Flow Blueprints API', function () {
             })
             resp2.statusCode.should.equal(200)
             const resp2Json = resp2.json()
-            resp2Json.should.have.property('availability')
-            resp2Json.availability.should.be.an.Array().and.have.length(1)
-            resp2Json.availability[0].should.equal(TestObjects.team.TeamType.hashid)
+            resp2Json.should.have.property('teamTypeScope')
+            resp2Json.teamTypeScope.should.be.an.Array().and.have.length(1)
+            resp2Json.teamTypeScope[0].should.equal(TestObjects.team.TeamType.hashid)
         })
     })
 

@@ -17,7 +17,7 @@ import client from './client.js'
  * @typedef {Object} FlowBlueprintDetails
  * @property {object} flows - Flow definition
  * @property {object} modules - Modules used in the flow
- * @property {Array.<string>} availability - Team types allowed to use this blueprint
+ * @property {Array.<string>} teamTypeScope - Team types allowed to use this blueprint
  */
 
 /**

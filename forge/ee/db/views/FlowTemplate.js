@@ -37,7 +37,7 @@ module.exports = function (app) {
         properties: {
             flows: { type: 'object', additionalProperties: true },
             modules: { type: 'object', additionalProperties: true },
-            availability: {
+            teamTypeScope: {
                 type: ['array', 'null'],
                 items: {
                     type: 'string'
@@ -47,10 +47,10 @@ module.exports = function (app) {
     })
     function flowBlueprint (blueprint) {
         const result = flowBlueprintSummary(blueprint)
-        if (Array.isArray(blueprint.availability)) {
-            result.availability = blueprint.availability.map(id => app.db.models.TeamType.encodeHashid(id))
+        if (Array.isArray(blueprint.teamTypeScope)) {
+            result.teamTypeScope = blueprint.teamTypeScope.map(id => app.db.models.TeamType.encodeHashid(id))
         } else {
-            result.availability = null // default (allow all)
+            result.teamTypeScope = null // default (allow all)
         }
         result.flows = blueprint.flows
         result.modules = blueprint.modules
