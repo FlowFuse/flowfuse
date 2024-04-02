@@ -684,8 +684,7 @@ export default {
             if (!this.flowBlueprintsEnabled || this.isCopyProject) {
                 return []
             }
-
-            const response = await flowBlueprintsApi.getFlowBlueprints()
+            const response = await flowBlueprintsApi.getFlowBlueprintsForTeam(this.team.id)
             const blueprints = response.blueprints
 
             const defaultBlueprint = blueprints.find((blueprint) => blueprint.default) || blueprints[0]

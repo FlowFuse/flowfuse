@@ -19,6 +19,23 @@
                     </template>
                 </FormRow>
 
+                <FormRow data-form="teamTypeScope" wrapper-class="flex flex-col flex-row relative">
+                    Team Type availability
+                    <template #description> Select the team types that can use this blueprint </template>
+                    <template #input>
+                        <div class="grid gap-1">
+                            <div>
+                                <ff-checkbox id="availableToAll" v-model="availableToAll" type="checkbox" label="All team types" />
+                            </div>
+                            <template v-if="!availableToAll">
+                                <div v-for="teamType in input.teamTypeScope" :key="teamType.id">
+                                    <ff-checkbox :id="teamType.id" v-model="teamType.enabled" type="checkbox" :label="teamType.name" />
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </FormRow>
+
                 <FormRow v-model="input.category" :error="errors.category" data-form="category">
                     Category
                     <template #description>Freeform (case-sensitive) category</template>
@@ -72,6 +89,10 @@ import FlowBlueprintsApi from '../../../../api/flowBlueprints.js'
 
 import FormRow from '../../../../components/FormRow.vue'
 
+/**
+ * @typedef {import('../../../../api/flowBlueprints').FlowBlueprint} FlowBlueprint
+ */
+
 export default {
     name: 'AdminFlowBlueprintForm',
     components: {
@@ -80,9 +101,15 @@ export default {
     emits: ['show-delete-dialog', 'flow-blueprint-created', 'flow-blueprint-updated'],
     setup () {
         return {
-            show (flowBlueprint) {
+            /**
+             * Show the dialog
+             * @param {FlowBlueprint} [flowBlueprint] - The flow blueprint to edit or null to create a new one
+             * @param {{id: string, name: string, order: number}[]} teamTypes - The team types to select from
+             */
+            show (flowBlueprint, teamTypes) {
                 this.$refs.dialog.show()
                 this.flowBlueprint = flowBlueprint
+                teamTypes = teamTypes || []
                 this.input = {
                     name: flowBlueprint?.name ?? '',
                     active: flowBlueprint?.active ?? true,
@@ -93,8 +120,10 @@ export default {
                     default: flowBlueprint?.default ?? false,
 
                     flows: flowBlueprint?.flows ? JSON.stringify(flowBlueprint.flows) : '',
-                    modules: flowBlueprint?.modules ? JSON.stringify(flowBlueprint.modules) : ''
+                    modules: flowBlueprint?.modules ? JSON.stringify(flowBlueprint.modules) : '',
+                    teamTypeScope: teamTypes.map(t => ({ id: t.id, name: t.name, enabled: flowBlueprint?.teamTypeScope?.includes(t.id) || false }))
                 }
+                this.availableToAll = !flowBlueprint?.teamTypeScope
                 this.errors = {}
                 this.error = null
             }
@@ -103,6 +132,7 @@ export default {
     data () {
         return {
             flowBlueprint: null,
+            teamTypes: [],
             input: {
                 name: '',
                 active: true,
@@ -111,8 +141,10 @@ export default {
                 defaultStack: '',
                 icon: '',
                 default: false,
+                teamTypeScope: [],
                 order: 0
             },
+            availableToAll: true, // assume all are available by default
             errors: {},
             error: null
         }
@@ -137,6 +169,12 @@ export default {
             const flowBlueprintProps = { ...this.input }
             if (flowBlueprintProps.order === '') {
                 delete flowBlueprintProps.order
+            }
+
+            if (this.availableToAll) {
+                flowBlueprintProps.teamTypeScope = null
+            } else {
+                flowBlueprintProps.teamTypeScope = this.input.teamTypeScope.filter(t => t.enabled).map(t => t.id)
             }
 
             // Validation

@@ -36,11 +36,22 @@ module.exports = function (app) {
         allOf: [{ $ref: 'FlowBlueprintSummary' }],
         properties: {
             flows: { type: 'object', additionalProperties: true },
-            modules: { type: 'object', additionalProperties: true }
+            modules: { type: 'object', additionalProperties: true },
+            teamTypeScope: {
+                type: ['array', 'null'],
+                items: {
+                    type: 'string'
+                }
+            }
         }
     })
     function flowBlueprint (blueprint) {
         const result = flowBlueprintSummary(blueprint)
+        if (Array.isArray(blueprint.teamTypeScope)) {
+            result.teamTypeScope = blueprint.teamTypeScope.map(id => app.db.models.TeamType.encodeHashid(id))
+        } else {
+            result.teamTypeScope = null // default (allow all)
+        }
         result.flows = blueprint.flows
         result.modules = blueprint.modules
         return result
