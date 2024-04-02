@@ -14,17 +14,17 @@
             />
             <div>
                 <label>Username</label>
-                <ff-text-input ref="signup-username" v-model="input.username" data-form="signup-username" label="username" :error="errors.username" />
-                <span class="ff-error-inline">{{ errors.username }}</span>
+                <ff-text-input ref="signup-username" v-model="input.username" data-form="signup-username" label="username" :error="showErrors.username ? errors.username : ''" />
+                <span class="ff-error-inline">{{ showErrors.username ? errors.username : '' }}</span>
                 <label>Full Name</label>
-                <ff-text-input ref="signup-fullname" v-model="input.name" data-form="signup-fullname" label="Full Name" :error="errors.name" />
-                <span class="ff-error-inline">{{ errors.name }}</span>
+                <ff-text-input ref="signup-fullname" v-model="input.name" data-form="signup-fullname" label="Full Name" :error="showErrors.name ? errors.name : ''" />
+                <span class="ff-error-inline">{{ showErrors.name ? errors.name : '' }}</span>
                 <label>E-Mail Address</label>
-                <ff-text-input ref="signup-email" v-model="input.email" data-form="signup-email" label="E-Mail Address" :error="errors.email" />
-                <span class="ff-error-inline">{{ errors.email }}</span>
+                <ff-text-input ref="signup-email" v-model="input.email" data-form="signup-email" label="E-Mail Address" :error="showErrors.email ? errors.email : ''" />
+                <span class="ff-error-inline">{{ showErrors.email ? errors.email : '' }}</span>
                 <label>Password</label>
-                <ff-text-input ref="signup-password" v-model="input.password" data-form="signup-password" label="password" :error="errors.password" type="password" />
-                <span class="ff-error-inline">{{ errors.password }}</span>
+                <ff-text-input ref="signup-password" v-model="input.password" data-form="signup-password" label="password" :error="showErrors.password ? errors.password : ''" type="password" />
+                <span class="ff-error-inline">{{ showErrors.password ? errors.password : '' }}</span>
             </div>
             <div v-if="askJoinReason" class="pt-3">
                 <ff-radio-group
@@ -85,7 +85,13 @@ export default {
         return {
             busy: false,
             tooManyRequests: false,
-            createDisabled: false,
+            // flags to prevent showing errors until user has interacted with the form elements
+            showErrors: {
+                username: false,
+                email: false,
+                password: false,
+                name: false
+            },
             teams: [],
             emailSent: false,
             ssoCreated: false,
@@ -100,7 +106,10 @@ export default {
             },
             errors: {
                 email: '',
-                password: ''
+                password: '',
+                username: '',
+                name: '',
+                general: ''
             },
             reasons: [
                 { label: 'Business Needs', value: 'business' },
@@ -118,10 +127,7 @@ export default {
         formValid () {
             return (this.input.email && !this.errors.email) &&
                    (this.input.username && !this.errors.username) &&
-                   this.input.password.length >= 8 &&
-                   this.input.password !== this.input.email &&
-                   this.input.password !== this.input.username &&
-                   zxcvbn(this.input.password).score >= 2 &&
+                   (this.input.password && !this.errors.password) &&
                    (this.askJoinReason ? this.input.join_reason : true) &&
                    (this.settings['user:tcs-required'] ? this.input.tcs_accepted : true) &&
                    (!this.errors.name)
@@ -131,47 +137,24 @@ export default {
         }
     },
     watch: {
-        'input.username': function (v) {
-            if (v && !/^[a-z0-9-_]+$/i.test(v)) {
-                this.errors.username = 'Must only contain a-z A-Z 0-9 - _'
-            } else {
-                this.errors.username = ''
-            }
-        },
-        'input.email': function (v) {
-            if (v && !/.+@.+/.test(v)) {
-                this.errors.email = 'Enter a valid email address'
-            } else {
-                this.errors.email = ''
-            }
-        },
-        'input.password': function (v) {
-            if (v.length >= 8) {
-                this.errors.password = ''
-            } else {
-                this.errors.password = 'Password needs to be longer than 8 chars'
-                return
-            }
-            if (v === this.input.username) {
-                this.errors.password = 'Password must not match username'
-                return
-            }
-            if (v === this.input.email) {
-                this.errors.password = 'Password must not match email'
-                return
-            }
-            if (zxcvbn(v).score >= 2) {
-                this.errors.password = ''
-            } else {
-                this.errors.password = 'Password needs to be more complex'
-            }
-        },
-        'input.name': function (v) {
-            if (v && /:\/\//i.test(v)) {
-                this.errors.name = 'Names can not be URLs'
-            } else {
-                this.errors.name = ''
-            }
+        // watch deep to ensure we catch all changes
+        input: {
+            handler: function (newVal) {
+                if (newVal.name) {
+                    this.showErrors.name = true
+                }
+                if (newVal.username) {
+                    this.showErrors.username = true
+                }
+                if (newVal.email) {
+                    this.showErrors.email = true
+                }
+                if (newVal.password) {
+                    this.showErrors.password = true
+                }
+                this.validateFormInputs()
+            },
+            deep: true
         }
     },
     async mounted () {
@@ -180,11 +163,72 @@ export default {
         zxcvbn = zxcvbnImp
     },
     methods: {
+        /**
+         * Single validation routine for inputs
+         * @returns {boolean} - true if all inputs are valid
+         */
+        validateFormInputs () {
+            if (!this.input.username.trim()) {
+                this.errors.username = 'Username is required'
+            } else if (!/^[a-z0-9-_]+$/i.test(this.input.username)) {
+                this.errors.username = 'Must only contain a-z A-Z 0-9 - _'
+            } else {
+                this.errors.username = ''
+            }
+
+            if (this.input.name.trim() && /:\/\//i.test(this.input.name)) {
+                this.errors.name = 'Names can not be URLs'
+            } else {
+                this.errors.name = ''
+            }
+
+            if (!this.input.email.trim()) {
+                this.errors.email = 'Email is required'
+            } else if (!/.+@.+/.test(this.input.email)) {
+                this.errors.email = 'Enter a valid email address'
+            } else {
+                this.errors.email = ''
+            }
+
+            if (!this.input.password) {
+                this.errors.password = 'Password is required'
+            } else if (this.input.password.length < 8) {
+                this.errors.password = 'Password needs to be longer than 8 chars'
+            } else if (this.input.password === this.input.username.trim()) {
+                this.errors.password = 'Password must not match username'
+            } else if (this.input.password === this.input.email.trim()) {
+                this.errors.password = 'Password must not match email'
+            } else if (this.input.password === this.input.name.trim()) {
+                this.errors.password = 'Password must not match name'
+            } else if (zxcvbn(this.input.password).score < 2) {
+                this.errors.password = 'Password needs to be more complex'
+            } else {
+                this.errors.password = ''
+            }
+
+            return !this.errors.username && !this.errors.email && !this.errors.password && !this.errors.name
+        },
         registerUser () {
+            // ensure errors are shown
+            this.showErrors = {
+                username: true,
+                email: true,
+                password: true,
+                name: true
+            }
+            const inputsValid = this.validateFormInputs()
+            if (!this.formValid || !inputsValid) {
+                // should not reach here due to button being disabled (catch all)
+                this.errors.general = 'Please check all fields are valid'
+                return
+            }
+
             if (this.$route.query.code) {
                 this.input.code = this.$route.query.code
             }
-            const opts = { ...this.input, name: this.input.name || this.input.username }
+            const name = this.input.name.trim()
+            const email = this.input.email.trim()
+            const opts = { ...this.input, name: name || this.input.username, email }
             this.busy = true // show spinner
             this.errors.general = '' // clear any previous errors
             userApi.registerUser(opts).then(result => {
@@ -213,7 +257,13 @@ export default {
                         }, 10000)
                     } else if (err.response.data.error === 'user registration not enabled') {
                         this.errors.general = 'User registration is not enabled'
+                    } else if (err.response.data.error === 'Validation isEmail on email failed') {
+                        this.errors.email = 'Invalid email address'
+                    } else {
+                        this.errors.general = 'An unexpected error occurred. Please try again later or contact support.'
                     }
+                } else {
+                    this.errors.general = 'An unexpected error occurred. Please try again later or contact support.'
                 }
             })
         }
