@@ -1,3 +1,5 @@
+const crypto = require('crypto')
+
 const { Op } = require('sequelize')
 const should = require('should')
 const sinon = require('sinon')
@@ -6,6 +8,7 @@ const { v4: uuidv4 } = require('uuid')
 const { createSnapshot } = require('../../../../../../forge/services/snapshots')
 const { addFlowsToProject } = require('../../../../../lib/Snapshots.js')
 const TestModelFactory = require('../../../../../lib/TestModelFactory.js')
+const { encryptCreds, decryptCreds } = require('../../../../../lib/credentials')
 
 const setup = require('../../setup')
 
@@ -37,16 +40,18 @@ describe('Pipelines API', function () {
     async function createDeviceSnapshot (device, options) {
         // Only stub once if called multiple times
         if (!app.comms.devices.sendCommandAwaitReply.restore) {
-            sinon.stub(app.comms.devices, 'sendCommandAwaitReply').resolves({
-                flows: [{ custom: 'custom-flows' }],
-                credentials: {
-                    $: {
-                        key: 'value'
-                    }
-                },
-                package: {
-                    modules: {
-                        custom: 'custom-module'
+            sinon.stub(app.comms.devices, 'sendCommandAwaitReply').callsFake(async function (teamId, deviceId) {
+                const device = await app.db.models.Device.byId(deviceId)
+                return {
+                    flows: [{ custom: 'custom-flows' }],
+                    credentials: encryptCreds(
+                        crypto.createHash('sha256').update(device.credentialSecret).digest(),
+                        { key: 'value' }
+                    ),
+                    package: {
+                        modules: {
+                            custom: 'custom-module'
+                        }
                     }
                 }
             })
@@ -85,7 +90,13 @@ describe('Pipelines API', function () {
         TestObjects.user = app.user
 
         TestObjects.deviceOne = await TestObjects.factory.createDevice({ name: 'device-a', type: 'dog' }, app.team, null, app.application)
+        await TestObjects.deviceOne.setTeam(TestObjects.team)
+        TestObjects.deviceOne = await app.db.models.Device.byId(TestObjects.deviceOne.id)
+        await TestObjects.deviceOne.refreshAuthTokens()
         TestObjects.deviceTwo = await TestObjects.factory.createDevice({ name: 'device-b', type: 'robot' }, app.team, null, app.application)
+        await TestObjects.deviceTwo.setTeam(TestObjects.team)
+        TestObjects.deviceTwo = await app.db.models.Device.byId(TestObjects.deviceTwo.id)
+        await TestObjects.deviceTwo.refreshAuthTokens()
 
         TestObjects.deviceGroupOne = await TestObjects.factory.createApplicationDeviceGroup({ name: 'device-group-a' }, app.application)
         TestObjects.deviceGroupTwo = await TestObjects.factory.createApplicationDeviceGroup({ name: 'device-group-b' }, app.application)
@@ -1652,6 +1663,11 @@ describe('Pipelines API', function () {
                         targetSnapshot.flows.flows[0].should.have.property('id', 'node1')
                         targetSnapshot.flows.should.have.property('credentials')
                         targetSnapshot.flows.credentials.should.have.property('$')
+
+                        const keyHash = crypto.createHash('sha256').update(targetSnapshot.credentialSecret).digest()
+                        const decrypted = decryptCreds(keyHash, targetSnapshot.flows.credentials)
+                        decrypted.should.have.property('testCreds', 'abc')
+
                         targetSnapshot.settings.should.have.property('settings')
                         targetSnapshot.settings.settings.should.have.property('httpAdminRoot', '/test-red')
                         targetSnapshot.settings.settings.should.have.property('dashboardUI', '/test-dash')
@@ -1975,6 +1991,10 @@ describe('Pipelines API', function () {
                     targetSnapshot.flows.should.have.property('credentials')
                     targetSnapshot.flows.credentials.should.have.property('$')
 
+                    const keyHash = crypto.createHash('sha256').update(targetSnapshot.credentialSecret).digest()
+                    const decrypted = decryptCreds(keyHash, targetSnapshot.flows.credentials)
+                    decrypted.should.have.property('custom', 'custom-creds')
+
                     targetSnapshot.settings.should.have.property('settings')
                     targetSnapshot.settings.modules.should.have.property('custom', 'custom-module')
                     targetSnapshot.settings.env.should.have.property('custom', 'custom-env')
@@ -2040,6 +2060,10 @@ describe('Pipelines API', function () {
 
                     targetSnapshot.flows.should.have.property('credentials')
                     targetSnapshot.flows.credentials.should.have.property('$')
+
+                    const keyHash = crypto.createHash('sha256').update(targetSnapshot.credentialSecret).digest()
+                    const decrypted = decryptCreds(keyHash, targetSnapshot.flows.credentials)
+                    decrypted.should.have.property('key', 'value')
 
                     targetSnapshot.settings.should.have.property('settings')
                     targetSnapshot.settings.modules.should.have.property('custom', 'custom-module')
@@ -2242,6 +2266,10 @@ describe('Pipelines API', function () {
                     targetSnapshot.flows.should.have.property('credentials')
                     targetSnapshot.flows.credentials.should.have.property('$')
 
+                    const keyHash = crypto.createHash('sha256').update(targetSnapshot.credentialSecret).digest()
+                    const decrypted = decryptCreds(keyHash, targetSnapshot.flows.credentials)
+                    decrypted.should.have.property('custom', 'custom-creds')
+
                     targetSnapshot.settings.should.have.property('settings')
                     targetSnapshot.settings.modules.should.have.property('custom', 'custom-module')
                     targetSnapshot.settings.env.should.have.property('custom', 'custom-env')
@@ -2302,6 +2330,10 @@ describe('Pipelines API', function () {
 
                     targetSnapshot.flows.should.have.property('credentials')
                     targetSnapshot.flows.credentials.should.have.property('$')
+
+                    const keyHash = crypto.createHash('sha256').update(targetSnapshot.credentialSecret).digest()
+                    const decrypted = decryptCreds(keyHash, targetSnapshot.flows.credentials)
+                    decrypted.should.have.property('key', 'value')
 
                     targetSnapshot.settings.should.have.property('settings')
                     targetSnapshot.settings.modules.should.have.property('custom', 'custom-module')
