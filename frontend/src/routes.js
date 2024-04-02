@@ -7,6 +7,7 @@ import AccountRoutes from './pages/account/routes.js'
 import AdminRoutes from './pages/admin/routes.js'
 import ProjectRoutes from './pages/application/routes.js'
 import DeviceRoutes from './pages/device/routes.js'
+import EditorRoutes from './pages/editor/routes.js'
 import HelpRoutes from './pages/help/routes.js'
 import InstanceRoutes from './pages/instance/routes.js'
 import TeamRoutes from './pages/team/routes.js'
@@ -29,6 +30,7 @@ const routes = [
     ...TeamRoutes,
     ...AdminRoutes,
     ...HelpRoutes,
+    ...EditorRoutes,
     {
         path: '/:pathMatch(.*)*',
         name: 'PageNotFound',
