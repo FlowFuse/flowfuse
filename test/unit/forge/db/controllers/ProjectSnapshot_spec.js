@@ -2,7 +2,7 @@ const crypto = require('crypto')
 
 const sinon = require('sinon')
 const should = require('should') // eslint-disable-line
-const { decryptCreds } = require('../../../../lib/credentials')
+const { encryptCreds, decryptCreds } = require('../../../../lib/credentials')
 const setup = require('../setup')
 
 describe('ProjectSnapshot controller', function () {
@@ -237,16 +237,18 @@ describe('ProjectSnapshot controller', function () {
     describe('createSnapshot (device)', function () {
         before(async function () {
             // mock app.comms.devices.sendCommandAwaitReply(device_Team_hashid, device_hashid, ...) so that it returns a valid config
-            sinon.stub(app.comms.devices, 'sendCommandAwaitReply').resolves({
-                flows: [{ id: '123', type: 'newNode' }],
-                credentials: {
-                    $: {
-                        key: 'value'
-                    }
-                },
-                package: {
-                    modules: {
-                        foo: '1.2.3'
+            sinon.stub(app.comms.devices, 'sendCommandAwaitReply').callsFake(async function (teamId, deviceId) {
+                const device = await app.db.models.Device.byId(deviceId)
+                return {
+                    flows: [{ id: '123', type: 'newNode' }],
+                    credentials: encryptCreds(
+                        crypto.createHash('sha256').update(device.credentialSecret).digest(),
+                        { key: 'value' }
+                    ),
+                    package: {
+                        modules: {
+                            foo: '1.2.3'
+                        }
                     }
                 }
             })
@@ -268,6 +270,8 @@ describe('ProjectSnapshot controller', function () {
             const device = await factory.createDevice({ name: 'device-1' }, team, null, application)
             // get db Device with all associations
             const dbDevice = await app.db.models.Device.byId(device.id)
+            // Ensure device has credentialSecret
+            await dbDevice.refreshAuthTokens()
 
             const snapshot = await app.db.controllers.ProjectSnapshot.createDeviceSnapshot(application, dbDevice, user, options)
             snapshot.should.have.property('name', 'snapshot1')
@@ -280,6 +284,10 @@ describe('ProjectSnapshot controller', function () {
             snapshot.flows.should.have.only.keys('flows', 'credentials')
             snapshot.flows.flows.should.have.length(1)
             snapshot.flows.flows[0].should.have.property('id', '123')
+
+            const keyHash = crypto.createHash('sha256').update(snapshot.credentialSecret).digest()
+            const decrypted = decryptCreds(keyHash, snapshot.flows.credentials)
+            decrypted.should.have.property('key', 'value')
         })
 
         describe('auto snapshots', function () {
@@ -329,7 +337,11 @@ describe('ProjectSnapshot controller', function () {
                     const device1 = await factory.createDevice({ name: 'device 1' }, team, null, application)
                     const device2 = await factory.createDevice({ name: 'device 2' }, team, null, application)
                     app.TestObjects.device1 = await app.db.models.Device.byId(device1.id, { include: app.db.models.Team })
+                    // Ensure device has credentialSecret
+                    await app.TestObjects.device1.refreshAuthTokens()
                     app.TestObjects.device2 = await app.db.models.Device.byId(device2.id, { include: app.db.models.Team })
+                    // Ensure device has credentialSecret
+                    await app.TestObjects.device2.refreshAuthTokens()
                 })
 
                 after(async function () {
@@ -350,6 +362,15 @@ describe('ProjectSnapshot controller', function () {
                     snapshot.name.should.match(/Auto Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
                     snapshot.should.have.a.property('description')
                     snapshot.description.should.match(/Device Auto Snapshot taken following a Full deployment/)
+
+                    snapshot.should.have.property('flows')
+                    snapshot.flows.should.have.only.keys('flows', 'credentials')
+                    snapshot.flows.flows.should.have.length(1)
+                    snapshot.flows.flows[0].should.have.property('id', '123')
+
+                    const keyHash = crypto.createHash('sha256').update(snapshot.credentialSecret).digest()
+                    const decrypted = decryptCreds(keyHash, snapshot.flows.credentials)
+                    decrypted.should.have.property('key', 'value')
                 })
 
                 it('only keeps 10 autoSnapshots for a device', async function () {
@@ -361,7 +382,7 @@ describe('ProjectSnapshot controller', function () {
                         const ss = await app.db.controllers.ProjectSnapshot.doDeviceAutoSnapshot(device, 'full', options, meta)
                         await ss.update({ description: `Auto Snapshot - ${i}` }) // update description to make it clear the round-robin cleanup is working
                     }
-                    const snapshots = await app.db.models.ProjectSnapshot.findAll({ where: { DeviceId: device.id } })
+                    const snapshots = await app.db.models.ProjectSnapshot.findAll({ where: { DeviceId: device.id }, order: [['id', 'ASC']] })
                     // even though 12 snapshots were created in total, only 10 are kept
                     snapshots.should.have.length(10)
                     snapshots[0].description.should.equal('Auto Snapshot - 3') // note ss 1 & 2 were auto cleaned up
