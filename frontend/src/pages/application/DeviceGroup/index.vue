@@ -19,6 +19,32 @@
                 <template #breadcrumbs>
                     <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'ApplicationDeviceGroups', params: {id: application?.id}}">Device Groups</ff-nav-breadcrumb>
                 </template>
+                <template #tools>
+                    <InfoCard header="">
+                        <template #content>
+                            <InfoCardRow property="Target Snapshot:">
+                                hello
+                                <template #value>
+                                    <span class="flex gap-2 pr-2">
+                                        <span class="flex items-center space-x-2 text-gray-500 italic">
+                                            <ExclamationIcon v-if="!targetSnapshot" class="text-yellow-600 w-4" />
+                                            <CheckCircleIcon v-else class="text-green-700 w-4" />
+                                        </span>
+                                        <template v-if="targetSnapshot">
+                                            <div class="flex flex-col">
+                                                <span>{{ targetSnapshot.name }}</span>
+                                                <span class="text-xs text-gray-500">{{ targetSnapshot.id }}</span>
+                                            </div>
+                                        </template>
+                                        <template v-else>
+                                            No Target Snapshot Set
+                                        </template>
+                                    </span>
+                                </template>
+                            </InfoCardRow>
+                        </template>
+                    </InfoCard>
+                </template>
                 <template #context>
                     <div>
                         Application:
@@ -43,7 +69,7 @@
 </template>
 
 <script>
-import { CogIcon } from '@heroicons/vue/solid'
+import { CheckCircleIcon, CogIcon, ExclamationIcon } from '@heroicons/vue/outline'
 
 import { mapState } from 'vuex'
 
@@ -51,6 +77,8 @@ import { Roles } from '../../../../../forge/lib/roles.js'
 
 import ApplicationApi from '../../../api/application.js'
 
+import InfoCard from '../../../components/InfoCard.vue'
+import InfoCardRow from '../../../components/InfoCardRow.vue'
 import SideNavigationTeamOptions from '../../../components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '../../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../../components/banners/TeamTrial.vue'
@@ -61,6 +89,10 @@ import permissionsMixin from '../../../mixins/Permissions.js'
 export default {
     name: 'DeviceGroup',
     components: {
+        CheckCircleIcon,
+        ExclamationIcon,
+        InfoCard,
+        InfoCardRow,
         SideNavigationTeamOptions,
         SubscriptionExpiredBanner,
         TeamTrialBanner
@@ -113,6 +145,9 @@ export default {
         },
         devicesArray () {
             return this.applicationDevices
+        },
+        targetSnapshot () {
+            return this.deviceGroup?.targetSnapshot || null
         }
     },
     async created () {

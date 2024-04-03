@@ -64,6 +64,7 @@
 
 <script>
 import { PlusSmIcon } from '@heroicons/vue/outline'
+import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
 import ApplicationAPI from '../../api/application.js'
@@ -74,12 +75,13 @@ import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
 import Alerts from '../../services/alerts.js'
 
+import TargetSnapshotCell from './components/cells/TargetSnapshot.vue'
+
 export default {
     name: 'ApplicationDeviceGroups',
     components: {
         EmptyState,
         FormRow,
-        // eslint-disable-next-line vue/no-unused-components
         PlusSmIcon,
         SectionTopMenu
     },
@@ -120,7 +122,14 @@ export default {
                     label: 'Description',
                     key: 'description',
                     sortable: true,
-                    class: 'w-full'
+                    class: 'w-1/3'
+                },
+                {
+                    label: 'Target Snapshot',
+                    key: 'description',
+                    sortable: true,
+                    class: 'w-full',
+                    component: { is: markRaw(TargetSnapshotCell) }
                 },
                 {
                     label: 'Device count',
@@ -190,6 +199,12 @@ export default {
             ApplicationAPI.getDeviceGroups(this.application.id)
                 .then((groups) => {
                     this.deviceGroups = groups.groups
+                    if (this.deviceGroups?.length > 0) {
+                        // if there is no target snapshot set, set it to an empty object so that the `markRaw` function renders _something_ in the table cell
+                        this.deviceGroups.forEach((group) => {
+                            group.targetSnapshot = group.targetSnapshot || {}
+                        })
+                    }
                 })
                 .catch((err) => {
                     console.error(err)
