@@ -14,10 +14,10 @@
                 </template>
                 <template #status>
                     <InstanceStatusBadge :status="instance.meta?.state" :optimisticStateChange="instance.optimisticStateChange" :pendingStateChange="instance.pendingStateChange" />
-                    <router-link v-if="instance.ha?.replicas !== undefined" :to="{name: 'InstanceSettingsHA', params: { id: instance.id }}" @click.stop>
+                    <router-link v-if="instance.ha?.replicas !== undefined" :to="{name: 'instance-settings-ha', params: { id: instance.id }}" @click.stop>
                         <StatusBadge class="ml-2 text-gray-400 hover:text-blue-600" status="high-availability" />
                     </router-link>
-                    <router-link v-if="instance.protected?.enabled" :to="{ name: 'InstanceSettingsProtect'}" @click.stop>
+                    <router-link v-if="instance.protected?.enabled" :to="{ name: 'instance-settings-protect'}" @click.stop>
                         <StatusBadge class="ml-2 text-gray-400 hover:text-blue-600" data-el="protected-pill" status="protected" text="Protected" />
                     </router-link>
                 </template>
@@ -226,12 +226,12 @@ export default {
             this.instanceStateMutator = new InstanceStateMutator(this.instance)
 
             this.navigation = [
-                { label: 'Overview', to: `/instance/${this.instance.id}/overview`, tag: 'instance-overview' },
-                { label: 'Devices', to: `/instance/${this.instance.id}/devices`, tag: 'instance-remote' },
-                { label: 'Snapshots', to: `/instance/${this.instance.id}/snapshots`, tag: 'instance-snapshots' },
-                { label: 'Audit Log', to: `/instance/${this.instance.id}/audit-log`, tag: 'instance-activity' },
-                { label: 'Node-RED Logs', to: `/instance/${this.instance.id}/logs`, tag: 'instance-logs' },
-                { label: 'Settings', to: `/instance/${this.instance.id}/settings`, tag: 'instance-settings' }
+                { label: 'Overview', to: { name: 'instance-overview', params: { id: this.instance.id } }, tag: 'instance-overview' },
+                { label: 'Devices', to: { name: 'instance-devices', params: { id: this.instance.id } }, tag: 'instance-remote' },
+                { label: 'Snapshots', to: { name: 'instance-snapshots', params: { id: this.instance.id } }, tag: 'instance-snapshots' },
+                { label: 'Audit Log', to: { name: 'instance-audit-log', params: { id: this.instance.id } }, tag: 'instance-activity' },
+                { label: 'Node-RED Logs', to: { name: 'instance-logs', params: { id: this.instance.id } }, tag: 'instance-logs' },
+                { label: 'Settings', to: { name: 'instance-settings', params: { id: this.instance.id } }, tag: 'instance-settings' }
             ]
         },
         async startInstance () {
