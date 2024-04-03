@@ -364,9 +364,12 @@ module.exports = {
     createSnapshot: async function (app, project, user, options) {
         const projectExport = await app.db.controllers.Project.exportProject(project)
 
+        const credentialSecret = await project.getCredentialSecret()
+
         const snapshotOptions = {
             name: options.name || '',
             description: options.description || '',
+            credentialSecret,
             settings: {
                 settings: projectExport.settings || {},
                 env: projectExport.env || {},
@@ -380,9 +383,8 @@ module.exports = {
             UserId: user.id
         }
         if (options.flows) {
-            const projectSecret = await project.getCredentialSecret()
             snapshotOptions.flows.flows = options.flows
-            snapshotOptions.flows.credentials = app.db.controllers.Project.exportCredentials(options.credentials || {}, options.credentialSecret, projectSecret)
+            snapshotOptions.flows.credentials = app.db.controllers.Project.exportCredentials(options.credentials || {}, options.credentialSecret, credentialSecret)
         }
         if (options.settings?.modules) {
             snapshotOptions.settings.modules = options.settings.modules
@@ -416,9 +418,12 @@ module.exports = {
     createSnapshotFromDevice: async function (app, project, device, user, options) {
         const projectExport = await app.db.controllers.Project.exportProject(project)
         const deviceConfig = await app.db.controllers.Device.exportConfig(device)
+        const credentialSecret = await project.getCredentialSecret()
+
         const snapshotOptions = {
             name: options.name || '',
             description: options.description || '',
+            credentialSecret,
             settings: {
                 settings: projectExport.settings || {},
                 env: projectExport.env || {},
@@ -432,9 +437,8 @@ module.exports = {
             UserId: user.id
         }
         if (deviceConfig?.flows) {
-            const projectSecret = await project.getCredentialSecret()
             snapshotOptions.flows.flows = deviceConfig.flows
-            snapshotOptions.flows.credentials = app.db.controllers.Project.exportCredentials(deviceConfig.credentials || {}, device.credentialSecret, projectSecret)
+            snapshotOptions.flows.credentials = app.db.controllers.Project.exportCredentials(deviceConfig.credentials || {}, device.credentialSecret, credentialSecret)
         }
         if (deviceConfig?.package?.modules) {
             snapshotOptions.settings.modules = deviceConfig.package.modules
@@ -458,6 +462,7 @@ module.exports = {
         const snapshotOptions = {
             name: options.name || '',
             description: options.description || '',
+            credentialSecret: device.credentialSecret,
             settings: {
                 settings: {}, // TODO: when device settings at application level are implemented
                 env: {}, // TODO: when device settings at application level are implemented

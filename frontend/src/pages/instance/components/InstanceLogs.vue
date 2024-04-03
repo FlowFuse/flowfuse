@@ -87,16 +87,31 @@ export default {
             this.loading = false
         }
         await this.fetchData()
-
-        this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME)
+        // since the fetchdata is async, we need to check if the current page is
+        // still the log page before starting the poll timer
+        if (this.shouldPoll()) {
+            this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME)
+        }
     },
     unmounted () {
-        this.pollTimer.stop()
+        this.stopPolling()
+    },
+    beforeUnmount () {
+        this.stopPolling()
     },
     methods: {
+        shouldPoll: function () {
+            return this.$route.fullPath.match(/\/(?:application|instance)\/[^/]+\/logs/)
+        },
         pollTimerElapsed: function () {
             if (this.instance.meta && this.instance.meta.state !== 'suspended') {
                 this.loadNext()
+            }
+        },
+        stopPolling: function () {
+            if (this.pollTimer) {
+                this.pollTimer.stop()
+                this.pollTimer = null
             }
         },
         fetchData: async function () {
@@ -117,6 +132,12 @@ export default {
             this.loadItems(this.instance.id, this.nextCursor)
         },
         loadItems: async function (instanceId, cursor) {
+            // don't poll if the page is not the log page
+            if (!this.shouldPoll()) {
+                this.stopPolling()
+                return
+            }
+
             try {
                 const entries = await InstanceApi.getInstanceLogs(instanceId, cursor, null, { showAlert: false })
                 this.showOfflineBanner = false
@@ -155,6 +176,12 @@ export default {
                     }
                 }
             } catch (error) {
+                // the page could have been switched while the async request was in progress, if so
+                // stop the polling and return immediately to avoid unnecessary error alerts
+                if (!this.shouldPoll()) {
+                    this.stopPolling()
+                    return
+                }
                 // log the error as warn for troubleshooting purposes
                 console.warn('Unable to retrieve Node-RED instance logs:', error)
 

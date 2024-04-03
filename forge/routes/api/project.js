@@ -168,6 +168,12 @@ module.exports = async function (app) {
                 reply.code(400).send({ code: 'invalid_flow_blueprint', error: 'Flow Blueprint not found' })
                 return
             }
+            // ensure this teams type is allowed to use this blueprint
+            const teamType = await team.getTeamType()
+            if (flowBlueprint.teamTypeScope && !flowBlueprint.teamTypeScope.includes(teamType.id)) {
+                reply.code(400).send({ code: 'invalid_flow_blueprint', error: 'Flow Blueprint not allowed for this team' })
+                return
+            }
         }
         // Read in any source to copy from
         let sourceProject
