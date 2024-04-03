@@ -23,6 +23,8 @@ This guide will help you learn how to use the FlowFuse platform to quickly creat
 
 ![Blueprint selection](./images/blueprint-selection.png)
 
+NOTE: _Some blueprints may only be available on certain tiers_
+
 ## Creating Your First Flow
 
 If you are already familiar with Node-RED, you can [skip this section](#creating-your-first-devops-pipeline).

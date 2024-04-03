@@ -75,6 +75,11 @@ plugins to integrate it with the platform.
 A number of the standard Node-RED settings are exposed for customisation, and they
 can be preset by applying a Template when creating the Instance.
 
+When an instance is being created, the user can select a blueprint to use. This
+blueprint is a combination of a modules and flows that are pre-set to give the
+user a head start in their development. Blueprints are created by the platform
+Administrator and can be limited to specific team tiers.
+
 When running in Docker or Kubernetes (such as FlowFuse Cloud), the instance names
 are used as the hostname to access the instance. This means that the names must
 be DNS safe (made up of a-z, 0-9 and -) and not start with a number. Currently
