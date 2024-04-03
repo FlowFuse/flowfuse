@@ -23,7 +23,7 @@
 import { CheckCircleIcon, ExclamationIcon } from '@heroicons/vue/outline'
 
 export default {
-    name: 'CloudLink',
+    name: 'SnapshotCell',
     components: {
         ExclamationIcon,
         CheckCircleIcon
