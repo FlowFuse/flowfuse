@@ -151,6 +151,7 @@ jobs:
             --set forge.entryPoint=${{ env.PR_NUMBER }}.flowfuse.dev \
             --set forge.projectNamespace=pr-${{ env.PR_NUMBER }}-projects \
             --set forge.clusterRole.name=pr-${{ env.PR_NUMBER }}-clusterrole \
+            --set forge.license=${{ secrets.PRE_STAGING_LICENSE }} \
             flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowforge
 
       - name: Initial setup
