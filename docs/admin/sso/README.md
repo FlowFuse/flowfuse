@@ -240,6 +240,7 @@ Under the Login Settings:
 
 Once created and you are shown the full client configuration, make the following additional changes:
  - Set `Name ID format` to `email`
+ - Under the 'Keys' tab, turn off `Client signature required`
 
 Save the changes.
 
