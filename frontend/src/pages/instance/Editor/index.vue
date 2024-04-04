@@ -11,13 +11,12 @@
             />
         </section>
 
-        <section class="tabs-wrapper">
+        <section class="tabs-wrapper drawer" :class="{'open': drawer.open}">
             <div class="header">
                 <div class="logo">
                     <router-link :to="{ name: 'Home' }">
                         <ArrowLeftIcon class="ff-btn--icon" />
-
-                        <img src="../../../images/icons/ff-minimal-grey.svg">
+                        <img src="../../../images/icons/ff-minimal-grey.svg" alt="logo">
                     </router-link>
                 </div>
                 <ff-tabs :tabs="navigation" class="tabs" />
@@ -25,9 +24,7 @@
                     <a :href="instance.url" target="_blank">
                         <ExternalLinkIcon class="ff-btn--icon" />
                     </a>
-                    <router-link :to="{ name: 'Home' }">
-                        <ChevronDownIcon class="ff-btn--icon" />
-                    </router-link>
+                    <ChevronDownIcon class="ff-btn--icon close-drawer" @click="toggleDrawer" />
                 </div>
             </div>
             <ff-page>
@@ -39,6 +36,9 @@
                     @instance-confirm-suspend="showConfirmSuspendDialog"
                 />
             </ff-page>
+            <div class="drawer-trigger" @click="toggleDrawer">
+                <img src="../../../images/icons/ff-minimal-grey.svg" alt="logo">
+            </div>
         </section>
     </div>
 </template>
@@ -55,7 +55,10 @@ export default {
     mixins: [instanceMixin],
     data () {
         return {
-            instance: {}
+            instance: {},
+            drawer: {
+                open: true
+            }
         }
     },
     computed: {
@@ -97,6 +100,11 @@ export default {
     },
     mounted () {
         this.loadInstance()
+    },
+    methods: {
+        toggleDrawer () {
+            this.drawer.open = !this.drawer.open
+        }
     }
 }
 </script>
@@ -119,45 +127,62 @@ export default {
     left: 0;
     bottom: 0;
     width: 100%;
+    height: 0;
     background: white;
-    max-height: 320px;
     box-shadow: 3.841px -3.841px 7.682px rgba(0, 0, 0, 0.10);
+    transition: ease-in-out 0.3s;
 
-    //&::before {
-    //  content: '...';
-    //  position: absolute;
-    //  top: -4px;
-    //  left: 50%;
-    //  border-radius: 9px;
-    //  border: 1px solid $ff-grey-400;
-    //  background: $ff-grey-100;
-    //  color: $ff-grey-400;
-    //  letter-spacing: 5px;
-    //  width: 35px;
-    //  height: 10px;
-    //  display: flex;
-    //  padding: 0;
-    //  cursor: ns-resize;
-    //  justify-content: end;
-    //  align-items: flex-end;
-    //  flex-direction: column;
-    //
-    //  &:hover {
-    //    cursor: ns-resize;
-    //  }
-    //}
-
-    .logo {
-      display: flex;
+    &::before {
+      content: '...';
+      position: absolute;
+      top: -4px;
+      left: 50%;
+      border-radius: 9px;
+      border: 1px solid $ff-grey-400;
+      background: $ff-grey-100;
+      color: $ff-grey-400;
+      letter-spacing: 5px;
+      width: 35px;
+      height: 10px;
+      display: none;
+      padding: 0;
+      cursor: ns-resize;
+      justify-content: end;
+      align-items: flex-end;
       flex-direction: column;
-      justify-content: center;
 
-      a {
+      &:hover {
+        cursor: ns-resize;
+      }
+    }
+
+    .drawer-trigger {
+      display: block;
+      position: absolute;
+      top: -30px;
+      left: 50%;
+      padding: 2px 30px;
+      background: white;
+      border: 1px solid $ff-grey-400;
+      box-shadow: 3.841px -3.841px 7.682px rgba(0, 0, 0, 0.10);
+      border-radius: 10px 10px 0 0;
+      transition: ease-out .7s;
+
+      &:hover {
+        cursor: pointer;
+      }
+    }
+
+    &.open {
+      height: 320px;
+
+      .drawer-trigger {
+        top: 500px;
+        transition: ease-in .1s;
+      }
+
+      &::before {
         display: flex;
-        justify-content: center;
-        align-items: center;
-        color: $ff-grey-500;
-        gap: 10px;
       }
     }
 
@@ -167,6 +192,20 @@ export default {
       line-height: 1.5;
       border-top: 1px solid $ff-grey-400;
       border-bottom: 1px solid $ff-grey-200;
+
+      .logo {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        a {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          color: $ff-grey-500;
+          gap: 10px;
+        }
+      }
 
       .tabs {
         flex: 1;
@@ -181,6 +220,12 @@ export default {
 
         .ff-btn--icon {
           margin-left: 10px;
+        }
+
+        .close-drawer {
+          &:hover {
+            cursor: pointer;
+          }
         }
       }
     }
