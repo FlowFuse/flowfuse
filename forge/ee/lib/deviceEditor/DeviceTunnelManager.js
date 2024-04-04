@@ -170,12 +170,22 @@ class DeviceTunnelManager {
             const reply = tunnel.requests[response.id]
             if (reply) {
                 delete tunnel.requests[response.id]
-                reply.headers(response.headers ? response.headers : {})
-                reply.code(response.status)
-                if (response.body) {
-                    reply.send(Buffer.from(response.body))
-                } else {
+                if (!response.status) {
+                    // An invalid response has been received. We aren't sure what triggers this,
+                    // so log it and move on
+                    // Ideally we may want to tear down the socket, but doing a minimal iteration
+                    // to capture more information
+                    reply.code(500)
                     reply.send()
+                    this.app.log.warn(`Device ${device.hashid} tunnel error: unexpected response: ${msg.toString()}`)
+                } else {
+                    reply.headers(response.headers ? response.headers : {})
+                    reply.code(response.status)
+                    if (response.body) {
+                        reply.send(Buffer.from(response.body))
+                    } else {
+                        reply.send()
+                    }
                 }
             } else if (response.ws) {
                 const wsSocket = tunnel.forwardedWS[response.id]
