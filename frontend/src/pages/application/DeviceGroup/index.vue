@@ -26,7 +26,7 @@
                                 hello
                                 <template #value>
                                     <span class="flex gap-2 pr-2">
-                                        <span class="flex items-center space-x-2 text-gray-500 italic">
+                                        <span class="flex items-center space-x-2 pt-1 text-gray-500 italic">
                                             <ExclamationIcon v-if="!targetSnapshot" class="text-yellow-600 w-4" />
                                             <CheckCircleIcon v-else class="text-green-700 w-4" />
                                         </span>
