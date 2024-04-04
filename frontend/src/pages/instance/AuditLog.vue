@@ -38,10 +38,10 @@ export default {
     watch: {
         instance () {
             this.$refs.AuditLog?.loadEntries()
+        },
+        'team.id' () {
+            this.loadUsers()
         }
-    },
-    created () {
-        this.loadUsers()
     },
     methods: {
         async loadUsers () {
