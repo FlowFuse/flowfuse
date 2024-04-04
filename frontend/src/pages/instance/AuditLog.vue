@@ -48,8 +48,9 @@ export default {
             this.users = (await TeamAPI.getTeamMembers(this.team.id)).members
         },
         async loadEntries (params = new URLSearchParams(), cursor = undefined) {
-            const instanceId = this.instance.id
-            this.logEntries = (await InstanceApi.getInstanceAuditLog(instanceId, params, cursor, 200)).log
+            if (this.instance.id) {
+                this.logEntries = (await InstanceApi.getInstanceAuditLog(this.instance.id, params, cursor, 200)).log
+            }
         }
     }
 }
