@@ -503,14 +503,16 @@ export default {
         this.templates = (await templateListPromise).templates.filter(template => template.active)
 
         this.activeProjectTypeCount = projectTypes.length
-        if (this.billingEnabled && !this.team.billing?.unmanaged) {
-            try {
-                this.subscription = await billingApi.getSubscriptionInfo(this.team.id)
-            } catch (err) {
-                if (err.response?.data?.code === 'not_found') {
-                    // This team has no subscription.
-                    if (!this.team.billing?.trial || this.team.billing?.trialEnded) {
-                        throw err
+        if (this.billingEnabled) {
+            if (!this.team.billing?.unmanaged) {
+                try {
+                    this.subscription = await billingApi.getSubscriptionInfo(this.team.id)
+                } catch (err) {
+                    if (err.response?.data?.code === 'not_found') {
+                        // This team has no subscription.
+                        if (!this.team.billing?.trial || this.team.billing?.trialEnded) {
+                            throw err
+                        }
                     }
                 }
             }
@@ -536,7 +538,7 @@ export default {
                         pt.disabled = true
                     }
                 }
-                if (!pt.disabled) {
+                if (!pt.disabled && !this.team.billing?.unmanaged) {
                     let billingDescription
                     if (teamTypeInstanceProperties) {
                         // TeamType provides meta data to use - do not fall back to instanceType
