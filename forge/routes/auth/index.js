@@ -628,8 +628,8 @@ async function init (app, opts) {
         config: {
             rateLimit: app.config.rate_limits
                 ? {
-                    max: 5,
-                    timeWindow: 30000,
+                    max: 2,
+                    timeWindow: 60000,
                     keyGenerator: app.config.rate_limits.keyGenerator,
                     hard: true
                 }
@@ -717,8 +717,8 @@ async function init (app, opts) {
         config: {
             rateLimit: app.config.rate_limits
                 ? {
-                    max: 5,
-                    timeWindow: 30000,
+                    max: 2,
+                    timeWindow: 60000,
                     keyGenerator: app.config.rate_limits.keyGenerator,
                     hard: true
                 }
