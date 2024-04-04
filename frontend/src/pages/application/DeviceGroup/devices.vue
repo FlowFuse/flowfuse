@@ -55,6 +55,7 @@
                     :show-search="true"
                     search-placeholder="Search..."
                     :no-data-message="localMemberDevices?.length ? 'No Devices found, try another search term' : 'No Devices assigned to this group'"
+                    data-el="device-group-members"
                     @update:search="updateMemberDevicesListDebounced"
                     @update:sort="updateMemberDevicesSort"
                 >

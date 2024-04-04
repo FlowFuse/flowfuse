@@ -16,8 +16,8 @@
         v-if="loading"
         message="Loading Device Groups..."
     />
-    <div v-else-if="deviceGroups?.length > 0" class="pt-4 space-y-6" data-el="pipelines-list">
-        <ff-data-table v-model:search="tableSearch" :columns="tableColumns" :rows="deviceGroups" :show-search="true" search-placeholder="Filter..." :rows-selectable="true" @row-selected="editDeviceGroup">
+    <div v-else-if="deviceGroups?.length > 0" class="pt-4 space-y-6" data-el="device-group-list">
+        <ff-data-table v-model:search="tableSearch" :columns="tableColumns" :rows="deviceGroups" :show-search="true" search-placeholder="Filter..." data-el="device-groups-table" :rows-selectable="true" @row-selected="editDeviceGroup">
             <template #actions>
                 <ff-button data-action="create-device-group" :disabled="!featureEnabled" @click="showCreateDeviceGroupDialog">
                     <template #icon-left><PlusSmIcon /></template>

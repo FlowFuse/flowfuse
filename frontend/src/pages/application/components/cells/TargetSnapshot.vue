@@ -13,8 +13,13 @@
                 class="text-green-700 w-4"
             />
         </span>
-        <template v-if="targetSnapshot?.id"><div class="flex flex-col"><span>{{ targetSnapshot?.name }}</span><span class="text-xs text-gray-500">{{ targetSnapshot?.id }}</span></div></template>
-        <template v-else><span class="italic text-gray-500">none</span></template>
+        <template v-if="targetSnapshot?.id"><div class="flex flex-col">
+            <span data-el="snapshot-name">{{ targetSnapshot?.name }}</span>
+            <span class="text-xs text-gray-500" data-el="snapshot-id">{{ targetSnapshot?.id }}</span></div>
+        </template>
+        <template v-else>
+            <span class="italic text-gray-500" data-el="snapshot-name">none</span>
+        </template>
     </span>
 </template>
 

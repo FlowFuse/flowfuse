@@ -34,6 +34,10 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
         email: {
             enabled: true,
             debug: true
+        },
+        // configure a broker so that device app.comms is loaded and can be stubbed
+        broker: {
+            url: ':test:'
         }
     })
 
@@ -66,6 +70,10 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
         order: 2,
         properties: { instances: {}, devices: {}, users: {}, features: {} }
     })
+
+    // create a snapshot on DeviceB
+    const deviceB = flowforge.applicationDevices.find((device) => device.name === 'application-device-b')
+    await factory.createDeviceSnapshot({ name: 'application-device-b snapshot 1' }, deviceB, userTerry)
 
     flowforge.listen({ port: PORT }, function (err, address) {
         console.info(`EE Environment running at http://localhost:${PORT}`)
