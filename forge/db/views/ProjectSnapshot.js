@@ -58,7 +58,7 @@ module.exports = function (app) {
     })
     function snapshotSummary (snapshot) {
         if (snapshot) {
-            const result = snapshot.toJSON()
+            const result = snapshot.toJSON ? snapshot.toJSON() : snapshot
             const filtered = {
                 id: result.hashid,
                 name: result.name,

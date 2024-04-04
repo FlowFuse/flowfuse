@@ -1,0 +1,132 @@
+{
+    "meta": {},
+    "count": 3,
+    "devices": [
+        {
+            "id": "jKJ1KBnDPq",
+            "ownerType": "application",
+            "name": "Device 1",
+            "type": "NUC-V1.2",
+            "createdAt": "2024-03-04T09:58:40.035Z",
+            "updatedAt": "2024-04-02T13:45:54.649Z",
+            "lastSeenAt": "2024-03-06T14:01:52.000Z",
+            "lastSeenMs": 2427365989,
+            "activeSnapshot": {
+                "id": "snapv1",
+                "name": "V1",
+                "description": ""
+            },
+            "targetSnapshot": {
+                "id": "snapv1",
+                "name": "V1",
+                "description": ""
+            },
+            "status": "running",
+            "isDeploying": true,
+            "agentVersion": "",
+            "mode": "developer",
+            "team": {
+                "id": "2VJ1bDYopr",
+                "name": "Team team",
+                "slug": "team1"
+            },
+            "application": {
+                "id": "QJRYOX1ej8",
+                "name": "App 1"
+            },
+            "editor": {
+                "enabled": false
+            },
+            "deviceGroup": {
+                "id": "kYd1OXDJ2l",
+                "name": "Device Group 1",
+                "description": "A group with 2 devices",
+                "deviceCount": 2,
+                "targetSnapshot": null
+            }
+        },
+        {
+            "id": "36LO0L3Odb",
+            "ownerType": "application",
+            "name": "Device 2",
+            "type": "NUC-V1.2",
+            "createdAt": "2024-03-04T09:58:40.035Z",
+            "updatedAt": "2024-04-02T13:45:54.649Z",
+            "lastSeenAt": "2024-03-06T14:01:52.000Z",
+            "lastSeenMs": 2427365989,
+            "activeSnapshot": {
+                "id": "snapv2",
+                "name": "V2",
+                "description": ""
+            },
+            "targetSnapshot": {
+                "id": "snapv2",
+                "name": "V2",
+                "description": ""
+            },
+            "status": "running",
+            "isDeploying": true,
+            "agentVersion": "",
+            "mode": "developer",
+            "team": {
+                "id": "2VJ1bDYopr",
+                "name": "Team team",
+                "slug": "team1"
+            },
+            "application": {
+                "id": "QJRYOX1ej8",
+                "name": "App 1"
+            },
+            "editor": {
+                "enabled": false
+            },
+            "deviceGroup": {
+                "id": "kYd1OXDJ2l",
+                "name": "Device Group 1",
+                "description": "A group with 2 devices",
+                "deviceCount": 2,
+                "targetSnapshot": null
+            }
+        },
+        {
+            "id": "RgeDWe29az",
+            "ownerType": "application",
+            "name": "Device 3",
+            "type": "",
+            "createdAt": "2024-04-02T14:23:03.063Z",
+            "updatedAt": "2024-04-02T15:40:29.957Z",
+            "lastSeenAt": "2024-04-02T14:29:52.000Z",
+            "lastSeenMs": 92885989,
+            "activeSnapshot": {
+                "id": "r4VOl5Dm7X",
+                "name": "V2",
+                "description": ""
+            },
+            "targetSnapshot": {
+                "id": "r4VOl5Dm7X",
+                "name": "V2",
+                "description": ""
+            },
+            "status": "stopped",
+            "isDeploying": false,
+            "agentVersion": "2.3.1",
+            "mode": "autonomous",
+            "team": {
+                "id": "2VJ1bDYopr",
+                "name": "Team team",
+                "slug": "team1"
+            },
+            "application": {
+                "id": "QJRYOX1ej8",
+                "name": "App 1"
+            },
+            "deviceGroup": {
+                "id": "NeYpM5pxak",
+                "name": "Device Group 2",
+                "description": "A group with 1 device",
+                "deviceCount": 1,
+                "targetSnapshot": null
+            }
+        }
+    ]
+}
