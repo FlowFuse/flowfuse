@@ -50,7 +50,11 @@ export default {
                 this.flash = 'We have sent you an email with instructions to reset your password'
             }).catch(e => {
                 this.errors.email = ''
-                console.error(e)
+                if (e.response?.status === 429) {
+                    this.errors.email = 'Try again in 5 minutes'
+                } else {
+                    console.error(e)
+                }
             })
         }
     }
