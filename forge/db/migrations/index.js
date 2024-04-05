@@ -92,16 +92,20 @@ async function applyMigration (filename, transaction) {
 
 async function applyPendingMigrations () {
     let pendingTransaction
-    // For postgres, we want to hold a lock on the MetaVersions table so we can
+    // For postgres & mssql, we want to hold a lock on the MetaVersions table so we can
     // be certain we're the only process applying the migrations.
-    if (app.config.db.type === 'postgres') {
+    if (app.config.db.type === 'postgres' || app.config.db.type === 'mssql') {
         pendingTransaction = await app.db.sequelize.transaction()
     }
     try {
         if (pendingTransaction) {
             // If another process holds the lock already, this will block until
             // the lock is released
-            await app.db.sequelize.query('LOCK TABLE "MetaVersions" IN ACCESS EXCLUSIVE MODE', { transaction: pendingTransaction })
+            if (app.config.db.type === 'postgres') {
+                await app.db.sequelize.query('LOCK TABLE "MetaVersions" IN ACCESS EXCLUSIVE MODE', { transaction: pendingTransaction })
+            } else if (app.config.db.type === 'mssql') {
+                await app.db.sequelize.query('SELECT * FROM "MetaVersions" WITH (TABLOCKX, HOLDLOCK)', { transaction: pendingTransaction })
+            }
         }
         // Check to see what we need to apply
         await checkPendingMigrations(pendingTransaction)

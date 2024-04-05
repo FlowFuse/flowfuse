@@ -104,8 +104,20 @@ module.exports = {
             }
         })
 
-        await context.addIndex('Users', { name: 'user_username_lower_unique', fields: [context.sequelize.fn('lower', context.sequelize.col('username'))], unique: true })
-        await context.addIndex('Users', { name: 'user_email_lower_unique', fields: [context.sequelize.fn('lower', context.sequelize.col('email'))], unique: true })
+        // MSSQL does not support function based indexes. We need to create a persisted computed column instead.
+        if (context.sequelize.getDialect() === 'mssql') {
+            await context.sequelize.query(`
+              ALTER TABLE Users ADD _username_lower AS LOWER(username) PERSISTED;
+              CREATE UNIQUE INDEX user_username_lower_unique ON Users(_username_lower);
+            `)
+            await context.sequelize.query(`
+                ALTER TABLE Users ADD _email_lower AS LOWER(email) PERSISTED;
+                CREATE UNIQUE INDEX user_email_lower_unique ON Users(_email_lower);
+            `)
+        } else {
+            await context.addIndex('Users', { name: 'user_username_lower_unique', fields: [context.sequelize.fn('lower', context.sequelize.col('username'))], unique: true })
+            await context.addIndex('Users', { name: 'user_email_lower_unique', fields: [context.sequelize.fn('lower', context.sequelize.col('email'))], unique: true })
+        }
 
         // TeamMembers
         await context.createTable('TeamMembers', {
@@ -251,9 +263,12 @@ module.exports = {
                 type: DataTypes.INTEGER,
                 allowNull: true,
                 defaultValue: null,
-                references: { model: 'ProjectStacks', key: 'id' },
-                onDelete: 'SET NULL',
-                onUpdate: 'CASCADE'
+                references: { model: 'ProjectStacks', key: 'id' }
+                // MSSQL Errors here:
+                // Msg 1785, Level 16, State 0, Line 5
+                // Introducing FOREIGN KEY constraint 'FK__ProjectSt__repla__70A8B9AE' on table 'ProjectStacks' may cause cycles or multiple cascade paths. Specify ON DELETE NO ACTION or ON UPDATE NO ACTION, or modify other FOREIGN KEY constraints.
+                // onDelete: 'SET NULL',
+                // onUpdate: 'CASCADE'
             }
         })
 
@@ -262,9 +277,12 @@ module.exports = {
             allowNull: true,
             defaultValue: null,
             // TODO: this may be an issue as we have a circular ref with ProjectStacks table below
-            references: { model: 'ProjectStacks', key: 'id' },
-            onDelete: 'SET NULL',
-            onUpdate: 'CASCADE'
+            references: { model: 'ProjectStacks', key: 'id' }
+            // MSSQL Errors here:
+            // Msg 1785, Level 16, State 0, Line 5
+            // Introducing FOREIGN KEY constraint 'FK__ProjectTy__defau__52E34C9D' on table 'ProjectTypes' may cause cycles or multiple cascade paths. Specify ON DELETE NO ACTION or ON UPDATE NO ACTION, or modify other FOREIGN KEY constraints.
+            // onDelete: 'SET NULL',
+            // onUpdate: 'CASCADE'
         })
 
         // ProjectTemplates
@@ -376,9 +394,12 @@ module.exports = {
                 type: DataTypes.INTEGER,
                 allowNull: true,
                 defaultValue: null,
-                references: { model: 'Teams', key: 'id' },
-                onDelete: 'SET NULL',
-                onUpdate: 'CASCADE'
+                references: { model: 'Teams', key: 'id' }
+                // MSSQL Errors here:
+                // Msg 1785, Level 16, State 0, Line 2
+                // Introducing FOREIGN KEY constraint 'FK__Projects__TeamId__14270015' on table 'Projects' may cause cycles or multiple cascade paths. Specify ON DELETE NO ACTION or ON UPDATE NO ACTION, or modify other FOREIGN KEY constraints.
+                // onDelete: 'SET NULL',
+                // onUpdate: 'CASCADE'
             },
             ProjectTypeId: {
                 type: DataTypes.INTEGER,
@@ -533,7 +554,10 @@ module.exports = {
                 allowNull: true,
                 defaultValue: null,
                 references: { model: 'Applications', key: 'id' },
-                onDelete: 'CASCADE',
+                // MSSQL Errors here:
+                // Msg 1785, Level 16, State 0, Line 2
+                // Introducing FOREIGN KEY constraint 'FK__DeviceGro__Appli__17036CC0' on table 'DeviceGroups' may cause cycles or multiple cascade paths. Specify ON DELETE NO ACTION or ON UPDATE NO ACTION, or modify other FOREIGN KEY constraints.
+                // onDelete: 'CASCADE',
                 onUpdate: 'CASCADE'
             }
         })
@@ -577,7 +601,7 @@ module.exports = {
                 allowNull: true,
                 defaultValue: null,
                 references: { model: 'ProjectSnapshots', key: 'id' },
-                onDelete: 'SET NULL',
+                // onDelete: 'SET NULL',
                 onUpdate: 'CASCADE'
             },
             activeSnapshotId: {
@@ -585,7 +609,7 @@ module.exports = {
                 allowNull: true,
                 defaultValue: null,
                 references: { model: 'ProjectSnapshots', key: 'id' },
-                onDelete: 'SET NULL',
+                // onDelete: 'SET NULL',
                 onUpdate: 'CASCADE'
             },
             ProjectId: {
@@ -593,7 +617,7 @@ module.exports = {
                 allowNull: true,
                 defaultValue: null,
                 references: { model: 'Projects', key: 'id' },
-                onDelete: 'SET NULL',
+                // onDelete: 'SET NULL',
                 onUpdate: 'CASCADE'
             },
             ApplicationId: {
@@ -601,7 +625,7 @@ module.exports = {
                 allowNull: true,
                 defaultValue: null,
                 references: { model: 'Applications', key: 'id' },
-                onDelete: 'SET NULL',
+                // onDelete: 'SET NULL',
                 onUpdate: 'CASCADE'
             },
             DeviceGroupId: {
@@ -619,8 +643,8 @@ module.exports = {
             allowNull: true,
             defaultValue: null,
             references: { model: 'Devices', key: 'id' },
-            onDelete: 'SET NULL',
-            onUpdate: 'CASCADE'
+            onDelete: 'SET NULL'
+            // onUpdate: 'CASCADE'
         })
 
         // DeviceSettings
@@ -633,7 +657,7 @@ module.exports = {
             },
             DeviceId: {
                 type: DataTypes.INTEGER,
-                unique: 'pk_settings',
+                unique: 'pk_device_settings_settings',
                 allowNull: true,
                 references: { model: 'Devices', key: 'id' },
                 onDelete: 'CASCADE',
@@ -641,7 +665,7 @@ module.exports = {
             },
             key: {
                 type: DataTypes.STRING,
-                unique: 'pk_settings',
+                unique: 'pk_device_settings_settings',
                 allowNull: false
             },
             value: { type: DataTypes.TEXT },
@@ -650,7 +674,7 @@ module.exports = {
             updatedAt: { type: DataTypes.DATE, allowNull: false }
         }, {
             uniqueKeys: {
-                pk_settings: {
+                pk_device_settings_settings: {
                     fields: ['DeviceId', 'key']
                 }
             }
@@ -983,9 +1007,9 @@ module.exports = {
             NextStageId: {
                 type: DataTypes.INTEGER,
                 allowNull: true,
-                references: { model: 'PipelineStages', key: 'id' },
-                onDelete: 'SET NULL',
-                onUpdate: 'CASCADE'
+                references: { model: 'PipelineStages', key: 'id' }
+                // onDelete: 'SET NULL',
+                // onUpdate: 'CASCADE'
             },
             createdAt: { type: DataTypes.DATE, allowNull: false },
             updatedAt: { type: DataTypes.DATE, allowNull: false },
@@ -994,7 +1018,7 @@ module.exports = {
                 allowNull: true,
                 defaultValue: null,
                 references: { model: 'Pipelines', key: 'id' },
-                onDelete: 'SET NULL',
+                // onDelete: 'SET NULL',
                 onUpdate: 'CASCADE'
             }
         })

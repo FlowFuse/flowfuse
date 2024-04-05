@@ -39,9 +39,12 @@ module.exports = {
             const sqlUpdate = `update SQLITE_MASTER set sql = replace(sql, '${currentColDef}', '${newColDef}') where name = 'ProjectSnapshots' and type = 'table';`
             context.sequelize.query(sqlUpdate)
             await context.sequelize.query('pragma writable_schema=0;')
+        } else if (dialect === 'mssql') {
+            // MSSQL was introduced after the rollup migration forge/db/migrations/20240202-01-initialise-database-structure.js
+            // therefore there is nothing to change (the rollup migration already has the correct definition for the UserId column)
         } else {
             // Postgres allows us to modify a constraint without breaking other properties
-            // set the column to match the exact same definition in the rollup migration 20231005-01-update-projectSnapshot-constraint.js
+            // set the column to match the exact same definition in the rollup migration forge/db/migrations/20240202-01-initialise-database-structure.js
             await context.changeColumn('ProjectSnapshots', 'UserId', {
                 type: DataTypes.INTEGER,
                 allowNull: true,

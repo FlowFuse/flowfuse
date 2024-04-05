@@ -209,6 +209,18 @@ module.exports = {
                     result.settings.env = Controllers.Project.insertPlatformSpecificEnvVars(this, result.settings.env) // add platform specific device env vars
                     return result
                 },
+                // async updateSettings (obj, options) {
+                //     const updates = []
+                //     for (const [key, value] of Object.entries(obj)) {
+                //         if (key === 'settings' && value && Array.isArray(value.env)) {
+                //             value.env = Controllers.Project.removePlatformSpecificEnvVars(value.env) // remove platform specific values
+                //         }
+                //         updates.push({ ProjectId: this.id, key, value })
+                //     }
+                //     options = options || {}
+                //     options.updateOnDuplicate = ['value']
+                //     await M.ProjectSettings.bulkCreate(updates, options)
+                // },
                 async updateSettings (obj, options) {
                     const updates = []
                     for (const [key, value] of Object.entries(obj)) {
@@ -218,8 +230,17 @@ module.exports = {
                         updates.push({ ProjectId: this.id, key, value })
                     }
                     options = options || {}
-                    options.updateOnDuplicate = ['value']
-                    await M.ProjectSettings.bulkCreate(updates, options)
+                    // MSSQL does not support bulkCreate with updateOnDuplicate so we need to do this manually
+                    for (const update of updates) {
+                        const [instance, created] = await M.ProjectSettings.findOrCreate({
+                            where: { ProjectId: update.ProjectId, key: update.key },
+                            defaults: update,
+                            ...options
+                        })
+                        if (!created) {
+                            await instance.update(update, options)
+                        }
+                    }
                 },
                 async updateSetting (key, value, options) {
                     if (key === 'settings' && value && Array.isArray(value.env)) {

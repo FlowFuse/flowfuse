@@ -153,6 +153,20 @@ module.exports = {
                     }
                     return result
                 },
+                // async updateSettings (obj) {
+                //     const updates = []
+                //     for (let [key, value] of Object.entries(obj)) {
+                //         if (ALLOWED_SETTINGS[key]) {
+                //             if (key === 'env' && value && Array.isArray(value)) {
+                //                 value = Controllers.Device.removePlatformSpecificEnvVars(value) // remove platform specific values
+                //             }
+                //             updates.push({ DeviceId: this.id, key, value })
+                //         }
+                //     }
+                //     await M.DeviceSettings.bulkCreate(updates, { updateOnDuplicate: ['value'] })
+                //     await this.updateSettingsHash()
+                //     await this.save()
+                // },
                 async updateSettings (obj) {
                     const updates = []
                     for (let [key, value] of Object.entries(obj)) {
@@ -163,7 +177,16 @@ module.exports = {
                             updates.push({ DeviceId: this.id, key, value })
                         }
                     }
-                    await M.DeviceSettings.bulkCreate(updates, { updateOnDuplicate: ['value'] })
+                    // MSSQL does not support bulkCreate with updateOnDuplicate so we need to do this manually
+                    for (const update of updates) {
+                        const [instance, created] = await M.DeviceSettings.findOrCreate({
+                            where: { DeviceId: update.DeviceId, key: update.key },
+                            defaults: update
+                        })
+                        if (!created) {
+                            await instance.update({ value: update.value })
+                        }
+                    }
                     await this.updateSettingsHash()
                     await this.save()
                 },

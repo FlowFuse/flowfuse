@@ -42,6 +42,7 @@ module.exports = {
     },
     finders: function (M) {
         const self = this
+        const SQL_TRUE = this.sequelize.options.dialect === 'mssql' ? 1 : 'TRUE'
         return {
             static: {
                 byId: async function (id) {
@@ -68,7 +69,7 @@ module.exports = {
                                          WHERE
                                          "stack"."ProjectTypeId" = "ProjectType"."id"
                                          AND
-                                         "stack"."active" = TRUE
+                                         "stack"."active" = ${SQL_TRUE}
                                      )`),
                                     'stackCount'
                                 ]
@@ -105,7 +106,7 @@ module.exports = {
                                             WHERE
                                             "stack"."ProjectTypeId" = "ProjectType"."id"
                                             AND
-                                            "stack"."active" = TRUE
+                                            "stack"."active" = ${SQL_TRUE}
                                         )`),
                                         'stackCount'
                                     ]

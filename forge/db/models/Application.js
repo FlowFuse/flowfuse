@@ -30,6 +30,7 @@ module.exports = {
         this.hasMany(M.Device) // also via instance and device group
     },
     finders: function (M, app) {
+        const isMSSQL = app.db.sequelize.options.dialect === 'mssql'
         return {
             static: {
                 byId: async function (idOrHash) {
@@ -111,7 +112,10 @@ module.exports = {
 
                         if (associationsLimit) {
                             include.limit = associationsLimit
-                            include.order = [['lastSeenAt', 'DESC NULLS LAST'], ['updatedAt', 'DESC']]
+                            include.order = [
+                                ['lastSeenAt', isMSSQL ? 'DESC' : 'DESC NULLS LAST'],
+                                ['updatedAt', 'DESC']
+                            ]
                         }
 
                         includes.push(include)
