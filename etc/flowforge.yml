@@ -10,7 +10,7 @@ base_url: http://localhost:3000
 
 db:
   logging: false
-  ## The database type: sqlite|postgres
+  ## The database type: sqlite|postgres|mssql
   type: sqlite
   
   ### SQLite options
@@ -24,6 +24,17 @@ db:
   # host: localhost
   # user: forge
   # password: secret
+
+  ### MSSQL options
+
+  # host: localhost
+  # port: 1433 # Defaults to 1433
+  # instanceName: SQLEXPRESS # optional
+  # user: forge
+  # password: secret
+  # database: flowforge # Defaults to 'flowforge'
+  # encrypt // default is true in tds
+  # trustServerCertificate // default is in-flux but should be set to true or false to avoid warnings
 
 #################################################
 # Project Driver Configuration                  #

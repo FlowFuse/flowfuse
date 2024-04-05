@@ -25,6 +25,7 @@ const views = require('./views')
 
 module.exports = fp(async function (app, _opts) {
     utils.init(app)
+    /** @type {import('sequelize').Options} */
     const dbOptions = {
         dialect: app.config.db.type || 'sqlite'
     }
@@ -53,6 +54,27 @@ module.exports = fp(async function (app, _opts) {
             dbOptions.dialectOptions = {
                 ssl: true
             }
+        }
+    } else if (dbOptions.dialect === 'mssql') {
+        dbOptions.host = app.config.db.host || 'mssql'
+        dbOptions.port = app.config.db.port || 1433
+        dbOptions.username = app.config.db.user
+        dbOptions.password = /* app.secrets.dbPassword || */ app.config.db.password
+        dbOptions.database = app.config.db.database || 'flowforge'
+        dbOptions.dialectOptions = {
+            // Observe the need for nested `options` field for MSSQL
+            options: {
+                useUTC: true
+            }
+        }
+        if (app.config.db.encrypt === true || app.config.db.encrypt === false) {
+            dbOptions.dialectOptions.options.encrypt = app.config.db.encrypt // default is true in tds
+        }
+        if (app.config.db.trustServerCertificate === true || app.config.db.trustServerCertificate === false) {
+            dbOptions.dialectOptions.options.trustServerCertificate = app.config.db.trustServerCertificate // default is true in tds
+        }
+        if (app.config.db.instanceName) {
+            dbOptions.dialectOptions.options.instanceName = app.config.db.instanceName
         }
     }
 
