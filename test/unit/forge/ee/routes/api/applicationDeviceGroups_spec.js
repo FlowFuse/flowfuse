@@ -185,6 +185,7 @@ describe('Application Device Groups API', function () {
             result.groups[0].should.have.property('id', deviceGroup.hashid)
             result.groups[0].should.have.property('name', deviceGroup.name)
             result.groups[0].should.have.property('description', deviceGroup.description)
+            result.groups[0].should.have.property('targetSnapshot')
         })
 
         it('Paginates device groups', async function () {

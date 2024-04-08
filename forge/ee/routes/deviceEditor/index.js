@@ -37,7 +37,7 @@ module.exports = async function (app) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return
                     }
-                    if (request.session.User) {
+                    if (request.session?.User) {
                         request.teamMembership = await request.session.User.getTeamMembership(request.device.Team.id)
                         // If the user isn't in the team, only give 404 error if this
                         // is not a 'allowAnonymous' route. This allows the proxy routes
