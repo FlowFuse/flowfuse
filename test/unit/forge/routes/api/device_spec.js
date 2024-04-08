@@ -1036,6 +1036,7 @@ describe('Device API', async function () {
                 settings.palette.should.have.property('npmrc', '; testing')
                 settings.palette.should.have.property('catalogues')
                 settings.palette.catalogues.should.have.length(1)
+                settings.palette.catalogues[0].should.equal('http://example.com/catalog.json')
             })
         })
 
