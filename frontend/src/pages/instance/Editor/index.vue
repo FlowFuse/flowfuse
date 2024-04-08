@@ -2,6 +2,7 @@
     <div class="ff-editor-wrapper">
         <section class="editor-wrapper">
             <iframe
+                ref="iframe"
                 width="100%"
                 height="100%"
                 :src="instance.url"
@@ -100,10 +101,30 @@ export default {
     },
     mounted () {
         this.loadInstance()
+        window.addEventListener('message', this.eventListener)
+    },
+    unmounted () {
+        window.removeEventListener('message', this.eventListener)
     },
     methods: {
         toggleDrawer () {
             this.drawer.open = !this.drawer.open
+        },
+        eventListener (event) {
+            if (event.origin === this.instance.url) {
+                switch (event.data.type) {
+                case 'load':
+                    this.emitMessage('prevent-redirect', true)
+                    break
+                case 'navigate':
+                    window.location.href = event.data.payload
+                    break
+                default:
+                }
+            }
+        },
+        emitMessage (type, payload = {}) {
+            this.$refs.iframe.contentWindow.postMessage({ type, payload }, '*')
         }
     }
 }
