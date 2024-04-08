@@ -173,6 +173,7 @@ describe('Project model', function () {
             // Update application id
             application.id = application.id + 1
             await application.save()
+            await application.reload()
 
             // Reload project to get updated data
             await project.reload()
@@ -215,6 +216,7 @@ describe('Project model', function () {
             // Update team id
             team.id = team.id + 1
             await team.save()
+            await team.reload()
 
             // Reload project to get updated data
             const updatedProject = await Project.findByPk(project.id)
@@ -256,6 +258,7 @@ describe('Project model', function () {
             // Update project type id
             projectType.id = projectType.id + 1
             await projectType.save()
+            await projectType.reload()
 
             // Reload project to get updated data
             const updatedProject = await Project.findByPk(project.id)
@@ -297,6 +300,7 @@ describe('Project model', function () {
             // Update project stack id
             projectStack.id = projectStack.id + 1
             await projectStack.save()
+            await projectStack.reload()
 
             // Reload project to get updated data
             const updatedProject = await Project.findByPk(project.id)
@@ -338,6 +342,7 @@ describe('Project model', function () {
             // Update project template id
             projectTemplate.id = projectTemplate.id + 1
             await projectTemplate.save()
+            await projectTemplate.reload()
 
             // Reload project to get updated data
             const updatedProject = await Project.findByPk(project.id)

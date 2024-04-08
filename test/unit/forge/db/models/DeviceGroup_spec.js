@@ -33,6 +33,7 @@ describe('DeviceGroup model', function () {
         beforeEach(async () => {
             ({ Application, DeviceGroup } = app.db.models)
         })
+
         // RELATION: ApplicationId INTEGER REFERENCES Applications (id) ON DELETE CASCADE ON UPDATE CASCADE
         it('should delete DeviceGroup on Application delete', async () => {
             // Create an application and a device group
@@ -48,6 +49,7 @@ describe('DeviceGroup model', function () {
             should(updated).be.null()
         })
 
+        // RELATION: ApplicationId INTEGER REFERENCES Applications (id) ON DELETE CASCADE ON UPDATE CASCADE
         it('should update DeviceGroup.ApplicationId on Application.id update', async () => {
             // NOTE: Although this test attempts to update the id, sequelize does not allow this.
             // The id is a primary key and cannot be updated using sequelize ORM methods.
@@ -62,6 +64,7 @@ describe('DeviceGroup model', function () {
             // Update application id
             application.id = application.id + 1
             await application.save()
+            await application.reload()
 
             // Reload project to get updated data
             await deviceGroup.reload()

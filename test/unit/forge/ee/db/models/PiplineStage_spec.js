@@ -129,7 +129,6 @@ describe('PipelineStage model', function () {
             // update the id of the pipeline stage that is being referenced by NextStageId
             pipelineStage2.id = pipelineStage2.id + 1
             await pipelineStage2.save()
-
             await pipelineStage2.reload()
 
             // at this point, the id may or may not have been updated however the relationship
@@ -164,6 +163,7 @@ describe('PipelineStage model', function () {
 
             pipeline.id = pipeline.id + 1
             await pipeline.save()
+            await pipeline.reload()
 
             const updated = await PipelineStage.findByPk(pipelineStage.id)
 

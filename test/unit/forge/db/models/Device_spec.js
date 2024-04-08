@@ -332,6 +332,7 @@ describe('Device model', function () {
             // Update application id
             application.id = application.id + 1
             await application.save()
+            await application.reload()
 
             // Reload project to get updated data
             await device.reload()
@@ -379,6 +380,7 @@ describe('Device model', function () {
             // Update project id
             project.id = project.id + 1
             await project.save()
+            await project.reload()
 
             // Reload project to get updated data
             await device.reload()
@@ -426,6 +428,7 @@ describe('Device model', function () {
             // Update device group id
             deviceGroup.id = deviceGroup.id + 1
             await deviceGroup.save()
+            await deviceGroup.reload()
 
             // Reload project to get updated data
             await device.reload()

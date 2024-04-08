@@ -123,7 +123,7 @@ describe('ProjectSnapshot model', function () {
             const projectSnapshot = await newSnapshot(null, device.id)
             projectSnapshot.should.have.property('DeviceId', device.id)
 
-            device.update({ id: device + 1 })
+            device.update({ id: device.id + 1 })
             await device.reload()
 
             const updated = await ProjectSnapshot.findByPk(projectSnapshot.id)
@@ -154,7 +154,7 @@ describe('ProjectSnapshot model', function () {
             const projectSnapshot = await newSnapshot(null, null, user.id)
             projectSnapshot.should.have.property('UserId', user.id)
 
-            user.update({ id: user + 1 })
+            user.update({ id: user.id + 1 })
             await user.reload()
 
             const updated = await ProjectSnapshot.findByPk(projectSnapshot.id)
