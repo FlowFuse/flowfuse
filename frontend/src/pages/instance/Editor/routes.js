@@ -7,7 +7,7 @@ import InstanceEditor from './index.vue'
 export default [
     {
         path: '/instance/:id/editor',
-        name: 'Instance Editor',
+        name: 'instance-editor',
         component: InstanceEditor,
         meta: {
             title: 'Instance - Editor',

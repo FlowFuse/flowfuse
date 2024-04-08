@@ -33,10 +33,11 @@
                             :disabled="!editorAvailable"
                         />
                         <InstanceEditorLink
-                            :url="instance.url"
+                            :url="editorUrl"
                             :editorDisabled="instance.settings.disableEditor || isHA"
                             :disabled="!editorAvailable"
                             :disabled-reason="disabledReason"
+                            :immersive="isLauncherImmersionCompatible"
                         />
                         <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
                     </div>
@@ -65,6 +66,7 @@
 
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
+import SemVer from 'semver'
 import { mapState } from 'vuex'
 
 import { Roles } from '../../../../forge/lib/roles.js'
@@ -168,6 +170,16 @@ export default {
                 return 'Instance is not running'
             }
             return null
+        },
+        isLauncherImmersionCompatible () {
+            return SemVer.satisfies(SemVer.coerce(this.instance?.meta?.versions?.launcher), '>=2.2.3')
+        },
+        editorUrl () {
+            if (this.isLauncherImmersionCompatible) {
+                return this.$router.resolve({ name: 'instance-editor', params: { id: this.instance.id } }).fullPath
+            }
+
+            return this.instance.url
         }
     },
     watch: {
