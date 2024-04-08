@@ -1009,6 +1009,34 @@ describe('Device API', async function () {
                 nonPlatformVars[0].should.have.property('value', 'foo')
                 settings.should.not.have.property('invalid')
             })
+            it('owner set .npmrc', async function () {
+                const device = await createDevice({ name: 'Ad2', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}/settings`,
+                    body: {
+                        palette: {
+                            npmrc: '; testing',
+                            catalogues: ['http://example.com/catalog.json']
+                        }
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                response.json().should.have.property('status', 'okay')
+
+                const settingsResponse = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${device.id}/settings`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const settings = settingsResponse.json()
+                settings.should.have.property('palette')
+                settings.palette.should.have.property('npmrc', '; testing')
+                settings.palette.should.have.property('catalogues')
+                settings.palette.catalogues.should.have.length(1)
+            })
         })
 
         describe('device remote editor (unlicensed)', function () {
