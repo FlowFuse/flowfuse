@@ -79,7 +79,12 @@ export default {
         XIcon
     },
     mixins: [permissionsMixin],
-    props: ['device'],
+    props: {
+        device: {
+            type: Object,
+            required: true
+        }
+    },
     emits: ['device-updated'],
     data () {
         return {
