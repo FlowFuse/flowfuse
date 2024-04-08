@@ -1,0 +1,37 @@
+{
+    "application": {
+        "id": "QJRYOX1ej8",
+        "name": "App 1"
+    },
+    "devices": [
+        {
+            "id": "jKJ1KBnDPq",
+            "ownerType": "application",
+            "name": "Device 1",
+            "type": "NUC-V1.2",
+            "lastSeenMs": null,
+            "status": "offline",
+            "isDeploying": false,
+            "mode": "autonomous"
+        },
+        {
+            "id": "36LO0L3Odb",
+            "ownerType": "application",
+            "name": "Device 2",
+            "type": "",
+            "lastSeenMs": null,
+            "status": "offline",
+            "isDeploying": false,
+            "mode": "autonomous"
+        }
+    ],
+    "targetSnapshot": {
+        "id": "snapv1",
+        "name": "V1",
+        "description": ""
+    },
+    "id": "kYd1OXDJ2l",
+    "name": "Device Group 1",
+    "description": "A group of devices",
+    "deviceCount": 2
+}
