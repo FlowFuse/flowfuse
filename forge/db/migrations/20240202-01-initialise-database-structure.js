@@ -277,11 +277,11 @@ module.exports = {
             allowNull: true,
             defaultValue: null,
             // TODO: this may be an issue as we have a circular ref with ProjectStacks table below
-            references: { model: 'ProjectStacks', key: 'id' }
+            references: { model: 'ProjectStacks', key: 'id' },
             // MSSQL Errors here:
             // Msg 1785, Level 16, State 0, Line 5
             // Introducing FOREIGN KEY constraint 'FK__ProjectTy__defau__52E34C9D' on table 'ProjectTypes' may cause cycles or multiple cascade paths. Specify ON DELETE NO ACTION or ON UPDATE NO ACTION, or modify other FOREIGN KEY constraints.
-            // onDelete: 'SET NULL',
+            onDelete: 'SET NULL'
             // onUpdate: 'CASCADE'
         })
 
@@ -1007,9 +1007,9 @@ module.exports = {
             NextStageId: {
                 type: DataTypes.INTEGER,
                 allowNull: true,
-                references: { model: 'PipelineStages', key: 'id' }
-                // onDelete: 'SET NULL',
-                // onUpdate: 'CASCADE'
+                references: { model: 'PipelineStages', key: 'id' },
+                // onDelete: 'SET NULL'
+                onUpdate: 'CASCADE'
             },
             createdAt: { type: DataTypes.DATE, allowNull: false },
             updatedAt: { type: DataTypes.DATE, allowNull: false },
@@ -1018,7 +1018,7 @@ module.exports = {
                 allowNull: true,
                 defaultValue: null,
                 references: { model: 'Pipelines', key: 'id' },
-                // onDelete: 'SET NULL',
+                onDelete: 'SET NULL',
                 onUpdate: 'CASCADE'
             }
         })
