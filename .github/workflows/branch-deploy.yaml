@@ -125,7 +125,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 'FlowFuse/helm'
-          ref: 'feat-custom-broker-domain'
+          ref: 'main'
           path: 'helm-repo'
           token: ${{ secrets.GITHUB_TOKEN }}
 
