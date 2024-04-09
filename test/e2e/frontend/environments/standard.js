@@ -159,15 +159,16 @@ module.exports = async function (settings = {}, config = {}) {
     await factory.createSnapshot({ name: 'snapshot 3' }, instanceWithDevices, userBob)
 
     // create devices bound to application directly
-    await factory.createDevice({ name: 'application-device-a', type: 'type2' }, team2, null, application2)
+    const deviceA = await factory.createDevice({ name: 'application-device-a', type: 'type2' }, team2, null, application2)
     const deviceB = await factory.createDevice({ name: 'application-device-b', type: 'type2' }, team2, null, application2)
 
     // create a device group and add deviceB to it
-    const deviceGroup = await factory.createApplicationDeviceGroup({ name: 'application-device-group-a' }, application2)
-    await factory.addDeviceToGroup(deviceB, deviceGroup)
+    const deviceGroupA = await factory.createApplicationDeviceGroup({ name: 'application-device-group-a' }, application2)
+    await factory.addDeviceToGroup(deviceB, deviceGroupA)
 
     forge.teams = [team1, team2]
     forge.projectTypes = [projectType, spareProjectType]
-
+    forge.applicationDevices = [deviceA, deviceB]
+    forge.applicationDeviceGroups = [deviceGroupA]
     return forge
 }

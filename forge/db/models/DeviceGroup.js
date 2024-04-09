@@ -84,6 +84,13 @@ module.exports = {
                     const [rows, count] = await Promise.all([
                         this.findAll({
                             where: buildPaginationSearchClause(pagination, where, ['DeviceGroup.name', 'DeviceGroup.description']),
+                            include: [
+                                {
+                                    model: M.ProjectSnapshot,
+                                    as: 'targetSnapshot',
+                                    attributes: ['hashid', 'id', 'name']
+                                }
+                            ],
                             attributes: {
                                 include: [
                                     [

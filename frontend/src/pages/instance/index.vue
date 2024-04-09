@@ -27,6 +27,11 @@
                 </template>
                 <template #tools>
                     <div class="space-x-2 flex align-center">
+                        <DashboardLink
+                            v-if="hasDashboard2"
+                            :instance="instance"
+                            :disabled="!editorAvailable"
+                        />
                         <InstanceEditorLink
                             :url="instance.url"
                             :editorDisabled="instance.settings.disableEditor || isHA"
@@ -82,6 +87,7 @@ import Dialog from '../../services/dialog.js'
 import { InstanceStateMutator } from '../../utils/InstanceStateMutator.js'
 
 import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
+import DashboardLink from './components/DashboardLink.vue'
 import InstanceEditorLink from './components/EditorLink.vue'
 import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
 
@@ -89,6 +95,7 @@ export default {
     name: 'InstancePage',
     components: {
         ConfirmInstanceDeleteDialog,
+        DashboardLink,
         DropdownMenu,
         InstanceStatusPolling,
         InstanceStatusBadge,
@@ -131,6 +138,9 @@ export default {
         },
         editorAvailable () {
             return !this.isHA && this.instanceRunning
+        },
+        hasDashboard2 () {
+            return !!this.instance?.settings?.dashboard2UI
         },
         actionsDropdownOptions () {
             const flowActionsDisabled = !(this.instance.meta && this.instance.meta.state !== 'suspended')

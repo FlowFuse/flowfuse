@@ -55,6 +55,7 @@
                     :show-search="true"
                     search-placeholder="Search..."
                     :no-data-message="localMemberDevices?.length ? 'No Devices found, try another search term' : 'No Devices assigned to this group'"
+                    data-el="device-group-members"
                     @update:search="updateMemberDevicesListDebounced"
                     @update:sort="updateMemberDevicesSort"
                 >
@@ -64,7 +65,10 @@
                                 <ff-checkbox v-model="device.selected" class="inline" />
                             </ff-data-table-cell>
                             <ff-data-table-cell class="w-1/3">{{ device.name }}</ff-data-table-cell>
-                            <ff-data-table-cell class="w-2/3">{{ device.type }}</ff-data-table-cell>
+                            <ff-data-table-cell class="w-1/3">{{ device.name }}</ff-data-table-cell>
+                            <ff-data-table-cell v-if="!editMode" class="w-1/3">
+                                <ActiveSnapshotCell :activeSnapshot="getDeviceActiveSnapshot(device)" :targetSnapshot="targetSnapshot" />
+                            </ff-data-table-cell>
                         </ff-data-table-row>
                     </template>
                 </ff-data-table>
@@ -83,9 +87,12 @@ import Dialog from '../../../services/dialog.js'
 
 import { debounce } from '../../../utils/eventHandling.js'
 
+import ActiveSnapshotCell from '../components/cells/Snapshot.vue'
+
 export default {
     name: 'DeviceGroupDevices',
     components: {
+        ActiveSnapshotCell,
         FormHeading
     },
     inheritAttrs: false,
@@ -124,7 +131,8 @@ export default {
             },
             tableColsRO: [
                 { label: 'Name', key: 'name', sortable: true, class: 'w-1/3' },
-                { label: 'Type', key: 'type', sortable: true, class: 'w-2/3' }
+                { label: 'Type', key: 'type', sortable: true, class: 'w-1/3' },
+                { label: 'Active Snapshot', key: 'type', sortable: true, class: 'w-1/3' }
             ],
             tableColsRW: [
                 { label: '', key: 'selected', sortable: true },
@@ -140,6 +148,9 @@ export default {
         },
         selectedMemberDevices () {
             return this.localMemberDevices.filter((device) => device.selected)
+        },
+        targetSnapshot () {
+            return this.deviceGroup?.targetSnapshot || null
         }
     },
     watch: {
@@ -329,6 +340,13 @@ export default {
                         console.error(err)
                     })
             })
+        },
+        getDeviceActiveSnapshot (device) {
+            if (!device?.id) {
+                return null
+            }
+            const appDevice = this.applicationDevices?.find((d) => d.id === device.id)
+            return appDevice?.activeSnapshot || null
         }
     }
 }

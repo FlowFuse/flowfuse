@@ -194,7 +194,7 @@ module.exports = async function (app) {
                 if (result.credentials) {
                     // Need to re-encrypt these credentials from the source secret
                     // to the target Device secret
-                    const secret = await snapshot.getCredentialSecret()
+                    const secret = snapshot.credentialSecret
                     const deviceSecret = device.credentialSecret
                     result.credentials = app.db.controllers.Project.exportCredentials(result.credentials, secret, deviceSecret)
                 }

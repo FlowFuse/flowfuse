@@ -23,31 +23,12 @@ This guide will help you learn how to use the FlowFuse platform to quickly creat
 
 ![Blueprint selection](./images/blueprint-selection.png)
 
+NOTE: _Some blueprints may only be available on certain tiers_
+
 ## Creating Your First Flow
 
-If you are already familiar with Node-RED, you can [skip this section](#creating-your-first-devops-pipeline).
-
-1. **Access the Node-RED Editor**.
-
-2. **Add Nodes**: Drag an "http in" node into the editor. This node will listen for incoming HTTP requests. Next, drag in the "change" and the "http response" nodes. 
-
-3. **Connect Nodes**: Connect the "http in" node to the "change" node, and then the "change" node to the "http response" node. Your flow should look like this:
-
-    ![The three nodes](./images/getting-started/three-nodes.png)
-
-4. **Configure 'http in' Node**: Double-click on the "http in" node to open its properties. Set the URL to "/hello" and the method to "GET".
-
-5. **Configure 'change' Node**: Double-click the "change" node. Add "Hello World" to the field that says "to the value".
-
-    ![Configure the change node](./images/getting-started/set-reply.png)
-
-6. **Configure 'http response' Node**: Double-click to open its properties. Set the "Status Code" to be 200.
-
-    ![Configure the http response node](./images/getting-started/response-code.png)
-
-7. **Deploy**: Now that we have our flow set up, we can deploy it by clicking the "Deploy" button in the top right corner of the editor. Once the flow is deployed, you can test it by opening up a web browser, take the URL of your Instance and add "/hello" to the end, it should looks something like this `https://your-project.flowforge.cloud/hello`. You should see "Hello World!" displayed in the browser.
-
-[Learn more about Flow creation](https://flowfuse.com/blog/2023/01/getting-started-with-node-red/#first-flow)
+FlowFuse published an [eBook on Node-RED development](https://flowfuse.com/ebooks/beginner-guide-to-a-professional-nodered/), which is a great resources when you're new
+to Node-RED. You can also read our [blog post on creating your first flow](https://flowfuse.com/blog/2023/01/getting-started-with-node-red/).
 
 ## Creating Your First DevOps Pipeline
 
