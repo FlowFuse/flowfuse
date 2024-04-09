@@ -4,7 +4,7 @@ navTitle: Database migrations
 
 # Database Migrations
 
-It is important that any changes made to the database models include migrations
+Any changes made to the database models must include migrations
 that can modify the database state from one state to another.
 
 Whilst we use Sequelize as our ORM layer, we do not use the migration tooling
@@ -14,7 +14,7 @@ it provides - we have our own.
 
 ### Filename
 
-A migration is provided as a JavaScript in the directory `forge/db/migrations`.
+A migration is provided as JavaScript in the directory `forge/db/migrations`.
 Its file name must follow the pattern:
 
 ```
@@ -28,7 +28,7 @@ YYYYMMDD-nn-description.js
 For example `20220204-01-add-billing.js`.
 
 This ensures the migrations have a natural order to be applied. The `nn` part of
-the name allows multiple migrations to be added on the same day, but kept in the
+the name allows multiple migrations to be added on the same day but is kept in the
 right order.
 
 ### Structure
@@ -46,7 +46,7 @@ module.exports = {
 }
 ```
 
-The `up` function applies the migration. This can be to create new tables, add columns
+The `up` function applies to the migration. This can be to create new tables, add columns
 to existing ones - whatever is needed.
 
 The `down` function reverses the migration. It should restore the database back to
@@ -57,7 +57,7 @@ operations on the database.
 
 ## Applying migrations
 
-Migrations are applied automatically on start of the FlowFuse application. Down
+Migrations are applied automatically at the start of the FlowFuse application. Down
 migrations are not yet supported.
 
 ## Considerations when writing migrations
@@ -67,7 +67,7 @@ be used with great care. A failing migration will prevent the platform from star
 and may require manual intervention. Everything should be done to avoid that from
 happening.
 
-There are certain types of migration that need particular guidance and care over.
+Certain types of migration need particular guidance and care over.
 
 ### Adding constraints
 
@@ -76,9 +76,9 @@ very carefully what impact that could have on an existing system with real data.
 
 For example, adding a new 'unique' constraint where you cannot guarantee that
 constraint hasn't already been broken. What strategy will you use to guard against
-that or to help recover from it? What additional testing is needed of the migration
-to verify its behaviour in those situations.
+that or to help recover from it? What additional testing is needed for the migration
+to verify its behavior in those situations?
 
 The preferred method to add a new unique constraint is by adding a new index to the
-database. This is because sqlite doesn't provide a way to alter columns that doesn't
+database. This is because SQLite doesn't provide a way to alter columns that doesn't
 involve dropping the whole table and triggering any cascade triggers.

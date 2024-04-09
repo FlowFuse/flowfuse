@@ -40,7 +40,7 @@ following settings are available:
  - **Create a personal team for users when they register** (default: `false`)
 
     With this option enabled, the platform will automatically create a Team
-    for the user. This allows them to start creating Node-RED instances straight-away.
+    for the user. This allows them to start creating Node-RED instances straight away.
 
     By default, this doesn't happen, which means the user must either manually
     create the Team (if that option is enabled), or be invited to an existing
@@ -87,8 +87,7 @@ It can be used to:
 
     This includes making them an admin - giving them full access to the platform.
 
-It also provides a list of all pending user invitations, showing who invited who
-to what team.
+It also provides a list of all pending user invitations, showing who invited whom to which team.
 
 ### Managing Teams
 
@@ -111,8 +110,8 @@ When billing is enabled, an instance type can be associated with a particular
 Stripe Product/Price - allowing each type to have a different monthly price
 associated with it.
 
-The Instance Types page shows what types are current active, how many stacks
-each type has assigned to it, and how many instances have been created of that
+The Instance Types page shows what types are currently active, how many stacks
+each type has been assigned to it, and how many instances have been created of that
 type.
 
 Whenever a new Instance Type is created, it will need to be manually enabled for
@@ -154,5 +153,4 @@ applied the next time the instance is restarted.
 On FlowFuse Cloud, but recommended on self-managed installs on Docker and Kubernetes,
 where certain nodes will not work so are excluded from being used by the template.
 
-When adding `31-tcpin.js,32-udp.js,10-file.js,23-watch.js,90-exec.js` to the `Exlude node by
-filename` section of a template and locking this value users are prevented from using these.
+When adding `31-tcpin.js,32-udp.js,10-file.js,23-watch.js,90-exec.js` to the `Exclude node by filename` section of a template and locking this value users are prevented from using these.
