@@ -149,6 +149,7 @@ jobs:
             --values ci/ci-values.yaml \
             --set forge.image=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }} \
             --set forge.entryPoint=${{ env.PR_NUMBER }}.flowfuse.dev \
+            --set forge.broker.hostname=${{ env.PR_NUMBER }}-mqtt.flowfuse.dev \
             --set forge.projectNamespace=pr-${{ env.PR_NUMBER }}-projects \
             --set forge.clusterRole.name=pr-${{ env.PR_NUMBER }}-clusterrole \
             --set forge.license=${{ secrets.PRE_STAGING_LICENSE }} \
