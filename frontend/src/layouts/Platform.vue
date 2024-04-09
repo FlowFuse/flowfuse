@@ -31,6 +31,7 @@ import { mapState } from 'vuex'
 
 import InterviewPopup from '../components/InterviewPopup.vue'
 import PageHeader from '../components/PageHeader.vue'
+import DialogMixin from '../mixins/Dialog.js'
 
 import alerts from '../services/alerts.js'
 import dialog from '../services/dialog.js'
@@ -41,19 +42,11 @@ export default {
         PageHeader,
         InterviewPopup
     },
+    mixins: [DialogMixin],
     data () {
         return {
             mobileMenuOpen: false,
-            alerts: [],
-            dialog: {
-                header: null,
-                text: null,
-                html: null,
-                confirmLabel: null,
-                kind: null,
-                onConfirm: null,
-                onCancel: null
-            }
+            alerts: []
         }
     },
     computed: {
@@ -93,35 +86,6 @@ export default {
                 countdown,
                 timestamp: Date.now()
             })
-        },
-        showDialogHandler (msg, onConfirm, onCancel) {
-            if (typeof (msg) === 'string') {
-                this.dialog.content = msg
-            } else {
-                // msg is an object, let's break it apart
-                this.dialog.header = msg.header
-                this.dialog.text = msg.text
-                this.dialog.html = msg.html
-                this.dialog.confirmLabel = msg.confirmLabel
-                this.dialog.kind = msg.kind
-                this.dialog.disablePrimary = msg.disablePrimary
-            }
-            this.dialog.onConfirm = onConfirm
-            this.dialog.onCancel = onCancel
-        },
-        clearDialog (cancelled) {
-            if (cancelled) {
-                this.dialog.onCancel?.()
-            }
-            this.dialog = {
-                header: null,
-                text: null,
-                html: null,
-                confirmLabel: null,
-                kind: null,
-                onConfirm: null,
-                onCancel: null
-            }
         },
         clear (i) {
             this.alerts.splice(this.alerts.length - 1 - i, 1)
