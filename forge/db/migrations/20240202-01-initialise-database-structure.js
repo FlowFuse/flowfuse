@@ -22,6 +22,8 @@ module.exports = {
             return
         }
 
+        const isMSSQL = context.sequelize.getDialect() === 'mssql'
+
         // TeamTypes
         await context.createTable('TeamTypes', {
             id: {
@@ -78,7 +80,7 @@ module.exports = {
                 allowNull: false
             },
             name: { type: DataTypes.STRING },
-            email: { type: DataTypes.STRING, unique: true },
+            email: { type: DataTypes.STRING, unique: !isMSSQL }, // MSSQL does not support multiple nulls in unique indexes. Use a NONCLUSTERED index instead.
             email_verified: { type: DataTypes.BOOLEAN, defaultValue: false },
             sso_enabled: { type: DataTypes.BOOLEAN, defaultValue: false },
             mfa_enabled: { type: DataTypes.BOOLEAN, defaultValue: false },
@@ -105,14 +107,24 @@ module.exports = {
         })
 
         // MSSQL does not support function based indexes. We need to create a persisted computed column instead.
-        if (context.sequelize.getDialect() === 'mssql') {
+        if (isMSSQL) {
             await context.sequelize.query(`
               ALTER TABLE Users ADD _username_lower AS LOWER(username) PERSISTED;
               CREATE UNIQUE INDEX user_username_lower_unique ON Users(_username_lower);
             `)
+            // since email is permitted to be null, we need to handle that.
+            // MSSQL considers multiple nulls as duplicates (PG does not), so instead we'll use
+            // username instead when the email is null (username is required, so it will always have a value
+            // and it is also unique)
             await context.sequelize.query(`
-                ALTER TABLE Users ADD _email_lower AS LOWER(email) PERSISTED;
+                ALTER TABLE Users ADD _email_lower AS LOWER(ISNULL(email, username)) PERSISTED;
                 CREATE UNIQUE INDEX user_email_lower_unique ON Users(_email_lower);
+            `)
+            // MSSQL does not support WHERE clauses in unique indexes, so we need to create a NONCLUSTERED index instead
+            await context.sequelize.query(`
+                CREATE UNIQUE NONCLUSTERED INDEX UQ_Users_email
+                ON Users(email)
+                WHERE email IS NOT NULL;
             `)
         } else {
             await context.addIndex('Users', { name: 'user_username_lower_unique', fields: [context.sequelize.fn('lower', context.sequelize.col('username'))], unique: true })
