@@ -130,7 +130,11 @@ async function init (app) {
             }
         }
         if (m.indexes) {
-            opts.indexes = m.indexes
+            if (typeof m.indexes === 'function') {
+                opts.indexes = m.indexes.call(null, M, app)
+            } else {
+                opts.indexes = m.indexes
+            }
         }
         if (!m.model) {
             m.model = class model extends Model {}

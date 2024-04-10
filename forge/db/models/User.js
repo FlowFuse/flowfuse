@@ -43,10 +43,19 @@ module.exports = {
             defaultValue: false
         }
     },
-    indexes: [
-        { name: 'user_username_lower_unique', fields: [fn('lower', col('username'))], unique: true },
-        { name: 'user_email_lower_unique', fields: [fn('lower', col('email'))], unique: true }
-    ],
+    indexes: function (M, app) {
+        // if MSSQL, we cant use the `fn` function.
+        // Since we no longer use sequelize sync, there is no real need to provide indexes.
+        // In this case, for MSSQL, we will just return no indexes.
+        // for completeness, we will provide the indexes for other dialects.
+        if (app.db.sequelize.options.dialect === 'mssql') {
+            return []
+        }
+        return [
+            { name: 'user_username_lower_unique', fields: [fn('lower', col('username'))], unique: true },
+            { name: 'user_email_lower_unique', fields: [fn('lower', col('email'))], unique: true }
+        ]
+    },
     scopes: {
         admins: { where: { admin: true } }
     },
