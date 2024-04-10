@@ -57,7 +57,7 @@ module.exports = fp(async function (app, _opts) {
         }
     } else if (dbOptions.dialect === 'mssql') {
         dbOptions.host = app.config.db.host || 'mssql'
-        dbOptions.port = app.config.db.port || 1433
+        dbOptions.port = +(app.config.db.port || 1433)
         dbOptions.username = app.config.db.user
         dbOptions.password = /* app.secrets.dbPassword || */ app.config.db.password
         dbOptions.database = app.config.db.database || 'flowforge'
