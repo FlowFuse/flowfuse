@@ -23,7 +23,6 @@
 
         <section class="tabs-wrapper drawer" :class="{'open': drawer.open}">
             <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="deleteInstance" />
-
             <div class="header">
                 <div class="logo">
                     <router-link :to="{ name: 'Home' }">
@@ -183,29 +182,29 @@ export default {
     box-shadow: 3.841px -3.841px 7.682px rgba(0, 0, 0, 0.10);
     transition: ease-in-out 0.3s;
 
-    &::before {
-      content: '...';
-      position: absolute;
-      top: -4px;
-      left: 50%;
-      border-radius: 9px;
-      border: 1px solid $ff-grey-400;
-      background: $ff-grey-100;
-      color: $ff-grey-400;
-      letter-spacing: 5px;
-      width: 35px;
-      height: 10px;
-      display: none;
-      padding: 0;
-      cursor: ns-resize;
-      justify-content: end;
-      align-items: flex-end;
-      flex-direction: column;
-
-      &:hover {
-        cursor: ns-resize;
-      }
-    }
+    //&::before {
+    //  content: '...';
+    //  position: absolute;
+    //  top: -4px;
+    //  left: 50%;
+    //  border-radius: 9px;
+    //  border: 1px solid $ff-grey-400;
+    //  background: $ff-grey-100;
+    //  color: $ff-grey-400;
+    //  letter-spacing: 5px;
+    //  width: 35px;
+    //  height: 10px;
+    //  display: none;
+    //  padding: 0;
+    //  cursor: ns-resize;
+    //  justify-content: end;
+    //  align-items: flex-end;
+    //  flex-direction: column;
+    //
+    //  &:hover {
+    //    cursor: ns-resize;
+    //  }
+    //}
 
     .drawer-trigger {
       display: block;
@@ -232,9 +231,9 @@ export default {
         transition: ease-in .1s;
       }
 
-      &::before {
-        display: flex;
-      }
+      //&::before {
+      //  display: flex;
+      //}
     }
 
     .header {
