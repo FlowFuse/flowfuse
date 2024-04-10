@@ -12,8 +12,8 @@ with the domain of your FlowFuse instance)
 
  - `https://example.com/api/v1/admin/stats`
 
-By default it returns a JSON object containing key statistics such as the number
-of users, instances and other information.
+By default, it returns a JSON object containing key statistics such as the number
+of users, instances, and other information.
 
 If the `accept` header of the http request includes `application/openmetrics-text`
 then the response is formatted as OpenMetrics text. This can be directly consumed
