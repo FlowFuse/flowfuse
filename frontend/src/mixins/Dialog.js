@@ -1,3 +1,5 @@
+import dialog from '../services/dialog.js'
+
 export default {
     data () {
         return {
@@ -42,6 +44,8 @@ export default {
             this.dialog.onConfirm = onConfirm
             this.dialog.onCancel = onCancel
         }
-
+    },
+    mounted () {
+        dialog.bind(this.$refs.dialog, this.showDialogHandler)
     }
 }

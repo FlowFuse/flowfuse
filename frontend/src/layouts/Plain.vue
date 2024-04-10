@@ -8,27 +8,22 @@
             <!-- eslint-disable-next-line vue/no-v-html -->
             <div class="space-y-2" v-html="dialog.html" />
         </ff-dialog>
+        <TransitionGroup class="ff-notifications" name="notifications-list" tag="div">
+            <ff-notification-toast
+                v-for="(a, $index) in alertsReversed" :key="a.timestamp"
+                :type="a.type" :message="a.message" data-el="notification-alert"
+                :countdown="a.countdown || 3000" @close="clear($index)"
+            />
+        </TransitionGroup>
     </div>
 </template>
 
 <script>
+import AlertsMixin from '../mixins/Alerts.js'
 import DialogMixin from '../mixins/Dialog.js'
-import dialog from '../services/dialog.js'
 
 export default {
     name: 'FfLayoutPlain',
-    mixins: [DialogMixin],
-    data () {
-        return {
-
-        }
-    },
-    mounted () {
-        dialog.bind(this.$refs.dialog, this.showDialogHandler)
-    }
+    mixins: [DialogMixin, AlertsMixin]
 }
 </script>
-
-<style scoped lang="scss">
-
-</style>

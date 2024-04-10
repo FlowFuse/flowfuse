@@ -31,10 +31,8 @@ import { mapState } from 'vuex'
 
 import InterviewPopup from '../components/InterviewPopup.vue'
 import PageHeader from '../components/PageHeader.vue'
+import AlertsMixin from '../mixins/Alerts.js'
 import DialogMixin from '../mixins/Dialog.js'
-
-import alerts from '../services/alerts.js'
-import dialog from '../services/dialog.js'
 
 export default {
     name: 'ff-layout-platform',
@@ -42,18 +40,14 @@ export default {
         PageHeader,
         InterviewPopup
     },
-    mixins: [DialogMixin],
+    mixins: [AlertsMixin, DialogMixin],
     data () {
         return {
-            mobileMenuOpen: false,
-            alerts: []
+            mobileMenuOpen: false
         }
     },
     computed: {
-        ...mapState('product', ['interview']),
-        alertsReversed: function () {
-            return [...this.alerts].reverse()
-        }
+        ...mapState('product', ['interview'])
     },
     watch: {
         $route: function () {
@@ -63,8 +57,6 @@ export default {
     },
     mounted () {
         this.checkRouteMeta()
-        alerts.subscribe(this.alertReceived)
-        dialog.bind(this.$refs.dialog, this.showDialogHandler)
     },
     methods: {
         toggleMenu () {
@@ -78,17 +70,6 @@ export default {
                     break
                 }
             }
-        },
-        alertReceived (msg, type, countdown) {
-            this.alerts.push({
-                message: msg,
-                type,
-                countdown,
-                timestamp: Date.now()
-            })
-        },
-        clear (i) {
-            this.alerts.splice(this.alerts.length - 1 - i, 1)
         }
     }
 }
