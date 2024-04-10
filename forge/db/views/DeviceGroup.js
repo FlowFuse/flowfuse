@@ -6,7 +6,11 @@ module.exports = function (app) {
             id: { type: 'string' },
             name: { type: 'string' },
             description: { type: 'string' },
-            deviceCount: { type: 'number' }
+            deviceCount: { type: 'number' },
+            targetSnapshot: {
+                nullable: true,
+                allOf: [{ $ref: 'SnapshotSummary' }]
+            }
         }
     })
     function deviceGroupSummary (group) {
@@ -17,7 +21,8 @@ module.exports = function (app) {
             id: group.hashid,
             name: group.name,
             description: group.description,
-            deviceCount: group.deviceCount || 0
+            deviceCount: group.deviceCount || 0,
+            targetSnapshot: app.db.views.ProjectSnapshot.snapshotSummary(group.targetSnapshot)
         }
         return result
     }
@@ -74,7 +79,8 @@ module.exports = function (app) {
             createdAt: { type: 'string' },
             updatedAt: { type: 'string' },
             application: { $ref: 'ApplicationSummary' },
-            devices: { type: 'array', items: { $ref: 'Device' } }
+            devices: { type: 'array', items: { $ref: 'Device' } },
+            targetSnapshot: { $ref: 'SnapshotSummary' }
         },
         additionalProperties: true
     })
@@ -90,7 +96,8 @@ module.exports = function (app) {
                 description: item.description,
                 application: item.Application ? app.db.views.Application.applicationSummary(item.Application) : null,
                 deviceCount: item.deviceCount || 0,
-                devices: item.Devices ? item.Devices.map(app.db.views.Device.device) : []
+                devices: item.Devices ? item.Devices.map(app.db.views.Device.device) : [],
+                targetSnapshot: app.db.views.ProjectSnapshot.snapshotSummary(item.targetSnapshot)
             }
             return filtered
         } else {

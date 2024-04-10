@@ -96,7 +96,7 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                         const text = labels.toArray().join(', ')
 
                         // Test should pass for single test of full suite (objects persist between tests)
-                        expect(text).to.match(/2 x Instances, 2 x Devices, 2 x Device Groups, 8 x Snapshots, 4 x Pipelines|2 x Instances, 2 x Devices, 1 x Device Group, 3 x Snapshots/)
+                        expect(text).to.match(/2 x Instances, 2 x Devices, 2 x Device Groups, 9 x Snapshots, 4 x Pipelines|2 x Instances, 2 x Devices, 1 x Device Group, 4 x Snapshots/)
                     })
 
                     cy.get('[data-el="application-instances"]').find('li').should('have.length', 2)

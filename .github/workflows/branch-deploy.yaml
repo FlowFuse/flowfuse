@@ -149,8 +149,10 @@ jobs:
             --values ci/ci-values.yaml \
             --set forge.image=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }} \
             --set forge.entryPoint=${{ env.PR_NUMBER }}.flowfuse.dev \
+            --set forge.broker.hostname=${{ env.PR_NUMBER }}-mqtt.flowfuse.dev \
             --set forge.projectNamespace=pr-${{ env.PR_NUMBER }}-projects \
             --set forge.clusterRole.name=pr-${{ env.PR_NUMBER }}-clusterrole \
+            --set forge.license=${{ secrets.PRE_STAGING_LICENSE }} \
             flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowforge
 
       - name: Initial setup
@@ -205,7 +207,7 @@ jobs:
           curl -k -XPUT \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
-            -d '{"properties":{"users":{"limit":5},"devices":{"limit":10},"instances":{"'"$projectTypeId"'":{"active":true}}}}' \
+            -d '{"properties":{"users":{"limit":5},"devices":{"limit":10},"features": {"shared-library": true,"projectComms": true,"ha": true,"teamHttpSecurity": true,"customCatalogs": true,"deviceGroups": true,"emailAlerts": true,"protectedInstance": true,"deviceAutoSnapshot": true,"instanceAutoSnapshot": true,"editorLimits": true,"fileStorageLimit": null,"contextLimit": null},"instances":{"'"$projectTypeId"'":{"active":true}}}}' \
             https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/team-types/$teamTypeId
           curl -k -XPOST \
             -H "Content-Type: application/json" \

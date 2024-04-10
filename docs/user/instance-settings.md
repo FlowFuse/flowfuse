@@ -18,12 +18,12 @@ Instance Settings are split into a number of sections:
 
 ## General
 
-This section includes a number of actions you can take on the instance:
+This section includes several actions you can take on the instance:
 
 ### Change Stack
 
 The Stack determines the version of Node-RED being used. If a new stack
-is available, you can use this option to update you stack.
+is available, you can use this option to update your stack.
 
 ### Copy Instance
 
@@ -40,9 +40,9 @@ This stops the instance entirely.
 
 ### Delete Instance
 
-If you're really sure you don't want the instance any more, this allows you to delete
+If you're sure you don't want the instance anymore, this allows you to delete
 it. You cannot undo deleting an instance. Devices assigned to the instance will be
-unassigned from the instance and available to reassign to a new instance.
+unassigned from the instance and available to be reassigned to a new instance.
 
 ## Environment
 
@@ -56,7 +56,7 @@ is a Preview Feature. More information is available [here](./high-availability.m
 
 ## Editor
 
-This covers a number of options to customize the Node-RED editor. This includes:
+This covers many options to customize the Node-RED editor. This includes:
 
  - Disabling the editor entirely
  - Modifying the paths the editor and dashboard are served on
@@ -71,15 +71,21 @@ This covers a number of options to customize the Node-RED editor. This includes:
 This allows you to modify the security settings of the runtime. In particular
 this covers the security applied to any HTTP routes served by the runtime.
 
+### None
+
 The default option is not to apply any security - so any HTTP In nodes, or Node-RED
 Dashboard can be accessed by anyone.
 
-You can optionally enabled Basic Authentication, with a single hardcoded username
+### Basic Authentication
+
+You can optionally enable Basic Authentication, with a single hardcoded username
 and password.
 
-Alternatively with a licensed instance of FlowFuse you can require anyone accessing 
+### FlowFuse User Authentication
+
+Alternatively, with a licensed instance of FlowFuse, you can require anyone accessing 
 those routes to be logged into FlowFuse. The hosted pages or API endpoints are only 
-available for FlowFuse users that have access to the team on FlowFuse and the cloud 
+available for FlowFuse users who have access to the team on FlowFuse and the cloud 
 instance.
 
 If using FlowFuse user Authentication you can also generate HTTP Bearer tokens that
@@ -98,7 +104,7 @@ that will be deployed to the instance. Details of the `.npmrc` format can be fou
 
 Alerts are a feature designed to provide email notifications based on specific Auditlog events. This functionality ensures prompt awareness and response to critical events.
 
-Users have the ability to configure alerts for the following Auditlog events:
+Users can configure alerts for the following Auditlog events:
 - Node-RED has crashed
 - Node-RED has been placed in Safe Mode
 

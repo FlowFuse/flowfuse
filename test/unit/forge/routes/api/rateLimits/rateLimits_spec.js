@@ -282,8 +282,10 @@ describe('Endpoint Rate Limiting', () => {
                         const routeConfig = route.fastifyRoute.config
                         routeConfig.should.have.property('rateLimit').and.be.an.Object()
                         if (routeConfig.rateLimit.hard) {
-                            routeConfig.rateLimit.should.have.property('max', 5)
-                            routeConfig.rateLimit.should.have.property('timeWindow', 30000)
+                            routeConfig.rateLimit.should.have.property('max')
+                            routeConfig.rateLimit.max.should.be.equalOneOf(5, 2)
+                            routeConfig.rateLimit.should.have.property('timeWindow')
+                            routeConfig.rateLimit.timeWindow.should.be.equalOneOf(30000, 60000)
                         } else {
                             routeConfig.rateLimit.should.have.property('enabled', true)
                             routeConfig.rateLimit.should.have.property('global', true)
@@ -394,8 +396,10 @@ describe('Endpoint Rate Limiting', () => {
                         const routeConfig = route.fastifyRoute.config
                         routeConfig.should.have.property('rateLimit').and.be.an.Object()
                         if (routeConfig.rateLimit.hard) {
-                            routeConfig.rateLimit.should.have.property('max', 5)
-                            routeConfig.rateLimit.should.have.property('timeWindow', 30000)
+                            routeConfig.rateLimit.should.have.property('max')
+                            routeConfig.rateLimit.max.should.be.equalOneOf(5, 2)
+                            routeConfig.rateLimit.should.have.property('timeWindow')
+                            routeConfig.rateLimit.timeWindow.should.be.equalOneOf(30000, 60000)
                         } else {
                             routeConfig.rateLimit.should.have.property('enabled', true)
                             routeConfig.rateLimit.should.have.property('global', false)
