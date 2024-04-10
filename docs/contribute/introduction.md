@@ -286,6 +286,31 @@ test against PostgreSQL. To enable the use of PostgreSQL in the tests:
       export FF_TEST_DB_POSTGRES_DATABASE=flowforge_test
     ```
 
+##### Testing against MS SQL Server
+
+By default, the tests use an in-memory sqlite database to test against. This is
+the most self-contained way of testing the platform. But it is also necessary to
+test against MS SQL Server. To enable the use of MS SQL Server in the tests:
+
+1. Ensure you have an instance of MS SQL Server running locally. For example, via docker:
+   ```bash
+      docker run --rm -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=Secret321!" -p 1433:1433 --name mssql -d mcr.microsoft.com/mssql/server:2019-latest
+   ```
+
+2. Enable MS SQL Server mode by setting the following environment variable:
+   ```bash
+      export FF_TEST_DB_MSSQL=true
+   ```
+
+   The database connection can be set using the following env vars (default values shown)
+   ```bash
+      export FF_TEST_DB_MSSQL_HOST=localhost
+      export FF_TEST_DB_MSSQL_PORT=1433
+      export FF_TEST_DB_MSSQL_USER=sa
+      export FF_TEST_DB_MSSQL_PASSWORD=Secret321!
+      export FF_TEST_DB_MSSQL_DATABASE=flowforge_test
+    ```
+
 #### Reporting code coverage
 
 The `test:*` tasks have corresponding code coverage tasks. These tasks run the 
