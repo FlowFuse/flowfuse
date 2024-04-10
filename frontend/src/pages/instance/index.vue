@@ -69,10 +69,6 @@ import { ChevronLeftIcon } from '@heroicons/vue/solid'
 import SemVer from 'semver'
 import { mapState } from 'vuex'
 
-import { Roles } from '../../../../forge/lib/roles.js'
-
-import InstanceApi from '../../api/instances.js'
-
 import DropdownMenu from '../../components/DropdownMenu.vue'
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
@@ -82,10 +78,6 @@ import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 
 import instanceMixin from '../../mixins/Instance.js'
 import permissionsMixin from '../../mixins/Permissions.js'
-
-import alerts from '../../services/alerts.js'
-
-import { InstanceStateMutator } from '../../utils/InstanceStateMutator.js'
 
 import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import DashboardLink from './components/DashboardLink.vue'
@@ -111,55 +103,31 @@ export default {
             mounted: false,
             icons: {
                 chevronLeft: ChevronLeftIcon
-            },
-            instance: {},
-            navigation: [],
-            checkInterval: null,
-            checkWaitTime: 1000,
-            loading: {
-                deleting: false,
-                suspend: false
             }
         }
     },
     computed: {
         ...mapState('account', ['teamMembership', 'team']),
-        isVisitingAdmin: function () {
-            return this.teamMembership?.role === Roles.Admin
+        navigation () {
+            if (!this.instance.id) return []
+
+            return [
+                { label: 'Overview', to: { name: 'instance-overview', params: { id: this.instance.id } }, tag: 'instance-overview' },
+                { label: 'Devices', to: { name: 'instance-devices', params: { id: this.instance.id } }, tag: 'instance-remote' },
+                { label: 'Snapshots', to: { name: 'instance-snapshots', params: { id: this.instance.id } }, tag: 'instance-snapshots' },
+                { label: 'Audit Log', to: { name: 'instance-audit-log', params: { id: this.instance.id } }, tag: 'instance-activity' },
+                { label: 'Node-RED Logs', to: { name: 'instance-logs', params: { id: this.instance.id } }, tag: 'instance-logs' },
+                { label: 'Settings', to: { name: 'instance-settings', params: { id: this.instance.id } }, tag: 'instance-settings' }
+            ]
         },
         isLoading: function () {
             return this.loading.deleting || this.loading.suspend
-        },
-        instanceRunning () {
-            return this.instance?.meta?.state === 'running'
         },
         editorAvailable () {
             return !this.isHA && this.instanceRunning
         },
         hasDashboard2 () {
             return !!this.instance?.settings?.dashboard2UI
-        },
-        actionsDropdownOptions () {
-            const flowActionsDisabled = !(this.instance.meta && this.instance.meta.state !== 'suspended')
-
-            const instanceStateChanging = this.instance.pendingStateChange || this.instance.optimisticStateChange
-
-            const result = [
-                {
-                    name: 'Start',
-                    action: this.startInstance,
-                    disabled: instanceStateChanging || this.instanceRunning
-                },
-                { name: 'Restart', action: this.restartInstance, disabled: instanceStateChanging || flowActionsDisabled },
-                { name: 'Suspend', class: ['text-red-700'], action: this.showConfirmSuspendDialog, disabled: instanceStateChanging || flowActionsDisabled }
-            ]
-
-            if (this.hasPermission('project:delete')) {
-                result.push(null)
-                result.push({ name: 'Delete', class: ['text-red-700'], action: this.showConfirmDeleteDialog })
-            }
-
-            return result
         },
         disabledReason () {
             if (this.isHA) {
@@ -182,75 +150,8 @@ export default {
             return this.instance.url
         }
     },
-    watch: {
-        instance: 'instanceChanged'
-    },
-    async created () {
-        await this.loadInstance()
-
-        this.$watch(
-            () => this.$route.params.id,
-            async () => {
-                await this.loadInstance()
-            }
-        )
-    },
     mounted () {
         this.mounted = true
-    },
-    methods: {
-        instanceUpdated (newData) {
-            this.instanceStateMutator.clearState()
-            this.instance = { ...this.instance, ...newData }
-        },
-        instanceChanged () {
-            this.instanceStateMutator = new InstanceStateMutator(this.instance)
-
-            this.navigation = [
-                { label: 'Overview', to: { name: 'instance-overview', params: { id: this.instance.id } }, tag: 'instance-overview' },
-                { label: 'Devices', to: { name: 'instance-devices', params: { id: this.instance.id } }, tag: 'instance-remote' },
-                { label: 'Snapshots', to: { name: 'instance-snapshots', params: { id: this.instance.id } }, tag: 'instance-snapshots' },
-                { label: 'Audit Log', to: { name: 'instance-audit-log', params: { id: this.instance.id } }, tag: 'instance-activity' },
-                { label: 'Node-RED Logs', to: { name: 'instance-logs', params: { id: this.instance.id } }, tag: 'instance-logs' },
-                { label: 'Settings', to: { name: 'instance-settings', params: { id: this.instance.id } }, tag: 'instance-settings' }
-            ]
-        },
-        async startInstance () {
-            this.instanceStateMutator.setStateOptimistically('starting')
-
-            try {
-                await InstanceApi.startInstance(this.instance)
-                this.instanceStateMutator.setStateAsPendingFromServer()
-            } catch (err) {
-                console.warn('Instance start failed.', err)
-                alerts.emit('Instance start failed.', 'warning')
-                this.instanceStateMutator.restoreState()
-            }
-        },
-        async restartInstance () {
-            this.instanceStateMutator.setStateOptimistically('restarting')
-            try {
-                await InstanceApi.restartInstance(this.instance)
-                this.instanceStateMutator.setStateAsPendingFromServer()
-            } catch (err) {
-                console.warn('Instance restart failed.', err)
-                alerts.emit('Instance restart failed.', 'warning')
-                this.instanceStateMutator.restoreState()
-            }
-        },
-        deleteInstance () {
-            const applicationId = this.instance.application.id
-            this.loading.deleting = true
-            InstanceApi.deleteInstance(this.instance).then(async () => {
-                await this.$store.dispatch('account/refreshTeam')
-                this.$router.push({ name: 'ApplicationInstances', params: { id: applicationId } })
-                alerts.emit('Instance successfully deleted.', 'confirmation')
-            }).catch(err => {
-                console.warn(err)
-                alerts.emit('Instance failed to delete.', 'warning')
-                this.loading.deleting = false
-            })
-        }
     }
 }
 </script>

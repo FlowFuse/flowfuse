@@ -1,7 +1,16 @@
 <template>
     <div class="ff-editor-wrapper">
         <section class="editor-wrapper">
+            <div v-if="isInstanceTransitioningStates" class="status-wrapper">
+                <InstanceStatusBadge
+                    :status="instance.meta?.state"
+                    :optimisticStateChange="instance.optimisticStateChange"
+                    :pendingStateChange="instance.pendingStateChange"
+                />
+            </div>
+
             <iframe
+                v-else
                 ref="iframe"
                 width="100%"
                 height="100%"
@@ -13,6 +22,8 @@
         </section>
 
         <section class="tabs-wrapper drawer" :class="{'open': drawer.open}">
+            <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="deleteInstance" />
+
             <div class="header">
                 <div class="logo">
                     <router-link :to="{ name: 'Home' }">
@@ -22,6 +33,7 @@
                 </div>
                 <ff-tabs :tabs="navigation" class="tabs" />
                 <div class="side-actions">
+                    <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
                     <a :href="instance.url" target="_blank">
                         <ExternalLinkIcon class="ff-btn--icon" />
                     </a>
@@ -40,6 +52,7 @@
             <div class="drawer-trigger" @click="toggleDrawer">
                 <img src="../../../images/icons/ff-minimal-grey.svg" alt="logo">
             </div>
+            <InstanceStatusPolling :instance="instance" @instance-updated="instanceUpdated" />
         </section>
     </div>
 </template>
@@ -47,16 +60,20 @@
 <script>
 import { ArrowLeftIcon, ChevronDownIcon, ExternalLinkIcon } from '@heroicons/vue/solid'
 
+import DropdownMenu from '../../../components/DropdownMenu.vue'
+import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue'
+
 import FfPage from '../../../layouts/Page.vue'
 import instanceMixin from '../../../mixins/Instance.js'
+import ConfirmInstanceDeleteDialog from '../Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
+import InstanceStatusBadge from '../components/InstanceStatusBadge.vue'
 
 export default {
     name: 'InstanceEditor',
-    components: { ExternalLinkIcon, FfPage, ChevronDownIcon, ArrowLeftIcon },
+    components: { InstanceStatusBadge, ConfirmInstanceDeleteDialog, InstanceStatusPolling, DropdownMenu, ExternalLinkIcon, FfPage, ChevronDownIcon, ArrowLeftIcon },
     mixins: [instanceMixin],
     data () {
         return {
-            instance: {},
             drawer: {
                 open: true
             }
@@ -97,10 +114,14 @@ export default {
                     tag: 'instance-settings'
                 }
             ]
+        },
+        isInstanceTransitioningStates () {
+            const pendingState = (Object.hasOwnProperty.call(this.instance, 'pendingStateChange') && this.instance.pendingStateChange)
+            const optimisticStateChange = (Object.hasOwnProperty.call(this.instance, 'optimisticStateChange') && this.instance.optimisticStateChange)
+            return pendingState || optimisticStateChange || ['starting', 'suspended', 'suspending'].includes(this.instance.meta?.state)
         }
     },
     mounted () {
-        this.loadInstance()
         window.addEventListener('message', this.eventListener)
     },
     unmounted () {
@@ -141,6 +162,15 @@ export default {
     height: 100%;
     width: 100%;
     position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    justify-content: center;
+
+    .status-wrapper {
+      display: flex;
+      justify-content: center;
+    }
   }
 
   .tabs-wrapper {
