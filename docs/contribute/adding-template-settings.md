@@ -13,7 +13,7 @@ The Template also defines which of those options can be customised by individual
 This guide explains how to add a new Node-RED runtime option to the Template object
 so that it can be customised and passed through to the underlying Node-RED settings.js file.
 
-This is reasonably straight-forward for simple boolean/string/numeric types.
+This is reasonably straightforward for simple boolean/string/numeric types.
 For other types (objects/arrays) it gets more complicated and we don't currently
 have good examples to follow.
 
@@ -60,13 +60,13 @@ file. Some thought should be made as to organisation of the properties.
 
 ### 1.2 - Add it to the appropriate Template section
 
-Current there are:
+Currently there are:
 
  - Editor
  - Palette
  - Environment - a special case that is unlikely to get other options added
 
-These each live in their own file under `frontend/src/pages/admin/Template/sections/`.
+These each lives in their own file under `frontend/src/pages/admin/Template/sections/`.
 
 Pick an existing setting that most closely matches the setting you want to add 
 (ie checkbox or text input), and copy its entry to the appropriate place.

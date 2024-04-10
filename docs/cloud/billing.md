@@ -34,18 +34,18 @@ instance is restarted it will be charged for the remaining time in the billing c
 
 ## Managing Billing Details
 
-Click on "Billing" followed by "Stripe Customer Portal" to get a summary of the teams current subscription. You'll be redirected to
+Click on "Billing" followed by "Stripe Customer Portal" to get a summary of the team's current subscription. You'll be redirected to
 a Stripe customer portal where you can update customer details as: The credit card on file and the billing information.
 
 ## Failed Payments
 
 If your payment fails for any reason you will receive a notification to the billing email address, you may need to login and update the card on file. 
-Stripe will retry the payment several times over a number of days. If the card repeatedly fails your Node-RED instances will be suspended and a banner will be displayed at the top of the page for all users. An admin will need to update your card details to be able create new instances or restart them.
+Stripe will retry the payment several times over a number of days. If the card repeatedly fails your Node-RED instances will be suspended and a banner will be displayed at the top of the page for all users. An admin will need to update your card details to be able to create new instances or restart them.
 
 ## Cancelling your subscription
 
 When you're on the Starter tier you'll need to delete your team to cancel your subscription.
-For the Team and Enterprise tiers you're charged on active cloud instances and edge devices. To stop being charged it suffices
-to suspend all Cloud Node-RED instances, and remove all edge devices from the team.
+For the Team and Enterprise tiers, you're charged on active cloud instances and edge devices. To stop being charged it suffices
+to suspend all Cloud Node-RED instances and remove all edge devices from the team.
 
 If you have outstanding credit you can request a refund via a [support ticket](/support/).
