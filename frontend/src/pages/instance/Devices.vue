@@ -8,6 +8,7 @@
         </template>
     </SectionTopMenu>
     <DevicesBrowser
+        v-if="team"
         :team="team"
         :teamMembership="teamMembership"
         :instance="instance"
