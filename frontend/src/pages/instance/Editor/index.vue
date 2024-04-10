@@ -181,6 +181,8 @@ export default {
     background: white;
     box-shadow: 3.841px -3.841px 7.682px rgba(0, 0, 0, 0.10);
     transition: ease-in-out 0.3s;
+    display: flex;
+    flex-direction: column;
 
     //&::before {
     //  content: '...';
