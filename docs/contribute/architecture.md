@@ -43,21 +43,21 @@ There is no automatic Ingres automation provided by this driver.
 
 #### Kubernetes
 
-This driver runs Node-RED in separate containers and each instance is accessed by a dedicated hostname via a HTTP Ingres proxy.
+This driver runs Node-RED in separate containers and each instance is accessed by a dedicated hostname via an HTTP Ingres proxy.
 
-State is stored in a provided PostgreSQL database.
+The state is stored in a provided PostgreSQL database.
 
 Node-RED containers are segregated into their own namespace (currently hardcoded to `flowforge`)
 
 The driver uses the [@kubernetes/client-node](https://www.npmjs.com/package/@kubernetes/client-node) to interact with the cluster.
 
-The driver will create the required Service and Ingres Kubernetes resources to expose each instance via what ever Ingress Controller the underlying Kubernetes cluster provides.
+The driver will create the required Service and Ingres Kubernetes resources to expose each instance via whatever Ingress Controller the underlying Kubernetes cluster provides.
 
 #### Docker-Compose
 
-This driver runs Node-RED in separate containers and each instance is accessed by a dedicated hostname via a HTTP Ingres proxy.
+This driver runs Node-RED in separate containers and each instance is accessed by a dedicated hostname via an HTTP Ingres proxy.
 
-State is stored in a provided PostgreSQL database.
+The state is stored in a provided PostgreSQL database.
 
 The driver uses the [dockerode](https://www.npmjs.com/package/dockerode) to interact with the cluster.
 
@@ -76,7 +76,7 @@ A FlowFuse Node-RED Instance is made up of 2 processes
 
 This is a small application that handles downloading the Instance specific settings, building a `settings.js` from those settings and then starting the Node-RED instance.
 
-The launcher presents a HTTP API (it defaults to the Node-RED port + 1000) that allows the FlowFuse Management Application to start/stop/restart the Node-RED instance as well as query it's current state and retrieve the console logs.
+The launcher presents an HTTP API (it defaults to the Node-RED port + 1000) that allows the FlowFuse Management Application to start/stop/restart the Node-RED instance as well as query its current state and retrieve the console logs.
 
 The launcher can be found [here](https://github.com/FlowFuse/nr-launcher)
 
@@ -84,7 +84,7 @@ Within the launcher are some custom plugins that are loaded by Node-RED:
 
 #### nr-storage
 
-This plugin is used to save flows, settings, sessions and library entries back to the FlowFuse Management Application.
+This plugin is used to save flows, settings, sessions, and library entries back to the FlowFuse Management Application.
 
 #### nr-auth
 
@@ -98,7 +98,7 @@ This plugin sends Node-RED Audit events (e.g. user log in and flow deployment ev
 
 This plugin uses the Node-RED [Logging API](https://nodered.org/docs/user-guide/runtime/logging)
 
-## Component overview
+## Component Overview
 
 ```mermaid
 erDiagram

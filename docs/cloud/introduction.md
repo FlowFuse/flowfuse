@@ -10,8 +10,8 @@ The [Concepts](/docs/user/concepts.md) remain the same, but we run the platform 
 
 ## 14-day Free Trial
 
-When users sign-up to FlowFuse Cloud then get a 14-day free trial of the platform.
-During that trial they are able to create up to two Small Node-RED Instances and
+When users sign-up to FlowFuse Cloud they get a 14-day free trial of the platform.
+During that trial, they can create up to two Small Node-RED Instances and
 connect two devices. This is a great way to start using FlowFuse and discover a
 lot of the value it provides.
 
@@ -41,7 +41,7 @@ Node-RED such as your flows or a 3rd party node should be raised in the
 
 ### Requesting a new verification email
 
-When a user signs up for FlowFuse Cloud an email will be send to verify it.
+When a user signs up for FlowFuse Cloud an email will be sent to verify it.
 If this email doesn't get delivered one can be resend by signing in to FlowFuse
 and click the button to resend it.
 
@@ -73,12 +73,12 @@ Each Node-RED instance has a quota of `100MB` of file storage. A single write op
 limited to `10MB` in size.
 
 Some 3rd party nodes try to access the filesystem directly. This can lead to
-unpredictable results if the data is not persisted between restarts.
+unpredictable results if the data does not persist between restarts.
 
 ## Node-RED context
 
 Node-RED Context can be used to store small pieces of application state within the
-runtime. By default this is stored in memory only.
+runtime. By default, this is stored in memory only.
 
 FlowFuse Cloud provides an optional context store that can be used to persist
 the data.
@@ -89,7 +89,7 @@ Persistent context has a quota limit set at `1MB` per instance.
 
 ### HTTP(S) & Websockets
 
-Node-RED expose an HTTPS interface on port 443 with each instance having its own hostname (example.FlowFuse.cloud). Plain HTTP requests to port 80 will receive a redirect to HTTPS on port 443.
+Node-RED exposes an HTTPS interface on port 443 with each instance having its own hostname (example.FlowFuse.cloud). Plain HTTP requests to port 80 will receive a redirect to HTTPS on port 443.
 You MUST connect using the hostname not the IP address to reach your Node-RED instance.
 Websocket connections over SSL (wss:) are also supported.
 
@@ -116,24 +116,24 @@ Outbound connections from FlowFuse will always come from the IP address `63.33.8
 
 This can make access to a remote database or corporate network possible where those systems are protected by IP address filtering firewalls. 
 
-All incoming connections MUST use the hostname and not IP address.
+All incoming connections MUST use the hostname and not an IP address.
 
 ## Single-Sign On
 
 FlowFuse supports configuring SAML-based Single Sign-On for particular email domains.
 
-This can be configured on request for FlowFuse Cloud by submitted a support request
+This can be configured on request for FlowFuse Cloud by submitting a support request
 via our [Contact Us](https://flowfuse.com/contact-us/) page.
 
-You must have the ability to configure an SAML endpoint on your Identity Provider,
-and have authority to configure SSO for your email domain.
+You must have the ability to configure a SAML endpoint on your Identity Provider,
+and have the authority to configure SSO for your email domain.
 
 We have currently validated our SSO support with the following Identity Providers:
 
  - Google Workspace
  - OneLogin
 
-If you are using a different Identity Provider, please still get in touch and we
+If you are using a different Identity Provider, please still get in touch, and we
 can evaluate what will be required to enable it.
 
 ## Removing your account

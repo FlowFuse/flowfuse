@@ -143,7 +143,7 @@ Sentry reads the environment variable `SENTRY_ENV`, falling back to `NODE_ENV` t
 
 #### Telemetry During Build
 
-Configure .env with the auth token, org and project name for the frontend project.
+Configure .env with the auth token, org, and project name for the frontend project.
 
 ```yaml
 # Used for BUILD time sentry reporting
