@@ -82,15 +82,15 @@ Administrator and can be limited to specific team tiers.
 
 When running in Docker or Kubernetes (such as FlowFuse Cloud), the instance names
 are used as the hostname to access the instance. This means that the names must
-be DNS safe (made up of a-z, 0-9, and -) and not start with a number. Currently,
+be DNS safe (made up of a-z, 0-9 and -) and not start with a number. Currently,
 it is not possible to change an instance name after it has been created.
 
-Within the instance, there are some further concepts to learn about.
+Within the instance there are some further concepts to learn about.
 
 #### Instance Type
 
-When you create a Node-RED instance, you can pick its type from the list of the platform,
-The administrator has made it available. For example, each type could provide a different
+When you create a Node-RED instance, you can pick its type from the list the platform
+Administrator has made available. For example, each type could provide a different
 amount of memory or CPU allocation.
 
 If the platform has billing enabled, each type may have a different monthly price
@@ -114,7 +114,7 @@ For details on how to administer and manage Stacks, please see the
 A Template describes the properties of Node-RED itself. It is how many of the
 settings a user familiar with Node-RED would be used to modify in their settings
 file. But it can also be used to customise the palette of nodes that are pre-installed,
-provide a set of default flows, and change the look and feel of the editor.
+provide a set of default flows and change the look and feel of the editor.
 
 A template can also specify [Environment Variables](./envvar.md) which can then have
 their values customised for each Node-RED instance, or have their values locked
