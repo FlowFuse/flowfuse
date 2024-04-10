@@ -45,10 +45,18 @@ export default {
                 { name: 'General', path: './general' },
                 { name: 'Environment', path: './environment' }
             ]
+            if (this.device.ownerType === 'application' && this.hasPermission('device:edit')) {
+                this.sideNavigation.push({ name: 'Palette', path: './palette' })
+            }
             if (this.hasPermission('device:edit')) {
                 this.sideNavigation.push({ name: 'Danger', path: './danger' })
             }
             return true
+        }
+    },
+    watch: {
+        device: function (newVal, oldVal) {
+            this.checkAccess()
         }
     },
     components: {
