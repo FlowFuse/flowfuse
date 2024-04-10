@@ -694,7 +694,7 @@ describe('Application Device Groups API', function () {
                 app.comms.devices.sendCommand.restore()
                 await app.db.models.PipelineStage.destroy({ where: {} })
                 await app.db.models.Pipeline.destroy({ where: {} })
-                await app.db.models.ProjectSnapshot.destroy({ where: {} })
+                await app.db.models.ProjectSnapshot.destroy({ where: {}, individualHooks: true })
             })
 
             it('Add and Remove Devices get an update request', async function () {

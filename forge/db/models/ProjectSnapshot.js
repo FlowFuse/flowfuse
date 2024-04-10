@@ -49,6 +49,28 @@ module.exports = {
         this.hasMany(M.Device, { foreignKey: 'activeSnapshotId' })
         this.hasMany(M.DeviceGroup, { foreignKey: 'targetSnapshotId' })
     },
+    hooks: function (M) {
+        return {
+            beforeBulkDestroy: async (opts) => {
+                // console.log('💣💣💣 ProjectSnapshot beforeBulkDestroy', opts)
+                // replicate the behaviour of the `ON DELETE SET NULL` constraint
+                if (opts.individualHooks) {
+                    // we have a beforeDestroy hook that will handle the cascading
+                    return
+                }
+                // if where clause is an empty object, we are deleting all rows
+                if (Object.keys(opts.where).length === 0) {
+                    await M.Device.update({ targetSnapshotId: null }, { where: { targetSnapshotId: { [Op.ne]: null } }, transaction: opts?.transaction })
+                }
+            },
+            beforeDestroy: async (row, opts) => {
+                // console.log('💣💣💣 ProjectSnapshot beforeDestroy', row?.id, opts)
+                // replicate the behaviour of the `ON DELETE SET NULL` constraint
+                await M.Device.update({ targetSnapshotId: null }, { where: { targetSnapshotId: row.id }, transaction: opts?.transaction })
+                await M.Device.update({ activeSnapshotId: null }, { where: { activeSnapshotId: row.id }, transaction: opts?.transaction })
+            }
+        }
+    },
     finders: function (M) {
         const self = this
         return {

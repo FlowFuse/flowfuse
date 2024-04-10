@@ -26,7 +26,7 @@ describe('ProjectSnapshot controller', function () {
         await app.close()
     })
     afterEach(async function () {
-        await app.db.models.ProjectSnapshot.destroy({ where: {} })
+        await app.db.models.ProjectSnapshot.destroy({ where: {}, individualHooks: true })
     })
     describe('createSnapshot (instance)', function () {
         async function createProject (application = null, team = null) {

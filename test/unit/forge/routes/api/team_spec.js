@@ -726,7 +726,7 @@ describe('Team API', function () {
             response.statusCode.should.equal(400)
             const result = response.json()
             result.should.have.property('code', 'unexpected_error')
-            result.error.should.match(/slug must be unique/)
+            result.error.should.match(/.+ must be unique/) // MSSQL errors appear to be the constraint name eg UQ__Teams__C577D1C2D4E5D0A7 whereas sqlite and postgres errors state the field name. Is this a bug in the mssql driver/sequelize? Should we be providing a more user-friendly error message in our code?
         })
         it('cannot modify name and type in one request', async function () {
             const team = await app.db.models.Team.create({ name: 'update-team-3', slug: 'team-3', TeamTypeId: app.defaultTeamType.id })

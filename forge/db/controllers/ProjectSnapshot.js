@@ -122,7 +122,7 @@ const deviceAutoSnapshotUtils = {
         const snapshots = await app.db.controllers.ProjectSnapshot.getDeviceAutoSnapshots(device, true, 0)
         if (snapshots.length > limit) {
             const toDelete = snapshots.slice(0, snapshots.length - limit).map((snapshot) => snapshot.id)
-            await app.db.models.ProjectSnapshot.destroy({ where: { id: { [Op.in]: toDelete } } })
+            await app.db.models.ProjectSnapshot.destroy({ where: { id: { [Op.in]: toDelete } }, individualHooks: true })
         }
     },
     doAutoSnapshot: async function (app, device, deploymentType, { clean = true, setAsTarget = false } = {}, meta) {
@@ -289,7 +289,7 @@ const instanceAutoSnapshotUtils = {
         const snapshots = await app.db.controllers.ProjectSnapshot.getInstanceAutoSnapshots(project, true, 0)
         if (snapshots.length > limit) {
             const toDelete = snapshots.slice(0, snapshots.length - limit).map((snapshot) => snapshot.id)
-            await app.db.models.ProjectSnapshot.destroy({ where: { id: { [Op.in]: toDelete } } })
+            await app.db.models.ProjectSnapshot.destroy({ where: { id: { [Op.in]: toDelete } }, individualHooks: true })
         }
     },
     doAutoSnapshot: async function (app, project, deploymentType, { clean = true, setAsTarget = false } = {}, meta) {

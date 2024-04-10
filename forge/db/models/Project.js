@@ -135,6 +135,7 @@ module.exports = {
                 }
             },
             afterDestroy: async (project, opts) => {
+                // console.log('💣💣💣 Project afterDestroy', project?.id, opts)
                 await M.AccessToken.destroy({
                     where: {
                         ownerType: 'project',
@@ -183,6 +184,23 @@ module.exports = {
                         ProjectId: project.id
                     }
                 })
+            },
+            beforeDestroy: async (project, opts) => {
+                // As destroying an instance cascades deletion of associated ProjectSnapshots which in turn
+                // NULLs the targetSnapshotId on associated Devices, we need to manually NULL the
+                // targetSnapshotId on associated Devices to avoid a constraint violation
+
+                // Sequelize does not seem to call hooks on associated models when using `destroy` so we need to do this manually
+
+                // Enforce the `ON DELETE CASCADE` constraint for the Project.ProjectSnapshots.ProjectId foreign key
+                // Calling it here WILL trigger the hooks on ProjectSnapshot where its own hooks will NULL the targetSnapshotId on associated Devices
+                await M.ProjectSnapshot.destroy({ where: { ProjectId: project.id }, transaction: opts?.transaction, individualHooks: true })
+
+                // Enforce the `ON DELETE SET NULL` constraint for the Device.ProjectId foreign key
+                await M.Device.update({ ProjectId: null }, { where: { ProjectId: project.id }, transaction: opts?.transaction, individualHooks: true })
+            },
+            beforeBulkDestroy: async (opts) => {
+                // console.log('💣💣💣 Project beforeBulkDestroy', opts)
             }
         }
     },

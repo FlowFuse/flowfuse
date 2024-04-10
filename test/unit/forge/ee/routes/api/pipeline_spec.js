@@ -152,7 +152,7 @@ describe('Pipelines API', function () {
     afterEach(async function () {
         await app.db.models.PipelineStage.destroy({ where: {} })
         await app.db.models.Pipeline.destroy({ where: {} })
-        await app.db.models.ProjectSnapshot.destroy({ where: {} })
+        await app.db.models.ProjectSnapshot.destroy({ where: {}, individualHooks: true }) // ensure the beforeDestroy hook is called for each snapshot
     })
 
     describe('Create Pipeline Stage', function () {
@@ -1824,7 +1824,8 @@ describe('Pipelines API', function () {
                 await app.db.models.ProjectSnapshot.destroy({
                     where: {
                         ProjectId: [TestObjects.instanceOne.id, TestObjects.instanceTwo.id]
-                    }
+                    },
+                    individualHooks: true
                 })
             })
 
@@ -2172,7 +2173,8 @@ describe('Pipelines API', function () {
                             { ProjectId: TestObjects.instanceOne.id },
                             { DeviceId: TestObjects.deviceOne.id }
                         ]
-                    }
+                    },
+                    individualHooks: true
                 })
             })
 
@@ -2507,7 +2509,8 @@ describe('Pipelines API', function () {
                             { ProjectId: TestObjects.instanceOne.id },
                             { DeviceId: TestObjects.deviceOne.id }
                         ]
-                    }
+                    },
+                    individualHooks: true
                 })
             })
 

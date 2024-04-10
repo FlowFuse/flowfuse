@@ -315,7 +315,7 @@ describe('Project Snapshots API', function () {
         const projectCredentialsSecretA = 'keyA'
         const projectCredentialsSecretB = 'keyB'
         afterEach(async function () {
-            await app.db.models.ProjectSnapshot.destroy({ where: {} })
+            await app.db.models.ProjectSnapshot.destroy({ where: {}, individualHooks: true })
         })
         it('Non-team member cannot export project snapshot', async function () {
             // Chris (non-member) cannot export ("create" permission at the moment) in ATeam
