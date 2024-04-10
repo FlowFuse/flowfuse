@@ -1683,7 +1683,7 @@ describe('Device API', async function () {
 
             const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
             const dbDevice = await app.db.models.Device.byId(device.id)
-            dbDevice.updateSettings({ settings: { env: [{ name: 'FOO', value: 'BAR' }] } })
+            await dbDevice.updateSettings({ settings: { env: [{ name: 'FOO', value: 'BAR' }] } })
             dbDevice.setProject(TestObjects.deviceProject)
             const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
             dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
@@ -1713,7 +1713,7 @@ describe('Device API', async function () {
 
             const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
             const dbDevice = await app.db.models.Device.byId(device.id)
-            dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
+            await dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
             dbDevice.setProject(TestObjects.deviceProject)
             const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
             dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
@@ -1742,7 +1742,7 @@ describe('Device API', async function () {
 
             const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
             const dbDevice = await app.db.models.Device.byId(device.id)
-            dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
+            await dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
             dbDevice.setProject(TestObjects.deviceProject)
             const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
             dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
@@ -1791,7 +1791,7 @@ describe('Device API', async function () {
 
             const device = await createDevice({ name: 'Ad1', type: 'Ad1_type', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
             const dbDevice = await app.db.models.Device.byId(device.id)
-            dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
+            await dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
             dbDevice.setProject(TestObjects.deviceProject)
             const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
             dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
@@ -1820,7 +1820,7 @@ describe('Device API', async function () {
 
             const device = await createDevice({ name: 'Ad1', type: 'Ad1_type', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
             const dbDevice = await app.db.models.Device.byId(device.id)
-            dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
+            await dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
             dbDevice.setProject(TestObjects.deviceProject)
             const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
             dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
