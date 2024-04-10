@@ -6,7 +6,7 @@ When adding features to the platform it is sometimes a requirement to be able to
 restrict the feature to licensed platforms, and furthermore to certain types of team
 on the platform.
 
-Most typically this will be a feature that should only be available to `Team`
+Most typically this will be a feature that should only be available to the `Team`
 or `Enterprise` tiers on FlowFuse Cloud.
 
 This is a quick guide for how to add a feature flag - both at the platform-wide
@@ -16,7 +16,7 @@ Feature flag names should use `camelCase`.
 
 ### Add a platform-wide feature flag
 
-All features that are licensable should set a platform-wide feature flag to indicate
+All licensable features should set a platform-wide feature flag to indicate
 the feature is available.
 
 ```
@@ -86,7 +86,7 @@ TeamType feature flags can be checked against `team.type.properties.features.fea
 This allows the UI to distinguish between a feature being unavailable because the platform
 is not licensed for it, and a feature being unavailable for the current team type.
 
-This allows different messages to be display with the most appropriate call to action.
+This allows different messages to be displayed with the most appropriate call to action.
 
 The `EmptyState` component has support for this - see [here](https://github.com/FlowFuse/flowfuse/blob/0335c9056019ff9987d97f3ad3f18675de1c2422/frontend/src/pages/application/DeviceGroups.vue#L29)
 for how that is applied.

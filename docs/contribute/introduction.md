@@ -35,7 +35,7 @@ Repository    | Description
 [driver-localfs](https://github.com/FlowFuse/driver-localfs) | The LocalFS driver. This deploys instances to the local system.
 [driver-docker](https://github.com/FlowFuse/driver-docker) | The Docker driver. This deploys instances as containers in a Docker-managed environment.
 [driver-k8s](https://github.com/FlowFuse/driver-k8s) | The Kubernetes driver. This deploys instances as containers in a Kubernetes-managed environment.
-[nr-launcher](https://github.com/FlowFuse/nr-launcher) | The launcher application used to start and monitor an individual instance of Node-RED in the FlowFuse platform. This includes a number of Node-RED plugins used to integrate with the FlowFuse platform.
+[nr-launcher](https://github.com/FlowFuse/nr-launcher) | The launcher application is used to start and monitor an individual instance of Node-RED in the FlowFuse platform. This includes a number of Node-RED plugins used to integrate with the FlowFuse platform.
 
 ### Setting Up A Development Environment
 
@@ -145,7 +145,7 @@ To get started from the `flowfuse` directory use:
 npm run serve
 ```
 
-This does a couple things in parallel:
+This does a couple of things in parallel:
 
  - Starts the core FlowFuse application and watches the source code for any
    changes - triggering a restart if needed.
@@ -162,15 +162,15 @@ to build the platform before you can use `npm run serve`.
 ### Configuring FlowFuse
 
 When running in development mode, the core app will use `etc/flowforge.yml` for its configuration.
-As you may want to have local configuration that you don't want to commit back to git,
+As you may want to have a local configuration that you don't want to commit back to git,
 you can create a file called `etc/flowforge.local.yml` and it will use that instead.
-That filename is setup to be ignored by git so it won't be accidentally committed.
+That filename is set to be ignored by git so it won't be accidentally committed.
 
 ### Mocking email
 
 If you are developing locally and need to enable external email sending, you can either:
 
- - Setup a local test SMTP server. For example the Nodemailer project provides a
+ - Setup a local test SMTP server. For example, the Nodemailer project provides a
    useful app that does the job: https://nodemailer.com/app/
  - Alternatively, set the `email.debug` option to `true` in your configuration file
    and the app will print all emails to its log.
@@ -207,8 +207,7 @@ billing:
         userCost: 0
 ```
 
-You will also need to install the [Stripe CLI](https://stripe.com/docs/cli/) in order
-to handle webhook callbacks properly. Install the CLI following their documentation, then
+You will also need to install the [Stripe CLI](https://stripe.com/docs/cli/) to handle webhook callbacks properly. Install the CLI following their documentation, then
 run the following command, with the API key using the value of `billing.stripe.key` from
 above.
 
@@ -223,7 +222,7 @@ with billing enabled on the same account, you will see their events arrive.
 #### Free Trials
 
 Free trials are implemented as a Stripe Credit that is applied when a FlowFuse user
-creates their first team and completed billing sign up.
+creates their first team and completes billing sign up.
 
 To enable trials, set the `billing.stripe.new_customer_free_credit` value to a credit amount in cents.
 For a totally free trial, this amount should match the cost of the Stripe product for the project type to be trialed to be trialed.
@@ -239,8 +238,8 @@ Our testing philosophy follows the principle of:
 [^1]: https://kentcdodds.com/blog/write-tests
 
 We create both unit tests and system level tests. The former is suitable for
-well-contained components that need to provide a stable api and behaviour to
-the rest of the code base. The latter is for testing the external behaviour
+well-contained components that need to provide a stable api and behavior to
+the rest of the code base. The latter is for testing the external behavior
 of the platform as a whole with as little internal mocking as possible.
 
 We use code coverage reporting as *one* aspect of assessing our testing coverage.
@@ -249,7 +248,7 @@ busy work writing tests that don't provide any real value in understanding the
 overall quality of the system.
 
 Unit tests should provide sufficient coverage to give us confidence that a 
-component's behaviour does not unexpectedly change.
+component's behavior does not unexpectedly change.
 
 #### Running tests
 
@@ -259,11 +258,11 @@ To run the tests for the project, you can use the following npm tasks:
  - `npm run lint` - runs the linting tests
  - `npm run test:unit` - runs the unit tests
  - `npm run test:system` - runs the system tests
- - `npm run test:docs` - checks validity of links in the documentation
+ - `npm run test:docs` - checks the validity of links in the documentation
 
 ##### Testing against PostgreSQL
 
-By default, the tests use an in-memory sqlite database to test against. This is
+By default, the tests use an in-memory SQLite database to test against. This is
 the most self-contained way of testing the platform. But it is also necessary to
 test against PostgreSQL. To enable the use of PostgreSQL in the tests:
 
