@@ -1,25 +1,6 @@
 <template>
     <div class="ff-editor-wrapper">
-        <section class="editor-wrapper">
-            <div v-if="isInstanceTransitioningStates" class="status-wrapper">
-                <InstanceStatusBadge
-                    :status="instance.meta?.state"
-                    :optimisticStateChange="instance.optimisticStateChange"
-                    :pendingStateChange="instance.pendingStateChange"
-                />
-            </div>
-
-            <iframe
-                v-else
-                ref="iframe"
-                width="100%"
-                height="100%"
-                :src="instance.url"
-                title="YouTube video player"
-                referrerpolicy="strict-origin-when-cross-origin"
-                allowfullscreen
-            />
-        </section>
+        <EditorWrapper :instance="instance" />
 
         <section class="tabs-wrapper drawer" :class="{'open': drawer.open}">
             <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="deleteInstance" />
@@ -65,11 +46,21 @@ import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue
 import FfPage from '../../../layouts/Page.vue'
 import instanceMixin from '../../../mixins/Instance.js'
 import ConfirmInstanceDeleteDialog from '../Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
-import InstanceStatusBadge from '../components/InstanceStatusBadge.vue'
+
+import EditorWrapper from './components/EditorWrapper.vue'
 
 export default {
     name: 'InstanceEditor',
-    components: { InstanceStatusBadge, ConfirmInstanceDeleteDialog, InstanceStatusPolling, DropdownMenu, ExternalLinkIcon, FfPage, ChevronDownIcon, ArrowLeftIcon },
+    components: {
+        EditorWrapper,
+        ConfirmInstanceDeleteDialog,
+        InstanceStatusPolling,
+        DropdownMenu,
+        ExternalLinkIcon,
+        FfPage,
+        ChevronDownIcon,
+        ArrowLeftIcon
+    },
     mixins: [instanceMixin],
     data () {
         return {
@@ -113,39 +104,14 @@ export default {
                     tag: 'instance-settings'
                 }
             ]
-        },
-        isInstanceTransitioningStates () {
-            const pendingState = (Object.hasOwnProperty.call(this.instance, 'pendingStateChange') && this.instance.pendingStateChange)
-            const optimisticStateChange = (Object.hasOwnProperty.call(this.instance, 'optimisticStateChange') && this.instance.optimisticStateChange)
-            return pendingState || optimisticStateChange || ['starting', 'suspended', 'suspending'].includes(this.instance.meta?.state)
         }
     },
-    mounted () {
-        window.addEventListener('message', this.eventListener)
-    },
-    unmounted () {
-        window.removeEventListener('message', this.eventListener)
-    },
+
     methods: {
         toggleDrawer () {
             this.drawer.open = !this.drawer.open
-        },
-        eventListener (event) {
-            if (event.origin === this.instance.url) {
-                switch (event.data.type) {
-                case 'load':
-                    this.emitMessage('prevent-redirect', true)
-                    break
-                case 'navigate':
-                    window.location.href = event.data.payload
-                    break
-                default:
-                }
-            }
-        },
-        emitMessage (type, payload = {}) {
-            this.$refs.iframe.contentWindow.postMessage({ type, payload }, '*')
         }
+
     }
 }
 </script>
@@ -156,21 +122,6 @@ export default {
   height: 100%;
   display: flex;
   flex: 1;
-
-  .editor-wrapper {
-    height: 100%;
-    width: 100%;
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    align-content: center;
-    justify-content: center;
-
-    .status-wrapper {
-      display: flex;
-      justify-content: center;
-    }
-  }
 
   .tabs-wrapper {
     position: fixed;
