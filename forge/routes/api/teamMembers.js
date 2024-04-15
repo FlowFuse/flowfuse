@@ -157,6 +157,7 @@ module.exports = async function (app) {
                     await app.auditLog.Team.team.user.roleChanged(request.session.User, null, request.team, result.user, updates)
                     if (result.role < result.oldRole) {
                         // We should invalidate session for this user for the teams NR instances if lower
+                        // might want to make this only if it drop under Member
                         await app.db.controllers.StorageSession.removeUserFromTeamSessions(request.user, request.team)
                     }
                 }
