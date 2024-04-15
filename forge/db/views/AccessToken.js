@@ -86,7 +86,7 @@ module.exports = function (app) {
         }
     })
     function personalAccessTokenSummaryList (tokenArray) {
-        return tokenArray.map((token) => personalAccessTokenSummary(tokenArray))
+        return tokenArray.map(token => personalAccessTokenSummary(token))
     }
     return {
         provisioningTokenSummary,
