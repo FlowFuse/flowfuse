@@ -1,6 +1,6 @@
 <template>
     <FormHeading class="mb-6">Launcher Settings</FormHeading>
-    <form class="space-y-6">
+    <form class="space-y-6" data-el="launcher-settings-form">
         <FormRow v-model="input.healthCheckInterval" type="number">
             Heath check interval (ms)
             <template #description>
@@ -10,7 +10,7 @@
         </FormRow>
 
         <div class="space-x-4 whitespace-nowrap">
-            <ff-button size="small" :disabled="!unsavedChanges" @click="saveSettings()">Save settings</ff-button>
+            <ff-button size="small" :disabled="!unsavedChanges" data-action="save-settings" @click="saveSettings()">Save settings</ff-button>
         </div>
     </form>
 </template>
