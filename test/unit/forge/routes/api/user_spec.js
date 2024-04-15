@@ -707,7 +707,7 @@ describe('User API', async function () {
         })
     })
 
-    describe.only('User PAT', async function () {
+    describe('User PAT', async function () {
         before(async function () {
             await setupUsers()
             await login('alice', 'aaPassword')
