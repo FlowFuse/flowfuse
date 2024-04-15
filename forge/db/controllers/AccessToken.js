@@ -244,44 +244,26 @@ module.exports = {
             ownerId: projectId,
             ownerType: 'http'
         })
-        return { id: tok.id, token }
+        // Overwrite the hashed token with the plain value
+        const result = app.db.views.AccessToken.instanceHTTPTokenSummary(tok)
+        result.token = token
+        return result
     },
     updateHTTPNodeToken: async function (app, project, tokenId, scope = [''], expiresAt) {
         const projectId = (project && typeof project === 'object') ? project.id : project
-        const id = isNaN(parseInt(tokenId)) ? tokenId : parseInt(tokenId)
-        const token = await app.db.models.AccessToken.byId(id)
+        const token = await app.db.models.AccessToken.byId(tokenId, 'http', projectId)
         if (token) {
-            if (token.ownerType === 'http' && token.ownerId === projectId) {
-                token.scope = scope
-                if (expiresAt === undefined) {
-                    token.expiresAt = null
-                } else {
-                    token.expiresAt = expiresAt
-                }
-                await token.save()
+            token.scope = scope
+            if (expiresAt === undefined) {
+                token.expiresAt = null
             } else {
-                throw new Error('Not Authorized')
+                token.expiresAt = expiresAt
             }
+            await token.save()
         } else {
             // should throw unknown token error
             throw new Error('Not Found')
         }
-        return token
-    },
-    revokeHTTPNodeToken: async function (app, project, tokenId) {
-        const projectId = (project && typeof project === 'object') ? project.id : project
-        const id = isNaN(parseInt(tokenId)) ? tokenId : parseInt(tokenId)
-        let token = await app.db.models.AccessToken.byId(id)
-        if (token) {
-            if (token.ownerType === 'http' && token.ownerId === projectId) {
-                await token.destroy()
-            } else {
-                throw new Error('Not Authorized')
-            }
-        } else {
-            throw new Error('Not Found')
-        }
-        token = null
         return token
     },
 

@@ -88,9 +88,50 @@ module.exports = function (app) {
     function personalAccessTokenSummaryList (tokenArray) {
         return tokenArray.map(token => personalAccessTokenSummary(token))
     }
+
+    app.addSchema({
+        $id: 'InstanceHTTPTokenSummary',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            // scope: { type: 'string', nullable: true },
+            expiresAt: { type: 'string', nullable: true }
+        }
+    })
+    app.addSchema({
+        $id: 'InstanceHTTPToken',
+        type: 'object',
+        allOf: [{ $ref: 'InstanceHTTPTokenSummary' }],
+        properties: {
+            token: { type: 'string' }
+        }
+    })
+
+    function instanceHTTPTokenSummary (token) {
+        const tokenSummary = {
+            id: token.hashid,
+            name: token.name,
+            expiresAt: token.expiresAt
+        }
+        return tokenSummary
+    }
+    app.addSchema({
+        $id: 'InstanceHTTPTokenSummaryList',
+        type: 'array',
+        items: {
+            $ref: 'InstanceHTTPTokenSummary'
+        }
+    })
+    function instanceHTTPTokenSummaryList (tokenArray) {
+        return tokenArray.map(token => instanceHTTPTokenSummary(token))
+    }
+
     return {
         provisioningTokenSummary,
         personalAccessTokenSummary,
-        personalAccessTokenSummaryList
+        personalAccessTokenSummaryList,
+        instanceHTTPTokenSummary,
+        instanceHTTPTokenSummaryList
     }
 }

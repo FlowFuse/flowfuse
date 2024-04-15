@@ -761,7 +761,9 @@ describe('User API', async function () {
             json.should.have.property('tokens')
             json.tokens.should.have.length(2)
             json.tokens[0].should.not.have.property('token')
+            json.tokens[0].should.have.property('id')
             json.tokens[1].should.not.have.property('token')
+            json.tokens[1].should.have.property('id')
         })
         it('Delete a Token', async function () {
             await login('alice', 'aaPassword')
@@ -792,6 +794,8 @@ describe('User API', async function () {
                 }
             })
             response.statusCode.should.equal(200)
+            const token = response.json()
+            token.should.have.property('expiresAt', new Date(dayAfterTomorrow).toISOString())
         })
         it('Use a token', async function () {
             const response = await app.inject({
