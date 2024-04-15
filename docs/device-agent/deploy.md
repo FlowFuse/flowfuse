@@ -97,6 +97,17 @@ For devices that are assigned to an application, the platform will automatically
 when it detects flows modified. This snapshot will be created with the name "Auto Snapshot - yyyy-mm-dd hh:mm-ss".
 Only the last 10 auto snapshots are kept, others are deleted on a first in first out basis.
 
+**Custom Node Catalogues**
+
+For devices that want to make use of custom node catalogues, these can be configured 
+under the device settings page on the Palette tab
+
+**.npmrc file**
+
+Likewise for devices that need to be provided with a custom `.npmrc` file to allow access
+to a custom npm registry or to provide an access token this can also be set on the device
+settings Palette tab
+
 
 ### Important Notes
 
