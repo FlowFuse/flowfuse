@@ -50,7 +50,47 @@ module.exports = function (app) {
         }
         return tokenSummary
     }
+
+    app.addSchema({
+        $id: 'PersonalAccessTokenSummary',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            // scope: { type: 'string', nullable: true },
+            expiresAt: { type: 'string', nullable: true }
+        }
+    })
+    app.addSchema({
+        $id: 'PersonalAccessToken',
+        type: 'object',
+        allOf: [{ $ref: 'PersonalAccessTokenSummary' }],
+        properties: {
+            token: { type: 'string' }
+        }
+    })
+
+    function personalAccessTokenSummary (token) {
+        const tokenSummary = {
+            id: token.hashid,
+            name: token.name,
+            expiresAt: token.expiresAt
+        }
+        return tokenSummary
+    }
+    app.addSchema({
+        $id: 'PersonalAccessTokenSummaryList',
+        type: 'array',
+        items: {
+            $ref: 'PersonalAccessTokenSummary'
+        }
+    })
+    function personalAccessTokenSummaryList (tokenArray) {
+        return tokenArray.map((token) => personalAccessTokenSummary(tokenArray))
+    }
     return {
-        provisioningTokenSummary
+        provisioningTokenSummary,
+        personalAccessTokenSummary,
+        personalAccessTokenSummaryList
     }
 }
