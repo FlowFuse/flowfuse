@@ -71,7 +71,8 @@ export default {
     methods: {
         fetchData: async function () {
             this.loading = true
-            this.tokens = await userApi.getPersonalAccessTokens()
+            const tokenResponse = await userApi.getPersonalAccessTokens()
+            this.tokens = tokenResponse.tokens
             this.loading = false
         },
         newToken () {

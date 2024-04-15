@@ -40,7 +40,10 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('project:edit')
     }, async (request, reply) => {
         const tokens = await app.db.models.AccessToken.getProjectHTTPTokens(request.project)
-        reply.send(tokens || {})
+        reply.send({
+            tokens: app.db.views.AccessToken.instanceHTTPTokenSummaryList(tokens),
+            count: tokens.length
+        })
     })
 
     app.post('/', {
@@ -49,6 +52,7 @@ module.exports = async function (app) {
         try {
             const body = request.body
             const token = await app.db.controllers.AccessToken.createHTTPNodeToken(request.project, body.name, body.scope, body.expiresAt)
+            // token has already been sanitised via views.AccessToken.instanceHTTPTokenSummary
             await app.auditLog.Project.project.httpToken.created(request.session.User, null, request.project, body)
             reply.send(token || {})
         } catch (err) {
@@ -58,18 +62,20 @@ module.exports = async function (app) {
     })
 
     app.put('/:id', {
-        preHandler: app.needsPermission('project:edit')
+        preHandler: app.needsPermission('project:edit', true)
     }, async (request, reply) => {
-        const updates = new app.auditLog.formatters.UpdatesCollection()
         try {
-            const id = isNaN(parseInt(request.params.id)) ? request.params.id : parseInt(request.params.id)
-            const oldToken = await app.db.models.AccessToken.byId(id)
-            const body = request.body
-            const token = await app.db.controllers.AccessToken.updateHTTPNodeToken(request.project, request.params.id, body.scope, body.expiresAt)
-            updates.pushDifferences({ expiresAt: oldToken.expiresAt, scope: oldToken.scope.join(',') }, { expiresAt: body.expiresAt, scope: body.scope })
-            await app.auditLog.Project.project.httpToken.updated(request.session.User, null, request.project, updates)
-            delete token.token
-            reply.send(token || {})
+            const oldToken = await app.db.models.AccessToken.byId(request.params.id, 'http', request.project.id)
+            if (oldToken) {
+                const body = request.body
+                const token = await app.db.controllers.AccessToken.updateHTTPNodeToken(request.project, request.params.id, body.scope, body.expiresAt)
+                const updates = new app.auditLog.formatters.UpdatesCollection()
+                updates.pushDifferences({ expiresAt: oldToken.expiresAt, scope: oldToken.scope.join(',') }, { expiresAt: body.expiresAt, scope: body.scope })
+                await app.auditLog.Project.project.httpToken.updated(request.session.User, null, request.project, updates)
+                reply.send(app.db.views.AccessToken.instanceHTTPTokenSummary(token))
+                return
+            }
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
             reply.code(400).send(resp)
@@ -80,11 +86,14 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('project:edit')
     }, async (request, reply) => {
         try {
-            const id = isNaN(parseInt(request.params.id)) ? request.params.id : parseInt(request.params.id)
-            const oldToken = await app.db.models.AccessToken.byId(id)
-            await app.db.controllers.AccessToken.revokeHTTPNodeToken(request.project, request.params.id)
-            await app.auditLog.Project.project.httpToken.deleted(request.session.User, null, request.project, { name: oldToken.name })
-            reply.code(201).send()
+            const oldToken = await app.db.models.AccessToken.byId(request.params.id, 'http', request.project.id)
+            if (oldToken) {
+                await oldToken.destroy()
+                await app.auditLog.Project.project.httpToken.deleted(request.session.User, null, request.project, { name: oldToken.name })
+                reply.code(201).send()
+                return
+            }
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
             reply.code(400).send(resp)
