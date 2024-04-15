@@ -461,6 +461,7 @@ async function init (app, opts) {
 
             reply.send(await app.db.views.User.userProfile(newUser))
         } catch (err) {
+            console.log(err)
             let responseMessage
             let responseCode = 'unexpected_error'
             if (/user_username_lower_unique|Users_username_key/.test(err.parent?.toString())) {
