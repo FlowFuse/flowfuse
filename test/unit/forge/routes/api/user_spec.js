@@ -813,4 +813,129 @@ describe('User API', async function () {
             team.name.should.equal('BTeam')
         })
     })
+
+    describe('User invites', async function () {
+        beforeEach(async function () {
+            await setupUsers()
+        })
+
+        async function getUserInvites (userToken) {
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user/invitations',
+                cookies: { sid: userToken }
+            })
+            return response.json().invitations
+        }
+        async function getUserTeams (userToken) {
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user/teams',
+                cookies: { sid: userToken }
+            })
+            return response.json().teams
+        }
+
+        it('user can accept an invite to a team', async function () {
+            await login('grace', 'ggPassword')
+            ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(0)
+            ;(await getUserTeams(TestObjects.tokens.grace)).should.have.length(1)
+
+            // Create invitation
+            const invitor = TestObjects.alice
+            const team = await app.db.models.Team.byName('ATeam')
+            const userList = ['grace']
+            const result = await app.db.controllers.Invitation.createInvitations(invitor, team, userList)
+
+            const invite = result.grace
+
+            ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(1)
+
+            // Accept invitation
+            const response = await app.inject({
+                method: 'PATCH',
+                url: '/api/v1/user/invitations/' + invite.hashid,
+                cookies: { sid: TestObjects.tokens.grace }
+            })
+            response.statusCode.should.equal(200)
+            ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(0)
+            ;(await getUserTeams(TestObjects.tokens.grace)).should.have.length(2)
+        })
+
+        it('user can reject an invite to a team', async function () {
+            await login('grace', 'ggPassword')
+            ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(0)
+            ;(await getUserTeams(TestObjects.tokens.grace)).should.have.length(1)
+
+            // Create invitation
+            const invitor = TestObjects.alice
+            const team = await app.db.models.Team.byName('ATeam')
+            const userList = ['grace']
+            const result = await app.db.controllers.Invitation.createInvitations(invitor, team, userList)
+
+            const invite = result.grace
+
+            ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(1)
+
+            // Accept invitation
+            const response = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/user/invitations/' + invite.hashid,
+                cookies: { sid: TestObjects.tokens.grace }
+            })
+            response.statusCode.should.equal(200)
+            ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(0)
+            ;(await getUserTeams(TestObjects.tokens.grace)).should.have.length(1)
+        })
+
+        it('user cannot accept an invite they do not own', async function () {
+            await login('grace', 'ggPassword')
+            ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(0)
+            ;(await getUserTeams(TestObjects.tokens.grace)).should.have.length(1)
+
+            // Create invitation
+            const invitor = TestObjects.alice
+            const team = await app.db.models.Team.byName('ATeam')
+            const userList = ['grace']
+            const result = await app.db.controllers.Invitation.createInvitations(invitor, team, userList)
+
+            const invite = result.grace
+
+            ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(1)
+
+            // Try to accept invitation as frank
+            await login('frank', 'ffPassword')
+            const response = await app.inject({
+                method: 'PATCH',
+                url: '/api/v1/user/invitations/' + invite.hashid,
+                cookies: { sid: TestObjects.tokens.frank }
+            })
+            response.statusCode.should.equal(404)
+        })
+
+        it('user cannot reject an invite they do not own', async function () {
+            await login('grace', 'ggPassword')
+            ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(0)
+            ;(await getUserTeams(TestObjects.tokens.grace)).should.have.length(1)
+
+            // Create invitation
+            const invitor = TestObjects.alice
+            const team = await app.db.models.Team.byName('ATeam')
+            const userList = ['grace']
+            const result = await app.db.controllers.Invitation.createInvitations(invitor, team, userList)
+
+            const invite = result.grace
+
+            ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(1)
+
+            // Try to accept invitation as frank
+            await login('frank', 'ffPassword')
+            const response = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/user/invitations/' + invite.hashid,
+                cookies: { sid: TestObjects.tokens.frank }
+            })
+            response.statusCode.should.equal(404)
+        })
+    })
 })

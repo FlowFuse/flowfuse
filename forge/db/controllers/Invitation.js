@@ -67,6 +67,9 @@ module.exports = {
     },
 
     acceptInvitation: async (app, invitation, user) => {
+        if (invitation.inviteeId !== user.id) {
+            throw new Error('Invalid request')
+        }
         const role = invitation.role || Roles.Member
         await app.db.controllers.Team.addUser(invitation.team, user, role)
         await invitation.destroy()
@@ -74,6 +77,9 @@ module.exports = {
     },
 
     rejectInvitation: async (app, invitation, user) => {
+        if (invitation.inviteeId !== user.id) {
+            throw new Error('Invalid request')
+        }
         const role = invitation.role || Roles.Member
         await invitation.destroy()
         app.auditLog.Team.team.user.invite.rejected(user, null, invitation.team, user, role)
