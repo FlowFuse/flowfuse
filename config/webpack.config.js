@@ -82,13 +82,7 @@ module.exports = function (env, argv) {
                             loader: 'css-loader',
                             options: { import: true, url: true }
                         },
-                        {
-                            loader: 'sass-loader',
-                            options: {
-                                additionalData: '@import "@/stylesheets/ff-colors.scss";'
-                            }
-                        }
-
+                        'sass-loader'
                     ]
                 },
                 {
@@ -164,8 +158,7 @@ module.exports = function (env, argv) {
             alias: {
                 // Use vue with the runtime compiler (needed for template strings)
                 // To-do: Remove use of template strings, https://github.com/FlowFuse/flowfuse/issues/3290
-                vue: 'vue/dist/vue.esm-bundler.js',
-                '@': path.resolve('frontend/src/ui-components')
+                vue: 'vue/dist/vue.esm-bundler.js'
             }
         }
     }

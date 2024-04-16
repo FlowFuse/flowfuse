@@ -96,8 +96,7 @@ export default [
                 path: 'logs',
                 component: ApplicationLogs,
                 meta: {
-                    title: 'Application - Logs',
-                    shouldPoll: true
+                    title: 'Application - Logs'
                 }
             },
             {

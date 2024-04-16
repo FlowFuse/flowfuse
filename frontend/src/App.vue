@@ -15,22 +15,17 @@
             </main>
         </template>
         <!-- Platform Entry Point -->
-        <template v-else-if="isLoggedIn">
-            <template v-if="pageLayout === 'platform'">
+        <template v-else-if="user && !user.password_expired && !termsAndConditionsRequired && user.email_verified !== false">
+            <template v-if="!isModalPage">
                 <ff-layout-platform>
                     <LicenseBanner />
                     <router-view />
                 </ff-layout-platform>
             </template>
-            <template v-else-if="pageLayout === 'modal'">
+            <template v-else>
                 <ff-layout-box>
                     <router-view />
                 </ff-layout-box>
-            </template>
-            <template v-else-if="pageLayout === 'plain'">
-                <ff-layout-plain>
-                    <router-view />
-                </ff-layout-plain>
             </template>
         </template>
         <!-- Password Reset Required -->
@@ -62,7 +57,6 @@ import Loading from './components/Loading.vue'
 import Offline from './components/Offline.vue'
 import LicenseBanner from './components/banners/LicenseBanner.vue'
 import FFLayoutBox from './layouts/Box.vue'
-import FFLayoutPlain from './layouts/Plain.vue'
 import FFLayoutPlatform from './layouts/Platform.vue'
 import Login from './pages/Login.vue'
 import PasswordExpired from './pages/PasswordExpired.vue'
@@ -80,8 +74,7 @@ export default {
         Loading,
         Offline,
         'ff-layout-platform': FFLayoutPlatform,
-        'ff-layout-box': FFLayoutBox,
-        'ff-layout-plain': FFLayoutPlain
+        'ff-layout-box': FFLayoutBox
     },
     computed: {
         ...mapState('account', ['pending', 'user', 'team', 'offline', 'settings']),
@@ -92,6 +85,9 @@ export default {
             // This is the one page a user with email_verified === false is allowed
             // to access (so that they can get verified)
             return this.$route.name === 'VerifyEmail'
+        },
+        isModalPage () {
+            return !!this.$route.meta.modal
         },
         termsAndConditionsRequired () {
             if (!this.user || !this.settings || !this.settings['user:tcs-required']) {
@@ -108,14 +104,6 @@ export default {
                 return true
             }
             return platformTcsDate > userTcsDate
-        },
-        isLoggedIn () {
-            return this.user && !this.user.password_expired && !this.termsAndConditionsRequired && this.user.email_verified !== false
-        },
-        pageLayout () {
-            const layout = this.$route.meta?.layout
-
-            return ['platform', 'modal', 'plain'].includes(layout) ? layout : 'platform'
         }
     },
     mounted () {

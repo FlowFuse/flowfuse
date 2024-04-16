@@ -28,7 +28,7 @@ export default [
         path: '/account/request/:id/editor',
         component: AccessRequestEditor,
         meta: {
-            layout: 'modal'
+            modal: true
         }
     },
     {
@@ -37,7 +37,7 @@ export default [
         path: '/account/request/:id',
         component: AccessRequest,
         meta: {
-            layout: 'modal'
+            modal: true
         }
     },
     {
@@ -108,7 +108,7 @@ export default [
         path: '/account/email_change/:token',
         props: true,
         meta: {
-            layout: 'modal',
+            modal: true,
             requiresLogin: true
         },
         component: VerifyPendingEmailChange

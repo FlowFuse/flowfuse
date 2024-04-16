@@ -101,9 +101,7 @@ export default {
     },
     methods: {
         shouldPoll: function () {
-            return Object.hasOwnProperty.call(this.$route, 'meta') &&
-                Object.hasOwnProperty.call(this.$route.meta, 'shouldPoll') &&
-                this.$route.meta.shouldPoll
+            return this.$route.fullPath.match(/\/(?:application|instance)\/[^/]+\/logs/)
         },
         pollTimerElapsed: function () {
             if (this.instance.meta && this.instance.meta.state !== 'suspended') {
