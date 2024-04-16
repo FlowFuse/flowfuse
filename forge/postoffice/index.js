@@ -143,7 +143,7 @@ module.exports = fp(async function (app, _opts) {
         const forgeURL = app.config.base_url
         const template = templates[templateName] || loadTemplate(templateName)
         const templateContext = { forgeURL, user, ...context }
-        templateContext.safeName = sanitizeText(user.name)
+        templateContext.safeName = sanitizeText(user.name || 'user')
         const mail = {
             to: user.email,
             subject: template.subject(templateContext, { allowProtoPropertiesByDefault: true, allowProtoMethodsByDefault: true }),
