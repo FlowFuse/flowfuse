@@ -44,7 +44,8 @@ export default [
                 path: 'logs',
                 component: InstanceLogs,
                 meta: {
-                    title: 'Instance - Logs'
+                    title: 'Instance - Logs',
+                    shouldPoll: true
                 }
             },
             {
