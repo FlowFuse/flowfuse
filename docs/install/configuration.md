@@ -77,6 +77,7 @@ Option        | Description
 `driver.options.start_port` | The port number to start assigning to Node-RED instances as they are created. Default: `12080`
 `driver.options.node_path` | The path to find the node.js executable - useful if Node.js has been installed with `nvm` so isn't necessarily on the system path.
 `driver.options.logPassthrough` | Prints the Node-RED logs in JSON format to stdout of the nr-launcher process. Default: `false`
+`driver.options.privateCA` | The fully qualified path to a pem file containing locally trusted CA cert chain. Default: not set
 
 ### Docker Driver options
 
@@ -84,6 +85,7 @@ Option        | Description
 --------------|------------
 `driver.options.socket` | The path to the Docker control unix domain socket. Default `/var/run/docker.sock`
 `driver.options.logPassthrough` | Prints the Node-RED logs in JSON format to stdout of the Instance containers. Default: `false`
+`driver.options.privateCA` | The fully qualified path to a pem file on the host machine containing locally trusted CA cert chain. Default: not set
 
 ### Kubernetes Driver options
 
@@ -93,6 +95,7 @@ Option        | Description
 `driver.options.cloudProvider` | Enables specific options for certain platforms e.g. `aws`. Default: not set
 `driver.options.projectSelector` | A YAML object containing node annotations to use to filter which nodes Node-RED instances run on. Default: `role: projects`
 `driver.options.logPassthrough` | Prints the Node-RED logs in JSON format to stdout of the instance pods. This should be set with the `forge.logPassthrough=true` Helm chart value. Default: `false`
+`driver.options.privateCA` | The name of a ConfigMap containing a file called `certs.pem` which holds locally trusted CA cert chain. Default: not set
 
 ## MQTT Broker configuration
 

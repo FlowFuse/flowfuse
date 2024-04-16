@@ -1,3 +1,21 @@
+#### 2.3.0: Release
+
+ - Allow .npmrc and calalogue urls to be set for Application bound devices (#3643) @hardillb
+ - fix: Update forge domain to use HTTPS (#3710) @ppawlowski
+ - Update concepts.md (#3706) @sumitshinde-84
+ - docs: Minor typo and language updates (#3707) @sumitshinde-84
+ - Bump tar from 6.1.15 to 6.2.1 (#3708) @app/dependabot
+ - Bump @fastify/swagger-ui from 2.1.0 to 3.0.0 (#3702) @app/dependabot
+ - Bump pg from 8.11.3 to 8.11.5 (#3705) @app/dependabot
+ - Bump mqtt from 5.3.5 to 5.5.0 (#3703) @app/dependabot
+ - Bump @immobiliarelabs/fastify-sentry from 8.0.0 to 8.0.1 (#3704) @app/dependabot
+ - Add explicit relationship tests prior to adding MSSQL support (#3700) @Steve-Mcl
+ - Update branch-deploy.yaml to use custom broker domain (#3674) @ppawlowski
+ - Bump eslint from 8.56.0 to 8.57.0 (#3701) @app/dependabot
+ - Update instance-settings.md (#3699) @sumitshinde-84
+ - Bump @sentry/node from 7.81.0 to 7.109.0 (#3664) @app/dependabot
+ - Link to ebook and blog post (#3697) @ZJvandeWeg
+
 #### 2.2.2: Release
 
  - Handle sessionless requests in deviceEditor routes (#3692) @knolleary

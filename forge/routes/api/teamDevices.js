@@ -246,7 +246,7 @@ module.exports = async function (app) {
         let tokenName = 'unknown'
         const tokenId = request.params.tokenId
         try {
-            const accessToken = await app.db.models.AccessToken.byId(tokenId)
+            const accessToken = await app.db.models.AccessToken.byId(tokenId, 'team', team.id)
             if (accessToken) {
                 if (instanceId) {
                     const instanceDetails = await app.db.models.Project.findOne({
@@ -321,15 +321,18 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         let tokenName = 'unknown'
         const tokenId = request.params.tokenId
+        const team = request.team
         try {
-            const accessToken = await app.db.models.AccessToken.byId(tokenId)
+            const accessToken = await app.db.models.AccessToken.byId(tokenId, 'team', team.id)
             if (accessToken) {
                 const tokenDetails = await app.db.views.AccessToken.provisioningTokenSummary(accessToken)
                 tokenName = tokenDetails.name || '[unnamed]'
                 await accessToken.destroy()
                 await app.auditLog.Team.team.device.provisioning.deleted(request.session.User, null, tokenId, tokenName, request.team)
+                reply.send({ status: 'okay' })
+                return
             }
-            reply.send({ status: 'okay' })
+            reply.code(404).send({ code: 'not_found', error: 'Token not found' })
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
             await app.auditLog.Team.team.device.provisioning.deleted(request.session.User, resp, tokenId, tokenName, request.team)

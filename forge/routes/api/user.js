@@ -220,7 +220,13 @@ module.exports = async function (app) {
             summary: 'List users Personal Access Tokens',
             tags: ['Tokens'],
             response: {
-                200: { type: 'array' },
+                200: {
+                    type: 'object',
+                    properties: {
+                        count: { type: 'number' },
+                        tokens: { $ref: 'PersonalAccessTokenSummaryList' }
+                    }
+                },
                 '4xx': {
                     $ref: 'APIError'
                 }
@@ -229,7 +235,10 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         try {
             const tokens = await app.db.models.AccessToken.getPersonalAccessTokens(request.session.User)
-            reply.send(tokens)
+            reply.send({
+                tokens: app.db.views.AccessToken.personalAccessTokenSummaryList(tokens),
+                count: tokens.length
+            })
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
             reply.code(400).send(resp)
@@ -257,10 +266,7 @@ module.exports = async function (app) {
             },
             response: {
                 200: {
-                    id: { type: 'number' },
-                    name: { type: 'string' },
-                    token: { type: 'string' },
-                    expiresAt: { type: 'number' }
+                    $ref: 'PersonalAccessToken'
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -272,6 +278,7 @@ module.exports = async function (app) {
         try {
             const body = request.body
             const token = await app.db.controllers.AccessToken.createPersonalAccessToken(request.session.User, body.scope, body.expiresAt, body.name)
+            // token has already been sanitised via views.AccessToken.personalAccessToken
             updates.push('id', token.id)
             updates.push('name', token.name)
             updates.push('scope', body.scope)
@@ -279,12 +286,7 @@ module.exports = async function (app) {
                 updates.push('expiresAt', token.expiresAt)
             }
             await app.auditLog.User.user.pat.created(request.session.User, null, updates)
-            reply.send({
-                id: token.id,
-                name: token.name,
-                token: token.token,
-                expiresAt: token.expiresAt
-            })
+            reply.send(token)
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
             reply.code(400).send(resp)
@@ -300,7 +302,7 @@ module.exports = async function (app) {
             summary: 'Delete user Personal Access Token',
             tags: ['Tokens'],
             params: {
-                id: { type: 'number' }
+                id: { type: 'string' }
             },
             response: {
                 201: {},
@@ -311,11 +313,16 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         try {
-            const updates = new app.auditLog.formatters.UpdatesCollection()
-            await app.db.controllers.AccessToken.removePersonalAccessToken(request.session.User, request.params.id)
-            updates.push('id', request.params.id)
-            await app.auditLog.User.user.pat.deleted(request.session.User, null, updates)
-            reply.code(201).send()
+            const token = await app.db.models.AccessToken.byId(request.params.id, 'user', request.session.User.id)
+            if (token) {
+                const updates = new app.auditLog.formatters.UpdatesCollection()
+                updates.push('id', request.params.id)
+                await app.auditLog.User.user.pat.deleted(request.session.User, null, updates)
+                await token.destroy()
+                reply.code(201).send()
+                return
+            }
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
             reply.code(400).send(resp)
@@ -331,14 +338,16 @@ module.exports = async function (app) {
             summary: 'Update users Personal Access Token',
             tags: ['Tokens'],
             params: {
-                id: { type: 'number' }
+                id: { type: 'string' }
             },
             body: {
                 scope: { type: 'string' },
                 expiresAt: { type: 'number' }
             },
             response: {
-                200: {},
+                200: {
+                    $ref: 'PersonalAccessTokenSummary'
+                },
                 '4xx': {
                     $ref: 'APIError'
                 }
@@ -347,12 +356,16 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const updates = new app.auditLog.formatters.UpdatesCollection()
         try {
-            const oldToken = await app.db.models.AccessToken.byId(request.params.id)
-            const body = request.body
-            const newToken = await app.db.controllers.AccessToken.updatePersonalAccessToken(request.session.User, request.params.id, body.scope, body.expiresAt)
-            updates.pushDifferences(oldToken, newToken)
-            await app.auditLog.User.user.pat.updated(request.session.User, null, updates)
-            reply.send(newToken)
+            const oldToken = await app.db.models.AccessToken.byId(request.params.id, 'user', request.session.User.id)
+            if (oldToken) {
+                const body = request.body
+                const newToken = await app.db.controllers.AccessToken.updatePersonalAccessToken(request.session.User, request.params.id, body.scope, body.expiresAt)
+                updates.pushDifferences(oldToken, newToken)
+                await app.auditLog.User.user.pat.updated(request.session.User, null, updates)
+                reply.send(app.db.views.AccessToken.personalAccessTokenSummary(newToken))
+                return
+            }
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
             reply.code(400).send(resp)

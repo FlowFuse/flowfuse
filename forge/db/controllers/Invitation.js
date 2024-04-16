@@ -68,14 +68,25 @@ module.exports = {
 
     acceptInvitation: async (app, invitation, user) => {
         const role = invitation.role || Roles.Member
-        await app.db.controllers.Team.addUser(invitation.team, user, role)
+        let invitedUser = invitation.invitee
+        if (!invitedUser && invitation.external) {
+            // This won't have a full user object attached as they had not registered
+            // when the invitation was created.
+            if (user.email === invitation.email) {
+                invitedUser = user
+            }
+        }
+        if (!invitedUser) {
+            throw new Error('Cannot identify user for this invitation')
+        }
+        await app.db.controllers.Team.addUser(invitation.team, invitedUser, role)
         await invitation.destroy()
-        app.auditLog.Team.team.user.invite.accepted(user, null, invitation.team, user, role)
+        app.auditLog.Team.team.user.invite.accepted(user, null, invitation.team, invitedUser, role)
     },
 
     rejectInvitation: async (app, invitation, user) => {
         const role = invitation.role || Roles.Member
         await invitation.destroy()
-        app.auditLog.Team.team.user.invite.rejected(user, null, invitation.team, user, role)
+        app.auditLog.Team.team.user.invite.rejected(user, null, invitation.team, invitation.invitee, role)
     }
 }
