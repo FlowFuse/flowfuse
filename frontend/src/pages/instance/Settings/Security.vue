@@ -213,7 +213,8 @@ export default {
             alerts.emit('Instance successfully updated.', 'confirmation')
         },
         async getTokens () {
-            this.tokens = await InstanceApi.getHTTPTokens(this.project.id)
+            const response = await InstanceApi.getHTTPTokens(this.project.id)
+            this.tokens = response.tokens
         },
         newToken () {
             this.$refs.tokenDialog.showCreate()
