@@ -37,6 +37,10 @@
                             </div>
                         </div>
                         <div v-if="input.properties.trial.active" class="grid gap-2 grid-cols-3 pl-4">
+                            <FormRow v-model="input.properties.trial.usersLimit" :type="editDisabled?'uneditable':''">Limit # Users</FormRow>
+                            <FormRow v-model="input.properties.trial.runtimesLimit" :type="editDisabled?'uneditable':''">Limit # Instances + Devices</FormRow>
+                        </div>
+                        <div v-if="input.properties.trial.active" class="grid gap-2 grid-cols-3 pl-4">
                             <FormRow v-model="input.properties.trial.productId" :type="editDisabled?'uneditable':''">Trial Product Id</FormRow>
                             <FormRow v-model="input.properties.trial.priceId" :type="editDisabled?'uneditable':''">Trial Price Id</FormRow>
                         </div>
