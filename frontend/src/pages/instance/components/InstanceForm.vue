@@ -459,8 +459,12 @@ export default {
             )
         },
         teamRuntimeLimitReached () {
-            const teamTypeRuntimeLimit = this.team.type.properties?.runtimes?.limit
-            return (teamTypeRuntimeLimit > 0 && (this.team.deviceCount + this.team.instanceCount) >= teamTypeRuntimeLimit)
+            let teamTypeRuntimeLimit = this.team.type.properties?.runtimes?.limit
+            const currentRuntimeCount = this.team.deviceCount + this.team.instanceCount
+            if (this.team.billing?.trial && !this.team.billing?.active && this.team.type.properties?.trial?.runtimesLimit) {
+                teamTypeRuntimeLimit = this.team.type.properties?.trial?.runtimesLimit
+            }
+            return (teamTypeRuntimeLimit > 0 && currentRuntimeCount >= teamTypeRuntimeLimit)
         },
         teamInstanceLimitReached () {
             return this.projectTypes.length > 0 && this.activeProjectTypeCount === 0
