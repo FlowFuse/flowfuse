@@ -16,7 +16,7 @@
 <script>
 import flowBlueprintsApi from '../../../api/flowBlueprints.js'
 
-import BlueprintTile from './BlueprintTile.vue'
+import BlueprintTile from '../../../components/blueprints/BlueprintTile.vue'
 
 export default {
     name: 'BlueprintSelection',
@@ -54,7 +54,6 @@ export default {
     methods: {
         async loadBlueprints () {
             const response = await flowBlueprintsApi.getFlowBlueprints()
-            const blueprints = response.blueprints
 
             this.localBlueprints = blueprints
         }
