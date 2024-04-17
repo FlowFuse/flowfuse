@@ -6,7 +6,7 @@
                     Shared repository to store common flows and nodes.
                 </template>
                 <template #pictogram>
-                    <img src="../../images/pictograms/library_red.png">
+                    <img src="../../../images/pictograms/library_red.png">
                 </template>
                 <template #helptext>
                     <p>In Node-RED you can export and import flows and functions, and save them to your Team Library.</p>
@@ -41,7 +41,7 @@
         </div>
         <EmptyState v-else :featureUnavailable="!featureEnabledForPlatform" :featureUnavailableToTeam="!featureEnabledForTeam">
             <template #img>
-                <img src="../../images/empty-states/team-library.png">
+                <img src="../../../images/empty-states/team-library.png">
             </template>
             <template #header>Create your own Team Library</template>
             <template #message>
@@ -73,17 +73,17 @@
 import { ChevronRightIcon, PlusIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
-import teamApi from '../../api/team.js'
+import teamApi from '../../../api/team.js'
 
-import CodePreviewer from '../../components/CodePreviewer.vue'
-import EmptyState from '../../components/EmptyState.vue'
+import CodePreviewer from '../../../components/CodePreviewer.vue'
+import EmptyState from '../../../components/EmptyState.vue'
 
-import formatDateMixin from '../../mixins/DateTime.js'
+import formatDateMixin from '../../../mixins/DateTime.js'
 
-import Alerts from '../../services/alerts.js'
-import Dialog from '../../services/dialog.js'
+import Alerts from '../../../services/alerts.js'
+import Dialog from '../../../services/dialog.js'
 
-import TypeIcon from './components/LibraryEntryTypeIcon.vue'
+import TypeIcon from '../components/LibraryEntryTypeIcon.vue'
 
 export default {
     name: 'SharedLibrary',

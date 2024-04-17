@@ -5,7 +5,8 @@ import TeamAuditLog from './AuditLog.vue'
 import TeamBilling from './Billing.vue'
 import TeamDevices from './Devices/index.vue'
 import TeamInstances from './Instances.vue'
-import TeamLibrary from './Library.vue'
+import Library from './Library/index.vue'
+import LibraryRoutes from './Library/routes.js'
 import TeamMembersMembers from './Members/General.vue'
 import TeamMembersInvitations from './Members/Invitations.vue'
 import TeamMembers from './Members/index.vue'
@@ -69,10 +70,11 @@ export default [
             {
                 name: 'TeamLibrary',
                 path: 'library/:entryPath*',
-                component: TeamLibrary,
+                component: Library,
                 meta: {
                     title: 'Team - Library'
-                }
+                },
+                children: [...LibraryRoutes]
             },
             {
                 path: 'members',
