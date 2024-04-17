@@ -95,10 +95,6 @@ export default {
         PlusIcon
     },
     mixins: [formatDateMixin],
-    props: {
-        team: { required: true, type: Object },
-        teamMembership: { required: true, type: Object }
-    },
     data () {
         return {
             breadcrumbs: [],
@@ -122,7 +118,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features']),
+        ...mapState('account', ['features', 'team', 'teamMembership']),
         featureEnabledForTeam () {
             const flag = this.team.type.properties.features?.['shared-library']
             return flag === undefined || flag
