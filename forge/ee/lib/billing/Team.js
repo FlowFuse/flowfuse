@@ -97,12 +97,11 @@ module.exports = function (app) {
         // has been reached
         await this._checkInstanceTypeCreateAllowed(instanceType)
 
-        // Next, check if we're within the free allowance - as that won't require
-        // billing to exist
         const currentInstanceCount = await this.instanceCount(instanceType)
-
+        // Check if we're within the free allowance - as that won't require
+        // billing to exist
         const instanceTypeFreeAllowance = await this.getInstanceFreeAllowance(instanceType)
-        if (currentInstanceCount < instanceTypeFreeAllowance > 0) {
+        if (instanceTypeFreeAllowance > 0 && currentInstanceCount < instanceTypeFreeAllowance) {
             // Within free allowance - no further checks needed
             return true
         }
@@ -120,6 +119,19 @@ module.exports = function (app) {
                 const trialInstanceType = await this.TeamType.getProperty('trial.instanceType', null)
                 if (!trialInstanceType) {
                     // This team trial doesn't restrict to a particular instance type
+
+                    const trialRuntimeLimit = await this.TeamType.getProperty('trial.runtimesLimit', -1)
+                    if (trialRuntimeLimit > -1) {
+                        const currentDeviceCount = await this.deviceCount()
+                        const currentInstanceCount = await this.instanceCount()
+                        const currentRuntimeCount = currentDeviceCount + currentInstanceCount
+                        if (currentRuntimeCount >= trialRuntimeLimit) {
+                            const err = new Error()
+                            err.code = 'instance_limit_reached'
+                            err.error = 'Team instance limit reached'
+                            throw err
+                        }
+                    }
                     return
                 } else if (trialInstanceType === instanceType.hashid) {
                     // Request is for the right type. For this trial mode
@@ -221,6 +233,18 @@ module.exports = function (app) {
             }
             if (subscription.isTrial() && !subscription.isTrialEnded()) {
                 // Trial mode - no billing setup yet
+                const trialRuntimeLimit = await this.TeamType.getProperty('trial.runtimesLimit', -1)
+                if (trialRuntimeLimit > -1) {
+                    const currentDeviceCount = await this.deviceCount()
+                    const currentInstanceCount = await this.instanceCount()
+                    const currentRuntimeCount = currentDeviceCount + currentInstanceCount
+                    if (currentRuntimeCount >= trialRuntimeLimit) {
+                        const err = new Error()
+                        err.code = 'instance_limit_reached'
+                        err.error = 'Team instance limit reached'
+                        throw err
+                    }
+                }
                 return
             }
         }
@@ -229,5 +253,29 @@ module.exports = function (app) {
         err.code = 'billing_required'
         err.error = 'Team billing not configured'
         throw err
+    }
+
+    app.db.models.Team.prototype.getUserLimit = async function () {
+        await this.ensureTeamTypeExists()
+        const subscription = await this.getSubscription()
+        if (subscription && subscription.isTrial() && !subscription.isTrialEnded()) {
+            const trialUserLimit = await this.TeamType.getProperty('trial.usersLimit', -1)
+            if (trialUserLimit > -1) {
+                return trialUserLimit
+            }
+        }
+        return this.TeamType.getProperty('users.limit', -1)
+    }
+
+    app.db.models.Team.prototype.getRuntimeLimit = async function () {
+        await this.ensureTeamTypeExists()
+        const subscription = await this.getSubscription()
+        if (subscription && subscription.isTrial() && !subscription.isTrialEnded()) {
+            const trialRuntimeLimit = await this.TeamType.getProperty('trial.runtimesLimit', -1)
+            if (trialRuntimeLimit > -1) {
+                return trialRuntimeLimit
+            }
+        }
+        return this.TeamType.getProperty('runtimes.limit', -1)
     }
 }
