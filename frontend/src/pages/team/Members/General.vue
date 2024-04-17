@@ -1,10 +1,11 @@
 <template>
+    <FeatureUnavailableToTeam v-if="teamUserLimitReached" fullMessage="You have reached the user limit for this team." class="mt-0" />
     <ff-loading v-if="loading" message="Loading Team..." />
     <form v-else class="mb-8">
         <div class="text-right" />
         <ff-data-table data-el="members-table" :columns="userColumns" :rows="users" :show-search="true" search-placeholder="Search Team Members..." :search-fields="['name', 'username', 'role']">
             <template v-if="hasPermission('team:user:invite')" #actions>
-                <ff-button data-action="member-invite-button" kind="primary" @click="inviteMember">
+                <ff-button data-action="member-invite-button" :disabled="teamUserLimitReached" kind="primary" @click="inviteMember">
                     <template #icon-left><PlusSmIcon class="w-4" /></template>
                     Invite Member
                 </ff-button>
@@ -28,6 +29,7 @@ import { mapState } from 'vuex'
 
 import { Roles } from '../../../../../forge/lib/roles.js'
 import teamApi from '../../../api/team.js'
+import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 import UserCell from '../../../components/tables/cells/UserCell.vue'
 import UserRoleCell from '../../../components/tables/cells/UserRoleCell.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
@@ -40,6 +42,7 @@ export default {
     components: {
         ChangeTeamRoleDialog,
         ConfirmTeamUserRemoveDialog,
+        FeatureUnavailableToTeam,
         PlusSmIcon,
         InviteMemberDialog
     },
@@ -72,6 +75,14 @@ export default {
         ...mapState('account', ['user']),
         canEditUser: function () {
             return this.hasPermission('team:user:remove') || this.hasPermission('team:user:change-role')
+        },
+        teamUserLimitReached () {
+            let teamTypeUserLimit = this.team.type.properties?.users?.limit
+            const currentUserCount = this.userCount + this.inviteCount
+            if (this.team.billing?.trial && !this.team.billing?.active && this.team.type.properties?.trial?.usersLimit) {
+                teamTypeUserLimit = this.team.type.properties?.trial?.usersLimit
+            }
+            return (teamTypeUserLimit > 0 && currentUserCount >= teamTypeUserLimit)
         }
     },
     watch: {
