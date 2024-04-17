@@ -46,7 +46,10 @@ describe('Billing routes', function () {
         TestObjects.template1 = app.template
         TestObjects.stack1 = app.stack
 
+        TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
+
         await login('alice', 'aaPassword')
+        await login('bob', 'bbPassword')
 
         await app.project.destroy() // clean up test project
     })
@@ -1655,8 +1658,7 @@ describe('Billing routes', function () {
                     response.statusCode.should.equal(200)
                 })
                 it('Applies user limit when in trial mode', async function () {
-                    // Create a couple more users to play with
-                    await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
+                    // Create another user to play with
                     await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', password: 'ccPassword' })
 
                     // Create trial team
@@ -1767,18 +1769,10 @@ describe('Billing routes', function () {
             })
             it('Non-admin cannot make team unmanaged', async function () {
                 // Create non-admin user
-                const userBob = await app.factory.createUser({
-                    admin: false,
-                    username: 'bob',
-                    name: 'Bob Skywalker',
-                    email: 'bob@example.com',
-                    password: 'bbPassword'
-                })
-                await login('bob', 'bbPassword')
 
                 // Create trial team
                 const trialTeam = await app.factory.createTeam({ name: generateName('unmanagedSubTeam') })
-                await trialTeam.addUser(userBob, { through: { role: Roles.Owner } })
+                await trialTeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
                 await app.factory.createTrialSubscription(trialTeam, -1)
 
                 // Bob tries to make it unmanaged
