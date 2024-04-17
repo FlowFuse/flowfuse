@@ -120,6 +120,19 @@ module.exports = fp(async function (app, _opts) {
     }
 
     /**
+     * Generates email-safe versions (both text and html) of a piece of text.
+     * This is intended to make user-provided strings (eg username) that may look
+     * like a URL to not looks like a URL to an email client
+     * @param {String} value
+     */
+    function sanitizeText (value) {
+        return {
+            text: value.replace(/\./g, ' '),
+            html: value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\./g, '<br style="display: none;"/>.')
+        }
+    }
+
+    /**
      * Send an email to a user
      *
      * @param user object - who to send the email to.
@@ -130,7 +143,7 @@ module.exports = fp(async function (app, _opts) {
         const forgeURL = app.config.base_url
         const template = templates[templateName] || loadTemplate(templateName)
         const templateContext = { forgeURL, user, ...context }
-
+        templateContext.safeName = sanitizeText(user.name || 'user')
         const mail = {
             to: user.email,
             subject: template.subject(templateContext, { allowProtoPropertiesByDefault: true, allowProtoMethodsByDefault: true }),

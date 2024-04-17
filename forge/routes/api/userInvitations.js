@@ -69,9 +69,7 @@ module.exports = async function (app) {
             await app.auditLog.User.user.invitation.accepted(request.session.User, null)
             reply.send({ status: 'okay' })
         } else {
-            const resp = { code: 'not_found', error: 'Not Found' }
-            await app.auditLog.User.user.invitation.accepted(request.session.User, resp)
-            reply.code(404).send(resp)
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
     })
 
@@ -105,9 +103,7 @@ module.exports = async function (app) {
             await app.auditLog.User.user.invitation.deleted(request.session.User, null)
             reply.send({ status: 'okay' })
         } else {
-            const resp = { code: 'not_found', error: 'Not Found' }
-            await app.auditLog.User.user.invitations.deleteInvite(request.session.User, resp)
-            reply.code(404).send(resp)
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
     })
 }

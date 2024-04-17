@@ -76,10 +76,14 @@ module.exports = {
                         ]
                     })
                 },
-                byId: async (hashid) => {
+                byId: async (hashid, invitee) => {
                     const id = M.Invitation.decodeHashid(hashid)
+                    const where = { id }
+                    if (invitee) {
+                        where.inviteeId = invitee.id
+                    }
                     return this.findOne({
-                        where: { id },
+                        where,
                         include: [
                             { model: M.Team, as: 'team' },
                             { model: M.User, as: 'invitor' },
