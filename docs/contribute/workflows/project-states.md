@@ -1,5 +1,5 @@
 ---
-navTitle: Project states
+navTitle: Instance states
 ---
 
 # States
