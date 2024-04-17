@@ -206,3 +206,15 @@ export default {
     }
 }
 </script>
+
+<style scoped>
+.forge-log-offline-background {
+  background: repeating-linear-gradient(
+      -45deg,
+      #363848,
+      #363848 10px,
+      rgba(31, 41, 55, var(--tw-bg-opacity)) 10px,
+      rgba(31, 41, 55, var(--tw-bg-opacity)) 20px
+  );
+}
+</style>
