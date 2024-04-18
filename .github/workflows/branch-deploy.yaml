@@ -314,7 +314,7 @@ jobs:
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
             -d '{
-                  "name":"Enterprise Team",
+                  "name":"Plant Enterprise",
                   "type":"'"$enterpriseTeamTypeId"'"
                 }' https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/teams/
           
