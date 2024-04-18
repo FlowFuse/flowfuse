@@ -1,5 +1,5 @@
 <template>
-    <ul class="flow-categories-wrapper">
+    <ul v-if="blueprints.length" class="flow-categories-wrapper">
         <li v-for="(flowBlueprints, category) in blueprintsByCategory" :key="category" class="category">
             <h2 class="title">{{ category }}</h2>
             <BlueprintTile
@@ -11,17 +11,34 @@
             />
         </li>
     </ul>
+    <EmptyState v-else :featureUnavailable="!isSharedLibraryFeatureEnabledForPlatform" :featureUnavailableToTeam="!isSharedLibraryFeatureEnabledForTeam">
+        <template #img>
+            <img src="../../../images/empty-states/team-library.png" alt="team-logo">
+        </template>
+        <template #header>Create your own Blueprints</template>
+        <template #message>
+            <p>
+                Your Blueprints will be shown here, and will be available within all of your Node-RED instances on FlowFuse.
+            </p>
+        </template>
+    </EmptyState>
 </template>
 
 <script>
 import { mapState } from 'vuex'
 
 import flowBlueprintsApi from '../../../api/flowBlueprints.js'
+import EmptyState from '../../../components/EmptyState.vue'
 import BlueprintTile from '../../../components/blueprints/BlueprintTile.vue'
+import featuresMixin from '../../../mixins/Features.js'
 
 export default {
     name: 'BluePrints',
-    components: { BlueprintTile },
+    components: {
+        EmptyState,
+        BlueprintTile
+    },
+    mixins: [featuresMixin],
     data () {
         return {
             blueprints: []
@@ -38,6 +55,10 @@ export default {
     },
     methods: {
         async loadBlueprints () {
+            if (!this.isSharedLibraryFeatureEnabled) {
+                return
+            }
+
             const res = await flowBlueprintsApi.getFlowBlueprintsForTeam(this.team.id)
             if (Object.hasOwnProperty.call(res, 'blueprints')) {
                 this.blueprints = res.blueprints
