@@ -140,7 +140,7 @@ export default {
             return null
         },
         isLauncherImmersionCompatible () {
-            return SemVer.satisfies(SemVer.coerce(this.instance?.meta?.versions?.launcher), '>=2.2.3')
+            return SemVer.satisfies(SemVer.coerce(this.instance?.meta?.versions?.launcher), '>=2.3.1')
         },
         editorUrl () {
             if (this.isLauncherImmersionCompatible) {
