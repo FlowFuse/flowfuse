@@ -22,7 +22,7 @@
             </template>
         </ff-data-table>
         <ff-code-previewer v-else-if="viewingFile" ref="code-preview" :snippet="contents" />
-        <EmptyState v-else :featureUnavailable="!featureEnabledForPlatform" :featureUnavailableToTeam="!featureEnabledForTeam">
+        <EmptyState v-else :featureUnavailable="!isSharedLibraryFeatureEnabledForPlatform" :featureUnavailableToTeam="!isSharedLibraryFeatureEnabledForTeam">
             <template #img>
                 <img src="../../../images/empty-states/team-library.png" alt="team-logo">
             </template>
@@ -36,7 +36,7 @@
                 </p>
             </template>
             <template #actions>
-                <ff-button v-if="featureEnabled" :to="{name: 'Instances'}">Go To Instances</ff-button>
+                <ff-button v-if="isSharedLibraryFeatureEnabled" :to="{name: 'Instances'}">Go To Instances</ff-button>
                 <ff-button v-else :to="{name: 'Instances'}" :disabled="true">
                     Add To Library
                     <template #icon-right><PlusIcon /></template>
@@ -60,6 +60,7 @@ import teamApi from '../../../api/team.js'
 import CodePreviewer from '../../../components/CodePreviewer.vue'
 import EmptyState from '../../../components/EmptyState.vue'
 import formatDateMixin from '../../../mixins/DateTime.js'
+import featuresMixin from '../../../mixins/Features.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 import TypeIcon from '../components/LibraryEntryTypeIcon.vue'
@@ -73,7 +74,7 @@ export default {
         TypeIcon,
         PlusIcon
     },
-    mixins: [formatDateMixin],
+    mixins: [formatDateMixin, featuresMixin],
     data () {
         return {
             breadcrumbs: [],
@@ -97,17 +98,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'team', 'teamMembership']),
-        featureEnabledForTeam () {
-            const flag = this.team.type.properties.features?.['shared-library']
-            return flag === undefined || flag
-        },
-        featureEnabledForPlatform () {
-            return this.features['shared-library']
-        },
-        featureEnabled () {
-            return this.featureEnabledForTeam && this.featureEnabledForPlatform
-        }
+        ...mapState('account', ['team', 'teamMembership'])
+
     },
     created () {
         this.$watch(
@@ -150,7 +142,7 @@ export default {
             this.loadEntry(pathArray.filter((entry) => entry))
         },
         async loadEntry (entryPathArray) {
-            if (!this.featureEnabled) {
+            if (!this.isSharedLibraryFeatureEnabled) {
                 return
             }
 
