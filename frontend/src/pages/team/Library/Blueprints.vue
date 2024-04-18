@@ -1,5 +1,4 @@
 <template>
-    <h1>Blueprints</h1>
     <ul class="flow-categories-wrapper">
         <li v-for="(flowBlueprints, category) in blueprintsByCategory" :key="category" class="category">
             <h2 class="title">{{ category }}</h2>
