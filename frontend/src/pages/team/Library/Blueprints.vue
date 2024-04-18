@@ -7,9 +7,8 @@
                 v-for="(blueprint, index) in flowBlueprints"
                 :key="index"
                 class="blueprint-tile"
-
                 :blueprint="blueprint"
-                :editable="true"
+                @selected="onBlueprintSelect"
             />
         </li>
     </ul>
@@ -44,6 +43,9 @@ export default {
             if (Object.hasOwnProperty.call(res, 'blueprints')) {
                 this.blueprints = res.blueprints
             }
+        },
+        onBlueprintSelect (blueprint) {
+            this.$router.push({ name: 'CreateInstance', query: { blueprintId: blueprint.id } })
         }
     }
 }
