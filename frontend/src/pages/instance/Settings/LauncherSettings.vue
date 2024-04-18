@@ -2,9 +2,9 @@
     <FormHeading class="mb-6">Launcher Settings</FormHeading>
     <form class="space-y-6" data-el="launcher-settings-form">
         <FormRow v-model="input.healthCheckInterval" type="number">
-            Heath check interval (ms)
+            Health check interval (ms)
             <template #description>
-                The interval at which the launcher will check the health of the instance. Default is 7500ms.
+                The interval at which the launcher will check the health of Node-RED. Flows that perform CPU intensive work may require to increase this from the default of 7500ms.
                 It is not recommended to set this value lower than 5000ms.
             </template>
         </FormRow>
