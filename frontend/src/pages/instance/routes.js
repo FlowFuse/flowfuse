@@ -68,7 +68,7 @@ export { children }
 
 export default [
     {
-        path: '/project/:id/:remaining*',
+        path: '/instance/:id/:remaining*',
         redirect: to => {
             return { name: 'instance-overview', params: { id: to.params.id } }
         },
