@@ -267,7 +267,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-    @import '../../ui-components/stylesheets/ff-colors.scss';
 
     .error-banner {
         padding: 9px;

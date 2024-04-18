@@ -396,12 +396,14 @@ export default {
             return this.team.deviceCount + this.deviceCountDeltaSincePageLoad
         },
         teamRuntimeLimitReached () {
-            const teamTypeRuntimeLimit = this.team.type.properties?.runtimes?.limit
-            if (teamTypeRuntimeLimit > 0 && (this.teamDeviceCount + this.team.instanceCount) >= teamTypeRuntimeLimit) {
-                // Combined instance+device limit has been reached
-                return true
+            let teamTypeRuntimeLimit = this.team.type.properties?.runtimes?.limit
+            // Uses this.teamDeviceCount as that tracks live updates made in the page
+            // that may not have made it to this.team.deviceCount yet
+            const currentRuntimeCount = this.teamDeviceCount + this.team.instanceCount
+            if (this.team.billing?.trial && !this.team.billing?.active && this.team.type.properties?.trial?.runtimesLimit) {
+                teamTypeRuntimeLimit = this.team.type.properties?.trial?.runtimesLimit
             }
-            return false
+            return (teamTypeRuntimeLimit > 0 && currentRuntimeCount >= teamTypeRuntimeLimit)
         },
         teamDeviceLimitReached () {
             const teamTypeDeviceLimit = this.team.type.properties?.devices?.limit
