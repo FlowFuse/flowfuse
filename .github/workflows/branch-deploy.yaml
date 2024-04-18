@@ -208,7 +208,7 @@ jobs:
           curl -k -XPUT \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
-            -d '{"properties":{"users":{"limit":5},"devices":{"limit":10},"features": {"shared-library": true,"projectComms": true,"ha": true,"teamHttpSecurity": true,"customCatalogs": true,"deviceGroups": true,"emailAlerts": true,"protectedInstance": true,"deviceAutoSnapshot": true,"instanceAutoSnapshot": true,"editorLimits": true,"fileStorageLimit": null,"contextLimit": null},"instances":{"'"$projectTypeId"'":{"active":true}}}}' \
+            -d '{"name":"Starter","properties":{"users":{"limit":5},"devices":{"limit":10},"features": {"shared-library": true,"projectComms": true,"ha": true,"teamHttpSecurity": true,"customCatalogs": true,"deviceGroups": true,"emailAlerts": true,"protectedInstance": true,"deviceAutoSnapshot": true,"instanceAutoSnapshot": true,"editorLimits": true,"fileStorageLimit": null,"contextLimit": null},"instances":{"'"$projectTypeId"'":{"active":true}}}}' \
             https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/team-types/$starterTeamTypeId
           ### Create Team team type
           curl -k -XPOST \
@@ -291,12 +291,32 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
             -d '{"name":"initial-template", "active":true, "settings":{"disableEditor":false,"disableTours":false,"httpAdminRoot":"","dashboardUI":"/ui","codeEditor":"monaco","theme":"forge-light","page":{"title":"FlowFuse","favicon":""},"header":{"title":"FlowFuse","url":""},"timeZone":"UTC","palette":{"allowInstall":true,"nodesExcludes":"","denyList":"","modules":[],"catalogue":["https://catalogue.nodered.org/catalogue.json"],"npmrc":""},"modules":{"allowInstall":true,"denyList":""},"httpNodeAuth":{"type":"","user":"","pass":""},"emailAlerts":{"crash":false,"safe":false,"recipients":"owners"}}, "policy":{"disableEditor":true,"disableTours":true,"httpAdminRoot":true,"dashboardUI":true,"codeEditor":true,"theme":true,"page":{"title":false,"favicon":false},"header":{"title":true,"url":false},"timeZone":true,"palette":{"allowInstall":true,"nodesExcludes":false,"denyList":false,"modules":true,"catalogue":true,"npmrc":true},"modules":{"allowInstall":true,"denyList":false},"httpNodeAuth":{"type":true,"user":true,"pass":true},"emailAlerts":{"crash":true,"safe":true,"recipients":true}}}' \
             https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/templates/
-          ### Create devteam with starter team type
+          ### Create Plant Starter teap
           curl -k -XPOST \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
-            -d '{"name":"devteam", "type":"'"$starterTeamTypeId"'"}' \
-            https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/teams/
+            -d '{
+                  "name":"Plant Starter",
+                  "type":"'"$starterTeamTypeId"'"
+                }' https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/teams/
+          ### Create Plant Team
+          teamTeamTypeId=$(curl -k -XGET -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/team-types/ | jq -r '.types[] | select(.name=="Team") | .id')
+          curl -k -XPOST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
+            -d '{
+                  "name":"Plant Team",
+                  "type":"'"$teamTeamTypeId"'"
+                }' https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/teams/
+          ### Create Enterprise Team
+          enterpriseTeamTypeId=$(curl -k -XGET -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/team-types/ | jq -r '.types[] | select(.name=="Enterprise") | .id')
+          curl -k -XPOST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
+            -d '{
+                  "name":"Enterprise Team",
+                  "type":"'"$enterpriseTeamTypeId"'"
+                }' https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/teams/
           
           kubectl --namespace "pr-${{ env.PR_NUMBER }}" rollout restart deployment flowforge
           kubectl --namespace "pr-${{ env.PR_NUMBER }}" rollout status deployment flowforge
