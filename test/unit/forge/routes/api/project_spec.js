@@ -1698,7 +1698,7 @@ describe('Project API', function () {
                 url: `/api/v1/projects/${TestObjects.project1.id}`,
                 payload: {
                     launcherSettings: {
-                        healthCheckInterval: 999 // 1000 is the minimum
+                        healthCheckInterval: 999 // 999 is below the 5000 is the minimum
                     }
                 },
                 cookies: { sid: TestObjects.tokens.alice }
