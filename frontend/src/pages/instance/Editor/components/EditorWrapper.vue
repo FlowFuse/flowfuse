@@ -14,7 +14,6 @@
             width="100%"
             height="100%"
             :src="instance.url"
-            title="YouTube video player"
             referrerpolicy="strict-origin-when-cross-origin"
             allowfullscreen
         />
@@ -41,6 +40,7 @@ export default {
         }
     },
     mounted () {
+        // adding event listener to listen for messages from the iframe
         window.addEventListener('message', this.eventListener)
     },
     unmounted () {
