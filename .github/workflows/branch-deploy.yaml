@@ -247,7 +247,7 @@ jobs:
                               }
                           },
                 "order": 1
-              }' 'https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/team-types'
+              }' https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/team-types
           ### Create Enterprise team type
           curl -k -XPOST \
           -H "Content-Type: application/json" \
