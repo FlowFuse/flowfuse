@@ -214,7 +214,7 @@ jobs:
           curl -k -XPOST \
           -H "Content-Type: application/json" \
           -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
-          -data '{
+          -d '{
                 "name": "Team",
                 "description": "Team type",
                 "active": true,
@@ -252,7 +252,7 @@ jobs:
           curl -k -XPOST \
           -H "Content-Type: application/json" \
           -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
-          -data '{
+          -d '{
                 "name": "Enterprise",
                 "description": "Enterprise type",
                 "active": true,
