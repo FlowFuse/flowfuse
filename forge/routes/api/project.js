@@ -483,7 +483,7 @@ module.exports = async function (app) {
         if (request.body?.launcherSettings?.healthCheckInterval) {
             const oldInterval = await request.project.getSetting(KEY_HEALTH_CHECK_INTERVAL)
             const newInterval = parseInt(request.body.launcherSettings.healthCheckInterval, 10)
-            if (isNaN(newInterval) || newInterval < 1000) {
+            if (isNaN(newInterval) || newInterval < 5000) {
                 reply.code(400).send({ code: 'invalid_heathCheckInterval', error: 'Invalid heath check interval' })
                 return
             }
