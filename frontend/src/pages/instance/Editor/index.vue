@@ -30,7 +30,8 @@
                 />
             </ff-page>
             <div class="drawer-trigger" @click="toggleDrawer">
-                <img src="../../../images/icons/ff-minimal-grey.svg" alt="logo">
+                <img src="../../../images/icons/ff-logo--wordmark--grey.svg" alt="logo">
+                <ChevronUpIcon class="ff-btn--icon close-drawer" />
             </div>
             <InstanceStatusPolling :instance="instance" @instance-updated="instanceUpdated" />
         </section>
@@ -38,7 +39,7 @@
 </template>
 
 <script>
-import { ArrowLeftIcon, ChevronDownIcon, ExternalLinkIcon } from '@heroicons/vue/solid'
+import { ArrowLeftIcon, ChevronDownIcon, ChevronUpIcon, ExternalLinkIcon } from '@heroicons/vue/solid'
 
 import DropdownMenu from '../../../components/DropdownMenu.vue'
 import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue'
@@ -59,13 +60,14 @@ export default {
         ExternalLinkIcon,
         FfPage,
         ChevronDownIcon,
+        ChevronUpIcon,
         ArrowLeftIcon
     },
     mixins: [instanceMixin],
     data () {
         return {
             drawer: {
-                open: true
+                open: false
             }
         }
     },
@@ -106,12 +108,13 @@ export default {
             ]
         }
     },
-
+    mounted () {
+        setTimeout(this.toggleDrawer, 3000)
+    },
     methods: {
         toggleDrawer () {
             this.drawer.open = !this.drawer.open
         }
-
     }
 }
 </script>
@@ -135,36 +138,15 @@ export default {
     display: flex;
     flex-direction: column;
 
-    //&::before {
-    //  content: '...';
-    //  position: absolute;
-    //  top: -4px;
-    //  left: 50%;
-    //  border-radius: 9px;
-    //  border: 1px solid $ff-grey-400;
-    //  background: $ff-grey-100;
-    //  color: $ff-grey-400;
-    //  letter-spacing: 5px;
-    //  width: 35px;
-    //  height: 10px;
-    //  display: none;
-    //  padding: 0;
-    //  cursor: ns-resize;
-    //  justify-content: end;
-    //  align-items: flex-end;
-    //  flex-direction: column;
-    //
-    //  &:hover {
-    //    cursor: ns-resize;
-    //  }
-    //}
-
     .drawer-trigger {
-      display: block;
+      display: flex;
+      align-items: center;
+      gap: 10px;
       position: absolute;
-      top: -30px;
-      left: 50%;
-      padding: 2px 30px;
+      top: -40px;
+      left: 40%;
+      padding: 10px 10px 2px 10px;
+      color: $ff-grey-400;
       background: white;
       border: 1px solid $ff-grey-400;
       box-shadow: 3.841px -3.841px 7.682px rgba(0, 0, 0, 0.10);
@@ -183,10 +165,6 @@ export default {
         top: 500px;
         transition: ease-in .1s;
       }
-
-      //&::before {
-      //  display: flex;
-      //}
     }
 
     .header {
