@@ -155,6 +155,7 @@ jobs:
             --set forge.license=${{ secrets.PRE_STAGING_LICENSE }} \
             flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowforge
 
+            
       - name: Initial setup
         if: ${{ env.initialSetup == 'true' }}
         run: |
