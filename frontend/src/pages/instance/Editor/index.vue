@@ -109,7 +109,7 @@ export default {
         }
     },
     mounted () {
-        setTimeout(this.toggleDrawer, 3000)
+        setTimeout(this.toggleDrawer, 1200)
     },
     methods: {
         toggleDrawer () {
@@ -133,7 +133,7 @@ export default {
     width: 100%;
     height: 0;
     background: white;
-    box-shadow: 3.841px -3.841px 7.682px rgba(0, 0, 0, 0.10);
+    box-shadow: 4px -4px 8px rgba(0, 0, 0, 0.10);
     transition: ease-in-out 0.3s;
     display: flex;
     flex-direction: column;
@@ -144,14 +144,18 @@ export default {
       gap: 10px;
       position: absolute;
       top: -40px;
-      left: 40%;
-      padding: 10px 10px 2px 10px;
+      left: 50%;
+      margin-left: -84px;
+      padding: 10px 16px 8px;
       color: $ff-grey-400;
       background: white;
       border: 1px solid $ff-grey-400;
-      box-shadow: 3.841px -3.841px 7.682px rgba(0, 0, 0, 0.10);
+      box-shadow: 4px -4px 8px rgba(0, 0, 0, 0.10);
       border-radius: 10px 10px 0 0;
       transition: ease-out .7s;
+      img {
+        height: 20px;
+      }
 
       &:hover {
         cursor: pointer;
