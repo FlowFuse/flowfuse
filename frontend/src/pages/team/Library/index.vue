@@ -1,7 +1,7 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Team Library" :tabs="navigation">
+            <ff-page-header title="Library" :tabs="navigation">
                 <template #context>
                     Shared repository to store common flows and nodes.
                 </template>
@@ -30,14 +30,14 @@ export default {
                 {
                     label: 'Blueprints',
                     to: {
-                        name: 'TeamSharedLibraryBlueprints'
+                        name: 'LibraryBlueprints'
 
                     }
                 },
                 {
                     label: 'Team Library',
                     to: {
-                        name: 'TeamSharedLibraryTeamLibrary'
+                        name: 'LibraryTeamLibrary'
                     }
                 }
             ]

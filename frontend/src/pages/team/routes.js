@@ -67,14 +67,14 @@ export default [
                 }
             },
             {
-                name: 'TeamSharedLibrary',
+                name: 'TeamLibrary',
                 path: 'library',
                 component: Library,
                 meta: {
                     title: 'Team - Library'
                 },
                 redirect: to => {
-                    return { name: 'TeamSharedLibraryBlueprints' }
+                    return { name: 'LibraryBlueprints' }
                 },
                 children: [...LibraryRoutes]
             },

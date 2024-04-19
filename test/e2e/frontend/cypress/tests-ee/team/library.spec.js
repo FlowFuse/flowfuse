@@ -173,7 +173,7 @@ function interceptLibraries (libraries = []) {
     cy.visit('team/ateam/library')
 }
 
-describe('FlowForge - Shared Team Library', () => {
+describe('FlowForge - Library', () => {
     beforeEach(() => {
         cy.login('alice', 'aaPassword')
         cy.home()
@@ -185,7 +185,7 @@ describe('FlowForge - Shared Team Library', () => {
 
             cy.wait(['@getBlueprints'])
 
-            cy.get('div[data-el="page-name"]').contains('Team Library')
+            cy.get('div[data-el="page-name"]').contains('Library')
             cy.contains('Shared repository to store common flows and nodes.')
 
             cy.contains('Create your own Blueprints')
@@ -203,7 +203,7 @@ describe('FlowForge - Shared Team Library', () => {
         it('groups multiple blueprints by their category', () => {
             interceptBlueprints([blueprint1, blueprint2, blueprint3])
 
-            cy.get('div[data-el="page-name"]').contains('Team Library')
+            cy.get('div[data-el="page-name"]').contains('Library')
 
             cy.contains('Some other category')
             cy.contains('Other blueprint (blank)')
