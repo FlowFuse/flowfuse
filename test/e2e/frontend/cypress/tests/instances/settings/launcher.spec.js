@@ -1,6 +1,6 @@
+/// <reference types="Cypress" />
 describe('FlowFuse - Instance - Settings - Launcher', () => {
-    let instance
-    function navigateToInstanceSettings (teamName, instanceName) {
+    function navigateToInstanceSettings (teamName, projectName) {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {
                 const team = response.body.teams.find(
@@ -9,16 +9,21 @@ describe('FlowFuse - Instance - Settings - Launcher', () => {
                 return cy.request('GET', `/api/v1/teams/${team.id}/projects`)
             })
             .then((response) => {
-                instance = response.body.projects.find(
-                    (app) => app.name === instanceName
+                const project = response.body.projects.find(
+                    (project) => project.name === projectName
                 )
-                cy.visit(`/instance/${instance.id}/settings`)
+                cy.visit(`/instance/${project.id}/settings/general`)
                 cy.wait('@getInstance')
             })
     }
-    beforeEach(() => {
-        cy.intercept('GET', '/api/*/projects/*').as('getInstance')
 
+    function getForm () {
+        return cy.get('[data-el="launcher-settings-form"]')
+    }
+
+    beforeEach(() => {
+        cy.intercept('GET', '/api/*/projects/').as('getProjects')
+        cy.intercept('GET', '/api/*/projects/*').as('getInstance')
         cy.login('bob', 'bbPassword')
         cy.home()
     })
@@ -26,19 +31,18 @@ describe('FlowFuse - Instance - Settings - Launcher', () => {
     it('can set health check value', () => {
         cy.intercept('PUT', '/api/*/projects/*').as('updateInstance')
 
-        const gotoInstance = () => {
-            navigateToInstanceSettings('BTeam', 'instance-2-1')
-            // find li with text "Launcher" in [data-el="section-side-menu"]
-            cy.get('[data-el="section-side-menu"] li').contains('Launcher').click()
-        }
-        const getForm = () => {
-            return cy.get('[data-el="launcher-settings-form"]')
-        }
+        navigateToInstanceSettings('BTeam', 'instance-2-1')
 
-        gotoInstance()
+        // locate and click on the launcher tab
+        cy.get('[data-el="section-side-menu"] li').contains('Launcher').click()
 
-        // ensure the first child's title is correct
-        getForm().first('div').get('[data-el="form-row-title"]').contains('Heath check interval (ms)')
+        // wait for url /instance/***/settings/launcher
+        cy.url().should('include', 'settings/launcher')
+
+        // // ensure the first child's title is correct
+        getForm().should('exist')
+        getForm().first('div').should('exist')
+        getForm().first('div').get('[data-el="form-row-title"]').contains('Health check interval (ms)').should('exist')
         // ensure the first child's numeric input exists
         getForm().first('div').get('.ff-input > input[type=number]').should('exist')
 
@@ -50,7 +54,8 @@ describe('FlowFuse - Instance - Settings - Launcher', () => {
         cy.wait('@updateInstance')
 
         // refresh page
-        gotoInstance()
+        navigateToInstanceSettings('BTeam', 'instance-2-1')
+        cy.get('[data-el="section-side-menu"] li').contains('Launcher').click()
 
         // check value is restored
         cy.get('[data-el="launcher-settings-form"]').first().get('.ff-input > input[type=number]').should('have.value', randomBetween6789and9876)
