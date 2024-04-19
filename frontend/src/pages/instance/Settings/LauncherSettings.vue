@@ -82,9 +82,17 @@ export default {
             const launcherSettings = {
                 healthCheckInterval: this.input.healthCheckInterval
             }
-            await InstanceApi.updateInstance(this.project.id, { launcherSettings })
-            this.$emit('instance-updated')
-            alerts.emit('Instance successfully updated. Restart the instance to apply the changes.', 'confirmation')
+            try {
+                await InstanceApi.updateInstance(this.project.id, { launcherSettings })
+                this.$emit('instance-updated')
+                alerts.emit('Instance successfully updated. Restart the instance to apply the changes.', 'confirmation')
+            } catch (error) {
+                if (error.response?.data?.code === 'invalid_heathCheckInterval') {
+                    alerts.emit('Invalid health check interval. Please enter a number 5000 or greater', 'warning')
+                } else {
+                    alerts.emit('Failed to update instance settings. Please try again.', 'warning')
+                }
+            }
         }
     }
 }
