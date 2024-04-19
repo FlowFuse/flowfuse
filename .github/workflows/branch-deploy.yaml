@@ -357,7 +357,7 @@ jobs:
             -d '{
                   "name": "Acme Plant",
                   "description": "Acme Plant Starter Application",
-                  "teamId": "'"$starterTeamId"'",
+                  "teamId": "'"$starterTeamId"'"
                 }' https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/applications
           ### Create Team Team Application
           teamTeamId=$(curl -k -XGET -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/teams | jq -r '.teams[] | select(.slug=="plant-team") | .id')
@@ -367,7 +367,7 @@ jobs:
             -d '{
                   "name": "Acme Plant",
                   "description": "Acme Plant Team Application",
-                  "teamId": "'"$teamTeamId"'",
+                  "teamId": "'"$teamTeamId"'"
                 }' https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/applications
           ### Create Enterprise Team Application
           enterpriseTeamId=$(curl -k -XGET -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/teams | jq -r '.teams[] | select(.slug=="plant-enterprise") | .id')
@@ -377,7 +377,7 @@ jobs:
             -d '{
                   "name": "Acme Plant",
                   "description": "Acme Plant Enterprise Application",
-                  "teamId": "'"$enterpriseTeamId"'",
+                  "teamId": "'"$enterpriseTeamId"'"
                 }' https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/applications
 
           
