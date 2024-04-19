@@ -21,10 +21,18 @@
                 Your Blueprints will be shown here, and will be available within all of your Node-RED instances on FlowFuse.
             </p>
         </template>
+        <template #actions>
+            <ff-button v-if="isSharedLibraryFeatureEnabled" :to="{name: 'AdminFlowBlueprints'}">Go To Blueprints</ff-button>
+            <ff-button v-else :to="{name: 'AdminFlowBlueprints'}" :disabled="true">
+                Add To Library
+                <template #icon-right><PlusIcon /></template>
+            </ff-button>
+        </template>
     </EmptyState>
 </template>
 
 <script>
+import { PlusIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
 import flowBlueprintsApi from '../../../api/flowBlueprints.js'
@@ -35,6 +43,7 @@ import featuresMixin from '../../../mixins/Features.js'
 export default {
     name: 'BluePrints',
     components: {
+        PlusIcon,
         EmptyState,
         BlueprintTile
     },
