@@ -203,7 +203,7 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
             -d '{"properties":{"instances":{"'"$stackId"'":{"active":true}}}}' \
             https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/project-types/$projectTypeId
-          starterTeamTypeId=$(curl -k -XGET -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/team-types/ | jq -r '.types[].id')
+          starterTeamTypeId=$(curl -k -XGET -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/team-types/ | jq -r '.types[] | select(.name=="starter") | .id')
           ### Configure Starter team type
           curl -k -XPUT \
             -H "Content-Type: application/json" \
