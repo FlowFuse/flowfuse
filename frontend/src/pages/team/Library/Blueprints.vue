@@ -100,7 +100,8 @@ export default {
     margin-bottom: 20px;
 
     .blueprint-tile {
-      max-width: 250px
+      max-width: 250px;
+      min-width: 200px;
     }
 
     .tiles-wrapper {
