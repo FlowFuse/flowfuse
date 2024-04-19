@@ -8,6 +8,7 @@
                     :key="index"
                     class="blueprint-tile"
                     :blueprint="blueprint"
+                    :data-el="blueprint.id"
                     @selected="onBlueprintSelect"
                 />
             </div>
