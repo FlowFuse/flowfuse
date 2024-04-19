@@ -1,45 +1,49 @@
 ---
-navTitle: Project states
+navTitle: Instance states
 ---
 
-# 0.4.0 
+# States
+- **Starting (first time)** The nr-laucher process is starting up. On container based systems this is done by creating a container
+- **Loading** nr-launcher pulling instance settings 
+- **Installing** Once the nr-launcher process has started and downloaded the Instance settings it will npm install any nodes in the settings -> palette section. 
+- **Starting (second time)** Once any nodes are installed the Node-RED process will be started, this state ends once the process can will respond to HTTP request
+- **Running** The normal state for an Instance
+- **Restarting** If the "Restart" action is triggered the nr-launcher will restart just the NR process inside the container. It will pull the latest settings data from the Forge app. A restart will also be triggered if the NR process fails to respond to 3 HTTP health checks in a row. Health checks run ever 7 seconds by default.
+- **Suspending** driver has been asked to suspend the Instance
+- **Suspended** When an instance is Suspended the Node-RED process is stopped and the nr-launcher shutdown, the container is then shutdown and removed on container based platforms
+- **Safe** Node-RED can be started in Safe Mode, this starts the Editor but does not run the flows. This is to allow a user to edit the flow to fix a problem. The flows are started when the flows are deployed. This is triggered if the NR process restarts more than 5 times with a run time of less than 30 seconds between each restart.
+- **Stopped** If the NR process continues to crash while in Safe Mode then it will be placed in to a Stopped state. The nr-launcher is still running but the NR process is not.
+
+# 2.3.0
 ```mermaid
 stateDiagram-v2
 direction TB
-ConStarting: Container Starting
-ConRunning: Container Running
-ConStopped: Container Stopped
-ConRemoved: Container Removed
-ProjStateSus: project.state = suspended
-NRStopped: Node-RED Stopped
-NRStarted: Node-RED Started
-NRSafe: Node-RED Safe Mode
-Crash: Crash Loop
-state crash_loop <<choice>>
-[*] --> ConStarting : container.start
-ConStarting --> ProjStateSus : failed
-ConStarting --> ConRunning
-state ConRunning {
-    direction TB
-    NRStarted --> NRStopped : container.stopFlows
-    NRStopped --> NRStarted : container.startFlows
-    NRStopped --> NRSafe : container.startFlows(safe)
-    NRSafe --> NRStarted
-    NRSafe --> NRStopped : container.stopFlows
-    NRStarted --> Crash
-    Crash --> crash_loop
-    crash_loop --> NRSafe : y
-    crash_loop --> NRStarted : n
-    
+InstanceCreated: Instance Created
+state "nr-launcher" as nrLauncher {
+  direction TB
+  LoadingSettings
+  NPM
+  NodeRED
+  Safe: Safe Mode
+  Stopped
+
+  LoadingSettings --> NPM: loading
+  NPM --> NPM: installing
+  NPM --> NodeRED: starting
+  NodeRED --> NodeRED: restarting
+  NodeRED --> NodeRED: running
+  NodeRED --> Safe: safe
+  Safe --> Stopped: crashed
 }
-ConRunning --> ConRemoved : container.remove
-ConRunning --> ConStopped : container.stop
-ConStopped --> ConRemoved : container.remove
-ConStopped --> ConStarting : container.start
-note right of ConStopped : project.state = suspended
-ConRemoved --> [*]
+InstanceDeleted: Instance Deleted
+InstanceSuspended: Instance Suspended
+
+[*] --> InstanceCreated
+InstanceCreated --> nrLauncher : starting
+nrLauncher --> InstanceDeleted
+nrLauncher --> InstanceSuspended: suspending
+InstanceSuspended --> nrLauncher: starting
+InstanceSuspended --> InstanceSuspended: suspended
+InstanceDeleted --> [*]
 ```
 
- - Node-RED Stopped: project.state = stopped
- - Node-RED Started: project.state = running
- - Node-RED Safe Mode: project.state = safe

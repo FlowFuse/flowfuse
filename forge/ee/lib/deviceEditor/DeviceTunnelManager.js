@@ -279,24 +279,28 @@ class DeviceTunnelManager {
             wsToDevice.on('message', msg => {
                 // Forward messages sent by the editor down to the device
                 // console.info(`[${tunnel.id}] [${requestId}] E>R`, msg.toString())
-                tunnel.socket.send(JSON.stringify({
-                    id: requestId,
-                    ws: true,
-                    body: msg.toString()
-                }))
+                if (tunnel.socket) {
+                    tunnel.socket.send(JSON.stringify({
+                        id: requestId,
+                        ws: true,
+                        body: msg.toString()
+                    }))
+                }
             })
             wsToDevice.on('close', msg => {
                 this.app.log.info(`Device ${device.hashid} tunnel id:${tunnel.id} - editor connection closed req:${requestId} `)
                 // The editor has closed its websocket. Send notification to the
                 // device so it can close its corresponing connection
                 // console.info(`[${tunnel.id}] [${requestId}] E>R closed`)
-                if (tunnel.forwardedWS[requestId] && tunnel.socket) {
-                    // console.info(`[${tunnel.id}] [${requestId}] E>R closed - notifying the device`)
-                    tunnel.socket.send(JSON.stringify({
-                        id: requestId,
-                        ws: true,
-                        closed: true
-                    }))
+                if (tunnel.forwardedWS[requestId]) {
+                    if (tunnel.socket) {
+                        // console.info(`[${tunnel.id}] [${requestId}] E>R closed - notifying the device`)
+                        tunnel.socket.send(JSON.stringify({
+                            id: requestId,
+                            ws: true,
+                            closed: true
+                        }))
+                    }
                     delete tunnel.forwardedWS[requestId]
                 }
             })
