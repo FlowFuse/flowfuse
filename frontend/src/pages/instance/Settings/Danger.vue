@@ -171,7 +171,7 @@ export default {
         },
         showProjectChangeTypePage () {
             this.$router.push({
-                name: 'ChangeInstanceType'
+                name: 'instance-settings-change-type'
             })
         },
         showChangeStackDialog () {

@@ -18,7 +18,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import '../../ui-components/stylesheets/ff-colors.scss';
 
 .ff-icon-restarting svg {
     --anim-time: 1s;

@@ -19,7 +19,7 @@
                                     </a>
                                 </div>
                                 <div v-else class="my-2">
-                                    <router-link v-if="isHA" :to="{name: 'InstanceSettingsHA', params: { id: instance.id }}" @click.stop>
+                                    <router-link v-if="isHA" :to="{name: 'instance-settings-ha', params: { id: instance.id }}" @click.stop>
                                         <StatusBadge class="text-gray-400 hover:text-blue-600" status="high-availability" />
                                     </router-link>
                                     <template v-else>
@@ -64,7 +64,7 @@
                                     <span v-else>
                                         None
                                     </span>
-                                    <router-link class="mt-0.5 ml-3" :to="{ name: 'InstanceSettingsSecurity' }"><LinkIcon class="w-4" /></router-link>
+                                    <router-link class="mt-0.5 ml-3" :to="{ name: 'instance-settings-security' }"><LinkIcon class="w-4" /></router-link>
                                 </div>
                             </td>
                         </tr>

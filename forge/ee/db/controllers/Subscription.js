@@ -13,8 +13,8 @@ module.exports = {
             await existingSub.save()
 
             // This *could* be a trial team that has devices in it. In which case,
-            // we need to reconcile the subscription device count in case device billing
-            // is enabled.
+            // we need to reconcile the subscription device and instance count
+            await app.billing.updateTeamInstanceCount(team)
             await app.billing.updateTeamDeviceCount(team)
             return existingSub
         } else {

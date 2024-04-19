@@ -7,7 +7,7 @@
         class="whitespace-nowrap"
         @click.stop="openEditor()"
     >
-        <template #icon-right>
+        <template v-if="!immersive" #icon-right>
             <ExternalLinkIcon />
         </template>
         {{ editorDisabled ? 'Editor Disabled' : 'Open Editor' }}
@@ -41,6 +41,10 @@ export default {
         url: {
             default: '',
             type: String
+        },
+        immersive: {
+            default: true,
+            type: Boolean
         }
     },
     computed: {
@@ -55,7 +59,7 @@ export default {
                 return
             }
 
-            window.open(this.url, '_blank')
+            window.open(this.url, !this.immersive ? '_blank' : '_self')
         }
     }
 }
