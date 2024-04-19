@@ -27,6 +27,6 @@ export default [
             title: 'Instance - Change Type'
         }
     },
-    { path: 'launcher', name: 'InstanceSettingsLauncher', component: InstanceSettingsLauncher },
+    { path: 'launcher', name: 'instance-settings-launcher', component: InstanceSettingsLauncher },
     { path: 'alerts', name: 'instance-settings-alerts', component: InstanceSettingsAlerts }
 ]
