@@ -28,7 +28,32 @@ describe('FlowFuse - Instance - Settings - Launcher', () => {
         cy.home()
     })
 
-    it('can set health check value', () => {
+    it('Validates health check interval user input', () => {
+        cy.intercept('PUT', '/api/*/projects/*').as('updateInstance')
+        // navigate to instance settings -> launcher tab
+        cy.login('bob', 'bbPassword')
+        cy.home()
+        navigateToInstanceSettings('BTeam', 'instance-2-1')
+
+        cy.get('[data-el="section-side-menu"] li').contains('Launcher').click()
+
+        // wait for url /instance/***/settings/launcher
+        cy.url().should('include', 'settings/launcher')
+
+        // Change value to < 5000
+        getForm().first('div').get('.ff-input > input[type=number]').clear()
+        getForm().first('div').get('.ff-input > input[type=number]').type(4999)
+        cy.get('[data-action="save-settings"]').should('be.disabled')
+        getForm().first('div').get('[data-el="form-row-error"').contains('Health check interval must be 5000 or greater').should('exist')
+
+        // Change value to > 5000
+        getForm().first('div').get('.ff-input > input[type=number]').clear()
+        getForm().first('div').get('.ff-input > input[type=number]').type(5001)
+        cy.get('[data-action="save-settings"]').should('not.be.disabled')
+        getForm().first('div').get('[data-el="form-row-error"').should('not.exist')
+    })
+
+    it('Can set health check interval value', () => {
         cy.intercept('PUT', '/api/*/projects/*').as('updateInstance')
 
         navigateToInstanceSettings('BTeam', 'instance-2-1')
