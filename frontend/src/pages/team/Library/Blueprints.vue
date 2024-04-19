@@ -2,13 +2,15 @@
     <ul v-if="blueprints.length" class="flow-categories-wrapper">
         <li v-for="(flowBlueprints, category) in blueprintsByCategory" :key="category" class="category">
             <h2 class="title">{{ category }}</h2>
-            <BlueprintTile
-                v-for="(blueprint, index) in flowBlueprints"
-                :key="index"
-                class="blueprint-tile"
-                :blueprint="blueprint"
-                @selected="onBlueprintSelect"
-            />
+            <div class="tiles-wrapper">
+                <BlueprintTile
+                    v-for="(blueprint, index) in flowBlueprints"
+                    :key="index"
+                    class="blueprint-tile"
+                    :blueprint="blueprint"
+                    @selected="onBlueprintSelect"
+                />
+            </div>
         </li>
     </ul>
     <EmptyState v-else :featureUnavailable="!isSharedLibraryFeatureEnabledForPlatform" :featureUnavailableToTeam="!isSharedLibraryFeatureEnabledForTeam">
@@ -92,6 +94,12 @@ export default {
 
     .blueprint-tile {
       max-width: 250px
+    }
+
+    .tiles-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
     }
   }
 }
