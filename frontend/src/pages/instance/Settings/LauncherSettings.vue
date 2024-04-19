@@ -1,16 +1,16 @@
 <template>
     <FormHeading class="mb-6">Launcher Settings</FormHeading>
     <form class="space-y-6" data-el="launcher-settings-form">
-        <FormRow v-model="input.healthCheckInterval" type="number">
+        <FormRow v-model="input.healthCheckInterval" type="number" :error="errors.healthCheckInterval">
             Health check interval (ms)
             <template #description>
-                The interval at which the launcher will check the health of Node-RED. Flows that perform CPU intensive work may require to increase this from the default of 7500ms.
-                It is not recommended to set this value lower than 5000ms.
+                The interval at which the launcher will check the health of Node-RED.
+                Flows that perform CPU intensive work may need to increase this from the default of 7500ms.
             </template>
         </FormRow>
 
         <div class="space-x-4 whitespace-nowrap">
-            <ff-button size="small" :disabled="!unsavedChanges" data-action="save-settings" @click="saveSettings()">Save settings</ff-button>
+            <ff-button size="small" :disabled="!unsavedChanges || !validateFormInputs()" data-action="save-settings" @click="saveSettings()">Save settings</ff-button>
         </div>
     </form>
 </template>
@@ -50,6 +50,9 @@ export default {
             },
             input: {
                 healthCheckInterval: null
+            },
+            errors: {
+                healthCheckInterval: ''
             }
 
         }
@@ -61,7 +64,12 @@ export default {
         }
     },
     watch: {
-        project: 'getSettings'
+        project: 'getSettings',
+        'input.healthCheckInterval': function (value) {
+            if (this.mounted) {
+                this.validateFormInputs()
+            }
+        }
     },
     mounted () {
         this.checkAccess()
@@ -74,6 +82,19 @@ export default {
                 useRouter().push({ replace: true, path: 'general' })
             }
         },
+        validateFormInputs () {
+            if (!this.unsavedChanges) {
+                this.errors.healthCheckInterval = ''
+            } else {
+                const hci = parseInt(this.input.healthCheckInterval)
+                if (isNaN(hci) || hci < 5000) {
+                    this.errors.healthCheckInterval = 'Health check interval must be 5000 or greater'
+                } else {
+                    this.errors.healthCheckInterval = ''
+                }
+            }
+            return !this.errors.healthCheckInterval
+        },
         getSettings: function () {
             this.original.healthCheckInterval = this.project?.launcherSettings?.healthCheckInterval
             this.input.healthCheckInterval = this.project?.launcherSettings.healthCheckInterval
@@ -82,17 +103,13 @@ export default {
             const launcherSettings = {
                 healthCheckInterval: this.input.healthCheckInterval
             }
-            try {
-                await InstanceApi.updateInstance(this.project.id, { launcherSettings })
-                this.$emit('instance-updated')
-                alerts.emit('Instance successfully updated. Restart the instance to apply the changes.', 'confirmation')
-            } catch (error) {
-                if (error.response?.data?.code === 'invalid_heathCheckInterval') {
-                    alerts.emit('Invalid health check interval. Please enter a number 5000 or greater', 'warning')
-                } else {
-                    alerts.emit('Failed to update instance settings. Please try again.', 'warning')
-                }
+            if (!this.validateFormInputs()) {
+                alerts.emit('Please correct the errors before saving.', 'error')
+                return
             }
+            await InstanceApi.updateInstance(this.project.id, { launcherSettings })
+            this.$emit('instance-updated')
+            alerts.emit('Instance successfully updated. Restart the instance to apply the changes.', 'confirmation')
         }
     }
 }
