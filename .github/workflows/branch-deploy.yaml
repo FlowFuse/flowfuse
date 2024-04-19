@@ -210,122 +210,126 @@ jobs:
             -d '{"properties":{"instances":{"'"$stackId"'":{"active":true}}}}' \
             https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/project-types/$projectTypeId
 
-          # ### Configure Starter team type
-          # starterTeamTypeId=$(curl -k -XGET -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/team-types/ | jq -r '.types[] | select(.name=="starter") | .id')
-          # curl -k -XPUT \
-          #   -H "Content-Type: application/json" \
-          #   -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
-          #   -d '{
-          #     "name":"Starter",
-          #     "description":"Starter type",
-          #       "properties": {
-          #           "users": {
-          #             "limit": 5
-          #           },
-          #           "devices": {
-          #             "limit": 10
-          #           },
-          #           "features": {
-          #             "shared-library": false,
-          #             "projectComms": false,
-          #             "ha": false,
-          #             "teamHttpSecurity": false,
-          #             "customCatalogs": false,
-          #             "deviceGroups": false,
-          #             "emailAlerts": false,
-          #             "protectedInstance": false,
-          #             "deviceAutoSnapshot": false,
-          #             "instanceAutoSnapshot": false,
-          #             "editorLimits": false,
-          #             "fileStorageLimit": null,
-          #             "contextLimit": null
-          #           },
-          #           "instances": {
-          #             "'"$projectTypeId"'":{
-          #               "active":true
-          #             }
-          #           }
-          #         }
-          #       }
-          #     }' https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/team-types/$starterTeamTypeId
+          ### Delete default team type
+          defaultTeamTypeId=$(curl -k -XGET -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/team-types/ | jq -r '.types[] | select(.name=="starter") | .id')
+          curl -k -XDELETE -H "Content-Type: application/json" -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/team-types/$defaultTeamTypeId
+          
+          ### Create Starter team type
+          curl -k -XPOST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
+            -d '{
+              "name": "Starter",
+              "description": "Starter type",
+              "active": true,
+              "properties": {
+                            "users": {
+                                "limit": 5
+                            },
+                            "devices": {
+                                "limit": 10
+                            },
+                            "features": {
+                                "shared-library": false,
+                                "projectComms": false,
+                                "ha": false,
+                                "teamHttpSecurity": false,
+                                "customCatalogs": false,
+                                "deviceGroups": false,
+                                "emailAlerts": false,
+                                "protectedInstance": false,
+                                "deviceAutoSnapshot": false,
+                                "instanceAutoSnapshot": false,
+                                "editorLimits": false,
+                                "fileStorageLimit": null,
+                                "contextLimit": null
+                            },
+                            "instances": {
+                                "'"$projectTypeId"'": {
+                                    "active": true
+                                }
+                            }
+                        },
+              "order": 0
+            }' https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/team-types
 
-          # ### Create Team team type
-          # curl -k -XPOST \
-          # -H "Content-Type: application/json" \
-          # -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
-          # -d '{
-          #       "name": "Team",
-          #       "description": "Team type",
-          #       "active": true,
-          #       "properties": {
-          #                     "users": {
-          #                         "limit": 5
-          #                     },
-          #                     "devices": {
-          #                         "limit": 10
-          #                     },
-          #                     "features": {
-          #                         "shared-library": true,
-          #                         "projectComms": true,
-          #                         "ha": true,
-          #                         "teamHttpSecurity": true,
-          #                         "customCatalogs": true,
-          #                         "deviceGroups": true,
-          #                         "emailAlerts": true,
-          #                         "protectedInstance": true,
-          #                         "deviceAutoSnapshot": true,
-          #                         "instanceAutoSnapshot": true,
-          #                         "editorLimits": true,
-          #                         "fileStorageLimit": null,
-          #                         "contextLimit": null
-          #                     },
-          #                     "instances": {
-          #                         "'"$projectTypeId"'": {
-          #                             "active": true
-          #                         }
-          #                     }
-          #                 },
-          #       "order": 1
-          #     }' https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/team-types
+          ### Create Team team type
+          curl -k -XPOST \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
+          -d '{
+                "name": "Team",
+                "description": "Team type",
+                "active": true,
+                "properties": {
+                              "users": {
+                                  "limit": 5
+                              },
+                              "devices": {
+                                  "limit": 10
+                              },
+                              "features": {
+                                  "shared-library": true,
+                                  "projectComms": true,
+                                  "ha": true,
+                                  "teamHttpSecurity": true,
+                                  "customCatalogs": true,
+                                  "deviceGroups": true,
+                                  "emailAlerts": true,
+                                  "protectedInstance": true,
+                                  "deviceAutoSnapshot": true,
+                                  "instanceAutoSnapshot": true,
+                                  "editorLimits": true,
+                                  "fileStorageLimit": null,
+                                  "contextLimit": null
+                              },
+                              "instances": {
+                                  "'"$projectTypeId"'": {
+                                      "active": true
+                                  }
+                              }
+                          },
+                "order": 1
+              }' https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/team-types
 
-          # ### Create Enterprise team type
-          # curl -k -XPOST \
-          # -H "Content-Type: application/json" \
-          # -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
-          # -d '{
-          #       "name": "Enterprise",
-          #       "description": "Enterprise type",
-          #       "active": true,
-          #       "properties": {
-          #                     "users": {
-          #                         "limit": 5
-          #                     },
-          #                     "devices": {
-          #                         "limit": 10
-          #                     },
-          #                     "features": {
-          #                         "shared-library": true,
-          #                         "projectComms": true,
-          #                         "ha": true,
-          #                         "teamHttpSecurity": true,
-          #                         "customCatalogs": true,
-          #                         "deviceGroups": true,
-          #                         "emailAlerts": true,
-          #                         "protectedInstance": true,
-          #                         "deviceAutoSnapshot": true,
-          #                         "instanceAutoSnapshot": true,
-          #                         "editorLimits": true,
-          #                         "fileStorageLimit": null,
-          #                         "contextLimit": null
-          #                     },
-          #                     "instances": {
-          #                         "'"$projectTypeId"'": {
-          #                             "active": true
-          #                         }
-          #                     }
-          #                 },
-          #       "order": 2
-          #     }' https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/team-types
+          ### Create Enterprise team type
+          curl -k -XPOST \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
+          -d '{
+                "name": "Enterprise",
+                "description": "Enterprise type",
+                "active": true,
+                "properties": {
+                              "users": {
+                                  "limit": 5
+                              },
+                              "devices": {
+                                  "limit": 10
+                              },
+                              "features": {
+                                  "shared-library": true,
+                                  "projectComms": true,
+                                  "ha": true,
+                                  "teamHttpSecurity": true,
+                                  "customCatalogs": true,
+                                  "deviceGroups": true,
+                                  "emailAlerts": true,
+                                  "protectedInstance": true,
+                                  "deviceAutoSnapshot": true,
+                                  "instanceAutoSnapshot": true,
+                                  "editorLimits": true,
+                                  "fileStorageLimit": null,
+                                  "contextLimit": null
+                              },
+                              "instances": {
+                                  "'"$projectTypeId"'": {
+                                      "active": true
+                                  }
+                              }
+                          },
+                "order": 2
+              }' https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/team-types
 
           # ### Create template
           # curl -k -XPOST \
@@ -335,6 +339,7 @@ jobs:
           #   https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/templates/
 
           # ### Create Plant Starter teap
+          # starterTeamTypeId=$(curl -k -XGET -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" https://${{ env.PR_NUMBER }}.flowfuse.dev/api/v1/team-types/ | jq -r '.types[] | select(.name=="Team") | .id')
           # curl -k -XPOST \
           #   -H "Content-Type: application/json" \
           #   -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
