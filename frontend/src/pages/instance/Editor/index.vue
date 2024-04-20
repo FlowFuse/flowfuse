@@ -3,6 +3,14 @@
         <EditorWrapper :instance="instance" />
 
         <section class="tabs-wrapper drawer" :class="{'open': drawer.open}">
+            <div class="resize-bar" @mouseover="onResizeBarMouseHover" @mouseout="onResizeBarMouseHover">
+                <span class="resize-handle" />
+            </div>
+            <transition name="slideIn">
+                <div v-if="drawer.isHoveringOverResize" class="drawer-close" @click="toggleDrawer">
+                    <ChevronDownIcon class="ff-btn--icon" />
+                </div>
+            </transition>
             <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="deleteInstance" />
             <div class="header">
                 <div class="logo">
@@ -67,7 +75,9 @@ export default {
     data () {
         return {
             drawer: {
-                open: false
+                open: false,
+                isHoveringOverResize: false,
+                isHoveringOverResizeThrottled: false
             }
         }
     },
@@ -114,6 +124,40 @@ export default {
     methods: {
         toggleDrawer () {
             this.drawer.open = !this.drawer.open
+            this.drawer.isHoveringOverResize = false
+        },
+        eventListener (event) {
+            if (event.origin === this.instance.url) {
+                switch (event.data.type) {
+                case 'load':
+                    this.emitMessage('prevent-redirect', true)
+                    break
+                case 'navigate':
+                    window.location.href = event.data.payload
+                    break
+                default:
+                }
+            }
+        },
+        emitMessage (type, payload = {}) {
+            this.$refs.iframe.contentWindow.postMessage({ type, payload }, '*')
+        },
+        onResizeBarMouseHover () {
+            if (!this.throttled) {
+                this.toggleIsHoveringOverResizeBar()
+                this.throttled = true
+                setTimeout(() => {
+                    this.throttled = false
+                    this.toggleIsHoveringOverResizeBar()
+                }, 2000)
+            }
+        },
+        toggleIsHoveringOverResizeBar () {
+            if (!this.drawer.open) {
+                this.drawer.isHoveringOverResize = false
+                return
+            }
+            this.drawer.isHoveringOverResize = !this.drawer.isHoveringOverResize
         }
     }
 }
@@ -153,9 +197,64 @@ export default {
       box-shadow: 4px -4px 8px rgba(0, 0, 0, 0.10);
       border-radius: 10px 10px 0 0;
       transition: ease-out .7s;
+
       img {
         height: 20px;
       }
+
+      .ff-btn--icon {
+        color: $ff-grey-400
+      }
+
+      &:hover {
+        cursor: pointer;
+      }
+    }
+
+    .resize-bar {
+      position: relative;
+      height: 6px;
+      border-top: 1px solid $ff-grey-400;
+      background: white;
+      display: flex;
+      justify-content: center;
+      z-index: 10;
+
+      .resize-handle {
+        border-left: 1px solid $ff-grey-300;
+        border-right: 1px solid $ff-grey-300;
+        border-bottom: 1px solid $ff-grey-300;
+        border-radius: 0 0 5px 5px;
+        width: 50px;
+        height: 5px;
+        background: $ff-grey-100;
+        transition: ease-in-out 0.3s;
+      }
+
+      &:hover {
+        cursor: ns-resize;
+
+        .resize-handle {
+          background: $ff-grey-400;
+        }
+      }
+    }
+    .drawer-close {
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: white;
+      border-radius: 5px 5px 0 0;
+      width: 50px;
+      height: 30px;
+      top: -30px;
+      left: 50%;
+      margin-left: -25px;
+      box-shadow: 4px -4px 8px rgba(0, 0, 0, 0.10);
+      border: 1px solid $ff-grey-300;
+      border-bottom: none;
+      color: $ff-grey-400;
 
       &:hover {
         cursor: pointer;
@@ -175,8 +274,9 @@ export default {
       padding: 0 15px;
       display: flex;
       line-height: 1.5;
-      border-top: 1px solid $ff-grey-400;
       border-bottom: 1px solid $ff-grey-200;
+      background: white;
+      z-index: 10;
 
       .logo {
         display: flex;
@@ -215,5 +315,27 @@ export default {
       }
     }
   }
+}
+
+.slideIn-enter-active,
+.slideIn-leave-active {
+  transition: ease-in-out .1s;
+}
+
+.slideIn-enter-from {
+  opacity: 0;
+  transform: translateY(100%);
+}
+.slideIn-enter-to {
+  opacity: 1;
+}
+
+.slideIn-leave-from {
+  opacity: 1;
+}
+
+.slideIn-leave-to {
+  opacity: 0;
+  transform: translateY(100%);
 }
 </style>
