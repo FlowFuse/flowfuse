@@ -6,7 +6,7 @@
             <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="deleteInstance" />
             <div class="header">
                 <div class="logo">
-                    <router-link :to="{ name: 'Home' }">
+                    <router-link :to="{ name: 'instance-overview', params: {id: instance.id} }">
                         <ArrowLeftIcon class="ff-btn--icon" />
                         <img src="../../../images/icons/ff-minimal-grey.svg" alt="logo">
                     </router-link>
@@ -14,7 +14,7 @@
                 <ff-tabs :tabs="navigation" class="tabs" />
                 <div class="side-actions">
                     <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
-                    <a :href="instance.url" target="_blank">
+                    <a :href="instance.url">
                         <ExternalLinkIcon class="ff-btn--icon" />
                     </a>
                     <ChevronDownIcon class="ff-btn--icon close-drawer" @click="toggleDrawer" />
