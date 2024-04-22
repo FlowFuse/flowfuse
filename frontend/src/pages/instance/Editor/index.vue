@@ -1,17 +1,32 @@
 <template>
-    <div class="ff-editor-wrapper">
-        <EditorWrapper :instance="instance" />
+    <div class="ff-editor-wrapper" :class="{resizing: drawer.resizing}">
+        <EditorWrapper :instance="instance" :disable-events="drawer.resizing" />
 
-        <section class="tabs-wrapper drawer" :class="{'open': drawer.open}">
-            <div class="resize-bar" @mouseover="onResizeBarMouseHover" @mouseout="onResizeBarMouseHover">
-                <span class="resize-handle" />
-            </div>
-            <transition name="slideIn">
-                <div v-if="drawer.isHoveringOverResize" class="drawer-close" @click="toggleDrawer">
-                    <ChevronDownIcon class="ff-btn--icon" />
-                </div>
-            </transition>
-            <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="deleteInstance" />
+        <section
+            class="tabs-wrapper drawer"
+            :class="{'open': drawer.open, resizing: drawer.resizing}"
+            :style="{ height: drawer.height + 'px' }"
+        >
+            <resize-bar
+                :is-handle-visible="drawer.open"
+                :is-handle-shadowed="!drawer.isHoveringOverResize"
+                @mouseover="onResizeBarMouseHover"
+                @mouseout="onResizeBarMouseHover"
+                @mousedown="startResize"
+            />
+
+            <drawer-trigger @click="toggleDrawer" />
+
+            <middle-close-button
+                :is-visible="drawer.isHoveringOverResize"
+                @click="toggleDrawer"
+            />
+
+            <ConfirmInstanceDeleteDialog
+                ref="confirmInstanceDeleteDialog"
+                @confirm="deleteInstance"
+            />
+
             <div class="header">
                 <div class="logo">
                     <router-link :to="{ name: 'instance-overview', params: {id: instance.id} }">
@@ -28,6 +43,7 @@
                     <ChevronDownIcon class="ff-btn--icon close-drawer" @click="toggleDrawer" />
                 </div>
             </div>
+
             <ff-page>
                 <router-view
                     :instance="instance"
@@ -37,17 +53,17 @@
                     @instance-confirm-suspend="showConfirmSuspendDialog"
                 />
             </ff-page>
-            <div class="drawer-trigger" @click="toggleDrawer">
-                <img src="../../../images/icons/ff-logo--wordmark--grey.svg" alt="logo">
-                <ChevronUpIcon class="ff-btn--icon close-drawer" />
-            </div>
-            <InstanceStatusPolling :instance="instance" @instance-updated="instanceUpdated" />
         </section>
+
+        <InstanceStatusPolling
+            :instance="instance"
+            @instance-updated="instanceUpdated"
+        />
     </div>
 </template>
 
 <script>
-import { ArrowLeftIcon, ChevronDownIcon, ChevronUpIcon, ExternalLinkIcon } from '@heroicons/vue/solid'
+import { ArrowLeftIcon, ChevronDownIcon, ExternalLinkIcon } from '@heroicons/vue/solid'
 
 import DropdownMenu from '../../../components/DropdownMenu.vue'
 import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue'
@@ -57,10 +73,15 @@ import instanceMixin from '../../../mixins/Instance.js'
 import ConfirmInstanceDeleteDialog from '../Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 
 import EditorWrapper from './components/EditorWrapper.vue'
+import DrawerTrigger from './components/drawer/DrawerTrigger.vue'
+import MiddleCloseButton from './components/drawer/MiddleCloseButton.vue'
+import ResizeBar from './components/drawer/ResizeBar.vue'
 
 export default {
     name: 'InstanceEditor',
     components: {
+        MiddleCloseButton,
+        DrawerTrigger,
         EditorWrapper,
         ConfirmInstanceDeleteDialog,
         InstanceStatusPolling,
@@ -68,8 +89,8 @@ export default {
         ExternalLinkIcon,
         FfPage,
         ChevronDownIcon,
-        ChevronUpIcon,
-        ArrowLeftIcon
+        ArrowLeftIcon,
+        ResizeBar
     },
     mixins: [instanceMixin],
     data () {
@@ -77,7 +98,12 @@ export default {
             drawer: {
                 open: false,
                 isHoveringOverResize: false,
-                isHoveringOverResizeThrottled: false
+                isHoveringOverResizeThrottled: false,
+                resizing: false,
+                startY: 0,
+                startHeight: 0,
+                height: 0,
+                defaultHeight: 320
             }
         }
     },
@@ -119,11 +145,20 @@ export default {
         }
     },
     mounted () {
-        setTimeout(this.toggleDrawer, 1200)
+        setTimeout(() => {
+            this.toggleDrawer()
+            this.drawer.height = this.drawer.defaultHeight
+        }, 1200)
     },
     methods: {
         toggleDrawer () {
-            this.drawer.open = !this.drawer.open
+            if (this.drawer.open) {
+                this.drawer.open = false
+                this.drawer.height = 0
+            } else {
+                this.drawer.open = true
+                this.drawer.height = this.drawer.defaultHeight
+            }
             this.drawer.isHoveringOverResize = false
         },
         eventListener (event) {
@@ -144,8 +179,8 @@ export default {
         },
         onResizeBarMouseHover () {
             if (!this.throttled) {
-                this.toggleIsHoveringOverResizeBar()
                 this.throttled = true
+                this.toggleIsHoveringOverResizeBar()
                 setTimeout(() => {
                     this.throttled = false
                     this.toggleIsHoveringOverResizeBar()
@@ -158,6 +193,25 @@ export default {
                 return
             }
             this.drawer.isHoveringOverResize = !this.drawer.isHoveringOverResize
+        },
+        startResize (e) {
+            this.drawer.resizing = true
+            this.drawer.startY = e.clientY
+            this.drawer.startHeight = this.drawer.height
+            document.addEventListener('mousemove', this.resize)
+            document.addEventListener('mouseup', this.stopResize)
+        },
+        resize (e) {
+            if (this.drawer.resizing) {
+                const heightChange = this.drawer.startY - e.clientY
+                const newHeight = this.drawer.startHeight + heightChange
+                this.drawer.height = Math.min(Math.max(100, newHeight), window.screen.height - 200)
+            }
+        },
+        stopResize () {
+            this.drawer.resizing = false
+            document.removeEventListener('mousemove', this.resize)
+            document.removeEventListener('mouseup', this.stopResize)
         }
     }
 }
@@ -181,94 +235,6 @@ export default {
     transition: ease-in-out 0.3s;
     display: flex;
     flex-direction: column;
-
-    .drawer-trigger {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      position: absolute;
-      top: -40px;
-      left: 50%;
-      margin-left: -84px;
-      padding: 10px 16px 8px;
-      color: $ff-grey-400;
-      background: white;
-      border: 1px solid $ff-grey-400;
-      box-shadow: 4px -4px 8px rgba(0, 0, 0, 0.10);
-      border-radius: 10px 10px 0 0;
-      transition: ease-out .7s;
-
-      img {
-        height: 20px;
-      }
-
-      .ff-btn--icon {
-        color: $ff-grey-400
-      }
-
-      &:hover {
-        cursor: pointer;
-      }
-    }
-
-    .resize-bar {
-      position: relative;
-      height: 6px;
-      border-top: 1px solid $ff-grey-400;
-      background: white;
-      display: flex;
-      justify-content: center;
-      z-index: 10;
-
-      .resize-handle {
-        border-left: 1px solid $ff-grey-300;
-        border-right: 1px solid $ff-grey-300;
-        border-bottom: 1px solid $ff-grey-300;
-        border-radius: 0 0 5px 5px;
-        width: 50px;
-        height: 5px;
-        background: $ff-grey-100;
-        transition: ease-in-out 0.3s;
-      }
-
-      &:hover {
-        cursor: ns-resize;
-
-        .resize-handle {
-          background: $ff-grey-400;
-        }
-      }
-    }
-    .drawer-close {
-      position: absolute;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: white;
-      border-radius: 5px 5px 0 0;
-      width: 50px;
-      height: 30px;
-      top: -30px;
-      left: 50%;
-      margin-left: -25px;
-      box-shadow: 4px -4px 8px rgba(0, 0, 0, 0.10);
-      border: 1px solid $ff-grey-300;
-      border-bottom: none;
-      color: $ff-grey-400;
-
-      &:hover {
-        cursor: pointer;
-      }
-    }
-
-    &.open {
-      height: 320px;
-
-      .drawer-trigger {
-        top: 500px;
-        transition: ease-in .1s;
-      }
-    }
 
     .header {
       padding: 0 15px;
@@ -315,27 +281,13 @@ export default {
       }
     }
   }
-}
 
-.slideIn-enter-active,
-.slideIn-leave-active {
-  transition: ease-in-out .1s;
-}
-
-.slideIn-enter-from {
-  opacity: 0;
-  transform: translateY(100%);
-}
-.slideIn-enter-to {
-  opacity: 1;
-}
-
-.slideIn-leave-from {
-  opacity: 1;
-}
-
-.slideIn-leave-to {
-  opacity: 0;
-  transform: translateY(100%);
+  &.resizing {
+    cursor: ns-resize;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+  }
 }
 </style>
