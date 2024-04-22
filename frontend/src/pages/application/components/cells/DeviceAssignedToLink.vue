@@ -1,6 +1,6 @@
 <template>
     <template v-if="ownerType==='instance'">
-        <router-link :to="{ name: 'InstanceRemoteInstances', params: { id: instance.id }}"><ProjectsIcon class="ff-icon relative top-0.5" /> <span class="ml-4">{{ instance.name }}</span></router-link>
+        <router-link :to="{ name: 'instance-devices', params: { id: instance.id }}"><ProjectsIcon class="ff-icon relative top-0.5" /> <span class="ml-4">{{ instance.name }}</span></router-link>
     </template>
     <template v-else-if="ownerType==='application'">
         <router-link :to="{ name: 'ApplicationDevices', params: { id: application.id }}"><TemplateIcon class="ff-icon relative -top-0.5" /> <span class="ml-4">{{ application.name }}</span></router-link>
