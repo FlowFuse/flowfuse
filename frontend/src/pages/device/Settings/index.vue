@@ -16,7 +16,7 @@ import SectionSideMenu from '../../../components/SectionSideMenu.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
 
 export default {
-    name: 'DeviceSettins',
+    name: 'DeviceSettings',
     props: ['device'],
     emits: ['device-updated', 'device-refresh', 'assign-device'],
     mixins: [permissionsMixin],
