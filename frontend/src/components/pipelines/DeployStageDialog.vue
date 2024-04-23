@@ -71,7 +71,7 @@
                                     Snapshots can be managed on the
                                     <router-link
                                         :to="{
-                                            name: 'InstanceSnapshots',
+                                            name: 'instance-snapshots',
                                             params: { id: stage.instance.id },
                                         }"
                                     >
@@ -107,7 +107,7 @@
                         Snapshots can be managed on the
                         <router-link
                             :to="{
-                                name: 'InstanceSnapshots',
+                                name: 'instance-snapshots',
                                 params: { id: stage.instance.id },
                             }"
                         >
