@@ -158,7 +158,7 @@ jobs:
       - name: Initial setup
         if: ${{ env.initialSetup == 'true' }}
         run: |
-          ./.github/workflows/initial-setup.sh ${{ env.PR_NUMBER }} ${{ secrets.INIT_CONFIG_PASSWORD_HASH }} ${{ secrets.INIT_CONFIG_ACCESS_TOKEN_HASH }} ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }} ${{ secrets.INIT_CONFIG_PASSWORD }}
+          ./.github/scripts/initial-setup.sh ${{ env.PR_NUMBER }} ${{ secrets.INIT_CONFIG_PASSWORD_HASH }} ${{ secrets.INIT_CONFIG_ACCESS_TOKEN_HASH }} ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }} ${{ secrets.INIT_CONFIG_PASSWORD }}
           
       - name: Summary
         run: |
