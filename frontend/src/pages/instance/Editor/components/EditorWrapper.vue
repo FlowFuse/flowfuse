@@ -16,6 +16,7 @@
             :src="instance.url"
             referrerpolicy="strict-origin-when-cross-origin"
             allowfullscreen
+            data-el="editor-iframe"
         />
     </section>
 </template>

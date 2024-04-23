@@ -2,7 +2,7 @@
     <div class="ff-editor-wrapper">
         <EditorWrapper :instance="instance" />
 
-        <section class="tabs-wrapper drawer" :class="{'open': drawer.open}">
+        <section class="tabs-wrapper drawer" :class="{'open': drawer.open}" data-el="tabs-drawer">
             <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="deleteInstance" />
             <div class="header">
                 <div class="logo">
@@ -46,6 +46,7 @@ import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue
 
 import FfPage from '../../../layouts/Page.vue'
 import instanceMixin from '../../../mixins/Instance.js'
+import FfTabs from '../../../ui-components/components/tabs/Tabs.vue'
 import ConfirmInstanceDeleteDialog from '../Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 
 import EditorWrapper from './components/EditorWrapper.vue'
@@ -53,6 +54,7 @@ import EditorWrapper from './components/EditorWrapper.vue'
 export default {
     name: 'InstanceEditor',
     components: {
+        FfTabs,
         EditorWrapper,
         ConfirmInstanceDeleteDialog,
         InstanceStatusPolling,
