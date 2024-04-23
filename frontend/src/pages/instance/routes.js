@@ -11,69 +11,72 @@ import InstanceSettingsRoutes from './Settings/routes.js'
 import InstanceSnapshots from './Snapshots/index.vue'
 import Instance from './index.vue'
 
-export default [
+const children = [
     {
-        path: '/project/:id/:remaining*',
-        redirect: to => {
-            if (to.params.remaining) {
-                return `/instance/${to.params.id}/${to.params.remaining.join('/')}`
-            }
-            return `/instance/${to.params.id}`
+        path: 'overview',
+        name: 'instance-overview',
+        component: InstanceOverview
+    },
+    {
+        path: 'audit-log',
+        name: 'instance-audit-log',
+        component: InstanceAuditLog,
+        meta: {
+            title: 'Instance - Activity'
         }
     },
     {
-        path: '/instance/:id',
+        path: 'logs',
+        name: 'instance-logs',
+        component: InstanceLogs,
+        meta: {
+            title: 'Instance - Logs',
+            shouldPoll: true
+        }
+    },
+    {
+        path: 'devices',
+        name: 'instance-devices',
+        component: InstanceRemoteInstances,
+        meta: {
+            title: 'Instance - Remote Instances'
+        }
+    },
+    {
+        path: 'settings',
+        component: InstanceSettings,
+        name: 'instance-settings',
+        meta: {
+            title: 'Instance - Settings'
+        },
         redirect: to => {
-            return `/instance/${to.params.id}/overview`
+            return { name: 'instance-settings-general', params: { id: to.params.id } }
+        },
+        children: [...InstanceSettingsRoutes]
+    },
+    {
+        path: 'snapshots',
+        name: 'instance-snapshots',
+        component: InstanceSnapshots,
+        meta: {
+            title: 'Instance - Snapshots'
+        }
+    }
+]
+
+export { children }
+
+export default [
+    {
+        path: '/instance/:id/:remaining*',
+        redirect: to => {
+            return { name: 'instance-overview', params: { id: to.params.id } }
         },
         name: 'Instance',
         component: Instance,
         meta: {
             title: 'Instance - Overview'
         },
-        children: [
-            { path: 'overview', component: InstanceOverview },
-            {
-                path: 'audit-log',
-                component: InstanceAuditLog,
-                meta: {
-                    title: 'Instance - Activity'
-                }
-            },
-            {
-                path: 'logs',
-                component: InstanceLogs,
-                meta: {
-                    title: 'Instance - Logs'
-                }
-            },
-            {
-                path: 'devices',
-                name: 'InstanceRemoteInstances',
-                component: InstanceRemoteInstances,
-                meta: {
-                    title: 'Instance - Remote Instances'
-                }
-            },
-            {
-                path: 'settings',
-                component: InstanceSettings,
-                meta: {
-                    title: 'Instance - Settings'
-                },
-                redirect: to => {
-                    return `/instance/${to.params.id}/settings/general`
-                },
-                children: [...InstanceSettingsRoutes]
-            },
-            {
-                path: 'snapshots',
-                name: 'InstanceSnapshots',
-                component: InstanceSnapshots,
-                meta: {
-                    title: 'Instance - Snapshots'
-                }
-            }
-        ]
+        children
     }
 ]

@@ -230,6 +230,8 @@ const actions = {
         } catch (err) {
             // Not logged in
             state.commit('clearPending')
+            window.posthog?.reset()
+
             if (router.currentRoute.value.meta.requiresLogin !== false) {
                 if (router.currentRoute.value.path !== '/') {
                     // Only remember the url if it isn't the default / path

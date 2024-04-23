@@ -11,8 +11,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import '../../ui-components/stylesheets/ff-colors.scss';
-
 .ff-icon-anim {
     display: flex;
     justify-content: center;

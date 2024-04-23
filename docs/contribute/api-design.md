@@ -15,7 +15,7 @@ serves a number of purposes:
 
 Some general guidance:
 
- - Ensure the routes have an approriate tag set - this determines where in the
+ - Ensure the routes have an appropriate tag set - this determines where in the
    Swagger UI it gets displayed.
  - Ensure the tag is listed in `forge/routes/api-docs.js` so it appears in the right place
  - We define view schemas under `forge/db/views/*` alongside the code that generates the view.
@@ -35,7 +35,7 @@ the `id` column.
 
 These ids are internal properties of the models and should *not* be exposed via the
 API. This is because they can be guessed and leak information about how many instances
-of any particular model exists.
+of any particular model exist.
 
 All model instances have an auto-generated `hashid` property that is an encoded version
 of the `id` property. This property should be used on the API but aliased as the
@@ -69,7 +69,7 @@ All routes relating to the logged-in user exist under:
 
 ### Object collection routes
 
-API routes that related to objects in collections follow the pattern:
+API routes that are related to objects in collections follow the pattern:
 
 ```txt
 /api/v1/<plural-noun>/<instance-id>/...
@@ -127,7 +127,7 @@ The following properties will then be available on the `request`:
 
 Permissions are defined in `forge/routes/auth/permissions.js`.
 
-Each permission specifies the role a user must have in order to have that permission.
+Each permission specifies the role a user must have to have that permission.
 
 If a route requires a particular permission, it can use `app.needsPermission` to
 generate a preHandler function that will ensure any requesting user has that
@@ -159,13 +159,13 @@ If a route needs to return an error it should respond with a payload in the form
 The `code` property should be a well-defined string that can be used to programmatically
 identify the error without relying on the human-readable message.
 
-There are a set of predefined codes that should be used where appropriate:
+There is a set of predefined codes that should be used where appropriate:
 
  - `unauthorized`
  - `invalid_request`
  - `unexpected_error`
 
-If the error is relating to an invalid option/parameter/object selection, then the code
+If the error is related to an invalid option/parameter/object selection, then the code
 should be:
 
  - `invalid_<name of property>`
@@ -224,7 +224,7 @@ be the entity hashid, or a timestamp if it is a time-series collection such as t
 logs.
 
 The cursor should *not* be the internal `id` of the entity in the collection - as we
-do not expose those ids on the api, instead using the `hashid` value as the external `id`.
+do not expose those ids on the api, use the `hashid` value as the external `id`.
 
 If an end-point supports navigating the collection in reverse (by returning `previous_cursor`),
 the cursor should be prefixed with `-` to indicate the query should be in the opposite
@@ -233,7 +233,7 @@ direction to the collection's natural order.
 ### Search & Filtering
 
 Search is done as simple case-insensitive text-based queries against string columns
-in the database model. This is a crude but effective way to implement search, but
+in the database model. This is a crude but effective way to implement search but
 may need a more comprehensive approach in the future.
 
 The search value is provided via the `query` query parameter.

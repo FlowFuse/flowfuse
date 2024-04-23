@@ -43,7 +43,7 @@
                         <div v-else>
                             There are no snapshots to choose from for this instance yet!<br>
                             Snapshots can be managed on the
-                            <router-link :to="{ name: 'InstanceSnapshots', params: { id: instance.id }}">
+                            <router-link :to="{ name: 'instance-snapshots', params: { id: instance.id }}">
                                 Instance Snapshots
                             </router-link> page.
                         </div>

@@ -10,21 +10,21 @@ import InstanceSettingsProtect from './ProtectInstance.vue'
 import InstanceSettingsSecurity from './Security.vue'
 
 export default [
-    { path: 'general', component: InstanceSettingsGeneral },
-    { path: 'environment', component: InstanceSettingsEnvVar },
-    { path: 'editor', component: InstanceSettingsEditor },
-    { name: 'InstanceSettingsSecurity', path: 'security', component: InstanceSettingsSecurity },
-    { path: 'palette', component: InstanceSettingsPalette },
-    { path: 'danger', component: InstanceSettingsDanger },
-    { path: 'ha', name: 'InstanceSettingsHA', component: InstanceSettingsHA },
-    { path: 'protectInstance', name: 'InstanceSettingsProtect', component: InstanceSettingsProtect },
+    { path: 'general', name: 'instance-settings-general', component: InstanceSettingsGeneral },
+    { path: 'environment', name: 'instance-settings-environment', component: InstanceSettingsEnvVar },
+    { path: 'editor', name: 'instance-settings-editor', component: InstanceSettingsEditor },
+    { path: 'security', name: 'instance-settings-security', component: InstanceSettingsSecurity },
+    { path: 'palette', name: 'instance-settings-palette', component: InstanceSettingsPalette },
+    { path: 'danger', name: 'instance-settings-danger', component: InstanceSettingsDanger },
+    { path: 'ha', name: 'instance-settings-ha', component: InstanceSettingsHA },
+    { path: 'protectInstance', name: 'instance-settings-protect', component: InstanceSettingsProtect },
     {
-        name: 'ChangeInstanceType',
         path: 'change-type',
+        name: 'instance-settings-change-type',
         component: ChangeInstanceTypePage,
         meta: {
             title: 'Instance - Change Type'
         }
     },
-    { path: 'alerts', component: InstanceSettingsAlerts }
+    { path: 'alerts', name: 'instance-settings-alerts', component: InstanceSettingsAlerts }
 ]

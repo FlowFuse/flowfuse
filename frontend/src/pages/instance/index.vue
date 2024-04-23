@@ -14,10 +14,10 @@
                 </template>
                 <template #status>
                     <InstanceStatusBadge :status="instance.meta?.state" :optimisticStateChange="instance.optimisticStateChange" :pendingStateChange="instance.pendingStateChange" />
-                    <router-link v-if="instance.ha?.replicas !== undefined" :to="{name: 'InstanceSettingsHA', params: { id: instance.id }}" @click.stop>
+                    <router-link v-if="instance.ha?.replicas !== undefined" :to="{name: 'instance-settings-ha', params: { id: instance.id }}" @click.stop>
                         <StatusBadge class="ml-2 text-gray-400 hover:text-blue-600" status="high-availability" />
                     </router-link>
-                    <router-link v-if="instance.protected?.enabled" :to="{ name: 'InstanceSettingsProtect'}" @click.stop>
+                    <router-link v-if="instance.protected?.enabled" :to="{ name: 'instance-settings-protect'}" @click.stop>
                         <StatusBadge class="ml-2 text-gray-400 hover:text-blue-600" data-el="protected-pill" status="protected" text="Protected" />
                     </router-link>
                 </template>
@@ -33,10 +33,11 @@
                             :disabled="!editorAvailable"
                         />
                         <InstanceEditorLink
-                            :url="instance.url"
+                            :url="editorUrl"
                             :editorDisabled="instance.settings.disableEditor || isHA"
                             :disabled="!editorAvailable"
                             :disabled-reason="disabledReason"
+                            :immersive="isLauncherImmersionCompatible"
                         />
                         <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
                     </div>
@@ -65,12 +66,8 @@
 
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
+import SemVer from 'semver'
 import { mapState } from 'vuex'
-
-import { Roles } from '../../../../forge/lib/roles.js'
-
-import InstanceApi from '../../api/instances.js'
-import SnapshotApi from '../../api/projectSnapshots.js'
 
 import DropdownMenu from '../../components/DropdownMenu.vue'
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
@@ -79,18 +76,13 @@ import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 
+import instanceMixin from '../../mixins/Instance.js'
 import permissionsMixin from '../../mixins/Permissions.js'
-
-import alerts from '../../services/alerts.js'
-import Dialog from '../../services/dialog.js'
-
-import { InstanceStateMutator } from '../../utils/InstanceStateMutator.js'
 
 import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import DashboardLink from './components/DashboardLink.vue'
 import InstanceEditorLink from './components/EditorLink.vue'
 import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
-
 export default {
     name: 'InstancePage',
     components: {
@@ -105,64 +97,37 @@ export default {
         TeamTrialBanner,
         InstanceEditorLink
     },
-    mixins: [permissionsMixin],
+    mixins: [permissionsMixin, instanceMixin],
     data: function () {
         return {
             mounted: false,
             icons: {
                 chevronLeft: ChevronLeftIcon
-            },
-            instance: {},
-            navigation: [],
-            checkInterval: null,
-            checkWaitTime: 1000,
-            loading: {
-                deleting: false,
-                suspend: false
             }
         }
     },
     computed: {
         ...mapState('account', ['teamMembership', 'team']),
-        isVisitingAdmin: function () {
-            return this.teamMembership?.role === Roles.Admin
+        navigation () {
+            if (!this.instance.id) return []
+
+            return [
+                { label: 'Overview', to: { name: 'instance-overview', params: { id: this.instance.id } }, tag: 'instance-overview' },
+                { label: 'Devices', to: { name: 'instance-devices', params: { id: this.instance.id } }, tag: 'instance-remote' },
+                { label: 'Snapshots', to: { name: 'instance-snapshots', params: { id: this.instance.id } }, tag: 'instance-snapshots' },
+                { label: 'Audit Log', to: { name: 'instance-audit-log', params: { id: this.instance.id } }, tag: 'instance-activity' },
+                { label: 'Node-RED Logs', to: { name: 'instance-logs', params: { id: this.instance.id } }, tag: 'instance-logs' },
+                { label: 'Settings', to: { name: 'instance-settings', params: { id: this.instance.id } }, tag: 'instance-settings' }
+            ]
         },
         isLoading: function () {
             return this.loading.deleting || this.loading.suspend
-        },
-        instanceRunning () {
-            return this.instance?.meta?.state === 'running'
-        },
-        isHA () {
-            return this.instance?.ha?.replicas !== undefined
         },
         editorAvailable () {
             return !this.isHA && this.instanceRunning
         },
         hasDashboard2 () {
             return !!this.instance?.settings?.dashboard2UI
-        },
-        actionsDropdownOptions () {
-            const flowActionsDisabled = !(this.instance.meta && this.instance.meta.state !== 'suspended')
-
-            const instanceStateChanging = this.instance.pendingStateChange || this.instance.optimisticStateChange
-
-            const result = [
-                {
-                    name: 'Start',
-                    action: this.startInstance,
-                    disabled: instanceStateChanging || this.instanceRunning
-                },
-                { name: 'Restart', action: this.restartInstance, disabled: instanceStateChanging || flowActionsDisabled },
-                { name: 'Suspend', class: ['text-red-700'], action: this.showConfirmSuspendDialog, disabled: instanceStateChanging || flowActionsDisabled }
-            ]
-
-            if (this.hasPermission('project:delete')) {
-                result.push(null)
-                result.push({ name: 'Delete', class: ['text-red-700'], action: this.showConfirmDeleteDialog })
-            }
-
-            return result
         },
         disabledReason () {
             if (this.isHA) {
@@ -173,127 +138,20 @@ export default {
                 return 'Instance is not running'
             }
             return null
-        }
-    },
-    watch: {
-        instance: 'instanceChanged'
-    },
-    async created () {
-        await this.loadInstance()
-
-        this.$watch(
-            () => this.$route.params.id,
-            async () => {
-                await this.loadInstance()
+        },
+        isLauncherImmersionCompatible () {
+            return SemVer.satisfies(SemVer.coerce(this.instance?.meta?.versions?.launcher), '>=2.3.1')
+        },
+        editorUrl () {
+            if (this.isLauncherImmersionCompatible) {
+                return this.$router.resolve({ name: 'instance-editor', params: { id: this.instance.id } }).fullPath
             }
-        )
+
+            return this.instance.url
+        }
     },
     mounted () {
         this.mounted = true
-    },
-    methods: {
-        instanceUpdated (newData) {
-            this.instanceStateMutator.clearState()
-            this.instance = { ...this.instance, ...newData }
-        },
-
-        async loadInstance () {
-            const instanceId = this.$route.params.id
-            if (!instanceId) {
-                return
-            }
-            try {
-                const data = await InstanceApi.getInstance(instanceId)
-                this.instance = { ...{ deviceSettings: {} }, ...this.instance, ...data }
-                this.$store.dispatch('account/setTeam', this.instance.team.slug)
-                this.instance.deviceSettings = await InstanceApi.getInstanceDeviceSettings(instanceId)
-                if (this.instance.deviceSettings?.targetSnapshot) {
-                    this.instance.targetSnapshot = await SnapshotApi.getSnapshot(instanceId, this.instance.deviceSettings.targetSnapshot)
-                } else {
-                    this.instance.targetSnapshot = null
-                }
-            } catch (err) {
-                this.$router.push({
-                    name: 'PageNotFound',
-                    params: { pathMatch: this.$router.currentRoute.value.path.substring(1).split('/') },
-                    // preserve existing query and hash if any
-                    query: this.$router.currentRoute.value.query,
-                    hash: this.$router.currentRoute.value.hash
-                })
-            }
-        },
-        instanceChanged () {
-            this.instanceStateMutator = new InstanceStateMutator(this.instance)
-
-            this.navigation = [
-                { label: 'Overview', to: `/instance/${this.instance.id}/overview`, tag: 'instance-overview' },
-                { label: 'Devices', to: `/instance/${this.instance.id}/devices`, tag: 'instance-remote' },
-                { label: 'Snapshots', to: `/instance/${this.instance.id}/snapshots`, tag: 'instance-snapshots' },
-                { label: 'Audit Log', to: `/instance/${this.instance.id}/audit-log`, tag: 'instance-activity' },
-                { label: 'Node-RED Logs', to: `/instance/${this.instance.id}/logs`, tag: 'instance-logs' },
-                { label: 'Settings', to: `/instance/${this.instance.id}/settings`, tag: 'instance-settings' }
-            ]
-        },
-        async startInstance () {
-            this.instanceStateMutator.setStateOptimistically('starting')
-
-            try {
-                await InstanceApi.startInstance(this.instance)
-                this.instanceStateMutator.setStateAsPendingFromServer()
-            } catch (err) {
-                console.warn('Instance start failed.', err)
-                alerts.emit('Instance start failed.', 'warning')
-                this.instanceStateMutator.restoreState()
-            }
-        },
-        async restartInstance () {
-            this.instanceStateMutator.setStateOptimistically('restarting')
-            try {
-                await InstanceApi.restartInstance(this.instance)
-                this.instanceStateMutator.setStateAsPendingFromServer()
-            } catch (err) {
-                console.warn('Instance restart failed.', err)
-                alerts.emit('Instance restart failed.', 'warning')
-                this.instanceStateMutator.restoreState()
-            }
-        },
-        showConfirmDeleteDialog () {
-            this.$refs.confirmInstanceDeleteDialog.show(this.instance)
-        },
-        deleteInstance () {
-            const applicationId = this.instance.application.id
-            this.loading.deleting = true
-            InstanceApi.deleteInstance(this.instance).then(async () => {
-                await this.$store.dispatch('account/refreshTeam')
-                this.$router.push({ name: 'ApplicationInstances', params: { id: applicationId } })
-                alerts.emit('Instance successfully deleted.', 'confirmation')
-            }).catch(err => {
-                console.warn(err)
-                alerts.emit('Instance failed to delete.', 'warning')
-                this.loading.deleting = false
-            })
-        },
-        showConfirmSuspendDialog () {
-            Dialog.show({
-                header: 'Suspend Instance',
-                text: 'Are you sure you want to suspend this instance?',
-                confirmLabel: 'Suspend',
-                kind: 'danger'
-            }, () => {
-                this.instanceStateMutator.setStateOptimistically('suspending')
-                InstanceApi.suspendInstance(this.instance).then(() => {
-                    this.instanceStateMutator.setStateAsPendingFromServer()
-                    alerts.emit('Instance suspend request succeeded.', 'confirmation')
-                }).catch(err => {
-                    console.warn(err)
-                    alerts.emit('Instance failed to suspend.', 'warning')
-                    this.instanceStateMutator.restoreState()
-                })
-            })
-        },
-        openEditor () {
-            window.open(this.instance.url, '_blank')
-        }
     }
 }
 </script>
