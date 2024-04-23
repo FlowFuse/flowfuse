@@ -288,6 +288,9 @@ export default {
     -moz-user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;
+    .resize-bar {
+        background-color: $ff-blue-500;
+    }
     .tabs-wrapper {
         transition: none;
     }
