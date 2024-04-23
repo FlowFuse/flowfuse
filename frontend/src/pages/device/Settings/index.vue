@@ -46,6 +46,7 @@ export default {
                 { name: 'Environment', path: './environment' }
             ]
             if (this.device.ownerType === 'application' && this.hasPermission('device:edit')) {
+                this.sideNavigation.push({ name: 'Editor', path: './editor' })
                 this.sideNavigation.push({ name: 'Palette', path: './palette' })
             }
             if (this.hasPermission('device:edit')) {
