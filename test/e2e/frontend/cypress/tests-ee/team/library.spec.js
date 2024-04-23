@@ -246,7 +246,7 @@ describe('FlowForge - Library', () => {
             cy.window().then((win) => expect(win.location.href).to.contain('/instances'))
         })
 
-        it.only('allows users to create Team Libraries if they don\'t have any', () => {
+        it('allows users to create Team Libraries if they don\'t have any', () => {
             interceptLibraries(libraries)
 
             cy.get('[data-el="ff-tab"]').contains('Team Library').click()

@@ -89,7 +89,7 @@ describe('FlowForge - Instance editor', () => {
                 cy.visit(`/instance/${instance.id}/editor`)
             })
 
-        cy.get('iframe')
+        cy.get('[data-el="editor-iframe"]')
             .should('exist')
 
         cy.get('[data-el="tabs-drawer"]').as('tabs-wrapper').should('exist')
@@ -134,6 +134,6 @@ describe('FlowForge - Instance editor', () => {
         cy.get('@tabs-wrapper').contains('Specs')
 
         cy.get('@tabs-wrapper').get('.logo').click()
-        cy.get('body').contains('Application')
+        cy.get('[data-el="page-name"]').contains('Applications')
     })
 })
