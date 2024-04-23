@@ -288,6 +288,9 @@ export default {
     -moz-user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;
+    .tabs-wrapper {
+        transition: none;
+    }
   }
 }
 </style>
