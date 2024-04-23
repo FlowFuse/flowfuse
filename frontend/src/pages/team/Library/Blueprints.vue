@@ -21,7 +21,7 @@
         <template #header>Create your own Blueprints</template>
         <template #message>
             <p>
-                Your Blueprints will be shown here, and will be available within all of your Node-RED instances on FlowFuse.
+                Your Blueprints will be shown here, and can be used to create new instances with a pre-defined flow and configuration.
             </p>
         </template>
         <template #actions>
