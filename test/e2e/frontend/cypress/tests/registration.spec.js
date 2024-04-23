@@ -261,7 +261,8 @@ describe('FlowForge - Sign Up Page', () => {
             win.posthog = {
                 onFeatureFlags: () => {},
                 capture: () => {},
-                identify: () => {}
+                identify: () => {},
+                reset: () => {}
             }
         })
 

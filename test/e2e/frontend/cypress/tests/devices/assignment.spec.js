@@ -170,6 +170,16 @@ describe('FlowForge - Application - Devices - Create', () => {
             cy.get('[data-el="devices-browser"] tbody tr td').contains(deviceName)
         })
     })
+
+    it('application assigned Device has palette settings', () => {
+        navigateToApplicationDevices('BTeam', 'application-2')
+        cy.wait('@getApplicationDevices').then(() => {
+            cy.get('[data-el="devices-browser"] tbody tr:last-child td a').click()
+            cy.get('[data-nav="device-settings"]').click()
+            cy.get('[data-el="section-side-menu"] li [data-nav="palette"]').should('exist')
+            cy.get('[data-nav="palette"]').click()
+        })
+    })
 })
 
 describe('FlowForge - Devices - Assign', () => {

@@ -1,7 +1,9 @@
 forge:
   domain: flowfuse.dev
-  https: false
+  https: true
   localPostgresql: true
+  broker:
+    enabled: true
 
 postgresql:
   persistence:
