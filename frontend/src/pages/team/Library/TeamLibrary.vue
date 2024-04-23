@@ -36,7 +36,7 @@
                 </p>
             </template>
             <template #actions>
-                <ff-button v-if="isSharedLibraryFeatureEnabled" :to="{name: 'Instances'}">Go To Instances</ff-button>
+                <ff-button v-if="isSharedLibraryFeatureEnabled" :to="{name: 'Instances'}" data-el="go-to-instances">Go To Instances</ff-button>
                 <ff-button v-else :to="{name: 'Instances'}" :disabled="true">
                     Add To Library
                     <template #icon-right><PlusIcon /></template>
@@ -63,12 +63,22 @@ import formatDateMixin from '../../../mixins/DateTime.js'
 import featuresMixin from '../../../mixins/Features.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
+import FFButton from '../../../ui-components/components/Button.vue'
+import FFListItem from '../../../ui-components/components/ListItem.vue'
+import FFDataTable from '../../../ui-components/components/data-table/DataTable.vue'
+import FFDataTableCell from '../../../ui-components/components/data-table/DataTableCell.vue'
+import FFDataTableRow from '../../../ui-components/components/data-table/DataTableRow.vue'
 import TypeIcon from '../components/LibraryEntryTypeIcon.vue'
 
 export default {
     name: 'TeamLibrary',
     components: {
         'ff-code-previewer': CodePreviewer,
+        'ff-data-table': FFDataTable,
+        'ff-data-table-cell': FFDataTableCell,
+        'ff-data-table-row': FFDataTableRow,
+        'ff-button': FFButton,
+        'ff-list-item': FFListItem,
         ChevronRightIcon,
         EmptyState,
         TypeIcon,

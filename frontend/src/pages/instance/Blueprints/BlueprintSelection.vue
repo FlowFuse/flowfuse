@@ -55,7 +55,7 @@ export default {
         async loadBlueprints () {
             const response = await flowBlueprintsApi.getFlowBlueprints()
 
-            this.localBlueprints = blueprints
+            this.localBlueprints = response.blueprints
         }
     }
 }

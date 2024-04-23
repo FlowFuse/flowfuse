@@ -25,7 +25,9 @@
             </p>
         </template>
         <template #actions>
-            <ff-button v-if="isSharedLibraryFeatureEnabled" :to="{name: 'AdminFlowBlueprints'}">Go To Blueprints</ff-button>
+            <ff-button v-if="isSharedLibraryFeatureEnabled" :to="{name: 'AdminFlowBlueprints'}" data-el="go-to-blueprints">
+                Go To Blueprints
+            </ff-button>
             <ff-button v-else :to="{name: 'AdminFlowBlueprints'}" :disabled="true">
                 Add To Library
                 <template #icon-right><PlusIcon /></template>

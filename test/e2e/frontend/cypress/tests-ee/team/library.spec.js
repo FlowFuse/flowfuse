@@ -185,17 +185,17 @@ describe('FlowForge - Library', () => {
 
             cy.wait(['@getBlueprints'])
 
-            cy.get('div[data-el="page-name"]').contains('Library')
+            cy.get('[data-cy="page-name"]').contains('Library')
             cy.contains('Shared repository to store common flows and nodes.')
 
             cy.contains('Create your own Blueprints')
             cy.contains('Your Blueprints will be shown here, and will be available within all of your Node-RED instances on FlowFuse.')
 
-            cy.get('button').contains('Go To Blueprints').click()
+            cy.get('[data-el="go-to-blueprints"]').contains('Go To Blueprints').click()
 
             cy.window().then((win) => expect(win.location.href).to.contain('admin/flow-blueprints'))
 
-            cy.get('button').contains('Create Flow Blueprint')
+            cy.get('[data-action="create-flow-blueprint"]').contains('Create Flow Blueprint')
             cy.contains('Flow Blueprints')
             cy.contains('Inactive Blueprints')
         })
@@ -203,7 +203,7 @@ describe('FlowForge - Library', () => {
         it('groups multiple blueprints by their category', () => {
             interceptBlueprints([blueprint1, blueprint2, blueprint3])
 
-            cy.get('div[data-el="page-name"]').contains('Library')
+            cy.get('[data-el="page-name"]').contains('Library')
 
             cy.contains('Some other category')
             cy.contains('Other blueprint (blank)')
@@ -219,7 +219,7 @@ describe('FlowForge - Library', () => {
         it('allows you to select a predefined blueprint and create an instance', () => {
             interceptBlueprints([blueprint1, blueprint2, blueprint3])
 
-            cy.get('div[data-el="yJR1DQ9NbK"]').contains('Select').click()
+            cy.get('[data-el="yJR1DQ9NbK"]').contains('Select').click()
 
             cy.window().then((win) => expect(win.location.href).to.contain('instances/create'))
 
@@ -232,35 +232,35 @@ describe('FlowForge - Library', () => {
         it('allows users to inspect existing Team Libraries ', () => {
             interceptLibraries([])
 
-            cy.get('.ff-tab-option').contains('Team Library').click()
+            cy.get('[data-el="ff-tab"]').contains('Team Library').click()
 
             cy.wait(['@getLibraries'])
 
             cy.contains('Create your own Team Library')
             cy.contains('You can import and export flows and functions to a shared Team Library from within your Node-RED Instances.')
             cy.contains('The contents of your Team Library will show here, and will be available within all of your Node-RED instances on FlowFuse.')
-            cy.get('button').contains('Go To Instance').as('createInstanceBtn').should('exist')
+            cy.get('[data-el="go-to-instances"]').contains('Go To Instance').as('createInstanceBtn').should('exist')
             cy.contains('You can see a video of how to get started with this feature here.')
 
             cy.get('@createInstanceBtn').click()
             cy.window().then((win) => expect(win.location.href).to.contain('/instances'))
         })
 
-        it('allows users to create Team Libraries if they don\'t have any', () => {
+        it.only('allows users to create Team Libraries if they don\'t have any', () => {
             interceptLibraries(libraries)
 
-            cy.get('.ff-tab-option').contains('Team Library').click()
+            cy.get('[data-el="ff-tab"]').contains('Team Library').click()
 
             cy.wait(['@getLibraries'])
 
             cy.intercept('/storage/library/*/*', sharedLibrary).as('getLibrary')
 
-            cy.get('td').contains('First Team Library.json').click()
+            cy.get('[data-el="ff-data-cell"]').contains('First Team Library.json').click()
 
             cy.wait(['@getLibrary'])
 
             cy.contains('Copy to Clipboard')
-            cy.get('pre.ff-code-previewer').should('exist')
+            cy.get('[data-el="ff-code-previewer"]').should('exist')
             cy.contains('"id": "b9b294725f80b01c"')
             cy.contains('"id": "d040659cbe69d523"')
             cy.contains('"id": "e346197ad2873980"')
