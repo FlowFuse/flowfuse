@@ -17,6 +17,7 @@
             referrerpolicy="strict-origin-when-cross-origin"
             allowfullscreen
             :style="{'pointer-events': disableEvents ? 'none' : 'auto'}"
+            data-el="editor-iframe"
         />
     </section>
 </template>

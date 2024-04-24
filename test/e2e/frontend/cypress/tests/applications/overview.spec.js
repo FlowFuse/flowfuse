@@ -1,4 +1,4 @@
-describe('FlowForge - Application - Overview', () => {
+describe('FlowForge - Applications', () => {
     function navigateToApplication (teamName, projectName) {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {
@@ -18,22 +18,77 @@ describe('FlowForge - Application - Overview', () => {
 
     beforeEach(() => {
         cy.intercept('GET', '/api/*/applications/*').as('getApplication')
-
         cy.login('bob', 'bbPassword')
-        cy.home()
     })
 
-    it('shows a list of cloud hosted instances', () => {
-        navigateToApplication('BTeam', 'application-2')
+    describe('Listing', () => {
+        it('shows a list of cloud hosted instances', () => {
+            cy.home()
 
-        cy.get('[data-el="cloud-instances"]').find('tbody tr').should('have.length', 2)
+            navigateToApplication('BTeam', 'application-2')
 
-        cy.get('[data-el="cloud-instances"]').contains('instance-2-1')
-        cy.get('[data-el="cloud-instances"]').contains('instance-2-with-devices')
+            cy.get('[data-el="cloud-instances"]').find('tbody tr').should('have.length', 2)
+
+            cy.get('[data-el="cloud-instances"]').contains('instance-2-1')
+            cy.get('[data-el="cloud-instances"]').contains('instance-2-with-devices')
+        })
+
+        it('shows the appropriate Open Editor button dependent on the instance\'s nr-launcher version', () => {
+            cy.intercept(
+                'GET',
+                '/api/*/teams/*/applications*',
+                (req) => req.reply(res => {
+                    res.body = {
+                        applications: [
+                            {
+                                instancesSummary: {
+                                    instances: [
+                                        {
+                                            name: 'immersive-compatible-instance',
+                                            meta: {
+                                                versions: {
+                                                    launcher: '2.3.1'
+                                                }
+                                            }
+                                        },
+                                        {
+                                            name: 'immersive-incompatible-instance',
+                                            meta: {
+                                                versions: {
+                                                    launcher: '2.3.0'
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                    return res
+                })
+            ).as('getApplication1')
+
+            cy.visit('/')
+
+            cy.wait('@getApplication1')
+
+            cy.get('[data-el="application-instance-item"')
+                .contains('immersive-compatible-instance')
+                .parent()
+                .parent()
+                .within(() => {
+                    cy.get('[data-action="open-editor"]')
+                        .should('not.have.descendants')
+                })
+
+            cy.get('[data-el="application-instance-item"')
+                .contains('immersive-incompatible-instance')
+                .parent()
+                .parent()
+                .within(() => {
+                    cy.get('[data-action="open-editor"]')
+                        .should('have.descendants', 'span.ff-btn--icon')
+                })
+        })
     })
-
-    it('Start an instance')
-    it('Restart an instance')
-    it('Suspend an instance')
-    it('Delete an instance')
 })
