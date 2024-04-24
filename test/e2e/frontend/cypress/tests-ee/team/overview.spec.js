@@ -101,8 +101,7 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                     })
 
                     cy.get('[data-el="application-instances"]').find('li').should('have.length', 2)
-                    cy.get('[data-el="application-instances"]').find('li').eq(0).within(() => {
-                        cy.contains('instance-2-with-devices')
+                    cy.get('[data-el="application-instances"] li:contains("instance-2-with-devices")').within(() => {
                         cy.contains('stopped')
                         cy.contains('Instance Stopped')
                         cy.contains('moments ago')
@@ -110,7 +109,7 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                         cy.get('[data-action="open-editor"]').should('be.disabled')
                     })
 
-                    cy.get('[data-el="application-instances"]').find('li').eq(1).within(() => {
+                    cy.get('[data-el="application-instances"] li:contains("instance-2-1")').within(() => {
                         cy.contains('instance-2-1')
                         cy.contains('running')
                         cy.contains('http://instance-2-1.example.com')
@@ -119,8 +118,7 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                     })
 
                     cy.get('[data-el="application-devices"]').find('li').should('have.length', 2)
-                    cy.get('[data-el="application-devices"]').find('li').eq(1).within(() => {
-                        cy.contains('application-device-a')
+                    cy.get('[data-el="application-devices"] li:contains("application-device-a")').within(() => {
                         cy.contains('running')
                         cy.contains('Device Assigned to Application')
                         cy.contains('moments ago')
@@ -128,8 +126,7 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                         cy.get('[data-action="open-editor"]').should('be.enabled')
                     })
 
-                    cy.get('[data-el="application-devices"]').find('li').eq(0).within(() => {
-                        cy.contains('application-device-b')
+                    cy.get('[data-el="application-devices"] li:contains("application-device-b")').within(() => {
                         cy.contains('stopped')
 
                         cy.contains('Device last seen')
