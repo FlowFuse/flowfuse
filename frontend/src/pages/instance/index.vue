@@ -43,6 +43,7 @@
                 </template>
             </ff-page-header>
         </template>
+        <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="deleteInstance" />
         <Teleport v-if="mounted" to="#platform-banner">
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">You are viewing this instance as an Administrator</div>
             <SubscriptionExpiredBanner :team="team" />
@@ -53,6 +54,8 @@
                 :instance="instance"
                 :is-visiting-admin="isVisitingAdmin"
                 @instance-updated="loadInstance"
+                @instance-confirm-delete="showConfirmDeleteDialog"
+                @instance-confirm-suspend="showConfirmSuspendDialog"
             />
         </div>
 
@@ -74,12 +77,14 @@ import InstanceActionsButton from '../../components/instance/ActionButtons.vue'
 import instanceMixin from '../../mixins/Instance.js'
 import permissionsMixin from '../../mixins/Permissions.js'
 
+import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import DashboardLink from './components/DashboardLink.vue'
 import InstanceEditorLink from './components/EditorLink.vue'
 import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
 export default {
     name: 'InstancePage',
     components: {
+        ConfirmInstanceDeleteDialog,
         InstanceActionsButton,
         DashboardLink,
         InstanceStatusPolling,

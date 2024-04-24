@@ -3,6 +3,8 @@ import { mapState } from 'vuex'
 import { Roles } from '../../../forge/lib/roles.js'
 import InstanceApi from '../api/instances.js'
 import SnapshotApi from '../api/projectSnapshots.js'
+import alerts from '../services/alerts.js'
+import Dialog from '../services/dialog.js'
 import { InstanceStateMutator } from '../utils/InstanceStateMutator.js'
 
 import permissionsMixin from './Permissions.js'
@@ -34,6 +36,27 @@ export default {
         instance: 'instanceChanged'
     },
     methods: {
+        showConfirmDeleteDialog () {
+            this.$refs.confirmInstanceDeleteDialog.show(this.instance)
+        },
+        showConfirmSuspendDialog () {
+            Dialog.show({
+                header: 'Suspend Instance',
+                text: 'Are you sure you want to suspend this instance?',
+                confirmLabel: 'Suspend',
+                kind: 'danger'
+            }, () => {
+                this.instanceStateMutator.setStateOptimistically('suspending')
+                InstanceApi.suspendInstance(this.instance).then(() => {
+                    this.instanceStateMutator.setStateAsPendingFromServer()
+                    alerts.emit('Instance suspend request succeeded.', 'confirmation')
+                }).catch(err => {
+                    console.warn(err)
+                    alerts.emit('Instance failed to suspend.', 'warning')
+                    this.instanceStateMutator.restoreState()
+                })
+            })
+        },
         async loadInstance () {
             const instanceId = this.$route.params.id
             if (!instanceId) {
@@ -65,6 +88,21 @@ export default {
         },
         instanceChanged () {
             this.instanceStateMutator = new InstanceStateMutator(this.instance)
+        },
+        deleteInstance () {
+            const applicationId = this.instance.application.id
+            this.loading.deleting = true
+            InstanceApi.deleteInstance(this.instance)
+                .then(() => this.$router.push({
+                    name: 'ApplicationInstances',
+                    params: { id: applicationId }
+                }))
+                .then(() => alerts.emit('Instance successfully deleted.', 'confirmation'))
+                .catch(err => {
+                    console.warn(err)
+                    alerts.emit('Instance failed to delete.', 'warning')
+                    this.loading.deleting = false
+                })
         },
         onInstanceDelete (payload) {
             this.loading.deleting = payload.status
