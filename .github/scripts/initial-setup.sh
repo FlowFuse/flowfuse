@@ -87,7 +87,7 @@ create_device() {
   local TEAM_NAME=$3
   TEAM_ID=$(get_team_id "${TEAM_NAME}")
   echo "Creating $DEVICE_NAME@$TEAM_ID device"
-  curl -ks -w "\n" -XPOST \
+  curl -ks -w "\n" -XPOST -o /dev/null \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
     -d '{
