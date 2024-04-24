@@ -58,7 +58,7 @@ export default {
                 return this.$router.resolve({ name: 'instance-editor', params: { id: this.instance.id } }).fullPath
             }
 
-            return this.instance.url
+            return this.instance.url || this.instance.editor?.url
         }
     },
     methods: {
