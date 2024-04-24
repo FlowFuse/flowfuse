@@ -6,6 +6,7 @@
             class="tabs-wrapper drawer"
             :class="{'open': drawer.open, resizing: drawer.resizing}"
             :style="{ height: drawer.height + 'px' }"
+            data-el="tabs-drawer"
         >
             <resize-bar
                 :is-handle-visible="drawer.open"
@@ -70,6 +71,7 @@ import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue
 
 import FfPage from '../../../layouts/Page.vue'
 import instanceMixin from '../../../mixins/Instance.js'
+import FfTabs from '../../../ui-components/components/tabs/Tabs.vue'
 import ConfirmInstanceDeleteDialog from '../Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 
 import EditorWrapper from './components/EditorWrapper.vue'
@@ -82,6 +84,7 @@ export default {
     components: {
         MiddleCloseButton,
         DrawerTrigger,
+        FfTabs,
         EditorWrapper,
         ConfirmInstanceDeleteDialog,
         InstanceStatusPolling,
