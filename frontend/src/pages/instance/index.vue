@@ -33,11 +33,10 @@
                             :disabled="!editorAvailable"
                         />
                         <InstanceEditorLink
-                            :url="editorUrl"
                             :editorDisabled="instance.settings.disableEditor || isHA"
                             :disabled="!editorAvailable"
                             :disabled-reason="disabledReason"
-                            :immersive="isLauncherImmersionCompatible"
+                            :instance="instance"
                         />
                         <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
                     </div>
@@ -66,7 +65,6 @@
 
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
-import SemVer from 'semver'
 import { mapState } from 'vuex'
 
 import DropdownMenu from '../../components/DropdownMenu.vue'
@@ -138,16 +136,6 @@ export default {
                 return 'Instance is not running'
             }
             return null
-        },
-        isLauncherImmersionCompatible () {
-            return SemVer.satisfies(SemVer.coerce(this.instance?.meta?.versions?.launcher), '>=2.3.1')
-        },
-        editorUrl () {
-            if (this.isLauncherImmersionCompatible) {
-                return this.$router.resolve({ name: 'instance-editor', params: { id: this.instance.id } }).fullPath
-            }
-
-            return this.instance.url
         }
     },
     mounted () {

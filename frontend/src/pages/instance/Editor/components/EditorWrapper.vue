@@ -16,6 +16,8 @@
             :src="instance.url"
             referrerpolicy="strict-origin-when-cross-origin"
             allowfullscreen
+            :style="{'pointer-events': disableEvents ? 'none' : 'auto'}"
+            data-el="editor-iframe"
         />
     </section>
 </template>
@@ -30,6 +32,10 @@ export default {
         instance: {
             type: Object,
             required: true
+        },
+        disableEvents: {
+            type: Boolean,
+            default: false
         }
     },
     computed: {

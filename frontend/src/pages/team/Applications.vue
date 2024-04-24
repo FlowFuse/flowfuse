@@ -47,7 +47,12 @@
 
                         <ul v-if="application.instances.size > 0" class="ff-applications-list-instances" data-el="application-instances">
                             <label>Instances</label>
-                            <li v-for="instance in Array.from(application.instances.values())" :key="instance.id" @click.stop="openInstance(instance)">
+                            <li
+                                v-for="instance in Array.from(application.instances.values())"
+                                :key="instance.id"
+                                data-el="application-instance-item"
+                                @click.stop="openInstance(instance)"
+                            >
                                 <span class="flex justify-center mr-3">
                                     <IconNodeRedSolid class="ff-icon ff-icon-lg text-red-800" />
                                 </span>
@@ -77,10 +82,10 @@
                                     />
                                     <InstanceEditorLinkCell
                                         :id="instance.id"
-                                        :url="instance.url"
                                         :editorDisabled="!!(instance.settings?.disableEditor)"
                                         :disabled="instance.meta?.state !== 'running'"
                                         :isHA="instance.ha?.replicas !== undefined"
+                                        :instance="instance"
                                     />
                                 </div>
                                 <InstanceStatusPolling :instance="instance" @instance-updated="instanceUpdated" />
@@ -118,6 +123,7 @@
 
                                 <div class="flex justify-end text-sm">
                                     <EditorLink
+                                        :instance="device"
                                         :url="device.editor?.url"
                                         :editorDisabled="false"
                                         :disabled="!device.editor?.enabled || !device.editor?.connected || !device.editor?.local"

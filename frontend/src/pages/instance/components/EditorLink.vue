@@ -5,9 +5,10 @@
         data-action="open-editor"
         :disabled="editorDisabled || disabled || !url"
         class="whitespace-nowrap"
+        :has-right-icon="!isImmersiveEditor"
         @click.stop="openEditor()"
     >
-        <template v-if="!immersive" #icon-right>
+        <template #icon-right>
             <ExternalLinkIcon />
         </template>
         {{ editorDisabled ? 'Editor Disabled' : 'Open Editor' }}
@@ -16,6 +17,7 @@
 
 <script>
 import { ExternalLinkIcon } from '@heroicons/vue/solid'
+import SemVer from 'semver'
 
 import { mapState } from 'vuex'
 
@@ -38,19 +40,25 @@ export default {
             default: null,
             type: String
         },
-        url: {
-            default: '',
-            type: String
-        },
-        immersive: {
-            default: true,
-            type: Boolean
+        instance: {
+            type: Object,
+            required: true
         }
     },
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
         isVisitingAdmin () {
             return this.teamMembership.role === Roles.Admin
+        },
+        isImmersiveEditor () {
+            return SemVer.satisfies(SemVer.coerce(this.instance?.meta?.versions?.launcher), '>=2.3.1')
+        },
+        url () {
+            if (this.isImmersiveEditor) {
+                return this.$router.resolve({ name: 'instance-editor', params: { id: this.instance.id } }).fullPath
+            }
+
+            return this.instance.url || this.instance.editor?.url
         }
     },
     methods: {
@@ -59,7 +67,7 @@ export default {
                 return
             }
 
-            window.open(this.url, !this.immersive ? '_blank' : '_self')
+            window.open(this.url, !this.isImmersiveEditor ? '_blank' : '_self')
         }
     }
 }
