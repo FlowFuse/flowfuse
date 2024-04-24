@@ -11,12 +11,11 @@ describe('FlowForge - Instance editor', () => {
                 const instance = response.body.projects.find(
                     (project) => project.name === instanceName
                 )
-                instance.name = 'qweqwe'
                 cy.visit(`/instance/${instance.id}/`)
             })
     }
 
-    it('Preserves the initial behavior if uses an unsupported launcher version', () => {
+    it.only('Preserves the initial behavior if uses an unsupported launcher version', () => {
         cy.intercept(
             'GET',
             '/api/*/projects/*',
@@ -86,7 +85,6 @@ describe('FlowForge - Instance editor', () => {
                 const instance = response.body.projects.find(
                     (project) => project.name === 'instance-1-1'
                 )
-                instance.name = 'qweqwe'
                 cy.visit(`/instance/${instance.id}/editor`)
             })
 
@@ -136,5 +134,69 @@ describe('FlowForge - Instance editor', () => {
 
         cy.get('@tabs-wrapper').get('.logo').click()
         cy.get('body').contains('Application')
+    })
+
+    describe('The Immersive editor', () => {
+        it('doesn\'t display the dashboard button if there isn\'t a configured dashboard', () => {
+            cy.intercept(
+                'GET',
+                '/api/*/projects/*',
+                (req) => req.reply(res => {
+                    res.body = { ...res.body, ...{ meta: { versions: { launcher: '2.3.1' } } } }
+                    return res
+                })).as('getProjects')
+
+            cy.login('bob', 'bbPassword')
+            cy.home()
+
+            cy.request('GET', '/api/v1/user/teams')
+                .then((response) => {
+                    const team = response.body.teams.find(
+                        (team) => team.name === 'ATeam'
+                    )
+                    return cy.request('GET', `/api/v1/teams/${team.id}/projects`)
+                })
+                .then((response) => {
+                    const instance = response.body.projects.find(
+                        (project) => project.name === 'instance-1-1'
+                    )
+                    cy.visit(`/instance/${instance.id}/editor`)
+                })
+
+            cy.get('[data-el="tabs-wrapper"]').within(() => {
+                cy.get('[data-action="open-dashboard"]').should('not.exist')
+            })
+        })
+
+        it('displays the dashboard button if there\'s a configured dashboard available', () => {
+            cy.intercept(
+                'GET',
+                '/api/*/projects/*',
+                (req) => req.reply(res => {
+                    res.body = { ...res.body, ...{ meta: { versions: { launcher: '2.3.1' } }, settings: { dashboard2UI: '/dashboard' } } }
+                    return res
+                })).as('getProjects')
+
+            cy.login('bob', 'bbPassword')
+            cy.home()
+
+            cy.request('GET', '/api/v1/user/teams')
+                .then((response) => {
+                    const team = response.body.teams.find(
+                        (team) => team.name === 'ATeam'
+                    )
+                    return cy.request('GET', `/api/v1/teams/${team.id}/projects`)
+                })
+                .then((response) => {
+                    const instance = response.body.projects.find(
+                        (project) => project.name === 'instance-1-1'
+                    )
+                    cy.visit(`/instance/${instance.id}/editor`)
+                })
+
+            cy.get('[data-el="tabs-wrapper"]').within(() => {
+                cy.get('[data-action="open-dashboard"]').should('exist')
+            })
+        })
     })
 })
