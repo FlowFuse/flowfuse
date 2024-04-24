@@ -163,7 +163,7 @@ describe('FlowForge - Instance editor', () => {
                     cy.visit(`/instance/${instance.id}/editor`)
                 })
 
-            cy.get('[data-el="tabs-wrapper"]').within(() => {
+            cy.get('[data-el="tabs-drawer"]').within(() => {
                 cy.get('[data-action="open-dashboard"]').should('not.exist')
             })
         })
@@ -194,7 +194,7 @@ describe('FlowForge - Instance editor', () => {
                     cy.visit(`/instance/${instance.id}/editor`)
                 })
 
-            cy.get('[data-el="tabs-wrapper"]').within(() => {
+            cy.get('[data-el="tabs-drawer"]').within(() => {
                 cy.get('[data-action="open-dashboard"]').should('exist')
             })
         })
