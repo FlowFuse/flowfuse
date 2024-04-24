@@ -346,6 +346,7 @@ export default {
             default: false,
             type: Boolean
         },
+        // allows setting predefined values when the component is created
         preDefinedInputs: {
             default: null,
             type: Object
