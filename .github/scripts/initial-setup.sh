@@ -66,7 +66,7 @@ create_suspended_instance() {
         "template": "'"$templateId"'"
       }' https://$FLOWFUSE_URL/api/v1/projects/ | jq -r '.id')
   sleep 5
-  curl -ks -XPOST \
+  curl -ks -w "\n" -XPOST \
     -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
     https://$FLOWFUSE_URL/api/v1/projects/$INSTANCE_ID/actions/suspend
 }
@@ -77,7 +77,7 @@ create_device() {
   local TEAM_NAME=$3
   TEAM_ID=$(get_team_id "${TEAM_NAME}")
   echo "Creating $DEVICE_NAME@$TEAM_ID device"
-  curl -ks -XPOST \
+  curl -ks -w "\n" -XPOST \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
     -d '{
@@ -119,7 +119,7 @@ kubectl run flowfuse-setup-2 \
 
 ### Create project type
 echo "Creating project type"
-curl -ks -XPOST \
+curl -ks -w "\n" -XPOST \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
   -d '{"name":"Default", "description":"DefaultInstanceType","active": true}' \
@@ -136,19 +136,33 @@ curl -ks -XPOST \
 
 create_stack() {
   local STACK_NAME=$1
-  local STACK_CPU=$2
-  local STACK_MEMORY=$3
-  local STACK_CONTAINER=$4
+  local STACK_LABEL=$2
+  local STACK_CPU=$3
+  local STACK_MEMORY=$4
+  local STACK_CONTAINER=$5
   echo "Creating $STACK_NAME stack"
   projectTypeId=$(curl -ks -XGET -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" https://$FLOWFUSE_URL/api/v1/project-types/ | jq -r '.types[].id')
-  curl -ks -XPOST \
+  curl -ks -w "\n" -XPOST \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
-    -d '{"name":"'"$STACK_NAME"'","label":"'"$STACK_NAME"'", "projectType":"'"$projectTypeId"'","properties":{ "cpu":'"$STACK_CPU"',"memory":'"$STACK_MEMORY"',"container":"'"$STACK_CONTAINER"'"}}' \
+    -d '{"name":"'"$STACK_NAME"'","label":"'"$STACK_LABEL"'", "projectType":"'"$projectTypeId"'","properties":{ "cpu":'"$STACK_CPU"',"memory":'"$STACK_MEMORY"',"container":"'"$STACK_CONTAINER"'"}}' \
     https://$FLOWFUSE_URL/api/v1/stacks/
 }
 
-create_stack "Default" 100 256 "flowfuse/node-red"
+get_latest_image_tag() {
+  local NR_VERSION=$1
+  local IMAGE="flowfuse/node-red"
+  local TOKEN
+  local TAG
+  TOKEN=$(curl -s "https://auth.docker.io/token?service=registry.docker.io&scope=repository:${IMAGE}:pull" | jq -r '.token')
+  TAG=$(curl -s -H "Authorization: Bearer $TOKEN" https://registry-1.docker.io/v2/${image}/tags/list | jq -r '.tags[]' | grep -vE '^v' | grep "${NR_VERSION}" | sort -rV | head -n 1)
+  echo "$TAG"
+}
+
+create_stack "Default" "Default" 100 256 "flowfuse/node-red"
+create_stack "NR-31x" "3.1.x" 100 256 "flowfuse/node-red:$(get_latest_image_tag "3.1.x")"
+create_stack "NR-40x" "4.0.x" 100 256 "flowfuse/node-red:$(get_latest_image_tag "4.0.x")"
+
 
 ### Link stack to project type
 echo "Linking stack to project type"
@@ -162,11 +176,11 @@ curl -ks -XPUT \
 ### Delete default team type
 echo "Removing default team type"
 defaultTeamTypeId=$(curl -ks -XGET -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" https://$FLOWFUSE_URL/api/v1/team-types/ | jq -r '.types[] | select(.name=="starter") | .id')
-curl -ks -XDELETE -H "Content-Type: application/json" -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" https://$FLOWFUSE_URL/api/v1/team-types/$defaultTeamTypeId
+curl -ks -w "\n" -XDELETE -H "Content-Type: application/json" -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" https://$FLOWFUSE_URL/api/v1/team-types/$defaultTeamTypeId
 
 ### Create Starter team type
 echo "Creating Starter team type"
-curl -ks -XPOST \
+curl -ks -w "\n" -XPOST \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
   -d '{
@@ -206,7 +220,7 @@ curl -ks -XPOST \
 
 ### Create Team team type
 echo "Creating Team team type"
-curl -ks -XPOST \
+curl -ks -w "\n" -XPOST \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
 -d '{
@@ -246,7 +260,7 @@ curl -ks -XPOST \
 
 ### Create Enterprise team type
 echo "Creating Enterprise team type"
-curl -ks -XPOST \
+curl -ks -w "\n" -XPOST \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
 -d '{
