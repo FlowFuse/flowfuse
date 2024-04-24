@@ -11,7 +11,6 @@ describe('FlowForge - Instance editor', () => {
                 const instance = response.body.projects.find(
                     (project) => project.name === instanceName
                 )
-                instance.name = 'qweqwe'
                 cy.visit(`/instance/${instance.id}/`)
             })
     }
