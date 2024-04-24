@@ -23,11 +23,6 @@
                 @click="toggleDrawer"
             />
 
-            <ConfirmInstanceDeleteDialog
-                ref="confirmInstanceDeleteDialog"
-                @confirm="deleteInstance"
-            />
-
             <div class="header">
                 <div class="logo">
                     <router-link :to="{ name: 'instance-overview', params: {id: instance.id} }">
@@ -37,7 +32,7 @@
                 </div>
                 <ff-tabs :tabs="navigation" class="tabs" />
                 <div class="side-actions">
-                    <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
+                    <InstanceActionsButton :instance="instance" @deleting-instance="onInstanceDelete" />
                     <a :href="instance.url">
                         <ExternalLinkIcon class="ff-btn--icon" />
                     </a>
@@ -50,8 +45,6 @@
                     :instance="instance"
                     :is-visiting-admin="isVisitingAdmin"
                     @instance-updated="loadInstance"
-                    @instance-confirm-delete="showConfirmDeleteDialog"
-                    @instance-confirm-suspend="showConfirmSuspendDialog"
                 />
             </ff-page>
         </section>
@@ -66,13 +59,12 @@
 <script>
 import { ArrowLeftIcon, ChevronDownIcon, ExternalLinkIcon } from '@heroicons/vue/solid'
 
-import DropdownMenu from '../../../components/DropdownMenu.vue'
 import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue'
+import InstanceActionsButton from '../../../components/instance/ActionButtons.vue'
 
 import FfPage from '../../../layouts/Page.vue'
 import instanceMixin from '../../../mixins/Instance.js'
 import FfTabs from '../../../ui-components/components/tabs/Tabs.vue'
-import ConfirmInstanceDeleteDialog from '../Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 
 import EditorWrapper from './components/EditorWrapper.vue'
 import DrawerTrigger from './components/drawer/DrawerTrigger.vue'
@@ -82,13 +74,12 @@ import ResizeBar from './components/drawer/ResizeBar.vue'
 export default {
     name: 'InstanceEditor',
     components: {
+        InstanceActionsButton,
         MiddleCloseButton,
         DrawerTrigger,
         FfTabs,
         EditorWrapper,
-        ConfirmInstanceDeleteDialog,
         InstanceStatusPolling,
-        DropdownMenu,
         ExternalLinkIcon,
         FfPage,
         ChevronDownIcon,
@@ -163,22 +154,6 @@ export default {
                 this.drawer.height = this.drawer.defaultHeight
             }
             this.drawer.isHoveringOverResize = false
-        },
-        eventListener (event) {
-            if (event.origin === this.instance.url) {
-                switch (event.data.type) {
-                case 'load':
-                    this.emitMessage('prevent-redirect', true)
-                    break
-                case 'navigate':
-                    window.location.href = event.data.payload
-                    break
-                default:
-                }
-            }
-        },
-        emitMessage (type, payload = {}) {
-            this.$refs.iframe.contentWindow.postMessage({ type, payload }, '*')
         },
         onResizeBarMouseHover () {
             if (!this.throttled) {

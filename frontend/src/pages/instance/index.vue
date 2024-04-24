@@ -38,12 +38,11 @@
                             :disabled-reason="disabledReason"
                             :instance="instance"
                         />
-                        <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
+                        <InstanceActionsButton :instance="instance" @deleting-instance="onInstanceDelete" />
                     </div>
                 </template>
             </ff-page-header>
         </template>
-        <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="deleteInstance" />
         <Teleport v-if="mounted" to="#platform-banner">
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">You are viewing this instance as an Administrator</div>
             <SubscriptionExpiredBanner :team="team" />
@@ -54,8 +53,6 @@
                 :instance="instance"
                 :is-visiting-admin="isVisitingAdmin"
                 @instance-updated="loadInstance"
-                @instance-confirm-delete="showConfirmDeleteDialog"
-                @instance-confirm-suspend="showConfirmSuspendDialog"
             />
         </div>
 
@@ -67,26 +64,24 @@
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
-import DropdownMenu from '../../components/DropdownMenu.vue'
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
+import InstanceActionsButton from '../../components/instance/ActionButtons.vue'
 
 import instanceMixin from '../../mixins/Instance.js'
 import permissionsMixin from '../../mixins/Permissions.js'
 
-import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import DashboardLink from './components/DashboardLink.vue'
 import InstanceEditorLink from './components/EditorLink.vue'
 import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
 export default {
     name: 'InstancePage',
     components: {
-        ConfirmInstanceDeleteDialog,
+        InstanceActionsButton,
         DashboardLink,
-        DropdownMenu,
         InstanceStatusPolling,
         InstanceStatusBadge,
         SideNavigationTeamOptions,
