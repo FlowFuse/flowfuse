@@ -77,10 +77,10 @@
                                     />
                                     <InstanceEditorLinkCell
                                         :id="instance.id"
-                                        :url="instance.url"
                                         :editorDisabled="!!(instance.settings?.disableEditor)"
                                         :disabled="instance.meta?.state !== 'running'"
                                         :isHA="instance.ha?.replicas !== undefined"
+                                        :instance="instance"
                                     />
                                 </div>
                                 <InstanceStatusPolling :instance="instance" @instance-updated="instanceUpdated" />
