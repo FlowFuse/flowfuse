@@ -125,14 +125,30 @@ curl -ks -XPOST \
   -d '{"name":"Default", "description":"DefaultInstanceType","active": true}' \
   https://$FLOWFUSE_URL/api/v1/project-types/
 
-### Create stack
-echo "Creating stack"
-projectTypeId=$(curl -ks -XGET -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" https://$FLOWFUSE_URL/api/v1/project-types/ | jq -r '.types[].id')
-curl -ks -XPOST \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
-  -d '{"name":"Default","label":"Default", "projectType":"'"$projectTypeId"'","properties":{ "cpu":10,"memory":256,"container":"flowfuse/node-red"}}' \
-  https://$FLOWFUSE_URL/api/v1/stacks/
+# ### Create default stack
+# echo "Creating default stack"
+# projectTypeId=$(curl -ks -XGET -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" https://$FLOWFUSE_URL/api/v1/project-types/ | jq -r '.types[].id')
+# curl -ks -XPOST \
+#   -H "Content-Type: application/json" \
+#   -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
+#   -d '{"name":"Default","label":"Default", "projectType":"'"$projectTypeId"'","properties":{ "cpu":10,"memory":256,"container":"flowfuse/node-red"}}' \
+#   https://$FLOWFUSE_URL/api/v1/stacks/
+
+create_stack() {
+  local STACK_NAME=$1
+  local STACK_CPU=$2
+  local STACK_MEMORY=$3
+  local STACK_CONTAINER=$4
+  echo "Creating $STACK_NAME stack"
+  projectTypeId=$(curl -ks -XGET -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" https://$FLOWFUSE_URL/api/v1/project-types/ | jq -r '.types[].id')
+  curl -ks -XPOST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
+    -d '{"name":"'"$STACK_NAME"'","label":"'"$STACK_NAME"'", "projectType":"'"$projectTypeId"'","properties":{ "cpu":'"$STACK_CPU"',"memory":'"$STACK_MEMORY"',"container":"'"$STACK_CONTAINER"'"}}' \
+    https://$FLOWFUSE_URL/api/v1/stacks/
+}
+
+create_stack "Default" 100 256 "flowfuse/node-red"
 
 ### Link stack to project type
 echo "Linking stack to project type"
