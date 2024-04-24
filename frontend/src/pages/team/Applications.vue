@@ -118,6 +118,7 @@
 
                                 <div class="flex justify-end text-sm">
                                     <EditorLink
+                                        :instance="device"
                                         :url="device.editor?.url"
                                         :editorDisabled="false"
                                         :disabled="!device.editor?.enabled || !device.editor?.connected || !device.editor?.local"
