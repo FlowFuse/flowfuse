@@ -15,7 +15,7 @@ describe('FlowForge - Instance editor', () => {
             })
     }
 
-    it.only('Preserves the initial behavior if uses an unsupported launcher version', () => {
+    it('Preserves the initial behavior if uses an unsupported launcher version', () => {
         cy.intercept(
             'GET',
             '/api/*/projects/*',
