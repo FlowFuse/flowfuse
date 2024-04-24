@@ -45,6 +45,8 @@
                     :instance="instance"
                     :is-visiting-admin="isVisitingAdmin"
                     @instance-updated="loadInstance"
+                    @instance-confirm-delete="showConfirmDeleteDialog"
+                    @instance-confirm-suspend="showConfirmSuspendDialog"
                 />
             </ff-page>
         </section>
