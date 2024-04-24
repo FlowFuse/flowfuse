@@ -6,6 +6,7 @@
             class="tabs-wrapper drawer"
             :class="{'open': drawer.open, resizing: drawer.resizing}"
             :style="{ height: drawer.height + 'px' }"
+            data-el="tabs-drawer"
         >
             <resize-bar
                 :is-handle-visible="drawer.open"

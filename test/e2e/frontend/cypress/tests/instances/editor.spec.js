@@ -134,6 +134,6 @@ describe('FlowForge - Instance editor', () => {
         cy.get('@tabs-wrapper').contains('Specs')
 
         cy.get('@tabs-wrapper').get('.logo').click()
-        cy.get('[data-el="page-name"]').contains('Applications')
+        cy.get('[data-el="page-name"]').contains('instance-1-1')
     })
 })
