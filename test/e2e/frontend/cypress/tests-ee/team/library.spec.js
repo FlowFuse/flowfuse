@@ -1,169 +1,11 @@
-const blueprint1 = {
-    id: 'yJR1DQ9NbK',
-    active: true,
-    name: 'My first Blueprint',
-    description: 'My first team',
-    category: 'Basic Blueprint',
-    icon: 'cog',
-    order: 1,
-    default: false,
-    createdAt: '2024-04-16T15:14:16.780Z',
-    updatedAt: '2024-04-17T08:02:35.066Z'
-}
-const blueprint2 = {
-    id: 'v0J85bLeA5',
-    active: true,
-    name: 'Other blueprint (blank)',
-    description: 'some other description',
-    category: 'Some other category',
-    icon: 'briefcase',
-    order: 0,
-    default: true,
-    createdAt: '2024-04-17T08:02:35.065Z',
-    updatedAt: '2024-04-17T08:02:35.065Z'
-}
-const blueprint3 = {
-    id: 'v0J85bLeA6',
-    active: true,
-    name: 'Other Additional blueprint (blank)',
-    description: 'some other additional description',
-    category: 'Some other category',
-    icon: 'briefcase',
-    order: 0,
-    default: false,
-    createdAt: '2024-04-17T08:02:35.065Z',
-    updatedAt: '2024-04-17T08:02:35.065Z'
-}
-
-const libraries = [
-    {
-        fn: 'First Team Library.json',
-        type: 'flows',
-        updatedAt: '2024-04-17T08:24:03.762Z'
-    }, {
-        fn: 'Second Team Library.json',
-        type: 'flows',
-        updatedAt: '2024-04-17T09:21:38.439Z'
-    }, {
-        fn: 'Third Team Library.json',
-        type: 'flows',
-        updatedAt: '2024-04-17T09:22:34.843Z'
-    }
-]
-
-const sharedLibrary = [{
-    id: 'b9b294725f80b01c',
-    type: 'inject',
-    z: 'dd5a65f78178e921',
-    name: 'Flow 1',
-    props: [{ p: 'payload' }, {
-        p: 'topic',
-        vt: 'str'
-    }],
-    repeat: '3',
-    crontab: '',
-    once: false,
-    onceDelay: 0.1,
-    topic: '',
-    payload: '',
-    payloadType: 'date',
-    x: 590,
-    y: 420,
-    wires: [['d040659cbe69d523', 'e346197ad2873980']]
-}, {
-    id: 'd040659cbe69d523',
-    type: 'debug',
-    z: 'dd5a65f78178e921',
-    name: 'debug 1',
-    active: true,
-    tosidebar: true,
-    console: true,
-    tostatus: false,
-    complete: 'payload',
-    targetType: 'msg',
-    statusVal: '',
-    statusType: 'auto',
-    x: 970,
-    y: 320,
-    wires: []
-}, {
-    id: 'e346197ad2873980',
-    type: 'ui-text',
-    z: 'dd5a65f78178e921',
-    group: '423947de9c2b81cf',
-    order: 0,
-    width: 0,
-    height: 0,
-    name: '',
-    label: 'text',
-    format: '{{msg.payload}}',
-    layout: 'row-spread',
-    style: false,
-    font: '',
-    fontSize: 16,
-    color: '#717171',
-    className: '',
-    x: 1030,
-    y: 440,
-    wires: []
-}, {
-    id: '423947de9c2b81cf',
-    type: 'ui-group',
-    name: 'My Group',
-    page: '45ee287d460c26db',
-    width: 6,
-    height: 1,
-    order: -1,
-    showTitle: true,
-    className: '',
-    visible: true,
-    disabled: false
-}, {
-    id: '45ee287d460c26db',
-    type: 'ui-page',
-    name: 'Page N',
-    ui: 'b3f4402b1661a42e',
-    path: '/pageN',
-    icon: 'home',
-    layout: 'grid',
-    theme: 'd5a42eef34d39d76',
-    order: -1,
-    className: '',
-    visible: 'true',
-    disabled: 'false'
-}, {
-    id: 'b3f4402b1661a42e',
-    type: 'ui-base',
-    name: 'My Dashboard',
-    path: '/dashboard',
-    includeClientData: true,
-    acceptsClientConfig: ['ui-notification', 'ui-control'],
-    showPathInSidebar: false,
-    navigationStyle: 'default'
-}, {
-    id: 'd5a42eef34d39d76',
-    type: 'ui-theme',
-    name: 'Default Theme',
-    colors: {
-        surface: '#ffffff',
-        primary: '#0094CE',
-        bgPage: '#eeeeee',
-        groupBg: '#ffffff',
-        groupOutline: '#cccccc'
-    },
-    sizes: {
-        pagePadding: '12px',
-        groupGap: '12px',
-        groupBorderRadius: '4px',
-        widgetGap: '12px'
-    }
-}]
+import multipleBlueprints from '../../fixtures/blueprints/multiple-blueprints.json'
+import listingLibraryItems from '../../fixtures/libraries/listing-library-items.json'
+import sharedLibrary from '../../fixtures/libraries/shared-library.json'
 
 function interceptBlueprints (blueprints = []) {
     cy.intercept('/api/*/flow-blueprints?*', {
         meta: {},
-        count: 2,
-        blueprints
+        ...blueprints
     }).as('getBlueprints')
     cy.visit('team/ateam/library')
 }
@@ -189,7 +31,7 @@ describe('FlowForge - Library', () => {
             cy.contains('Shared repository to store common flows and nodes.')
 
             cy.contains('Create your own Blueprints')
-            cy.contains('Your Blueprints will be shown here, and will be available within all of your Node-RED instances on FlowFuse.')
+            cy.contains('Your Blueprints will be shown here, and can be used to create new instances with a pre-defined flow and configuration.')
 
             cy.get('[data-el="go-to-blueprints"]').contains('Go To Blueprints').click()
 
@@ -201,30 +43,46 @@ describe('FlowForge - Library', () => {
         })
 
         it('groups multiple blueprints by their category', () => {
-            interceptBlueprints([blueprint1, blueprint2, blueprint3])
+            interceptBlueprints(multipleBlueprints)
 
             cy.get('[data-el="page-name"]').contains('Library')
 
-            cy.contains('Some other category')
-            cy.contains('Other blueprint (blank)')
-            cy.contains('some other description')
-            cy.contains('Other Additional blueprint (blank)')
-            cy.contains('some other additional description')
+            cy.get('[data-el="category"]')
+                .contains('Category A')
+                .parent()
+                .within(() => {
+                    cy.get('[data-el="tiles-wrapper"]')
+                        .children()
+                        .should('have.length', 1)
 
-            cy.contains('Basic Blueprint')
-            cy.contains('My first Blueprint')
-            cy.contains('My first team')
+                    cy.contains('Blueprint 1')
+                    cy.contains('This is a blueprint')
+                })
+
+            cy.get('[data-el="category"]')
+                .contains('Category B')
+                .parent()
+                .within(() => {
+                    cy.get('[data-el="tiles-wrapper"]')
+                        .children()
+                        .should('have.length', 2)
+
+                    cy.contains('Blueprint 2')
+                    cy.contains('Blueprint 3')
+                    cy.contains('This is another blueprint')
+                    cy.contains('This is yet another blueprint')
+                })
         })
 
         it('allows you to select a predefined blueprint and create an instance', () => {
-            interceptBlueprints([blueprint1, blueprint2, blueprint3])
+            interceptBlueprints(multipleBlueprints)
 
-            cy.get('[data-el="yJR1DQ9NbK"]').contains('Select').click()
+            cy.get('[data-el="5678"]').contains('Select').click()
 
             cy.window().then((win) => expect(win.location.href).to.contain('instances/create'))
 
             cy.contains('Create Instance')
-            cy.contains('My first Blueprint')
+            cy.contains('Blueprint 2')
         })
     })
 
@@ -247,7 +105,7 @@ describe('FlowForge - Library', () => {
         })
 
         it('allows users to create Team Libraries if they don\'t have any', () => {
-            interceptLibraries(libraries)
+            interceptLibraries(listingLibraryItems)
 
             cy.get('[data-el="ff-tab"]').contains('Team Library').click()
 

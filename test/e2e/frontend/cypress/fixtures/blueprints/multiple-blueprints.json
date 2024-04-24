@@ -23,7 +23,7 @@
             "id": "91011",
             "name": "Blueprint 3",
             "active": true,
-            "description": "This is another blueprint",
+            "description": "This is yet another blueprint",
             "default": false,
             "category": "Category B",
             "order": 2

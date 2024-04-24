@@ -1,8 +1,8 @@
 <template>
     <ul v-if="blueprints.length" class="flow-categories-wrapper">
-        <li v-for="(flowBlueprints, category) in blueprintsByCategory" :key="category" class="category">
+        <li v-for="(flowBlueprints, category) in blueprintsByCategory" :key="category" class="category" data-el="category">
             <h2 class="title">{{ category }}</h2>
-            <div class="tiles-wrapper">
+            <div class="tiles-wrapper" data-el="tiles-wrapper">
                 <BlueprintTile
                     v-for="(blueprint, index) in flowBlueprints"
                     :key="index"
