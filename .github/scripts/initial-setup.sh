@@ -112,7 +112,7 @@ create_stack() {
     https://$FLOWFUSE_URL/api/v1/stacks/
 }
 
-
+### Create first user
 DBPASSWORD=$(kubectl --namespace "pr-$PR_NUMBER" get secret flowfuse-pr-$PR_NUMBER-postgresql -o jsonpath='{.data.password}' | base64 -d)
 kubectl run flowfuse-setup-0 \
   --namespace "pr-$PR_NUMBER" \
@@ -123,6 +123,7 @@ kubectl run flowfuse-setup-0 \
   -- psql -h flowfuse-pr-$PR_NUMBER-postgresql -U forge -d flowforge -c \
   "INSERT INTO public.\"Users\" (username,name,email,email_verified,sso_enabled,mfa_enabled,\"password\",password_expired,\"admin\",avatar,tcs_accepted,suspended,\"createdAt\",\"updatedAt\",\"defaultTeamId\") \
     VALUES ('flowfusedeveloper','flowfusedeveloper','noreply@flowfuse.dev',true,false,false,'$INIT_CONFIG_PASSWORD_HASH',false,true,'/avatar/Zmxvd2Z1c2VkZXZlbG9wZXI',NULL,false,'2024-03-15 19:51:49.449+01','2024-03-15 19:51:49.449+01',NULL);"
+### Mark platform as configured
 kubectl run flowfuse-setup-1 \
   --namespace "pr-$PR_NUMBER" \
   -it --rm \
@@ -132,6 +133,7 @@ kubectl run flowfuse-setup-1 \
   -- psql -h flowfuse-pr-$PR_NUMBER-postgresql -U forge -d flowforge -c \
   "INSERT INTO public.\"PlatformSettings\" (\"key\",value,\"valueType\",\"createdAt\",\"updatedAt\")\
     VALUES ('setup:initialised','true',1,'2024-03-15 19:51:52.287','2024-03-15 19:51:52.287')"
+### Configure access token
 kubectl run flowfuse-setup-2 \
   --namespace "pr-$PR_NUMBER" \
   -it --rm \
