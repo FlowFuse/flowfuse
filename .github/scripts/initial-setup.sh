@@ -16,7 +16,7 @@ create_user() {
   local PASSWORD="${INIT_CONFIG_PASSWORD}"
 
   echo "Creating $USERNAME user"
-  curl -ks -XPOST \
+  curl -ks -w "\n" -XPOST \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
     -d '{
@@ -35,7 +35,7 @@ create_team() {
   local TEAM_TYPE_ID
   TEAM_TYPE_ID=$(curl -ks -XGET -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" https://$FLOWFUSE_URL/api/v1/team-types/ | jq -r --arg TYPE "$TEAM_TYPE_SELECTOR" '.types[] | select(.name==$TYPE) | .id')
   echo "Creating $TEAM_NAME team"
-  curl -ks -XPOST \
+  curl -ks -w "\n" -XPOST \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
     -d '{
@@ -155,7 +155,7 @@ get_latest_image_tag() {
   local TOKEN
   local TAG
   TOKEN=$(curl -s "https://auth.docker.io/token?service=registry.docker.io&scope=repository:${IMAGE}:pull" | jq -r '.token')
-  TAG=$(curl -s -H "Authorization: Bearer $TOKEN" https://registry-1.docker.io/v2/${image}/tags/list | jq -r '.tags[]' | grep -vE '^v' | grep "${NR_VERSION}" | sort -rV | head -n 1)
+  TAG=$(curl -s -H "Authorization: Bearer $TOKEN" https://registry-1.docker.io/v2/${IMAGE}/tags/list | jq -r '.tags[]' | grep -vE '^v' | grep "${NR_VERSION}" | sort -rV | head -n 1)
   echo "$TAG"
 }
 
