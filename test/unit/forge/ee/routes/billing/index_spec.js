@@ -46,7 +46,10 @@ describe('Billing routes', function () {
         TestObjects.template1 = app.template
         TestObjects.stack1 = app.stack
 
+        TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
+
         await login('alice', 'aaPassword')
+        await login('bob', 'bbPassword')
 
         await app.project.destroy() // clean up test project
     })
@@ -984,6 +987,7 @@ describe('Billing routes', function () {
         describe('Trial Mode', function () {
             let legacyTrialTeamType
             let trialTeamType
+            let trialLimitedTeamType
             let projectType2
             before(async function () {
                 // Create a forbidden second projectType
@@ -1020,6 +1024,21 @@ describe('Billing routes', function () {
                         trial: {
                             active: true,
                             duration: 5
+                        }
+                    }
+                })
+                trialLimitedTeamType = await app.factory.createTeamType({
+                    name: 'trial-limited-type',
+                    properties: {
+                        instances: {
+                            [TestObjects.projectType1.hashid]: { active: true },
+                            [projectType2.hashid]: { active: true }
+                        },
+                        trial: {
+                            active: true,
+                            duration: 5,
+                            usersLimit: 2,
+                            runtimesLimit: 2
                         }
                     }
                 })
@@ -1519,6 +1538,164 @@ describe('Billing routes', function () {
                     unsuspendResponse.statusCode.should.equal(402)
                 })
             })
+            describe('Full trial teams - with runtime/user limits', function () {
+                it('Applies runtime limit when creating instances/devices whilst in trial mode', async function () {
+                    // Create trial team
+                    const trialTeam = await app.factory.createTeam({ name: generateName('trialLimitTeam'), TeamTypeId: trialLimitedTeamType.id })
+                    await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+                    await app.factory.createTrialSubscription(trialTeam)
+
+                    const application = await app.factory.createApplication({ name: generateName('test-app') }, trialTeam)
+
+                    // Create two instances - both should be allowed
+                    let response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/projects',
+                        payload: {
+                            name: generateName('billing-project'),
+                            applicationId: application.hashid,
+                            projectType: TestObjects.projectType1.hashid,
+                            template: TestObjects.template1.hashid,
+                            stack: TestObjects.stack1.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(200)
+                    const instance1 = response.json()
+
+                    response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/projects',
+                        payload: {
+                            name: generateName('billing-project'),
+                            applicationId: application.hashid,
+                            projectType: TestObjects.projectType1.hashid,
+                            template: TestObjects.template1.hashid,
+                            stack: TestObjects.stack1.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(200)
+                    const instance2 = response.json()
+
+                    // 3rd instance should be rejected due to trial limit
+                    response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/projects',
+                        payload: {
+                            name: generateName('billing-project'),
+                            applicationId: application.hashid,
+                            projectType: TestObjects.projectType1.hashid,
+                            template: TestObjects.template1.hashid,
+                            stack: TestObjects.stack1.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    const instance3 = response.json()
+                    response.statusCode.should.equal(400)
+                    instance3.should.have.property('code', 'instance_limit_reached')
+                    // Check we didn't try to update stripe
+                    stripe.subscriptions.update.called.should.be.false()
+
+                    // Given the stub driver a chance to sort itself out
+                    await sleep(250)
+
+                    // delete instance1
+                    await app.inject({
+                        method: 'DELETE',
+                        url: '/api/v1/projects/' + instance1.id,
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
+                    // create instance should now succeed
+                    response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/projects',
+                        payload: {
+                            name: generateName('billing-project'),
+                            applicationId: application.hashid,
+                            projectType: TestObjects.projectType1.hashid,
+                            template: TestObjects.template1.hashid,
+                            stack: TestObjects.stack1.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(200)
+
+                    // create device should fail
+                    response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/devices',
+                        payload: {
+                            name: generateName('billing-project'),
+                            type: 'test-device',
+                            team: trialTeam.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(400)
+                    const device1 = response.json()
+                    device1.should.have.property('code', 'device_limit_reached')
+
+                    // Delete instance2
+                    await app.inject({
+                        method: 'DELETE',
+                        url: '/api/v1/projects/' + instance2.id,
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
+                    // create device should succeed
+                    response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/devices',
+                        payload: {
+                            name: generateName('billing-project'),
+                            type: 'test-device',
+                            team: trialTeam.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(200)
+                })
+                it('Applies user limit when in trial mode', async function () {
+                    // Create another user to play with
+                    await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', password: 'ccPassword' })
+
+                    // Create trial team
+                    const trialTeam = await app.factory.createTeam({ name: generateName('trialLimitTeam'), TeamTypeId: trialLimitedTeamType.id })
+                    await trialTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+                    await app.factory.createTrialSubscription(trialTeam)
+
+                    // Alice invite Bob
+                    let response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/teams/${trialTeam.hashid}/invitations`,
+                        cookies: { sid: TestObjects.tokens.alice },
+                        payload: {
+                            user: 'bob',
+                            role: Roles.Viewer
+                        }
+                    })
+                    let result = response.json()
+                    result.should.have.property('status', 'okay')
+
+                    ;(await app.db.models.Invitation.findAll()).should.have.lengthOf(1)
+
+                    // Alice invite Chris
+                    response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/teams/${trialTeam.hashid}/invitations`,
+                        cookies: { sid: TestObjects.tokens.alice },
+                        payload: {
+                            user: 'chris',
+                            role: Roles.Viewer
+                        }
+                    })
+                    response.statusCode.should.equal(400)
+                    result = response.json()
+                    result.should.have.property('code', 'invitation_failed')
+                })
+            })
         })
         describe('Unmanaged Subscription', function () {
             let unmanagedSubTargetTeamType
@@ -1592,18 +1769,10 @@ describe('Billing routes', function () {
             })
             it('Non-admin cannot make team unmanaged', async function () {
                 // Create non-admin user
-                const userBob = await app.factory.createUser({
-                    admin: false,
-                    username: 'bob',
-                    name: 'Bob Skywalker',
-                    email: 'bob@example.com',
-                    password: 'bbPassword'
-                })
-                await login('bob', 'bbPassword')
 
                 // Create trial team
                 const trialTeam = await app.factory.createTeam({ name: generateName('unmanagedSubTeam') })
-                await trialTeam.addUser(userBob, { through: { role: Roles.Owner } })
+                await trialTeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
                 await app.factory.createTrialSubscription(trialTeam, -1)
 
                 // Bob tries to make it unmanaged

@@ -72,8 +72,7 @@ export default {
     computed: {
         filteredLogEntries: function () {
             if (this.filter && this.filter !== 'all') {
-                const filteredList = this.logEntries.filter(l => l.src === this.filter)
-                return filteredList
+                return this.logEntries.filter(l => l.src === this.filter)
             } else {
                 return this.logEntries
             }
@@ -101,7 +100,9 @@ export default {
     },
     methods: {
         shouldPoll: function () {
-            return this.$route.fullPath.match(/\/(?:application|instance)\/[^/]+\/logs/)
+            return Object.hasOwnProperty.call(this.$route, 'meta') &&
+                Object.hasOwnProperty.call(this.$route.meta, 'shouldPoll') &&
+                this.$route.meta.shouldPoll
         },
         pollTimerElapsed: function () {
             if (this.instance.meta && this.instance.meta.state !== 'suspended') {
@@ -208,12 +209,12 @@ export default {
 
 <style scoped>
 .forge-log-offline-background {
-    background: repeating-linear-gradient(
-        -45deg,
-        #363848,
-        #363848 10px,
-        rgba(31, 41, 55, var(--tw-bg-opacity)) 10px,
-        rgba(31, 41, 55, var(--tw-bg-opacity)) 20px
-    );
+  background: repeating-linear-gradient(
+      -45deg,
+      #363848,
+      #363848 10px,
+      rgba(31, 41, 55, var(--tw-bg-opacity)) 10px,
+      rgba(31, 41, 55, var(--tw-bg-opacity)) 20px
+  );
 }
 </style>

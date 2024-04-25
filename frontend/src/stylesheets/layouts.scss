@@ -122,7 +122,7 @@ $nav_height: 60px;
     .ff-radio-btn {
         .checkbox {
           border: 1px solid $ff-grey-400;
-          background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%23374151' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='4'/%3e%3c/svg%3e")    
+          background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%23374151' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='4'/%3e%3c/svg%3e")
         }
     }
 
@@ -160,17 +160,18 @@ $nav_height: 60px;
 }
 
 /*
-    Layout - Platform
+    Layout - Platform / Plain
         used in all other pages
 */
 
-.ff-layout--platform {
+.ff-layout--platform,
+.ff-layout--plain {
     min-height: inherit;
     display: flex;
     flex-direction: column;
 }
 
-.ff-layout--platform--wrapper {
+.ff-layout--platform--wrapper{
     display: grid;
     flex-grow: 1;
     padding-top: $nav_height;
@@ -190,8 +191,20 @@ $nav_height: 60px;
     }
 }
 
+.ff-layout--plain--wrapper {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+
+    main {
+        background-color: $ff-grey-50;
+        flex: 1;
+    }
+}
+
 .ff-notifications {
-    position: absolute; 
+    position: absolute;
     right: 12px;
     top: $nav_height + 12px;
     z-index: 10;
@@ -369,7 +382,7 @@ $nav_height: 60px;
                 line-height: 0.85rem;
                 right: 0;
             }
-        }        
+        }
     }
     .ff-navigation-right {
         height: 100%;
@@ -439,7 +452,7 @@ $nav_height: 60px;
         .ff-dropdown-option {
             border-bottom: none;
         }
-    } 
+    }
     .ff-dropdown-option:last-child {
         border-top: 2px solid $ff-red-600;
     }
