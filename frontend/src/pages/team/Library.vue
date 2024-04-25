@@ -30,7 +30,7 @@
                     <ff-data-table-row v-for="row in rows" :key="row" :selectable="true" @click="entrySelected(row)">
                         <ff-data-table-cell><TypeIcon :type="row.type" /></ff-data-table-cell>
                         <ff-data-table-cell>{{ row.name }}</ff-data-table-cell>
-                        <ff-data-table-cell>{{ row.updatedAt ? formatDateTime(row.updatedAt) : ''}}</ff-data-table-cell>
+                        <ff-data-table-cell>{{ row.updatedAt ? formatDateTime(row.updatedAt) : '' }}</ff-data-table-cell>
                         <template #context-menu>
                             <ff-list-item class="ff-list-item--danger" label="Delete" @click.stop="deleteFile(row)" />
                         </template>
