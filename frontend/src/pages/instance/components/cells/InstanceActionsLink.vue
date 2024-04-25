@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import InstanceActionsButton from '../../../../components/instance/ActionButtons.vue'
+import InstanceActionsButton from '../../../../components/instance/ActionButton.vue'
 
 export default {
     name: 'InstanceActionsLinkCell',

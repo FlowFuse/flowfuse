@@ -62,7 +62,7 @@
 import { ArrowLeftIcon, ChevronDownIcon, ExternalLinkIcon } from '@heroicons/vue/solid'
 
 import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue'
-import InstanceActionsButton from '../../../components/instance/ActionButtons.vue'
+import InstanceActionsButton from '../../../components/instance/ActionButton.vue'
 
 import FfPage from '../../../layouts/Page.vue'
 import instanceMixin from '../../../mixins/Instance.js'

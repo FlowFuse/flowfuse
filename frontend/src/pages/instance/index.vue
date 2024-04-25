@@ -72,7 +72,7 @@ import SideNavigationTeamOptions from '../../components/SideNavigationTeamOption
 import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
-import InstanceActionsButton from '../../components/instance/ActionButtons.vue'
+import InstanceActionsButton from '../../components/instance/ActionButton.vue'
 
 import instanceMixin from '../../mixins/Instance.js'
 import permissionsMixin from '../../mixins/Permissions.js'

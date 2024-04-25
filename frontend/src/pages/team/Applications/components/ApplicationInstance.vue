@@ -47,8 +47,8 @@
 <script>
 import InstanceStatusPolling from '../../../../components/InstanceStatusPolling.vue'
 import IconNodeRedSolid from '../../../../components/icons/NodeRedSolid.js'
-import AuditEventsService from '../../../../services/audit-events.js'
-import { InstanceStateMutator } from '../../../../utils/InstanceStateMutator'
+import AuditMixin from '../../../../mixins/Audit.js'
+import { InstanceStateMutator } from '../../../../utils/InstanceStateMutator.js'
 import DaysSince from '../../../application/Snapshots/components/cells/DaysSince.vue'
 import InstanceStatusBadge from '../../../instance/components/InstanceStatusBadge.vue'
 import DashboardLinkCell from '../../../instance/components/cells/DashboardLink.vue'
@@ -66,15 +66,11 @@ export default {
         InstanceStatusPolling,
         InstanceActionsLinkCell
     },
+    mixins: [AuditMixin],
     props: {
         instance: {
             required: true,
             type: Object
-        }
-    },
-    setup () {
-        return {
-            AuditEvents: AuditEventsService.get()
         }
     },
     data () {
@@ -88,17 +84,6 @@ export default {
         }
     },
     methods: {
-        labelForAuditLogEntry (eventName) {
-            if (!eventName) return 'Unknown Event'
-            if (this.AuditEvents[eventName]) {
-                return this.AuditEvents[eventName]
-            }
-            let labelText = eventName
-            labelText = labelText.replace(/[-._:]/g, ' ')
-            labelText = labelText.replace(/\b\w/g, l => l.toUpperCase())
-            labelText = labelText.replace(/([a-z])([A-Z])/g, '$1 $2')
-            return labelText
-        },
         instanceUpdated (instanceData) {
             const mutator = new InstanceStateMutator(instanceData)
             mutator.clearState()
