@@ -74,7 +74,7 @@
                                         Flows never deployed
                                     </span>
                                 </div>
-                                <div class="grid grid-flow-col">
+                                <div class="actions">
                                     <DashboardLinkCell
                                         v-if="instance.settings?.dashboard2UI"
                                         :disabled="instance.meta?.state !== 'running'"
@@ -87,6 +87,7 @@
                                         :isHA="instance.ha?.replicas !== undefined"
                                         :instance="instance"
                                     />
+                                    <InstanceActionsLinkCell :instance="instance" />
                                 </div>
                                 <InstanceStatusPolling :instance="instance" @instance-updated="instanceUpdated" />
                             </li>
@@ -198,6 +199,7 @@ import DeviceModeBadge from '../device/components/DeviceModeBadge.vue'
 import EditorLink from '../instance/components/EditorLink.vue'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 import DashboardLinkCell from '../instance/components/cells/DashboardLink.vue'
+import InstanceActionsLinkCell from '../instance/components/cells/InstanceActionsLink.vue'
 import InstanceEditorLinkCell from '../instance/components/cells/InstanceEditorLink.vue'
 
 import ApplicationSummaryLabel from './components/ApplicationSummaryLabel.vue'
@@ -207,6 +209,7 @@ const ASSOCIATIONS_LIMIT = 3
 export default {
     name: 'TeamApplications',
     components: {
+        InstanceActionsLinkCell,
         ApplicationSummaryLabel,
         DashboardLinkCell,
         DaysSince,

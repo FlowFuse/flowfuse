@@ -1,5 +1,5 @@
 <template>
-    <HeadlessUIMenu as="div" class="relative inline-block text-left">
+    <HeadlessUIMenu as="div" class="relative inline-block text-left" @click="$event.stopPropagation()">
         <div>
             <MenuButton :class="[buttonClass ? buttonClass : 'forge-button', !hasLabel?'px-1':'']">
                 <slot />
