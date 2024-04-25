@@ -30,8 +30,7 @@ describe('FlowForge - Library', () => {
             cy.get('[data-cy="page-name"]').contains('Library')
             cy.contains('Shared repository to store common flows and nodes.')
 
-            cy.contains('Create your own Blueprints')
-            cy.contains('Your Blueprints will be shown here, and can be used to create new instances with a pre-defined flow and configuration.')
+            cy.contains('No Blueprints Available')
 
             cy.get('[data-el="go-to-blueprints"]').contains('Go To Blueprints').click()
 
