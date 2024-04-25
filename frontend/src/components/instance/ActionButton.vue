@@ -1,15 +1,18 @@
 <template>
-    <DropdownMenu
-        v-if="hasPermission('project:change-status')"
-        buttonClass="ff-btn ff-btn--primary"
-        :options="actionsDropdownOptions"
-    >
-        Actions
-    </DropdownMenu>
-    <ConfirmInstanceDeleteDialog
-        ref="confirmInstanceDeleteDialog"
-        @confirm="deleteInstance"
-    />
+    <div class="action-button">
+        <DropdownMenu
+            v-if="hasPermission('project:change-status')"
+            buttonClass="ff-btn ff-btn--primary"
+            :options="actionsDropdownOptions"
+        >
+            Actions
+        </DropdownMenu>
+        <ConfirmInstanceDeleteDialog
+            ref="confirmInstanceDeleteDialog"
+            @click.stop
+            @confirm="deleteInstance"
+        />
+    </div>
 </template>
 
 <script>
@@ -157,3 +160,9 @@ export default {
     }
 }
 </script>
+
+<style scoped lang="scss">
+.action-button {
+  cursor: default;
+}
+</style>
