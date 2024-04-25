@@ -1,5 +1,5 @@
 <template>
-    <ul v-if="blueprints.length" class="flow-categories-wrapper">
+    <ul v-if="false" class="flow-categories-wrapper">
         <li v-for="(flowBlueprints, category) in blueprintsByCategory" :key="category" class="category" data-el="category">
             <h2 class="title">{{ category }}</h2>
             <div class="tiles-wrapper" data-el="tiles-wrapper">
@@ -24,7 +24,7 @@
                 Your Blueprints will be shown here, and can be used to create new instances with a pre-defined flow and configuration.
             </p>
         </template>
-        <template #actions>
+        <template v-if="isAdminUser" #actions>
             <ff-button v-if="isSharedLibraryFeatureEnabled" :to="{name: 'AdminFlowBlueprints'}" data-el="go-to-blueprints">
                 Go To Blueprints
             </ff-button>
@@ -38,7 +38,7 @@
 
 <script>
 import { PlusIcon } from '@heroicons/vue/solid'
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import flowBlueprintsApi from '../../../api/flowBlueprints.js'
 import EmptyState from '../../../components/EmptyState.vue'
@@ -60,6 +60,7 @@ export default {
     },
     computed: {
         ...mapState('account', ['team']),
+        ...mapGetters('account', ['isAdminUser']),
         blueprintsByCategory () {
             return [...this.blueprints].sort((a, b) => {
                 return a.order - b.order
