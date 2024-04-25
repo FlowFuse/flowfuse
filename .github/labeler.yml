@@ -1,5 +1,3 @@
 deploy:pr:
-- all:
   - changed-files:
-    - any-glob-to-any-file: '*'
-    - all-globs-to-all-files: '!docs/*'
+    - any-glob-to-any-file: '!docs/**'
