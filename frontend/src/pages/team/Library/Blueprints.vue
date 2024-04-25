@@ -18,10 +18,15 @@
         <template #img>
             <img src="../../../images/empty-states/team-library.png" alt="team-logo">
         </template>
-        <template #header>Create your own Blueprints</template>
+        <template #header>
+            <span>No Blueprints Available</span>
+        </template>
         <template #message>
-            <p>
-                Your Blueprints will be shown here, and can be used to create new instances with a pre-defined flow and configuration.
+            <p v-if="isAdminUser">
+                Blueprints can be created in your admin settings. They will be made available to all teams on the platform.
+            </p>
+            <p v-else>
+                Speak to your platform Admin in order to use Blueprints.
             </p>
         </template>
         <template v-if="isAdminUser" #actions>
