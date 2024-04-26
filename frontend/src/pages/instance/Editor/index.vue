@@ -32,6 +32,7 @@
                 </div>
                 <ff-tabs :tabs="navigation" class="tabs" />
                 <div class="side-actions">
+                    <DashboardLink v-if="instance.settings?.dashboard2UI" :instance="instance" />
                     <InstanceActionsButton :instance="instance" @instance-deleted="onInstanceDelete" />
                     <a :href="instance.url">
                         <ExternalLinkIcon class="ff-btn--icon" />
@@ -67,6 +68,7 @@ import InstanceActionsButton from '../../../components/instance/ActionButton.vue
 import FfPage from '../../../layouts/Page.vue'
 import instanceMixin from '../../../mixins/Instance.js'
 import FfTabs from '../../../ui-components/components/tabs/Tabs.vue'
+import DashboardLink from '../components/DashboardLink.vue'
 
 import EditorWrapper from './components/EditorWrapper.vue'
 import DrawerTrigger from './components/drawer/DrawerTrigger.vue'
@@ -77,6 +79,7 @@ export default {
     name: 'InstanceEditor',
     components: {
         InstanceActionsButton,
+        DashboardLink,
         MiddleCloseButton,
         DrawerTrigger,
         FfTabs,
@@ -246,12 +249,9 @@ export default {
       .side-actions {
         display: flex;
         justify-content: flex-end;
+        gap: 10px;
         align-items: center;
         color: $ff-grey-500;
-
-        .ff-btn--icon {
-          margin-left: 10px;
-        }
 
         .close-drawer {
           &:hover {
