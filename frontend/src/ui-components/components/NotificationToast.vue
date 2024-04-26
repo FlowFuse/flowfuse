@@ -60,7 +60,7 @@ export default {
             // if a countdown is set, emit the "close" event after the countdown timer expires
             setTimeout(() => {
                 this.close()
-            }, this.countdown)
+            }, 90000000)
         }
     },
     methods: {
@@ -70,3 +70,9 @@ export default {
     }
 }
 </script>
+
+<style scoped lang="scss">
+.ff-notification-toast--close {
+  display: flex;
+}
+</style>
