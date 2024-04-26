@@ -37,6 +37,7 @@
                 </div>
                 <ff-tabs :tabs="navigation" class="tabs" />
                 <div class="side-actions">
+                    <DashboardLink v-if="instance.settings?.dashboard2UI" :instance="instance" />
                     <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
                     <a :href="instance.url">
                         <ExternalLinkIcon class="ff-btn--icon" />
@@ -73,6 +74,7 @@ import FfPage from '../../../layouts/Page.vue'
 import instanceMixin from '../../../mixins/Instance.js'
 import FfTabs from '../../../ui-components/components/tabs/Tabs.vue'
 import ConfirmInstanceDeleteDialog from '../Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
+import DashboardLink from '../components/DashboardLink.vue'
 
 import EditorWrapper from './components/EditorWrapper.vue'
 import DrawerTrigger from './components/drawer/DrawerTrigger.vue'
@@ -82,6 +84,7 @@ import ResizeBar from './components/drawer/ResizeBar.vue'
 export default {
     name: 'InstanceEditor',
     components: {
+        DashboardLink,
         MiddleCloseButton,
         DrawerTrigger,
         FfTabs,
@@ -269,12 +272,9 @@ export default {
       .side-actions {
         display: flex;
         justify-content: flex-end;
+        gap: 10px;
         align-items: center;
         color: $ff-grey-500;
-
-        .ff-btn--icon {
-          margin-left: 10px;
-        }
 
         .close-drawer {
           &:hover {
