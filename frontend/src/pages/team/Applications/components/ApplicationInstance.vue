@@ -39,7 +39,7 @@
             :isHA="localInstance.ha?.replicas !== undefined"
             :instance="localInstance"
         />
-        <InstanceActionsLinkCell :instance="localInstance" />
+        <InstanceActionsLinkCell :instance="localInstance" @instance-deleted="$emit('instance-deleted', $event)" />
     </div>
     <InstanceStatusPolling :instance="localInstance" @instance-updated="instanceUpdated" />
 </template>
@@ -73,6 +73,7 @@ export default {
             type: Object
         }
     },
+    emits: ['instance-deleted'],
     data () {
         return {
             localInstance: this.instance

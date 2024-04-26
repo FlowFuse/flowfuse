@@ -9,8 +9,9 @@
         </DropdownMenu>
         <ConfirmInstanceDeleteDialog
             ref="confirmInstanceDeleteDialog"
+            :instance="instance"
             @click.stop
-            @confirm="deleteInstance"
+            @confirm="$emit('instance-deleted', instance)"
         />
     </div>
 </template>
@@ -36,7 +37,7 @@ export default {
             required: true
         }
     },
-    emits: ['deleting-instance'],
+    emits: ['instance-deleted'],
     data () {
         return {
             instanceStateMutator: null
@@ -126,24 +127,6 @@ export default {
         },
         showConfirmDeleteDialog () {
             this.$refs.confirmInstanceDeleteDialog.show(this.instance)
-        },
-        deleteInstance () {
-            const applicationId = this.instance.application.id
-            this.$emit('deleting-instance', {
-                status: true,
-                instance: this.instance
-            })
-            InstanceApi.deleteInstance(this.instance)
-                .then(() => this.$router.push({ name: 'ApplicationInstances', params: { id: applicationId } }))
-                .then(() => alerts.emit('Instance successfully deleted.', 'confirmation'))
-                .catch(err => {
-                    console.warn(err)
-                    alerts.emit('Instance failed to delete.', 'warning')
-                    this.$emit('deleting-instance', {
-                        status: false,
-                        instance: this.instance
-                    })
-                })
         },
         async restartInstance () {
             this.instanceStateMutator.setStateOptimistically('restarting')

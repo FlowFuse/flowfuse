@@ -89,23 +89,11 @@ export default {
         instanceChanged () {
             this.instanceStateMutator = new InstanceStateMutator(this.instance)
         },
-        deleteInstance () {
-            const applicationId = this.instance.application.id
-            this.loading.deleting = true
-            InstanceApi.deleteInstance(this.instance)
-                .then(() => this.$router.push({
-                    name: 'ApplicationInstances',
-                    params: { id: applicationId }
-                }))
-                .then(() => alerts.emit('Instance successfully deleted.', 'confirmation'))
-                .catch(err => {
-                    console.warn(err)
-                    alerts.emit('Instance failed to delete.', 'warning')
-                    this.loading.deleting = false
-                })
-        },
-        onInstanceDelete (payload) {
-            this.loading.deleting = payload.status
+        onInstanceDelete () {
+            this.$router.push({
+                name: 'ApplicationInstances',
+                params: { id: this.instance.application.id }
+            })
         }
     },
     async created () {

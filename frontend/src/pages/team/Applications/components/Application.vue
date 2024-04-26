@@ -15,7 +15,7 @@
             data-el="application-instance-item"
             @click.stop="openInstance(instance)"
         >
-            <ApplicationInstance :instance="instance" />
+            <ApplicationInstance :instance="instance" @instance-deleted="onInstanceDeleted" />
         </li>
     </ul>
     <div v-else class="ff-no-data">
@@ -63,6 +63,7 @@ export default {
             required: true
         }
     },
+    emits: ['instance-deleted'],
     computed: {
         instances () {
             return Array.from(this.application.instances.values())
@@ -92,6 +93,11 @@ export default {
                     id: device.id
                 }
             })
+        },
+        onInstanceDeleted (instance) {
+            if (this.application.instances.has(instance.id)) {
+                this.application.instances.delete(instance.id)
+            }
         }
     }
 }

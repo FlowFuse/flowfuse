@@ -32,7 +32,7 @@
                 </div>
                 <ff-tabs :tabs="navigation" class="tabs" />
                 <div class="side-actions">
-                    <InstanceActionsButton :instance="instance" @deleting-instance="onInstanceDelete" />
+                    <InstanceActionsButton :instance="instance" @instance-deleted="onInstanceDelete" />
                     <a :href="instance.url">
                         <ExternalLinkIcon class="ff-btn--icon" />
                     </a>

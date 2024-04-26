@@ -1,6 +1,6 @@
 <template>
     <div class="flex justify-end">
-        <InstanceActionsButton :instance="instance" />
+        <InstanceActionsButton :instance="instance" @instance-deleted="$emit('instance-deleted', $event)" />
     </div>
 </template>
 
@@ -16,6 +16,7 @@ export default {
             required: true,
             type: Object
         }
-    }
+    },
+    emits: ['instance-deleted']
 }
 </script>

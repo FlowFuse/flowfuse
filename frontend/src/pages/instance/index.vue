@@ -38,12 +38,12 @@
                             :disabled-reason="disabledReason"
                             :instance="instance"
                         />
-                        <InstanceActionsButton :instance="instance" @deleting-instance="onInstanceDelete" />
+                        <InstanceActionsButton :instance="instance" @instance-deleted="onInstanceDelete" />
                     </div>
                 </template>
             </ff-page-header>
         </template>
-        <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="deleteInstance" />
+        <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" :instance="instance" @confirm="onInstanceDelete" />
         <Teleport v-if="mounted" to="#platform-banner">
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">You are viewing this instance as an Administrator</div>
             <SubscriptionExpiredBanner :team="team" />

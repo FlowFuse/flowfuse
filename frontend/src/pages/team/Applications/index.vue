@@ -37,7 +37,7 @@
 
             <template v-else-if="!loading && applications.size > 0">
                 <ul class="ff-applications-list" data-el="applications-list">
-                    <li v-for="application in Array.from(applications.values())" :key="application.id">
+                    <li v-for="application in applicationsList" :key="application.id">
                         <ApplicationListItem :application="application" />
                     </li>
                 </ul>
@@ -111,7 +111,6 @@ export default {
             required: true
         }
     },
-
     data () {
         return {
             loading: false,
@@ -119,6 +118,11 @@ export default {
             columns: [
                 { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true }
             ]
+        }
+    },
+    computed: {
+        applicationsList () {
+            return Array.from(this.applications.values())
         }
     },
     watch: {
