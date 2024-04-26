@@ -60,7 +60,7 @@ export default {
             // if a countdown is set, emit the "close" event after the countdown timer expires
             setTimeout(() => {
                 this.close()
-            }, 90000000)
+            }, this.countdown)
         }
     },
     methods: {
