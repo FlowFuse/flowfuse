@@ -137,7 +137,7 @@ export default {
                 { label: 'Instance Status', class: ['w-1/5'], component: { is: markRaw(InstanceStatusBadge), map: { status: 'meta.state' } } },
                 { label: 'Last Deployed', class: ['w-1/5'], component: { is: markRaw(LastSeen), map: { lastSeenSince: 'flowLastUpdatedSince' } } },
                 { label: '', component: { is: markRaw(DashboardLinkCell), map: { instance: '_self', hidden: 'hideDashboard2Button' } } },
-                { label: '', component: { is: markRaw(InstanceEditorLinkCell) } }
+                { label: '', component: { is: markRaw(InstanceEditorLinkCell), map: { instance: '_self' } } }
             ]
         },
         cloudRows () {

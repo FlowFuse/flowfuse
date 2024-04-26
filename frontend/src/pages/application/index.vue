@@ -10,7 +10,7 @@
     </main>
     <main v-else class="ff-with-status-header">
         <ConfirmApplicationDeleteDialog ref="confirmApplicationDeleteDialog" @confirm="deleteApplication" />
-        <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="deleteInstance" />
+        <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="onInstanceDeleted" />
         <Teleport v-if="mounted" to="#platform-banner">
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">
                 You are viewing this application as an Administrator
@@ -134,7 +134,10 @@ export default {
             return routes
         },
         instancesArray () {
-            return Array.from(this.applicationInstances.values())
+            if (this.applicationInstances.size === 0) {
+                return []
+            }
+            return Array.from(this.applicationInstances.values()).filter(el => el)
         },
         devicesArray () {
             return this.applicationDevices
@@ -302,18 +305,10 @@ export default {
         instanceShowConfirmDelete (instance) {
             this.$refs.confirmInstanceDeleteDialog.show(instance)
         },
-
-        deleteInstance (instance) {
-            this.loading.deleting = true
-            InstanceApi.deleteInstance(instance).then(async () => {
-                alerts.emit('Instance successfully deleted.', 'confirmation')
-                this.updateApplication()
-            }).catch(err => {
-                console.warn(err)
-                alerts.emit('Instance failed to delete.', 'warning')
-            }).finally(() => {
-                this.loading.deleting = false
-            })
+        onInstanceDeleted (instance) {
+            if (this.applicationInstances.has(instance.id)) {
+                this.applicationInstances.delete(instance.id)
+            }
         }
     }
 }

@@ -21,8 +21,6 @@ import SemVer from 'semver'
 
 import { mapState } from 'vuex'
 
-import { Roles } from '../../../../../forge/lib/roles.js'
-
 export default {
     name: 'InstanceEditorLink',
     components: { ExternalLinkIcon },
@@ -47,9 +45,6 @@ export default {
     },
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
-        isVisitingAdmin () {
-            return this.teamMembership.role === Roles.Admin
-        },
         isImmersiveEditor () {
             return SemVer.satisfies(SemVer.coerce(this.instance?.meta?.versions?.launcher), '>=2.3.1')
         },

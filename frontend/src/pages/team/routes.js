@@ -1,6 +1,6 @@
 import ensurePermission from '../../utils/ensurePermission.js'
 
-import TeamApplications from './Applications.vue'
+import TeamApplications from './Applications/index.vue'
 import TeamAuditLog from './AuditLog.vue'
 import TeamBilling from './Billing.vue'
 import TeamDevices from './Devices/index.vue'
