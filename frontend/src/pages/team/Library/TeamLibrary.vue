@@ -22,7 +22,7 @@
             </template>
         </ff-data-table>
         <ff-code-previewer v-else-if="viewingFile" ref="code-preview" :snippet="contents" />
-        <EmptyState v-else :featureUnavailable="!isSharedLibraryFeatureEnabledForPlatform" :featureUnavailableToTeam="!isSharedLibraryFeatureEnabledForTeam">
+        <EmptyState v-else :featureUnavailable="!featureEnabledForPlatform" :featureUnavailableToTeam="!featureEnabledForTeam">
             <template #img>
                 <img src="../../../images/empty-states/team-library.png" alt="team-logo">
             </template>
@@ -157,9 +157,7 @@ export default {
             }
 
             const entryPath = entryPathArray.join('/')
-            const entryIsFile = /\.\w+/.test(entryPath)
-
-            const contents = await teamApi.getTeamLibrary(this.team.id, entryPath)
+            const { meta, data: content } = await teamApi.getTeamLibrary(this.team.id, entryPath)
 
             this.breadcrumbs = [{
                 name: 'Library',
@@ -169,12 +167,12 @@ export default {
                 this.breadcrumbs.push(this.formatEntry(entry, this.breadcrumbs.at(-1)))
             }
 
-            this.viewingFile = entryIsFile
-            if (entryIsFile) {
-                this.contents = contents
+            this.viewingFile = meta.type !== 'folder'
+            if (this.viewingFile) {
+                this.contents = content
             } else {
                 this.contents = null // clear selection so that copy to clipboard is hidden
-                this.rows = this.formatEntries(contents, this.breadcrumbs.at(-1))
+                this.rows = this.formatEntries(content, this.breadcrumbs.at(-1))
             }
         },
         formatEntry (contents, parent) {
@@ -183,7 +181,7 @@ export default {
             return {
                 type,
                 name,
-                updatedAt: contents.updatedAt,
+                updatedAt: contents.updatedAt || 0, // directory listings do not have an updatedAt
                 path: parent.path ? (parent.path + '/' + name) : name
             }
         },
