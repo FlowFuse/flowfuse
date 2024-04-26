@@ -277,3 +277,14 @@ export default {
   }
 }
 </style>
+
+<style lang="scss">
+.ff-editor-wrapper {
+  .tabs-wrapper {
+    main {
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+  }
+}
+</style>
