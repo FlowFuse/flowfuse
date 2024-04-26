@@ -268,7 +268,13 @@ const getTeamDevices = async (teamId, cursor, limit, query, extraParams = {}) =>
 const getTeamLibrary = async (teamId, parentDir, cursor, limit) => {
     const url = paginateUrl(`/storage/library/${teamId}/${parentDir || ''}`, cursor, limit)
     const res = await client.get(url)
-    return res.data
+    const meta = {}
+    // get meta.type from `x-meta-type` header
+    meta.type = res.headers['x-meta-type']
+    return {
+        meta,
+        data: res.data
+    }
 }
 
 /**

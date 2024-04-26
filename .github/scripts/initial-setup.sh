@@ -16,7 +16,7 @@ create_user() {
   local PASSWORD="${INIT_CONFIG_PASSWORD}"
 
   echo "Creating $USERNAME user"
-  curl -ks -XPOST \
+  curl -ks -w "\n" -XPOST \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
     -d '{
@@ -35,7 +35,7 @@ create_team() {
   local TEAM_TYPE_ID
   TEAM_TYPE_ID=$(curl -ks -XGET -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" https://$FLOWFUSE_URL/api/v1/team-types/ | jq -r --arg TYPE "$TEAM_TYPE_SELECTOR" '.types[] | select(.name==$TYPE) | .id')
   echo "Creating $TEAM_NAME team"
-  curl -ks -XPOST \
+  curl -ks -w "\n" -XPOST \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
     -d '{
@@ -49,6 +49,16 @@ get_team_id() {
   local TEAM_ID
   TEAM_ID=$(curl -ks -XGET -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" https://$FLOWFUSE_URL/api/v1/teams | jq -r --arg NAME "$TEAM_NAME" '.teams[] | select(.name==$NAME) | .id')
   echo "$TEAM_ID"
+}
+
+get_latest_image_tag() {
+  local NR_VERSION=$1
+  local IMAGE="flowfuse/node-red"
+  local TOKEN
+  local TAG
+  TOKEN=$(curl -s "https://auth.docker.io/token?service=registry.docker.io&scope=repository:${IMAGE}:pull" | jq -r '.token')
+  TAG=$(curl -s -H "Authorization: Bearer $TOKEN" https://registry-1.docker.io/v2/${IMAGE}/tags/list | jq -r '.tags[]' | grep -vE '^v' | grep "${NR_VERSION}" | sort -rV | head -n 1)
+  echo "$TAG"
 }
 
 create_suspended_instance() {
@@ -66,7 +76,7 @@ create_suspended_instance() {
         "template": "'"$templateId"'"
       }' https://$FLOWFUSE_URL/api/v1/projects/ | jq -r '.id')
   sleep 5
-  curl -ks -XPOST \
+  curl -ks -w "\n" -XPOST \
     -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
     https://$FLOWFUSE_URL/api/v1/projects/$INSTANCE_ID/actions/suspend
 }
@@ -77,7 +87,7 @@ create_device() {
   local TEAM_NAME=$3
   TEAM_ID=$(get_team_id "${TEAM_NAME}")
   echo "Creating $DEVICE_NAME@$TEAM_ID device"
-  curl -ks -XPOST \
+  curl -ks -w "\n" -XPOST -o /dev/null \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
     -d '{
@@ -85,9 +95,24 @@ create_device() {
       "type": "'"$DEVICE_TYPE"'",
       "team": "'"$TEAM_ID"'"
       }' https://$FLOWFUSE_URL/api/v1/devices/
-
 }
 
+create_stack() {
+  local STACK_NAME=$1
+  local STACK_LABEL=$2
+  local STACK_CPU=$3
+  local STACK_MEMORY=$4
+  local STACK_CONTAINER=$5
+  echo "Creating $STACK_NAME stack"
+  projectTypeId=$(curl -ks -XGET -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" https://$FLOWFUSE_URL/api/v1/project-types/ | jq -r '.types[].id')
+  curl -ks -w "\n" -XPOST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
+    -d '{"name":"'"$STACK_NAME"'","label":"'"$STACK_LABEL"'", "projectType":"'"$projectTypeId"'","properties":{ "cpu":'"$STACK_CPU"',"memory":'"$STACK_MEMORY"',"container":"'"$STACK_CONTAINER"'"}}' \
+    https://$FLOWFUSE_URL/api/v1/stacks/
+}
+
+### Create first user
 DBPASSWORD=$(kubectl --namespace "pr-$PR_NUMBER" get secret flowfuse-pr-$PR_NUMBER-postgresql -o jsonpath='{.data.password}' | base64 -d)
 kubectl run flowfuse-setup-0 \
   --namespace "pr-$PR_NUMBER" \
@@ -98,6 +123,8 @@ kubectl run flowfuse-setup-0 \
   -- psql -h flowfuse-pr-$PR_NUMBER-postgresql -U forge -d flowforge -c \
   "INSERT INTO public.\"Users\" (username,name,email,email_verified,sso_enabled,mfa_enabled,\"password\",password_expired,\"admin\",avatar,tcs_accepted,suspended,\"createdAt\",\"updatedAt\",\"defaultTeamId\") \
     VALUES ('flowfusedeveloper','flowfusedeveloper','noreply@flowfuse.dev',true,false,false,'$INIT_CONFIG_PASSWORD_HASH',false,true,'/avatar/Zmxvd2Z1c2VkZXZlbG9wZXI',NULL,false,'2024-03-15 19:51:49.449+01','2024-03-15 19:51:49.449+01',NULL);"
+
+### Mark platform as configured
 kubectl run flowfuse-setup-1 \
   --namespace "pr-$PR_NUMBER" \
   -it --rm \
@@ -107,6 +134,7 @@ kubectl run flowfuse-setup-1 \
   -- psql -h flowfuse-pr-$PR_NUMBER-postgresql -U forge -d flowforge -c \
   "INSERT INTO public.\"PlatformSettings\" (\"key\",value,\"valueType\",\"createdAt\",\"updatedAt\")\
     VALUES ('setup:initialised','true',1,'2024-03-15 19:51:52.287','2024-03-15 19:51:52.287')"
+### Configure access token
 kubectl run flowfuse-setup-2 \
   --namespace "pr-$PR_NUMBER" \
   -it --rm \
@@ -119,24 +147,20 @@ kubectl run flowfuse-setup-2 \
 
 ### Create project type
 echo "Creating project type"
-curl -ks -XPOST \
+curl -ks -w "\n" -XPOST \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
   -d '{"name":"Default", "description":"DefaultInstanceType","active": true}' \
   https://$FLOWFUSE_URL/api/v1/project-types/
 
-### Create stack
-echo "Creating stack"
-projectTypeId=$(curl -ks -XGET -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" https://$FLOWFUSE_URL/api/v1/project-types/ | jq -r '.types[].id')
-curl -ks -XPOST \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
-  -d '{"name":"Default","label":"Default", "projectType":"'"$projectTypeId"'","properties":{ "cpu":10,"memory":256,"container":"flowfuse/node-red"}}' \
-  https://$FLOWFUSE_URL/api/v1/stacks/
+### Create stacks
+create_stack "Default" "Default" 100 256 "flowfuse/node-red"
+create_stack "NR-31x" "3.1.x" 100 256 "flowfuse/node-red:$(get_latest_image_tag "3.1.x")"
+create_stack "NR-40x" "4.0.x" 100 256 "flowfuse/node-red:$(get_latest_image_tag "4.0.x")"
 
-### Link stack to project type
+### Link Default to project type
 echo "Linking stack to project type"
-stackId=$(curl -ks -XGET -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" https://$FLOWFUSE_URL/api/v1/stacks/ | jq -r '.stacks[].id')
+stackId=$(curl -ks -XGET -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" https://$FLOWFUSE_URL/api/v1/stacks/ | jq -r '.stacks[] | select(.name=="Default") | .id')
 curl -ks -XPUT \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
@@ -146,11 +170,11 @@ curl -ks -XPUT \
 ### Delete default team type
 echo "Removing default team type"
 defaultTeamTypeId=$(curl -ks -XGET -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" https://$FLOWFUSE_URL/api/v1/team-types/ | jq -r '.types[] | select(.name=="starter") | .id')
-curl -ks -XDELETE -H "Content-Type: application/json" -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" https://$FLOWFUSE_URL/api/v1/team-types/$defaultTeamTypeId
+curl -ks -w "\n" -XDELETE -H "Content-Type: application/json" -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" https://$FLOWFUSE_URL/api/v1/team-types/$defaultTeamTypeId
 
 ### Create Starter team type
 echo "Creating Starter team type"
-curl -ks -XPOST \
+curl -ks -w "\n" -XPOST \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
   -d '{
@@ -190,7 +214,7 @@ curl -ks -XPOST \
 
 ### Create Team team type
 echo "Creating Team team type"
-curl -ks -XPOST \
+curl -ks -w "\n" -XPOST \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
 -d '{
@@ -230,7 +254,7 @@ curl -ks -XPOST \
 
 ### Create Enterprise team type
 echo "Creating Enterprise team type"
-curl -ks -XPOST \
+curl -ks -w "\n" -XPOST \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
 -d '{
