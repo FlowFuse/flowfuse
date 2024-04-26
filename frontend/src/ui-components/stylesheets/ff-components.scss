@@ -950,6 +950,7 @@ li.ff-list-item {
   &--close {
     cursor: pointer;
     position: relative;
+    display: flex;
     svg {
       position: relative;
       z-index: 2;
