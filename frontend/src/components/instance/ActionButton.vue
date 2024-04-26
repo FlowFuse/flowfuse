@@ -1,5 +1,5 @@
 <template>
-    <div class="action-button">
+    <div class="action-button" data-el="action-button">
         <DropdownMenu
             v-if="hasPermission('project:change-status')"
             buttonClass="ff-btn ff-btn--primary"
