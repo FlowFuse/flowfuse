@@ -1,6 +1,7 @@
 import AuditEventsService from '../services/audit-events.js'
 
 export default {
+    data () { return { AuditEvents: AuditEventsService.get() } },
     setup () {
         return {
             AuditEvents: AuditEventsService.get()
@@ -9,7 +10,7 @@ export default {
     methods: {
         labelForAuditLogEntry (eventName) {
             if (!eventName) return 'Unknown Event'
-            if (this.AuditEvents[eventName]) {
+            if (this.AuditEvents && this.AuditEvents[eventName]) {
                 return this.AuditEvents[eventName]
             }
             let labelText = eventName
