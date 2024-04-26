@@ -70,9 +70,3 @@ export default {
     }
 }
 </script>
-
-<style scoped lang="scss">
-.ff-notification-toast--close {
-  display: flex;
-}
-</style>
