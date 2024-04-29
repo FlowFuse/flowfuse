@@ -56,7 +56,7 @@ export default {
         },
         shouldDisplayLoadingScreen () {
             const unsafeStates = [
-                ...Object.values(States).filter(state => [States.RUNNING, state.SAFE].includes(state)),
+                ...Object.values(States).filter(state => ![States.RUNNING, States.SAFE].includes(state)),
                 ...['suspending', 'suspended']
             ]
 
