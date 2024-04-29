@@ -93,7 +93,8 @@ module.exports = function (app) {
                 description: result.description || '',
                 createdAt: result.createdAt,
                 updatedAt: result.updatedAt,
-                credentialSecret: result.credentialSecret
+                flows: result.flows,
+                settings: result.settings
             }
             if (snapshot.User) {
                 filtered.user = app.db.views.User.userSummary(snapshot.User)
