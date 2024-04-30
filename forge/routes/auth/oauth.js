@@ -149,6 +149,8 @@ module.exports = async function (app) {
                 // to the complete route. Otherwise prompt to login
                 request.session = await app.db.controllers.Session.getOrExpire(request.sid)
                 if (request.session) {
+                    // todo This is where things get interesting, I'm also losing my debugger headers which makes my life harder
+
                     // Logged in with valid session - bounce to complete page
                     reply.redirect(`${app.config.base_url}/account/complete/${requestId}`)
                     return

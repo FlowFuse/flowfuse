@@ -191,6 +191,21 @@ module.exports = async (options = {}) => {
         // console.error(error.stack)
     })
 
+    // todo this is not the best place for this, these headers should only be applied to requests that serve the frontend app
+    //  these headers are required to allow the frontend application to embed itself in an iFrame because:
+    //  embedded iframe loads
+    //      -> the iframe instance calls /settings which returns 401
+    //      -> redirected to /account/authorize
+    //      -> which in turn redirects (forge/routes/auth/oauth.js:159)
+    //      -> to vue page (frontend/src/pages/account/AccessRequestEditor.vue:30) <-- this is why we need the vue app to embed itself
+    //      -> which in turn redirects to /account/complete/:code
+    //  somewhere along the line, due to the difference in domains, the sid / connect.sid cookie is lost and the embedded iframe requires authentication
+    //  or the cookie is set on the wrong domain
+    server.addHook('onSend', async (request, reply, error) => {
+        reply.header('Content-Security-Policy', "frame-ancestors 'self' *.flowforge.cloud *.other.flowfuse:* *.other.flowforge:*")
+        reply.header('X-Frame-Options', 'allow-from \'self\' *.flowforge.cloud *.other.flowfuse:* *.other.flowforge:*')
+    })
+
     try {
         // Config : loads environment configuration
         await server.register(config.attach, options)
@@ -241,7 +256,8 @@ module.exports = async (options = {}) => {
                         'img-src': ["'self'", 'data:', 'www.gravatar.com'],
                         'font-src': ["'self'"],
                         'style-src': ["'self'", 'https:', "'unsafe-inline'"],
-                        'upgrade-insecure-requests': null
+                        'upgrade-insecure-requests': null,
+                        'frame-ancestors': ["'self'", '*.flowforge.cloud', '*.other.host:*', 'http://some.other.host:3000']
                     }
                 }
             } else {
