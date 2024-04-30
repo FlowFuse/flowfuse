@@ -10,8 +10,16 @@ function interceptBlueprints (blueprints = []) {
     cy.visit('team/ateam/library')
 }
 
-function interceptLibraries (libraries = []) {
-    cy.intercept('/storage/library/*', [...libraries]).as('getLibraries')
+function interceptLibraries (libraries = [], metaType) {
+    cy.intercept(
+        '/storage/library/*',
+        (req) => req.reply(res => {
+            res.body = { ...res.body, ...libraries }
+            res.headers['X-meta-type'] = metaType
+            return res
+        })
+    ).as('getLibraries')
+
     cy.visit('team/ateam/library')
 }
 
@@ -87,7 +95,7 @@ describe('FlowForge - Library', () => {
 
     describe('Team Library tab', () => {
         it('allows users to inspect existing Team Libraries ', () => {
-            interceptLibraries([])
+            interceptLibraries([], 'folder')
 
             cy.get('[data-el="ff-tab"]').contains('Team Library').click()
 
@@ -104,7 +112,7 @@ describe('FlowForge - Library', () => {
         })
 
         it('allows users to create Team Libraries if they don\'t have any', () => {
-            interceptLibraries(listingLibraryItems)
+            interceptLibraries(listingLibraryItems, 'folder')
 
             cy.get('[data-el="ff-tab"]').contains('Team Library').click()
 

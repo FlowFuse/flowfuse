@@ -22,7 +22,7 @@
             </template>
         </ff-data-table>
         <ff-code-previewer v-else-if="viewingFile" ref="code-preview" :snippet="contents" />
-        <EmptyState v-else :featureUnavailable="!featureEnabledForPlatform" :featureUnavailableToTeam="!featureEnabledForTeam">
+        <EmptyState v-else :featureUnavailable="!isSharedLibraryFeatureEnabledForPlatform" :featureUnavailableToTeam="!isSharedLibraryFeatureEnabledForTeam">
             <template #img>
                 <img src="../../../images/empty-states/team-library.png" alt="team-logo">
             </template>
