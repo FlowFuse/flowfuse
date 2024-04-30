@@ -10,10 +10,3 @@ export default {
     name: 'PageLayout'
 }
 </script>
-
-<style scoped lang="scss">
-main {
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-</style>
