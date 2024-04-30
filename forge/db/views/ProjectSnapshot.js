@@ -100,7 +100,7 @@ module.exports = function (app) {
                 filtered.user = app.db.views.User.userSummary(snapshot.User)
             }
             if (snapshot.exportedBy) {
-                filtered.user = app.db.views.User.userSummary(snapshot.exportedBy)
+                filtered.exportedBy = app.db.views.User.userSummary(snapshot.exportedBy)
             }
             return filtered
         } else {
