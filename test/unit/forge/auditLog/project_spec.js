@@ -331,5 +331,20 @@ describe('Audit Log > Project', async function () {
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
+    it.only('Provides a logger for exporting an instance snapshot', async function () {
+        await projectLogger.project.snapshot.exported(ACTIONED_BY, null, PROJECT, SNAPSHOT)
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.snapshot.exported')
+        logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('project', 'snapshot')
+        logEntry.body.project.should.only.have.keys('id', 'name')
+        logEntry.body.project.id.should.equal(PROJECT.id)
+        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
+    })
+
     // #endregion
 })
