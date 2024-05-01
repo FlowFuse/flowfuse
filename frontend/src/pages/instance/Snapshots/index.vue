@@ -17,6 +17,7 @@
                 </template>
                 <template v-if="showContextMenu" #context-menu="{row}">
                     <ff-list-item v-if="hasPermission('project:snapshot:rollback')" label="Rollback" @click="showRollbackDialog(row)" />
+                    <ff-list-item v-if="hasPermission('project:snapshot:export')" label="Download Snapshot" @click="showDownloadSnapshotDialog(row)" />
                     <ff-list-item v-if="hasPermission('project:snapshot:read')" label="Download package.json" @click="downloadSnapshotPackage(row)" />
                     <ff-list-item v-if="hasPermission('project:snapshot:set-target')" label="Set as Device Target" @click="showDeviceTargetDialog(row)" />
                     <ff-list-item v-if="hasPermission('project:snapshot:delete')" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />
@@ -48,6 +49,7 @@
             </EmptyState>
         </template>
         <SnapshotCreateDialog ref="snapshotCreateDialog" data-el="dialog-create-snapshot" :project="instance" @snapshot-created="snapshotCreated" />
+        <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" :project="instance" />
     </div>
 </template>
 
@@ -70,6 +72,7 @@ import DeviceCount from '../../application/Snapshots/components/cells/DeviceCoun
 import SnapshotName from '../../application/Snapshots/components/cells/SnapshotName.vue'
 
 import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog.vue'
+import SnapshotExportDialog from './dialogs/SnapshotExportDialog.vue'
 
 export default {
     name: 'InstanceSnapshots',
@@ -77,6 +80,7 @@ export default {
         SectionTopMenu,
         EmptyState,
         SnapshotCreateDialog,
+        SnapshotExportDialog,
         PlusSmIcon
     },
     mixins: [permissionsMixin],
@@ -252,6 +256,9 @@ export default {
             document.body.appendChild(element)
             element.click()
             document.body.removeChild(element)
+        },
+        showDownloadSnapshotDialog (snapshot) {
+            this.$refs.snapshotExportDialog.show(snapshot)
         }
     }
 }
