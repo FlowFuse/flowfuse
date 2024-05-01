@@ -5,7 +5,8 @@ import TeamAuditLog from './AuditLog.vue'
 import TeamBilling from './Billing.vue'
 import TeamDevices from './Devices/index.vue'
 import TeamInstances from './Instances.vue'
-import TeamLibrary from './Library.vue'
+import Library from './Library/index.vue'
+import LibraryRoutes from './Library/routes.js'
 import TeamMembersMembers from './Members/General.vue'
 import TeamMembersInvitations from './Members/Invitations.vue'
 import TeamMembers from './Members/index.vue'
@@ -13,7 +14,6 @@ import TeamSettingsDanger from './Settings/Danger.vue'
 import TeamSettingsDevices from './Settings/Devices.vue'
 import TeamSettingsGeneral from './Settings/General.vue'
 import TeamSettings from './Settings/index.vue'
-// import TeamSettingsPermissions from './Settings/Permissions.vue'
 import ChangeTeamType from './changeType.vue'
 import CreateTeam from './create.vue'
 import CreateApplication from './createApplication.vue'
@@ -68,11 +68,15 @@ export default [
             },
             {
                 name: 'TeamLibrary',
-                path: 'library/:entryPath*',
-                component: TeamLibrary,
+                path: 'library',
+                component: Library,
                 meta: {
                     title: 'Team - Library'
-                }
+                },
+                redirect: to => {
+                    return { name: 'LibraryBlueprints' }
+                },
+                children: [...LibraryRoutes]
             },
             {
                 path: 'members',

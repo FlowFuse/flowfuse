@@ -43,10 +43,15 @@ export default {
             required: true
         }
     },
+    data () {
+        return {
+            canUseImmersiveEditor: false
+        }
+    },
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
         isImmersiveEditor () {
-            return SemVer.satisfies(SemVer.coerce(this.instance?.meta?.versions?.launcher), '>=2.3.1')
+            return this.canUseImmersiveEditor && SemVer.satisfies(SemVer.coerce(this.instance?.meta?.versions?.launcher), '>=2.3.1')
         },
         url () {
             if (this.isImmersiveEditor) {

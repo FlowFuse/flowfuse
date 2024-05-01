@@ -306,7 +306,6 @@ export default {
             required: true,
             type: Object
         },
-
         // EE Features
         billingEnabled: {
             default: false,
@@ -316,7 +315,6 @@ export default {
             default: false,
             type: Boolean
         },
-
         // Instance
         instance: {
             default: null,
@@ -347,6 +345,11 @@ export default {
         applicationFieldsVisible: {
             default: false,
             type: Boolean
+        },
+        // allows setting predefined values when the component is created
+        preDefinedInputs: {
+            default: null,
+            type: Object
         }
     },
     emits: ['on-submit'],
@@ -483,14 +486,14 @@ export default {
         }
     },
     watch: {
-        'input.name': function (value, oldValue) {
+        'input.name': function (value) {
             if (/^[a-zA-Z][a-zA-Z0-9-]*$/.test(value)) {
                 this.errors.name = ''
             } else {
                 this.errors.name = 'Names must only include a→z, A→Z, -, 0→9 and can not start with 0→9'
             }
         },
-        'input.projectType': async function (value, oldValue) {
+        'input.projectType': async function (value) {
             if (value) {
                 await this.updateInstanceType(value)
             } else {
@@ -611,6 +614,13 @@ export default {
         if (this.blueprints.length === 0) {
             // Falls back to the default blueprint server side no error needed
             console.warn('Flow Blueprints enabled but none available')
+        }
+
+        if (this.preDefinedInputs) {
+            this.input = {
+                ...this.input,
+                ...this.preDefinedInputs
+            }
         }
     },
     async beforeMount () {

@@ -1,5 +1,5 @@
 <template>
-    <pre class="ff-code-previewer"><code>{{ strippedSnippet }}</code></pre>
+    <pre class="ff-code-previewer" data-el="ff-code-previewer"><code>{{ strippedSnippet }}</code></pre>
 </template>
 
 <script>

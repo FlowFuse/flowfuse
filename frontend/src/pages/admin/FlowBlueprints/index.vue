@@ -53,10 +53,9 @@ import teamTypesApi from '../../../api/teamTypes.js'
 
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 
+import BlueprintTile from '../../../components/blueprints/BlueprintTile.vue'
 import MarkdownCell from '../../../components/tables/cells/MarkdownCell.vue'
 import Dialog from '../../../services/dialog.js'
-
-import BlueprintTile from '../../instance/Blueprints/BlueprintTile.vue'
 
 import FlowBlueprintFormDialog from './dialogs/FlowBlueprintFormDialog.vue'
 
