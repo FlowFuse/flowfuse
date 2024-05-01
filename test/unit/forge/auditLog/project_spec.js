@@ -331,7 +331,7 @@ describe('Audit Log > Project', async function () {
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
-    it.only('Provides a logger for exporting an instance snapshot', async function () {
+    it('Provides a logger for exporting an instance snapshot', async function () {
         await projectLogger.project.snapshot.exported(ACTIONED_BY, null, PROJECT, SNAPSHOT)
         // check log stored
         const logEntry = await getLog()
