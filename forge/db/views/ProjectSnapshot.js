@@ -80,14 +80,37 @@ module.exports = function (app) {
             updatedAt: { type: 'string' },
             user: { $ref: 'UserSummary' },
             exportedBy: { $ref: 'UserSummary' },
-            modules: { type: 'object', additionalProperties: true },
             flows: { type: 'object', additionalProperties: true },
             settings: { type: 'object', additionalProperties: true }
         }
     })
+    function snapshotExport (snapshot) {
+        if (snapshot) {
+            const result = snapshot.toJSON ? snapshot.toJSON() : snapshot
+            const filtered = {
+                id: result.hashid,
+                name: result.name,
+                description: result.description || '',
+                createdAt: result.createdAt,
+                updatedAt: result.updatedAt,
+                flows: result.flows,
+                settings: result.settings
+            }
+            if (snapshot.User) {
+                filtered.user = app.db.views.User.userSummary(snapshot.User)
+            }
+            if (snapshot.exportedBy) {
+                filtered.exportedBy = app.db.views.User.userSummary(snapshot.exportedBy)
+            }
+            return filtered
+        } else {
+            return null
+        }
+    }
 
     return {
         snapshot,
-        snapshotSummary
+        snapshotSummary,
+        snapshotExport
     }
 }
