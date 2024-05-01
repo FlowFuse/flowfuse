@@ -1,5 +1,5 @@
 <template>
-    <div ref="viewer" class="ff-flow-viewer">
+    <div ref="viewer" data-el="ff-flow-previewer" class="ff-flow-viewer">
         {{ flow }}
     </div>
 </template>
