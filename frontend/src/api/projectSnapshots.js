@@ -70,10 +70,28 @@ const getInstanceSnapshots = (instanceId, cursor, limit) => {
     })
 }
 
+/**
+ * Export a snapshot for later import in another project or platform
+ * @param {String} instanceId - project id
+ * @param {String} snapshotId - snapshot id
+ */
+const exportInstanceSnapshot = (instanceId, snapshotId, options) => {
+    return client.post(`/api/v1/projects/${instanceId}/snapshots/${snapshotId}/export`, options).then(res => {
+        const props = {
+            'snapshot-id': res.data.id
+        }
+        product.capture('$ff-instance-snapshot-export', props, {
+            instance: instanceId
+        })
+        return res.data
+    })
+}
+
 export default {
     create,
     deleteSnapshot,
     rollbackSnapshot,
     getSnapshot,
-    getInstanceSnapshots
+    getInstanceSnapshots,
+    exportInstanceSnapshot
 }
