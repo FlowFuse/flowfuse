@@ -107,6 +107,7 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                         cy.contains('moments ago')
 
                         cy.get('[data-action="open-editor"]').should('be.disabled')
+                        cy.get('[data-el="action-button"]').should('exist')
                     })
 
                     cy.get('[data-el="application-instances"] li:contains("instance-2-1")').within(() => {
@@ -115,6 +116,7 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                         cy.contains('http://instance-2-1.example.com')
                         cy.contains('Flows last deployed')
                         cy.get('[data-action="open-editor"]').should('be.enabled')
+                        cy.get('[data-el="action-button"]').should('exist')
                     })
 
                     cy.get('[data-el="application-devices"]').find('li').should('have.length', 2)
@@ -124,6 +126,7 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                         cy.contains('moments ago')
                         cy.contains('http://editor.example.com')
                         cy.get('[data-action="open-editor"]').should('be.enabled')
+                        cy.get('[data-el="action-button"]').should('not.exist')
                     })
 
                     cy.get('[data-el="application-devices"] li:contains("application-device-b")').within(() => {
@@ -133,6 +136,7 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                         cy.contains('never')
 
                         cy.get('[data-action="open-editor"]').should('be.disabled')
+                        cy.get('[data-el="action-button"]').should('not.exist')
                     })
                 })
             })

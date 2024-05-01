@@ -23,11 +23,6 @@
                 @click="toggleDrawer"
             />
 
-            <ConfirmInstanceDeleteDialog
-                ref="confirmInstanceDeleteDialog"
-                @confirm="deleteInstance"
-            />
-
             <div class="header">
                 <div class="logo">
                     <router-link :to="{ name: 'instance-overview', params: {id: instance.id} }">
@@ -37,7 +32,8 @@
                 </div>
                 <ff-tabs :tabs="navigation" class="tabs" />
                 <div class="side-actions">
-                    <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
+                    <DashboardLink v-if="instance.settings?.dashboard2UI" :instance="instance" />
+                    <InstanceActionsButton :instance="instance" @instance-deleted="onInstanceDelete" />
                     <a :href="instance.url">
                         <ExternalLinkIcon class="ff-btn--icon" />
                     </a>
@@ -66,13 +62,12 @@
 <script>
 import { ArrowLeftIcon, ChevronDownIcon, ExternalLinkIcon } from '@heroicons/vue/solid'
 
-import DropdownMenu from '../../../components/DropdownMenu.vue'
 import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue'
+import InstanceActionsButton from '../../../components/instance/ActionButton.vue'
 
 import FfPage from '../../../layouts/Page.vue'
 import instanceMixin from '../../../mixins/Instance.js'
-import FfTabs from '../../../ui-components/components/tabs/Tabs.vue'
-import ConfirmInstanceDeleteDialog from '../Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
+import DashboardLink from '../components/DashboardLink.vue'
 
 import EditorWrapper from './components/EditorWrapper.vue'
 import DrawerTrigger from './components/drawer/DrawerTrigger.vue'
@@ -82,13 +77,12 @@ import ResizeBar from './components/drawer/ResizeBar.vue'
 export default {
     name: 'InstanceEditor',
     components: {
+        InstanceActionsButton,
+        DashboardLink,
         MiddleCloseButton,
         DrawerTrigger,
-        FfTabs,
         EditorWrapper,
-        ConfirmInstanceDeleteDialog,
         InstanceStatusPolling,
-        DropdownMenu,
         ExternalLinkIcon,
         FfPage,
         ChevronDownIcon,
@@ -163,22 +157,6 @@ export default {
                 this.drawer.height = this.drawer.defaultHeight
             }
             this.drawer.isHoveringOverResize = false
-        },
-        eventListener (event) {
-            if (event.origin === this.instance.url) {
-                switch (event.data.type) {
-                case 'load':
-                    this.emitMessage('prevent-redirect', true)
-                    break
-                case 'navigate':
-                    window.location.href = event.data.payload
-                    break
-                default:
-                }
-            }
-        },
-        emitMessage (type, payload = {}) {
-            this.$refs.iframe.contentWindow.postMessage({ type, payload }, '*')
         },
         onResizeBarMouseHover () {
             if (!this.throttled) {
@@ -269,12 +247,9 @@ export default {
       .side-actions {
         display: flex;
         justify-content: flex-end;
+        gap: 10px;
         align-items: center;
         color: $ff-grey-500;
-
-        .ff-btn--icon {
-          margin-left: 10px;
-        }
 
         .close-drawer {
           &:hover {
@@ -296,6 +271,17 @@ export default {
     }
     .tabs-wrapper {
         transition: none;
+    }
+  }
+}
+</style>
+
+<style lang="scss">
+.ff-editor-wrapper {
+  .tabs-wrapper {
+    main {
+      overflow-y: auto;
+      overflow-x: hidden;
     }
   }
 }

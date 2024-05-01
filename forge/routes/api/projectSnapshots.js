@@ -248,15 +248,16 @@ module.exports = async function (app) {
             reply.code(400).send({ code: 'bad_request', error: 'credentialSecret is mandatory in the body' })
         }
 
-        const snapShot = await app.db.controllers.ProjectSnapshot.exportSnapshot(
+        const snapshot = await app.db.controllers.ProjectSnapshot.exportSnapshot(
             request.project,
             request.snapshot,
             request.body
         )
-        if (snapShot) {
-            await app.auditLog.Project.project.snapshot.exported(request.session.User, null, request.project, snapShot)
-            snapShot.exportedBy = request.session.User
-            reply.send(snapShot)
+        if (snapshot) {
+            const snapshotExport = app.db.views.ProjectSnapshot.snapshotExport(snapshot)
+            snapshotExport.exportedBy = app.db.views.User.userSummary(request.session.User)
+            await app.auditLog.Project.project.snapshot.exported(request.session.User, null, request.project, snapshot)
+            reply.send(snapshotExport)
         } else {
             reply.send({})
         }
