@@ -29,6 +29,7 @@
                 :billing-enabled="!!features.billing"
                 :flow-blueprints-enabled="!!features.flowBlueprints"
                 :submit-errors="errors"
+                :pre-defined-inputs="preDefinedInputs"
                 @on-submit="handleFormSubmit"
             />
         </div>
@@ -77,7 +78,8 @@ export default {
             errors: {
                 name: ''
             },
-            instanceDetails: null
+            instanceDetails: null,
+            preDefinedInputs: null
         }
     },
     computed: {
@@ -105,6 +107,7 @@ export default {
     },
     async mounted () {
         this.mounted = true
+        this.setPredefinedInputs()
     },
     methods: {
         async handleFormSubmit (formData, copyParts) {
@@ -137,6 +140,13 @@ export default {
             const createPayload = { ...instanceDetails, applicationId }
 
             return instanceApi.create(createPayload)
+        },
+        setPredefinedInputs () {
+            if (this.$route?.query && this.$route?.query?.blueprintId) {
+                this.preDefinedInputs = {
+                    flowBlueprintId: this.$route.query.blueprintId
+                }
+            }
         }
     }
 }
