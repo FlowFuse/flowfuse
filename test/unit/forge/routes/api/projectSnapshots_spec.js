@@ -425,8 +425,10 @@ describe('Project Snapshots API', function () {
             exportResult.should.have.property('name', snapshotName)
             exportResult.should.have.property('createdAt')
             exportResult.should.have.property('updatedAt')
-            exportResult.should.have.property('user')
+            exportResult.should.have.property('user').and.be.an.Object()
             exportResult.user.should.have.property('id', TestObjects.alice.hashid)
+            exportResult.should.have.property('exportedBy').and.be.an.Object()
+            exportResult.exportedBy.should.have.property('id', TestObjects.alice.hashid)
 
             exportResult.should.have.property('flows').and.be.an.Object()
             exportResult.flows.should.have.property('flows').and.be.an.Array()
