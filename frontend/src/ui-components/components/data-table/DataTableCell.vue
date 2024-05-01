@@ -1,5 +1,5 @@
 <template>
-    <td class="ff-data-table--cell" :class="{'highlight': highlight}" :colspan="colspan">
+    <td class="ff-data-table--cell" :class="{'highlight': highlight}" :colspan="colspan" data-el="ff-data-cell">
         <slot></slot>
     </td>
 </template>
