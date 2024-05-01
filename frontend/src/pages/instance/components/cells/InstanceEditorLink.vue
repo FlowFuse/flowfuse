@@ -1,6 +1,6 @@
 <template>
     <div class="flex justify-end">
-        <InstanceEditorLink v-if="!isHA" :disabled="disabled" :editorDisabled="editorDisabled" :url="url" />
+        <InstanceEditorLink v-if="!isHA" :disabled="disabled" :editorDisabled="editorDisabled" :url="url" :instance="instance" />
         <router-link v-else :to="{name: 'instance-settings-ha', params: { id }}" @click.stop>
             <StatusBadge class="text-gray-400 hover:text-blue-600" status="high-availability" />
         </router-link>
@@ -35,6 +35,10 @@ export default {
         isHA: {
             default: false,
             type: Boolean
+        },
+        instance: {
+            default: null,
+            type: Object
         }
     }
 }

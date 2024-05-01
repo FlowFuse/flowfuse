@@ -30,7 +30,7 @@
                     <ff-data-table-row v-for="row in rows" :key="row" :selectable="true" @click="entrySelected(row)">
                         <ff-data-table-cell><TypeIcon :type="row.type" /></ff-data-table-cell>
                         <ff-data-table-cell>{{ row.name }}</ff-data-table-cell>
-                        <ff-data-table-cell>{{ formatDateTime(row.updatedAt) }}</ff-data-table-cell>
+                        <ff-data-table-cell>{{ row.updatedAt ? formatDateTime(row.updatedAt) : '' }}</ff-data-table-cell>
                         <template #context-menu>
                             <ff-list-item class="ff-list-item--danger" label="Delete" @click.stop="deleteFile(row)" />
                         </template>
@@ -154,9 +154,7 @@ export default {
             }
 
             const entryPath = entryPathArray.join('/')
-            const entryIsFile = /\.\w+/.test(entryPath)
-
-            const contents = await teamApi.getTeamLibrary(this.team.id, entryPath)
+            const { meta, data: content } = await teamApi.getTeamLibrary(this.team.id, entryPath)
 
             this.breadcrumbs = [{
                 name: 'Library',
@@ -166,12 +164,12 @@ export default {
                 this.breadcrumbs.push(this.formatEntry(entry, this.breadcrumbs.at(-1)))
             }
 
-            this.viewingFile = entryIsFile
-            if (entryIsFile) {
-                this.contents = contents
+            this.viewingFile = meta.type !== 'folder'
+            if (this.viewingFile) {
+                this.contents = content
             } else {
                 this.contents = null // clear selection so that copy to clipboard is hidden
-                this.rows = this.formatEntries(contents, this.breadcrumbs.at(-1))
+                this.rows = this.formatEntries(content, this.breadcrumbs.at(-1))
             }
         },
         entrySelected (entry) {
@@ -188,7 +186,7 @@ export default {
             return {
                 type,
                 name,
-                updatedAt: contents.updatedAt,
+                updatedAt: contents.updatedAt || 0, // directory listings do not have an updatedAt
                 path: parent.path ? (parent.path + '/' + name) : name
             }
         },

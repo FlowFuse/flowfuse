@@ -3,10 +3,10 @@
         ref="dialog"
         confirm-label="Delete"
         data-el="delete-instance-dialog"
-        :header="'Delete Instance: \'' + instance?.name + '\''"
+        :header="'Delete Instance: \'' + localInstance?.name + '\''"
         kind="danger"
         :disable-primary="!formValid"
-        @confirm="confirm()"
+        @confirm="deleteInstance()"
     >
         <template #default>
             <form class="space-y-4" @submit.prevent>
@@ -14,7 +14,7 @@
                     Are you sure you want to delete this instance? Once deleted, there is no going back.
                 </p>
                 <p>
-                    Name: <span class="font-bold">{{ instance?.name }}</span>
+                    Name: <span class="font-bold">{{ localInstance?.name }}</span>
                 </p>
                 <p>
                     Please type in the instance name to confirm.
@@ -27,18 +27,28 @@
 
 <script>
 
+import InstanceApi from '../../../../api/instances.js'
 import FormRow from '../../../../components/FormRow.vue'
+import alerts from '../../../../services/alerts.js'
 
 export default {
     name: 'ConfirmInstanceDeleteDialog',
     components: {
         FormRow
     },
+    props: {
+        // this prop is required except for when called via show method
+        instance: {
+            required: false,
+            type: Object,
+            default: null
+        }
+    },
     emits: ['confirm'],
     setup () {
         return {
             show (instance) {
-                this.instance = instance
+                this.localInstance = instance
                 this.$refs.dialog.show()
             }
         }
@@ -48,19 +58,31 @@ export default {
             input: {
                 instanceName: ''
             },
-            instance: null
+            localInstance: null
         }
     },
     computed: {
         formValid () {
-            return this.instance?.name && this.input.instanceName === this.instance.name
+            return this.localInstance?.name && this.input.instanceName === this.localInstance.name
         }
     },
+    watch: {
+        instance: 'updateLocalInstance'
+    },
     methods: {
-        confirm () {
+        deleteInstance () {
             if (this.formValid) {
-                this.$emit('confirm', this.instance)
+                InstanceApi.deleteInstance(this.localInstance)
+                    .then(() => this.$emit('confirm', this.localInstance))
+                    .then(() => alerts.emit('Instance successfully deleted.', 'confirmation'))
+                    .catch(err => {
+                        console.warn(err)
+                        alerts.emit('Instance failed to delete.', 'warning')
+                    })
             }
+        },
+        updateLocalInstance () {
+            this.localInstance = this.instance
         }
     }
 }

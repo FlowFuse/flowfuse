@@ -33,18 +33,17 @@
                             :disabled="!editorAvailable"
                         />
                         <InstanceEditorLink
-                            :url="editorUrl"
                             :editorDisabled="instance.settings.disableEditor || isHA"
                             :disabled="!editorAvailable"
                             :disabled-reason="disabledReason"
-                            :immersive="isLauncherImmersionCompatible"
+                            :instance="instance"
                         />
-                        <DropdownMenu v-if="hasPermission('project:change-status')" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
+                        <InstanceActionsButton :instance="instance" @instance-deleted="onInstanceDelete" />
                     </div>
                 </template>
             </ff-page-header>
         </template>
-        <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="deleteInstance" />
+        <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" :instance="instance" @confirm="onInstanceDelete" />
         <Teleport v-if="mounted" to="#platform-banner">
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">You are viewing this instance as an Administrator</div>
             <SubscriptionExpiredBanner :team="team" />
@@ -66,15 +65,14 @@
 
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
-import SemVer from 'semver'
 import { mapState } from 'vuex'
 
-import DropdownMenu from '../../components/DropdownMenu.vue'
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
+import InstanceActionsButton from '../../components/instance/ActionButton.vue'
 
 import instanceMixin from '../../mixins/Instance.js'
 import permissionsMixin from '../../mixins/Permissions.js'
@@ -87,8 +85,8 @@ export default {
     name: 'InstancePage',
     components: {
         ConfirmInstanceDeleteDialog,
+        InstanceActionsButton,
         DashboardLink,
-        DropdownMenu,
         InstanceStatusPolling,
         InstanceStatusBadge,
         SideNavigationTeamOptions,
@@ -138,16 +136,6 @@ export default {
                 return 'Instance is not running'
             }
             return null
-        },
-        isLauncherImmersionCompatible () {
-            return SemVer.satisfies(SemVer.coerce(this.instance?.meta?.versions?.launcher), '>=2.3.1')
-        },
-        editorUrl () {
-            if (this.isLauncherImmersionCompatible) {
-                return this.$router.resolve({ name: 'instance-editor', params: { id: this.instance.id } }).fullPath
-            }
-
-            return this.instance.url
         }
     },
     mounted () {

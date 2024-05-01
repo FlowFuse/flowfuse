@@ -1,6 +1,6 @@
 <template>
     <section class="editor-wrapper">
-        <div v-if="isInstanceTransitioningStates" class="status-wrapper">
+        <div v-if="shouldDisplayLoadingScreen" class="status-wrapper">
             <InstanceStatusBadge
                 :status="instance.meta?.state"
                 :optimisticStateChange="instance.optimisticStateChange"
@@ -16,13 +16,24 @@
             :src="instance.url"
             referrerpolicy="strict-origin-when-cross-origin"
             allowfullscreen
+            :style="{'pointer-events': disableEvents ? 'none' : 'auto'}"
+            data-el="editor-iframe"
         />
     </section>
 </template>
 
 <script>
 import InstanceStatusBadge from '../../components/InstanceStatusBadge.vue'
-
+const States = {
+    STOPPED: 'stopped',
+    LOADING: 'loading',
+    INSTALLING: 'installing',
+    STARTING: 'starting',
+    RUNNING: 'running',
+    SAFE: 'safe',
+    CRASHED: 'crashed',
+    STOPPING: 'stopping'
+}
 export default {
     name: 'EditorWrapper',
     components: { InstanceStatusBadge },
@@ -30,13 +41,26 @@ export default {
         instance: {
             type: Object,
             required: true
+        },
+        disableEvents: {
+            type: Boolean,
+            default: false
         }
     },
     computed: {
         isInstanceTransitioningStates () {
             const pendingState = (Object.hasOwnProperty.call(this.instance, 'pendingStateChange') && this.instance.pendingStateChange)
             const optimisticStateChange = (Object.hasOwnProperty.call(this.instance, 'optimisticStateChange') && this.instance.optimisticStateChange)
-            return pendingState || optimisticStateChange || ['starting', 'suspended', 'suspending'].includes(this.instance.meta?.state)
+
+            return pendingState || optimisticStateChange
+        },
+        shouldDisplayLoadingScreen () {
+            const unsafeStates = [
+                ...Object.values(States).filter(state => ![States.RUNNING, States.SAFE].includes(state)),
+                ...['suspending', 'suspended']
+            ]
+
+            return this.isInstanceTransitioningStates || unsafeStates.includes(this.instance.meta?.state)
         }
     },
     mounted () {

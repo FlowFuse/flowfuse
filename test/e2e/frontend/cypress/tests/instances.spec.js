@@ -106,6 +106,7 @@ describe('FlowForge - Instances', () => {
                 cy.get('button[data-action="delete-instance"]').click()
 
                 cy.get('[data-el="delete-instance-dialog"]')
+                    .get('.ff-dialog-container.ff-dialog-container--open')
                     .should('be.visible')
                     .within(() => {
                         // Dialog is open

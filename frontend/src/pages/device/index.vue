@@ -302,12 +302,18 @@ export default {
             // This is to prevent settings pages from refreshing the device state while modifying settings
             // See `watch: { device: { handler () ...  in pages/device/Settings/General.vue for why that happens
             const settingsPages = ['DeviceOverview', 'DeviceDeveloperMode']
-            if (settingsPages.includes(this.$route.name)) {
-                this.loadDevice()
-            } else if (typeof this.device?.status === 'undefined') {
-                this.loadDevice()
-            } else if (deviceTransitionStates.includes(this.device?.status)) {
-                this.loadDevice()
+            try {
+                if (settingsPages.includes(this.$route.name)) {
+                    await this.loadDevice()
+                } else if (typeof this.device?.status === 'undefined') {
+                    await this.loadDevice()
+                } else if (deviceTransitionStates.includes(this.device?.status)) {
+                    await this.loadDevice()
+                }
+            } catch (err) {
+                if (err.response.status === 404) {
+                    this.pollTimer?.stop()
+                }
             }
         },
         loadDevice: async function () {
