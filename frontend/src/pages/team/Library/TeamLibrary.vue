@@ -7,7 +7,7 @@
                     <ChevronRightIcon v-if="breadcrumbs.length === 1 || $index !== breadcrumbs.length - 1" class="ff-icon" />
                 </span>
             </div>
-            <ff-button v-if="contents" size="small" @click="copyToClipboard()">Copy to Clipboard</ff-button>
+            <ff-button v-if="file?.contents" kind="secondary" size="small" @click="copyToClipboard()">Copy to Clipboard</ff-button>
         </div>
         <ff-data-table v-if="!viewingFile && rows.length > 0" :columns="columns" :rows="rows">
             <template #rows>
@@ -21,7 +21,9 @@
                 </ff-data-table-row>
             </template>
         </ff-data-table>
-        <ff-code-previewer v-else-if="viewingFile" ref="code-preview" :snippet="contents" />
+        <!-- file viewer -->
+        <ff-flow-viewer v-else-if="viewingFile && file.meta.type === 'flows'" :flow="file?.contents" />
+        <ff-code-previewer v-else-if="viewingFile && file.meta.type === 'functions'" ref="code-preview" :snippet="file?.contents" />
         <EmptyState v-else :featureUnavailable="!isSharedLibraryFeatureEnabledForPlatform" :featureUnavailableToTeam="!isSharedLibraryFeatureEnabledForTeam">
             <template #img>
                 <img src="../../../images/empty-states/team-library.png" alt="team-logo">
@@ -59,26 +61,18 @@ import teamApi from '../../../api/team.js'
 
 import CodePreviewer from '../../../components/CodePreviewer.vue'
 import EmptyState from '../../../components/EmptyState.vue'
+import FlowViewer from '../../../components/flow-viewer/FlowViewer.vue'
 import formatDateMixin from '../../../mixins/DateTime.js'
 import featuresMixin from '../../../mixins/Features.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
-import FFButton from '../../../ui-components/components/Button.vue'
-import FFListItem from '../../../ui-components/components/ListItem.vue'
-import FFDataTable from '../../../ui-components/components/data-table/DataTable.vue'
-import FFDataTableCell from '../../../ui-components/components/data-table/DataTableCell.vue'
-import FFDataTableRow from '../../../ui-components/components/data-table/DataTableRow.vue'
 import TypeIcon from '../components/LibraryEntryTypeIcon.vue'
 
 export default {
     name: 'TeamLibrary',
     components: {
         'ff-code-previewer': CodePreviewer,
-        'ff-data-table': FFDataTable,
-        'ff-data-table-cell': FFDataTableCell,
-        'ff-data-table-row': FFDataTableRow,
-        'ff-button': FFButton,
-        'ff-list-item': FFListItem,
+        'ff-flow-viewer': FlowViewer,
         ChevronRightIcon,
         EmptyState,
         TypeIcon,
@@ -103,7 +97,10 @@ export default {
                 key: 'actions'
             }],
             rows: [],
-            contents: null,
+            file: {
+                meta: null,
+                contents: null
+            },
             viewingFile: false
         }
     },
@@ -169,9 +166,12 @@ export default {
 
             this.viewingFile = meta.type !== 'folder'
             if (this.viewingFile) {
-                this.contents = content
+                this.file.meta = meta
+                this.file.contents = content
             } else {
-                this.contents = null // clear selection so that copy to clipboard is hidden
+                // clear selection so that copy to clipboard is hidden
+                this.file.meta = null
+                this.file.contents = null
                 this.rows = this.formatEntries(content, this.breadcrumbs.at(-1))
             }
         },
@@ -201,7 +201,7 @@ export default {
             })
         },
         copyToClipboard () {
-            navigator.clipboard.writeText(JSON.stringify(this.contents))
+            navigator.clipboard.writeText(JSON.stringify(this.file.contents))
             Alerts.emit('Copied to Clipboard.', 'confirmation')
         }
     }
