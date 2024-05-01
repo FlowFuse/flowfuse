@@ -1,9 +1,9 @@
 <template>
-    <ff-dialog ref="dialog" header="Download Snapshot" confirm-label="Download" :closeOnConfirm="false" :disable-primary="!formValid" @confirm="confirm()">
+    <ff-dialog ref="dialog" header="Download Snapshot" confirm-label="Download" :closeOnConfirm="false" :disable-primary="!formValid" data-el="snapshot-download-dialog" @confirm="confirm()">
         <template #default>
-            <form class="space-y-6 mt-2" @submit.prevent>
+            <form class="space-y-6 mt-2" data-form="snapshot-export" @submit.prevent>
                 <p>Please make a note of the secret used to encrypt the snapshot credentials. It will be required when importing the snapshot.</p>
-                <FormRow containerClass="w-auto" :error="errors.secret" data-form="snapshot-export">
+                <FormRow containerClass="w-auto" :error="errors.secret" data-form="snapshot-secret">
                     Secret
                     <template #description>
                         <p class="text-sm">A key used to encrypt any credentials in the snapshot.</p>
@@ -11,7 +11,7 @@
                     <template #input>
                         <div class="flex items-center w-full">
                             <ff-text-input ref="secret" v-model="input.secret" type="text" placeholder="Secret" />
-                            <ff-button v-ff-tooltip:top="'Random Secret'" kind="secondary" size="small" class="ml-2" @click="input.secret = generateRandomKey()">
+                            <ff-button v-ff-tooltip:top="'Random Secret'" kind="secondary" size="small" class="ml-2" data-el="refresh" @click="input.secret = generateRandomKey()">
                                 <template #icon>
                                     <RefreshIcon />
                                 </template>
@@ -51,7 +51,6 @@ export default {
             required: true
         }
     },
-    emits: ['snapshot-exported'],
     setup () {
         return {
             show (snapshot) {
