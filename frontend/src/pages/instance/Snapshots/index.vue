@@ -102,7 +102,7 @@ export default {
     computed: {
         ...mapState('account', ['teamMembership']),
         showContextMenu: function () {
-            return this.hasPermission('project:snapshot:rollback') || this.hasPermission('project:snapshot:set-target') || this.hasPermission('project:snapshot:delete')
+            return this.hasPermission('project:snapshot:rollback') || this.hasPermission('project:snapshot:set-target') || this.hasPermission('project:snapshot:delete') || this.hasPermission('project:snapshot:export')
         },
         columns () {
             const cols = [
