@@ -1,16 +1,27 @@
 <template>
-    <div v-if="device.ownerType == 'application'">
+    <div v-if="deviceOwnerType == 'application'">
         <form class="space-y-6 max-w-2xl" @submit.prevent>
             <FormHeading>
                 <template #default>
                     Editor
                 </template>
             </FormHeading>
-            <FormRow v-model="input.nodeRedVersion" type="input" :error="errors.nodeRedVersion" placeholder="latest">
-                Node-RED Version
-                <template #description>Clear this field to use the Node-RED version specified in the device's active snapshot. Defaults to 'latest' if the snapshot does not specify a version.</template>
-            </FormRow>
 
+            <!-- Node-RED Version -->
+            <FormRow :error="errors.nodeRedVersion">
+                Node-RED Version
+                <template #description>
+                    Clear this field to use the Node-RED version specified in the device's active snapshot. Defaults to 'latest' if the snapshot does not specify a version.
+                </template>
+                <template #input>
+                    <div class="flex flex-wrap">
+                        <input v-model="input.nodeRedVersion" type="text" class="ff-input ff-text-input w-full" placeholder="latest">
+                    </div>
+                </template>
+            </FormRow>
+            <div class="ff-description !mt-0 max-w-sm italic">NOTE: {{ versionChangeFootnote }}</div>
+
+            <!-- Save -->
             <ff-button size="small" :disabled="!changed || hasErrors" @click="save">Save Settings</ff-button>
         </form>
     </div>
@@ -21,7 +32,7 @@
 
 <script>
 
-import SemVer from 'semver'
+import semver from 'semver'
 import { mapState } from 'vuex'
 
 import deviceApi from '../../../api/devices.js'
@@ -63,6 +74,15 @@ export default {
         changed () {
             const changed = this.initial.nodeRedVersion !== this.input.nodeRedVersion
             return changed
+        },
+        deviceOwnerType: function () {
+            return this.device?.ownerType || ''
+        },
+        versionChangeFootnote: function () {
+            if (!this.device?.agentVersion || semver.lte(this.device.agentVersion, '2.4.0')) {
+                return 'The device will be updated to the specified version when a different snapshot is deployed'
+            }
+            return 'The device will be updated to the specified version and restarted upon saving the settings'
         }
     },
     watch: {
@@ -77,10 +97,10 @@ export default {
         validate: function () {
             this.errors.nodeRedVersion = ''
             this.hasErrors = false
-            const nrv = this.input.nodeRedVersion
+            const nodeRedVersion = (this.input.nodeRedVersion || '').trim()
             const validVersions = ['', 'latest', 'next', this.initial.nodeRedVersion]
-            if (!validVersions.includes(nrv)) {
-                this.errors.nodeRedVersion = SemVer.valid(nrv) ? '' : 'Invalid version'
+            if (!validVersions.includes(nodeRedVersion)) {
+                this.errors.nodeRedVersion = semver.valid(nodeRedVersion) ? '' : 'Invalid version'
             }
             this.hasErrors = !!this.errors.nodeRedVersion
             return !this.hasErrors
@@ -96,8 +116,9 @@ export default {
         },
         save: async function () {
             const settings = {} // await deviceApi.getSettings(this.device.id)
+            const nodeRedVersion = (this.input.nodeRedVersion || '').trim() || undefined
             settings.editor = {
-                nodeRedVersion: this.input.nodeRedVersion ? this.input.nodeRedVersion : undefined
+                nodeRedVersion
             }
             deviceApi.updateSettings(this.device.id, settings)
             this.$emit('device-updated')
