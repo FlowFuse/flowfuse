@@ -26,7 +26,7 @@ body:
 - type: dropdown
   id: pricing
   attributes:
-    label: Which customers would this be availble to 
+    label: Which customers would this be available to 
     description: Based on our [pricing principles](https://flowfuse.com/handbook/product/pricing/) features should be aligned between Cloud and CE/EE
     multiple: false
     options:

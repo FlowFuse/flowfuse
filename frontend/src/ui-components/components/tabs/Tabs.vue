@@ -2,8 +2,14 @@
     <div>
         <ul class="ff-tabs" :class="'ff-tabs--' + orientation">
             <router-link
-                v-for="(tab, $index) in scopedTabs" :key="tab.label" class="ff-tab-option transition-fade--color"
-                :class="{'ff-tab-option--active': tab.isActive}" :to="tab.to" :data-nav="tab.tag" @click="selectTab($index)"
+                v-for="(tab, $index) in scopedTabs"
+                :key="tab.label"
+                data-el="ff-tab"
+                class="ff-tab-option transition-fade--color"
+                :class="{'ff-tab-option--active': tab.isActive}"
+                :to="tab.to"
+                :data-nav="tab.tag"
+                @click="selectTab($index)"
             >
                 {{ tab.label }}
             </router-link>
