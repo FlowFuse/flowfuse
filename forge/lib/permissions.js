@@ -49,7 +49,7 @@ const Permissions = {
     'project:snapshot:delete': { description: 'Delete Project Snapshot', role: Roles.Owner },
     'project:snapshot:rollback': { description: 'Rollback Project Snapshot', role: Roles.Member },
     'project:snapshot:set-target': { description: 'Set Device Target Snapshot', role: Roles.Member },
-    'project:snapshot:export': { description: 'Export Project Snapshot', role: Roles.Owner },
+    'project:snapshot:export': { description: 'Export Project Snapshot', role: Roles.Member },
     // Templates
     'template:create': { description: 'Create a Template', role: Roles.Admin },
     'template:list': { description: 'List all Templates' },

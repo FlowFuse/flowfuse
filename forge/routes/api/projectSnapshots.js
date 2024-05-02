@@ -254,8 +254,7 @@ module.exports = async function (app) {
             request.body
         )
         if (snapshot) {
-            const snapshotExport = app.db.views.ProjectSnapshot.snapshotExport(snapshot)
-            snapshotExport.exportedBy = app.db.views.User.userSummary(request.session.User)
+            const snapshotExport = app.db.views.ProjectSnapshot.snapshotExport(snapshot, request.session.User)
             await app.auditLog.Project.project.snapshot.exported(request.session.User, null, request.project, snapshot)
             reply.send(snapshotExport)
         } else {
