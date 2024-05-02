@@ -814,7 +814,9 @@ module.exports = async function (app) {
             reply.code(400).send({ code: 'project_suspended', error: 'Project suspended' })
             return
         }
+        // get settings from the driver
         const settings = await app.containers.settings(request.project)
+        // add instance settings
         settings.env = settings.env || {}
         settings.baseURL = request.project.url
         settings.forgeURL = app.config.base_url
@@ -824,6 +826,7 @@ module.exports = async function (app) {
         settings.auditURL = request.project.auditURL
         settings.state = request.project.state
         settings.stack = request.project.ProjectStack?.properties || {}
+        settings.healthCheckInterval = await request.project.getSetting(KEY_HEALTH_CHECK_INTERVAL)
         settings.settings = await app.db.controllers.Project.getRuntimeSettings(request.project)
         if (settings.settings.env) {
             settings.env = Object.assign({}, settings.settings.env, settings.env)
