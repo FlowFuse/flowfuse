@@ -1,5 +1,4 @@
 /// <reference types="cypress" />
-const path = require('path')
 describe('FlowForge - Instance Snapshots', () => {
     beforeEach(() => {
         cy.intercept('GET', '/api/*/projects/*/snapshots').as('getProjectSnapshots')
@@ -92,11 +91,14 @@ describe('FlowForge - Instance Snapshots', () => {
         cy.get('[data-el="dialog-export-snapshot"] [data-action="dialog-confirm"]').click()
 
         // wait for `api/v1/projects/*/snapshots/*/export` to respond
-        cy.wait('@exportSnapshot')
-
-        // check the downloaded file
-        const downloadsFolder = Cypress.config('downloadsFolder')
-        cy.readFile(path.join(downloadsFolder, 'snapshot.json'))
+        let response
+        cy.wait('@exportSnapshot').then(interception => {
+            response = interception.response.body
+            // check the downloaded file
+            const downloadsFolder = Cypress.config('downloadsFolder')
+            // generate the expected snapshot filename structure
+            cy.task('fileExists', { dir: downloadsFolder, fileRE: `snapshot-${response.id}-\\d{8}-\\d{6}\\.json` })
+        })
     })
 
     it('download snapshot package.json', () => {
@@ -106,7 +108,7 @@ describe('FlowForge - Instance Snapshots', () => {
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(2).click()
 
         const downloadsFolder = Cypress.config('downloadsFolder')
-        cy.readFile(path.join(downloadsFolder, 'package.json'))
+        cy.task('fileExists', { dir: downloadsFolder, file: 'package.json' })
     })
 
     it('can delete a snapshot', () => {
