@@ -139,7 +139,7 @@ module.exports = async function (app) {
         if (stages.length > 0) {
         // delete stages too
             for (let i = 0; i < stages.length; i++) {
-                stages[i].destroy()
+                await stages[i].destroy()
             }
         }
 

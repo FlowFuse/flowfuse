@@ -23,6 +23,17 @@ function interceptLibraries (libraries = [], metaType) {
     cy.visit('team/ateam/library')
 }
 
+function interceptFlowFile () {
+    cy.intercept(
+        '/storage/library/*/*.json',
+        (req) => req.reply(res => {
+            res.body = { ...res.body }
+            res.headers['X-meta-type'] = 'flows'
+            return res
+        })
+    ).as('getFlowJson')
+}
+
 describe('FlowForge - Library', () => {
     beforeEach(() => {
         cy.login('alice', 'aaPassword')
@@ -104,10 +115,10 @@ describe('FlowForge - Library', () => {
             cy.contains('Create your own Team Library')
             cy.contains('You can import and export flows and functions to a shared Team Library from within your Node-RED Instances.')
             cy.contains('The contents of your Team Library will show here, and will be available within all of your Node-RED instances on FlowFuse.')
-            cy.get('[data-el="go-to-instances"]').contains('Go To Instance').as('createInstanceBtn').should('exist')
+            cy.get('[data-el="go-to-instances"]').contains('Go To Instance').as('goToInstances').should('exist')
             cy.contains('You can see a video of how to get started with this feature here.')
 
-            cy.get('@createInstanceBtn').click()
+            cy.get('@goToInstances').click()
             cy.window().then((win) => expect(win.location.href).to.contain('/instances'))
         })
 
@@ -118,21 +129,16 @@ describe('FlowForge - Library', () => {
 
             cy.wait(['@getLibraries'])
 
-            cy.intercept('/storage/library/*/*', sharedLibrary).as('getLibrary')
+            cy.intercept('/storage/library/*/*', sharedLibrary)
+
+            interceptFlowFile()
 
             cy.get('[data-el="ff-data-cell"]').contains('First Team Library.json').click()
 
-            cy.wait(['@getLibrary'])
+            cy.wait(['@getFlowJson'])
 
             cy.contains('Copy to Clipboard')
-            cy.get('[data-el="ff-code-previewer"]').should('exist')
-            cy.contains('"id": "b9b294725f80b01c"')
-            cy.contains('"id": "d040659cbe69d523"')
-            cy.contains('"id": "e346197ad2873980"')
-            cy.contains('"id": "423947de9c2b81cf"')
-            cy.contains('"id": "45ee287d460c26db"')
-            cy.contains('"id": "b3f4402b1661a42e"')
-            cy.contains('"id": "d5a42eef34d39d76"')
+            cy.get('[data-el="ff-flow-previewer"]').should('exist')
         })
     })
 })
