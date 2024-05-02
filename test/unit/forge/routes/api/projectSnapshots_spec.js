@@ -89,13 +89,13 @@ describe('Project Snapshots API', function () {
         await app.close()
     })
 
-    async function exportSnapshot (projectId, snapshotId, key, cookie, credentials = null) {
+    async function exportSnapshot (projectId, snapshotId, credentialSecret, cookie, credentials = null) {
         return await app.inject({
             method: 'POST',
             url: `/api/v1/projects/${projectId}/snapshots/${snapshotId}/export`,
             ...(cookie ? { cookies: { sid: cookie } } : {}),
             payload: {
-                credentialSecret: key,
+                credentialSecret,
                 ...(credentials ? { credentials } : {})
             }
         })
@@ -337,6 +337,130 @@ describe('Project Snapshots API', function () {
             // 404 as a non-owner should not know the resource exists
             response.statusCode.should.equal(404)
         })
+        it('Team owner can export project snapshot', async function () {
+            await addFlowsToProject(app,
+                TestObjects.project1.id,
+                TestObjects.tokens.project,
+                TestObjects.tokens.alice,
+                [{ id: 'node1' }],
+                { testCreds: 'owner-123' },
+                projectCredentialsSecretA,
+                { }
+            )
+            const snapshotName = 'test--owner-created-snapshot'
+            const createResp = await createSnapshot(TestObjects.project1.id, snapshotName, TestObjects.tokens.alice)
+            createResp.statusCode.should.equal(200)
+            const createResult = createResp.json()
+            // Alice (owner) can export in ATeam
+            const response = await exportSnapshot(TestObjects.project1.id,
+                createResult.id,
+                'owner-secret',
+                TestObjects.tokens.alice)
+
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('id', createResult.id)
+
+            // ensure credentials are correctly encrypted using provided secret
+            const keyHashA = crypto.createHash('sha256').update('owner-secret').digest()
+            const decryptedCreds = decryptCredentials(keyHashA, result.flows.credentials)
+            should(decryptedCreds).be.an.Object()
+            decryptedCreds.should.deepEqual({ testCreds: 'owner-123' })
+        })
+        it('Team member can export project snapshot', async function () {
+            await addFlowsToProject(app,
+                TestObjects.project1.id,
+                TestObjects.tokens.project,
+                TestObjects.tokens.alice,
+                [{ id: 'node1' }],
+                { testCreds: 'member-123' },
+                projectCredentialsSecretA,
+                { }
+            )
+            const snapshotName = 'test--member-created-snapshot'
+            const createResp = await createSnapshot(TestObjects.project1.id, snapshotName, TestObjects.tokens.alice)
+            createResp.statusCode.should.equal(200)
+            const createResult = createResp.json()
+            // Bob (member) can export in ATeam
+            const response = await exportSnapshot(TestObjects.project1.id,
+                createResult.id,
+                'member-secret',
+                TestObjects.tokens.bob)
+
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('id', createResult.id)
+
+            // ensure credentials are correctly encrypted using provided secret
+            const keyHashA = crypto.createHash('sha256').update('member-secret').digest()
+            const decryptedCreds = decryptCredentials(keyHashA, result.flows.credentials)
+            should(decryptedCreds).be.an.Object()
+            decryptedCreds.should.deepEqual({ testCreds: 'member-123' })
+        })
+
+        it('Export project snapshot', async function () {
+            const aCreds = { testCreds: 'abc' }
+            const aFlowSignificatorNodeId = 'node1'
+            const aEnvSignificator = 'one'
+
+            await addFlowsToProject(app,
+                TestObjects.project1.id,
+                TestObjects.tokens.project,
+                TestObjects.tokens.alice,
+                [{ id: aFlowSignificatorNodeId }],
+                aCreds,
+                projectCredentialsSecretA,
+                {
+                    httpAdminRoot: '/test-red',
+                    dashboardUI: '/test-dash',
+                    env: [
+                        { name: aEnvSignificator, value: 'a' },
+                        { name: 'two', value: 'b' }
+                    ]
+                }
+            )
+            const snapshotName = 'test-project-snapshot-03'
+            const createResp = await createSnapshot(TestObjects.project1.id, snapshotName, TestObjects.tokens.alice)
+            createResp.statusCode.should.equal(200)
+            const createResult = createResp.json()
+
+            const exportResponse = await exportSnapshot(
+                TestObjects.project1.id,
+                createResult.id, // snapshot id
+                'a-secret-key',
+                TestObjects.tokens.alice,
+                null)
+            exportResponse.statusCode.should.equal(200)
+
+            const exportResult = exportResponse.json()
+            should(exportResult).be.an.Object()
+            exportResult.should.have.property('id', createResult.id)
+            exportResult.should.have.property('name', snapshotName)
+            exportResult.should.have.property('description')
+            exportResult.should.have.property('createdAt')
+            exportResult.should.have.property('updatedAt')
+
+            exportResult.should.have.property('user').and.be.an.Object()
+            exportResult.user.should.have.property('id', TestObjects.alice.hashid)
+
+            exportResult.should.have.property('exportedBy').and.be.an.Object()
+            exportResult.exportedBy.should.have.property('id', TestObjects.alice.hashid)
+
+            exportResult.flows.should.only.have.keys('flows', 'credentials')
+            exportResult.flows.flows.should.be.an.Array()
+            exportResult.flows.flows.should.have.lengthOf(1)
+            exportResult.flows.flows[0].should.have.property('id', 'node1')
+
+            exportResult.flows.credentials.should.have.property('$')
+
+            exportResult.should.have.property('settings').and.be.an.Object()
+            exportResult.settings.should.only.have.keys('settings', 'env', 'modules')
+            exportResult.settings.env.should.have.property(aEnvSignificator)
+            exportResult.settings.env.should.have.property('two')
+            exportResult.settings.should.have.property('modules')
+
+            exportResult.should.not.have.property('credentialSecret')
+        })
 
         it('Export project A snapshot and apply it to project B', async function () {
             const aCreds = { testCreds: 'abc' }
@@ -434,6 +558,8 @@ describe('Project Snapshots API', function () {
             exportResult.flows.should.have.property('flows').and.be.an.Array()
             exportResult.flows.flows.should.have.lengthOf(1)
             exportResult.flows.flows[0].should.have.property('id', 'node1')
+
+            exportResult.should.not.have.property('credentialSecret')
 
             // verify credentials of exported snapshot. Should belong to Project B according to setup above
             exportResult.flows.should.have.property('credentials')
@@ -597,6 +723,8 @@ describe('Project Snapshots API', function () {
             exportResult.flows.should.have.property('flows').and.be.an.Array()
             exportResult.flows.flows.should.have.lengthOf(1)
             exportResult.flows.flows[0].should.have.property('id', 'node1alt')
+
+            exportResult.should.not.have.property('credentialSecret')
 
             // verify credentials of exported snapshot. Should belong to Project B according to setup above
             exportResult.flows.should.have.property('credentials')
