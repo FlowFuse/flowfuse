@@ -80,7 +80,7 @@ export default {
         },
         versionChangeFootnote: function () {
             if (!this.device?.agentVersion || semver.lte(this.device.agentVersion, '2.4.0')) {
-                return 'The device will be updated to the specified version when a different snapshot is deployed'
+                return 'The device will be updated to the specified version the next time a snapshot is deployed'
             }
             return 'The device will be updated to the specified version and restarted upon saving the settings'
         }
