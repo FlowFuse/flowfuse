@@ -104,7 +104,8 @@ export default {
                 snapshotApi.exportInstanceSnapshot(this.project.id, this.snapshot.id, opts).then((data) => {
                     return data
                 }).then(data => {
-                    this.download(data, 'snapshot.json')
+                    const snapshotDate = this.snapshot.updatedAt.replace(/[-:]/g, '').replace(/\..*$/, '').replace('T', '-')
+                    this.download(data, `snapshot-${this.snapshot.id}-${snapshotDate}.json`)
                     alerts.emit('Snapshot exported.', 'confirmation')
                     this.$refs.dialog.close()
                 }).catch(err => {
@@ -131,7 +132,7 @@ export default {
                 document.body.removeChild(element)
             }
         },
-        generateRandomKey (length = 32) {
+        generateRandomKey (length = 16) {
             const array = new Uint8Array(length)
             window.crypto.getRandomValues(array)
             return Array.from(array, byte => ('0' + (byte & 0xFF).toString(16)).slice(-2)).join('')
