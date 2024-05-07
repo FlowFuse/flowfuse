@@ -369,6 +369,7 @@ module.exports = async function (app) {
             }
 
             const stage = await app.db.controllers.Pipeline.updatePipelineStage(
+                request.pipeline,
                 request.params.stageId,
                 options
             )

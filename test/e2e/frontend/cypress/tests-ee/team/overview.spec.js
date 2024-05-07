@@ -1,3 +1,4 @@
+/// <reference types="cypress" />
 describe('FlowForge - Team Overview (Home) - With License', () => {
     function navigateToTeam (teamName) {
         cy.request('GET', '/api/v1/user/teams')
@@ -114,7 +115,6 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                         cy.contains('running')
                         cy.contains('http://instance-2-1.example.com')
                         cy.contains('Flows last deployed')
-
                         cy.get('[data-action="open-editor"]').should('be.enabled')
                         cy.get('[data-el="action-button"]').should('exist')
                     })
