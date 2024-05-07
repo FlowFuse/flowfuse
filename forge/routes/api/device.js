@@ -625,6 +625,10 @@ module.exports = async function (app) {
                     palette: {
                         type: 'object',
                         additionalProperties: true
+                    },
+                    editor: {
+                        type: 'object',
+                        additionalProperties: true
                     }
                 }
             },
@@ -703,7 +707,8 @@ module.exports = async function (app) {
                     properties: {
                         env: { type: 'array', items: { type: 'object', additionalProperties: true } },
                         autoSnapshot: { type: 'boolean' },
-                        palette: { type: 'object', additionalProperties: true }
+                        palette: { type: 'object', additionalProperties: true },
+                        editor: { type: 'object', additionalProperties: true }
                     }
                 },
                 '4xx': {

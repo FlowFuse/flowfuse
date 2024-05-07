@@ -551,6 +551,11 @@
         <span v-if="!error && entry.body?.project && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been imported for Instance '{{ entry.body.project?.name }}' from Instance '{{ entry.body.sourceProject?.name }}'.</span>
         <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'project.snapshot.exported'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.project && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been exported'.</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
+    </template>
     <template v-else-if="entry.event === 'project.httpToken.created'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error">HTTP Bearer Token '{{ entry.body.token.name }}' has been created for Instance '{{ entry.body.project.name }}'</span>
