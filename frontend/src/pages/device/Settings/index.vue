@@ -16,7 +16,7 @@ import SectionSideMenu from '../../../components/SectionSideMenu.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
 
 export default {
-    name: 'DeviceSettins',
+    name: 'DeviceSettings',
     props: ['device'],
     emits: ['device-updated', 'device-refresh', 'assign-device'],
     mixins: [permissionsMixin],
@@ -46,6 +46,7 @@ export default {
                 { name: 'Environment', path: './environment' }
             ]
             if (this.device.ownerType === 'application' && this.hasPermission('device:edit')) {
+                this.sideNavigation.push({ name: 'Editor', path: './editor' })
                 this.sideNavigation.push({ name: 'Palette', path: './palette' })
             }
             if (this.hasPermission('device:edit')) {
