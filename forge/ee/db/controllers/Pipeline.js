@@ -23,14 +23,13 @@ module.exports = {
      * @param {String} [options.deviceGroupId] The ID of the device group to deploy to
      * @param {Boolean} [options.deployToDevices] Whether to deploy to devices of the source stage
      */
-    updatePipelineStage: async function (app, stageId, options) {
+    updatePipelineStage: async function (app, pipeline, stageId, options) {
         const stage = await app.db.models.PipelineStage.byId(stageId)
         if (!stage) {
             throw new PipelineControllerError('not_found', 'Pipeline stage not found', 404)
         }
-        const pipeline = await app.db.models.Pipeline.byId(stage.PipelineId)
-        if (!pipeline) {
-            throw new PipelineControllerError('not_found', 'Pipeline not found', 404)
+        if (stage.PipelineId !== pipeline.id) {
+            throw new PipelineControllerError('not_found', 'Pipeline stage not found', 404)
         }
 
         if (options.name) {
