@@ -75,20 +75,49 @@ describe('Storage Session controller', function () {
     describe('removeUserFromTeamSessions', function () {
         it('remove user sessions from a teams instance\'s', async function () {
 
+            const projectType = await app.factory.createProjectType({
+                name: 'projectType2',
+                description: 'default project type',
+                properties: { foo: 'bar' }
+            })
+        
+            const template = await app.factory.createProjectTemplate({
+                name: 'template1',
+                settings: {
+                    httpAdminRoot: '',
+                    codeEditor: '',
+                    palette: {
+                        npmrc: 'example npmrc',
+                        catalogue: ['https://example.com/catalog'],
+                        modules: [
+                            { name: 'node-red-dashboard', version: '3.0.0' },
+                            { name: 'node-red-contrib-ping', version: '0.3.0' }
+                        ]
+                    }
+                },
+                policy: {
+                    httpAdminRoot: true,
+                    dashboardUI: true,
+                    codeEditor: true
+                }
+            }, app.TestObjects.userAlice)
+            const stack = await app.factory.createStack({ name: 'stack1' }, projectType)
+            const application = await app.factory.createApplication({ name: 'application-1' }, app.TestObjects.team1)
+
             const p1 = await app.factory.createInstance(
                 {name: 'project-1'},
-                app.TestObjects.application,
-                app.TestObjects.stack,
-                app.TestObjects.template,
-                app.TestObjects.projectType,
+                application,
+                stack,
+                template,
+                projectType,
                 { start: false }
             )
             const p2 = await app.factory.createInstance(
                 {name: 'project-2'},
-                app.TestObjects.application,
-                app.TestObjects.stack,
-                app.TestObjects.template,
-                app.TestObjects.projectType,
+                application,
+                stack,
+                template,
+                projectType,
                 { start: false }
             )
 
