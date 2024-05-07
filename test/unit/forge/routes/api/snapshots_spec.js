@@ -579,5 +579,4 @@ describe('Snapshots API', function () {
             tests('device')
         })
     })
-
 })
