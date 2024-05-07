@@ -10,7 +10,7 @@ module.exports = {
     up: async (context) => {
         const tableExists = await context.tableExists('FlowTemplates')
         if (!tableExists) {
-            return context.sequelize.log('Skipping Subscription migration as table does not exist')
+            return context.sequelize.log('Skipping FlowTemplates migration as table does not exist')
         }
 
         await context.addColumn('FlowTemplates', 'icon', {
