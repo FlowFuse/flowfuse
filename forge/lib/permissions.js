@@ -81,7 +81,7 @@ const Permissions = {
 
     // Snapshots (common)
     'snapshot:meta': { description: 'View a Snapshot', role: Roles.Viewer },
-    'snapshot:full': { description: 'Export a Snapshot', role: Roles.Member },
+    'snapshot:full': { description: 'View the full a Snapshot', role: Roles.Member },
     'snapshot:export': { description: 'Export a Snapshot', role: Roles.Member },
     'snapshot:delete': { description: 'Delete a Snapshot', role: Roles.Owner },
 
