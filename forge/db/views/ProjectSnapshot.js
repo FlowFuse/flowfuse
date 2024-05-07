@@ -19,7 +19,7 @@ module.exports = function (app) {
     })
     function snapshot (snapshot) {
         if (snapshot) {
-            const result = snapshot.toJSON()
+            const result = snapshot.toJSON ? snapshot.toJSON() : snapshot
             const filtered = {
                 id: result.hashid,
                 name: result.name,
@@ -84,7 +84,7 @@ module.exports = function (app) {
             settings: { type: 'object', additionalProperties: true }
         }
     })
-    function snapshotExport (snapshot) {
+    function snapshotExport (snapshot, exportedBy) {
         if (snapshot) {
             const result = snapshot.toJSON ? snapshot.toJSON() : snapshot
             const filtered = {
@@ -99,8 +99,9 @@ module.exports = function (app) {
             if (snapshot.User) {
                 filtered.user = app.db.views.User.userSummary(snapshot.User)
             }
-            if (snapshot.exportedBy) {
-                filtered.exportedBy = app.db.views.User.userSummary(snapshot.exportedBy)
+
+            if (exportedBy) {
+                filtered.exportedBy = app.db.views.User.userSummary(exportedBy)
             }
             return filtered
         } else {

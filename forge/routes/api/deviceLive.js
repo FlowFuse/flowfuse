@@ -106,6 +106,15 @@ module.exports = async function (app) {
      */
     app.get('/snapshot', async (request, reply) => {
         const device = request.device || null
+        const applyOverrides = async (dev, obj) => {
+            // if device has a user specified node-red version, update or inject that in the snapshot
+            const editor = await dev.getSetting('editor')
+            if (editor?.nodeRedVersion && SemVer.valid(editor?.nodeRedVersion)) {
+                obj.modules = obj.modules || {}
+                obj.modules['node-red'] = editor?.nodeRedVersion
+            }
+        }
+
         if (!device.targetSnapshot) {
             // device does not have a target snapshot
             // if this is an application owned device, return a starter snapshot
@@ -151,6 +160,7 @@ module.exports = async function (app) {
                         FF_APPLICATION_NAME: device.Application.name
                     }
                 }
+                await applyOverrides(device, DEFAULT_APP_SNAPSHOT)
                 return reply.send(DEFAULT_APP_SNAPSHOT)
             }
             reply.send({})
@@ -181,6 +191,7 @@ module.exports = async function (app) {
                     // Belt and braces, remove old module! We don't want to be instructing the device to install the old version.
                     // (the old module can be present due to a snapshot applied from an instance or instance owned device)
                     delete settings.modules['@flowforge/nr-project-nodes']
+                    await applyOverrides(device, settings)
                 }
 
                 const result = {
