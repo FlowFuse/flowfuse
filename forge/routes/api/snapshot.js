@@ -19,8 +19,8 @@ module.exports = async function (app) {
         try {
             request.ownerType = null
             request.owner = null
-            if (request.params.snapshotId) {
-                request.snapshot = await app.db.models.ProjectSnapshot.byId(request.params.snapshotId)
+            if (request.params.id) {
+                request.snapshot = await app.db.models.ProjectSnapshot.byId(request.params.id)
                 if (!request.snapshot) {
                     return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                 }
@@ -55,7 +55,7 @@ module.exports = async function (app) {
     /**
      * Get a snapshot - metadata only
      */
-    app.get('/:snapshotId', {
+    app.get('/:id', {
         preHandler: app.needsPermission('snapshot:meta'),
         schema: {
             summary: 'Get summary of a snapshot',
@@ -63,7 +63,7 @@ module.exports = async function (app) {
             params: {
                 type: 'object',
                 properties: {
-                    snapshotId: { type: 'string' }
+                    id: { type: 'string' }
                 }
             },
             response: {
@@ -82,7 +82,7 @@ module.exports = async function (app) {
     /**
      * Get details of a snapshot - full details
      */
-    app.get('/:snapshotId/full', {
+    app.get('/:id/full', {
         preHandler: app.needsPermission('snapshot:full'),
         schema: {
             summary: 'Get details of a snapshot',
@@ -90,7 +90,7 @@ module.exports = async function (app) {
             params: {
                 type: 'object',
                 properties: {
-                    snapshotId: { type: 'string' }
+                    id: { type: 'string' }
                 }
             },
             response: {
@@ -112,7 +112,7 @@ module.exports = async function (app) {
     /**
      * Delete a snapshot
      */
-    app.delete('/:snapshotId', {
+    app.delete('/:id', {
         preHandler: app.needsPermission('snapshot:delete'),
         schema: {
             summary: 'Delete a snapshot',
@@ -120,7 +120,7 @@ module.exports = async function (app) {
             params: {
                 type: 'object',
                 properties: {
-                    snapshotId: { type: 'string' }
+                    id: { type: 'string' }
                 }
             },
             response: {
@@ -146,7 +146,7 @@ module.exports = async function (app) {
     /**
      * Export a snapshot for later import in another project or platform
      */
-    app.post('/:snapshotId/export', {
+    app.post('/:id/export', {
         preHandler: app.needsPermission('snapshot:export'),
         schema: {
             summary: 'Export a snapshot',
@@ -154,7 +154,7 @@ module.exports = async function (app) {
             params: {
                 type: 'object',
                 properties: {
-                    snapshotId: { type: 'string' }
+                    id: { type: 'string' }
                 }
             },
             body: {
