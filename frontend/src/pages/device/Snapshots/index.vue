@@ -21,6 +21,7 @@
                     <ff-button kind="primary" data-action="create-snapshot" :disabled="!developerMode || busyMakingSnapshot" @click="showCreateSnapshotDialog"><template #icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
                 </template>
                 <template v-if="showContextMenu" #context-menu="{row}">
+                    <ff-list-item v-if="hasPermission('snapshot:full')" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
                     <ff-list-item v-if="hasPermission('device:snapshot:delete') && rowIsThisDevice(row)" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />
                     <ff-list-item v-if="!rowIsThisDevice(row)" disabled label="No actions available" kind="info" />
                 </template>
@@ -52,6 +53,7 @@
             </EmptyState>
         </template>
         <SnapshotCreateDialog ref="snapshotCreateDialog" title="Create Device Snapshot" data-el="dialog-create-device-snapshot" :show-set-as-target="true" :device="device" @device-upload-success="onSnapshotCreated" @device-upload-failed="onSnapshotFailed" @canceled="onSnapshotCancel" />
+        <SnapshotViewerDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
     </div>
 </template>
 
@@ -62,9 +64,11 @@ import { mapState } from 'vuex'
 
 import ApplicationApi from '../../../api/application.js'
 import DeviceApi from '../../../api/devices.js'
+import SnapshotApi from '../../../api/snapshots.js'
 
 import EmptyState from '../../../components/EmptyState.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import SnapshotViewerDialog from '../../../components/dialogs/SnapshotViewerDialog.vue'
 import UserCell from '../../../components/tables/cells/UserCell.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
@@ -82,6 +86,7 @@ export default {
         SectionTopMenu,
         EmptyState,
         SnapshotCreateDialog,
+        SnapshotViewerDialog,
         PlusSmIcon
     },
     mixins: [permissionsMixin],
@@ -105,7 +110,7 @@ export default {
     computed: {
         ...mapState('account', ['teamMembership', 'features']),
         showContextMenu: function () {
-            return this.hasPermission('device:snapshot:delete')
+            return this.hasPermission('snapshot:delete') || this.hasPermission('snapshot:export')
         },
         columns () {
             const cols = [
@@ -222,7 +227,7 @@ export default {
                 kind: 'danger',
                 confirmLabel: 'Delete'
             }, async () => {
-                await DeviceApi.deleteSnapshot(this.device.id, snapshot.id)
+                await SnapshotApi.deleteSnapshot(snapshot.id)
                 const index = this.snapshots.indexOf(snapshot)
                 this.snapshots.splice(index, 1)
                 Alerts.emit('Successfully deleted snapshot.', 'confirmation')
@@ -241,7 +246,7 @@ export default {
         },
         onSnapshotFailed (err) {
             console.error(err)
-            Alerts.emit('Failed to create snapshot of device.', 'error')
+            Alerts.emit('Failed to create snapshot of device.', 'warning')
             this.busyMakingSnapshot = false
         },
         onSnapshotCancel () {
@@ -287,6 +292,14 @@ export default {
                 } catch (err) {
                     Alerts.emit('Failed to apply snapshot: ' + err.toString(), 'warning', 7500)
                 }
+            })
+        },
+        showViewSnapshotDialog (snapshot) {
+            SnapshotApi.getFullSnapshot(snapshot.id).then((data) => {
+                this.$refs.snapshotViewerDialog.show(data)
+            }).catch(err => {
+                console.error(err)
+                Alerts.emit('Failed to get snapshot.', 'warning')
             })
         }
     }
