@@ -35,6 +35,21 @@
         <FormRow v-model="input.templateName" type="uneditable">
             Template
         </FormRow>
+        <div>
+        <FormHeading class="mb-6">Hosting</FormHeading>
+        <FormRow v-model="instance.url" type="uneditable">
+            Default URL
+        </FormRow>
+        <FormRow v-model="input.hostname">
+            Custom Hostname
+            <template #description>
+                This needs to be a fully qualified hostname
+            </template>
+            <template #append>
+                <ChangeIndicator :value="changed.hostname" />
+            </template>
+        </FormRow>
+        </div>
         <DangerSettings
             :instance="instance"
             @instance-updated="$emit('instance-updated')"
@@ -49,6 +64,7 @@ import { mapState } from 'vuex'
 
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
+import ChangeIndicator from '../../admin/Template/components/ChangeIndicator.vue'
 
 import DangerSettings from './Danger.vue'
 
@@ -57,7 +73,8 @@ export default {
     components: {
         FormRow,
         FormHeading,
-        DangerSettings
+        DangerSettings,
+        ChangeIndicator
     },
     inheritAttrs: false,
     props: {
@@ -78,10 +95,15 @@ export default {
                 projectTypeName: '',
                 stackDescription: '',
                 templateName: '',
-                haConfig: {}
+                haConfig: {},
+                hostname: ''
             },
             original: {
-                projectName: ''
+                projectName: '',
+                hostname: ''
+            },
+            changed: {
+                hostname: false
             }
         }
     },
@@ -123,6 +145,9 @@ export default {
             } else {
                 this.input.haConfig = undefined
             }
+
+            this.input.hostname = this.instance.hostname
+            this.original.hostname = this.instance.hostname
         }
     }
 }
