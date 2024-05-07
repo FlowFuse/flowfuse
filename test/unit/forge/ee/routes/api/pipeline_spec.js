@@ -681,6 +681,24 @@ describe('Pipelines API', function () {
 
                 response.statusCode.should.equal(200)
             })
+            it('Should fail if the pipeline does not contain the request stage', async function () {
+                const pipelineId = TestObjects.pipelineDevices.hashid
+                const stageId = TestObjects.stageOne.hashid
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                    payload: {
+                        name: 'New Name'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+
+                })
+
+                const body = await response.json()
+                body.should.have.property('code', 'not_found')
+                response.statusCode.should.equal(404)
+            })
         })
 
         describe('With a new instance', function () {
