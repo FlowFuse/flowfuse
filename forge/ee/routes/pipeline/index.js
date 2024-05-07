@@ -139,7 +139,7 @@ module.exports = async function (app) {
         if (stages.length > 0) {
         // delete stages too
             for (let i = 0; i < stages.length; i++) {
-                stages[i].destroy()
+                await stages[i].destroy()
             }
         }
 
@@ -369,6 +369,7 @@ module.exports = async function (app) {
             }
 
             const stage = await app.db.controllers.Pipeline.updatePipelineStage(
+                request.pipeline,
                 request.params.stageId,
                 options
             )

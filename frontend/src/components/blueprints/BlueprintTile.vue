@@ -27,7 +27,7 @@ import { CheckCircleIcon, QuestionMarkCircleIcon } from '@heroicons/vue/outline'
 import { defineAsyncComponent } from 'vue'
 import { mapState } from 'vuex'
 
-import product from '../../../services/product.js'
+import product from '../../services/product.js'
 
 export default {
     name: 'BlueprintTile',

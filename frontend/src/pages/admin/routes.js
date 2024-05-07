@@ -153,7 +153,7 @@ export default [
                 ]
             },
             {
-                name: 'Admin Flow Blueprints',
+                name: 'AdminFlowBlueprints',
                 path: 'flow-blueprints',
                 component: AdminFlowBlueprints,
                 meta: {

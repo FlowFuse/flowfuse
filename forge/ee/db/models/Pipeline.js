@@ -29,7 +29,7 @@ module.exports = {
                 stages: async function () {
                     return await M.PipelineStage.byPipeline(this.id)
                 },
-                hasInstance: async function (instance) {
+                hasInstance: async function (instance, options = {}) {
                     return await M.PipelineStage.count({
                         where: {
                             PipelineId: this.id
@@ -42,10 +42,11 @@ module.exports = {
                                     id: instance.id
                                 }
                             }
-                        ]
+                        ],
+                        ...options
                     }) > 0
                 },
-                hasDevice: async function (device) {
+                hasDevice: async function (device, options = {}) {
                     return await M.PipelineStage.count({
                         where: {
                             PipelineId: this.id
@@ -58,7 +59,8 @@ module.exports = {
                                     id: device.id
                                 }
                             }
-                        ]
+                        ],
+                        ...options
                     }) > 0
                 }
             },

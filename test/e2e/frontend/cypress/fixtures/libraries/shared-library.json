@@ -1,0 +1,128 @@
+[
+  {
+    "id": "b9b294725f80b01c",
+    "type": "inject",
+    "z": "dd5a65f78178e921",
+    "name": "Flow 1",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "repeat": "3",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "",
+    "payloadType": "date",
+    "x": 590,
+    "y": 420,
+    "wires": [
+      [
+        "d040659cbe69d523",
+        "e346197ad2873980"
+      ]
+    ]
+  },
+  {
+    "id": "d040659cbe69d523",
+    "type": "debug",
+    "z": "dd5a65f78178e921",
+    "name": "debug 1",
+    "active": true,
+    "tosidebar": true,
+    "console": true,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 970,
+    "y": 320,
+    "wires": []
+  },
+  {
+    "id": "e346197ad2873980",
+    "type": "ui-text",
+    "z": "dd5a65f78178e921",
+    "group": "423947de9c2b81cf",
+    "order": 0,
+    "width": 0,
+    "height": 0,
+    "name": "",
+    "label": "text",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "style": false,
+    "font": "",
+    "fontSize": 16,
+    "color": "#717171",
+    "className": "",
+    "x": 1030,
+    "y": 440,
+    "wires": []
+  },
+  {
+    "id": "423947de9c2b81cf",
+    "type": "ui-group",
+    "name": "My Group",
+    "page": "45ee287d460c26db",
+    "width": 6,
+    "height": 1,
+    "order": -1,
+    "showTitle": true,
+    "className": "",
+    "visible": true,
+    "disabled": false
+  },
+  {
+    "id": "45ee287d460c26db",
+    "type": "ui-page",
+    "name": "Page N",
+    "ui": "b3f4402b1661a42e",
+    "path": "pageN",
+    "icon": "home",
+    "layout": "grid",
+    "theme": "d5a42eef34d39d76",
+    "order": -1,
+    "className": "",
+    "visible": "true",
+    "disabled": "false"
+  },
+  {
+    "id": "b3f4402b1661a42e",
+    "type": "ui-base",
+    "name": "My Dashboard",
+    "path": "/dashboard",
+    "includeClientData": true,
+    "acceptsClientConfig": [
+      "ui-notification",
+      "ui-control"
+    ],
+    "showPathInSidebar": false,
+    "navigationStyle": "default"
+  },
+  {
+    "id": "d5a42eef34d39d76",
+    "type": "ui-theme",
+    "name": "Default Theme",
+    "colors": {
+      "surface": "#ffffff",
+      "primary": "#0094CE",
+      "bgPage": "#eeeeee",
+      "groupBg": "#ffffff",
+      "groupOutline": "#cccccc"
+    },
+    "sizes": {
+      "pagePadding": "12px",
+      "groupGap": "12px",
+      "groupBorderRadius": "4px",
+      "widgetGap": "12px"
+    }
+  }
+]
