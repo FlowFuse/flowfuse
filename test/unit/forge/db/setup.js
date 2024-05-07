@@ -32,7 +32,6 @@ module.exports = async function (config = {}) {
     await team2.addUser(userAlice, { through: { role: Roles.Owner } })
     await team3.addUser(userAlice, { through: { role: Roles.Owner } })
 
-
     forge.TestObjects = {
         defaultTeamType,
         userAlice,

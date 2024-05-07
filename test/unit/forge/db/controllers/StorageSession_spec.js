@@ -74,13 +74,12 @@ describe('Storage Session controller', function () {
 
     describe('removeUserFromTeamSessions', function () {
         it('remove user sessions from a teams instance\'s', async function () {
-
             const projectType = await app.factory.createProjectType({
                 name: 'projectType2',
                 description: 'default project type',
                 properties: { foo: 'bar' }
             })
-        
+
             const template = await app.factory.createProjectTemplate({
                 name: 'template1',
                 settings: {
@@ -105,7 +104,7 @@ describe('Storage Session controller', function () {
             const application = await app.factory.createApplication({ name: 'application-1' }, app.TestObjects.team1)
 
             const p1 = await app.factory.createInstance(
-                {name: 'project-1'},
+                { name: 'project-1' },
                 application,
                 stack,
                 template,
@@ -113,7 +112,7 @@ describe('Storage Session controller', function () {
                 { start: false }
             )
             const p2 = await app.factory.createInstance(
-                {name: 'project-2'},
+                { name: 'project-2' },
                 application,
                 stack,
                 template,
@@ -136,7 +135,7 @@ describe('Storage Session controller', function () {
 
             await Promise.all([
                 s1.reload(),
-                s2.reload(),
+                s2.reload()
             ])
 
             const s1Sessions = JSON.parse(s1.sessions)
