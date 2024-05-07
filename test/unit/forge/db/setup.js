@@ -31,8 +31,42 @@ module.exports = async function (config = {}) {
     await team2.addUser(userBob, { through: { role: Roles.Owner } })
     await team2.addUser(userAlice, { through: { role: Roles.Owner } })
     await team3.addUser(userAlice, { through: { role: Roles.Owner } })
+
+    const projectType = await factory.createProjectType({
+        name: 'projectType1',
+        description: 'default project type',
+        properties: { foo: 'bar' }
+    })
+
+    const template = await factory.createProjectTemplate({
+        name: 'template1',
+        settings: {
+            httpAdminRoot: '',
+            codeEditor: '',
+            palette: {
+                npmrc: 'example npmrc',
+                catalogue: ['https://example.com/catalog'],
+                modules: [
+                    { name: 'node-red-dashboard', version: '3.0.0' },
+                    { name: 'node-red-contrib-ping', version: '0.3.0' }
+                ]
+            }
+        },
+        policy: {
+            httpAdminRoot: true,
+            dashboardUI: true,
+            codeEditor: true
+        }
+    }, userAlice)
+    const stack = await factory.createStack({ name: 'stack1' }, projectType)
+    const application = await factory.createApplication({ name: 'application-1' }, team1)
+
     forge.TestObjects = {
         defaultTeamType,
+        projectType,
+        application,
+        template,
+        stack,
         userAlice,
         userBob,
         team1,
