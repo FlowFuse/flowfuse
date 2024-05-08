@@ -50,5 +50,38 @@ module.exports = {
             sessions.session = '{}'
             await sessions.save()
         }
+    },
+    async removeUserFromTeamSessions (app, user, team) {
+        const instances = await app.db.models.Project.byTeam(team.hashid)
+        for (let i = 0; i < instances.length; i++) {
+            const instance = instances[i]
+            const sessions = await app.db.models.StorageSession.byProject(instance.id)
+            if (sessions) {
+                const sessionInfo = JSON.parse(sessions.sessions)
+                let modified = false
+                const userSessions = Object.values(sessionInfo).filter(session => {
+                    if (session.user === user.username) {
+                        delete sessionInfo[session.accessToken]
+                        modified = true
+                        return true
+                    }
+                    return false
+                })
+                if (modified) {
+                    sessions.sessions = JSON.stringify(sessionInfo)
+                    await sessions.save()
+                }
+                if (userSessions.length > 0) {
+                    for (let i = 0; i < userSessions.length; i++) {
+                        const token = userSessions[i].accessToken
+                        try {
+                            await app.containers.revokeUserToken(instance, token) // logout:nodered(step-2)
+                        } catch (error) {
+                            app.log.warn(`Failed to revoke token for Instance ${instance.id}: ${error.toString()}`) // log error but continue to delete session
+                        }
+                    }
+                }
+            }
+        }
     }
 }

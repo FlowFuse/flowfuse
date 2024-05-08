@@ -90,8 +90,9 @@ module.exports = {
             }
             await userRole.destroy()
 
+            await app.db.controllers.StorageSession.removeUserFromTeamSessions(user, team)
+
             return true
-            // console.warn('TODO: forge.db.controllers.Team.removeUser - expire oauth sessions')
         }
 
         return false
