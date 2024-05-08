@@ -53,9 +53,25 @@ const deleteSnapshot = async (snapshotId) => {
     })
 }
 
+const uploadSnapshot = async (ownerId, ownerType, snapshot, credentialSecret) => {
+    return client.post('/api/v1/snapshots/', {
+        ownerId,
+        ownerType,
+        snapshot,
+        credentialSecret
+    }).then(res => {
+        const props = {
+            'snapshot-id': res.data.id
+        }
+        product.capture('$ff-snapshot-uploaded', props, {})
+        return res.data
+    })
+}
+
 export default {
     deleteSnapshot,
     getFullSnapshot,
     exportSnapshot,
-    getSummary
+    getSummary,
+    uploadSnapshot
 }
