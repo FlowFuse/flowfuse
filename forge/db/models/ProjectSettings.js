@@ -13,12 +13,14 @@ const KEY_SETTINGS = 'settings'
 const KEY_HOSTNAME = 'hostname'
 const KEY_HA = 'ha'
 const KEY_PROTECTED = 'protected'
+const KEY_HEALTH_CHECK_INTERVAL = 'healthCheckInterval'
 
 module.exports = {
     KEY_SETTINGS,
     KEY_HOSTNAME,
     KEY_HA,
     KEY_PROTECTED,
+    KEY_HEALTH_CHECK_INTERVAL,
     name: 'ProjectSettings',
     schema: {
         ProjectId: { type: DataTypes.UUID, unique: 'pk_settings' },
