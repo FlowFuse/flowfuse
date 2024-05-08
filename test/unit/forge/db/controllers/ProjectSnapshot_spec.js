@@ -12,6 +12,37 @@ describe('ProjectSnapshot controller', function () {
     /** @type {import('../../../../lib/TestModelFactory')} */
     let factory
 
+    async function createProject (application = null, team = null) {
+        const options = { name: 'project-' + (projectInstanceCount++), type: '', url: '' }
+        if (application) {
+            options.ApplicationId = application.id
+        }
+        if (team) {
+            options.TeamId = team.id
+        }
+        let project = await app.db.models.Project.create(options)
+        await project.updateSetting('credentialSecret', crypto.randomBytes(32).toString('hex'))
+        // Reload to ensure all models are attached
+        project = await app.db.models.Project.byId(project.id)
+        await app.db.models.StorageFlow.create({
+            flow: JSON.stringify([{ id: '123', type: 'node' }]),
+            ProjectId: project.id
+        })
+        await app.db.models.StorageCredentials.create({
+            credentials: JSON.stringify({}),
+            ProjectId: project.id
+        })
+        await app.db.models.StorageSettings.create({
+            settings: JSON.stringify({}),
+            ProjectId: project.id
+        })
+        await app.db.models.StorageSession.create({
+            sessions: JSON.stringify({}),
+            ProjectId: project.id
+        })
+        return project
+    }
+
     before(async function () {
         app = await setup({
             limits: {
@@ -29,36 +60,6 @@ describe('ProjectSnapshot controller', function () {
         await app.db.models.ProjectSnapshot.destroy({ where: {} })
     })
     describe('createSnapshot (instance)', function () {
-        async function createProject (application = null, team = null) {
-            const options = { name: 'project-' + (projectInstanceCount++), type: '', url: '' }
-            if (application) {
-                options.ApplicationId = application.id
-            }
-            if (team) {
-                options.TeamId = team.id
-            }
-            let project = await app.db.models.Project.create(options)
-            await project.updateSetting('credentialSecret', crypto.randomBytes(32).toString('hex'))
-            // Reload to ensure all models are attached
-            project = await app.db.models.Project.byId(project.id)
-            await app.db.models.StorageFlow.create({
-                flow: JSON.stringify([{ id: '123', type: 'node' }]),
-                ProjectId: project.id
-            })
-            await app.db.models.StorageCredentials.create({
-                credentials: JSON.stringify({}),
-                ProjectId: project.id
-            })
-            await app.db.models.StorageSettings.create({
-                settings: JSON.stringify({}),
-                ProjectId: project.id
-            })
-            await app.db.models.StorageSession.create({
-                sessions: JSON.stringify({}),
-                ProjectId: project.id
-            })
-            return project
-        }
         it('creates a snapshot of the current project state', async function () {
             const project = await createProject()
             const user = await app.db.models.User.byUsername('alice')
@@ -227,6 +228,44 @@ describe('ProjectSnapshot controller', function () {
                     snapshots[10].description.should.equal('Auto Snapshot - 113') // this was the last one created
                 })
             })
+        })
+    })
+    describe('instance exportSnapshot', function () {
+        it('exports a snapshot', async function () {
+            const project = await createProject()
+            const user = await app.db.models.User.byUsername('alice')
+            const options = {
+                name: 'snapshot1',
+                description: 'a snapshot'
+            }
+            const snapshot = await app.db.controllers.ProjectSnapshot.createSnapshot(project, user, options)
+
+            // now call exportSnapshot
+            // exportSnapshot: async function (app, project, snapshot, options) {
+            const snapshotExported = await app.db.controllers.ProjectSnapshot.exportSnapshot(project, snapshot, { credentialSecret: 'abc' })
+            should(snapshotExported).be.an.Object().and.not.be.empty()
+            snapshotExported.should.have.property('flows').and.be.an.Object()
+            snapshotExported.flows.should.have.property('flows').and.be.an.Array()
+            snapshotExported.flows.should.have.property('credentials').and.be.an.Object()
+            snapshotExported.should.have.property('settings').and.be.an.Object()
+            snapshotExported.settings.should.have.property('settings').and.be.an.Object()
+            snapshotExported.settings.should.have.property('env').and.be.an.Object()
+            snapshotExported.settings.should.have.property('modules').and.be.an.Object()
+            snapshotExported.should.have.property('credentialSecret').and.be.a.String()
+        })
+        it('returns null if credentialSecret is empty', async function () {
+            const project = await createProject()
+            const user = await app.db.models.User.byUsername('alice')
+            const options = {
+                name: 'snapshot1',
+                description: 'a snapshot'
+            }
+            const snapshot = await app.db.controllers.ProjectSnapshot.createSnapshot(project, user, options)
+
+            // now call exportSnapshot
+            // exportSnapshot: async function (app, project, snapshot, options) {
+            const snapshotExported = await app.db.controllers.ProjectSnapshot.exportSnapshot(project, snapshot, { credentialSecret: '' })
+            should(snapshotExported).be.Null()
         })
     })
     // describe('exportProject', function () {

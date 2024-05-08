@@ -67,7 +67,6 @@ import InstanceActionsButton from '../../../components/instance/ActionButton.vue
 
 import FfPage from '../../../layouts/Page.vue'
 import instanceMixin from '../../../mixins/Instance.js'
-import FfTabs from '../../../ui-components/components/tabs/Tabs.vue'
 import DashboardLink from '../components/DashboardLink.vue'
 
 import EditorWrapper from './components/EditorWrapper.vue'
@@ -82,7 +81,6 @@ export default {
         DashboardLink,
         MiddleCloseButton,
         DrawerTrigger,
-        FfTabs,
         EditorWrapper,
         InstanceStatusPolling,
         ExternalLinkIcon,
