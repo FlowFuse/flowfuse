@@ -32,7 +32,7 @@
                 </div>
                 <ff-tabs :tabs="navigation" class="tabs" />
                 <div class="side-actions">
-                    <DashboardLink v-if="instance.settings?.dashboard2UI" :instance="instance" />
+                    <DashboardLink v-if="instance.settings?.dashboard2UI" :instance="instance" :disabled="!editorAvailable" />
                     <InstanceActionsButton :instance="instance" @instance-deleted="onInstanceDelete" />
                     <a :href="instance.url">
                         <ExternalLinkIcon class="ff-btn--icon" />
@@ -139,6 +139,9 @@ export default {
                     tag: 'instance-settings'
                 }
             ]
+        },
+        editorAvailable () {
+            return !this.isHA && this.instanceRunning
         }
     },
     mounted () {
