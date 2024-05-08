@@ -17,6 +17,7 @@
                 </template>
                 <template v-if="showContextMenu" #context-menu="{row}">
                     <ff-list-item v-if="hasPermission('project:snapshot:rollback')" label="Rollback" @click="showRollbackDialog(row)" />
+                    <ff-list-item v-if="hasPermission('snapshot:full')" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
                     <ff-list-item v-if="hasPermission('project:snapshot:export')" label="Download Snapshot" @click="showDownloadSnapshotDialog(row)" />
                     <ff-list-item v-if="hasPermission('project:snapshot:read')" label="Download package.json" @click="downloadSnapshotPackage(row)" />
                     <ff-list-item v-if="hasPermission('project:snapshot:set-target')" label="Set as Device Target" @click="showDeviceTargetDialog(row)" />
@@ -50,6 +51,7 @@
         </template>
         <SnapshotCreateDialog ref="snapshotCreateDialog" data-el="dialog-create-snapshot" :project="instance" @snapshot-created="snapshotCreated" />
         <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" :project="instance" />
+        <SnapshotViewerDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
     </div>
 </template>
 
@@ -60,9 +62,11 @@ import { mapState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
 import SnapshotApi from '../../../api/projectSnapshots.js'
+import SnapshotsApi from '../../../api/snapshots.js'
 
 import EmptyState from '../../../components/EmptyState.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import SnapshotViewerDialog from '../../../components/dialogs/SnapshotViewerDialog.vue'
 import UserCell from '../../../components/tables/cells/UserCell.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
@@ -81,6 +85,7 @@ export default {
         EmptyState,
         SnapshotCreateDialog,
         SnapshotExportDialog,
+        SnapshotViewerDialog,
         PlusSmIcon
     },
     mixins: [permissionsMixin],
@@ -102,7 +107,7 @@ export default {
     computed: {
         ...mapState('account', ['teamMembership']),
         showContextMenu: function () {
-            return this.hasPermission('project:snapshot:rollback') || this.hasPermission('project:snapshot:set-target') || this.hasPermission('project:snapshot:delete') || this.hasPermission('project:snapshot:export')
+            return this.hasPermission('project:snapshot:rollback') || this.hasPermission('project:snapshot:set-target') || this.hasPermission('project:snapshot:delete') || this.hasPermission('project:snapshot:export') || this.hasPermission('snapshot:full')
         },
         columns () {
             const cols = [
@@ -259,6 +264,14 @@ export default {
         },
         showDownloadSnapshotDialog (snapshot) {
             this.$refs.snapshotExportDialog.show(snapshot)
+        },
+        showViewSnapshotDialog (snapshot) {
+            SnapshotsApi.getFullSnapshot(snapshot.id).then((data) => {
+                this.$refs.snapshotViewerDialog.show(data)
+            }).catch(err => {
+                console.error(err)
+                Alerts.emit('Failed to get snapshot.', 'warning')
+            })
         }
     }
 }

@@ -1,8 +1,8 @@
 <template>
     <div ref="container" class="ff-dialog-container" :class="'ff-dialog-container--' + (open ? 'open' : 'closed')">
-        <div class="ff-dialog-box">
+        <div class="ff-dialog-box" :class="boxClass">
             <div class="ff-dialog-header" data-sentry-unmask>{{ header }}</div>
-            <div ref="content" class="ff-dialog-content">
+            <div ref="content" class="ff-dialog-content" :class="contentClass">
                 <slot></slot>
             </div>
             <div class="ff-dialog-actions">
@@ -38,6 +38,14 @@ export default {
         closeOnConfirm: {
             type: Boolean,
             default: true
+        },
+        boxClass: {
+            type: String,
+            default: ''
+        },
+        contentClass: {
+            type: String,
+            default: ''
         }
     },
     emits: ['cancel', 'confirm'],
