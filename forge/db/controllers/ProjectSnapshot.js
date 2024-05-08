@@ -500,33 +500,8 @@ module.exports = {
      * @param {Object} [options.credentials] (Optional) credentials to export. If omitted, credentials of the current project will be re-encrypted, with credentialSecret.
      */
     exportSnapshot: async function (app, project, snapshot, options) {
-        if (!options.credentialSecret) {
-            return null
-        }
-        if (snapshot.UserId && !snapshot.User) {
-            await snapshot.reload({ include: [app.db.models.User] })
-        }
-
-        const result = {
-            ...snapshot.toJSON()
-        }
-
-        const serviceEnv = ['FF_INSTANCE_ID', 'FF_INSTANCE_NAME', 'FF_PROJECT_ID', 'FF_PROJECT_NAME']
-        serviceEnv.forEach((key) => {
-            delete result.settings.env[key]
-        })
-
-        // use the secret stored in the snapshot, if available...
-        const projectSecret = result.credentialSecret || await project.getCredentialSecret()
-        const credentials = options.credentials ? options.credentials : result.flows.credentials
-
-        // if provided credentials already encrypted: "exportCredentials" will just return the same credentials
-        // if provided credentials are raw: "exportCredentials" will encrypt them with the secret provided
-        // if credentials are not provided: project's flows credentials will be used, they will be encrypted with either the provided secret or a new one
-        const keyToDecrypt = (options.credentials && options.credentials.$) ? options.credentialSecret : projectSecret
-        result.flows.credentials = app.db.controllers.Project.exportCredentials(credentials || {}, keyToDecrypt, options.credentialSecret)
-
-        return result
+        options.owner = project
+        return app.db.controllers.Snapshot.exportSnapshot(snapshot, options)
     },
 
     getDeviceAutoSnapshots: deviceAutoSnapshotUtils.getAutoSnapshots,

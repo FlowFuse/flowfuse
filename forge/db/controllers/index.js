@@ -23,6 +23,7 @@ const modelTypes = [
     'ProjectStack',
     'ProjectTemplate',
     'ProjectSnapshot',
+    'Snapshot',
     'Device',
     'BrokerClient',
     'StorageCredentials',
