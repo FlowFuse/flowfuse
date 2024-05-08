@@ -38,6 +38,17 @@ module.exports = async function (app) {
                 } else {
                     return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                 }
+            } else if (request.body.ownerId && request.body.ownerType && request.body.snapshot) {
+                // this is an upload
+                if (request.body.ownerType === 'device') {
+                    request.owner = await app.db.models.Device.byId(request.body.ownerId)
+                    request.ownerType = 'device'
+                } else if (request.body.ownerType === 'instance') {
+                    request.owner = await app.db.models.Project.byId(request.body.ownerId)
+                    request.ownerType = 'instance'
+                } else {
+                    return reply.code(400).send({ code: 'bad_request', error: 'Invalid ownerType' })
+                }
             }
             if (request.session.User) {
                 request.teamMembership = await request.session.User.getTeamMembership(request.owner.TeamId)
@@ -194,6 +205,75 @@ module.exports = async function (app) {
                 await projectLogger.project.snapshot.exported(request.session.User, null, request.owner, request.snapshot)
             }
             reply.send(snapshotExport)
+        } else {
+            reply.send({})
+        }
+    })
+
+    /**
+     * Upload a snapshot
+     */
+    app.post('/', {
+        // TODO: add permission
+        // preHandler: app.needsPermission('snapshot:upload'),
+        schema: {
+            summary: 'Upload a snapshot',
+            tags: ['Snapshots'],
+            body: {
+                type: 'object',
+                properties: {
+                    ownerId: { type: 'string' },
+                    ownerType: { type: 'string' },
+                    snapshot: {
+                        type: 'object',
+                        properties: {
+                            name: { type: 'string' },
+                            description: { type: 'string' },
+                            flows: {
+                                type: 'object',
+                                properties: {
+                                    flows: { type: 'array', items: {} },
+                                    credentials: { type: 'object' }
+                                },
+                                required: ['flows']
+                            },
+                            settings: {
+                                type: 'object',
+                                properties: {
+                                    settings: { type: 'object' },
+                                    env: { type: 'object' },
+                                    modules: { type: 'object' }
+                                },
+                                required: []
+                            }
+                        },
+                        required: ['name', 'flows', 'settings']
+                    },
+                    credentialSecret: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'Snapshot'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const owner = request.owner
+        const snapshot = request.body.snapshot
+        if (!owner || !snapshot) {
+            reply.code(400).send({ code: 'bad_request', error: 'owner and snapshot are mandatory in the body' })
+            return
+        }
+        const newSnapshot = await snapshotController.uploadSnapshot(owner, snapshot, request.body.credentialSecret, request.session.User)
+        if (newSnapshot) {
+            // reload the snapshot to get the full details, including the User
+            await newSnapshot.reload({ include: ['User'] })
+            // TODO: audit log event
+            reply.send(projectSnapshotView.snapshot(newSnapshot))
         } else {
             reply.send({})
         }
