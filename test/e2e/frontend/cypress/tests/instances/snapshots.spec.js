@@ -1,4 +1,12 @@
 /// <reference types="cypress" />
+
+// const IDX_ROLLBACK = 0
+const IDX_VIEW_SNAPSHOT = 1
+const IDX_DOWNLOAD_SNAPSHOT = 2
+const IDX_DOWNLOAD_PACKAGE = 3
+// const IDX_SET_TARGET = 4
+const IDX_DELETE_SNAPSHOT = 5
+
 describe('FlowForge - Instance Snapshots', () => {
     beforeEach(() => {
         cy.intercept('GET', '/api/*/projects/*/snapshots').as('getProjectSnapshots')
@@ -41,13 +49,31 @@ describe('FlowForge - Instance Snapshots', () => {
         cy.get('[data-el="snapshots"] tbody').find('tr').contains('snapshot1')
     })
 
+    it('provides functionality to view a snapshot', () => {
+        cy.intercept('GET', '/api/*/snapshots/*/full').as('fullSnapshot')
+        // click kebab menu in row 1
+        cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
+        // click the View Snapshot option
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_VIEW_SNAPSHOT).click()
+
+        cy.wait('@fullSnapshot')
+
+        cy.get('[data-el="dialog-view-snapshot"]').should('be.visible')
+
+        // check the snapshot name in the dialog header
+        cy.get('[data-el="dialog-view-snapshot"] .ff-dialog-header').contains('snapshot1')
+
+        // check the flow renders an SVG in the content section
+        cy.get('[data-el="dialog-view-snapshot"] .ff-dialog-content svg').should('exist')
+    })
+
     it('download snapshot', () => {
         cy.intercept('POST', '/api/*/projects/*/snapshots/*/export').as('exportSnapshot')
 
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
-        // click the 2nd option (Download)
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(1).click()
+        // click the Download Snapshot option
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_SNAPSHOT).click()
 
         // wait for SnapshotExportDialog dialog to appear
         cy.get('[data-el="dialog-export-snapshot"]').should('be.visible')
@@ -104,8 +130,8 @@ describe('FlowForge - Instance Snapshots', () => {
     it('download snapshot package.json', () => {
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
-        // click the 3rd option (Download Package.json)
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(2).click()
+        // click the Download Package.json option
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_PACKAGE).click()
 
         const downloadsFolder = Cypress.config('downloadsFolder')
         cy.task('fileExists', { dir: downloadsFolder, file: 'package.json' })
@@ -116,8 +142,8 @@ describe('FlowForge - Instance Snapshots', () => {
 
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
-        // click the 5th option (Delete)
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(4).click()
+        // click the Delete option
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DELETE_SNAPSHOT).click()
 
         cy.get('[data-el="platform-dialog"]').should('be.visible')
         cy.get('[data-el="platform-dialog"] .ff-dialog-header').contains('Delete Snapshot')

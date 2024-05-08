@@ -1,0 +1,23 @@
+{
+    "count": 1,
+    "snapshots": [
+        {
+            "createdAt": "2024-01-01T11:22:33.444Z",
+            "updatedAt": "2024-01-01T11:22:33.444Z",
+            "ownerType": "instance",
+            "projectId": "2",
+            "project": {
+                "id": "2",
+                "name": "instance-2",
+                "type": "type-1",
+                "lastSeenMs": null,
+                "status": "running",
+                "mode": "autonomous",
+                "isDeploying": false
+            },
+            "id": "2",
+            "name": "instance-2 snapshot-2",
+            "description": "an instance snapshot"
+        }
+    ]
+}
