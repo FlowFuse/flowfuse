@@ -82,7 +82,8 @@ module.exports = async (options = {}) => {
             }
         },
         timestamp: require('pino').stdTimeFunctions.isoTime,
-        level: runtimeConfig.logging.level,
+        // level: runtimeConfig.logging.level,
+        level: 'debug',
         serializers: {
             res (reply) {
                 return {
@@ -202,8 +203,8 @@ module.exports = async (options = {}) => {
     //  somewhere along the line, due to the difference in domains, the sid / connect.sid cookie is lost and the embedded iframe requires authentication
     //  or the cookie is set on the wrong domain
     server.addHook('onSend', async (request, reply, error) => {
-        reply.header('Content-Security-Policy', "frame-ancestors 'self' *.flowforge.cloud *.other.flowfuse:* *.other.flowforge:*")
-        reply.header('X-Frame-Options', 'allow-from \'self\' *.flowforge.cloud *.other.flowfuse:* *.other.flowforge:*')
+        reply.header('Content-Security-Policy', "frame-ancestors 'self' *.flowforge.cloud *.flowfuse:* *.flowforge:*")
+        reply.header('X-Frame-Options', 'allow-from \'self\' *.flowforge.cloud *.flowfuse:* *.other.flowforge:*')
     })
 
     try {

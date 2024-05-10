@@ -1,6 +1,7 @@
 <template>
     <div class="flex flex-col items-center">
         <h2>Redirecting back to your instance editor</h2>
+        <button @click="redirect">yes, yes, redirect..</button>
         <div v-if="user" class="flex flex-row justify-center">
             <div class="flex">
                 <div class="ff-user">
@@ -27,7 +28,13 @@ export default {
         ...mapState('account', ['user', 'team'])
     },
     mounted () {
-        window.location.href = `/account/complete/${this.$router.currentRoute.value.params.id}`
+    },
+    methods: {
+        redirect () {
+            const id = this.$router.currentRoute.value.params.id
+
+            window.location.href = `/account/complete/${id}`
+        }
     }
 }
 </script>

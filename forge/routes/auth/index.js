@@ -277,6 +277,7 @@ async function init (app, opts) {
         },
         logLevel: app.config.logging.http
     }, async (request, reply) => {
+        console.log('login with token')
         // We expect there to be a session at this point - but without a verified mfa token
         if (request.sid) {
             request.session = await app.db.controllers.Session.getOrExpire(request.sid)
@@ -491,6 +492,7 @@ async function init (app, opts) {
             tags: ['Authentication', 'X-HIDDEN']
         }
     }, async (request, reply) => {
+        console.log('/account/verify/:token')
         try {
             let sessionUser
             if (request.sid) {
