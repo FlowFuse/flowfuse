@@ -36,22 +36,22 @@
             Template
         </FormRow>
         <FormHeading class="mb-6">Hosting</FormHeading>
-        <FormRow v-model="instance.url" type="uneditable">
+        <FormRow v-model="url" type="uneditable">
             Default URL
         </FormRow>
         <div v-if="customHostnameAvailable">
-        <FormRow v-if="customHostnameTeamAvailable" v-model="input.hostname" :error="errors.hostname">
-            Custom Hostname
-            <template #description>
-                <p>This needs to be a fully qualified hostname</p>
-                <p>Please refer to this documentation for details of how to configure your DNS</p>
-            </template>
-            <template #append>
-                <ff-button data-action="save-hostname" kind="secondary" @click="saveHostname()">Update</ff-button>
-                <ChangeIndicator :value="changed.hostname" />
-            </template>
-        </FormRow>
-        <FeatureUnavailableToTeam v-if="!customHostnameTeamAvailable" featureName="Instance Custom Domain Name"/>
+            <FormRow v-if="customHostnameTeamAvailable" v-model="input.hostname" :error="errors.hostname">
+                Custom Hostname
+                <template #description>
+                    <p>This needs to be a fully qualified hostname</p>
+                    <p>Please refer to this documentation for details of how to configure your DNS</p>
+                </template>
+                <template #append>
+                    <ff-button data-action="save-hostname" kind="secondary" @click="saveHostname()">Update</ff-button>
+                    <ChangeIndicator :value="changed.hostname" />
+                </template>
+            </FormRow>
+            <FeatureUnavailableToTeam v-if="!customHostnameTeamAvailable" featureName="Instance Custom Domain Name" />
         </div>
         <DangerSettings
             :instance="instance"
@@ -112,7 +112,8 @@ export default {
             },
             errors: {
                 hostname: ''
-            }
+            },
+            url: ''
         }
     },
     computed: {
@@ -164,6 +165,7 @@ export default {
 
             this.input.hostname = this.instance.hostname
             this.original.hostname = this.instance.hostname
+            this.url = this.instance.url
         },
         saveHostname () {
             const validChars = /^[a-zA-Z0-9-.]{1,253}\.?$/g
@@ -181,9 +183,9 @@ export default {
             }
 
             if (!isValid) {
-                this.errors.hostname = "not a valid hostname"
+                this.errors.hostname = 'not a valid hostname'
             } else {
-                console.log('all good')
+                // console.log('all good')
             }
         }
     }
