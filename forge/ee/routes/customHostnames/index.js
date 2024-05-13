@@ -1,4 +1,4 @@
-module.exports = async function (add) {
+module.exports = async function (app) {
     app.addHook('preHandler', app.verifySession)
     app.addHook('preHandler', async (request, reply) => {
         if (!app.config.features.enabled('customhostnames')) {
