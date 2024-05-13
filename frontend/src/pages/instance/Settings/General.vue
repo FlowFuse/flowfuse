@@ -35,20 +35,23 @@
         <FormRow v-model="input.templateName" type="uneditable">
             Template
         </FormRow>
-        <div>
         <FormHeading class="mb-6">Hosting</FormHeading>
         <FormRow v-model="instance.url" type="uneditable">
             Default URL
         </FormRow>
-        <FormRow v-model="input.hostname">
+        <div v-if="customHostnameAvailable">
+        <FormRow v-if="customHostnameTeamAvailable" v-model="input.hostname" :error="errors.hostname">
             Custom Hostname
             <template #description>
-                This needs to be a fully qualified hostname
+                <p>This needs to be a fully qualified hostname</p>
+                <p>Please refer to this documentation for details of how to configure your DNS</p>
             </template>
             <template #append>
+                <ff-button data-action="save-hostname" kind="secondary" @click="saveHostname()">Update</ff-button>
                 <ChangeIndicator :value="changed.hostname" />
             </template>
         </FormRow>
+        <FeatureUnavailableToTeam v-if="!customHostnameTeamAvailable" featureName="Instance Custom Domain Name"/>
         </div>
         <DangerSettings
             :instance="instance"
@@ -64,6 +67,7 @@ import { mapState } from 'vuex'
 
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
+import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 import ChangeIndicator from '../../admin/Template/components/ChangeIndicator.vue'
 
 import DangerSettings from './Danger.vue'
@@ -73,6 +77,7 @@ export default {
     components: {
         FormRow,
         FormHeading,
+        FeatureUnavailableToTeam,
         DangerSettings,
         ChangeIndicator
     },
@@ -104,13 +109,24 @@ export default {
             },
             changed: {
                 hostname: false
+            },
+            errors: {
+                hostname: ''
             }
         }
     },
     computed: {
-        ...mapState('account', ['features']),
+        ...mapState('account', ['features', 'team']),
         isHA () {
             return !!this.instance?.ha
+        },
+        customHostnameAvailable () {
+            const available = this.features.customHostnames
+            return available
+        },
+        customHostnameTeamAvailable () {
+            const available = this.features.customHostnames && this.team.type.properties.features?.customHostnames
+            return available
         }
     },
     watch: {
@@ -148,6 +164,27 @@ export default {
 
             this.input.hostname = this.instance.hostname
             this.original.hostname = this.instance.hostname
+        },
+        saveHostname () {
+            const validChars = /^[a-zA-Z0-9-.]{1,253}\.?$/g
+            let isValid = true
+            this.errors.hostname = ''
+
+            // contains valid chars
+            if (!validChars.test(this.input.hostname)) {
+                isValid = false
+            }
+
+            // doesn't end with '.'
+            if (this.input.hostname.endsWith('.')) {
+                isValid = false
+            }
+
+            if (!isValid) {
+                this.errors.hostname = "not a valid hostname"
+            } else {
+                console.log('all good')
+            }
         }
     }
 }
