@@ -158,7 +158,8 @@ const actions = {
                 // continue.
             } else if (router.currentRoute.value.meta.requiresLogin === false) {
                 // This is only for logged-out users
-                window.location = '/'
+                console.log(123)
+                router.push({ location: '/' })
                 return
             } else if (user.email_verified === false || user.password_expired) {
                 state.commit('clearPending')
@@ -284,7 +285,7 @@ const actions = {
                 if (window._hsq) {
                     window._hsq.push(['revokeCookieConsent'])
                 }
-                window.location = '/'
+                router.push({ location: '/' })
             })
     },
     async setTeam (state, team) {
