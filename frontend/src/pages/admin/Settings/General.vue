@@ -64,7 +64,7 @@
             </template>
             <template #input>&nbsp;</template>
         </FormRow>
-        <FormRow v-model="input['user:offboarding-required']" type="checkbox" data-el="terms-and-condition-required">
+        <FormRow v-model="input['user:offboarding-required']" type="checkbox" data-el="offboarding-required">
             Redirect offboarding users
             <template #description>
                 When deleting their accounts, users will be redirected to an offboarding form / URL.
@@ -73,7 +73,7 @@
         <FormRow
             v-if="input['user:offboarding-required']"
             :error="errors.offboardingUrl"
-            containerClass="max-w-sm ml-9" data-el="offboarding-required"
+            containerClass="max-w-sm ml-9" data-el="offboarding-url"
         >
             <div class="flex items-center space-x-2">
                 <p>Offboarding URL: </p>
