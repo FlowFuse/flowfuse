@@ -1,19 +1,9 @@
 <template>
     <div id="ff-app" class="min-h-screen flex flex-col">
-        <template v-if="offline">
-            <main class="ff-bg-dark flex-grow flex flex-col">
-                <div class="w-full max-w-screen-2xl mx-auto my-2 sm:my-8 flex-grow flex flex-col">
-                    <Offline />
-                </div>
-            </main>
-        </template>
-        <template v-else-if="pending">
-            <main class="ff-bg-dark flex-grow flex flex-col">
-                <div class="w-full mx-auto flex-grow flex flex-col">
-                    <Loading color="white" />
-                </div>
-            </main>
-        </template>
+        <pending-overlay v-if="pending" />
+
+        <offline-overlay v-else-if="offline" />
+
         <!-- Platform Entry Point -->
         <template v-else-if="isLoggedIn">
             <template v-if="pageLayout === 'platform'">
@@ -33,6 +23,7 @@
                 </ff-layout-plain>
             </template>
         </template>
+
         <!-- Password Reset Required -->
         <template v-else-if="user && user.password_expired">
             <PasswordExpired />
@@ -58,9 +49,9 @@
 <script>
 import { mapState } from 'vuex'
 
-import Loading from './components/Loading.vue'
-import Offline from './components/Offline.vue'
 import LicenseBanner from './components/banners/LicenseBanner.vue'
+import OfflineOverlay from './components/overlays/OfflineOverlay.vue'
+import PendingOverlay from './components/overlays/PendingOverlay.vue'
 import FFLayoutBox from './layouts/Box.vue'
 import FFLayoutPlain from './layouts/Plain.vue'
 import FFLayoutPlatform from './layouts/Platform.vue'
@@ -77,8 +68,8 @@ export default {
         UnverifiedEmail,
         TermsAndConditions,
         LicenseBanner,
-        Loading,
-        Offline,
+        PendingOverlay,
+        OfflineOverlay,
         'ff-layout-platform': FFLayoutPlatform,
         'ff-layout-box': FFLayoutBox,
         'ff-layout-plain': FFLayoutPlain
