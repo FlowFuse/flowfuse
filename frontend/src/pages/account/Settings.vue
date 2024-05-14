@@ -32,7 +32,7 @@
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button class="warning" kind="danger" @click="deleteAccount">Delete Account</ff-button>
+                <ff-button class="warning" kind="danger" data-action="delete-account" @click="deleteAccount">Delete Account</ff-button>
             </div>
         </div>
     </div>
