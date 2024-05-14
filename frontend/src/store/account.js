@@ -158,7 +158,6 @@ const actions = {
                 // continue.
             } else if (router.currentRoute.value.meta.requiresLogin === false) {
                 // This is only for logged-out users
-                console.log(123)
                 router.push({ location: '/' })
                 return
             } else if (user.email_verified === false || user.password_expired) {
