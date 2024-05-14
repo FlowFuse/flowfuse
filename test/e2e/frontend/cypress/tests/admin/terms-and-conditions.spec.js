@@ -62,6 +62,7 @@ describe('FlowForge - Team Membership', () => {
         // Check settings
         cy.get('[data-el="terms-and-condition-url"]').find('input').should('have.value', 'http://a.b.c')
     })
+
     it('admin can update terms and conditions date', () => {
         cy.home()
         cy.visit('admin/settings/general')
@@ -84,6 +85,7 @@ describe('FlowForge - Team Membership', () => {
         cy.get('[data-action="accept-terms-button"]').should('be.disabled')
         cy.get('[data-action="logout-terms-button"]').should('be.enabled')
     })
+
     it('user is asked to update terms and conditions', () => {
         cy.login('bob', 'bbPassword')
         cy.visit('/')
