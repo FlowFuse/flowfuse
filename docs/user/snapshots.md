@@ -93,3 +93,14 @@ Devices can optionally disable auto snapshots, in the developer mode tab. This c
 avoid excessive data usage when a device is in the field or on a cellular connection.
 
 NOTE: This feature is only available to Team and Enterprise tier teams
+
+## Previewing Snapshots
+
+From any Snapshots tab, you can preview the flows of a snapshot by selecting the Snapshot's actions,
+and selecting "View Snapshot".
+
+![Screenshot to show the available "Actions" for a given Snapshot](./images/snapshots-actions.png)
+_Screenshot to show the available "Actions" for a given Snapshot_
+
+![Screenshot to an example flow preview for a Snapshot in FlowFuse](./images/snapshots-preview.png)
+_Screenshot to an example flow preview for a Snapshot in FlowFuse_

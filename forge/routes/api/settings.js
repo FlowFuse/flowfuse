@@ -35,6 +35,8 @@ module.exports = async function (app) {
                 'user:tcs-required': app.settings.get('user:tcs-required'),
                 'user:tcs-url': app.settings.get('user:tcs-url'),
                 'user:tcs-date': app.settings.get('user:tcs-date'),
+                'user:offboarding-required': app.settings.get('user:offboarding-required'),
+                'user:offboarding-url': app.settings.get('user:offboarding-url'),
                 'user:team:trial-mode:projectType': app.settings.get('user:team:trial-mode:projectType'),
                 email: app.postoffice.enabled(),
                 stacks: app.containers.properties().stack || {},
@@ -85,7 +87,9 @@ module.exports = async function (app) {
                 'user:signup': app.settings.get('user:signup') && app.postoffice.enabled(),
                 'user:reset-password': app.settings.get('user:reset-password') && app.postoffice.enabled(),
                 'user:tcs-required': app.settings.get('user:tcs-required') && app.postoffice.enabled(),
-                'user:tcs-url': app.settings.get('user:tcs-url')
+                'user:tcs-url': app.settings.get('user:tcs-url'),
+                'user:offboarding-required': app.settings.get('user:offboarding-required'),
+                'user:offboarding-url': app.settings.get('user:offboarding-url')
             }
 
             // `signUpTopBanner` was added to flowforge.yml in 1.3. But to make it more flexible, 1.4 moved
