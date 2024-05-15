@@ -172,17 +172,20 @@ const iconMap = {
         'project.snapshot.rollback',
         'project.snapshot.rolled-back',
         'project.snapshot.imported',
-        'project.snapshot.exported'
+        'project.snapshot.exported',
+        'project.snapshot.device-target-set',
+        'project.snapshot.deviceTarget', // legacy event
+        'application.device.snapshot.created',
+        'application.device.snapshot.deleted',
+        'application.device.snapshot.exported',
+        'application.device.snapshot.imported',
+        'application.device.snapshot.device-target-set'
     ],
     device: [
         'project.device.unassigned',
         'project.device.assigned',
         'application.device.unassigned',
         'application.device.assigned',
-        'application.device.snapshot.created',
-        'application.device.snapshot.deleted',
-        'application.device.snapshot.device-target-set',
-        'project.snapshot.device-target-set',
         'team.device.created',
         'team.device.deleted',
         'team.device.updated',
@@ -190,7 +193,6 @@ const iconMap = {
         'team.device.assigned',
         'team.device.credentials-generated',
         'team.device.credentialsGenerated', // legacy event
-        'project.snapshot.deviceTarget', // legacy event
         'device.credentials.generated',
         'device.started',
         'device.start-failed',

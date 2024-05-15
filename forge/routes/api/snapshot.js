@@ -273,9 +273,14 @@ module.exports = async function (app) {
             if (!newSnapshot) {
                 throw new Error('Failed to upload snapshot')
             }
-            // reload the snapshot to get the full details, including the User, Device or Project
+            // reload the snapshot to get the full details, including the User & Device/Project
             await newSnapshot.reload({ include: ['User', 'Device', 'Project'] })
-            // TODO: audit log event
+            if (request.ownerType === 'device') {
+                const application = await owner.getApplication()
+                await applicationLogger.application.device.snapshot.imported(request.session.User, null, application, owner, null, null, newSnapshot)
+            } else if (request.ownerType === 'instance') {
+                await projectLogger.project.snapshot.imported(request.session.User, null, owner, newSnapshot)
+            }
             reply.send(projectSnapshotView.snapshot(newSnapshot))
         } catch (err) {
             // if err message is a JSON.parse failure in decryptCreds, it's a bad secret
