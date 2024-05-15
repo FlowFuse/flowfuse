@@ -29,7 +29,7 @@
 </template>
 <script>
 
-import { DocumentIcon } from '@heroicons/vue/solid'
+import { DocumentIcon } from '@heroicons/vue/outline'
 
 import snapshotsApi from '../../api/snapshots.js'
 import alerts from '../../services/alerts.js'
