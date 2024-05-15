@@ -31,9 +31,13 @@ describe('Snapshots API', function () {
 
     const TestObjects = {
         application1: null,
+        application2: null,
         project1: null,
         device1: null,
+        project2: null,
+        device2: null,
         /** ATeam Owner & Admin */ alice: null,
+        /** ATeam Owner */ dave: null,
         /** ATeam Member */ bob: null,
         /** ATeam Viewer */ verity: null,
         /** BTeam Owner */ chris: null,
@@ -41,14 +45,17 @@ describe('Snapshots API', function () {
         BTeam: null,
         tokens: {
             project1: null,
+            project2: null,
             device1: null,
+            device2: null,
             /** ATeam Owner */ alice: null,
             /** ATeam Member */ bob: null,
             /** ATeam Viewer */ verity: null,
             /** BTeam Owner */ chris: null
         },
         template1: null,
-        stack1: null
+        stack1: null,
+        projectType1: null
     }
     before(async function () {
         app = await setup()
@@ -58,17 +65,20 @@ describe('Snapshots API', function () {
         TestObjects.template1 = app.template
         TestObjects.stack1 = app.stack
         TestObjects.project1 = app.project
+        TestObjects.projectType1 = app.projectType
 
         // Alice create in setup()
         TestObjects.alice = await app.db.models.User.byUsername('alice')
         TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
         TestObjects.verity = await app.db.models.User.create({ username: 'verity', name: 'Verity Viewer', email: 'verity@example.com', email_verified: true, password: 'vvPassword' })
         TestObjects.chris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', email_verified: true, password: 'ccPassword' })
+        TestObjects.dave = await app.db.models.User.create({ username: 'dave', name: 'Dave Skywalker', email: 'dave@example.com', email_verified: true, password: 'ddPassword' })
 
         // Add Bob and Verity to ATeam
         TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
         await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Member } })
         await TestObjects.ATeam.addUser(TestObjects.verity, { through: { role: Roles.Viewer } })
+        await TestObjects.ATeam.addUser(TestObjects.dave, { through: { role: Roles.Owner } })
 
         // Add BTeam and add Chris as owner
         TestObjects.BTeam = await factory.createTeam({ name: 'BTeam' })
@@ -77,15 +87,25 @@ describe('Snapshots API', function () {
         // create a device
         TestObjects.device1 = await factory.createDevice({ name: 'device-1' }, TestObjects.ATeam, null, TestObjects.application1)
 
+        // Create an application for BTeam
+        TestObjects.application2 = await factory.createApplication({ name: 'application-2' }, TestObjects.BTeam)
+
+        // Create a project for BTeam
+        TestObjects.project2 = await factory.createInstance({ name: 'project-2' }, TestObjects.application2, TestObjects.stack1, TestObjects.template1, TestObjects.projectType1)
+
+        // Create a device for BTeam, application2
+        TestObjects.device2 = await factory.createDevice({ name: 'device-2' }, TestObjects.BTeam, null, TestObjects.application2)
+
         TestObjects.tokens = {}
         await login('alice', 'aaPassword')
         await login('bob', 'bbPassword')
         await login('chris', 'ccPassword')
         await login('verity', 'vvPassword')
+        await login('dave', 'ddPassword')
 
         // TestObjects.tokens.alice = (await app.db.controllers.AccessToken.createTokenForPasswordReset(TestObjects.alice)).token
         TestObjects.tokens.project1 = (await TestObjects.project1.refreshAuthTokens()).token
-        // TestObjects.tokens.project2 = (await TestObjects.project2.refreshAuthTokens()).token
+        TestObjects.tokens.project2 = (await TestObjects.project2.refreshAuthTokens()).token
 
         TestObjects.template1 = app.template
         TestObjects.stack1 = app.stack
@@ -572,6 +592,7 @@ describe('Snapshots API', function () {
         function tests (kind) {
             const modelType = kind === 'instance' ? 'project' : 'device'
             const getOwnerId = () => kind === 'instance' ? TestObjects.project1.id : TestObjects.device1.hashid
+            const getTeamBOwnerId = () => kind === 'instance' ? TestObjects.project2.id : TestObjects.device2.hashid
 
             it('Owner can import snapshot with credentials', async function () {
                 const ownerId = getOwnerId()
@@ -605,15 +626,15 @@ describe('Snapshots API', function () {
             })
 
             it('Returns 400 for missing snapshot', async function () {
-                const response = await importSnapshot(getOwnerId(), 'instance', null, 'test-secret', TestObjects.tokens.alice)
+                const response = await importSnapshot(getOwnerId(), kind, null, 'test-secret', TestObjects.tokens.alice)
                 response.statusCode.should.equal(400)
                 const result = response.json()
                 result.should.have.property('code', 'FST_ERR_VALIDATION')
             })
 
-            it('Returns 404 for unknown owner', async function () {
+            it(`Returns 404 for non-existant ${kind}`, async function () {
                 const ss = dummySnapshot('dummy', [], {}, {}, {}, encryptCredentials('test-secret', { testCreds: 'abc' }))
-                const response = await importSnapshot('non_existant-owner', 'instance', ss, 'test-secret', TestObjects.tokens.alice)
+                const response = await importSnapshot('non_existant-owner', kind, ss, 'test-secret', TestObjects.tokens.alice)
                 response.statusCode.should.equal(404)
             })
 
@@ -648,22 +669,30 @@ describe('Snapshots API', function () {
                 response.json().should.have.property('code', 'bad_request')
             })
 
-            it('Non-member cannot import snapshot', async function () {
+            it(`TeamB member cannot import snapshot for ${kind} belonging to TeamA - 404`, async function () {
                 const ss = dummySnapshot('dummy', [], {}, {}, {}, null)
-                const response = await importSnapshot(getOwnerId(), kind, ss, null, TestObjects.tokens.chris)
+                // chris (TeamB member, non admin) will attempt to import a snapshot into a project/device belonging to TeamA
+                const response = await importSnapshot(getOwnerId(), kind, ss, null, TestObjects.tokens.chris) // chris is not a member of TeamA where the project/device is
                 // 404 as a non member should not know the resource exists
                 response.statusCode.should.equal(404)
                 response.json().should.have.property('code', 'not_found')
             })
 
-            it('Member cannot import snapshot', async function () {
+            it(`TeamA Owner cannot import snapshot for ${kind} belonging to TeamB - 404`, async function () {
+                const ss = dummySnapshot('dummy', [], {}, {}, {}, encryptCredentials('test-secret', { testCreds: 'abc' }))
+                // dave (TeamA owner, non admin) will attempt to import a snapshot into a project/device belonging to TeamB
+                const response = await importSnapshot(getTeamBOwnerId(), kind, ss, 'test-secret', TestObjects.tokens.dave) // dave is the owner of Team B where the project/device is
+                response.statusCode.should.equal(404)
+            })
+
+            it('Member cannot import snapshot - 403', async function () {
                 const ss = dummySnapshot('dummy', [], {}, {}, {}, null)
                 const response = await importSnapshot(getOwnerId(), kind, ss, null, TestObjects.tokens.bob)
                 response.statusCode.should.equal(403)
                 response.json().should.have.property('code', 'unauthorized')
             })
 
-            it('Viewer cannot import snapshot', async function () {
+            it('Viewer cannot import snapshot - 403', async function () {
                 const ss = dummySnapshot('dummy', [], {}, {}, {}, null)
                 const response = await importSnapshot(getOwnerId(), kind, ss, null, TestObjects.tokens.verity)
                 response.statusCode.should.equal(403)
