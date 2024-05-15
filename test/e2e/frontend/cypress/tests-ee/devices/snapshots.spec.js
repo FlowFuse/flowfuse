@@ -1,3 +1,11 @@
+/// <reference types="cypress" />
+
+import deviceSnapshots from '../../fixtures/snapshots/device-snapshots.json'
+import deviceFullSnapshot from '../../fixtures/snapshots/device2-full-snapshot1.json'
+
+const IDX_VIEW_SNAPSHOT = 0
+// const IDX_DELETE_SNAPSHOT = 1
+
 describe('FlowForge - Devices - With Billing', () => {
     beforeEach(() => {
         cy.enableBilling()
@@ -74,5 +82,26 @@ describe('FlowForge - Devices - With Billing', () => {
             cy.get('[data-el="empty-state"]').should('not.exist')
             cy.get('[data-el="snapshots"] tbody').find('tr').should('have.length', snapshots)
         })
+    })
+
+    it('provides functionality to view a snapshot', () => {
+        cy.intercept('GET', '/api/*/applications/*/snapshots*', deviceSnapshots).as('getSnapshots')
+        cy.intercept('GET', '/api/*/snapshots/*/full', deviceFullSnapshot).as('fullSnapshot')
+
+        cy.contains('span', 'application-device-a').click()
+        cy.get('[data-nav="device-snapshots"]').click()
+
+        // click kebab menu in row 1
+        cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
+        // click the View Snapshot option
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_VIEW_SNAPSHOT).click()
+
+        cy.wait('@fullSnapshot')
+
+        // check the snapshot dialog is visible and contains the snapshot name
+        cy.get('[data-el="dialog-view-snapshot"]').should('be.visible')
+        cy.get('[data-el="dialog-view-snapshot"] .ff-dialog-header').contains(deviceFullSnapshot.name)
+        // check an SVG in present the content section
+        cy.get('[data-el="dialog-view-snapshot"] .ff-dialog-content svg').should('exist')
     })
 })

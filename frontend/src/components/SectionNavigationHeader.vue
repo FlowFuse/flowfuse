@@ -7,7 +7,7 @@
                         <div class="inline-flex flex-wrap gap-1">
                             <div class="flex items-center mr-6">
                                 <slot name="breadcrumbs" />
-                                <ff-nav-breadcrumb data-el="page-name">{{ title }}</ff-nav-breadcrumb>
+                                <ff-nav-breadcrumb data-el="page-name" data-cy="page-name">{{ title }}</ff-nav-breadcrumb>
                                 <InformationCircleIcon v-if="hasInfoDialog" class="ml-3 min-w-[20px] ff-icon text-gray-800 cursor-pointer hover:text-blue-700" @click="openInfoDialog()" />
                             </div>
                             <slot name="status" />

@@ -17,15 +17,17 @@
                 :noDataMessage="noDataMessage"
             >
                 <template #actions>
-                    <input id="fileUpload" ref="fileUpload" type="file" accept=".env, text/plain, *" class="hidden" hidden>
-                    <ff-button kind="secondary" @click="importEnv">
-                        <template #icon><DocumentDownloadIcon /></template>
-                        <span class="hidden sm:flex pl-1">Import .env</span>
-                    </ff-button>
-                    <ff-button kind="primary" accesskey="a" @click="addVarHandler">
-                        <template #icon><PlusSmIcon /></template>
-                        <span class="hidden sm:flex pl-1">Add variable</span>
-                    </ff-button>
+                    <template v-if="!readOnly">
+                        <input id="fileUpload" ref="fileUpload" type="file" accept=".env, text/plain, *" class="hidden" hidden>
+                        <ff-button kind="secondary" @click="importEnv">
+                            <template #icon><DocumentDownloadIcon /></template>
+                            <span class="hidden sm:flex pl-1">Import .env</span>
+                        </ff-button>
+                        <ff-button kind="primary" accesskey="a" @click="addVarHandler">
+                            <template #icon><PlusSmIcon /></template>
+                            <span class="hidden sm:flex pl-1">Add variable</span>
+                        </ff-button>
+                    </template>
                 </template>
                 <template #header>
                     <ff-data-table-row class="font-medium">

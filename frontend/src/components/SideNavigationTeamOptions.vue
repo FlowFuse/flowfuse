@@ -135,7 +135,7 @@ export default {
         const lastUrl = this.$router.options.history.state.back
         // trigger animation reveal of the main bar if navigating
         // from a project/device page where we show the nested menu
-        if (lastUrl && (lastUrl.indexOf('/project') === 0 || lastUrl.indexOf('/device') === 0)) {
+        if (lastUrl && (lastUrl.indexOf('/instance') === 0 || lastUrl.indexOf('/device') === 0)) {
             this.closeNested = true
             setTimeout(() => {
                 this.closeNested = false

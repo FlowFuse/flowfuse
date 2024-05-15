@@ -12,6 +12,9 @@
  */
 
 module.exports = async function (app) {
+    /** @type {typeof import('../../db/controllers/Snapshot.js')} */
+    const controller = app.db.controllers.Snapshot
+
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.snapshotId !== undefined) {
             if (request.params.snapshotId) {
@@ -126,24 +129,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const device = await request.snapshot.getDevice()
-        const deviceSettings = await device.getSetting('deviceSettings') || {
-            targetSnapshot: null
-        }
-        if (deviceSettings.targetSnapshot === request.snapshot.id) {
-            // We're about to delete the active snapshot for this device
-            await device.updateSetting('deviceSettings', {
-                targetSnapshot: null
-            })
-            // The cascade relationship will ensure Device.targetSnapshotId is cleared
-            if (app.comms) {
-                const team = await device.getTeam()
-                app.comms.devices.sendCommandToProjectDevices(team.hashid, device.id, 'update', {
-                    snapshot: null
-                })
-            }
-        }
-        await request.snapshot.destroy()
+        await controller.deleteSnapshot(request.snapshot)
         await app.auditLog.Application.application.device.snapshot.deleted(request.session.User, null, request.device.Application, request.device, request.snapshot)
         reply.send({ status: 'okay' })
     })

@@ -11,11 +11,14 @@ module.exports = {
      * @param {QueryInterface} context Sequelize.QueryInterface
      */
     up: async (context) => {
-        await context.addColumn('FlowTemplates', 'teamTypeScope', {
-            type: DataTypes.TEXT,
-            allowNull: true,
-            defaultValue: null
-        })
+        const tableExists = await context.tableExists('FlowTemplates')
+        if (tableExists) {
+            await context.addColumn('FlowTemplates', 'teamTypeScope', {
+                type: DataTypes.TEXT,
+                allowNull: true,
+                defaultValue: null
+            })
+        }
     },
     down: async (context) => {
     }

@@ -171,7 +171,8 @@ const iconMap = {
         'project.snapshot.deleted',
         'project.snapshot.rollback',
         'project.snapshot.rolled-back',
-        'project.snapshot.imported'
+        'project.snapshot.imported',
+        'project.snapshot.exported'
     ],
     device: [
         'project.device.unassigned',

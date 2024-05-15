@@ -26,7 +26,7 @@ body:
 - type: dropdown
   id: pricing
   attributes:
-    label: Which customers would this be availble to 
+    label: Which customers would this be available to 
     description: Based on our [pricing principles](https://flowfuse.com/handbook/product/pricing/) features should be aligned between Cloud and CE/EE
     multiple: false
     options:
@@ -51,7 +51,7 @@ body:
   id: estimation
   attributes:
     label: Have you provided an initial effort estimate for this issue?
-    description: See our [handbook](https://FlowFuse.com/handbook/development/releases/planning/#effort-estimation) for more details.
+    description: See our [handbook](https://flowfuse.com/handbook/development/project-management/#sizing-issues) for more details.
     multiple: false
     options:
       - I have provided an initial effort estimate

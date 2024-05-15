@@ -10,13 +10,17 @@ const Controllers = require('../controllers')
 const { buildPaginationSearchClause } = require('../utils')
 
 const ALLOWED_SETTINGS = {
-    env: 1,
     autoSnapshot: 1,
+    editor: 1,
+    env: 1,
     palette: 1
 }
 
 const DEFAULT_SETTINGS = {
-    autoSnapshot: true
+    autoSnapshot: true,
+    editor: {
+        nodeRedVersion: null
+    }
 }
 
 module.exports = {

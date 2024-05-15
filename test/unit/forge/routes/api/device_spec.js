@@ -1712,7 +1712,7 @@ describe('Device API', async function () {
 
             const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
             const dbDevice = await app.db.models.Device.byId(device.id)
-            dbDevice.updateSettings({ settings: { env: [{ name: 'FOO', value: 'BAR' }] } })
+            await dbDevice.updateSettings({ settings: { env: [{ name: 'FOO', value: 'BAR' }] } })
             dbDevice.setProject(TestObjects.deviceProject)
             const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
             dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
@@ -1742,7 +1742,7 @@ describe('Device API', async function () {
 
             const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
             const dbDevice = await app.db.models.Device.byId(device.id)
-            dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
+            await dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
             dbDevice.setProject(TestObjects.deviceProject)
             const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
             dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
@@ -1771,7 +1771,7 @@ describe('Device API', async function () {
 
             const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
             const dbDevice = await app.db.models.Device.byId(device.id)
-            dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
+            await dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
             dbDevice.setProject(TestObjects.deviceProject)
             const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
             dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
@@ -1820,7 +1820,7 @@ describe('Device API', async function () {
 
             const device = await createDevice({ name: 'Ad1', type: 'Ad1_type', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
             const dbDevice = await app.db.models.Device.byId(device.id)
-            dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
+            await dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
             dbDevice.setProject(TestObjects.deviceProject)
             const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
             dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
@@ -1843,13 +1843,14 @@ describe('Device API', async function () {
             body.should.have.property('features').and.be.an.Object()
             body.features.should.have.property('projectComms', false)
             body.features.should.have.property('shared-library', false)
+            body.should.not.have.property('editor')
         })
         it('device downloads settings with features enabled', async function () {
             await setupProjectWithSnapshot(true)
 
             const device = await createDevice({ name: 'Ad1', type: 'Ad1_type', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
             const dbDevice = await app.db.models.Device.byId(device.id)
-            dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
+            await dbDevice.updateSettings({ env: [{ name: 'FOO', value: 'BAR' }] })
             dbDevice.setProject(TestObjects.deviceProject)
             const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
             dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
@@ -1869,6 +1870,26 @@ describe('Device API', async function () {
             body.should.have.property('features').and.be.an.Object()
             body.features.should.have.property('projectComms', true)
             body.features.should.have.property('shared-library', true)
+        })
+        it('device downloads settings with editor version specified', async function () {
+            const device = await createDevice({ name: 'Ad1', type: 'Ad1_type', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const dbDevice = await app.db.models.Device.byId(device.id)
+            dbDevice.updateSettings({ editor: { nodeRedVersion: 'next' } })
+            dbDevice.setApplication(TestObjects.Application1)
+            await dbDevice.save()
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/${device.id}/live/settings`,
+                headers: {
+                    authorization: `Bearer ${device.credentials.token}`,
+                    'content-type': 'application/json'
+                }
+            })
+            const body = JSON.parse(response.body)
+            response.statusCode.should.equal(200)
+            body.should.have.property('editor').and.be.an.Object()
+            body.editor.should.have.property('nodeRedVersion', 'next')
         })
     })
 

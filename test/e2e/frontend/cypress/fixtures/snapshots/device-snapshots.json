@@ -1,0 +1,23 @@
+{
+    "count": 1,
+    "snapshots": [
+        {
+            "createdAt": "2024-01-01T11:22:33.444Z",
+            "updatedAt": "2024-01-01T11:22:33.444Z",
+            "ownerType": "device",
+            "deviceId": "2",
+            "device": {
+                "id": "2",
+                "name": "device-2",
+                "type": "type-1",
+                "lastSeenMs": null,
+                "status": "running",
+                "mode": "autonomous",
+                "isDeploying": false
+            },
+            "id": "1",
+            "name": "application device-2 snapshot-1",
+            "description": "a device snapshot"
+        }
+    ]
+}

@@ -1,3 +1,67 @@
+#### 2.4.0: Release
+
+ - Visualise a snapshots flows (#3835) @Steve-Mcl
+ - Snapshots api (#3833) @Steve-Mcl
+ - Implement health check interval user setting (#3716) @Steve-Mcl
+ - Remove NR Session when user role changes (#3718) @hardillb
+ - Fix the immersive editor dashboard button (#3837) @cstns
+ - GH Workflow: Implement the "Update Issue Status" workflow (#3653) @joepavitt
+ - Remove project nodes from built-in list so they can be upgraded (#3834) @knolleary
+ - Fix migations for non-ee installs (#3817) @knolleary
+ - Hide environment variable add/import buttons in read-only mode (#3826) @knolleary
+ - Validate pipeline stage ownership on update (#3823) @knolleary
+ - Bump @aws-sdk/credential-provider-node from 3.554.0 to 3.569.0 (#3822) @app/dependabot
+ - docs: FlowForge -> FlowFuse (#3821) @ZJvandeWeg
+ - Allow user setting node red version setting for application assigned devices (#3766) @Steve-Mcl
+ - Generate snapshot-specific filename on download (#3814) @knolleary
+ - Implement instance snapshot download (#3805) @Steve-Mcl
+ - Fix async and transactional issues in code base (#3812) @Steve-Mcl
+ - Flow Viewer - Add the ability to visualise Library contents (#3806) @joepavitt
+ - Add redirect for /project/xyz to /instance/xyz (#3808) @knolleary
+ - Remove coverage reporting of frontend tests (#3809) @knolleary
+ - Sanitise output of snapshot /export API (#3797) @Steve-Mcl
+ - Make blueprints accessible outside of "Create Instance" menu (#3752) @cstns
+ - Update 06-story.yml (#3804) @ZJvandeWeg
+ - Alter instance editor links pointing to the immersive editor to point to the default editor (#3791) @cstns
+ - Fix displaying the nr editor while unavailable (#3788) @cstns
+ - Add action buttons to applications overview instances list (#3783) @cstns
+ - Add "Open Dashboard" button to Immersive Editor (#3769) @cstns
+ - Fix alert close button (#3784) @cstns
+ - Docs for setting up Dashboard v2 user plugin on selfhosted (#3782) @hardillb
+ - Fix lib viewer when user does not specify an extension (#3777) @Steve-Mcl
+ - Fix instructions for enabling the broker on k8s (#3774) @hardillb
+ - ci: Update deploy:pr configuration to exclude files in the 'docs' directory (#3775) @ppawlowski
+ - ci: Add additional stacks to pre-staging configuration script (#3770) @ppawlowski
+ - ci: Introduce pull requests labeler workflow (#3764) @ppawlowski
+ - Add e2e tests (#3767) @cstns
+ - UX Improvements to Immersive Editor (#3753) @cstns
+ - Update the editor link on the application instances list to point to the appropriate editor (#3761) @cstns
+ - Bump vite from 5.0.12 to 5.2.8 (#3678) @app/dependabot
+ - ci: Update Slack user mapping in tests.yml (#3763) @ppawlowski
+ - Stop polling a device if it's deleted (#3714) @hardillb
+ - CI: Customise pre-staging environment (#3749) @ppawlowski
+ - Bump @babel/preset-env from 7.23.9 to 7.24.4 (#3722) @app/dependabot
+ - Bump mqtt from 5.5.0 to 5.5.3 (#3757) @app/dependabot
+ - Bump mini-css-extract-plugin from 2.8.0 to 2.9.0 (#3756) @app/dependabot
+ - Bump semver from 7.5.4 to 7.6.0 (#3758) @app/dependabot
+ - Add new immersive instance editor (#3709) @cstns
+ - CI: Add Serban to the list of slack-github users mapping (#3747) @ppawlowski
+ - Add a new full width layout (#3740) @cstns
+ - Update Instance States documentation (#3745) @hardillb
+ - Import ff-colors globally through webpack (#3732) @cstns
+ - Allow user/runtime limits to be applied during trial (#3742) @knolleary
+ - Guard access of tunnel.socket in async event handler (#3738) @knolleary
+ - Reset posthog localStorage if found not to be logged in (#3733) @knolleary
+ - Revert "Bump @node-saml/passport-saml from 4.0.4 to 5.0.0" (#3737) @hardillb
+ - Sanitize content to avoid spurious links included in verification email (#3730) @knolleary
+ - Improve test coverage around user invites (#3721) @knolleary
+ - Bump @node-saml/passport-saml from 4.0.4 to 5.0.0 (#3723) @app/dependabot
+ - Add privateCA config (#3720) @hardillb
+ - Bump cypress from 13.6.6 to 13.7.3 (#3725) @app/dependabot
+ - Bump @fastify/static from 7.0.2 to 7.0.3 (#3726) @app/dependabot
+ - Bump @aws-sdk/credential-provider-node from 3.523.0 to 3.554.0 (#3724) @app/dependabot
+ - Token api tidy up (#3717) @knolleary
+
 #### 2.3.0: Release
 
  - Allow .npmrc and calalogue urls to be set for Application bound devices (#3643) @hardillb

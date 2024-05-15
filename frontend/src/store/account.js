@@ -75,7 +75,8 @@ const getters = {
     },
     offline (state) {
         return state.offline
-    }
+    },
+    isAdminUser: (state) => !!state.user.admin
 }
 
 const mutations = {

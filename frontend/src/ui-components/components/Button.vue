@@ -32,6 +32,14 @@ export default {
         to: {
             default: null,
             type: [String, Object]
+        },
+        hasRightIcon: {
+            default: true,
+            type: Boolean
+        },
+        hasLeftIcon: {
+            default: true,
+            type: Boolean
         }
     },
     computed: {
@@ -39,10 +47,10 @@ export default {
             return this.$slots['icon-left'] || this.$slots['icon-right'] || this.$slots.icon
         },
         hasIconLeft: function () {
-            return this.$slots['icon-left']
+            return this.$slots['icon-left'] && this.hasLeftIcon
         },
         hasIconRight: function () {
-            return this.$slots['icon-right']
+            return this.$slots['icon-right'] && this.hasRightIcon
         },
         isIconOnly: function () {
             return this.$slots.icon

@@ -11,7 +11,11 @@
         </div>
         <ff-loading v-if="loading" message="Loading Snapshots..." />
         <template v-if="snapshots.length > 0">
-            <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots..." />
+            <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
+                <template #context-menu="{row}">
+                    <ff-list-item :disabled="!canViewSnapshot(row)" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
+                </template>
+            </ff-data-table>
         </template>
         <template v-else-if="!loading">
             <EmptyState>
@@ -32,17 +36,22 @@
             </EmptyState>
         </template>
     </div>
+    <SnapshotViewerDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
 </template>
 
 <script>
 import { markRaw } from 'vue'
+import { mapState } from 'vuex'
 
 import ApplicationApi from '../../api/application.js'
+import SnapshotsApi from '../../api/snapshots.js'
 
 import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
+import SnapshotViewerDialog from '../../components/dialogs/SnapshotViewerDialog.vue'
 import UserCell from '../../components/tables/cells/UserCell.vue'
 import permissionsMixin from '../../mixins/Permissions.js'
+import Alerts from '../instance/Settings/Alerts.vue'
 
 // Table Cells
 import DaysSince from './Snapshots/components/cells/DaysSince.vue'
@@ -53,6 +62,7 @@ export default {
     name: 'ApplicationSnapshots',
     components: {
         SectionTopMenu,
+        SnapshotViewerDialog,
         EmptyState
     },
     mixins: [permissionsMixin],
@@ -102,6 +112,9 @@ export default {
             ]
         }
     },
+    computed: {
+        ...mapState('account', ['teamMembership'])
+    },
     mounted () {
         this.loadSnapshots()
     },
@@ -111,6 +124,17 @@ export default {
             const data = await ApplicationApi.getSnapshots(this.application.id, null, null, null)
             this.snapshots = [...data.snapshots]
             this.loading = false
+        },
+        canViewSnapshot: function (row) {
+            return this.hasPermission('snapshot:full')
+        },
+        showViewSnapshotDialog (row) {
+            SnapshotsApi.getFullSnapshot(row.id).then((data) => {
+                this.$refs.snapshotViewerDialog.show(data)
+            }).catch(err => {
+                console.error(err)
+                Alerts.emit('Failed to get snapshot.', 'warning')
+            })
         }
     }
 }

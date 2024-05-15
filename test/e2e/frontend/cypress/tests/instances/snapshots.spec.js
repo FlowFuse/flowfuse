@@ -1,4 +1,12 @@
-const path = require('path')
+/// <reference types="cypress" />
+
+// const IDX_ROLLBACK = 0
+const IDX_VIEW_SNAPSHOT = 1
+const IDX_DOWNLOAD_SNAPSHOT = 2
+const IDX_DOWNLOAD_PACKAGE = 3
+// const IDX_SET_TARGET = 4
+const IDX_DELETE_SNAPSHOT = 5
+
 describe('FlowForge - Instance Snapshots', () => {
     beforeEach(() => {
         cy.intercept('GET', '/api/*/projects/*/snapshots').as('getProjectSnapshots')
@@ -41,14 +49,92 @@ describe('FlowForge - Instance Snapshots', () => {
         cy.get('[data-el="snapshots"] tbody').find('tr').contains('snapshot1')
     })
 
+    it('provides functionality to view a snapshot', () => {
+        cy.intercept('GET', '/api/*/snapshots/*/full').as('fullSnapshot')
+        // click kebab menu in row 1
+        cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
+        // click the View Snapshot option
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_VIEW_SNAPSHOT).click()
+
+        cy.wait('@fullSnapshot')
+
+        cy.get('[data-el="dialog-view-snapshot"]').should('be.visible')
+
+        // check the snapshot name in the dialog header
+        cy.get('[data-el="dialog-view-snapshot"] .ff-dialog-header').contains('snapshot1')
+
+        // check the flow renders an SVG in the content section
+        cy.get('[data-el="dialog-view-snapshot"] .ff-dialog-content svg').should('exist')
+    })
+
+    it('download snapshot', () => {
+        cy.intercept('POST', '/api/*/projects/*/snapshots/*/export').as('exportSnapshot')
+
+        // click kebab menu in row 1
+        cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
+        // click the Download Snapshot option
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_SNAPSHOT).click()
+
+        // wait for SnapshotExportDialog dialog to appear
+        cy.get('[data-el="dialog-export-snapshot"]').should('be.visible')
+
+        // by default, the secret should be populated with a random string and the download button should be enabled
+        cy.get('[data-el="dialog-export-snapshot"] [data-form="snapshot-secret"] input').invoke('val').should('not.be.empty')
+        cy.get('[data-el="dialog-export-snapshot"] button').contains('Download').should('not.be.disabled')
+
+        // capture the value of the snapshot secret, operate the secret refresh button, and check the secret has changed
+        cy.get('[data-el="dialog-export-snapshot"] [data-form="snapshot-secret"] input').invoke('val').then((secret) => {
+            // operate the secret refresh button
+            cy.get('[data-el="dialog-export-snapshot"] [data-el="refresh"]').click()
+            // check secret has changed
+            cy.get('[data-el="dialog-export-snapshot"] [data-form="snapshot-secret"] input').invoke('val').should('not.eq', secret)
+        })
+
+        // check validation "Secret is required"
+        cy.get('[data-el="dialog-export-snapshot"] [data-form="snapshot-secret"] input').clear()
+        cy.get('[data-el="dialog-export-snapshot"] [data-el="form-row-error"]').contains('Secret is required')
+
+        // check validation "Secret must be at least 8 characters"
+        cy.get('[data-el="dialog-export-snapshot"] [data-form="snapshot-secret"] input').clear()
+        cy.get('[data-el="dialog-export-snapshot"] [data-form="snapshot-secret"] input').type('1234567')
+        cy.get('[data-el="dialog-export-snapshot"] [data-el="form-row-error"]').contains('Secret must be at least 8 characters')
+
+        // check validation "Secret cannot start or end with a space"
+        cy.get('[data-el="dialog-export-snapshot"] [data-form="snapshot-secret"] input').clear()
+        cy.get('[data-el="dialog-export-snapshot"] [data-form="snapshot-secret"] input').type('1234567 ')
+        cy.get('[data-el="dialog-export-snapshot"] [data-el="form-row-error"]').contains('Secret cannot start or end with a space')
+        cy.get('[data-el="dialog-export-snapshot"] [data-form="snapshot-secret"] input').clear()
+        cy.get('[data-el="dialog-export-snapshot"] [data-form="snapshot-secret"] input').type(' 1234567')
+        cy.get('[data-el="dialog-export-snapshot"] [data-el="form-row-error"]').contains('Secret cannot start or end with a space')
+        cy.get('[data-el="dialog-export-snapshot"] [data-form="snapshot-secret"] input').clear()
+        cy.get('[data-el="dialog-export-snapshot"] [data-form="snapshot-secret"] input').type('                   ')
+        cy.get('[data-el="dialog-export-snapshot"] [data-el="form-row-error"]').contains('Secret cannot start or end with a space')
+
+        cy.get('[data-el="dialog-export-snapshot"] [data-form="snapshot-secret"] input').clear()
+        cy.get('[data-el="dialog-export-snapshot"] [data-form="snapshot-secret"] input').type('a valid secret')
+
+        // operate the data-action="dialog-confirm" button
+        cy.get('[data-el="dialog-export-snapshot"] [data-action="dialog-confirm"]').click()
+
+        // wait for `api/v1/projects/*/snapshots/*/export` to respond
+        let response
+        cy.wait('@exportSnapshot').then(interception => {
+            response = interception.response.body
+            // check the downloaded file
+            const downloadsFolder = Cypress.config('downloadsFolder')
+            // generate the expected snapshot filename structure
+            cy.task('fileExists', { dir: downloadsFolder, fileRE: `snapshot-${response.id}-\\d{8}-\\d{6}\\.json` })
+        })
+    })
+
     it('download snapshot package.json', () => {
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
-        // click the 2nd option (Download)
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(1).click()
+        // click the Download Package.json option
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_PACKAGE).click()
 
         const downloadsFolder = Cypress.config('downloadsFolder')
-        cy.readFile(path.join(downloadsFolder, 'package.json'))
+        cy.task('fileExists', { dir: downloadsFolder, file: 'package.json' })
     })
 
     it('can delete a snapshot', () => {
@@ -56,8 +142,8 @@ describe('FlowForge - Instance Snapshots', () => {
 
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
-        // click the 4th option (Delete)
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(3).click()
+        // click the Delete option
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DELETE_SNAPSHOT).click()
 
         cy.get('[data-el="platform-dialog"]').should('be.visible')
         cy.get('[data-el="platform-dialog"] .ff-dialog-header').contains('Delete Snapshot')
@@ -99,5 +185,8 @@ describe('FlowForge shows audit logs', () => {
     })
     it('for when a snapshot is deleted', () => {
         cy.get('.ff-audit-entry').contains('Instance Snapshot Deleted')
+    })
+    it('for when a snapshot is exported', () => {
+        cy.get('.ff-audit-entry').contains('Instance Snapshot Exported')
     })
 })

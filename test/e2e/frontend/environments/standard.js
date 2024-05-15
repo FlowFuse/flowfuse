@@ -66,6 +66,10 @@ module.exports = async function (settings = {}, config = {}) {
     // team member
     const userEddy = await factory.createUser({ username: 'eddy', name: 'Edward Organa', email: 'eddy@example.com', email_verified: true, password: 'eePassword' })
 
+    // disposable users for offboarding tests
+    const userBoba = await factory.createUser({ username: 'boba', name: 'Boba Fett', email: 'boba@example.com', email_verified: true, password: 'ffPassword' })
+    const userGrey = await factory.createUser({ username: 'grey', name: 'Grey Grevious', email: 'grey@example.com', email_verified: true, password: 'ggPassword' })
+
     // Platform Setup
     const template = await factory.createProjectTemplate({ name: 'template1' }, userAlice)
     const stack = await factory.createStack({ name: 'stack1' }, projectType)
@@ -134,6 +138,8 @@ module.exports = async function (settings = {}, config = {}) {
     const team2 = await factory.createTeam({ name: 'BTeam' })
     await team2.addUser(userBob, { through: { role: Roles.Owner } })
     await team2.addUser(userEddy, { through: { role: Roles.Member } })
+    await team2.addUser(userBoba, { through: { role: Roles.Member } })
+    await team2.addUser(userGrey, { through: { role: Roles.Member } })
 
     // Create pending invite for Dave to join BTeam
     await factory.createInvitation(team2, userBob, userDave)

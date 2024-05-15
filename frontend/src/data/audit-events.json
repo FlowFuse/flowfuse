@@ -77,6 +77,7 @@
         "project.snapshot.deleted": "Instance Snapshot Deleted",
         "project.snapshot.device-target-set": "Device Target Set",
         "project.snapshot.imported": "Snapshot Imported",
+        "project.snapshot.exported": "Instance Snapshot Exported",
         "project.snapshot.deviceTarget": "Device Target Set",
         "project.httpToken.created": "Project HTTP Bearer Token Created",
         "project.httpToken.updated": "Project HTTP Bearer Token Updated",

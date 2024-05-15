@@ -32,13 +32,15 @@
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button class="warning" kind="danger" @click="deleteAccount">Delete Account</ff-button>
+                <ff-button class="warning" kind="danger" data-action="delete-account" @click="deleteAccount">Delete Account</ff-button>
             </div>
         </div>
     </div>
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import userApi from '../../api/user.js'
 
 import FormHeading from '../../components/FormHeading.vue'
@@ -82,6 +84,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['settings']),
         formValid () {
             return (this.changed.name || this.changed.username || this.changed.email || this.changed.defaultTeam) &&
                    (!this.emailEditingEnabled || (this.input.email && !this.errors.email)) &&
@@ -209,15 +212,18 @@ export default {
                        <p>This action cannot be undone.</p>`,
                 confirmLabel: 'Delete'
             }, async () => {
-                try {
-                    await userApi.deleteUser()
-                    // this.$store.dispatch('account/logout')
-                    this.$store.dispatch('account/checkState')
-                    this.$router.push({ name: 'login' })
-                } catch (error) {
-                    const msg = error.response?.data?.error || 'Error deleting account'
-                    alerts.emit(msg, 'warning')
-                }
+                userApi.deleteUser()
+                    .then(() => {
+                        if (this.settings['user:offboarding-required']) {
+                            window.location.href = this.settings['user:offboarding-url']
+                        } else {
+                            this.$store.dispatch('account/checkState')
+                        }
+                    })
+                    .catch(error => {
+                        const msg = error.response?.data?.error || 'Error deleting account'
+                        alerts.emit(msg, 'warning')
+                    })
             })
         }
     }
