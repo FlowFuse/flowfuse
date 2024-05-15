@@ -77,37 +77,6 @@ module.exports = {
                 }
             }
         })
-        // app.addSchema({
-        //     $id: 'SnapshotUpload',
-        //     type: 'object',
-        //     properties: {
-        //         id: { type: 'string', nullable: true },
-        //         name: { type: 'string' },
-        //         description: { type: 'string' },
-        //         createdAt: { type: 'string' },
-        //         updatedAt: { type: 'string' },
-        //         user: { type: 'object' },
-        //         exportedBy: { type: 'object' },
-        //         flows: {
-        //             type: 'object',
-        //             properties: {
-        //                 flows: { type: 'array', items: {} },
-        //                 credentials: { type: 'object' }
-        //             },
-        //             required: ['flows']
-        //         },
-        //         settings: {
-        //             type: 'object',
-        //             properties: {
-        //                 settings: { type: 'object' },
-        //                 env: { type: 'object' },
-        //                 modules: { type: 'object' }
-        //             },
-        //             required: []
-        //         }
-        //     },
-        //     required: ['name', 'description', 'flows', 'settings']
-        // })
     },
 
     snapshotSummary (snapshot) {
