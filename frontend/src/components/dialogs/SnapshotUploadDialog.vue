@@ -1,22 +1,22 @@
 <template>
-    <ff-dialog ref="dialog" :header="title" confirm-label="Upload" :disable-primary="!input.snapshot" :closeOnConfirm="false" @confirm="confirm()" @cancel="cancel">
+    <ff-dialog ref="dialog" :header="title" confirm-label="Upload" :disable-primary="!formValid" :closeOnConfirm="false" @confirm="confirm()" @cancel="cancel">
         <template #default>
             <form class="space-y-6 mt-2" @submit.prevent>
-                <FormRow :error="errors.file" data-form="snapshot-name">
+                <FormRow :error="validateField.file ? errors.file : ''" data-form="snapshot-name">
                     Snapshot File
                     <template #input>
                         <ff-text-input v-model="input.file" :error="errors.file" disabled />
                     </template>
                     <template #append>
                         <input id="fileUpload" ref="fileUpload" type="file" accept="application/json, text/plain, *" class="hidden">
-                        <ff-button kind="secondary" @click="selectSnapshot">
+                        <ff-button v-ff-tooltip:top="'Select Snapshot'" kind="tertiary" @click="selectSnapshot">
                             <template #icon><DocumentIcon /></template>
                             <!-- <span class="hidden sm:flex pl-1">Select Snapshot</span> -->
                         </ff-button>
                     </template>
                 </FormRow>
-                <FormRow v-if="snapshotNeedsSecret" v-model="input.secret" :error="errors.secret" data-form="snapshot-secret">Credentials Secret</FormRow>
-                <FormRow v-model="input.name" :error="errors.name" data-form="snapshot-name">Name</FormRow>
+                <FormRow v-if="snapshotNeedsSecret" v-model="input.secret" :error="validateField.secret ? errors.secret : ''" data-form="snapshot-secret">Credentials Secret</FormRow>
+                <FormRow v-model="input.name" :error="validateField.name ? errors.name : ''" data-form="snapshot-name">Name</FormRow>
                 <FormRow data-form="snapshot-description">
                     Description
                     <template #input>
@@ -60,58 +60,78 @@ export default {
     setup () {
         return {
             show () {
+                this.setKeys(this.input, '')
+                this.setKeys(this.errors, '')
+                this.setKeys(this.validateField, false)
                 this.$refs.dialog.show()
-                this.input.name = ''
-                this.input.description = ''
-                this.input.file = ''
-                this.input.snapshot = ''
-                this.input.secret = ''
-                this.submitted = false
-                Object.keys(this.errors).forEach(key => {
-                    this.errors[key] = ''
-                })
+                setTimeout(() => {
+                    this.validate()
+                    this.shown = true
+                }, 5)
             }
         }
     },
     data () {
         return {
-            submitted: false,
+            shown: false,
             input: {
+                file: '',
+                secret: '',
                 name: '',
                 description: '',
-                setAsTarget: false,
-                file: null,
-                snapshot: null,
-                secret: ''
+                snapshot: ''
             },
             errors: {
-                name: '',
                 file: '',
-                secret: ''
+                secret: '',
+                name: ''
+            },
+            validateField: {
+                file: false,
+                secret: false,
+                name: false
             }
         }
     },
     computed: {
         formValid () {
-            return !Object.values(this.errors).some(error => !!error)
+            return !Object.values(this.errors).some(error => !!error) && this.input.file && this.input.name && (!this.snapshotNeedsSecret || this.input.secret)
         },
         snapshotNeedsSecret () {
             return !!(this.input.snapshot && this.input.snapshot.flows?.credentials)
         }
     },
-    mounted () {
+    watch: {
+        'input.name': function () {
+            if (this.shown) {
+                this.validateField.name = true
+                this.validate()
+            }
+        },
+        'input.file': function () {
+            if (this.shown) {
+                this.validateField.file = true
+                this.validate()
+            }
+        },
+        'input.secret': function () {
+            if (this.shown) {
+                this.validateField.secret = true
+                this.validate()
+            }
+        }
     },
     methods: {
         validate () {
             this.errors.file = !this.input.file ? 'Snapshot file is required' : ''
             this.errors.name = !this.input.name ? 'Name is required' : ''
-            // TODO: perform same secret validation as in the snapshot export dialog
             this.errors.secret = this.snapshotNeedsSecret ? (this.input.secret ? '' : 'Secret is required') : ''
             return this.formValid
         },
         confirm () {
+            this.setKeys(this.validateField, true) // validate all fields
             if (this.validate()) {
-                this.submitted = true
+                this.shown = true
                 const uploadSnapshot = {
                     ...this.input.snapshot
                 }
@@ -128,14 +148,14 @@ export default {
                 snapshotsApi.uploadSnapshot(this.owner.id, this.ownerType, uploadSnapshot, secret).then((response) => {
                     this.$emit('snapshot-upload-success', response)
                     this.$refs.dialog.close()
+                    this.shown = false
                 }).catch(err => {
                     this.$emit('snapshot-upload-failed', err)
-                }).finally(() => {
-                    this.submitted = false
                 })
             }
         },
         cancel () {
+            this.shown = false
             this.$refs.dialog.close()
             this.$emit('canceled')
         },
@@ -146,7 +166,8 @@ export default {
                 this.input.snapshot = null
                 this.input.file = ''
                 this.errors.file = null
-
+                this.validateField.file = true
+                this.validateField.secret = true
                 const reader = new FileReader()
                 reader.onload = () => {
                     const data = reader.result
@@ -164,12 +185,19 @@ export default {
                         console.warn(e)
                         alerts.emit('Failed to read snapshot file')
                         this.errors.file = 'Invalid snapshot file'
+                    } finally {
+                        this.validate()
                     }
                 }
                 reader.readAsText(file)
                 fileUpload.value = ''
             }
             fileUpload.click()
+        },
+        setKeys (obj, value = '') {
+            Object.keys(obj).forEach(key => {
+                obj[key] = value
+            })
         }
     }
 }
