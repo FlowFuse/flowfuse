@@ -214,8 +214,7 @@ module.exports = async function (app) {
      * Upload a snapshot
      */
     app.post('/upload', {
-        // TODO: add permission
-        // preHandler: app.needsPermission('snapshot:upload'),
+        preHandler: app.needsPermission('snapshot:import'),
         schema: {
             summary: 'Upload a snapshot',
             tags: ['Snapshots'],
