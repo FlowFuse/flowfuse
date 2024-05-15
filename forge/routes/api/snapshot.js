@@ -213,7 +213,7 @@ module.exports = async function (app) {
     /**
      * Upload a snapshot
      */
-    app.post('/', {
+    app.post('/upload', {
         // TODO: add permission
         // preHandler: app.needsPermission('snapshot:upload'),
         schema: {

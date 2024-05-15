@@ -54,7 +54,7 @@ const deleteSnapshot = async (snapshotId) => {
 }
 
 const uploadSnapshot = async (ownerId, ownerType, snapshot, credentialSecret) => {
-    return client.post('/api/v1/snapshots/', {
+    return client.post('/api/v1/snapshots/upload', {
         ownerId,
         ownerType,
         snapshot,
