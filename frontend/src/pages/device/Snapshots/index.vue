@@ -278,7 +278,8 @@ export default {
         },
         onSnapshotUploadFailed (err) {
             console.error(err)
-            Alerts.emit('Failed to upload snapshot.', 'warning')
+            const message = err.response?.data?.error || 'Failed to upload snapshot.'
+            Alerts.emit(message, 'warning')
             this.busyUploadingSnapshot = false
         },
         onSnapshotUploadCancel () {
