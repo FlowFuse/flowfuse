@@ -2,22 +2,25 @@
     <ff-dialog ref="dialog" :header="title" confirm-label="Upload" :disable-primary="!formValid" :closeOnConfirm="false" @confirm="confirm()" @cancel="cancel">
         <template #default>
             <form class="space-y-6 mt-2" @submit.prevent>
-                <FormRow :error="validateField.file ? errors.file : ''" data-form="snapshot-name">
+                <FormRow :error="validateField.file ? errors.file : ''" data-form="import-snapshot-filename">
                     Snapshot File
                     <template #input>
                         <ff-text-input v-model="input.file" :error="errors.file" disabled />
+                        <!-- <div class="ff-input ff-text-input">
+                            <input type="text" readonly class="bg-gray-50 border border-gray-300  focus:outline-none text-gray-500 cursor-not-allowed" :value="input.file">
+                        </div> -->
                     </template>
                     <template #append>
-                        <input id="fileUpload" ref="fileUpload" type="file" accept="application/json, text/plain, *" class="hidden">
+                        <input id="fileUpload" ref="fileUpload" type="file" accept="application/json, text/plain, *" class="" style="/*position: absolute; top: -9999px;*/ display:none;">
                         <ff-button v-ff-tooltip:top="'Select Snapshot'" kind="tertiary" @click="selectSnapshot">
                             <template #icon><DocumentIcon /></template>
                             <!-- <span class="hidden sm:flex pl-1">Select Snapshot</span> -->
                         </ff-button>
                     </template>
                 </FormRow>
-                <FormRow v-if="snapshotNeedsSecret" v-model="input.secret" :error="validateField.secret ? errors.secret : ''" data-form="snapshot-secret">Credentials Secret</FormRow>
-                <FormRow v-model="input.name" :error="validateField.name ? errors.name : ''" data-form="snapshot-name">Name</FormRow>
-                <FormRow data-form="snapshot-description">
+                <FormRow v-if="snapshotNeedsSecret" v-model="input.secret" :error="validateField.secret ? errors.secret : ''" data-form="import-snapshot-secret">Credentials Secret</FormRow>
+                <FormRow v-model="input.name" :error="validateField.name ? errors.name : ''" data-form="import-snapshot-name">Name</FormRow>
+                <FormRow data-form="import-snapshot-description">
                     Description
                     <template #input>
                         <textarea v-model="input.description" rows="8" class="ff-input ff-text-input" style="height: auto" />
@@ -121,6 +124,38 @@ export default {
             }
         }
     },
+    mounted () {
+        this.$refs.fileUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0]
+            this.input.snapshot = null
+            this.input.file = ''
+            this.errors.file = null
+            this.validateField.file = true
+            this.validateField.secret = true
+            const reader = new FileReader()
+            reader.onload = () => {
+                const data = reader.result
+                try {
+                    const snapshot = JSON.parse(data)
+                    if (isSnapshot(snapshot)) {
+                        this.input.name = snapshot.name
+                        this.input.description = snapshot.description
+                        this.input.snapshot = snapshot
+                        this.input.file = file.name
+                    } else {
+                        throw new Error('Invalid snapshot file')
+                    }
+                } catch (e) {
+                    console.warn(e)
+                    alerts.emit('Failed to read snapshot file')
+                    this.errors.file = 'Invalid snapshot file'
+                } finally {
+                    this.validate()
+                }
+            }
+            reader.readAsText(file)
+        })
+    },
     methods: {
         validate () {
             this.errors.file = !this.input.file ? 'Snapshot file is required' : ''
@@ -161,37 +196,6 @@ export default {
         },
         selectSnapshot () {
             const fileUpload = this.$refs.fileUpload
-            fileUpload.onchange = () => {
-                const file = fileUpload.files[0]
-                this.input.snapshot = null
-                this.input.file = ''
-                this.errors.file = null
-                this.validateField.file = true
-                this.validateField.secret = true
-                const reader = new FileReader()
-                reader.onload = () => {
-                    const data = reader.result
-                    try {
-                        const snapshot = JSON.parse(data)
-                        if (isSnapshot(snapshot)) {
-                            this.input.name = snapshot.name
-                            this.input.description = snapshot.description
-                            this.input.snapshot = snapshot
-                            this.input.file = file.name
-                        } else {
-                            throw new Error('Invalid snapshot file')
-                        }
-                    } catch (e) {
-                        console.warn(e)
-                        alerts.emit('Failed to read snapshot file')
-                        this.errors.file = 'Invalid snapshot file'
-                    } finally {
-                        this.validate()
-                    }
-                }
-                reader.readAsText(file)
-                fileUpload.value = ''
-            }
             fileUpload.click()
         },
         setKeys (obj, value = '') {

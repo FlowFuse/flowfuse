@@ -55,7 +55,7 @@
         </template>
         <SnapshotCreateDialog ref="snapshotCreateDialog" data-el="dialog-create-snapshot" :project="instance" @snapshot-created="snapshotCreated" />
         <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" :project="instance" />
-        <SnapshotImportDialog ref="snapshotImportDialog" title="Upload Snapshot" data-el="import-snapshot" :owner="instance" owner-type="instance" @snapshot-import-success="onSnapshotImportSuccess" @snapshot-import-failed="onSnapshotImportFailed" @canceled="onSnapshotImportCancel" />
+        <SnapshotImportDialog ref="snapshotImportDialog" title="Upload Snapshot" data-el="dialog-import-snapshot" :owner="instance" owner-type="instance" @snapshot-import-success="onSnapshotImportSuccess" @snapshot-import-failed="onSnapshotImportFailed" @canceled="onSnapshotImportCancel" />
         <SnapshotViewerDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
     </div>
 </template>

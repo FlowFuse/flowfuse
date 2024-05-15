@@ -49,14 +49,14 @@
                     <ff-button kind="primary" :disabled="!developerMode || busy || !features.deviceEditor || device.ownerType !== 'application'" data-action="create-snapshot" @click="showCreateSnapshotDialog">
                         <template #icon-left><PlusSmIcon /></template>Create Snapshot
                     </ff-button>
-                    <ff-button kind="secondary" :disabled="!developerMode || busy || !features.deviceEditor || device.ownerType !== 'application'" data-action="create-snapshot" @click="showImportSnapshotDialog">
+                    <ff-button kind="secondary" :disabled="busy || !features.deviceEditor || device.ownerType !== 'application'" data-action="import-snapshot" @click="showImportSnapshotDialog">
                         <template #icon-left><UploadIcon /></template>Upload Snapshot
                     </ff-button>
                 </template>
             </EmptyState>
         </template>
         <SnapshotCreateDialog ref="snapshotCreateDialog" title="Create Device Snapshot" data-el="dialog-create-device-snapshot" :show-set-as-target="true" :device="device" @device-import-success="onSnapshotCreated" @device-import-failed="onSnapshotFailed" @canceled="onSnapshotCancel" />
-        <SnapshotImportDialog ref="snapshotImportDialog" title="Upload Snapshot" data-el="import-snapshot" :show-owner-select="false" :owner="device" owner-type="device" @snapshot-import-success="onSnapshotImportSuccess" @snapshot-import-failed="onSnapshotImportFailed" @canceled="onSnapshotImportCancel" />
+        <SnapshotImportDialog ref="snapshotImportDialog" title="Upload Snapshot" data-el="dialog-import-snapshot" :show-owner-select="false" :owner="device" owner-type="device" @snapshot-import-success="onSnapshotImportSuccess" @snapshot-import-failed="onSnapshotImportFailed" @canceled="onSnapshotImportCancel" />
         <SnapshotViewerDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
     </div>
 </template>
