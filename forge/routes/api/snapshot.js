@@ -282,7 +282,7 @@ module.exports = async function (app) {
                 const application = await owner.getApplication()
                 await applicationLogger.application.device.snapshot.imported(request.session.User, null, application, owner, null, null, newSnapshot)
             } else if (request.ownerType === 'instance') {
-                await projectLogger.project.snapshot.imported(request.session.User, null, owner, newSnapshot)
+                await projectLogger.project.snapshot.imported(request.session.User, null, owner, null, null, newSnapshot)
             }
             reply.send(projectSnapshotView.snapshot(newSnapshot))
         } catch (err) {

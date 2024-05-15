@@ -182,7 +182,7 @@ describe('Audit Log > Application', async function () {
     })
 
     it('Provides a logger for application device snapshot imported', async function () {
-        await logger.application.device.snapshot.imported(ACTIONED_BY, null, APPLICATION, DEVICE, SNAPSHOT)
+        await logger.application.device.snapshot.imported(ACTIONED_BY, null, APPLICATION, DEVICE, null, null, SNAPSHOT)
         // check log stored
         const logEntry = await getLog()
         logEntry.should.have.property('event', 'application.device.snapshot.imported')
