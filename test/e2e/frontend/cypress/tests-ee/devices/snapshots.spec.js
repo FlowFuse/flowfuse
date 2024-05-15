@@ -46,8 +46,10 @@ describe('FlowForge - Devices - With Billing', () => {
     })
 
     it('empty state informs users they need to be in Developer Mode for Devices assigned to an Application on the "Snapshot" tab', () => {
+        cy.intercept('api/*/applications/*/snapshots?deviceId=*', { count: 0, snapshots: [] }).as('getDeviceSnapshots')
         cy.contains('span', 'application-device-a').click()
         cy.get('[data-nav="device-snapshots"]').click()
+        cy.wait('@getDeviceSnapshots')
         cy.contains('A device must be in developer mode and online to create a snapshot.')
     })
 
@@ -58,9 +60,25 @@ describe('FlowForge - Devices - With Billing', () => {
     })
 
     it('shows only Snapshots for this device by default', () => {
+        cy.intercept('api/*/applications/*/snapshots?deviceId=*').as('getDeviceSnapshots')
         cy.contains('span', 'application-device-a').click()
         cy.get('[data-nav="device-snapshots"]').click()
-        cy.get('[data-el="empty-state"]').should('exist')
+
+        // depending on order of tests, there may or may not be snapshots
+        // therefore the empty state may me present or the table may be present
+
+        cy.wait('@getDeviceSnapshots')
+
+        // eslint-disable-next-line cypress/require-data-selectors
+        cy.get('body').then(($body) => {
+            if ($body.find('[data-el="snapshots"]').length) {
+                cy.get('[data-el="snapshots"] tbody').find('tr').should('have.length.greaterThan', 0)
+                // should not find any snapshots with text "instance-"
+                cy.get('[data-el="snapshots"] tbody').find('tr').should('not.contain.text', 'instance-')
+            } else {
+                cy.contains('Create your First Snapshot') // empty state
+            }
+        })
     })
 
     it('allows for users to view all Snapshots for this Device from it\'s parent Application', () => {
