@@ -39,6 +39,31 @@ const exportSnapshot = (snapshotId, options) => {
 }
 
 /**
+ * Import a snapshot into a project or device
+ * @param {String} ownerId - id of the owner
+ * @param {'device'|'instance'} ownerType - type of the owner (device or instance)
+ * @param {Object} snapshot - snapshot object to import
+ * @param {String} [credentialSecret] - secret to use when decrypting credentials in the snapshot object (optional/only required when the snapshot contains credentials)
+ */
+const importSnapshot = async (ownerId, ownerType, snapshot, credentialSecret) => {
+    return client.post('/api/v1/snapshots/import', {
+        ownerId,
+        ownerType,
+        snapshot,
+        credentialSecret
+    }).then(res => {
+        const props = {
+            'snapshot-id': res.data.id
+        }
+        product.capture('$ff-snapshot-import', props, {
+            'owner-id': ownerId,
+            'owner-type': ownerType
+        })
+        return res.data
+    })
+}
+
+/**
  * Delete a snapshot
  * @param {String} snapshotId - id of the snapshot
  */
@@ -53,25 +78,10 @@ const deleteSnapshot = async (snapshotId) => {
     })
 }
 
-const uploadSnapshot = async (ownerId, ownerType, snapshot, credentialSecret) => {
-    return client.post('/api/v1/snapshots/upload', {
-        ownerId,
-        ownerType,
-        snapshot,
-        credentialSecret
-    }).then(res => {
-        const props = {
-            'snapshot-id': res.data.id
-        }
-        product.capture('$ff-snapshot-uploaded', props, {})
-        return res.data
-    })
-}
-
 export default {
-    deleteSnapshot,
+    getSummary,
     getFullSnapshot,
     exportSnapshot,
-    getSummary,
-    uploadSnapshot
+    importSnapshot,
+    deleteSnapshot
 }

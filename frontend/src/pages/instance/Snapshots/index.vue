@@ -14,7 +14,7 @@
             <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
                 <template v-if="hasPermission('project:snapshot:create')" #actions>
                     <ff-button kind="primary" data-action="create-snapshot" :disabled="busy" @click="showCreateSnapshotDialog"><template #icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
-                    <ff-button kind="secondary" data-action="upload-snapshot" :disabled="busy" @click="showUploadSnapshotDialog"><template #icon-left><UploadIcon /></template>Upload  Snapshot</ff-button>
+                    <ff-button kind="secondary" data-action="import-snapshot" :disabled="busy" @click="showImportSnapshotDialog"><template #icon-left><UploadIcon /></template>Upload Snapshot</ff-button>
                 </template>
                 <template v-if="showContextMenu" #context-menu="{row}">
                     <ff-list-item v-if="hasPermission('project:snapshot:rollback')" label="Rollback" @click="showRollbackDialog(row)" />
@@ -47,15 +47,15 @@
                     <ff-button kind="primary" data-action="create-snapshot" @click="showCreateSnapshotDialog">
                         <template #icon-left><PlusSmIcon /></template>Create Snapshot
                     </ff-button>
-                    <ff-button kind="secondary" data-action="upload-snapshot" @click="showUploadSnapshotDialog">
-                        <template #icon-left><UploadIcon /></template>Upload  Snapshot
+                    <ff-button kind="secondary" data-action="import-snapshot" @click="showImportSnapshotDialog">
+                        <template #icon-left><UploadIcon /></template>Upload Snapshot
                     </ff-button>
                 </template>
             </EmptyState>
         </template>
         <SnapshotCreateDialog ref="snapshotCreateDialog" data-el="dialog-create-snapshot" :project="instance" @snapshot-created="snapshotCreated" />
         <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" :project="instance" />
-        <SnapshotUploadDialog ref="snapshotUploadDialog" title="Upload Snapshot" data-el="upload-snapshot" :owner="instance" owner-type="instance" @snapshot-upload-success="onSnapshotUploadSuccess" @snapshot-upload-failed="onSnapshotUploadFailed" @canceled="onSnapshotUploadCancel" />
+        <SnapshotImportDialog ref="snapshotImportDialog" title="Upload Snapshot" data-el="import-snapshot" :owner="instance" owner-type="instance" @snapshot-import-success="onSnapshotImportSuccess" @snapshot-import-failed="onSnapshotImportFailed" @canceled="onSnapshotImportCancel" />
         <SnapshotViewerDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
     </div>
 </template>
@@ -71,7 +71,7 @@ import SnapshotsApi from '../../../api/snapshots.js'
 
 import EmptyState from '../../../components/EmptyState.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
-import SnapshotUploadDialog from '../../../components/dialogs/SnapshotUploadDialog.vue'
+import SnapshotImportDialog from '../../../components/dialogs/SnapshotImportDialog.vue'
 import SnapshotViewerDialog from '../../../components/dialogs/SnapshotViewerDialog.vue'
 import UserCell from '../../../components/tables/cells/UserCell.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
@@ -92,7 +92,7 @@ export default {
         SnapshotCreateDialog,
         SnapshotExportDialog,
         SnapshotViewerDialog,
-        SnapshotUploadDialog,
+        SnapshotImportDialog,
         PlusSmIcon,
         UploadIcon
     },
@@ -111,7 +111,7 @@ export default {
             deviceCounts: {},
             snapshots: [],
             busyMakingSnapshot: false,
-            busyUploadingSnapshot: false
+            busyImportingSnapshot: false
         }
     },
     computed: {
@@ -156,7 +156,7 @@ export default {
             return cols
         },
         busy () {
-            return this.busyMakingSnapshot || this.busyUploadingSnapshot
+            return this.busyMakingSnapshot || this.busyImportingSnapshot
         }
     },
     watch: {
@@ -287,22 +287,23 @@ export default {
             })
         },
 
-        // snapshot actions - upload
-        showUploadSnapshotDialog () {
-            this.busyUploadingSnapshot = true
-            this.$refs.snapshotUploadDialog.show()
+        // snapshot actions - import
+        showImportSnapshotDialog () {
+            this.busyImportingSnapshot = true
+            this.$refs.snapshotImportDialog.show()
         },
-        onSnapshotUploadSuccess (snapshot) {
+        onSnapshotImportSuccess (snapshot) {
             this.snapshots.unshift(snapshot)
-            this.busyUploadingSnapshot = false
+            this.busyImportingSnapshot = false
         },
-        onSnapshotUploadFailed (err) {
+        onSnapshotImportFailed (err) {
             console.error(err)
-            Alerts.emit('Failed to upload snapshot.', 'warning')
-            this.busyUploadingSnapshot = false
+            const message = err.response?.data?.error || 'Failed to import snapshot.'
+            Alerts.emit(message, 'warning')
+            this.busyImportingSnapshot = false
         },
-        onSnapshotUploadCancel () {
-            this.busyUploadingSnapshot = false
+        onSnapshotImportCancel () {
+            this.busyImportingSnapshot = false
         }
     }
 }

@@ -211,9 +211,9 @@ module.exports = async function (app) {
     })
 
     /**
-     * Upload a snapshot
+     * Import a snapshot
      */
-    app.post('/upload', {
+    app.post('/import', {
         preHandler: app.needsPermission('snapshot:import'),
         schema: {
             summary: 'Upload a snapshot',
@@ -231,7 +231,7 @@ module.exports = async function (app) {
                             flows: {
                                 type: 'object',
                                 properties: {
-                                    flows: { type: 'array', items: {} },
+                                    flows: { type: 'array', items: {}, minItems: 0 },
                                     credentials: { type: 'object' }
                                 },
                                 required: ['flows']
@@ -265,6 +265,10 @@ module.exports = async function (app) {
         const snapshot = request.body.snapshot
         if (!owner || !snapshot) {
             reply.code(400).send({ code: 'bad_request', error: 'owner and snapshot are mandatory in the body' })
+            return
+        }
+        if (snapshot.flows.credentials?.$ && !request.body.credentialSecret) {
+            reply.code(400).send({ code: 'bad_request', error: 'Credential secret is required when importing a snapshot with credentials' })
             return
         }
         try {

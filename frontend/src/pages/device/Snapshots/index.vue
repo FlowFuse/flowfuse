@@ -19,7 +19,7 @@
             <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
                 <template v-if="hasPermission('device:snapshot:create')" #actions>
                     <ff-button kind="primary" data-action="create-snapshot" :disabled="!developerMode || busy" @click="showCreateSnapshotDialog"><template #icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
-                    <ff-button kind="secondary" data-action="upload-snapshot" :disabled="busy" @click="showUploadSnapshotDialog"><template #icon-left><UploadIcon /></template>Upload  Snapshot</ff-button>
+                    <ff-button kind="secondary" data-action="import-snapshot" :disabled="busy" @click="showImportSnapshotDialog"><template #icon-left><UploadIcon /></template>Upload Snapshot</ff-button>
                 </template>
                 <template v-if="showContextMenu" #context-menu="{row}">
                     <ff-list-item v-if="hasPermission('snapshot:full')" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
@@ -49,14 +49,14 @@
                     <ff-button kind="primary" :disabled="!developerMode || busy || !features.deviceEditor || device.ownerType !== 'application'" data-action="create-snapshot" @click="showCreateSnapshotDialog">
                         <template #icon-left><PlusSmIcon /></template>Create Snapshot
                     </ff-button>
-                    <ff-button kind="secondary" :disabled="!developerMode || busy || !features.deviceEditor || device.ownerType !== 'application'" data-action="create-snapshot" @click="showUploadSnapshotDialog">
-                        <template #icon-left><UploadIcon /></template>Upload  Snapshot
+                    <ff-button kind="secondary" :disabled="!developerMode || busy || !features.deviceEditor || device.ownerType !== 'application'" data-action="create-snapshot" @click="showImportSnapshotDialog">
+                        <template #icon-left><UploadIcon /></template>Upload Snapshot
                     </ff-button>
                 </template>
             </EmptyState>
         </template>
-        <SnapshotCreateDialog ref="snapshotCreateDialog" title="Create Device Snapshot" data-el="dialog-create-device-snapshot" :show-set-as-target="true" :device="device" @device-upload-success="onSnapshotCreated" @device-upload-failed="onSnapshotFailed" @canceled="onSnapshotCancel" />
-        <SnapshotUploadDialog ref="snapshotUploadDialog" title="Upload Snapshot" data-el="upload-snapshot" :show-owner-select="false" :owner="device" owner-type="device" @snapshot-upload-success="onSnapshotUploadSuccess" @snapshot-upload-failed="onSnapshotUploadFailed" @canceled="onSnapshotUploadCancel" />
+        <SnapshotCreateDialog ref="snapshotCreateDialog" title="Create Device Snapshot" data-el="dialog-create-device-snapshot" :show-set-as-target="true" :device="device" @device-import-success="onSnapshotCreated" @device-import-failed="onSnapshotFailed" @canceled="onSnapshotCancel" />
+        <SnapshotImportDialog ref="snapshotImportDialog" title="Upload Snapshot" data-el="import-snapshot" :show-owner-select="false" :owner="device" owner-type="device" @snapshot-import-success="onSnapshotImportSuccess" @snapshot-import-failed="onSnapshotImportFailed" @canceled="onSnapshotImportCancel" />
         <SnapshotViewerDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
     </div>
 </template>
@@ -72,7 +72,7 @@ import SnapshotApi from '../../../api/snapshots.js'
 
 import EmptyState from '../../../components/EmptyState.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
-import SnapshotUploadDialog from '../../../components/dialogs/SnapshotUploadDialog.vue'
+import SnapshotImportDialog from '../../../components/dialogs/SnapshotImportDialog.vue'
 import SnapshotViewerDialog from '../../../components/dialogs/SnapshotViewerDialog.vue'
 import UserCell from '../../../components/tables/cells/UserCell.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
@@ -91,7 +91,7 @@ export default {
         SectionTopMenu,
         EmptyState,
         SnapshotCreateDialog,
-        SnapshotUploadDialog,
+        SnapshotImportDialog,
         SnapshotViewerDialog,
         PlusSmIcon,
         UploadIcon
@@ -112,7 +112,7 @@ export default {
             showDeviceSnapshotsOnly: true,
             snapshots: [],
             busyMakingSnapshot: false,
-            busyUploadingSnapshot: false
+            busyImportingSnapshot: false
         }
     },
     computed: {
@@ -177,7 +177,7 @@ export default {
             return this.device?.mode === 'developer'
         },
         busy () {
-            return this.busyMakingSnapshot || this.busyUploadingSnapshot
+            return this.busyMakingSnapshot || this.busyImportingSnapshot
         }
     },
     watch: {
@@ -266,23 +266,23 @@ export default {
             this.busyMakingSnapshot = false
         },
 
-        // snapshot actions - upload
-        showUploadSnapshotDialog () {
-            this.busyUploadingSnapshot = true
-            this.$refs.snapshotUploadDialog.show()
+        // snapshot actions - import
+        showImportSnapshotDialog () {
+            this.busyImportingSnapshot = true
+            this.$refs.snapshotImportDialog.show()
         },
-        onSnapshotUploadSuccess (snapshot) {
+        onSnapshotImportSuccess (snapshot) {
             this.snapshots.unshift(snapshot)
-            this.busyUploadingSnapshot = false
+            this.busyImportingSnapshot = false
         },
-        onSnapshotUploadFailed (err) {
+        onSnapshotImportFailed (err) {
             console.error(err)
-            const message = err.response?.data?.error || 'Failed to upload snapshot.'
+            const message = err.response?.data?.error || 'Failed to import snapshot.'
             Alerts.emit(message, 'warning')
-            this.busyUploadingSnapshot = false
+            this.busyImportingSnapshot = false
         },
-        onSnapshotUploadCancel () {
-            this.busyUploadingSnapshot = false
+        onSnapshotImportCancel () {
+            this.busyImportingSnapshot = false
         },
 
         getSortKeyForSnapshotSource (snapshot) {

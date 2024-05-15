@@ -37,7 +37,7 @@ import { isSnapshot } from '../../utils/snapshot.js'
 import FormRow from '../FormRow.vue'
 
 export default {
-    name: 'SnapshotUploadDialog',
+    name: 'SnapshotImportDialog',
     components: {
         FormRow,
         DocumentIcon
@@ -56,7 +56,7 @@ export default {
             default: 'Upload Snapshot'
         }
     },
-    emits: ['snapshot-upload-failed', 'snapshot-upload-success', 'canceled'],
+    emits: ['snapshot-import-failed', 'snapshot-import-success', 'canceled'],
     setup () {
         return {
             show () {
@@ -132,25 +132,25 @@ export default {
             this.setKeys(this.validateField, true) // validate all fields
             if (this.validate()) {
                 this.shown = true
-                const uploadSnapshot = {
+                const importSnapshot = {
                     ...this.input.snapshot
                 }
                 if (this.input.name) {
-                    uploadSnapshot.name = this.input.name
+                    importSnapshot.name = this.input.name
                 }
                 if (this.input.description) {
-                    uploadSnapshot.description = this.input.description
+                    importSnapshot.description = this.input.description
                 }
                 let secret
                 if (this.snapshotNeedsSecret) {
                     secret = this.input.secret
                 }
-                snapshotsApi.uploadSnapshot(this.owner.id, this.ownerType, uploadSnapshot, secret).then((response) => {
-                    this.$emit('snapshot-upload-success', response)
+                snapshotsApi.importSnapshot(this.owner.id, this.ownerType, importSnapshot, secret).then((response) => {
+                    this.$emit('snapshot-import-success', response)
                     this.$refs.dialog.close()
                     this.shown = false
                 }).catch(err => {
-                    this.$emit('snapshot-upload-failed', err)
+                    this.$emit('snapshot-import-failed', err)
                 })
             }
         },
