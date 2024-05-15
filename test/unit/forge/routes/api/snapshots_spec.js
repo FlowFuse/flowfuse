@@ -18,6 +18,13 @@ function decryptCredentials (key, cipher) {
     return JSON.parse(decrypted)
 }
 
+function encryptCredentials (secret, plain) {
+    const key = crypto.createHash('sha256').update(secret).digest()
+    const initVector = crypto.randomBytes(16)
+    const cipher = crypto.createCipheriv('aes-256-ctr', key, initVector)
+    return { $: initVector.toString('hex') + cipher.update(JSON.stringify(plain), 'utf8', 'base64') + cipher.final('base64') }
+}
+
 describe('Snapshots API', function () {
     let app
     /** @type {TestModelFactory} */ let factory = null
@@ -183,6 +190,23 @@ describe('Snapshots API', function () {
                 credentialSecret,
                 ...(credentials ? { credentials } : {})
             }
+        })
+    }
+
+    async function importSnapshot (ownerId, ownerType, snapshot, credentialSecret, token) {
+        const payload = {
+            ownerId,
+            ownerType,
+            snapshot
+        }
+        if (credentialSecret) {
+            payload.credentialSecret = credentialSecret
+        }
+        return await app.inject({
+            method: 'POST',
+            url: '/api/v1/snapshots/import',
+            cookies: { sid: token },
+            payload
         })
     }
 
@@ -497,6 +521,153 @@ describe('Snapshots API', function () {
                 const keyHash = crypto.createHash('sha256').update('test-secret').digest()
                 const decrypted = decryptCredentials(keyHash, exportResult.flows.credentials)
                 JSON.stringify(decrypted).should.equal(JSON.stringify({ testCreds: 'abc' }))
+            })
+        }
+        describe('instance', function () {
+            tests('instance')
+        })
+        describe('device', function () {
+            tests('device')
+        })
+    })
+
+    // Tests for POST /api/v1/snapshots/{snapshotId}/import
+    // * Imports a project or device snapshot into a project or device
+
+    describe('Import snapshot', function () {
+        const dummySnapshot = (name, flows = [], settings = {}, env = {}, modules = {}, credentials = null) => {
+            const _name = name === undefined ? nameGenerator('snapshot') : name
+            const _settings = (settings || env || modules) ? {} : undefined
+            if (settings !== null) {
+                _settings.settings = settings
+            }
+            if (env !== null) {
+                _settings.env = env
+            }
+            if (modules !== null) {
+                _settings.modules = modules
+            }
+            const snapshot = {
+                name: _name,
+                description: 'dummy description',
+                flows: {
+                    flows
+                },
+                settings: _settings
+            }
+            if (credentials) {
+                snapshot.flows.credentials = credentials
+            }
+            return snapshot
+        }
+
+        afterEach(async function () {
+            await app.db.models.ProjectSnapshot.destroy({ where: {} })
+        })
+
+        /**
+         * post import snapshot tests
+         * @param {'instance' | 'device'} kind - 'instance' or 'device'
+         */
+        function tests (kind) {
+            const modelType = kind === 'instance' ? 'project' : 'device'
+            const getOwnerId = () => kind === 'instance' ? TestObjects.project1.id : TestObjects.device1.hashid
+
+            it('Owner can import snapshot with credentials', async function () {
+                const ownerId = getOwnerId()
+                const ss = dummySnapshot('dummy', [], {}, {}, {}, encryptCredentials('test-secret', { testCreds: 'abc' }))
+                const response = await importSnapshot(ownerId, kind, ss, 'test-secret', TestObjects.tokens.alice)
+
+                response.statusCode.should.equal(200)
+
+                // check the result
+                const result = response.json()
+                result.should.have.property(modelType).and.be.an.Object() // should contain the project/device - for updating the snapshot table client-side without refreshing/reloading from the server
+                result[modelType].should.have.property('id', ownerId) // id of owner should be the hash string
+                result.should.have.property('user').and.be.an.Object() // should contain the user - for updating the snapshot table client-side without refreshing/reloading from the server
+                result.should.have.property('id').and.be.a.String()
+                result.should.have.property('name', 'dummy')
+            })
+
+            it('Owner can import snapshot without credentials', async function () {
+                const ownerId = getOwnerId()
+                const ss = dummySnapshot('dummy-no-creds', [], {}, {}, {}, null)
+                const response = await importSnapshot(ownerId, kind, ss, null, TestObjects.tokens.alice)
+
+                response.statusCode.should.equal(200)
+
+                const result = response.json()
+                result.should.have.property(modelType).and.be.an.Object() // should contain the project/device - for updating the snapshot table client-side without refreshing/reloading from the server
+                result[modelType].should.have.property('id', ownerId) // id of owner should be the hash string
+                result.should.have.property('user').and.be.an.Object() // should contain the user - for updating the snapshot table client-side without refreshing/reloading from the server
+                result.should.have.property('id').and.be.a.String()
+                result.should.have.property('name', 'dummy-no-creds')
+            })
+
+            it('Returns 400 for missing snapshot', async function () {
+                const response = await importSnapshot(getOwnerId(), 'instance', null, 'test-secret', TestObjects.tokens.alice)
+                response.statusCode.should.equal(400)
+                const result = response.json()
+                result.should.have.property('code', 'FST_ERR_VALIDATION')
+            })
+
+            it('Returns 404 for unknown owner', async function () {
+                const ss = dummySnapshot('dummy', [], {}, {}, {}, encryptCredentials('test-secret', { testCreds: 'abc' }))
+                const response = await importSnapshot('non_existant-owner', 'instance', ss, 'test-secret', TestObjects.tokens.alice)
+                response.statusCode.should.equal(404)
+            })
+
+            it('Returns 400 for missing credentialSecret', async function () {
+                const ss = dummySnapshot('dummy', [], {}, {}, {}, encryptCredentials('test-secret', { testCreds: 'abc' }))
+                const response = await importSnapshot(getOwnerId(), kind, ss, '', TestObjects.tokens.alice)
+                response.statusCode.should.equal(400)
+                const result = response.json()
+                result.should.have.property('code', 'bad_request')
+            })
+
+            it('Returns 400 for bad/invalid snapshot (missing flows)', async function () {
+                const ss = dummySnapshot('dummy', [], {}, {}, {}, encryptCredentials('test-secret', { testCreds: 'abc' }))
+                delete ss.flows
+                const response = await importSnapshot(getOwnerId(), kind, ss, '', TestObjects.tokens.alice)
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'FST_ERR_VALIDATION')
+            })
+
+            it('Returns 400 for bad/invalid snapshot (missing settings)', async function () {
+                const ss = dummySnapshot('dummy', [], {}, {}, {}, encryptCredentials('test-secret', { testCreds: 'abc' }))
+                delete ss.settings
+                const response = await importSnapshot(getOwnerId(), kind, ss, '', TestObjects.tokens.alice)
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'FST_ERR_VALIDATION')
+            })
+
+            it('Returns 400 for incorrect credentialSecret', async function () {
+                const ss = dummySnapshot('dummy', [], {}, {}, {}, encryptCredentials('test-secret', { testCreds: 'abc' }))
+                const response = await importSnapshot(getOwnerId(), kind, ss, 'wrong-secret', TestObjects.tokens.alice)
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'bad_request')
+            })
+
+            it('Non-member cannot import snapshot', async function () {
+                const ss = dummySnapshot('dummy', [], {}, {}, {}, null)
+                const response = await importSnapshot(getOwnerId(), kind, ss, null, TestObjects.tokens.chris)
+                // 404 as a non member should not know the resource exists
+                response.statusCode.should.equal(404)
+                response.json().should.have.property('code', 'not_found')
+            })
+
+            it('Member cannot import snapshot', async function () {
+                const ss = dummySnapshot('dummy', [], {}, {}, {}, null)
+                const response = await importSnapshot(getOwnerId(), kind, ss, null, TestObjects.tokens.bob)
+                response.statusCode.should.equal(403)
+                response.json().should.have.property('code', 'unauthorized')
+            })
+
+            it('Viewer cannot import snapshot', async function () {
+                const ss = dummySnapshot('dummy', [], {}, {}, {}, null)
+                const response = await importSnapshot(getOwnerId(), kind, ss, null, TestObjects.tokens.verity)
+                response.statusCode.should.equal(403)
+                response.json().should.have.property('code', 'unauthorized')
             })
         }
         describe('instance', function () {
