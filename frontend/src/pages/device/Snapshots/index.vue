@@ -24,7 +24,6 @@
                 <template v-if="showContextMenu" #context-menu="{row}">
                     <ff-list-item v-if="hasPermission('snapshot:full')" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
                     <ff-list-item :disabled="!hasPermission('device:snapshot:delete') || !rowIsThisDevice(row)" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />
-                    <ff-list-item v-if="!rowIsThisDevice(row)" disabled label="No actions available" kind="info" />
                 </template>
             </ff-data-table>
         </template>
