@@ -268,14 +268,21 @@ module.exports = async function (app) {
             reply.code(400).send({ code: 'bad_request', error: 'owner and snapshot are mandatory in the body' })
             return
         }
-        const newSnapshot = await snapshotController.uploadSnapshot(owner, snapshot, request.body.credentialSecret, request.session.User)
-        if (newSnapshot) {
-            // reload the snapshot to get the full details, including the User
-            await newSnapshot.reload({ include: ['User'] })
+        try {
+            const newSnapshot = await snapshotController.uploadSnapshot(owner, snapshot, request.body.credentialSecret, request.session.User)
+            if (!newSnapshot) {
+                throw new Error('Failed to upload snapshot')
+            }
+            // reload the snapshot to get the full details, including the User, Device or Project
+            await newSnapshot.reload({ include: ['User', 'Device', 'Project'] })
             // TODO: audit log event
             reply.send(projectSnapshotView.snapshot(newSnapshot))
-        } else {
-            reply.send({})
+        } catch (err) {
+            // if err message is a JSON.parse failure in decryptCreds, it's a bad secret
+            if (/JSON\.parse.*decryptCreds/si.test(err.stack)) {
+                return reply.code(400).send({ code: 'bad_request', error: 'Invalid credential secret' })
+            }
+            throw err // handled by global error handler
         }
     })
 }
