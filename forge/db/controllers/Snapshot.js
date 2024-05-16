@@ -109,10 +109,12 @@ module.exports = {
     },
 
     /**
-     * Upload a snapshot
+     * Upload a snapshot.
      * @param {*} app - app instance
      * @param {*} owner - project/device-originator of this snapshot
-     * @param {*} snapshotData - snapshot data
+     * @param {*} snapshot - snapshot data
+     * @param {String} credentialSecret - secret to encrypt credentials with. Can be null if the snapshot does not contain credentials.
+     * @param {*} user - user who uploaded the snapshot
      */
     async uploadSnapshot (app, owner, snapshot, credentialSecret, user) {
         // 1. If the snapshot includes credentials but no credentialSecret, we should reject it
@@ -167,7 +169,6 @@ module.exports = {
         })
         // store the snapshot
         const newSnapshot = await app.db.models.ProjectSnapshot.create(snapshotOptions)
-        await newSnapshot.save()
         return newSnapshot
     }
 }
