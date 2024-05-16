@@ -13,7 +13,8 @@
         <template v-if="snapshots.length > 0">
             <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
                 <template v-if="hasPermission('project:snapshot:create')" #actions>
-                    <ff-button kind="primary" data-action="create-snapshot" @click="showCreateSnapshotDialog"><template #icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
+                    <ff-button kind="primary" data-action="create-snapshot" :disabled="busy" @click="showCreateSnapshotDialog"><template #icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
+                    <ff-button v-if="hasPermission('snapshot:import')" kind="secondary" data-action="import-snapshot" :disabled="busy" @click="showImportSnapshotDialog"><template #icon-left><UploadIcon /></template>Upload Snapshot</ff-button>
                 </template>
                 <template v-if="showContextMenu" #context-menu="{row}">
                     <ff-list-item v-if="hasPermission('project:snapshot:rollback')" label="Rollback" @click="showRollbackDialog(row)" />
@@ -46,17 +47,21 @@
                     <ff-button kind="primary" data-action="create-snapshot" @click="showCreateSnapshotDialog">
                         <template #icon-left><PlusSmIcon /></template>Create Snapshot
                     </ff-button>
+                    <ff-button v-if="hasPermission('snapshot:import')" kind="secondary" data-action="import-snapshot" @click="showImportSnapshotDialog">
+                        <template #icon-left><UploadIcon /></template>Upload Snapshot
+                    </ff-button>
                 </template>
             </EmptyState>
         </template>
         <SnapshotCreateDialog ref="snapshotCreateDialog" data-el="dialog-create-snapshot" :project="instance" @snapshot-created="snapshotCreated" />
         <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" :project="instance" />
+        <SnapshotImportDialog ref="snapshotImportDialog" title="Upload Snapshot" data-el="dialog-import-snapshot" :owner="instance" owner-type="instance" @snapshot-import-success="onSnapshotImportSuccess" @snapshot-import-failed="onSnapshotImportFailed" @canceled="onSnapshotImportCancel" />
         <SnapshotViewerDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
     </div>
 </template>
 
 <script>
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
@@ -66,6 +71,7 @@ import SnapshotsApi from '../../../api/snapshots.js'
 
 import EmptyState from '../../../components/EmptyState.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import SnapshotImportDialog from '../../../components/dialogs/SnapshotImportDialog.vue'
 import SnapshotViewerDialog from '../../../components/dialogs/SnapshotViewerDialog.vue'
 import UserCell from '../../../components/tables/cells/UserCell.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
@@ -86,7 +92,9 @@ export default {
         SnapshotCreateDialog,
         SnapshotExportDialog,
         SnapshotViewerDialog,
-        PlusSmIcon
+        SnapshotImportDialog,
+        PlusSmIcon,
+        UploadIcon
     },
     mixins: [permissionsMixin],
     inheritAttrs: false,
@@ -101,7 +109,9 @@ export default {
         return {
             loading: false,
             deviceCounts: {},
-            snapshots: []
+            snapshots: [],
+            busyMakingSnapshot: false,
+            busyImportingSnapshot: false
         }
     },
     computed: {
@@ -144,6 +154,9 @@ export default {
                 { label: 'Date Created', class: ['w-56'], component: { is: markRaw(DaysSince), map: { date: 'createdAt' } } }
             ]
             return cols
+        },
+        busy () {
+            return this.busyMakingSnapshot || this.busyImportingSnapshot
         }
     },
     watch: {
@@ -272,6 +285,25 @@ export default {
                 console.error(err)
                 Alerts.emit('Failed to get snapshot.', 'warning')
             })
+        },
+
+        // snapshot actions - import
+        showImportSnapshotDialog () {
+            this.busyImportingSnapshot = true
+            this.$refs.snapshotImportDialog.show()
+        },
+        onSnapshotImportSuccess (snapshot) {
+            this.snapshots.unshift(snapshot)
+            this.busyImportingSnapshot = false
+        },
+        onSnapshotImportFailed (err) {
+            console.error(err)
+            const message = err.response?.data?.error || 'Failed to import snapshot.'
+            Alerts.emit(message, 'warning')
+            this.busyImportingSnapshot = false
+        },
+        onSnapshotImportCancel () {
+            this.busyImportingSnapshot = false
         }
     }
 }
