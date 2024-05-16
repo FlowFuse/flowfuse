@@ -122,16 +122,18 @@ export default {
 </script>
 
 <style lang="scss">
-.ff-dialog-container {
-  .ff-dialog-box {
-    max-width: 75rem;
+.ff-blueprint-tile {
+  .ff-dialog-container {
+    .ff-dialog-box {
+      max-width: 75rem;
 
-    .ff-dialog-content {
-      padding: 0;
-    }
+      .ff-dialog-content {
+        padding: 0;
+      }
 
-    .ff-dialog-actions {
-      padding: 5px 15px;
+      .ff-dialog-actions {
+        padding: 5px 15px;
+      }
     }
   }
 }
