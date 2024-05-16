@@ -17,7 +17,7 @@ module.exports = function (app) {
         }
     })
     function flowBlueprintSummary (blueprint) {
-        const newVar = {
+        return {
             id: blueprint.hashid,
             active: blueprint.active,
             name: blueprint.name,
@@ -30,7 +30,6 @@ module.exports = function (app) {
             createdAt: blueprint.createdAt,
             updatedAt: blueprint.updatedAt
         }
-        return newVar
     }
 
     app.addSchema({
