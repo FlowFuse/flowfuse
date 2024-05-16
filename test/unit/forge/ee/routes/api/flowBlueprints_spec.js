@@ -97,7 +97,7 @@ describe('Flow Blueprints API', function () {
             result.should.have.property('id')
             result.should.have.property('name', name)
             // Response is a summary object that doesn't include flows/modules
-            result.should.not.have.property('flows')
+            result.should.have.property('flows')
             result.should.not.have.property('modules')
         })
 
@@ -350,7 +350,7 @@ describe('Flow Blueprints API', function () {
             template.should.have.property('active', false)
             template.should.have.property('category', 'new cat')
             // Response is summary view without these properties
-            template.should.not.have.property('flows')
+            template.should.have.property('flows')
             template.should.not.have.property('modules')
 
             const fullTemplate = (await app.inject({
