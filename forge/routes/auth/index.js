@@ -172,6 +172,11 @@ async function init (app, opts) {
         if (session) {
             const cookieOptions = { ...SESSION_COOKIE_OPTIONS }
             cookieOptions.maxAge = SESSION_MAX_AGE
+            if (/^https:/.test(app.config.base_url)) {
+                // If base_url starts https then we can safely set the secure flag
+                // on the cookie
+                cookieOptions.secure = true
+            }
             return {
                 session,
                 cookieOptions
