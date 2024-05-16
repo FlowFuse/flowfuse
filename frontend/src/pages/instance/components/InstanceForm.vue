@@ -540,6 +540,11 @@ export default {
                     if (!teamTypeInstanceProperties.active) {
                         // This instanceType is disabled for this teamType
                         pt.disabled = true
+                    } else if (teamTypeInstanceProperties.creatable === false) {
+                        // Type is active (it can exist), but not creatable (not allowed to create more) for this team type.
+                        // This can happen follow a change of TeamType where different instance types are available.
+                        // This check treats undefined as true for backwards compatibility
+                        pt.disabled = true
                     } else if (teamTypeInstanceProperties.limit !== null && teamTypeInstanceProperties.limit <= existingInstanceCount) {
                         // This team has reached the limit of this instance type
                         pt.disabled = true
