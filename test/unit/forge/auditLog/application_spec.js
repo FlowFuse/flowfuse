@@ -181,6 +181,21 @@ describe('Audit Log > Application', async function () {
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
+    it('Provides a logger for application device snapshot imported', async function () {
+        await logger.application.device.snapshot.imported(ACTIONED_BY, null, APPLICATION, DEVICE, null, null, SNAPSHOT)
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'application.device.snapshot.imported')
+        logEntry.should.have.property('scope', { id: APPLICATION.hashid, type: 'application' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('device', 'snapshot')
+        logEntry.body.device.should.only.have.keys('id', 'name')
+        logEntry.body.device.id.should.equal(DEVICE.hashid)
+        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
+    })
+
     it('Provides a logger for creating a device group', async function () {
         await logger.application.deviceGroup.created(ACTIONED_BY, null, APPLICATION, DEVICEGROUP)
         // check log stored
