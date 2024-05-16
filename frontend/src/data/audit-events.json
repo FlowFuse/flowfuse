@@ -47,6 +47,8 @@
         "application.device.unassigned": "Device Unassigned from Application",
         "application.device.snapshot.created": "Device Snapshot Created",
         "application.device.snapshot.deleted": "Device Snapshot Deleted",
+        "application.device.snapshot.exported": "Device Snapshot Exported",
+        "application.device.snapshot.imported": "Snapshot Imported",
         "application.device.snapshot.device-target-set": "Device Target Snapshot Set",
         "application.deviceGroup.created": "Device Group Created",
         "application.deviceGroup.updated": "Device Group Updated",
