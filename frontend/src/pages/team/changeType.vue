@@ -15,7 +15,7 @@
         <ff-loading v-if="loading" message="Updating Team..." />
         <div v-else class="m-auto">
             <form class="space-y-6">
-                <div class="max-w-2xl m-auto">
+                <div>
                     <FormHeading>
                         <template v-if="isTypeChange">
                             Change your team type
@@ -34,7 +34,7 @@
                     </div>
                 </div>
                 <!-- TeamType Type -->
-                <div class="grid grid-1 justify-items-center">
+                <div class="grid grid-1">
                     <ff-tile-selection v-model="input.teamTypeId" data-form="team-type">
                         <ff-tile-selection-option
                             v-for="(teamType, index) in teamTypes" :key="index"
@@ -46,7 +46,7 @@
                         />
                     </ff-tile-selection>
                 </div>
-                <div class="max-w-2xl m-auto">
+                <div>
                     <template v-if="billingEnabled">
                         <div class="mb-8 text-sm text-gray-500 space-y-2">
                             <template v-if="trialMode && !trialHasEnded">
