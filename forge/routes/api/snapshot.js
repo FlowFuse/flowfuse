@@ -19,19 +19,8 @@ module.exports = async function (app) {
         try {
             request.ownerType = null
             request.owner = null
-            if (request.body.ownerId && request.body.ownerType && request.body.snapshot) {
-                // upload route:- /import
-                if (request.body.ownerType === 'device') {
-                    request.owner = await app.db.models.Device.byId(request.body.ownerId)
-                    request.ownerType = 'device'
-                } else if (request.body.ownerType === 'instance') {
-                    request.owner = await app.db.models.Project.byId(request.body.ownerId)
-                    request.ownerType = 'instance'
-                } else {
-                    return reply.code(400).send({ code: 'bad_request', error: 'Invalid ownerType' })
-                }
-            } else if (request.params.id) {
-                // All other routes
+            if (request.params.id) {
+                // non upload route
                 request.snapshot = await app.db.models.ProjectSnapshot.byId(request.params.id)
                 if (!request.snapshot) {
                     return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
@@ -50,9 +39,17 @@ module.exports = async function (app) {
                 } else {
                     return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                 }
-            } else {
-                // invalid request
-                return reply.code(400).send({ code: 'bad_request', error: 'Invalid request' })
+            } else if (request.body.ownerId && request.body.ownerType && request.body.snapshot) {
+                // upload route
+                if (request.body.ownerType === 'device') {
+                    request.owner = await app.db.models.Device.byId(request.body.ownerId)
+                    request.ownerType = 'device'
+                } else if (request.body.ownerType === 'instance') {
+                    request.owner = await app.db.models.Project.byId(request.body.ownerId)
+                    request.ownerType = 'instance'
+                } else {
+                    return reply.code(400).send({ code: 'bad_request', error: 'Invalid ownerType' })
+                }
             }
             if (request.session.User) {
                 request.teamMembership = await request.session.User.getTeamMembership(request.owner.TeamId)
