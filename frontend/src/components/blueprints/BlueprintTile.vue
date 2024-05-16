@@ -13,7 +13,6 @@
                 <label class="text-green-800">Default</label>
             </div>
             <ff-button
-                v-if="!editable"
                 data-action="show-blueprint"
                 class="ff-btn--secondary"
                 @click="$refs['dialog'].show()"
