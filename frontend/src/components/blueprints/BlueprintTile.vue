@@ -38,7 +38,7 @@
             :canBeCanceled="false"
         >
             <template #default>
-                <ff-flow-viewer :flow="blueprint.flows" />
+                <ff-flow-viewer :flow="blueprint.flows?.flows ?? []" />
             </template>
         </ff-dialog>
     </div>
