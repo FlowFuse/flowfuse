@@ -8,7 +8,7 @@
                         <ff-text-input v-model="input.file" :error="errors.file" disabled />
                     </template>
                     <template #append>
-                        <input id="fileUpload" ref="fileUpload" type="file" accept="application/json, text/plain, *" class="" style="/*position: absolute; top: -9999px;*/ display:none;">
+                        <input id="fileUpload" ref="fileUpload" type="file" accept="application/json, text/plain, *" style="display:none;">
                         <ff-button v-ff-tooltip:top="'Select Snapshot'" kind="tertiary" @click="selectSnapshot">
                             <template #icon><DocumentIcon /></template>
                             <!-- <span class="hidden sm:flex pl-1">Select Snapshot</span> -->
