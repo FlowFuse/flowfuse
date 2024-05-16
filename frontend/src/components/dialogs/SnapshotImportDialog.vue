@@ -6,9 +6,6 @@
                     Snapshot File
                     <template #input>
                         <ff-text-input v-model="input.file" :error="errors.file" disabled />
-                        <!-- <div class="ff-input ff-text-input">
-                            <input type="text" readonly class="bg-gray-50 border border-gray-300  focus:outline-none text-gray-500 cursor-not-allowed" :value="input.file">
-                        </div> -->
                     </template>
                     <template #append>
                         <input id="fileUpload" ref="fileUpload" type="file" accept="application/json, text/plain, *" class="" style="/*position: absolute; top: -9999px;*/ display:none;">
