@@ -167,7 +167,6 @@ module.exports = {
         })
         // store the snapshot
         const newSnapshot = await app.db.models.ProjectSnapshot.create(snapshotOptions)
-        await newSnapshot.save()
         return newSnapshot
     }
 }
