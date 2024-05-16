@@ -37,7 +37,7 @@
             :canBeCanceled="false"
         >
             <template #default>
-                <ff-flow-viewer :flow="blueprint.flows?.flows ?? []" />
+                <ff-flow-viewer :flow="blueprint.flows?.flows ?? []" @click.stop.prevent />
             </template>
         </ff-dialog>
     </div>
