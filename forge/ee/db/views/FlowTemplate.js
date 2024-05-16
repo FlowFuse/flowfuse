@@ -11,12 +11,13 @@ module.exports = function (app) {
             icon: { type: 'string' },
             order: { type: 'number' },
             default: { type: 'boolean' },
+            flows: { type: 'array' },
             createdAt: { type: 'string' },
             updatedAt: { type: 'string' }
         }
     })
     function flowBlueprintSummary (blueprint) {
-        return {
+        const newVar = {
             id: blueprint.hashid,
             active: blueprint.active,
             name: blueprint.name,
@@ -25,9 +26,11 @@ module.exports = function (app) {
             icon: blueprint.icon,
             order: blueprint.order,
             default: blueprint.default,
+            flows: blueprint.flows.flows,
             createdAt: blueprint.createdAt,
             updatedAt: blueprint.updatedAt
         }
+        return newVar
     }
 
     app.addSchema({
