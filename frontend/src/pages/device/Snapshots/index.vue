@@ -18,12 +18,12 @@
         <template v-if="features.deviceEditor && snapshots.length > 0">
             <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
                 <template v-if="hasPermission('device:snapshot:create')" #actions>
-                    <ff-button kind="primary" data-action="create-snapshot" :disabled="!developerMode || busyMakingSnapshot" @click="showCreateSnapshotDialog"><template #icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
+                    <ff-button v-if="hasPermission('snapshot:import')" kind="secondary" data-action="import-snapshot" :disabled="busy" @click="showImportSnapshotDialog"><template #icon-left><UploadIcon /></template>Upload Snapshot</ff-button>
+                    <ff-button kind="primary" data-action="create-snapshot" :disabled="!developerMode || busy" @click="showCreateSnapshotDialog"><template #icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
                 </template>
                 <template v-if="showContextMenu" #context-menu="{row}">
                     <ff-list-item v-if="hasPermission('snapshot:full')" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
-                    <ff-list-item v-if="hasPermission('device:snapshot:delete') && rowIsThisDevice(row)" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />
-                    <ff-list-item v-if="!rowIsThisDevice(row)" disabled label="No actions available" kind="info" />
+                    <ff-list-item :disabled="!hasPermission('device:snapshot:delete') || !rowIsThisDevice(row)" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />
                 </template>
             </ff-data-table>
         </template>
@@ -46,19 +46,23 @@
                     </p>
                 </template>
                 <template v-if="hasPermission('device:snapshot:create')" #actions>
-                    <ff-button kind="primary" :disabled="!developerMode || busyMakingSnapshot || !features.deviceEditor || device.ownerType !== 'application'" data-action="create-snapshot" @click="showCreateSnapshotDialog">
+                    <ff-button v-if="hasPermission('snapshot:import')" kind="secondary" :disabled="busy || !features.deviceEditor || device.ownerType !== 'application'" data-action="import-snapshot" @click="showImportSnapshotDialog">
+                        <template #icon-left><UploadIcon /></template>Upload Snapshot
+                    </ff-button>
+                    <ff-button kind="primary" :disabled="!developerMode || busy || !features.deviceEditor || device.ownerType !== 'application'" data-action="create-snapshot" @click="showCreateSnapshotDialog">
                         <template #icon-left><PlusSmIcon /></template>Create Snapshot
                     </ff-button>
                 </template>
             </EmptyState>
         </template>
-        <SnapshotCreateDialog ref="snapshotCreateDialog" title="Create Device Snapshot" data-el="dialog-create-device-snapshot" :show-set-as-target="true" :device="device" @device-upload-success="onSnapshotCreated" @device-upload-failed="onSnapshotFailed" @canceled="onSnapshotCancel" />
+        <SnapshotCreateDialog ref="snapshotCreateDialog" title="Create Device Snapshot" data-el="dialog-create-device-snapshot" :show-set-as-target="true" :device="device" @device-import-success="onSnapshotCreated" @device-import-failed="onSnapshotFailed" @canceled="onSnapshotCancel" />
+        <SnapshotImportDialog ref="snapshotImportDialog" title="Upload Snapshot" data-el="dialog-import-snapshot" :show-owner-select="false" :owner="device" owner-type="device" @snapshot-import-success="onSnapshotImportSuccess" @snapshot-import-failed="onSnapshotImportFailed" @canceled="onSnapshotImportCancel" />
         <SnapshotViewerDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
     </div>
 </template>
 
 <script>
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
@@ -68,6 +72,7 @@ import SnapshotApi from '../../../api/snapshots.js'
 
 import EmptyState from '../../../components/EmptyState.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import SnapshotImportDialog from '../../../components/dialogs/SnapshotImportDialog.vue'
 import SnapshotViewerDialog from '../../../components/dialogs/SnapshotViewerDialog.vue'
 import UserCell from '../../../components/tables/cells/UserCell.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
@@ -86,8 +91,10 @@ export default {
         SectionTopMenu,
         EmptyState,
         SnapshotCreateDialog,
+        SnapshotImportDialog,
         SnapshotViewerDialog,
-        PlusSmIcon
+        PlusSmIcon,
+        UploadIcon
     },
     mixins: [permissionsMixin],
     inheritAttrs: false,
@@ -104,13 +111,14 @@ export default {
             deviceCounts: {},
             showDeviceSnapshotsOnly: true,
             snapshots: [],
-            busyMakingSnapshot: false
+            busyMakingSnapshot: false,
+            busyImportingSnapshot: false
         }
     },
     computed: {
         ...mapState('account', ['teamMembership', 'features']),
         showContextMenu: function () {
-            return this.hasPermission('snapshot:delete') || this.hasPermission('snapshot:export')
+            return this.hasPermission('device:snapshot:delete') || this.hasPermission('snapshot:export') || this.hasPermission('snapshot:full')
         },
         columns () {
             const cols = [
@@ -167,6 +175,9 @@ export default {
         },
         developerMode () {
             return this.device?.mode === 'developer'
+        },
+        busy () {
+            return this.busyMakingSnapshot || this.busyImportingSnapshot
         }
     },
     watch: {
@@ -233,6 +244,8 @@ export default {
                 Alerts.emit('Successfully deleted snapshot.', 'confirmation')
             })
         },
+
+        // snapshot actions - create
         showCreateSnapshotDialog () {
             this.busyMakingSnapshot = true
             this.$refs.snapshotCreateDialog.show()
@@ -252,6 +265,26 @@ export default {
         onSnapshotCancel () {
             this.busyMakingSnapshot = false
         },
+
+        // snapshot actions - import
+        showImportSnapshotDialog () {
+            this.busyImportingSnapshot = true
+            this.$refs.snapshotImportDialog.show()
+        },
+        onSnapshotImportSuccess (snapshot) {
+            this.snapshots.unshift(snapshot)
+            this.busyImportingSnapshot = false
+        },
+        onSnapshotImportFailed (err) {
+            console.error(err)
+            const message = err.response?.data?.error || 'Failed to import snapshot.'
+            Alerts.emit(message, 'warning')
+            this.busyImportingSnapshot = false
+        },
+        onSnapshotImportCancel () {
+            this.busyImportingSnapshot = false
+        },
+
         getSortKeyForSnapshotSource (snapshot) {
             if (snapshot.ownerType === 'device') {
                 return 'Device:' + snapshot.device?.name || 'No Name'
