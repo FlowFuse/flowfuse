@@ -1,6 +1,6 @@
 <template>
     <div ref="container" class="ff-dialog-container" :class="'ff-dialog-container--' + (open ? 'open' : 'closed')">
-        <div v-click-outside="close" class="ff-dialog-box" :class="boxClass">
+        <div class="ff-dialog-box" :class="boxClass">
             <div class="ff-dialog-header" data-sentry-unmask>{{ header }}</div>
             <div ref="content" class="ff-dialog-content" :class="contentClass">
                 <slot></slot>
