@@ -376,6 +376,11 @@ module.exports = {
                     await this.ensureTeamTypeExists()
                     return this.TeamType.getInstanceTypeProperty(instanceType, 'active', false)
                 },
+                isInstanceTypeCreatable: async function (instanceType) {
+                    await this.ensureTeamTypeExists()
+                    // Defaults to true unless explicit disabled
+                    return this.TeamType.getInstanceTypeProperty(instanceType, 'creatable', true)
+                },
                 getInstanceTypeLimit: async function (instanceType) {
                     await this.ensureTeamTypeExists()
                     if (!await this.isInstanceTypeAvailable(instanceType)) {
@@ -398,6 +403,15 @@ module.exports = {
                  */
                 checkInstanceTypeCreateAllowed: async function (instanceType) {
                     await this.ensureTeamTypeExists()
+
+                    const typeAvailable = await this.isInstanceTypeAvailable(instanceType)
+                    const typeCreatable = await this.isInstanceTypeCreatable(instanceType)
+                    if (!typeAvailable || !typeCreatable) {
+                        const err = new Error()
+                        err.code = 'instance_not_available'
+                        err.error = `Instance type '${instanceType.name}' not available for this team`
+                        throw err
+                    }
 
                     const instanceTypeLimit = await this.getInstanceTypeLimit(instanceType)
                     // Note that if the instanceType is unavailable for this team type,
