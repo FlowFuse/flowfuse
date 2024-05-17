@@ -20,6 +20,7 @@ describe('Team API', function () {
         TestObjects.alice = await app.db.models.User.byUsername('alice')
         TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
         TestObjects.chris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', email_verified: true, password: 'ccPassword' })
+        TestObjects.dave = await app.db.models.User.create({ username: 'dave', name: 'Dave Vader', email: 'dave@example.com', email_verified: true, password: 'ddPassword' })
 
         TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
         TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam', slug: 'bteam', TeamTypeId: app.defaultTeamType.id })
@@ -28,6 +29,8 @@ describe('Team API', function () {
 
         await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Member } })
         await TestObjects.BTeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+
+        await TestObjects.ATeam.addUser(TestObjects.dave, { through: { role: Roles.Dashboard } })
 
         TestObjects.tokens = {}
         await login('alice', 'aaPassword')
@@ -89,6 +92,22 @@ describe('Team API', function () {
             response.statusCode.should.equal(200)
             const result = response.json()
             result.should.have.property('id', TestObjects.BTeam.hashid)
+        })
+        it('dashboard role gets team summary', async function () {
+            await login('dave', 'ddPassword')
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}`,
+                cookies: { sid: TestObjects.tokens.dave }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('id', TestObjects.ATeam.hashid)
+            result.should.not.have.property('type')
+            result.should.not.have.property('instanceCount')
+            result.should.not.have.property('memberCount')
+            result.should.not.have.property('instanceCountByType')
+            result.should.not.have.property('billing')
         })
         it('non-member cannot access team', async function () {
             const response = await app.inject({
