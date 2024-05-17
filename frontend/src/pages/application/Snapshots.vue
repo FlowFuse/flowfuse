@@ -14,6 +14,9 @@
             <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
                 <template #context-menu="{row}">
                     <ff-list-item :disabled="!canViewSnapshot(row)" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
+                    <ff-list-item :disabled="!canDownload(row)" label="Download Snapshot" @click="showDownloadSnapshotDialog(row)" />
+                    <ff-list-item :disabled="!canDownloadPackage(row)" label="Download package.json" @click="downloadSnapshotPackage(row)" />
+                    <ff-list-item :disabled="!canDelete(row)" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />
                 </template>
             </ff-data-table>
         </template>
@@ -36,6 +39,7 @@
             </EmptyState>
         </template>
     </div>
+    <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" />
     <SnapshotViewerDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
 </template>
 
@@ -51,17 +55,20 @@ import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import SnapshotViewerDialog from '../../components/dialogs/SnapshotViewerDialog.vue'
 import UserCell from '../../components/tables/cells/UserCell.vue'
 import permissionsMixin from '../../mixins/Permissions.js'
-import Alerts from '../instance/Settings/Alerts.vue'
+import Alerts from '../../services/alerts.js'
+import Dialog from '../../services/dialog.js'
 
 // Table Cells
 import DaysSince from './Snapshots/components/cells/DaysSince.vue'
 import SnapshotName from './Snapshots/components/cells/SnapshotName.vue'
 import SnapshotSource from './Snapshots/components/cells/SnapshotSource.vue'
+import SnapshotExportDialog from './Snapshots/components/dialogs/SnapshotExportDialog.vue'
 
 export default {
     name: 'ApplicationSnapshots',
     components: {
         SectionTopMenu,
+        SnapshotExportDialog,
         SnapshotViewerDialog,
         EmptyState
     },
@@ -123,6 +130,20 @@ export default {
             this.loading = true
             const data = await ApplicationApi.getSnapshots(this.application.id, null, null, null)
             this.snapshots = [...data.snapshots]
+            // For any snapshots that have no user and match the autoSnapshot name format
+            // we mimic a user so that the table can display the device name and a suitable image
+            // NOTE: Any changes to the below regex should be reflected in forge/db/controllers/ProjectSnapshot.js
+            const autoSnapshotRegex = /^Auto Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/ // e.g "Auto Snapshot - 2023-02-01 12:34:56"
+            this.snapshots.forEach(snapshot => {
+                if (!snapshot.user && autoSnapshotRegex.test(snapshot.name)) {
+                    snapshot.user = {
+                        name: (snapshot.project || snapshot.device || {}).name || 'Unknown',
+                        username: 'Auto Snapshot',
+                        avatar: '../../avatar/camera.svg'
+                    }
+                }
+            })
+            this.loading = false
             this.loading = false
         },
         canViewSnapshot: function (row) {
@@ -135,6 +156,61 @@ export default {
                 console.error(err)
                 Alerts.emit('Failed to get snapshot.', 'warning')
             })
+        },
+        showDownloadSnapshotDialog (snapshot) {
+            this.$refs.snapshotExportDialog.show(snapshot)
+        },
+        async downloadSnapshotPackage (snapshot) {
+            const ss = await SnapshotsApi.getFullSnapshot(snapshot.id)
+            const owner = snapshot.device || snapshot.project
+            const ownerType = snapshot.device ? 'device' : 'instance'
+            const packageJSON = {
+                name: `${owner.safeName || owner.name}`.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase(),
+                description: `${ownerType} snapshot, ${snapshot.name} - ${snapshot.description}`,
+                private: true,
+                version: '0.0.0-' + snapshot.id,
+                dependencies: ss.settings?.modules || {}
+            }
+            const element = document.createElement('a')
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(packageJSON, null, 2)))
+            element.setAttribute('download', 'package.json')
+            element.style.display = 'none'
+            document.body.appendChild(element)
+            element.click()
+            document.body.removeChild(element)
+        },
+        // snapshot actions - delete
+        showDeleteSnapshotDialog (snapshot) {
+            Dialog.show({
+                header: 'Delete Snapshot',
+                text: 'Are you sure you want to delete this snapshot?',
+                kind: 'danger',
+                confirmLabel: 'Delete'
+            }, async () => {
+                await SnapshotsApi.deleteSnapshot(snapshot.id)
+                const index = this.snapshots.indexOf(snapshot)
+                this.snapshots.splice(index, 1)
+                Alerts.emit('Successfully deleted snapshot.', 'confirmation')
+            })
+        },
+        isDevice: function (row) {
+            return row.ownerType === 'device' || !!row.device
+        },
+        // enable/disable snapshot actions
+        canDownload (_row) {
+            return this.hasPermission('snapshot:export')
+        },
+        canDownloadPackage (row) {
+            if (this.isDevice(row)) {
+                return this.hasPermission('device:snapshot:read')
+            }
+            return this.hasPermission('project:snapshot:read')
+        },
+        canDelete (row) {
+            if (this.isDevice(row)) {
+                return this.hasPermission('device:snapshot:delete')
+            }
+            return this.hasPermission('project:snapshot:delete')
         }
     }
 }

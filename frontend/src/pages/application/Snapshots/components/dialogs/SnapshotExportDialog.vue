@@ -31,11 +31,11 @@
 <script>
 import { ClipboardCopyIcon, RefreshIcon } from '@heroicons/vue/outline'
 
-import snapshotApi from '../../../../api/projectSnapshots.js'
+import snapshotsApi from '../../../../../api/snapshots.js'
 
-import FormRow from '../../../../components/FormRow.vue'
-import clipboardMixin from '../../../../mixins/Clipboard.js'
-import alerts from '../../../../services/alerts.js'
+import FormRow from '../../../../../components/FormRow.vue'
+import clipboardMixin from '../../../../../mixins/Clipboard.js'
+import alerts from '../../../../../services/alerts.js'
 
 export default {
     name: 'SnapshotExportDialog',
@@ -45,12 +45,6 @@ export default {
         RefreshIcon
     },
     mixins: [clipboardMixin],
-    props: {
-        project: {
-            type: Object,
-            required: true
-        }
-    },
     setup () {
         return {
             show (snapshot) {
@@ -101,7 +95,7 @@ export default {
                 const opts = {
                     credentialSecret: this.input.secret
                 }
-                snapshotApi.exportInstanceSnapshot(this.project.id, this.snapshot.id, opts).then((data) => {
+                snapshotsApi.exportSnapshot(this.snapshot.id, opts).then((data) => {
                     return data
                 }).then(data => {
                     const snapshotDate = this.snapshot.updatedAt.replace(/[-:]/g, '').replace(/\..*$/, '').replace('T', '-')

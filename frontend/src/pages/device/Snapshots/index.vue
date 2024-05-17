@@ -21,9 +21,12 @@
                     <ff-button v-if="hasPermission('snapshot:import')" kind="secondary" data-action="import-snapshot" :disabled="busy" @click="showImportSnapshotDialog"><template #icon-left><UploadIcon /></template>Upload Snapshot</ff-button>
                     <ff-button kind="primary" data-action="create-snapshot" :disabled="!developerMode || busy" @click="showCreateSnapshotDialog"><template #icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
                 </template>
-                <template v-if="showContextMenu" #context-menu="{row}">
-                    <ff-list-item v-if="hasPermission('snapshot:full')" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
-                    <ff-list-item :disabled="!hasPermission('device:snapshot:delete') || !rowIsThisDevice(row)" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />
+                <template #context-menu="{row}">
+                    <ff-list-item :disabled="!canDeploy(row)" label="Deploy Snapshot" @click="showDeploySnapshotDialog(row)" />
+                    <ff-list-item :disabled="!hasPermission('snapshot:full')" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
+                    <ff-list-item :disabled="!canDownload(row)" label="Download Snapshot" @click="showDownloadSnapshotDialog(row)" />
+                    <ff-list-item :disabled="!hasPermission('device:snapshot:read')" label="Download package.json" @click="downloadSnapshotPackage(row)" />
+                    <ff-list-item :disabled="!canDelete(row)" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />
                 </template>
             </ff-data-table>
         </template>
@@ -56,6 +59,7 @@
             </EmptyState>
         </template>
         <SnapshotCreateDialog ref="snapshotCreateDialog" title="Create Device Snapshot" data-el="dialog-create-device-snapshot" :show-set-as-target="true" :device="device" @device-import-success="onSnapshotCreated" @device-import-failed="onSnapshotFailed" @canceled="onSnapshotCancel" />
+        <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" />
         <SnapshotImportDialog ref="snapshotImportDialog" title="Upload Snapshot" data-el="dialog-import-snapshot" :show-owner-select="false" :owner="device" owner-type="device" @snapshot-import-success="onSnapshotImportSuccess" @snapshot-import-failed="onSnapshotImportFailed" @canceled="onSnapshotImportCancel" />
         <SnapshotViewerDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
     </div>
@@ -79,9 +83,9 @@ import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 import DaysSince from '../../application/Snapshots/components/cells/DaysSince.vue'
-import DeployThisSnapshot from '../../application/Snapshots/components/cells/DeployThisSnapshot.vue'
 import SnapshotName from '../../application/Snapshots/components/cells/SnapshotName.vue'
 import SnapshotSource from '../../application/Snapshots/components/cells/SnapshotSource.vue'
+import SnapshotExportDialog from '../../application/Snapshots/components/dialogs/SnapshotExportDialog.vue'
 
 import SnapshotCreateDialog from '../dialogs/SnapshotCreateDialog.vue'
 
@@ -92,6 +96,7 @@ export default {
         EmptyState,
         SnapshotCreateDialog,
         SnapshotImportDialog,
+        SnapshotExportDialog,
         SnapshotViewerDialog,
         PlusSmIcon,
         UploadIcon
@@ -117,9 +122,6 @@ export default {
     },
     computed: {
         ...mapState('account', ['teamMembership', 'features']),
-        showContextMenu: function () {
-            return this.hasPermission('device:snapshot:delete') || this.hasPermission('snapshot:export') || this.hasPermission('snapshot:full')
-        },
         columns () {
             const cols = [
                 {
@@ -157,18 +159,6 @@ export default {
                     label: 'Date Created',
                     class: ['w-48 hidden sm:table-cell'],
                     component: { is: markRaw(DaysSince), map: { date: 'createdAt' } }
-                },
-                {
-                    label: '',
-                    class: ['w-40 deploy-this-button-cell'],
-                    component: {
-                        is: markRaw(DeployThisSnapshot),
-                        map: { snapshotId: 'id' },
-                        extraProps: {
-                            disabled: this.developerMode || !this.hasPermission('device:snapshot:set-target'),
-                            onDeployClick: this.deploySnapshot
-                        }
-                    }
                 }
             ]
             return cols
@@ -265,7 +255,25 @@ export default {
         onSnapshotCancel () {
             this.busyMakingSnapshot = false
         },
-
+        async downloadSnapshotPackage (snapshot) {
+            const ss = await SnapshotApi.getFullSnapshot(snapshot.id)
+            const owner = snapshot.device || snapshot.project
+            const ownerType = snapshot.device ? 'device' : 'instance'
+            const packageJSON = {
+                name: `${owner.safeName || owner.name}`.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase(),
+                description: `${ownerType} snapshot, ${snapshot.name} - ${snapshot.description}`,
+                private: true,
+                version: '0.0.0-' + snapshot.id,
+                dependencies: ss.settings?.modules || {}
+            }
+            const element = document.createElement('a')
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(packageJSON, null, 2)))
+            element.setAttribute('download', 'package.json')
+            element.style.display = 'none'
+            document.body.appendChild(element)
+            element.click()
+            document.body.removeChild(element)
+        },
         // snapshot actions - import
         showImportSnapshotDialog () {
             this.busyImportingSnapshot = true
@@ -334,6 +342,26 @@ export default {
                 console.error(err)
                 Alerts.emit('Failed to get snapshot.', 'warning')
             })
+        },
+        showDownloadSnapshotDialog (snapshot) {
+            this.$refs.snapshotExportDialog.show(snapshot)
+        },
+        showDeploySnapshotDialog (snapshot) {
+            this.deploySnapshot(snapshot.id)
+        },
+
+        // enable/disable snapshot actions
+        canDeploy (_row) {
+            return !this.developerMode && this.hasPermission('device:snapshot:set-target')
+        },
+        canDownload (_row) {
+            return this.hasPermission('snapshot:export')
+        },
+        canDelete (row) {
+            if (this.rowIsThisDevice(row)) {
+                return this.hasPermission('device:snapshot:delete')
+            }
+            return false // only permit deletion of snapshots created by this device
         }
     }
 }
