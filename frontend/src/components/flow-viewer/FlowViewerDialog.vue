@@ -17,7 +17,7 @@
 import FlowRenderer from '@flowfuse/flow-renderer'
 
 export default {
-    name: 'SnapshotViewerDialog',
+    name: 'FlowViewerDialog',
     components: {
         // FlowViewer
     },

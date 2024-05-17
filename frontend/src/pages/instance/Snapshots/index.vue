@@ -51,7 +51,7 @@
         </template>
         <SnapshotCreateDialog ref="snapshotCreateDialog" data-el="dialog-create-snapshot" :project="instance" @snapshot-created="snapshotCreated" />
         <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" :project="instance" />
-        <SnapshotViewerDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
+        <FlowViewerDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
     </div>
 </template>
 
@@ -66,7 +66,7 @@ import SnapshotsApi from '../../../api/snapshots.js'
 
 import EmptyState from '../../../components/EmptyState.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
-import SnapshotViewerDialog from '../../../components/dialogs/SnapshotViewerDialog.vue'
+import FlowViewerDialog from '../../../components/flow-viewer/FlowViewerDialog.vue'
 import UserCell from '../../../components/tables/cells/UserCell.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
@@ -85,7 +85,7 @@ export default {
         EmptyState,
         SnapshotCreateDialog,
         SnapshotExportDialog,
-        SnapshotViewerDialog,
+        FlowViewerDialog,
         PlusSmIcon
     },
     mixins: [permissionsMixin],
