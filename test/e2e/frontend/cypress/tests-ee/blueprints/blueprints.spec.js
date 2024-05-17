@@ -148,7 +148,7 @@ describe('FlowForge - Blueprints', () => {
             })
     })
 
-    it.only('can display blueprint flow previews', () => {
+    it('can display blueprint flow previews', () => {
         cy.intercept('GET', '/api/*/flow-blueprints*', {
             meta: {},
             ...multipleBlueprints
