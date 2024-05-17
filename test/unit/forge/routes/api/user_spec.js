@@ -379,6 +379,58 @@ describe('User API', async function () {
             // auditLogs.log[0].body.error.should.have.a.property('code', 'password_change_failed')
             // auditLogs.log[0].body.error.should.have.a.property('message')
         })
+        it('user can not change password to match username', async function () {
+            await login('elvis', 'eePassword')
+            TestObjects.elvis.username = 'elvisMoreComplicatedForWeaknessCheck'
+            await TestObjects.elvis.save()
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/change_password',
+                payload: {
+                    old_password: 'eePassword',
+                    password: 'elvisMoreComplicatedForWeaknessCheck'
+                },
+                cookies: { sid: TestObjects.tokens.elvis }
+            })
+            response.statusCode.should.equal(400)
+            const result = response.json()
+            result.should.have.property('code', 'password_change_failed')
+        })
+        it('user can not change password to match email', async function () {
+            await login('elvis', 'eePassword')
+            TestObjects.elvis.email = 'elvisMoreComplicatedForWeaknessCheck@example.com'
+            await TestObjects.elvis.save()
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/change_password',
+                payload: {
+                    old_password: 'eePassword',
+                    password: 'elvisMoreComplicatedForWeaknessCheck@example.com'
+                },
+                cookies: { sid: TestObjects.tokens.elvis }
+            })
+            response.statusCode.should.equal(400)
+            const result = response.json()
+            result.should.have.property('code', 'password_change_failed')
+        })
+        it('user can not change password to match old password', async function () {
+            await login('elvis', 'eePassword')
+            TestObjects.elvis.password = 'elvisMoreComplicatedForWeaknessCheck'
+            await TestObjects.elvis.save()
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/change_password',
+                payload: {
+                    old_password: 'elvisMoreComplicatedForWeaknessCheck',
+                    password: 'elvisMoreComplicatedForWeaknessCheck'
+                },
+                cookies: { sid: TestObjects.tokens.elvis }
+            })
+            response.statusCode.should.equal(400)
+            const result = response.json()
+            result.should.have.property('code', 'password_change_failed')
+        })
+
         describe('Unverified Email', async function () {
             it('return user info for unverified_email user', async function () {
                 await login('chris', 'ccPassword')
