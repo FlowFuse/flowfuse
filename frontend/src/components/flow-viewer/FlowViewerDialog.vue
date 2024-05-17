@@ -7,7 +7,7 @@
         </template>
         <template #actions>
             <div class="flex justify-end">
-                <ff-button @click="confirm()">Close</ff-button>
+                <ff-button data-action="dialog-confirm" @click="confirm()">Close</ff-button>
             </div>
         </template>
     </ff-dialog>

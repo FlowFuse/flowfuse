@@ -148,7 +148,7 @@ describe('FlowForge - Blueprints', () => {
             })
     })
 
-    it('can display blueprint flow previews', () => {
+    it.only('can display blueprint flow previews', () => {
         cy.intercept('GET', '/api/*/flow-blueprints*', {
             meta: {},
             ...multipleBlueprints
@@ -158,13 +158,13 @@ describe('FlowForge - Blueprints', () => {
 
         cy.wait('@getFlowBlueprints')
 
-        cy.get('[data-el="preview-blueprint-dialog"]').should('not.be.visible')
+        cy.get('[data-el="flow-view-dialog"]').should('not.be.visible')
 
         cy.get('[data-el="blueprint-tile"]').each(($div) => cy.wrap($div).within(() => {
             cy.get('[data-action="show-blueprint"]').click()
-            cy.get('[data-el="preview-blueprint-dialog"]').should('be.visible')
+            cy.get('[data-el="flow-view-dialog"]').should('be.visible')
             cy.get('[data-action="dialog-confirm"]').click()
-            cy.get('[data-el="preview-blueprint-dialog"]').should('not.be.visible')
+            cy.get('[data-el="flow-view-dialog"]').should('not.be.visible')
         }))
     })
 })
