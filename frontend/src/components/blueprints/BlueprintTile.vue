@@ -28,7 +28,7 @@
                 Edit
             </ff-button>
         </div>
-        <flow-viewer-dialog ref="flow-renderer-dialog" :title="blueprint.name" />
+        <AssetDetailDialog ref="flow-renderer-dialog" :title="blueprint.name" />
     </div>
 </template>
 
@@ -41,14 +41,14 @@ import ProjectIcon from '../../components/icons/Projects.js'
 import product from '../../services/product.js'
 import FfDialog from '../../ui-components/components/DialogBox.vue'
 import FormRow from '../FormRow.vue'
-import FlowViewerDialog from '../flow-viewer/FlowViewerDialog.vue'
+import AssetDetailDialog from '../dialogs/AssetDetailDialog.vue'
 
 export default {
     name: 'BlueprintTile',
     components: {
         FfDialog,
         FormRow,
-        FlowViewerDialog,
+        AssetDetailDialog,
         CheckCircleIcon,
         ProjectIcon
     },

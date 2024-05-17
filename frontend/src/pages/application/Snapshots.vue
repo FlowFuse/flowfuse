@@ -36,7 +36,7 @@
             </EmptyState>
         </template>
     </div>
-    <FlowViewerDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
+    <AssetDetailDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
 </template>
 
 <script>
@@ -48,7 +48,7 @@ import SnapshotsApi from '../../api/snapshots.js'
 
 import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
-import FlowViewerDialog from '../../components/flow-viewer/FlowViewerDialog.vue'
+import AssetDetailDialog from '../../components/dialogs/AssetDetailDialog.vue'
 import UserCell from '../../components/tables/cells/UserCell.vue'
 import permissionsMixin from '../../mixins/Permissions.js'
 import Alerts from '../instance/Settings/Alerts.vue'
@@ -62,7 +62,7 @@ export default {
     name: 'ApplicationSnapshots',
     components: {
         SectionTopMenu,
-        FlowViewerDialog,
+        AssetDetailDialog,
         EmptyState
     },
     mixins: [permissionsMixin],

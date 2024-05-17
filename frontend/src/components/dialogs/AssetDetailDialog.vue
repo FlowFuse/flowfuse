@@ -26,9 +26,9 @@ export default {
     },
     setup () {
         return {
-            show (flow) {
+            show (payload) { // accepts blueprints, snapshots and libraries
                 this.$refs.dialog.show()
-                this.payload = flow
+                this.payload = payload
                 setTimeout(() => {
                     this.renderFlows()
                 }, 20)
