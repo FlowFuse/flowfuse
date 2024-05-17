@@ -1,7 +1,7 @@
 <template>
-    <ff-dialog ref="dialog" :header="header" confirm-label="Close" :closeOnConfirm="true" data-el="snapshot-view-dialog" boxClass="!min-w-[80%] !min-h-[80%] !w-[80%] !h-[80%]" contentClass="overflow-hidden" @confirm="confirm()">
+    <ff-dialog ref="dialog" :header="header" confirm-label="Close" :closeOnConfirm="true" data-el="flow-view-dialog" boxClass="!min-w-[80%] !min-h-[80%] !w-[80%] !h-[80%]" contentClass="overflow-hidden" @confirm="confirm()">
         <template #default>
-            <div ref="viewer" data-el="ff-flow-previewer" class="ff-flow-viewer">
+            <div ref="viewer" data-el="ff-flow-previewer" class="ff-flow-viewer" @click.stop.prevent>
                 Loading...
             </div>
         </template>
@@ -18,14 +18,17 @@ import FlowRenderer from '@flowfuse/flow-renderer'
 
 export default {
     name: 'FlowViewerDialog',
-    components: {
-        // FlowViewer
+    props: {
+        title: {
+            type: String,
+            default: ''
+        }
     },
     setup () {
         return {
-            show (snapshot) {
+            show (flow) {
                 this.$refs.dialog.show()
-                this.snapshot = snapshot
+                this.payload = flow
                 setTimeout(() => {
                     this.renderFlows()
                 }, 20)
@@ -34,15 +37,15 @@ export default {
     },
     data () {
         return {
-            snapshot: []
+            payload: []
         }
     },
     computed: {
         flow () {
-            return this.snapshot?.flows?.flows || []
+            return this.payload?.flows?.flows || []
         },
         header () {
-            return this.snapshot?.name || 'Snapshot'
+            return this.payload?.name || this.title || 'Flow'
         }
     },
     mounted () {
