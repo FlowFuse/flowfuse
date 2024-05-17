@@ -155,6 +155,95 @@ describe('FlowForge - Instance Snapshots', () => {
 
         cy.get('main').contains('Create your First Snapshot')
     })
+
+    it('upload snapshot with credentials', () => {
+        cy.fixture('snapshots/snapshot-with-credentials.json', null).as('snapshot')
+        cy.intercept('POST', '/api/*/snapshots/import').as('importSnapshot')
+
+        // click data-action="import-snapshot" to open the dialog
+        cy.get('[data-action="import-snapshot"]').click()
+
+        cy.get('[data-el="dialog-import-snapshot"]').should('be.visible')
+
+        // check the dialog header
+        cy.get('[data-el="dialog-import-snapshot"] .ff-dialog-header').contains('Upload Snapshot')
+
+        // upload the snapshot file that has credentials (the credentials secret field should become visible)
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-filename"] input[type="file"]').selectFile({ contents: '@snapshot' }, { force: true }) // force because the input is hidden
+
+        // check file field input text is the filename
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-filename"] input[type="text"]').should('have.value', 'snapshot-with-credentials.json')
+        // check name field is the name from within the snapshot file
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-name"] input').should('have.value', 'application device snapshot 1')
+
+        // check validation of name field
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-name"] input').clear()
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-name"] [data-el="form-row-error"]').should('contain.text', 'Name is required')
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-name"] input').type('uploaded snapshot1')
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-name"]').should('not.contain', '[data-el="form-row-error"]')
+
+        // check validation of secret field
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-secret"] input').type('bad secret')
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-secret"]').should('not.contain', '[data-el="form-row-error"]')
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-secret"] input').clear()
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-secret"] [data-el="form-row-error"]').should('contain.text', 'Secret is required')
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-secret"] input').type('correct secret')
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-secret"]').should('not.contain', '[data-el="form-row-error"]')
+
+        // set a description
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-description"] textarea').type('snapshot1 description')
+
+        // click import button
+        cy.get('[data-el="dialog-import-snapshot"] [data-action="dialog-confirm"]').click()
+
+        cy.wait('@importSnapshot')
+
+        // check the snapshot is now in the table
+        cy.get('[data-el="snapshots"] tbody').find('tr').contains('uploaded snapshot1')
+        cy.get('[data-el="snapshots"] tbody').find('tr').contains('snapshot1 description')
+    })
+
+    it('upload snapshot without credentials', () => {
+        cy.fixture('snapshots/instance2-full-snapshot2.json', null).as('snapshot')
+        cy.intercept('POST', '/api/*/snapshots/import').as('importSnapshot')
+
+        // click data-action="import-snapshot" to open the dialog
+        cy.get('[data-action="import-snapshot"]').click()
+
+        cy.get('[data-el="dialog-import-snapshot"]').should('be.visible')
+
+        // check the dialog header
+        cy.get('[data-el="dialog-import-snapshot"] .ff-dialog-header').contains('Upload Snapshot')
+
+        // upload the snapshot file that has credentials (the credentials secret field should become visible)
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-filename"] input[type="file"]').selectFile({ contents: '@snapshot' }, { force: true }) // force because the input is hidden
+
+        // check file field input text is the filename
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-filename"] input[type="text"]').should('have.value', 'instance2-full-snapshot2.json')
+        // check name field is the name from within the snapshot file
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-name"] input').should('have.value', 'instance-2 snapshot-2')
+
+        // check credentials secret field is not visible
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-secret"]').should('not.exist')
+
+        // check validation of name field
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-name"] input').clear()
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-name"] [data-el="form-row-error"]').should('contain.text', 'Name is required')
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-name"] input').type('uploaded snapshot2')
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-name"]').should('not.contain', '[data-el="form-row-error"]')
+
+        // set a description
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-description"] textarea').type('snapshot2 description')
+
+        // click import button
+        cy.get('[data-el="dialog-import-snapshot"] [data-action="dialog-confirm"]').click()
+
+        cy.wait('@importSnapshot')
+
+        // check the snapshot is now in the table
+        cy.get('[data-el="snapshots"] tbody').find('tr').contains('uploaded snapshot2')
+        cy.get('[data-el="snapshots"] tbody').find('tr').contains('snapshot2 description')
+    })
 })
 
 describe('FlowForge shows audit logs', () => {
@@ -188,5 +277,8 @@ describe('FlowForge shows audit logs', () => {
     })
     it('for when a snapshot is exported', () => {
         cy.get('.ff-audit-entry').contains('Instance Snapshot Exported')
+    })
+    it('for when a snapshot is imported', () => {
+        cy.get('.ff-audit-entry').contains('Snapshot Imported')
     })
 })
