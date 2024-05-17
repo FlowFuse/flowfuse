@@ -15,7 +15,7 @@
             <ff-button
                 data-action="show-blueprint"
                 class="ff-btn--secondary"
-                @click="$refs['dialog'].show()"
+                @click="$refs['flow-renderer-dialog'].show(blueprint)"
             >
                 <template #icon>
                     <ProjectIcon />
@@ -28,18 +28,7 @@
                 Edit
             </ff-button>
         </div>
-        <ff-dialog
-            ref="dialog"
-            data-el="preview-blueprint-dialog"
-            :header="`Flow Preview: ${blueprint.name}`"
-            :closeOnConfirm="true"
-            confirmLabel="Close"
-            :canBeCanceled="false"
-        >
-            <template #default>
-                <ff-flow-viewer :flow="blueprint.flows?.flows ?? []" @click.stop.prevent />
-            </template>
-        </ff-dialog>
+        <flow-viewer-dialog ref="flow-renderer-dialog" :title="blueprint.name" />
     </div>
 </template>
 
@@ -52,14 +41,14 @@ import ProjectIcon from '../../components/icons/Projects.js'
 import product from '../../services/product.js'
 import FfDialog from '../../ui-components/components/DialogBox.vue'
 import FormRow from '../FormRow.vue'
-import FlowViewer from '../flow-viewer/FlowViewer.vue'
+import FlowViewerDialog from '../flow-viewer/FlowViewerDialog.vue'
 
 export default {
     name: 'BlueprintTile',
     components: {
         FfDialog,
         FormRow,
-        'ff-flow-viewer': FlowViewer,
+        FlowViewerDialog,
         CheckCircleIcon,
         ProjectIcon
     },
