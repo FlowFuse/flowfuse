@@ -183,6 +183,14 @@ const disableProtectedMode = async (instanceId) => {
     return client.delete(`/api/v1/projects/${instanceId}/protectInstance`)
 }
 
+const setCustomHostname = async (instanceId, hostname) => {
+    return client.put(`/api/v1/projects/${instanceId}/customHostname`, { hostname: hostname })
+}
+
+const clearCustomHostname = async (instanceId) => {
+    return client.delete(`/api/v1/projects/${instanceId}/customHostname`)
+}
+
 export default {
     create,
     getInstance,
@@ -206,5 +214,7 @@ export default {
     updateHTTPToken,
     deleteHTTPToken,
     enableProtectedMode,
-    disableProtectedMode
+    disableProtectedMode,
+    setCustomHostname,
+    clearCustomHostname
 }

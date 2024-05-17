@@ -1,8 +1,9 @@
 module.exports = async function (app) {
     app.addHook('preHandler', app.verifySession)
     app.addHook('preHandler', async (request, reply) => {
-        if (!app.config.features.enabled('customhostnames')) {
+        if (!app.config.features.enabled('customHostnames')) {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+            return
         }
     })
     app.addHook('preHandler', async (request, reply) => {
@@ -40,20 +41,30 @@ module.exports = async function (app) {
     })
 
     app.get('/', {
-
+        preHandler: app.needsPermission('project:edit')
     }, async (request, reply) => {
-
+        reply.send(await request.project.getCustomHostname() || {})
     })
 
     app.put('/', {
-
+        preHandler: app.needsPermission('project:edit')
     }, async (request, reply) => {
-
+        if (request.body.hostname) {
+            try {
+                await request.project.setCustomHostname(request.body.hostname)
+                reply.send({hostname: request.body.hostname})
+            } catch (err) {
+                reply.code(409).send({ code: 'hostname_node_available', error: 'Hostname not available'})
+            }
+        } else {
+            reply.code(400).send({})
+        }
     })
 
     app.delete('/', {
-
+        preHandler: app.needsPermission('project:edit')
     }, async (request, reply) => {
-
+        await request.project.clearCustomHostname()
+        reply.status(204).send({})
     })
 }

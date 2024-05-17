@@ -40,17 +40,16 @@
             Default URL
         </FormRow>
         <div v-if="customHostnameAvailable">
-            <FormRow v-if="customHostnameTeamAvailable" v-model="input.hostname" :error="errors.hostname">
+            <FormRow v-if="customHostnameTeamAvailable" v-model="input.customHostname" :error="errors.customHostname">
                 Custom Hostname
                 <template #description>
                     <p>This needs to be a fully qualified hostname</p>
                     <p>Please refer to this documentation for details of how to configure your DNS</p>
                 </template>
-                <template #append>
-                    <ff-button data-action="save-hostname" kind="secondary" @click="saveHostname()">Update</ff-button>
-                    <ChangeIndicator :value="changed.hostname" />
-                </template>
             </FormRow>
+            <div style="padding-top: 5px">
+                <ff-button size="small" data-action="save-hostname" kind="secondary" @click="saveCustomHostname()" :disabled="customHostnameChanged">Save</ff-button>
+            </div>
             <FeatureUnavailableToTeam v-if="!customHostnameTeamAvailable" featureName="Instance Custom Domain Name" />
         </div>
         <DangerSettings
@@ -68,7 +67,9 @@ import { mapState } from 'vuex'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
-import ChangeIndicator from '../../admin/Template/components/ChangeIndicator.vue'
+// import ChangeIndicator from '../../admin/Template/components/ChangeIndicator.vue'
+
+import instanceAPI from '../../../api/instances.js'
 
 import DangerSettings from './Danger.vue'
 
@@ -78,8 +79,7 @@ export default {
         FormRow,
         FormHeading,
         FeatureUnavailableToTeam,
-        DangerSettings,
-        ChangeIndicator
+        DangerSettings
     },
     inheritAttrs: false,
     props: {
@@ -101,17 +101,17 @@ export default {
                 stackDescription: '',
                 templateName: '',
                 haConfig: {},
-                hostname: ''
+                customHostname: ''
             },
             original: {
                 projectName: '',
-                hostname: ''
+                customHostname: ''
             },
             changed: {
-                hostname: false
+                customHostname: false
             },
             errors: {
-                hostname: ''
+                customHostname: ''
             },
             url: ''
         }
@@ -120,6 +120,9 @@ export default {
         ...mapState('account', ['features', 'team']),
         isHA () {
             return !!this.instance?.ha
+        },
+        customHostnameChanged () {
+            return this.original.customHostname === this.input.customHostname 
         },
         customHostnameAvailable () {
             const available = this.features.customHostnames
@@ -163,29 +166,50 @@ export default {
                 this.input.haConfig = undefined
             }
 
-            this.input.hostname = this.instance.hostname
-            this.original.hostname = this.instance.hostname
+            this.input.customHostname = this.instance.customHostname
+            this.original.customHostname = this.instance.customHostname
             this.url = this.instance.url
         },
-        saveHostname () {
+        async saveCustomHostname () {
             const validChars = /^[a-zA-Z0-9-.]{1,253}\.?$/g
             let isValid = true
-            this.errors.hostname = ''
+            this.errors.customHostname = ''
+
+            if (this.input.customHostname.trim().length === 0) {
+                await instanceAPI.clearCustomHostname(this.instance.id)
+                this.input.customHostname = ''
+                this.original.customHostname = ''
+                return
+            }
 
             // contains valid chars
-            if (!validChars.test(this.input.hostname)) {
+            if (!validChars.test(this.input.customHostname)) {
                 isValid = false
             }
 
             // doesn't end with '.'
-            if (this.input.hostname.endsWith('.')) {
+            if (this.input.customHostname.endsWith('.')) {
                 isValid = false
             }
 
             if (!isValid) {
-                this.errors.hostname = 'not a valid hostname'
+                this.errors.customHostname = 'not a valid hostname'
             } else {
-                // console.log('all good')
+                try {
+                    await instanceAPI.setCustomHostname(this.instance.id, this.input.customHostname)
+                    this.original.customHostname = this.input.customHostname
+                } catch (err) {
+                    console.log(err)
+                }
+            }
+        },
+        async clearCustomHostname () {
+            try {
+                await instanceAPI.clearCustomHostname(this.instance.id)
+                this.input.customHostname = ''
+                this.original.customHostname = ''
+            } catch (err) {
+                console.log(err)
             }
         }
     }
