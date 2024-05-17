@@ -22,7 +22,7 @@ through the instructions on [their website](https://helm.sh).
 
 You will need a Kubernetes environment. The deployment has currently been tested on the following environments:
 
- - [AWS EKS](aws.md)
+ - [AWS EKS](aws_terraform.md)
  - [Digital Ocean](digital-ocean.md)
  - MicroK8s
 
