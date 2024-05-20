@@ -1,4 +1,4 @@
-const { readdir, unlink } = require('fs/promises')
+const { readdir, unlink, access } = require('fs/promises')
 const path = require('path')
 const downloadsFolder = 'test/e2e/frontend/cypress/downloads'
 
@@ -40,13 +40,22 @@ module.exports = {
                     })
                 },
                 // Clear all files in the downloads folder
-                clearDownloads () {
+                async clearDownloads () {
                     const dir = path.join(__dirname, '..', downloadsFolder)
-                    return readdir(dir).then(files => {
-                        return Promise.all(files.map(file => {
-                            return unlink(path.join(dir, file))
-                        }))
-                    })
+                    // first ensure the folder exists, then clear it
+                    try {
+                        await access(dir)
+                    } catch (error) {
+                        // not terribly interested if the dir has not yet been created
+                        // just return true!
+                        return true
+                    }
+                    const files = await readdir(dir)
+                    for (const file of files) {
+                        const filePath = path.join(dir, file)
+                        await unlink(filePath)
+                    }
+                    return true
                 }
             })
         }
