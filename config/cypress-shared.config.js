@@ -1,11 +1,13 @@
-const { readdir } = require('fs/promises')
+const { readdir, unlink } = require('fs/promises')
+const path = require('path')
+const downloadsFolder = 'test/e2e/frontend/cypress/downloads'
 
 module.exports = {
     viewportWidth: 1024,
     viewportHeight: 768,
     e2e: {
         experimentalSessionAndOrigin: true,
-        downloadsFolder: 'test/e2e/frontend/cypress/downloads',
+        downloadsFolder,
         fixturesFolder: 'test/e2e/frontend/cypress/fixtures',
         screenshotsFolder: 'test/e2e/frontend/cypress/screenshots',
         supportFile: 'test/e2e/frontend/cypress/support/index.js',
@@ -35,6 +37,15 @@ module.exports = {
                             throw new Error(`${fileName} not found in ${baseDir} ${debug}`)
                         }
                         return true
+                    })
+                },
+                // Clear all files in the downloads folder
+                clearDownloads () {
+                    const dir = path.join(__dirname, '..', downloadsFolder)
+                    return readdir(dir).then(files => {
+                        return Promise.all(files.map(file => {
+                            return unlink(path.join(dir, file))
+                        }))
                     })
                 }
             })

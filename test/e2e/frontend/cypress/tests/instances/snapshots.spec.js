@@ -102,6 +102,9 @@ describe('FlowForge - Instance Snapshots', () => {
     })
 
     it('download snapshot', () => {
+        // ensure the downloads folder is empty before the test
+        cy.task('clearDownloads')
+
         cy.intercept('POST', '/api/*/snapshots/*/export').as('exportSnapshot')
 
         // click kebab menu in row 1
@@ -152,10 +155,10 @@ describe('FlowForge - Instance Snapshots', () => {
 
         // wait for `api/v1/snapshots/*/export` to respond
         cy.wait('@exportSnapshot').then(interception => {
-            // At this point, the snapshot export endpoint has returned but occasionally, the test fails as the  file is not yet written to the filesystem.
+            // At this point, the endpoint has returned but occasionally, the test fails as the file is not yet written to the filesystem.
             // To counter this, there is a short 250ms wait to allow time for the file to be written to the filesystem.
             // A better solution would be to use a cy.command (named waitForFileDownload) that polls the downloads folder
-            // and calls `cy.wait` with a timeout and retries. This would allow the test to wait for the file in a more reliable way.
+            // and calls `cy.wait` with timeout and retry. This would allow the test to wait for the file in a more reliable way.
             // For now, a small delay here gets the job done.
             cy.wait(250) // eslint-disable-line cypress/no-unnecessary-waiting
 
@@ -168,13 +171,28 @@ describe('FlowForge - Instance Snapshots', () => {
     })
 
     it('download snapshot package.json', () => {
+        cy.intercept('GET', '/api/*/projects/*/snapshots', instanceSnapshots).as('snapshotData')
+        cy.intercept('GET', '/api/*/snapshots/*/full', instanceFullSnapshot).as('fullSnapshot')
+        cy.visit(`/instance/${projectId}/snapshots`)
+        cy.wait('@snapshotData')
+
+        // ensure package.json does not exist in the downloads folder before the test
+        cy.task('clearDownloads')
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
         // click the Download Package.json option
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_PACKAGE).click()
 
-        const downloadsFolder = Cypress.config('downloadsFolder')
-        cy.task('fileExists', { dir: downloadsFolder, file: 'package.json' })
+        cy.wait('@fullSnapshot').then(interception => {
+            // At this point, the endpoint has returned but occasionally, the test fails as the file is not yet written to the filesystem.
+            // To counter this, there is a short 250ms wait to allow time for the file to be written to the filesystem.
+            // A better solution would be to use a cy.command (named waitForFileDownload) that polls the downloads folder
+            // and calls `cy.wait` with timeout and retry. This would allow the test to wait for the file in a more reliable way.
+            // For now, a small delay here gets the job done.
+            cy.wait(250) // eslint-disable-line cypress/no-unnecessary-waiting
+            const downloadsFolder = Cypress.config('downloadsFolder')
+            cy.task('fileExists', { dir: downloadsFolder, file: 'package.json' })
+        })
     })
 
     it('can delete a snapshot', () => {
