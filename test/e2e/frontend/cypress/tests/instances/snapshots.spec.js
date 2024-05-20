@@ -1,10 +1,10 @@
 /// <reference types="cypress" />
 
-// const IDX_ROLLBACK = 0
+const IDX_DEPLOY_SNAPSHOT = 0
 const IDX_VIEW_SNAPSHOT = 1
 const IDX_DOWNLOAD_SNAPSHOT = 2
 const IDX_DOWNLOAD_PACKAGE = 3
-// const IDX_SET_TARGET = 4
+const IDX_SET_TARGET = 4
 const IDX_DELETE_SNAPSHOT = 5
 
 describe('FlowForge - Instance Snapshots', () => {
@@ -21,15 +21,17 @@ describe('FlowForge - Instance Snapshots', () => {
             })
             .then((response) => {
                 cy.visit(`/instance/${response.body.projects[0].id}/snapshots`)
-                cy.wait('@getProjectSnapshots')
             })
     })
 
     it('shows a placeholder message when no snapshots have been created', () => {
+        cy.intercept('GET', '/api/*/projects/*/snapshots', { count: 0, snapshots: [] }).as('getEmptyProjectSnapshots')
+        cy.wait('@getEmptyProjectSnapshots')
         cy.get('main').contains('Create your First Snapshot')
     })
 
     it('provides functionality to create a snapshot', () => {
+        cy.wait('@getProjectSnapshots')
         cy.get('button[data-action="create-snapshot"]').click()
 
         cy.get('[data-el="dialog-create-snapshot"]').should('be.visible')
@@ -42,14 +44,31 @@ describe('FlowForge - Instance Snapshots', () => {
         cy.get('[data-el="dialog-create-snapshot"] button.ff-btn.ff-btn--primary').should('not.be.disabled')
         cy.get('[data-form="snapshot-description"] textarea').type('snapshot1 description')
 
-        // click "Create"
-        cy.get('[data-el="dialog-create-snapshot"] button.ff-btn.ff-btn--primary').click()
+        cy.get('[data-el="snapshots"] tbody').find('tr').its('length').then((count) => {
+            // click "Create"
+            cy.get('[data-el="dialog-create-snapshot"] button.ff-btn.ff-btn--primary').click()
+            cy.get('[data-el="snapshots"] tbody').find('tr').should('have.length', count + 1)
+            cy.get('[data-el="snapshots"] tbody').find('tr').contains('snapshot1')
+        })
+    })
 
-        cy.get('[data-el="snapshots"] tbody').find('tr').should('have.length', 1)
-        cy.get('[data-el="snapshots"] tbody').find('tr').contains('snapshot1')
+    it('offers correct options in snapshot table kebab menu', () => {
+        cy.wait('@getProjectSnapshots')
+        // click kebab menu in row 1
+        cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
+
+        // check the options are present
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').should('have.length', 6)
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DEPLOY_SNAPSHOT).contains('Deploy Snapshot')
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_VIEW_SNAPSHOT).contains('View Snapshot')
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_SNAPSHOT).contains('Download Snapshot')
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_PACKAGE).contains('Download package.json')
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_SET_TARGET).contains('Set as Device Target')
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DELETE_SNAPSHOT).contains('Delete Snapshot')
     })
 
     it('provides functionality to view a snapshot', () => {
+        cy.wait('@getProjectSnapshots')
         cy.intercept('GET', '/api/*/snapshots/*/full').as('fullSnapshot')
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
@@ -68,7 +87,8 @@ describe('FlowForge - Instance Snapshots', () => {
     })
 
     it('download snapshot', () => {
-        cy.intercept('POST', '/api/*/projects/*/snapshots/*/export').as('exportSnapshot')
+        cy.wait('@getProjectSnapshots')
+        cy.intercept('POST', '/api/*/snapshots/*/export').as('exportSnapshot')
 
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
@@ -116,7 +136,7 @@ describe('FlowForge - Instance Snapshots', () => {
         // operate the data-action="dialog-confirm" button
         cy.get('[data-el="dialog-export-snapshot"] [data-action="dialog-confirm"]').click()
 
-        // wait for `api/v1/projects/*/snapshots/*/export` to respond
+        // wait for `api/v1/snapshots/*/export` to respond
         let response
         cy.wait('@exportSnapshot').then(interception => {
             response = interception.response.body
@@ -128,6 +148,7 @@ describe('FlowForge - Instance Snapshots', () => {
     })
 
     it('download snapshot package.json', () => {
+        cy.wait('@getProjectSnapshots')
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
         // click the Download Package.json option
@@ -138,7 +159,8 @@ describe('FlowForge - Instance Snapshots', () => {
     })
 
     it('can delete a snapshot', () => {
-        cy.intercept('DELETE', '/api/*/projects/*/snapshots/*').as('deleteSnapshot')
+        cy.intercept('DELETE', '/api/*/snapshots/*').as('deleteSnapshot')
+        cy.wait('@getProjectSnapshots')
 
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
@@ -148,17 +170,22 @@ describe('FlowForge - Instance Snapshots', () => {
         cy.get('[data-el="platform-dialog"]').should('be.visible')
         cy.get('[data-el="platform-dialog"] .ff-dialog-header').contains('Delete Snapshot')
 
-        // Click "Delete"
-        cy.get('[data-el="platform-dialog"] .ff-btn--danger').click()
-
-        cy.wait('@deleteSnapshot')
-
-        cy.get('main').contains('Create your First Snapshot')
+        cy.get('[data-el="snapshots"] tbody').find('tr').its('length').then((count) => {
+            // Click "Delete"
+            cy.get('[data-el="platform-dialog"] .ff-btn--danger').click()
+            cy.wait('@deleteSnapshot')
+            if (count === 1) {
+                cy.get('main').contains('Create your First Snapshot')
+            } else {
+                cy.get('[data-el="snapshots"] tbody').find('tr').should('have.length', count - 1)
+            }
+        })
     })
 
     it('upload snapshot with credentials', () => {
         cy.fixture('snapshots/snapshot-with-credentials.json', null).as('snapshot')
         cy.intercept('POST', '/api/*/snapshots/import').as('importSnapshot')
+        cy.wait('@getProjectSnapshots')
 
         // click data-action="import-snapshot" to open the dialog
         cy.get('[data-action="import-snapshot"]').click()
@@ -206,6 +233,7 @@ describe('FlowForge - Instance Snapshots', () => {
     it('upload snapshot without credentials', () => {
         cy.fixture('snapshots/instance2-full-snapshot2.json', null).as('snapshot')
         cy.intercept('POST', '/api/*/snapshots/import').as('importSnapshot')
+        cy.wait('@getProjectSnapshots')
 
         // click data-action="import-snapshot" to open the dialog
         cy.get('[data-action="import-snapshot"]').click()
