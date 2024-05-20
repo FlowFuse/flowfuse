@@ -88,6 +88,7 @@ module.exports = async (options = {}) => {
                 return {
                     statusCode: reply.statusCode,
                     request: {
+                        user: reply.request?.session?.User?.username,
                         url: reply.request?.raw?.url,
                         method: reply.request?.method,
                         remoteAddress: reply.request?.ip,

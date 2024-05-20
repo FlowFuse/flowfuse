@@ -50,6 +50,7 @@ export default {
         formValid () {
             return this.input.old_password &&
                    this.input.password &&
+                   this.input.old_password !== this.input.password &&
                    this.input.password === this.input.password_confirm &&
                    !this.errors.password
         }
@@ -70,6 +71,10 @@ export default {
             }
             if (this.input.password === this.user.email) {
                 this.errors.password = 'Password must not match email'
+                return
+            }
+            if (this.input.password === this.input.old_password) {
+                this.errors.password = 'New password must not match old password'
                 return
             }
             const zxcvbnResult = zxcvbn(this.input.password)

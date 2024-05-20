@@ -510,6 +510,35 @@ export default {
         this.templates = (await templateListPromise).templates.filter(template => template.active)
 
         this.activeProjectTypeCount = projectTypes.length
+
+        // Do a first pass of the instance types to disable any not allowed for this team
+        projectTypes.forEach(pt => {
+            // Need to combine the projectType billing info with any overrides
+            // from the current teamType
+            const teamTypeInstanceProperties = this.team.type.properties.instances[pt.id]
+            const existingInstanceCount = this.team.instanceCountByType?.[pt.id] || 0
+            if (this.teamRuntimeLimitReached) {
+                // The overall limit has been reached
+                pt.disabled = true
+            } else if (teamTypeInstanceProperties) {
+                if (!teamTypeInstanceProperties.active) {
+                    // This instanceType is disabled for this teamType
+                    pt.disabled = true
+                } else if (teamTypeInstanceProperties.creatable === false) {
+                    // Type is active (it can exist), but not creatable (not allowed to create more) for this team type.
+                    // This can happen follow a change of TeamType where different instance types are available.
+                    // This check treats undefined as true for backwards compatibility
+                    pt.disabled = true
+                } else if (teamTypeInstanceProperties.limit !== null && teamTypeInstanceProperties.limit <= existingInstanceCount) {
+                    // This team has reached the limit of this instance type
+                    pt.disabled = true
+                }
+            }
+            if (pt.disabled) {
+                this.activeProjectTypeCount--
+            }
+        })
+
         if (this.billingEnabled) {
             if (!this.team.billing?.unmanaged) {
                 try {
@@ -523,28 +552,17 @@ export default {
                     }
                 }
             }
+            // With billing enabled, do a second pass through the instance types
+            // to populate their billing info
             projectTypes.forEach(pt => {
                 // Need to combine the projectType billing info with any overrides
                 // from the current teamType
                 const teamTypeInstanceProperties = this.team.type.properties.instances[pt.id]
                 const existingInstanceCount = this.team.instanceCountByType?.[pt.id] || 0
-
                 pt.price = ''
                 pt.priceInterval = ''
                 pt.currency = ''
                 pt.cost = 0
-                if (this.teamRuntimeLimitReached) {
-                    // The overall limit has been reached
-                    pt.disabled = true
-                } else if (teamTypeInstanceProperties) {
-                    if (!teamTypeInstanceProperties.active) {
-                        // This instanceType is disabled for this teamType
-                        pt.disabled = true
-                    } else if (teamTypeInstanceProperties.limit !== null && teamTypeInstanceProperties.limit <= existingInstanceCount) {
-                        // This team has reached the limit of this instance type
-                        pt.disabled = true
-                    }
-                }
                 if (!pt.disabled && !this.team.billing?.unmanaged) {
                     let billingDescription
                     if (teamTypeInstanceProperties) {
@@ -574,6 +592,9 @@ export default {
                             if (!this.team.billing?.active) {
                                 // No active billing - only allow the trial instance type
                                 pt.disabled = !isTrialProjectType
+                                if (pt.disabled) {
+                                    this.activeProjectTypeCount--
+                                }
                             }
                             if (isTrialProjectType && this.team.billing?.trialProjectAllowed) {
                                 pt.price = 'Free Trial'
@@ -581,9 +602,6 @@ export default {
                             }
                         }
                     }
-                }
-                if (pt.disabled) {
-                    this.activeProjectTypeCount--
                 }
             })
         }

@@ -34,6 +34,8 @@ module.exports = {
                 throw new Error('Password must not match username')
             } else if (newPassword === user.email) {
                 throw new Error('Password must not match email')
+            } else if (newPassword === oldPassword) {
+                throw new Error('Password must not match old password')
             }
             user.password = newPassword
             user.password_expired = false
