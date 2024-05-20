@@ -179,17 +179,33 @@ export default {
 
             // Validation
             try {
-                flowBlueprintProps.flows = JSON.parse(flowBlueprintProps.flows)
+                JSON.parse(flowBlueprintProps.flows)
             } catch (err) {
                 this.error = 'Invalid JSON for flows'
+                this.errors.flows = 'Invalid JSON'
+                return
+            }
+
+            try {
+                if (!JSON.parse(flowBlueprintProps.flows).flows) {
+                    throw new Error('Flow json missing \'flows\' property')
+                }
+                if (!Array.isArray(JSON.parse(flowBlueprintProps.flows).flows)) {
+                    throw new Error('Flow json \'flows\' property not an Array')
+                }
+            } catch (err) {
+                this.error = err
                 this.errors.flows = err
                 return
             }
+
+            flowBlueprintProps.flows = JSON.parse(flowBlueprintProps.flows)
+
             try {
                 flowBlueprintProps.modules = JSON.parse(flowBlueprintProps.modules)
             } catch (err) {
                 this.error = 'Invalid JSON for modules'
-                this.errors.modules = err
+                this.errors.modules = 'Invalid JSON'
                 return
             }
 

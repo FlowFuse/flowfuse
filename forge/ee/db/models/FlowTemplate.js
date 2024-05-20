@@ -62,6 +62,15 @@ module.exports = {
             get () {
                 const rawValue = this.getDataValue('modules') || '{}'
                 return JSON.parse(rawValue)
+            },
+            validate: {
+                isValidModules (value) {
+                    try {
+                        JSON.parse(value)
+                    } catch (err) {
+                        throw new Error('Invalid \'modules\' json')
+                    }
+                }
             }
         },
         // The teamTypeScope column is a JSON array that contains a the teamtype id to signify which teamtypes this template is available on
