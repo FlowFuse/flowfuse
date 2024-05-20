@@ -1,5 +1,6 @@
 /// <reference types="cypress" />
-
+import instanceSnapshots from '../../fixtures/snapshots/instance-snapshots.json'
+import instanceFullSnapshot from '../../fixtures/snapshots/instance2-full-snapshot2.json'
 const IDX_DEPLOY_SNAPSHOT = 0
 const IDX_VIEW_SNAPSHOT = 1
 const IDX_DOWNLOAD_SNAPSHOT = 2
@@ -35,6 +36,10 @@ describe('FlowForge - Instance Snapshots', () => {
     })
 
     it('provides functionality to create a snapshot', () => {
+        cy.intercept('GET', '/api/*/projects/*/snapshots', { count: 0, snapshots: [] }).as('snapshotData')
+        cy.visit(`/instance/${projectId}/snapshots`)
+        cy.wait('@snapshotData')
+
         cy.get('button[data-action="create-snapshot"]').click()
 
         cy.get('[data-el="dialog-create-snapshot"]').should('be.visible')
@@ -47,15 +52,24 @@ describe('FlowForge - Instance Snapshots', () => {
         cy.get('[data-el="dialog-create-snapshot"] button.ff-btn.ff-btn--primary').should('not.be.disabled')
         cy.get('[data-form="snapshot-description"] textarea').type('snapshot1 description')
 
-        cy.get('[data-el="snapshots"] tbody').find('tr').its('length').then((count) => {
-            // click "Create"
-            cy.get('[data-el="dialog-create-snapshot"] button.ff-btn.ff-btn--primary').click()
-            cy.get('[data-el="snapshots"] tbody').find('tr').should('have.length', count + 1)
-            cy.get('[data-el="snapshots"] tbody').find('tr').contains('snapshot1')
-        })
+        // click "Create"
+        cy.get('[data-el="dialog-create-snapshot"] button.ff-btn.ff-btn--primary').click()
+        cy.get('[data-el="snapshots"] tbody').find('tr').should('have.length', 1)
+        cy.get('[data-el="snapshots"] tbody').find('tr').contains('snapshot1')
+
+        // cy.get('[data-el="snapshots"] tbody').find('tr').its('length').then((count) => {
+        //     // click "Create"
+        //     cy.get('[data-el="dialog-create-snapshot"] button.ff-btn.ff-btn--primary').click()
+        //     cy.get('[data-el="snapshots"] tbody').find('tr').should('have.length', count + 1)
+        //     cy.get('[data-el="snapshots"] tbody').find('tr').contains('snapshot1')
+        // })
     })
 
     it('offers correct options in snapshot table kebab menu', () => {
+        cy.intercept('GET', '/api/*/projects/*/snapshots', instanceSnapshots).as('snapshotData')
+        cy.visit(`/instance/${projectId}/snapshots`)
+        cy.wait('@snapshotData')
+
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
 
@@ -70,7 +84,7 @@ describe('FlowForge - Instance Snapshots', () => {
     })
 
     it('provides functionality to view a snapshot', () => {
-        cy.intercept('GET', '/api/*/snapshots/*/full').as('fullSnapshot')
+        cy.intercept('GET', '/api/*/snapshots/*/full', instanceFullSnapshot).as('fullSnapshot')
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
         // click the View Snapshot option
@@ -81,7 +95,7 @@ describe('FlowForge - Instance Snapshots', () => {
         cy.get('[data-el="dialog-view-snapshot"]').should('be.visible')
 
         // check the snapshot name in the dialog header
-        cy.get('[data-el="dialog-view-snapshot"] .ff-dialog-header').contains('snapshot1')
+        cy.get('[data-el="dialog-view-snapshot"] .ff-dialog-header').contains('instance-2 snapshot-2')
 
         // check the flow renders an SVG in the content section
         cy.get('[data-el="dialog-view-snapshot"] .ff-dialog-content svg').should('exist')
@@ -137,9 +151,15 @@ describe('FlowForge - Instance Snapshots', () => {
         cy.get('[data-el="dialog-export-snapshot"] [data-action="dialog-confirm"]').click()
 
         // wait for `api/v1/snapshots/*/export` to respond
-        let response
         cy.wait('@exportSnapshot').then(interception => {
-            response = interception.response.body
+            // At this point, the snapshot export endpoint has returned but occasionally, the test fails as the  file is not yet written to the filesystem.
+            // To counter this, there is a short 250ms wait to allow time for the file to be written to the filesystem.
+            // A better solution would be to use a cy.command (named waitForFileDownload) that polls the downloads folder
+            // and calls `cy.wait` with a timeout and retries. This would allow the test to wait for the file in a more reliable way.
+            // For now, a small delay here gets the job done.
+            cy.wait(250) // eslint-disable-line cypress/no-unnecessary-waiting
+
+            const response = interception.response.body
             // check the downloaded file
             const downloadsFolder = Cypress.config('downloadsFolder')
             // generate the expected snapshot filename structure
