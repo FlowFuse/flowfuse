@@ -54,6 +54,7 @@ import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import AssetDetailDialog from '../../components/dialogs/AssetDetailDialog.vue'
 import UserCell from '../../components/tables/cells/UserCell.vue'
+import { downloadData } from '../../composables/Download.js'
 import permissionsMixin from '../../mixins/Permissions.js'
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
@@ -158,13 +159,7 @@ export default {
                 version: '0.0.0-' + snapshot.id,
                 dependencies: ss.settings?.modules || {}
             }
-            const element = document.createElement('a')
-            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(packageJSON, null, 2)))
-            element.setAttribute('download', 'package.json')
-            element.style.display = 'none'
-            document.body.appendChild(element)
-            element.click()
-            document.body.removeChild(element)
+            downloadData(packageJSON, 'package.json')
         },
         // snapshot actions - delete
         showDeleteSnapshotDialog (snapshot) {
