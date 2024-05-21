@@ -39,7 +39,7 @@ export default {
                         name: 'LibraryBlueprints'
 
                     }
-                },
+                }
             ]
         }
     }
