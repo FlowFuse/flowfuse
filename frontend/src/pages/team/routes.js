@@ -74,7 +74,7 @@ export default [
                     title: 'Team - Library'
                 },
                 redirect: to => {
-                    return { name: 'LibraryBlueprints' }
+                    return { name: 'LibraryTeamLibrary' }
                 },
                 children: [...LibraryRoutes]
             },
