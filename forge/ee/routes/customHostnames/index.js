@@ -17,29 +17,35 @@ module.exports = async function (app) {
                     request.project = await app.db.models.Project.byId(request.params.projectId)
                     if (!request.project) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                        app.log.debug('custom hostname auth pre-handler 1')
                         return
                     }
                     const teamType = await request.project.Team.getTeamType()
                     if (!teamType.getFeatureProperty('protectedInstance', true)) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                        app.log.debug('custom hostname auth pre-handler 2')
                         return // eslint-disable-line no-useless-return
                     }
                     if (request.session.User) {
                         request.teamMembership = await request.session.User.getTeamMembership(request.project.Team.id)
                         if (!request.teamMembership && !request.session.User.admin) {
                             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                            app.log.debug('custom hostname auth pre-handler 3')
                             return // eslint-disable-line no-useless-return
                         }
                     } else if (request.session.ownerId !== request.params.projectId) {
                         // AccessToken being used - but not owned by this project
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                        app.log.debug('custom hostname auth pre-handler 4')
                         return // eslint-disable-line no-useless-return
                     }
                 } catch (err) {
                     reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                    app.log.debug('custom hostname auth pre-handler 5')
                 }
             } else {
                 reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                app.log.debug('custom hostname auth pre-handler 6')
             }
             app.log.debug('custom hostname auth pre-handler passed')
         }
