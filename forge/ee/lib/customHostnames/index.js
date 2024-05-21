@@ -2,10 +2,10 @@ const { KEY_CUSTOM_HOSTNAME } = require("../../../db/models/ProjectSettings")
 
 module.exports.init = function (app) {
     // TODO this should read kubernetes before check in
-    if (app.config.driver.type === 'localfs' || app.config.driver.type === 'stub') {
-        if (app.config.driver.options?.customHostnames) {
+    if (app.config.driver.type === 'kubernetes' || app.config.driver.type === 'stub') {
+        if (app.config.driver.options?.customHostname?.enabled) {
+            app.log.info('Enabling Custom Hostname Feature')
             app.config.features.register('customHostnames', true, true)
-
             app.db.models.Project.prototype.getCustomHostname = async function () {
                 return this.getSetting(KEY_CUSTOM_HOSTNAME)
 
