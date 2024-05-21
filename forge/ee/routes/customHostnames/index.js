@@ -21,7 +21,7 @@ module.exports = async function (app) {
                         return
                     }
                     const teamType = await request.project.Team.getTeamType()
-                    if (!teamType.getFeatureProperty('protectedInstance', true)) {
+                    if (!teamType.getFeatureProperty('customHostnames', true)) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         app.log.debug('custom hostname auth pre-handler 2')
                         return // eslint-disable-line no-useless-return
