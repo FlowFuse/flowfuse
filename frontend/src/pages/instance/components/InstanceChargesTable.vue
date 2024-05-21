@@ -54,9 +54,14 @@
         class="text-right ff-description mb-2 space-y-1"
         data-el="payable-now-summary"
     >
-        {{ formatCurrency(selectedCostAfterCredit) }} now
-        <span v-if="pricingDetails?.interval">
-            then {{ formatCurrency(pricingDetails.cost) }} /{{ pricingDetails.interval }}
+        <span v-if="prorationMode === 'create_prorations'">
+            This will be added to your next invoice
+        </span>
+        <span v-else>
+            You will be charged {{ formatCurrency(selectedCostAfterCredit) }} now
+            <span v-if="pricingDetails?.interval">
+                then {{ formatCurrency(pricingDetails.cost) }} /{{ pricingDetails.interval }}
+            </span>
         </span>
     </div>
 </template>
@@ -80,6 +85,10 @@ export default {
         trialMode: {
             type: Boolean,
             default: false
+        },
+        prorationMode: {
+            type: String,
+            default: 'always_invoice'
         }
     },
     computed: {
