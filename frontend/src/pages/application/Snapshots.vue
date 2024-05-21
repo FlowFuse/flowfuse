@@ -149,9 +149,9 @@ export default {
             this.$refs.snapshotExportDialog.show(snapshot)
         },
         async downloadSnapshotPackage (snapshot) {
-            const ss = await SnapshotsApi.getFullSnapshot(snapshot.id)
-            const owner = snapshot.device || snapshot.project
-            const ownerType = snapshot.device ? 'device' : 'instance'
+            const ss = await SnapshotsApi.getSummary(snapshot.id)
+            const owner = ss.device || ss.project
+            const ownerType = ss.device ? 'device' : 'instance'
             const packageJSON = {
                 name: `${owner.safeName || owner.name}`.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase(),
                 description: `${ownerType} snapshot, ${snapshot.name} - ${snapshot.description}`,

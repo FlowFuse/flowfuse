@@ -88,7 +88,12 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        reply.send(projectSnapshotView.snapshotSummary(request.snapshot))
+        // reload the snapshot to get the full details, including the User & Device/Project
+        // these are needed for viewer permissions on download "package.json" action since it
+        // needs the owner project/device & modules in the snapshot settings to generate it.
+        // Flows/settings/env are NOT included in the metadata response thanks to to the schema/view
+        await request.snapshot.reload({ include: ['User', 'Device', 'Project'] })
+        reply.send(projectSnapshotView.snapshot(request.snapshot))
     })
 
     /**

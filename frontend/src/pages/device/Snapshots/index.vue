@@ -245,9 +245,9 @@ export default {
             this.busyMakingSnapshot = false
         },
         async downloadSnapshotPackage (snapshot) {
-            const ss = await SnapshotApi.getFullSnapshot(snapshot.id)
-            const owner = snapshot.device || snapshot.project
-            const ownerType = snapshot.device ? 'device' : 'instance'
+            const ss = await SnapshotApi.getSummary(snapshot.id)
+            const owner = ss.device || ss.project
+            const ownerType = ss.device ? 'device' : 'instance'
             const packageJSON = {
                 name: `${owner.safeName || owner.name}`.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase(),
                 description: `${ownerType} snapshot, ${snapshot.name} - ${snapshot.description}`,
