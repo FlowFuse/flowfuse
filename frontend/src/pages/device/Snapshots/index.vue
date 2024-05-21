@@ -61,7 +61,7 @@
         <SnapshotCreateDialog ref="snapshotCreateDialog" title="Create Device Snapshot" data-el="dialog-create-device-snapshot" :show-set-as-target="true" :device="device" @device-import-success="onSnapshotCreated" @device-import-failed="onSnapshotFailed" @canceled="onSnapshotCancel" />
         <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" />
         <SnapshotImportDialog ref="snapshotImportDialog" title="Upload Snapshot" data-el="dialog-import-snapshot" :show-owner-select="false" :owner="device" owner-type="device" @snapshot-import-success="onSnapshotImportSuccess" @snapshot-import-failed="onSnapshotImportFailed" @canceled="onSnapshotImportCancel" />
-        <SnapshotViewerDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
+        <AssetDetailDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
     </div>
 </template>
 
@@ -76,8 +76,8 @@ import SnapshotApi from '../../../api/snapshots.js'
 
 import EmptyState from '../../../components/EmptyState.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import AssetDetailDialog from '../../../components/dialogs/AssetDetailDialog.vue'
 import SnapshotImportDialog from '../../../components/dialogs/SnapshotImportDialog.vue'
-import SnapshotViewerDialog from '../../../components/dialogs/SnapshotViewerDialog.vue'
 import UserCell from '../../../components/tables/cells/UserCell.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
@@ -97,7 +97,7 @@ export default {
         SnapshotCreateDialog,
         SnapshotImportDialog,
         SnapshotExportDialog,
-        SnapshotViewerDialog,
+        AssetDetailDialog,
         PlusSmIcon,
         UploadIcon
     },

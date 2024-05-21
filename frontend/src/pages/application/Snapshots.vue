@@ -40,7 +40,7 @@
         </template>
     </div>
     <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" />
-    <SnapshotViewerDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
+    <AssetDetailDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
 </template>
 
 <script>
@@ -52,7 +52,7 @@ import SnapshotsApi from '../../api/snapshots.js'
 
 import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
-import SnapshotViewerDialog from '../../components/dialogs/SnapshotViewerDialog.vue'
+import AssetDetailDialog from '../../components/dialogs/AssetDetailDialog.vue'
 import UserCell from '../../components/tables/cells/UserCell.vue'
 import permissionsMixin from '../../mixins/Permissions.js'
 import Alerts from '../../services/alerts.js'
@@ -69,7 +69,7 @@ export default {
     components: {
         SectionTopMenu,
         SnapshotExportDialog,
-        SnapshotViewerDialog,
+        AssetDetailDialog,
         EmptyState
     },
     mixins: [permissionsMixin],
