@@ -7,7 +7,7 @@
             </div>
             <div class="ff-dialog-actions">
                 <slot name="actions">
-                    <ff-button kind="secondary" data-action="dialog-cancel" @click="cancel()">Cancel</ff-button>
+                    <ff-button v-if="canBeCanceled" kind="secondary" data-action="dialog-cancel" @click="cancel()">Cancel</ff-button>
                     <ff-button :kind="kind" data-action="dialog-confirm" :disabled="disablePrimary" @click="confirm()">{{ confirmLabel }}</ff-button>
                 </slot>
             </div>
@@ -46,6 +46,10 @@ export default {
         contentClass: {
             type: String,
             default: ''
+        },
+        canBeCanceled: {
+            type: Boolean,
+            default: true
         }
     },
     emits: ['cancel', 'confirm'],
