@@ -32,7 +32,7 @@
                         :project-type="deviceBillingInformation"
                         :subscription="subscription"
                         :trialMode="false"
-                        prorationMode="team?.type?.properties?.billing?.proration"
+                        :prorationMode="team?.type?.properties?.billing?.proration"
                     />
                 </div>
             </form>
