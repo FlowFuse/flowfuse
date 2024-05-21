@@ -107,11 +107,7 @@ describe('FlowForge - Team Billing', () => {
                     ...{
                         billing: {
                             active: false,
-                            canceled: true,
-                            customer: 'cus_Q7HgF3LrYhO3r2',
-                            pastDue: false,
-                            subscription: 'sub_1PH36qJ6VWAujNoL8DX1oE7V',
-                            unmanaged: false
+                            canceled: true
                         }
                     }
                 }
