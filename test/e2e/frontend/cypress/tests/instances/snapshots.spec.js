@@ -1,6 +1,6 @@
 /// <reference types="cypress" />
 import instanceSnapshots from '../../fixtures/snapshots/instance-snapshots.json'
-import instanceFullSnapshot from '../../fixtures/snapshots/instance2-full-snapshot2.json'
+import instanceSnapshot from '../../fixtures/snapshots/instance2-full-snapshot2.json'
 const IDX_DEPLOY_SNAPSHOT = 0
 const IDX_VIEW_SNAPSHOT = 1
 const IDX_DOWNLOAD_SNAPSHOT = 2
@@ -77,7 +77,7 @@ describe('FlowForge - Instance Snapshots', () => {
     })
 
     it('provides functionality to view a snapshot', () => {
-        cy.intercept('GET', '/api/*/snapshots/*/full', instanceFullSnapshot).as('fullSnapshot')
+        cy.intercept('GET', '/api/*/snapshots/*/full', instanceSnapshot).as('fullSnapshot')
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
         // click the View Snapshot option
@@ -165,7 +165,7 @@ describe('FlowForge - Instance Snapshots', () => {
 
     it('download snapshot package.json', () => {
         cy.intercept('GET', '/api/*/projects/*/snapshots', instanceSnapshots).as('snapshotData')
-        cy.intercept('GET', '/api/*/snapshots/*/full', instanceFullSnapshot).as('fullSnapshot')
+        cy.intercept('GET', '/api/*/snapshots/*', instanceSnapshot).as('instanceSnapshot')
         cy.visit(`/instance/${projectId}/snapshots`)
         cy.wait('@snapshotData')
 
@@ -176,7 +176,7 @@ describe('FlowForge - Instance Snapshots', () => {
         // click the Download Package.json option
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_PACKAGE).click()
 
-        cy.wait('@fullSnapshot').then(interception => {
+        cy.wait('@instanceSnapshot').then(interception => {
             // At this point, the endpoint has returned but occasionally, the test fails as the file is not yet written to the filesystem.
             // To counter this, there is a short 250ms wait to allow time for the file to be written to the filesystem.
             // A better solution would be to use a cy.command (named waitForFileDownload) that polls the downloads folder
