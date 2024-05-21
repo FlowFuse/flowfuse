@@ -1,12 +1,17 @@
 module.exports = async function (app) {
+
+    app.log.debug('registering custom hostname routes')
     app.addHook('preHandler', app.verifySession)
     app.addHook('preHandler', async (request, reply) => {
+        app.log.debug('custom hostname feature enabled pre-handler')
         if (!app.config.features.enabled('customHostnames')) {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             return
         }
+        app.log.debug('custom hostname feature enabled pre-handler passed')
     })
     app.addHook('preHandler', async (request, reply) => {
+        app.log.debug('custom hostname auth pre-handler')
         if (request.params.projectId !== undefined) {
             if (request.params.projectId) {
                 try {
@@ -37,6 +42,7 @@ module.exports = async function (app) {
             } else {
                 reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             }
+            app.log.debug('custom hostname auth pre-handler passed')
         }
     })
 

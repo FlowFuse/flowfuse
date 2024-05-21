@@ -40,15 +40,17 @@
             Default URL
         </FormRow>
         <div v-if="customHostnameAvailable">
-            <FormRow v-if="customHostnameTeamAvailable" v-model="input.customHostname" :error="errors.customHostname">
-                Custom Hostname
-                <template #description>
-                    <p>This needs to be a fully qualified hostname</p>
-                    <p>Please refer to this documentation for details of how to configure your DNS</p>
-                </template>
-            </FormRow>
-            <div style="padding-top: 5px">
-                <ff-button size="small" data-action="save-hostname" kind="secondary" @click="saveCustomHostname()" :disabled="customHostnameChanged">Save</ff-button>
+            <div v-if="customHostnameTeamAvailable">
+                <FormRow v-model="input.customHostname" :error="errors.customHostname">
+                    Custom Hostname
+                    <template #description>
+                        <p>This needs to be a fully qualified hostname</p>
+                        <p>Please refer to this documentation for details of how to configure your DNS</p>
+                    </template>
+                </FormRow>
+                <div style="padding-top: 5px">
+                    <ff-button size="small" data-action="save-hostname" kind="secondary" @click="saveCustomHostname()" :disabled="customHostnameChanged">Save</ff-button>
+                </div>
             </div>
             <FeatureUnavailableToTeam v-if="!customHostnameTeamAvailable" featureName="Instance Custom Domain Name" />
         </div>
