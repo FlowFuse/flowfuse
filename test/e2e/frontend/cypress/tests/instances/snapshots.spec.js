@@ -56,13 +56,6 @@ describe('FlowForge - Instance Snapshots', () => {
         cy.get('[data-el="dialog-create-snapshot"] button.ff-btn.ff-btn--primary').click()
         cy.get('[data-el="snapshots"] tbody').find('tr').should('have.length', 1)
         cy.get('[data-el="snapshots"] tbody').find('tr').contains('snapshot1')
-
-        // cy.get('[data-el="snapshots"] tbody').find('tr').its('length').then((count) => {
-        //     // click "Create"
-        //     cy.get('[data-el="dialog-create-snapshot"] button.ff-btn.ff-btn--primary').click()
-        //     cy.get('[data-el="snapshots"] tbody').find('tr').should('have.length', count + 1)
-        //     cy.get('[data-el="snapshots"] tbody').find('tr').contains('snapshot1')
-        // })
     })
 
     it('offers correct options in snapshot table kebab menu', () => {
