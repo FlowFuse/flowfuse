@@ -16,7 +16,7 @@
                 <FormHeading>Create a new team</FormHeading>
                 <div class="mb-8 text-sm text-gray-500">Teams are how you organize who collaborates on your projects.</div>
                 <!-- TeamType Type -->
-                <div class="grid grid-1">
+                <div class="grid">
                     <ff-tile-selection v-model="input.teamTypeId">
                         <ff-tile-selection-option
                             v-for="(teamType, index) in teamTypes" :key="index"
