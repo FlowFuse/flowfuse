@@ -205,7 +205,7 @@ export default {
                 flowBlueprintProps.modules = JSON.parse(flowBlueprintProps.modules)
             } catch (err) {
                 this.error = 'Invalid JSON for modules'
-                this.errors.modules = 'Invalid JSON'
+                this.errors.modules = 'Modules should be an object of "module" : "version" pairs'
                 return
             }
 
