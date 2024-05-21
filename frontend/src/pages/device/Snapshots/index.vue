@@ -82,6 +82,7 @@ import UserCell from '../../../components/tables/cells/UserCell.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
+import { applySystemUserDetails } from '../../../transformers/snapshots.transformer.js'
 import DaysSince from '../../application/Snapshots/components/cells/DaysSince.vue'
 import SnapshotName from '../../application/Snapshots/components/cells/SnapshotName.vue'
 import SnapshotSource from '../../application/Snapshots/components/cells/SnapshotSource.vue'
@@ -203,20 +204,7 @@ export default {
                         ...(ownerKey ? { _ownerSortKey: ownerKey } : { _ownerSortKey: undefined })
                     }
                 })
-                this.snapshots = [...data.snapshots]
-                // For any snapshots that have no user and match the autoSnapshot name format
-                // we mimic a user so that the table can display the device name and a suitable image
-                // NOTE: Any changes to the below regex should be reflected in forge/db/controllers/ProjectSnapshot.js
-                const autoSnapshotRegex = /^Auto Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/ // e.g "Auto Snapshot - 2023-02-01 12:34:56"
-                this.snapshots.forEach(snapshot => {
-                    if (!snapshot.user && autoSnapshotRegex.test(snapshot.name)) {
-                        snapshot.user = {
-                            name: this.device.name,
-                            username: 'Auto Snapshot',
-                            avatar: '../../avatar/camera.svg'
-                        }
-                    }
-                })
+                this.snapshots = applySystemUserDetails(data.snapshots)
                 this.loading = false
             }
         },
