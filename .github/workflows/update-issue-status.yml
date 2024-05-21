@@ -11,4 +11,4 @@ jobs:
   update_issue_status:
     uses: flowfuse/.github/.github/workflows/record-in-review.yml@main
     secrets:
-      PROJECT_ACCESS_TOKEN: ${{ github.token }}
+      PROJECT_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
