@@ -16,10 +16,10 @@ module.exports.init = function (app) {
                 if (hostname) {
                     // need to check if hostname already in use
                     if (await app.db.models.ProjectSettings.isCustomHostnameUsed(hostname)) {
-                        throw new Error('Name unavailable')
+                        throw new Error('Name unavailable (used)')
                     }
                     if (app.config.domain && newHostname.endsWith(app.config.domain.toLowerCase())) {
-                        throw new Error('Name unavailable')
+                        throw new Error('Name unavailable (domain clash)')
                     }
                     return this.updateSetting(KEY_CUSTOM_HOSTNAME, hostname)
                 } else {
