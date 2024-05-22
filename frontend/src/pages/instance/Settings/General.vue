@@ -49,7 +49,8 @@
                     </template>
                 </FormRow>
                 <div style="padding-top: 5px">
-                    <ff-button size="small" data-action="save-hostname" kind="secondary" @click="saveCustomHostname()" :disabled="customHostnameChanged">Save</ff-button>
+                    <ff-button size="small" data-action="save-hostname" kind="secondary" @click="showCustomHostnameDialog()" :disabled="customHostnameChanged">Save</ff-button>
+                    <CustomHostnameDialog ref="customHostnameDialog" @comfirm="saveCustomHostname"/>
                 </div>
             </div>
             <FeatureUnavailableToTeam v-if="!customHostnameTeamAvailable" featureName="Instance Custom Domain Name" />
@@ -69,11 +70,12 @@ import { mapState } from 'vuex'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
-// import ChangeIndicator from '../../admin/Template/components/ChangeIndicator.vue'
 
 import instanceAPI from '../../../api/instances.js'
 
 import DangerSettings from './Danger.vue'
+
+import CustomHostnameDialog from './dialogs/CustomHostnameDialog.vue'
 
 export default {
     name: 'InstanceSettings',
@@ -81,7 +83,8 @@ export default {
         FormRow,
         FormHeading,
         FeatureUnavailableToTeam,
-        DangerSettings
+        DangerSettings,
+        CustomHostnameDialog
     },
     inheritAttrs: false,
     props: {
@@ -172,6 +175,10 @@ export default {
             this.original.customHostname = this.instance.customHostname
             this.url = this.instance.url
         },
+        async showCustomHostnameDialog () {
+            console.log('show dialog')
+            this.$refs.customHostnameDialog.show(this.instance)
+        },
         async saveCustomHostname () {
             const validChars = /^[a-zA-Z0-9-.]{1,253}\.?$/g
             let isValid = true
@@ -181,6 +188,7 @@ export default {
                 await instanceAPI.clearCustomHostname(this.instance.id)
                 this.input.customHostname = ''
                 this.original.customHostname = ''
+                this.instance.customHostname = ''
                 return
             }
 
@@ -200,18 +208,11 @@ export default {
                 try {
                     await instanceAPI.setCustomHostname(this.instance.id, this.input.customHostname)
                     this.original.customHostname = this.input.customHostname
+                    this.instance.customHostname= this.input.customHostname
                 } catch (err) {
-                    console.log(err)
+                    // console.log(err)
+                    this.errors.customHostname = 'hostname not available'
                 }
-            }
-        },
-        async clearCustomHostname () {
-            try {
-                await instanceAPI.clearCustomHostname(this.instance.id)
-                this.input.customHostname = ''
-                this.original.customHostname = ''
-            } catch (err) {
-                console.log(err)
             }
         }
     }

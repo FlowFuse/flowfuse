@@ -56,7 +56,6 @@ module.exports = async function (app) {
                 await request.project.setCustomHostname(request.body.hostname)
                 reply.send({hostname: request.body.hostname})
             } catch (err) {
-                console.log(err)
                 reply.code(409).send({ code: 'hostname_node_available', error: 'Hostname not available'})
             }
         } else {
