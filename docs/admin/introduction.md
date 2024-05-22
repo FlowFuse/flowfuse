@@ -153,12 +153,14 @@ Alternatively, click 'Create stack' to create an entirely new stack.
 ![Screenshot of FlowFuse showing the "Create Stack" dialog](./images/admin-stack-create.png){data-zoomable}
 <em>Screenshot of FlowFuse showing the "Create Stack" dialog</em>
 
-When prompted for the Node-RED version, provide the exact stack name (Node-RED version)
-that was installed. For example, if you ran the script with `latest` and it
-resulted in `3.1.9` being installed, you should enter `3.1.9`. 
+When prompted for the Node-RED version, the value here depends on the setup you're running:
 
-**Note:** This must match the directory name created in your `stacks` directory. If you changed the
+- **Local**: Provide the exact stack name (Node-RED version) that was installed. For example,
+if you ran the script with `latest` and it resulted in `3.1.9` being installed, you should enter `3.1.9`.
+This must match the directory name created in your `stacks` directory. If you changed the
 directory name for any reason, make sure to use that name.
+- **Docker**: Support the container image name ([docs](/docs/install/docker/stacks.md))
+- **k8s**: Support the container image name ([docs](/docs/install/kubernetes/stacks.md))
 
 #### Updating Stacks
 
