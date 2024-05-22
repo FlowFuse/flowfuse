@@ -64,22 +64,22 @@ module.exports = {
                 return JSON.parse(rawValue)
             },
             validate: {
-            isValidModules (value) {
+                isValidModules (value) {
                 // modules should be a single level key:string-value:string object
-                try {
-                    const parsed = JSON.parse(value)
-                    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-                        throw new Error()
-                    }
-                    for (const key in parsed) {
-                        if (typeof key !== 'string' || typeof parsed[key] !== 'string') {
+                    try {
+                        const parsed = JSON.parse(value)
+                        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
                             throw new Error()
                         }
+                        for (const key in parsed) {
+                            if (typeof key !== 'string' || typeof parsed[key] !== 'string') {
+                                throw new Error()
+                            }
+                        }
+                    } catch (err) {
+                        throw new Error("Invalid 'modules' json")
                     }
-                } catch (err) {
-                    throw new Error("Invalid 'modules' json")
                 }
-            }
             }
         },
         // The teamTypeScope column is a JSON array that contains a the teamtype id to signify which teamtypes this template is available on
