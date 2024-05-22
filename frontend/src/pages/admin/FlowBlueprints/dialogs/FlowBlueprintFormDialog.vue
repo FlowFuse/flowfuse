@@ -191,7 +191,7 @@ export default {
                     throw new Error('Flow json missing \'flows\' property')
                 }
                 if (!Array.isArray(JSON.parse(flowBlueprintProps.flows).flows)) {
-                    throw new Error('Flow json \'flows\' property not an Array')
+                    throw new Error("Flow json 'flows' property not an Array")
                 }
             } catch (err) {
                 this.error = err
