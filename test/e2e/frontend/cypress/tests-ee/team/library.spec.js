@@ -44,9 +44,12 @@ describe('FlowForge - Library', () => {
         it('allows users to create new Blueprints if they don\'t have  any', () => {
             interceptBlueprints()
 
+            cy.get('[data-el="ff-tab"]').contains('Blueprints').click()
+
             cy.wait(['@getBlueprints'])
 
             cy.get('[data-cy="page-name"]').contains('Library')
+
             cy.contains('Shared repository to store common flows and nodes.')
 
             cy.contains('No Blueprints Available')
@@ -62,6 +65,8 @@ describe('FlowForge - Library', () => {
 
         it('groups multiple blueprints by their category', () => {
             interceptBlueprints(multipleBlueprints)
+
+            cy.get('[data-el="ff-tab"]').contains('Blueprints').click()
 
             cy.get('[data-el="page-name"]').contains('Library')
 
@@ -95,6 +100,8 @@ describe('FlowForge - Library', () => {
         it('allows users to select a predefined blueprint and create an instance', () => {
             interceptBlueprints(multipleBlueprints)
 
+            cy.get('[data-el="ff-tab"]').contains('Blueprints').click()
+
             cy.get('[data-el="5678"]').contains('Select').click()
 
             cy.window().then((win) => expect(win.location.href).to.contain('instances/create'))
@@ -105,6 +112,8 @@ describe('FlowForge - Library', () => {
 
         it('allows users to preview predefined blueprints', () => {
             interceptBlueprints(multipleBlueprints)
+
+            cy.get('[data-el="ff-tab"]').contains('Blueprints').click()
 
             cy.get('[data-el="flow-view-dialog"]').should('exist').should('not.be.visible')
 
@@ -133,8 +142,6 @@ describe('FlowForge - Library', () => {
         it('allows users to inspect existing Team Libraries ', () => {
             interceptLibraries([], 'folder')
 
-            cy.get('[data-el="ff-tab"]').contains('Team Library').click()
-
             cy.wait(['@getLibraries'])
 
             cy.contains('Create your own Team Library')
@@ -149,8 +156,6 @@ describe('FlowForge - Library', () => {
 
         it('allows users to create Team Libraries if they don\'t have any', () => {
             interceptLibraries(listingLibraryItems, 'folder')
-
-            cy.get('[data-el="ff-tab"]').contains('Team Library').click()
 
             cy.wait(['@getLibraries'])
 
