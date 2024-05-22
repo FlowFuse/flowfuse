@@ -29,7 +29,7 @@ Instance > Settings > Environment tabs.
 
 ## Starting the snapshot
 
-Under the snapshots tab, click 'Rollback' in the kebab menu. The migrated flows
+Under the snapshots tab, click 'Deploy Snapshot' in the kebab menu. The migrated flows
 will now be started with the modules installed.
 
 ## Limitations

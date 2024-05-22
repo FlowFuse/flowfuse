@@ -2,9 +2,17 @@
 
 import deviceSnapshots from '../../fixtures/snapshots/device-snapshots.json'
 import deviceFullSnapshot from '../../fixtures/snapshots/device2-full-snapshot1.json'
+import instanceSnapshots from '../../fixtures/snapshots/instance-snapshots.json'
+const snapshots = {
+    count: 2,
+    snapshots: [deviceSnapshots.snapshots[0], instanceSnapshots.snapshots[0]]
+}
 
-const IDX_VIEW_SNAPSHOT = 0
-// const IDX_DELETE_SNAPSHOT = 1
+const IDX_DEPLOY_SNAPSHOT = 0
+const IDX_VIEW_SNAPSHOT = 1
+const IDX_DOWNLOAD_SNAPSHOT = 2
+const IDX_DOWNLOAD_PACKAGE = 3
+const IDX_DELETE_SNAPSHOT = 4
 
 describe('FlowForge - Devices - With Billing', () => {
     beforeEach(() => {
@@ -82,11 +90,10 @@ describe('FlowForge - Devices - With Billing', () => {
     })
 
     it('allows for users to view all Snapshots for this Device from it\'s parent Application', () => {
-        let snapshots = 3
-
+        let snapshotCount = 3
         cy.intercept('/api/*/applications/*/snapshots', (req) => {
             req.reply((response) => {
-                snapshots = response.body.count
+                snapshotCount = response.body.count
                 return response
             })
         }).as('getDeviceSnapshots')
@@ -98,8 +105,41 @@ describe('FlowForge - Devices - With Billing', () => {
 
         cy.wait('@getDeviceSnapshots').then(() => {
             cy.get('[data-el="empty-state"]').should('not.exist')
-            cy.get('[data-el="snapshots"] tbody').find('tr').should('have.length', snapshots)
+            cy.get('[data-el="snapshots"] tbody').find('tr').should('have.length', snapshotCount)
         })
+    })
+
+    it('offers correct options in snapshot table kebab menu', () => {
+        cy.intercept('GET', '/api/*/applications/*/snapshots*', snapshots).as('getSnapshots')
+        cy.contains('span', 'application-device-a').click()
+        cy.get('[data-nav="device-snapshots"]').click()
+
+        // check the view all snapshots option
+        cy.get('[data-form="device-only-snapshots"]').click()
+        cy.wait('@getSnapshots')
+
+        // click kebab menu in row 1 - a device snapshot
+        cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
+        // check the options are present
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').should('have.length', 5)
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DEPLOY_SNAPSHOT).contains('Deploy Snapshot')
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_VIEW_SNAPSHOT).contains('View Snapshot')
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_SNAPSHOT).contains('Download Snapshot')
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_PACKAGE).contains('Download package.json')
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DELETE_SNAPSHOT).contains('Delete Snapshot').and('not.have.class', 'disabled')
+        // clear the kebab menu by clicking the table
+        cy.get('[data-el="snapshots"]').click()
+
+        // click kebab menu in row 2 - an instance snapshot
+        cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(1).click()
+        // click kebab menu in row 2 - an instance snapshot
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').should('have.length', 5)
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DEPLOY_SNAPSHOT).contains('Deploy Snapshot')
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_VIEW_SNAPSHOT).contains('View Snapshot')
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_SNAPSHOT).contains('Download Snapshot')
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_PACKAGE).contains('Download package.json')
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DELETE_SNAPSHOT).contains('Delete Snapshot')
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DELETE_SNAPSHOT).should('have.class', 'disabled')
     })
 
     it('provides functionality to view a snapshot', () => {
