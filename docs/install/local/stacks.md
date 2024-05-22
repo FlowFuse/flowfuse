@@ -1,5 +1,5 @@
 ---
-navTitle: Local Project Stacks
+navTitle: Local Stacks
 ---
 
 # Local Stacks
@@ -44,19 +44,7 @@ For a local install there are two steps required:
    bin\ff-install-stack.bat 3.0.2
    ```
 
-2. Creating the Stack
-
-   Log into the FlowFuse platform as an administrator. Navigate to the
-   Admin Settings -> Stacks section.
-
-   If this new stack should be offered as a direct upgrade of an existing stack, select the 'Create new version' option from the dropdown menu
-   of the stack you want to replace. Node-RED instances that use the old stack
-   will offer the new stack as a one-click upgrade option.
-
-   Alternatively, click 'Create stack' to create an entirely new stack.
-
-   When prompted for the Node-RED version, provide the exact version that was installed. For example, if you ran the script with `latest` and it resulted in `3.0.2` being installed, you should enter `3.0.2`. This must
-   match the directory name created in your `stacks` directory.
+2. Add the Stack into the FlowFuse Admin UI - see [Managing Stacks](/docs/admin/introduction/#managing-stacks).
 
 
 ### Development Only
