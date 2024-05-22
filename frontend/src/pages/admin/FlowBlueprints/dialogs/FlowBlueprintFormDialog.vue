@@ -202,7 +202,7 @@ export default {
             flowBlueprintProps.flows = JSON.parse(flowBlueprintProps.flows)
 
             try {
-                flowBlueprintProps.modules = JSON.parse()
+                flowBlueprintProps.modules = JSON.parse(flowBlueprintProps.modules)
 
                 if (
                     [
