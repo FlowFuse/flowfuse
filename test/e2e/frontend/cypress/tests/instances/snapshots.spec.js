@@ -1,6 +1,7 @@
 /// <reference types="cypress" />
 import instanceSnapshots from '../../fixtures/snapshots/instance-snapshots.json'
-import instanceSnapshot from '../../fixtures/snapshots/instance2-full-snapshot2.json'
+import instanceFullSnapshot from '../../fixtures/snapshots/instance2-full-snapshot2.json'
+import instanceSnapshot from '../../fixtures/snapshots/instance2-snapshot2.json'
 const IDX_DEPLOY_SNAPSHOT = 0
 const IDX_VIEW_SNAPSHOT = 1
 const IDX_DOWNLOAD_SNAPSHOT = 2
@@ -77,7 +78,7 @@ describe('FlowForge - Instance Snapshots', () => {
     })
 
     it('provides functionality to view a snapshot', () => {
-        cy.intercept('GET', '/api/*/snapshots/*/full', instanceSnapshot).as('fullSnapshot')
+        cy.intercept('GET', '/api/*/snapshots/*/full', instanceFullSnapshot).as('fullSnapshot')
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
         // click the View Snapshot option
