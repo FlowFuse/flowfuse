@@ -70,9 +70,9 @@ jobs:
         node-version: [18.x]
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
     - name: Install Dependencies
@@ -114,9 +114,9 @@ jobs:
         node-version: [18.x]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup NodeJS ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
       - name: Install Dependencies
@@ -141,13 +141,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install Dependencies
         run: npm ci
       - name: Run Linting Tests
         run: npm run lint
       - name: Run UI Unit Tests
-        run: npm run cover:unit:frontend
+        run: npm run test:unit:frontend
       - name: Run UI E2E (Cypress) Tests - OS
         uses: cypress-io/github-action@v4
         with:
@@ -169,11 +169,11 @@ jobs:
           path: |
             test/e2e/frontend/cypress/screenshots
             test/e2e/frontend/cypress/videos
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: frontend
+      # - name: Upload coverage reports to Codecov
+      #   uses: codecov/codecov-action@v3
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     flags: frontend
 
   notify-slack:
     name: Notify on failure
@@ -192,7 +192,7 @@ jobs:
           "knolleary":"U02248XSR32",
           "joepavitt":"U031G1H5QPR",
           "Steve-Mcl":"U02UQG3RYQ5",
-          "sherbastian":"U06SB5MSS3B"
+          "cstns":"U06SB5MSS3B"
           }'
         default-mapping: C067BD0377F
 

@@ -145,7 +145,7 @@
                                 Here, you will see a list of Devices connected to this Node-RED Instance.
                             </p>
                             <p>
-                                You can deploy <router-link class="ff-link" :to="{name: 'InstanceSnapshots', params: {id: instance.id}}">Snapshots</router-link> of this Instance to your connected Devices.
+                                You can deploy <router-link class="ff-link" :to="{name: 'instance-snapshots', params: {id: instance.id}}">Snapshots</router-link> of this Instance to your connected Devices.
                             </p>
                             <p>
                                 A full list of your Team's Devices are available <router-link

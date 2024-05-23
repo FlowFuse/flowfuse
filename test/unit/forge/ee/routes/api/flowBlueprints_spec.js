@@ -97,7 +97,7 @@ describe('Flow Blueprints API', function () {
             result.should.have.property('id')
             result.should.have.property('name', name)
             // Response is a summary object that doesn't include flows/modules
-            result.should.not.have.property('flows')
+            result.should.have.property('flows')
             result.should.not.have.property('modules')
         })
 
@@ -172,6 +172,46 @@ describe('Flow Blueprints API', function () {
     })
 
     describe('Get Flow Template', function () {
+        it('User can\'t update flow details with invalid modules payload', async function () {
+            const name = generateName('flow blueprint')
+            const description = generateName('a flow blueprint description')
+            const [statusCode] = await createBlueprint({
+                name,
+                description,
+                active: true,
+                category: 'starter',
+                flows: { flows: [1, 2, 3], credentials: {} },
+                modules: { module: 1 }
+            }, TestObjects.tokens.alice)
+
+            statusCode.should.equal(400)
+        })
+
+        it('User can\'t update flow details with invalid flows payload', async function () {
+            const name = generateName('flow blueprint')
+            const description = generateName('a flow blueprint description')
+
+            const invalidFlows = [
+                '{',
+                { credentials: {} },
+                { flows: {}, credentials: {} },
+                { flows: [], credentials: [] }
+            ]
+
+            for (const invalidFlow1 of invalidFlows) {
+                const [statusCode] = await createBlueprint({
+                    name,
+                    description,
+                    active: true,
+                    category: 'starter',
+                    flows: invalidFlow1,
+                    modules: { module: '1' }
+                }, TestObjects.tokens.alice)
+
+                statusCode.should.equal(400)
+            }
+        })
+
         it('User can get flow blueprint details', async function () {
             const name = generateName('flow blueprint')
             const description = generateName('a flow blueprint description')
@@ -181,7 +221,7 @@ describe('Flow Blueprints API', function () {
                 active: true,
                 category: 'starter',
                 flows: { flows: [1, 2, 3], credentials: {} },
-                modules: { a: 1 }
+                modules: { module: '1' }
             }, TestObjects.tokens.alice)
             statusCode.should.equal(200)
 
@@ -340,7 +380,7 @@ describe('Flow Blueprints API', function () {
                 active: false,
                 category: 'new cat',
                 flows: { flows: [1, 2, 3] },
-                modules: { a: 1 }
+                modules: { a: '1' }
             }, TestObjects.tokens.alice)
             updateStatusCode.should.equal(200)
 
@@ -350,7 +390,7 @@ describe('Flow Blueprints API', function () {
             template.should.have.property('active', false)
             template.should.have.property('category', 'new cat')
             // Response is summary view without these properties
-            template.should.not.have.property('flows')
+            template.should.have.property('flows')
             template.should.not.have.property('modules')
 
             const fullTemplate = (await app.inject({

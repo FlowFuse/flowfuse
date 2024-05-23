@@ -35,6 +35,24 @@ module.exports.init = async function (app) {
         return null
     }
 
+    /**
+     * @returns {Date} The next month start date in UTC
+     */
+    function getNextMonthStartUTC () {
+        const now = new Date()
+        let year = now.getUTCFullYear()
+        let month = now.getUTCMonth() + 1
+
+        // If this is December, increment year and set month to January (0)
+        if (month === 12) {
+            year++
+            month = 0
+        }
+
+        // Create a new Date object for the first day of the next month in UTC
+        return new Date(Date.UTC(year, month, 1))
+    }
+
     return {
         createSubscriptionSession: async (team, user = null, teamTypeId = null) => {
             // When setting up the initial subscription we'll default to the billing
@@ -64,7 +82,8 @@ module.exports.init = async function (app) {
                 subscription_data: {
                     metadata: {
                         team: team.hashid
-                    }
+                    },
+                    billing_cycle_anchor: getNextMonthStartUTC()
                 },
                 tax_id_collection: {
                     enabled: true
@@ -359,14 +378,15 @@ module.exports.init = async function (app) {
                     }
                 } else if (billableCount > 0) {
                     // Need to add the device item to the subscription
+                    app.log.info(`Updating team ${team.hashid} subscription device count to ${billableCount}`)
                     const update = {
+                        proration_behavior: prorationBehavior,
                         items: [{
                             price: deviceBillingIds.price,
                             quantity: billableCount
                         }]
                     }
                     try {
-                        app.log.info(update)
                         await stripe.subscriptions.update(subscription.subscription, update)
                     } catch (error) {
                         console.error(error)

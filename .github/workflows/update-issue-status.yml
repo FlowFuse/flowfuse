@@ -1,0 +1,14 @@
+name: Update Issue Status
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - converted_to_draft
+      - ready_for_review
+jobs:
+  update_issue_status:
+    uses: flowfuse/.github/.github/workflows/record-in-review.yml@main
+    secrets:
+      PROJECT_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}

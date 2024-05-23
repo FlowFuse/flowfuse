@@ -392,6 +392,16 @@
         <span v-if="!error && entry.body?.device && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been been deleted for Application owned Device '{{ entry.body.device?.name }}'.</span>
         <span v-else-if="!error">Device or Snapshot data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'application.device.snapshot.exported'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.device && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been been exported for Application owned Device '{{ entry.body.device?.name }}'.</span>
+        <span v-else-if="!error">Device or Snapshot data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'application.device.snapshot.imported'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.device && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been been imported for Application owned Device '{{ entry.body.device?.name }}'.</span>
+        <span v-else-if="!error">Device or Snapshot data not found in audit entry.</span>
+    </template>
     <template v-else-if="entry.event === 'application.device.snapshot.device-target-set'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.device && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been set as the target for Application owned device '{{ entry.body.device.name }}'.</span>
@@ -549,6 +559,11 @@
     <template v-else-if="entry.event === 'project.snapshot.imported'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.project && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been imported for Instance '{{ entry.body.project?.name }}' from Instance '{{ entry.body.sourceProject?.name }}'.</span>
+        <span v-else-if="!error">Instance data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'project.snapshot.exported'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.project && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been exported'.</span>
         <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.httpToken.created'">

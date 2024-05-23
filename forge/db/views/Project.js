@@ -1,4 +1,4 @@
-const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA, KEY_PROTECTED, KEY_CUSTOM_HOSTNAME } = require('../models/ProjectSettings')
+const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA, KEY_PROTECTED, KEY_HEALTH_CHECK_INTERVAL, KEY_CUSTOM_HOSTNAME } = require('../models/ProjectSettings')
 
 module.exports = function (app) {
     app.addSchema({
@@ -33,7 +33,14 @@ module.exports = function (app) {
                 type: 'object',
                 additionalProperties: true
             },
-            customHostname: { type: 'string' }
+            customHostname: { type: 'string' },
+            launcherSettings: {
+                type: 'object',
+                properties: {
+                    healthCheckInterval: { type: 'number' }
+                },
+                additionalProperties: false
+            }
         }
     })
     async function project (project, { includeSettings = true } = {}) {
@@ -62,6 +69,13 @@ module.exports = function (app) {
             } else {
                 result.settings = {}
             }
+            // Launcher Settings
+            const heathCheckIntervalRow = proj.ProjectSettings?.find((projectSettingsRow) => projectSettingsRow.key === KEY_HEALTH_CHECK_INTERVAL)
+            if (heathCheckIntervalRow) {
+                result.launcherSettings = {}
+                result.launcherSettings.healthCheckInterval = heathCheckIntervalRow?.value
+            }
+            // Environment
             result.settings.env = app.db.controllers.Project.insertPlatformSpecificEnvVars(proj, result.settings.env)
             if (!result.settings.palette?.modules) {
                 // If there are no modules listed in settings, check the StorageSettings

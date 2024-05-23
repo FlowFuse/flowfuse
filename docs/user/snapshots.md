@@ -24,6 +24,29 @@ To create a snapshot:
 
 The list of snapshots will update with the newly created entry at the top.
 
+## Download a snapshot
+
+A snapshot can be downloaded to your local machine for backup or sharing.
+
+To download a snapshot:
+
+1. Go to the instance's page and select the **Snapshots** tab.
+2. Open the dropdown menu to the right of the snapshot you want to download and
+   select the **Download Snapshot** option.
+
+## Upload a snapshot
+
+A snapshot can be uploaded to a Node-RED instance in FlowFuse.
+
+To upload a snapshot:
+
+1. Go to the instance's page and select the **Snapshots** tab.
+2. Click the **Upload Snapshot** button.
+3. Select the snapshot file from your local machine.
+4. If the snapshot contains credentials, you will be asked to enter the credentials secret.
+   This is the secret that was used to encrypt the credentials in the snapshot.
+5. Update the name and description if required.
+6. Click **Upload**
 
 ## Delete a snapshot
 
@@ -93,3 +116,14 @@ Devices can optionally disable auto snapshots, in the developer mode tab. This c
 avoid excessive data usage when a device is in the field or on a cellular connection.
 
 NOTE: This feature is only available to Team and Enterprise tier teams
+
+## Previewing Snapshots
+
+From any Snapshots tab, you can preview the flows of a snapshot by selecting the Snapshot's actions,
+and selecting "View Snapshot".
+
+![Screenshot to show the available "Actions" for a given Snapshot](./images/snapshots-actions.png)
+_Screenshot to show the available "Actions" for a given Snapshot_
+
+![Screenshot to an example flow preview for a Snapshot in FlowFuse](./images/snapshots-preview.png)
+_Screenshot to an example flow preview for a Snapshot in FlowFuse_

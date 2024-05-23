@@ -114,8 +114,7 @@ export default {
             reasons: [
                 { label: 'Business Needs', value: 'business' },
                 { label: 'Personal Use', value: 'personal' },
-                { label: 'Educational Use', value: 'education' },
-                { label: 'Other', value: 'other' }
+                { label: 'Educational Use', value: 'education' }
             ]
         }
     },

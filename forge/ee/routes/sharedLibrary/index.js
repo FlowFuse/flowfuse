@@ -149,6 +149,10 @@ module.exports = async function (app) {
             })
             reply.push(...subPaths)
         }
+
+        // add meta info to headers
+        response.header('x-meta-type', direct ? direct.type : 'folder')
+
         response.send(reply)
     })
 

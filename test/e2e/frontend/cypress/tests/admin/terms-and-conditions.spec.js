@@ -62,6 +62,7 @@ describe('FlowForge - Team Membership', () => {
         // Check settings
         cy.get('[data-el="terms-and-condition-url"]').find('input').should('have.value', 'http://a.b.c')
     })
+
     it('admin can update terms and conditions date', () => {
         cy.home()
         cy.visit('admin/settings/general')
@@ -75,8 +76,8 @@ describe('FlowForge - Team Membership', () => {
         cy.get('[data-action="terms-and-condition-update"]').click()
 
         // confirm update
-        cy.get('.ff-dialog-box').should('be.visible')
-        cy.get('.ff-dialog-box button.ff-btn.ff-btn--danger').contains('Continue').click()
+        cy.get('[data-el="platform-dialog"]').should('be.visible')
+        cy.get('[data-el="platform-dialog"]').contains('Continue').click()
         cy.wait(['@putSettings', '@getSettings'])
 
         // at this point, user will be presented the T+Cs dialog
@@ -84,6 +85,7 @@ describe('FlowForge - Team Membership', () => {
         cy.get('[data-action="accept-terms-button"]').should('be.disabled')
         cy.get('[data-action="logout-terms-button"]').should('be.enabled')
     })
+
     it('user is asked to update terms and conditions', () => {
         cy.login('bob', 'bbPassword')
         cy.visit('/')

@@ -146,11 +146,11 @@ module.exports = {
                         throw new ValidationError(`instanceId (${instanceId}) not found`)
                     }
 
-                    if (await this.hasInstance(instance)) {
+                    if (await this.hasInstance(instance, options)) {
                         throw new ValidationError(`instanceId (${instanceId}) is already in use in this stage`)
                     }
 
-                    if (await (await this.getPipeline()).hasInstance(instance)) {
+                    if (await (await this.getPipeline()).hasInstance(instance, options)) {
                         throw new ValidationError(`instanceId (${instanceId}) is already in use in this pipeline`)
                     }
 
@@ -166,11 +166,11 @@ module.exports = {
                         throw new ValidationError(`deviceId (${deviceId}) not found`)
                     }
 
-                    if (await this.hasDevice(device)) {
+                    if (await this.hasDevice(device, options)) {
                         throw new ValidationError(`deviceId (${deviceId}) is already in use in this stage`)
                     }
 
-                    if (await (await this.getPipeline()).hasDevice(device)) {
+                    if (await (await this.getPipeline()).hasDevice(device, options)) {
                         throw new ValidationError(`deviceId (${deviceId}) is already in use in this pipeline`)
                     }
 

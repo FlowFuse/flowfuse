@@ -13,6 +13,7 @@ const KEY_SETTINGS = 'settings'
 const KEY_HOSTNAME = 'hostname'
 const KEY_HA = 'ha'
 const KEY_PROTECTED = 'protected'
+const KEY_HEALTH_CHECK_INTERVAL = 'healthCheckInterval'
 const KEY_CUSTOM_HOSTNAME = 'customHostname'
 
 module.exports = {
@@ -20,6 +21,7 @@ module.exports = {
     KEY_HOSTNAME,
     KEY_HA,
     KEY_PROTECTED,
+    KEY_HEALTH_CHECK_INTERVAL,
     KEY_CUSTOM_HOSTNAME,
     name: 'ProjectSettings',
     schema: {
