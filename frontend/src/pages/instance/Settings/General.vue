@@ -57,7 +57,8 @@
                 <FeatureUnavailableToTeam v-if="!customHostnameTeamAvailable" featureName="Instance Custom Domain Name" />
             </div>
             <div v-else>
-                Launcher too old
+                <p>To be able to use Custom Hostnames you will need to update your stack version.</p>
+                <p>There should be a button below to do this.</p>
             </div>
         </div>
         <DangerSettings
