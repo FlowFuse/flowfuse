@@ -136,6 +136,15 @@ We have currently validated our SSO support with the following Identity Provider
 If you are using a different Identity Provider, please still get in touch, and we
 can evaluate what will be required to enable it.
 
+## Custom Hostnames
+
+FlowFuse Cloud can support custom hostnames for instances.
+
+This feature allows a Team Admin to set an additional hostname for an instance.
+This hostname must be on a domain the Team Admin controls and can set up a DNS
+CNAME entry to point to the correct loadbalancer. TODO add IP address when
+production updated.
+
 ## Removing your account
 
 Before you can delete your account, teams you own must either be deleted or have at least 1 other owner.
