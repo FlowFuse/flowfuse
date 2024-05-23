@@ -31,11 +31,12 @@
 <script>
 import { ClipboardCopyIcon, RefreshIcon } from '@heroicons/vue/outline'
 
-import snapshotApi from '../../../../api/projectSnapshots.js'
+import snapshotsApi from '../../../../../api/snapshots.js'
 
-import FormRow from '../../../../components/FormRow.vue'
-import clipboardMixin from '../../../../mixins/Clipboard.js'
-import alerts from '../../../../services/alerts.js'
+import FormRow from '../../../../../components/FormRow.vue'
+import { downloadData } from '../../../../../composables/Download.js'
+import clipboardMixin from '../../../../../mixins/Clipboard.js'
+import alerts from '../../../../../services/alerts.js'
 
 export default {
     name: 'SnapshotExportDialog',
@@ -45,12 +46,6 @@ export default {
         RefreshIcon
     },
     mixins: [clipboardMixin],
-    props: {
-        project: {
-            type: Object,
-            required: true
-        }
-    },
     setup () {
         return {
             show (snapshot) {
@@ -101,11 +96,11 @@ export default {
                 const opts = {
                     credentialSecret: this.input.secret
                 }
-                snapshotApi.exportInstanceSnapshot(this.project.id, this.snapshot.id, opts).then((data) => {
+                snapshotsApi.exportSnapshot(this.snapshot.id, opts).then((data) => {
                     return data
                 }).then(data => {
                     const snapshotDate = this.snapshot.updatedAt.replace(/[-:]/g, '').replace(/\..*$/, '').replace('T', '-')
-                    this.download(data, `snapshot-${this.snapshot.id}-${snapshotDate}.json`)
+                    downloadData(data, `snapshot-${this.snapshot.id}-${snapshotDate}.json`)
                     alerts.emit('Snapshot exported.', 'confirmation')
                     this.$refs.dialog.close()
                 }).catch(err => {
@@ -114,22 +109,6 @@ export default {
                 }).finally(() => {
                     this.submitted = false
                 })
-            }
-        },
-        async download (data, name) {
-            const dataString = typeof data === 'string' ? data : JSON.stringify(data, null, 2)
-            const element = document.createElement('a')
-            try {
-                element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(dataString))
-                element.setAttribute('download', name)
-                element.style.display = 'none'
-                document.body.appendChild(element)
-                element.click()
-            } catch (err) {
-                console.error(err)
-                throw err
-            } finally {
-                document.body.removeChild(element)
             }
         },
         generateRandomKey (length = 16) {

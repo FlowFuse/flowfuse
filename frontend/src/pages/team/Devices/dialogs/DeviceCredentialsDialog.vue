@@ -88,6 +88,7 @@ import { ClipboardCopyIcon, DocumentDownloadIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
 import deviceApi from '../../../../api/devices.js'
+import { downloadData } from '../../../../composables/Download.js'
 import clipboardMixin from '../../../../mixins/Clipboard.js'
 import Alerts from '../../../../services/alerts.js'
 
@@ -106,13 +107,7 @@ export default {
     },
     methods: {
         downloadCredentials () {
-            const element = document.createElement('a')
-            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(this.credentials))
-            element.setAttribute('download', `device-${this.device.id}.yml`)
-            element.style.display = 'none'
-            document.body.appendChild(element)
-            element.click()
-            document.body.removeChild(element)
+            downloadData(this.credentials, `device-${this.device.id}.yml`)
         },
         async regenerateCredentials () {
             const creds = await deviceApi.generateCredentials(this.device.id)
