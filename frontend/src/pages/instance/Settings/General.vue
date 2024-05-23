@@ -50,8 +50,8 @@
                         </template>
                     </FormRow>
                     <div style="padding-top: 5px">
-                        <ff-button size="small" data-action="save-hostname" kind="secondary" @click="showCustomHostnameDialog()" :disabled="customHostnameChanged">Save</ff-button>
-                        <CustomHostnameDialog ref="customHostnameDialog" @comfirm="saveCustomHostname"/>
+                        <ff-button size="small" data-action="save-hostname" kind="secondary" :disabled="customHostnameChanged" @click="showCustomHostnameDialog()">Save</ff-button>
+                        <CustomHostnameDialog ref="customHostnameDialog" @confirm="saveCustomHostname" />
                     </div>
                 </div>
                 <FeatureUnavailableToTeam v-if="!customHostnameTeamAvailable" featureName="Instance Custom Domain Name" />
@@ -75,11 +75,11 @@ import SemVer from 'semver'
 
 import { mapState } from 'vuex'
 
+import instanceAPI from '../../../api/instances.js'
+
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
-
-import instanceAPI from '../../../api/instances.js'
 
 import DangerSettings from './Danger.vue'
 
@@ -135,7 +135,7 @@ export default {
             return !!this.instance?.ha
         },
         customHostnameChanged () {
-            return this.original.customHostname === this.input.customHostname 
+            return this.original.customHostname === this.input.customHostname
         },
         customHostnameAvailable () {
             const available = this.features.customHostnames
@@ -146,11 +146,12 @@ export default {
             return available
         },
         customHostnameLauncherVersion () {
-            const launcherVersion = this.project?.meta?.versions?.launcher
+            const launcherVersion = this.instance?.meta?.versions?.launcher
             if (!launcherVersion) {
                 return false
             }
 
+            // needs to be  v2.5.0 or better
             return SemVer.satisfies(SemVer.coerce(launcherVersion), '>=2.5.0')
         }
     },
@@ -192,7 +193,6 @@ export default {
             this.url = this.instance.url
         },
         async showCustomHostnameDialog () {
-            console.log('show dialog')
             this.$refs.customHostnameDialog.show(this.instance)
         },
         async saveCustomHostname () {
@@ -204,7 +204,8 @@ export default {
                 await instanceAPI.clearCustomHostname(this.instance.id)
                 this.input.customHostname = ''
                 this.original.customHostname = ''
-                this.instance.customHostname = ''
+                // this.instance.customHostname = ''
+                this.$emit('instance-updated')
                 return
             }
 
@@ -224,7 +225,8 @@ export default {
                 try {
                     await instanceAPI.setCustomHostname(this.instance.id, this.input.customHostname)
                     this.original.customHostname = this.input.customHostname
-                    this.instance.customHostname= this.input.customHostname
+                    // this.instance.customHostname = this.input.customHostname
+                    this.$emit('instance-updated')
                 } catch (err) {
                     // console.log(err)
                     this.errors.customHostname = 'hostname not available'

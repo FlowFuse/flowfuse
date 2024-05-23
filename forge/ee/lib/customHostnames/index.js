@@ -1,4 +1,4 @@
-const { KEY_CUSTOM_HOSTNAME } = require("../../../db/models/ProjectSettings")
+const { KEY_CUSTOM_HOSTNAME } = require('../../../db/models/ProjectSettings')
 
 module.exports.init = function (app) {
     app.log.debug(`EE CustomHostname ${app.config.driver.type}\n ${JSON.stringify(app.config.driver.options)}`)
@@ -9,7 +9,6 @@ module.exports.init = function (app) {
             app.config.features.register('customHostnames', true, true)
             app.db.models.Project.prototype.getCustomHostname = async function () {
                 return this.getSetting(KEY_CUSTOM_HOSTNAME)
-
             }
 
             app.db.models.Project.prototype.setCustomHostname = async function (hostname) {

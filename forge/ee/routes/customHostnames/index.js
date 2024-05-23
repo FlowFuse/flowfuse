@@ -4,7 +4,6 @@ module.exports = async function (app) {
     app.addHook('preHandler', async (request, reply) => {
         if (!app.config.features.enabled('customHostnames')) {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-            return
         }
     })
     app.addHook('preHandler', async (request, reply) => {
@@ -54,9 +53,9 @@ module.exports = async function (app) {
         if (request.body.hostname) {
             try {
                 await request.project.setCustomHostname(request.body.hostname)
-                reply.send({hostname: request.body.hostname})
+                reply.send({ hostname: request.body.hostname })
             } catch (err) {
-                reply.code(409).send({ code: 'hostname_node_available', error: 'Hostname not available'})
+                reply.code(409).send({ code: 'hostname_node_available', error: 'Hostname not available' })
             }
         } else {
             reply.code(400).send({})

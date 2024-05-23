@@ -20,19 +20,13 @@
 <script>
 
 export default {
-    name: "CustomHostnameDialog",
-    emits: ['comfirm'],
+    name: 'CustomHostnameDialog',
+    emits: ['confirm'],
     setup () {
         return {
             show (instance) {
-                console.log('show')
-                try {
                 this.instance = instance
                 this.$refs.dialog.show()
-                } catch (err) {
-                    console.log(err)
-                }
-                console.log('showing')
             }
         }
     },
@@ -43,7 +37,7 @@ export default {
     },
     methods: {
         confirm () {
-            this.$emit('confirm', this.instance)
+            this.$emit('confirm')
         }
     }
 }
