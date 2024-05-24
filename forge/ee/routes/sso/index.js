@@ -17,7 +17,7 @@ module.exports = fp(async function (app, opts) {
         preHandler: app.needsPermission('saml-provider:list')
     }, async (request, reply) => {
         const providers = await app.db.models.SAMLProvider.getAll()
-        providers.providers = providers.providers.map(u => app.db.views.SAMLProvider.provider(u))
+        providers.providers = providers.providers.map(u => app.db.views.SAMLProvider.providerSummary(u))
         reply.send(providers)
     })
 
@@ -41,6 +41,7 @@ module.exports = fp(async function (app, opts) {
             name: request.body.name,
             domainFilter: request.body.domainFilter,
             active: false,
+            type: request.body.type || 'saml',
             options: {}
         }
         const provider = await app.db.models.SAMLProvider.create(opts)
