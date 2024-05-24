@@ -87,6 +87,7 @@
         "handlebars": "^4.7.7",
         "hashids": "^2.3.0",
         "jsonwebtoken": "^9.0.0",
+        "ldapts": "^7.0.12",
         "lottie-web-vue": "^2.0.7",
         "marked": "^12.0.0",
         "mqtt": "^5.1.1",
