@@ -90,6 +90,17 @@ d
     e`
             }
         })
+        app.samlProviders.providerLDAP1 = await app.db.models.SAMLProvider.create({
+            name: 'ldap-1',
+            domainFilter: 'ldap1.com',
+            type: 'ldap',
+            active: true,
+            options: {
+                server: 'example.com',
+                username: 'bindDN',
+                password: 'pw'
+            }
+        })
     }
     async function countProviders () {
         return await app.db.models.SAMLProvider.count()
@@ -102,19 +113,20 @@ d
                 cookies: { sid: TestObjects.tokens.alice }
             })
             const result = response.json()
-            result.providers.should.have.length(4)
+            result.providers.should.have.length(5)
 
             result.providers.forEach(p => {
-                p.should.have.only.keys('id', 'name', 'active', 'domainFilter', 'acsURL', 'entityID', 'options')
+                p.should.have.only.keys('id', 'name', 'active', 'domainFilter', 'type')
             })
 
             result.providers[0].should.have.property('id', app.samlProviders.provider1.hashid)
-            result.providers[0].should.have.property('acsURL', 'http://localhost:3000/ee/sso/login/callback')
-            result.providers[0].should.have.property('entityID', `http://localhost:3000/ee/sso/entity/${app.samlProviders.provider1.hashid}`)
+            // result.providers[0].should.have.property('acsURL', 'http://localhost:3000/ee/sso/login/callback')
+            // result.providers[0].should.have.property('entityID', `http://localhost:3000/ee/sso/entity/${app.samlProviders.provider1.hashid}`)
 
             result.providers[1].should.have.property('id', app.samlProviders.provider2.hashid)
             result.providers[2].should.have.property('id', app.samlProviders.provider3.hashid)
             result.providers[3].should.have.property('id', app.samlProviders.provider4.hashid)
+            result.providers[4].should.have.property('id', app.samlProviders.providerLDAP1.hashid)
         })
         it('rejects non-admin request', async function () {
             const response = await app.inject({
@@ -142,8 +154,9 @@ d
             result.should.have.property('name', 'newProvider')
             // check the domain was normalised
             result.should.have.property('domainFilter', '@normalise.com')
-            // Starts at 4
-            ;(await countProviders()).should.equal(5)
+            result.should.have.property('type', 'saml')
+            // Starts at 5
+            ;(await countProviders()).should.equal(6)
         })
         it('rejects non-admin request', async function () {
             const response = await app.inject({
@@ -167,8 +180,8 @@ d
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
-            // Starts at 4
-            ;(await countProviders()).should.equal(3)
+            // Starts at 5
+            ;(await countProviders()).should.equal(4)
         })
         it('rejects non-admin request', async function () {
             const response = await app.inject({
@@ -204,6 +217,58 @@ d
             result.options.should.only.have.keys('foo')
             result.options.foo.should.equal('bar')
             result.active.should.be.true()
+        })
+        it('updates properties of a provider - ldap', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/ee/sso/providers/${app.samlProviders.providerLDAP1.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    options: {
+                        server: 'example2.com',
+                        username: 'bindDN2',
+                        password: '__PLACEHOLDER__'
+                    },
+                    type: 'saml',
+                    active: true
+                }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('id', app.samlProviders.providerLDAP1.hashid)
+            // Type cannot be changed
+            result.should.have.property('type', 'ldap')
+            result.options.should.only.have.keys('server', 'username', 'password')
+            result.options.server.should.equal('example2.com')
+            result.options.username.should.equal('bindDN2')
+            result.options.password.should.equal('__PLACEHOLDER__')
+            result.active.should.be.true()
+
+            // Verify the actual password wasn't overwritten
+            await app.samlProviders.providerLDAP1.reload()
+            app.samlProviders.providerLDAP1.options.should.have.property('password', 'pw')
+
+            // Resend with new password
+            const response2 = await app.inject({
+                method: 'PUT',
+                url: `/ee/sso/providers/${app.samlProviders.providerLDAP1.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    options: {
+                        server: 'example2.com',
+                        username: 'bindDN2',
+                        password: 'newpw'
+                    }
+                }
+            })
+            response2.statusCode.should.equal(200)
+            const result2 = response2.json()
+            result2.options.password.should.equal('__PLACEHOLDER__')
+            result2.active.should.be.true()
+
+            // Verify the actual password wasn't overwritten
+            await app.samlProviders.providerLDAP1.reload()
+            app.samlProviders.providerLDAP1.options.should.have.property('password', 'newpw')
         })
     })
 
