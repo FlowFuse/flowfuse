@@ -205,6 +205,7 @@ export default {
                     this.$router.push({ name: 'AdminSettingsSSOEdit', params: { id: response.id } })
                     this.loading = false
                     this.provider = response
+                    this.updateForm()
                 }).catch(err => {
                     console.warn('Failed to create provider', err)
                 })
@@ -268,29 +269,7 @@ export default {
                 this.loading = true
                 try {
                     this.provider = await ssoApi.getProvider(this.$route.params.id)
-                    this.input.name = this.provider.name
-                    this.input.domainFilter = this.provider.domainFilter
-                    this.input.active = this.provider.active
-                    this.input.type = this.provider.type || 'saml'
-                    this.input.options = { ...this.provider.options }
-                    if (this.input.type === 'saml') {
-                        this.input.options.groupMapping = this.input.options.groupMapping ?? true
-                        this.input.options.groupAllTeams = this.input.options.groupAllTeams ?? false
-                        this.input.options.groupOtherTeams = this.input.options.groupOtherTeams ?? false
-                        // this.input.options.groupAdmin = this.input.options.groupAdmin ?? false
-                        // this.input.options.groupAdminName = this.input.options.groupAdminName || 'ff-admins'
-                        this.input.options.groupAssertionName = this.input.options.groupAssertionName || 'ff-roles'
-                        // groupTeams is stored as an array - convert to multi-line string for the edit form
-                        this.input.options.groupTeams = (this.input.options.groupTeams || []).join('\n')
-                    } else {
-                        // eslint-disable-next-line no-template-curly-in-string
-                        this.input.options.userFilter = this.input.options.userFilter || '(uid=${username})'
-                        if (this.input.options.tlsVerifyServer === undefined) {
-                            // Default to enabled
-                            this.input.options.tlsVerifyServer = true
-                        }
-                    }
-                    this.originalValues = JSON.stringify(this.input)
+                    this.updateForm()
                 } catch (err) {
                     if (err.response.status === 404) {
                         this.$router.push({ name: 'AdminSettingsSSO' })
@@ -300,6 +279,31 @@ export default {
                     this.loading = false
                 }
             }
+        },
+        updateForm () {
+            this.input.name = this.provider.name
+            this.input.domainFilter = this.provider.domainFilter
+            this.input.active = this.provider.active
+            this.input.type = this.provider.type || 'saml'
+            this.input.options = { ...this.provider.options }
+            if (this.input.type === 'saml') {
+                this.input.options.groupMapping = this.input.options.groupMapping ?? false
+                this.input.options.groupAllTeams = this.input.options.groupAllTeams ?? false
+                this.input.options.groupOtherTeams = this.input.options.groupOtherTeams ?? false
+                // this.input.options.groupAdmin = this.input.options.groupAdmin ?? false
+                // this.input.options.groupAdminName = this.input.options.groupAdminName || 'ff-admins'
+                this.input.options.groupAssertionName = this.input.options.groupAssertionName || 'ff-roles'
+                // groupTeams is stored as an array - convert to multi-line string for the edit form
+                this.input.options.groupTeams = (this.input.options.groupTeams || []).join('\n')
+            } else {
+                // eslint-disable-next-line no-template-curly-in-string
+                this.input.options.userFilter = this.input.options.userFilter || '(uid=${username})'
+                if (this.input.options.tlsVerifyServer === undefined) {
+                    // Default to enabled
+                    this.input.options.tlsVerifyServer = true
+                }
+            }
+            this.originalValues = JSON.stringify(this.input)
         }
 
     }
