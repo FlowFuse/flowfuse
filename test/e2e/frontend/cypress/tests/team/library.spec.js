@@ -10,7 +10,7 @@ describe('FlowForge - Library', () => {
 
             cy.get('[data-el="page-name"]').contains('Library')
             cy.get('[data-el="ff-tab"]').contains('Blueprints').click()
-            
+
             cy.contains('Shared repository to store common flows and nodes.')
             cy.contains('No Blueprints Available')
             cy.contains('This is a FlowFuse Premium feature. Please upgrade your instance of FlowFuse in order to use it.')
