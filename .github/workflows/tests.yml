@@ -149,14 +149,14 @@ jobs:
       - name: Run UI Unit Tests
         run: npm run test:unit:frontend
       - name: Run UI E2E (Cypress) Tests - OS
-        uses: cypress-io/github-action@v4
+        uses: cypress-io/github-action@v6
         with:
           install: false
           config-file: config/cypress-os.config.js
           build: npm run build
           start: npm run cy:web-server:os
       - name: Run UI E2E (Cypress) Tests - EE
-        uses: cypress-io/github-action@v4
+        uses: cypress-io/github-action@v6
         with:
             install: false
             config-file: config/cypress-ee.config.js
