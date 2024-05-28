@@ -54,7 +54,7 @@ module.exports = async function (app) {
             try {
                 await request.project.setCustomHostname(request.body.hostname)
                 const suspendOptions = {
-                    skipBilling: changesToPersist.stack && !changesToPersist.projectType
+                    skipBilling: true
                 }
                 if (request.project.state === 'running') {
                     app.log.info(`Restarting project ${request.project.id}`)
@@ -66,6 +66,7 @@ module.exports = async function (app) {
                     startResult.started.then(async () => {
                         await app.auditLog.Project.project.started(request.session.User, null, request.project)
                         app.db.controllers.Project.clearInflightState(request.project)
+                        return true
                     }).catch(err => {
                         app.log.info(`Failed to restart project ${request.project.id}`)
                         throw err
