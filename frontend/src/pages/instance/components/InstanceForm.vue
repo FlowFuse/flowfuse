@@ -151,7 +151,7 @@
                             data-form="project-type"
                         >
                             <ff-tile-selection-option
-                                v-for="(projType, index) in projectTypes"
+                                v-for="(projType, index) in filteredProjectTypes"
                                 :key="index"
                                 :label="projType.name"
                                 :description="projType.description"
@@ -509,6 +509,9 @@ export default {
         },
         heroTitle () {
             return this.creatingNew ? (this.creatingApplication ? 'Create a new Application' : 'Create Instance') : 'Update Instance'
+        },
+        filteredProjectTypes () {
+            return this.projectTypes.filter(pt => !pt.disabled)
         }
     },
     watch: {
