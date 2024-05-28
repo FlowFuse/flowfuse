@@ -53,9 +53,6 @@ module.exports = async function (app) {
         if (request.body.hostname) {
             try {
                 await request.project.setCustomHostname(request.body.hostname)
-                const suspendOptions = {
-                    skipBilling: true
-                }
                 restartInstance(request.project, request.session.User)
                 reply.send({ hostname: request.body.hostname })
             } catch (err) {
@@ -74,10 +71,10 @@ module.exports = async function (app) {
         reply.status(204).send({})
     })
 
-    async function restartInstance(project, user) {
+    async function restartInstance (project, user) {
         if (project.state === 'running') {
             app.log.info(`Restarting project ${project.id}`)
-            await app.containers.stop(project, suspendOptions)
+            await app.containers.stop(project, { skipBilling: true })
             await app.auditLog.Project.project.suspended(user, null, project)
             await project.reload()
             await project.save()
