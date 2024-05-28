@@ -90,7 +90,7 @@
                             <template #description>The filter used to lookup users.</template>
                         </FormRow>
                         <FormRow v-model="input.options.tls" type="checkbox">Enable TLS</FormRow>
-                         <div v-if="input.options.tls" class="pl-4 space-y-6">
+                        <div v-if="input.options.tls" class="pl-4 space-y-6">
                             <FormRow v-model="input.options.tlsVerifyServer" type="checkbox">Verify Server Certificate</FormRow>
                         </div>
                     </template>
