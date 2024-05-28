@@ -82,16 +82,16 @@
                     <div data-form="blueprint">
                         <label class="block text-sm font-medium text-gray-800 mb-2">Blueprint:</label>
                         <BlueprintTileSmall :blueprint="selectedBlueprint" @click="previewBlueprint" />
-                        <div v-if="showFlowBlueprintSelection" class="mt-1 flex gap-3" data-action="blueprint-actions">
+                        <div v-if="showFlowBlueprintSelection" class="mt-2 flex gap-4" data-action="blueprint-actions">
                             <div
-                                class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline text-sm flex gap-0.5 items-center"
+                                class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline text-sm flex gap-1 items-center"
                                 @click="previewBlueprint(selectedBlueprint)"
                             >
                                 <ProjectIcon class="ff-btn--icon" />
                                 <span>Preview Blueprint</span>
                             </div>
                             <div
-                                class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline text-sm flex gap-0.5 items-center"
+                                class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline text-sm flex gap-1 items-center"
                                 @click="input.flowBlueprintId = ''"
                             >
                                 <FolderIcon class="ff-btn--icon" />
