@@ -138,6 +138,9 @@ export default {
             delete createPayload.isHA
 
             return instanceApi.create(createPayload)
+        },
+        qwe () {
+
         }
     }
 }
