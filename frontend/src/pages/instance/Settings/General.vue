@@ -212,7 +212,7 @@ export default {
                     this.errors.customHostname = 'hostname not available'
                 })      
                 .finally( () => {
-                    this.loading.changingStack = false
+                    // this.loading.changingStack = false
                 })
                 // this.input.customHostname = ''
                 // this.original.customHostname = ''
@@ -235,7 +235,7 @@ export default {
             if (!isValid) {
                 this.errors.customHostname = 'not a valid hostname'
             } else {
-                this.loading.changingStack = true
+                // this.loading.changingStack = true
                 instanceAPI.setCustomHostname(this.instance.id, this.input.customHostname).then(() => {
                     this.original.customHostname = this.input.customHostname
                     this.$router.push({ name: 'Instance', params: { id: this.instance.id } })
@@ -245,7 +245,7 @@ export default {
                     this.errors.customHostname = 'hostname not available'
                 })      
                 .finally( () => {
-                    this.loading.changingStack = false
+                    // this.loading.changingStack = false
                 })
             }
         }
