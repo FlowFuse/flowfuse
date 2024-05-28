@@ -56,22 +56,7 @@ module.exports = async function (app) {
                 const suspendOptions = {
                     skipBilling: true
                 }
-                if (request.project.state === 'running') {
-                    app.log.info(`Restarting project ${request.project.id}`)
-                    await app.containers.stop(request.project, suspendOptions)
-                    await app.auditLog.Project.project.suspended(request.session.User, null, request.project)
-                    await request.project.reload()
-                    await request.project.save()
-                    const startResult = await app.containers.start(request.project)
-                    startResult.started.then(async () => {
-                        await app.auditLog.Project.project.started(request.session.User, null, request.project)
-                        app.db.controllers.Project.clearInflightState(request.project)
-                        return true
-                    }).catch(err => {
-                        app.log.info(`Failed to restart project ${request.project.id}`)
-                        throw err
-                    })
-                }
+                restartInstance(request.project, request.session.User)
                 reply.send({ hostname: request.body.hostname })
             } catch (err) {
                 reply.code(409).send({ code: 'hostname_node_available', error: 'Hostname not available' })
@@ -85,6 +70,26 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('project:edit')
     }, async (request, reply) => {
         await request.project.clearCustomHostname()
+        await restartInstance(request.project, request.session.User)
         reply.status(204).send({})
     })
+
+    async function restartInstance(project, user) {
+        if (project.state === 'running') {
+            app.log.info(`Restarting project ${project.id}`)
+            await app.containers.stop(project, suspendOptions)
+            await app.auditLog.Project.project.suspended(user, null, project)
+            await project.reload()
+            await project.save()
+            const startResult = await app.containers.start(project)
+            startResult.started.then(async () => {
+                await app.auditLog.Project.project.started(user, null, project)
+                app.db.controllers.Project.clearInflightState(project)
+                return true
+            }).catch(err => {
+                app.log.info(`Failed to restart project ${project.id}`)
+                throw err
+            })
+        }
+    }
 }

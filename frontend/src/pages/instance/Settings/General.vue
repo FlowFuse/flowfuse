@@ -205,6 +205,7 @@ export default {
                 this.input.customHostname = ''
                 this.original.customHostname = ''
                 // this.instance.customHostname = ''
+                this.$router.push({ name: 'Instance', params: { id: this.instance.id } })
                 this.$emit('instance-updated')
                 return
             }
@@ -226,6 +227,7 @@ export default {
                     await instanceAPI.setCustomHostname(this.instance.id, this.input.customHostname)
                     this.original.customHostname = this.input.customHostname
                     // this.instance.customHostname = this.input.customHostname
+                    this.$router.push({ name: 'Instance', params: { id: this.instance.id } })
                     this.$emit('instance-updated')
                 } catch (err) {
                     // console.log(err)
