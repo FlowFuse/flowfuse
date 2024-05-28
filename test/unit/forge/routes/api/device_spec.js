@@ -790,10 +790,10 @@ describe('Device API', async function () {
 
                 // set this snapshot as the target snapshot for the device
                 await app.inject({
-                    method: 'POST',
-                    url: `/api/v1/devices/${device.id}/settings`,
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
                     body: {
-                        targetSnapshot: snapshot.id
+                        targetSnapshot: snapshot.hashid
                     },
                     cookies: { sid: TestObjects.tokens.bob }
                 })
