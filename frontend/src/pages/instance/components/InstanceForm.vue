@@ -6,7 +6,7 @@
         @submit.prevent="$emit('on-submit', input, copyParts)"
     >
         <SectionTopMenu
-            :hero="creatingNew ? (creatingApplication ? 'Create a new Application' : 'Create Instance') : 'Update Instance'"
+            :hero="heroTitle"
         />
 
         <!-- Form title -->
