@@ -238,6 +238,7 @@
                             :project-type="selectedProjectType"
                             :subscription="subscription"
                             :trialMode="isTrialProjectSelected"
+                            :prorationMode="team?.type?.properties?.billing?.proration"
                         />
                     </div>
                 </template>
