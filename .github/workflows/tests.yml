@@ -162,7 +162,7 @@ jobs:
             config-file: config/cypress-ee.config.js
             build: npm run build
             start: npm run cy:web-server:ee
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: cypress-output
