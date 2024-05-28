@@ -53,6 +53,24 @@ module.exports = async function (app) {
         if (request.body.hostname) {
             try {
                 await request.project.setCustomHostname(request.body.hostname)
+                const suspendOptions = {
+                    skipBilling: changesToPersist.stack && !changesToPersist.projectType
+                }
+                if (request.project.state === 'running') {
+                    app.log.info(`Restarting project ${request.project.id}`)
+                    await app.containers.stop(request.project, suspendOptions)
+                    await app.auditLog.Project.project.suspended(request.session.User, null, request.project)
+                    await request.project.reload()
+                    await request.project.save()
+                    const startResult = await app.containers.start(request.project)
+                    startResult.started.then(async () => {
+                        await app.auditLog.Project.project.started(request.session.User, null, request.project)
+                        app.db.controllers.Project.clearInflightState(request.project)
+                    }).catch(err => {
+                        app.log.info(`Failed to restart project ${request.project.id}`)
+                        throw err
+                    })
+                }
                 reply.send({ hostname: request.body.hostname })
             } catch (err) {
                 reply.code(409).send({ code: 'hostname_node_available', error: 'Hostname not available' })
