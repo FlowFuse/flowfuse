@@ -201,12 +201,24 @@ export default {
             this.errors.customHostname = ''
 
             if (this.input.customHostname.trim().length === 0) {
-                await instanceAPI.clearCustomHostname(this.instance.id)
-                this.input.customHostname = ''
-                this.original.customHostname = ''
-                // this.instance.customHostname = ''
-                this.$router.push({ name: 'Instance', params: { id: this.instance.id } })
-                this.$emit('instance-updated')
+                instanceAPI.clearCustomHostname(this.instance.id).then(() => {
+                    this.original.customHostname = this.input.customHostname
+                    this.input.customHostname = ''
+                    this.original.customHostname = ''
+                    this.$router.push({ name: 'Instance', params: { id: this.instance.id } })
+                    this.$emit('instance-updated')
+                })
+                .catch (err => {
+                    this.errors.customHostname = 'hostname not available'
+                })      
+                .finally( () => {
+                    this.loading.changingStack = false
+                })
+                // this.input.customHostname = ''
+                // this.original.customHostname = ''
+                // // this.instance.customHostname = ''
+                // this.$router.push({ name: 'Instance', params: { id: this.instance.id } })
+                // this.$emit('instance-updated')
                 return
             }
 
@@ -223,16 +235,18 @@ export default {
             if (!isValid) {
                 this.errors.customHostname = 'not a valid hostname'
             } else {
-                try {
-                    await instanceAPI.setCustomHostname(this.instance.id, this.input.customHostname)
+                this.loading.changingStack = true
+                instanceAPI.setCustomHostname(this.instance.id, this.input.customHostname).then(() => {
                     this.original.customHostname = this.input.customHostname
-                    // this.instance.customHostname = this.input.customHostname
                     this.$router.push({ name: 'Instance', params: { id: this.instance.id } })
                     this.$emit('instance-updated')
-                } catch (err) {
-                    // console.log(err)
+                })
+                .catch (err => {
                     this.errors.customHostname = 'hostname not available'
-                }
+                })      
+                .finally( () => {
+                    this.loading.changingStack = false
+                })
             }
         }
     }
