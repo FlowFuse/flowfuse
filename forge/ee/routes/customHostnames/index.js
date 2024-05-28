@@ -76,7 +76,7 @@ module.exports = async function (app) {
             app.log.info(`Restarting project ${project.id}`)
             await app.containers.stop(project, { skipBilling: true })
             await app.auditLog.Project.project.suspended(user, null, project)
-            project.state = 'running'
+            project.state = 'starting'
             await project.reload()
             await project.save()
             const startResult = await app.containers.start(project)
