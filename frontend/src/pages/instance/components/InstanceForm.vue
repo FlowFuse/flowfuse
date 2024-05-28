@@ -5,12 +5,10 @@
         class="space-y-6"
         @submit.prevent="$emit('on-submit', input, copyParts)"
     >
-        <SectionTopMenu
-            :hero="creatingNew ? (creatingApplication ? 'Create a new Application' : 'Create Instance') : 'Update Instance'"
-        />
+        <SectionTopMenu v-if="hasHeader" :hero="heroTitle" />
 
         <!-- Form title -->
-        <div class="mb-8 text-sm text-gray-500">
+        <div v-if="hasHeader" class="mb-8 text-sm text-gray-500">
             <template v-if="creatingNew">
                 <template v-if="!creatingApplication || applicationSelection">
                     Let's get your new Node-RED instance setup in no time.
@@ -227,6 +225,7 @@
                             :project-type="selectedProjectType"
                             :subscription="subscription"
                             :trialMode="isTrialProjectSelected"
+                            :prorationMode="team?.type?.properties?.billing?.proration"
                         />
                     </div>
                 </template>
@@ -350,6 +349,10 @@ export default {
         preDefinedInputs: {
             default: null,
             type: Object
+        },
+        hasHeader: {
+            default: true,
+            type: Boolean
         }
     },
     emits: ['on-submit'],
@@ -483,6 +486,9 @@ export default {
         },
         blueprintSelectionVisible () {
             return this.creatingNew && this.showFlowBlueprintSelection && !this.input.flowBlueprintId
+        },
+        heroTitle () {
+            return this.creatingNew ? (this.creatingApplication ? 'Create a new Application' : 'Create Instance') : 'Update Instance'
         }
     },
     watch: {
