@@ -168,7 +168,7 @@
                     <div v-if="creatingNew && templates.length > 1 " class="flex flex-wrap gap-1 items-stretch">
                         <label class="w-full block text-sm font-medium text-gray-700 mb-1">Template</label>
                         <label v-if="!input.projectType || !input.stack" class="text-sm text-gray-400">
-                          Please select a Instance Type &amp; Node-RED Version first.
+                            Please select a Instance Type &amp; Node-RED Version first.
                         </label>
                         <label v-if="errors.template" class="text-sm text-gray-400">{{ errors.template }}</label>
                         <ff-tile-selection v-if="input.projectType && input.stack" v-model="input.template" data-form="project-template">
@@ -246,7 +246,6 @@ import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavail
 import AssetDetailDialog from '../../../components/dialogs/AssetDetailDialog.vue'
 
 import ProjectIcon from '../../../components/icons/Projects.js'
-import { capitalize } from '../../../composables/String.js'
 
 import NameGenerator from '../../../utils/name-generator/index.js'
 
@@ -356,7 +355,7 @@ export default {
                 createInstance: true,
 
                 // Only read name from existing project, never source
-                name: this.instance?.name || capitalize(NameGenerator()),
+                name: this.instance?.name || NameGenerator(),
 
                 // Handle both full instance objects and short-form instance details
                 projectType: instance?.projectType?.id || instance?.projectType || '',
@@ -660,7 +659,7 @@ export default {
     },
     methods: {
         refreshName () {
-            this.input.name = capitalize(NameGenerator())
+            this.input.name = NameGenerator()
         },
         validateName (value) {
             return /^[a-zA-Z][a-zA-Z0-9-\s]*$/.test(value)
