@@ -22,7 +22,7 @@
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="flex-grow">
                     <div class="max-w-sm">
-                        Changing the Instance Node-RED Version requires the instance to be restarted.
+                        Changing the Instances Node-RED Version requires the instance to be restarted.
                         The flows will not be running while this happens.
                     </div>
                 </div>
