@@ -1,12 +1,8 @@
 <template>
     <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the runtime limit for this team." />
     <FeatureUnavailableToTeam v-else-if="teamInstanceLimitReached" fullMessage="You have reached the instance limit for this team." />
-    <form
-        class="space-y-6"
-        @submit.prevent="$emit('on-submit', input, copyParts)"
-    >
+    <form class="space-y-6" @submit.prevent="$emit('on-submit', input, copyParts)">
         <SectionTopMenu v-if="hasHeader" :hero="heroTitle" />
-
         <!-- Form title -->
         <div v-if="hasHeader" class="mb-8 text-sm text-gray-500">
             <template v-if="creatingNew">
@@ -109,20 +105,11 @@
                         <template #default>
                             Instance Name
                         </template>
-                        <template
-                            v-if="creatingNew"
-                            #description
-                        >
+                        <template v-if="creatingNew" #appended-description>
                             The instance name is used to access the editor so must be suitable for using in a url. It is not currently possible to rename the instance after it has been created.
                         </template>
-                        <template
-                            v-if="creatingNew"
-                            #append
-                        >
-                            <ff-button
-                                kind="secondary"
-                                @click="refreshName"
-                            >
+                        <template v-if="creatingNew" #append>
+                            <ff-button kind="secondary" @click="refreshName">
                                 <template #icon>
                                     <RefreshIcon />
                                 </template>
@@ -132,24 +119,14 @@
                 </div>
 
                 <!-- Instance Type -->
-                <div
-                    v-if="errors.projectType"
-                    class="text-red-400 text-xs"
-                >
+                <div v-if="errors.projectType" class="text-red-400 text-xs">
                     {{ errors.projectType }}
                 </div>
                 <template v-else>
-                    <div
-                        v-if="projectTypes.length > 0"
-                        class="flex flex-wrap items-stretch"
-                    >
+                    <div v-if="projectTypes.length > 0" class="flex flex-wrap items-stretch">
                         <label class="w-full block text-sm font-medium text-gray-700">Choose your Instance Type</label>
                         <InstanceCreditBanner :subscription="subscription" />
-                        <ff-tile-selection
-                            v-model="input.projectType"
-                            class="mt-5"
-                            data-form="project-type"
-                        >
+                        <ff-tile-selection v-model="input.projectType" class="mt-5" data-form="project-type">
                             <ff-tile-selection-option
                                 v-for="(projType, index) in filteredProjectTypes"
                                 :key="index"
@@ -166,22 +143,12 @@
                     <!-- Stack -->
                     <div class="flex flex-wrap gap-1 items-stretch">
                         <label class="w-full block text-sm font-medium text-gray-700 mb-4">Choose your Stack</label>
-                        <label
-                            v-if="!input.projectType"
-                            class="text-sm text-gray-400"
-                        >
+                        <label v-if="!input.projectType" class="text-sm text-gray-400">
                             Please select a Instance Type first.</label>
-                        <label
-                            v-if="errors.stack"
-                            class="text-sm text-gray-400"
-                        >
+                        <label v-if="errors.stack" class="text-sm text-gray-400">
                             {{ errors.stack }}
                         </label>
-                        <ff-tile-selection
-                            v-if="input.projectType"
-                            v-model="input.stack"
-                            data-form="instance-stack"
-                        >
+                        <ff-tile-selection v-if="input.projectType" v-model="input.stack" data-form="instance-stack">
                             <ff-tile-selection-option
                                 v-for="(stack, index) in stacks"
                                 :key="index"
@@ -192,24 +159,13 @@
                     </div>
 
                     <!-- Template -->
-                    <div
-                        v-if="creatingNew && templates.length > 1 "
-                        class="flex flex-wrap gap-1 items-stretch"
-                    >
+                    <div v-if="creatingNew && templates.length > 1 " class="flex flex-wrap gap-1 items-stretch">
                         <label class="w-full block text-sm font-medium text-gray-700 mb-1">Template</label>
-                        <label
-                            v-if="!input.projectType || !input.stack"
-                            class="text-sm text-gray-400"
-                        >Please select a Instance Type &amp; Stack first.</label>
-                        <label
-                            v-if="errors.template"
-                            class="text-sm text-gray-400"
-                        >{{ errors.template }}</label>
-                        <ff-tile-selection
-                            v-if="input.projectType && input.stack"
-                            v-model="input.template"
-                            data-form="project-template"
-                        >
+                        <label v-if="!input.projectType || !input.stack" class="text-sm text-gray-400">
+                            Please select a Instance Type &amp; Stack first.
+                        </label>
+                        <label v-if="errors.template" class="text-sm text-gray-400">{{ errors.template }}</label>
+                        <ff-tile-selection v-if="input.projectType && input.stack" v-model="input.template" data-form="project-template">
                             <ff-tile-selection-option
                                 v-for="(t, index) in templates"
                                 :key="index"
@@ -226,10 +182,7 @@
                         <p class="text-gray-500">
                             Select the components to copy from '{{ sourceInstance?.name }}'
                         </p>
-                        <ExportInstanceComponents
-                            id="exportSettings"
-                            v-model="copyParts"
-                        />
+                        <ExportInstanceComponents id="exportSettings" v-model="copyParts" />
                     </template>
 
                     <!-- Billing details -->
@@ -246,11 +199,7 @@
         </div>
         <!-- Submit -->
         <div v-if="!blueprintSelectionVisible" class="flex flex-wrap gap-1 items-center">
-            <ff-button
-                v-if="!creatingNew"
-                class="ff-btn--secondary"
-                @click="$router.back()"
-            >
+            <ff-button v-if="!creatingNew" class="ff-btn--secondary" @click="$router.back()">
                 Cancel
             </ff-button>
 
@@ -267,10 +216,7 @@
                     Confirm Changes
                 </template>
             </ff-button>
-            <label
-                v-if="!creatingNew && !formDirty"
-                class="text-sm text-gray-400"
-            >
+            <label v-if="!creatingNew && !formDirty" class="text-sm text-gray-400">
                 No changes have been made
             </label>
         </div>
