@@ -32,17 +32,7 @@ module.exports.init = async function (app) {
      * @returns whether the request has been handled or not
      */
     async function handleLoginRequest (request, reply) {
-        let user
-        if (/@/.test(request.body.username)) {
-        // Provided an email we can use to check SSO against
-            user = {
-                email: request.body.username
-            }
-        } else {
-        // Looks like a username was provided - look up real user so we can
-        // check if their email requires SSO
-            user = await app.db.models.User.byUsernameOrEmail(request.body.username)
-        }
+        const user = await app.db.models.User.byUsernameOrEmail(request.body.username)
         if (user) {
             const providerConfig = await app.db.models.SAMLProvider.forEmail(user.email)
             if (providerConfig) {
@@ -67,8 +57,8 @@ module.exports.init = async function (app) {
                         return true
                     }
                     const userInfo = app.auditLog.formatters.userObject(request.body)
-                    const user = await verifyLDAPUser(providerConfig, request.body.username, request.body.password)
-                    if (user) {
+                    const ldapVerified = await verifyLDAPUser(providerConfig, user, request.body.password)
+                    if (ldapVerified) {
                         const sessionInfo = await app.createSessionCookie(request.body.username)
                         if (sessionInfo) {
                             userInfo.id = sessionInfo.session.UserId
@@ -114,11 +104,11 @@ module.exports.init = async function (app) {
     /**
      * Verifies a user's ldap credentials
      * @param {*} providerConfig the ldap config
-     * @param {String} username the username/email
+     * @param {User} user the User object to verify
      * @param {String} password the password
-     * @returns The User object if it verifies, null if not
+     * @returns True if it verifies, false if not
      */
-    async function verifyLDAPUser (providerConfig, username, password) {
+    async function verifyLDAPUser (providerConfig, user, password) {
         let userClient
         let url = providerConfig.options.server
         if (!/^ldaps?:\/\//.test(url)) {
@@ -146,7 +136,7 @@ module.exports.init = async function (app) {
         try {
             // Any errors from here must unbind the adminClient - so wrap all in try/catch
 
-            const filter = providerConfig.options.userFilter.replace(/\${username}/g, username)
+            const filter = providerConfig.options.userFilter.replace(/\${username}/g, user.username).replace(/\${email}/g, user.email)
             const { searchEntries } = await adminClient.search(providerConfig.options.baseDN, {
                 filter
             })
@@ -155,15 +145,14 @@ module.exports.init = async function (app) {
                 userClient = new Client(clientOptions)
                 try {
                     await userClient.bind(userDN, password)
-                    const user = await app.db.models.User.byUsernameOrEmail(username)
-                    return user
+                    return true
                 } catch (err) {
                     // Failed to bind user
-                    return null
+                    return false
                 }
             }
         } catch (err) {
-            app.log.error(`Error validating LDAP User '${username}' Provider '${providerConfig.name}' ${url} ${err}`)
+            app.log.error(`Error validating LDAP User '${user.username}' Provider '${providerConfig.name}' ${url} ${err}`)
         } finally {
             try {
                 if (adminClient) {
@@ -176,7 +165,7 @@ module.exports.init = async function (app) {
                 }
             } catch (err) {}
         }
-        return null
+        return false
     }
     /**
      * Update a user's team memberships according to the SAML Assertions

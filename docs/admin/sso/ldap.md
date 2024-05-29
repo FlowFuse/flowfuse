@@ -52,6 +52,8 @@ and save the changes.
 #### User Search Filter
 
 The search filter is used when checking if a user exists within the directory, using
-the standard LDAP query notation. The default search filter is `(uid=${username})` - where
-`${username}` will be replaced with the user's username when they attempt to login.
+the standard LDAP query notation. The default search filter is `(uid=${username})`.
+
+The platform will replace `${username}` and `${email}` with the user's details when
+they attempt to login.
 
