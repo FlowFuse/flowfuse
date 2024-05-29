@@ -1,15 +1,9 @@
 <template>
-    <Teleport
-        v-if="mounted"
-        to="#platform-sidenav"
-    >
+    <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigation>
             <template #options>
                 <a @click="$router.back()">
-                    <nav-item
-                        :icon="icons.chevronLeft"
-                        label="Back"
-                    />
+                    <nav-item :icon="icons.chevronLeft" label="Back" />
                 </a>
             </template>
         </SideNavigation>
@@ -18,25 +12,28 @@
         <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
     </Teleport>
     <ff-page>
-        <div class="max-w-2xl m-auto">
-            <ff-loading
-                v-if="loading"
-                message="Creating Application..."
-            />
-            <InstanceForm
-                v-else
-                :instance="projectDetails"
-                :applications="applications"
-                :applicationSelection="applicationCreated"
-                :team="team"
-                :applicationFieldsLocked="applicationCreated"
-                :applicationFieldsVisible="true"
-                :billing-enabled="!!features.billing"
-                :flow-blueprints-enabled="!!features.flowBlueprints"
-                :submit-errors="errors"
-                @on-submit="handleFormSubmit"
-            />
-        </div>
+        <template #header>
+            <ff-page-header title="Applications">
+                <template #context>
+                    Let's get your new Node-RED application setup in no time.
+                </template>
+            </ff-page-header>
+        </template>
+        <ff-loading v-if="loading" message="Creating Application..." />
+        <InstanceForm
+            v-else
+            :instance="projectDetails"
+            :has-header="false"
+            :applications="applications"
+            :applicationSelection="applicationCreated"
+            :team="team"
+            :applicationFieldsLocked="applicationCreated"
+            :applicationFieldsVisible="true"
+            :billing-enabled="!!features.billing"
+            :flow-blueprints-enabled="!!features.flowBlueprints"
+            :submit-errors="errors"
+            @on-submit="handleFormSubmit"
+        />
     </ff-page>
 </template>
 
