@@ -20,6 +20,7 @@ const Controllers = require('../controllers')
 const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA, KEY_PROTECTED, KEY_HEALTH_CHECK_INTERVAL } = require('./ProjectSettings')
 
 const BANNED_NAME_LIST = [
+    'app',
     'www',
     'node-red',
     'nodered',
