@@ -27,7 +27,7 @@ directed to the Identity Provider in order to log in. They will no longer be abl
 to log in with their local password, nor will they be able to change their email
 address in User Settings.
 
- - [Configuring SAML SSO](saml)
+ - [Configuring SAML SSO](saml.md)
 
  ## LDAP SSO
 
@@ -36,6 +36,6 @@ address in User Settings.
 
  When logging in, the users credentials are passed to the serivce provider to verify.
 
-  - [Configuring LDAP SSO](ldap)
+  - [Configuring LDAP SSO](ldap.md)
 
 
