@@ -1,8 +1,8 @@
 <template>
     <ff-dialog
         ref="dialog"
-        header="Change Instance Stack"
-        confirm-label="Change Stack"
+        header="Change Instance Node-RED Version"
+        confirm-label="Change Node-RED Version"
         class="ff-dialog-fixed-height"
         data-el="change-stack-dialog"
         @confirm="confirm()"
@@ -10,7 +10,7 @@
         <template #default>
             <form class="space-y-6" @submit.prevent>
                 <p>
-                    Select the new stack you want to use for this instance:
+                    Select the new Node-RED Version you want to use for this instance:
                 </p>
                 <FormRow
                     v-model="input.stack"
@@ -18,7 +18,7 @@
                     data-form="snapshot"
                     containerClass="w-full"
                 >
-                    Stack
+                    Node-RED Version
                 </FormRow>
             </form>
         </template>

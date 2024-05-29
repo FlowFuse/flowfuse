@@ -147,9 +147,10 @@
 
                     <!-- Stack -->
                     <div class="flex flex-wrap gap-1 items-stretch">
-                        <label class="w-full block text-sm font-medium text-gray-700 mb-4">Choose your Stack</label>
+                        <label class="w-full block text-sm font-medium text-gray-700 mb-4">Choose your Node-RED Version</label>
                         <label v-if="!input.projectType" class="text-sm text-gray-400">
-                            Please select a Instance Type first.</label>
+                            Please select a Instance Type first.
+                        </label>
                         <label v-if="errors.stack" class="text-sm text-gray-400">
                             {{ errors.stack }}
                         </label>
@@ -167,7 +168,7 @@
                     <div v-if="creatingNew && templates.length > 1 " class="flex flex-wrap gap-1 items-stretch">
                         <label class="w-full block text-sm font-medium text-gray-700 mb-1">Template</label>
                         <label v-if="!input.projectType || !input.stack" class="text-sm text-gray-400">
-                            Please select a Instance Type &amp; Stack first.
+                          Please select a Instance Type &amp; Node-RED Version first.
                         </label>
                         <label v-if="errors.template" class="text-sm text-gray-400">{{ errors.template }}</label>
                         <ff-tile-selection v-if="input.projectType && input.stack" v-model="input.template" data-form="project-template">
@@ -680,7 +681,7 @@ export default {
 
             if (this.stacks.length === 0) {
                 this.input.stack = null
-                this.errors.stack = 'No stacks available for this instance type. Ask an Administrator to create a new stack definition'
+                this.errors.stack = 'No Node-RED Versions available for this instance type. Ask an Administrator to create a Node-RED Version stack definition'
                 return
             }
 
