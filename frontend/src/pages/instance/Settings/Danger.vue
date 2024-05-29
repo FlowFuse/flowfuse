@@ -11,7 +11,7 @@
             <div v-if="instance.stack && instance.stack.replacedBy" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="flex-grow">
                     <div class="max-w-sm">
-                        There is a new version of the current Node-RED Version available.
+                        There is a new version of Node-RED available.
                         Updating the Node-RED Version will restart the instance.
                     </div>
                 </div>
