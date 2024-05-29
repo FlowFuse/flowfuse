@@ -30,7 +30,7 @@
             </template>
         </FormRow>
         <FormRow v-model="input.stackDescription" type="uneditable">
-            Stack
+            Node-RED Version
         </FormRow>
         <FormRow v-model="input.templateName" type="uneditable">
             Template

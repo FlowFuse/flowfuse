@@ -29,7 +29,7 @@
                 </ff-data-table>
             </div>
             <div v-else>
-                Upgrade your stack to enable this feature
+                Upgrade your Node-RED Version to enable this feature
             </div>
         </div>
         <div class="space-x-4 whitespace-nowrap">
