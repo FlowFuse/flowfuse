@@ -68,6 +68,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('project:edit')
     }, async (request, reply) => {
         await request.project.clearCustomHostname()
+        app.db.controllers.Project.setInflightState(request.project, 'starting')
         await restartInstance(request.project, request.session.User)
         reply.status(204).send({})
     })
