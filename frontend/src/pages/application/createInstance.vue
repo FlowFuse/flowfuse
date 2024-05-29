@@ -71,7 +71,10 @@ export default {
     mixins: [applicationMixin],
     inheritAttrs: false,
     props: {
-
+        sourceInstanceId: {
+            default: null,
+            type: String
+        }
     },
     emits: ['application-updated'],
     data () {
