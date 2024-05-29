@@ -15,21 +15,37 @@
         </SideNavigation>
     </Teleport>
     <ff-page>
-        <div class="max-w-2xl m-auto">
-            <ff-loading v-if="isLoading" />
-            <ff-loading v-else-if="sourceInstanceId && !sourceInstance" message="Loading instance to Copy From..." />
-            <InstanceForm
-                v-else
-                :instance="instanceDetails"
-                :source-instance="sourceInstance"
-                :team="team"
-                :applicationFieldsLocked="!!application?.id"
-                :billing-enabled="!!features.billing"
-                :flow-blueprints-enabled="!!features.flowBlueprints"
-                :submit-errors="errors"
-                @on-submit="handleFormSubmit"
-            />
-        </div>
+        <template #header>
+            <ff-page-header title="Instances">
+                <template #custom-breadcrumbs>
+                    <ff-nav-breadcrumb v-if="team" :to="{name: 'Applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb v-if="team" :to="{name: 'Application', params: {id: application.id}}">
+                        {{ application.name }}
+                    </ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb>
+                        Create Instance
+                    </ff-nav-breadcrumb>
+                </template>
+                <template #context>
+                    Let's get your new Node-RED instance setup in no time.
+                </template>
+            </ff-page-header>
+        </template>
+
+        <ff-loading v-if="isLoading" />
+        <ff-loading v-else-if="sourceInstanceId && !sourceInstance" message="Loading instance to Copy From..." />
+        <InstanceForm
+            v-else
+            :has-header="false"
+            :instance="instanceDetails"
+            :source-instance="sourceInstance"
+            :team="team"
+            :applicationFieldsLocked="!!application?.id"
+            :billing-enabled="!!features.billing"
+            :flow-blueprints-enabled="!!features.flowBlueprints"
+            :submit-errors="errors"
+            @on-submit="handleFormSubmit"
+        />
     </ff-page>
 </template>
 
@@ -41,6 +57,7 @@ import instanceApi from '../../api/instances.js'
 
 import NavItem from '../../components/NavItem.vue'
 import SideNavigation from '../../components/SideNavigation.vue'
+import applicationMixin from '../../mixins/Application.js'
 import Alerts from '../../services/alerts.js'
 import InstanceForm from '../instance/components/InstanceForm.vue'
 
@@ -51,12 +68,9 @@ export default {
         NavItem,
         SideNavigation
     },
+    mixins: [applicationMixin],
     inheritAttrs: false,
     props: {
-        application: {
-            required: true,
-            type: Object
-        },
         sourceInstanceId: {
             default: null,
             type: String
@@ -83,7 +97,9 @@ export default {
             return this.loading || !this.team
         }
     },
-    created () {
+    async created () {
+        await this.updateApplication()
+
         if (this.sourceInstanceId) {
             instanceApi.getInstance(this.sourceInstanceId).then(instance => {
                 this.sourceInstance = instance
@@ -139,6 +155,8 @@ export default {
 
             return instanceApi.create(createPayload)
         }
+
     }
+
 }
 </script>
