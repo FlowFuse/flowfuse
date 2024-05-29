@@ -17,6 +17,7 @@ module.exports = {
                 this.setDataValue('domainFilter', value)
             }
         },
+        type: { type: DataTypes.ENUM(['saml', 'ldap']), defaultValue: 'saml' },
         active: { type: DataTypes.BOOLEAN, defaultValue: true },
         acsURL: { type: DataTypes.VIRTUAL, get () { return process.env.FLOWFORGE_BASE_URL + '/ee/sso/login/callback' } },
         entityID: { type: DataTypes.VIRTUAL, get () { return process.env.FLOWFORGE_BASE_URL + '/ee/sso/entity/' + this.hashid } },
