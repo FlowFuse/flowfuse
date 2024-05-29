@@ -1,15 +1,9 @@
 <template>
-    <Teleport
-        v-if="mounted"
-        to="#platform-sidenav"
-    >
+    <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigation>
             <template #options>
                 <a @click="$router.back()">
-                    <nav-item
-                        :icon="icons.chevronLeft"
-                        label="Back"
-                    />
+                    <nav-item :icon="icons.chevronLeft" label="Back" />
                 </a>
             </template>
         </SideNavigation>

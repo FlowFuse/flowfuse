@@ -80,11 +80,15 @@
                 </template>
             </div>
             <div v-if="error" data-el="form-row-error" class="ml-4 text-red-400 text-xs">{{ error }}</div>
+            <div v-if="hasAppendedDescription" data-el="form-row-description" class="ff-description mb-2 space-y-1">
+                <slot name="appended-description" />
+            </div>
         </template>
     </div>
 </template>
 <script>
 import { ref } from 'vue'
+
 let instanceCount = 0
 export default {
     name: 'FormRow',
@@ -106,6 +110,7 @@ export default {
     },
     setup (props, { slots }) {
         const hasTitle = ref(false)
+        const hasAppendedDescription = ref(false)
         const hasDescription = ref(false)
         const hasAppend = ref(false)
         const hasCustomInput = ref(false)
@@ -114,6 +119,9 @@ export default {
         }
         if (slots.description && slots.description().length) {
             hasDescription.value = true
+        }
+        if (slots['appended-description'] && slots['appended-description']().length) {
+            hasAppendedDescription.value = true
         }
         if (slots.append && slots.append().length) {
             hasAppend.value = true
@@ -124,6 +132,7 @@ export default {
         return {
             hasTitle,
             hasDescription,
+            hasAppendedDescription,
             hasAppend,
             hasCustomInput
         }
