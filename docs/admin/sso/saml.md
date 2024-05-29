@@ -4,6 +4,8 @@ navTitle: SAML SSO
 
 # Configuring SAML based Single Sign-On
 
+_This feature is only available on self-hosted Enterprise licensed instances of FlowFuse._
+
 The SSO Configurations are managed by the platform Administrator under the
 `Admin Settings > Settings > SSO` section.
 
@@ -131,8 +133,8 @@ The following table maps the Entra terminology to the FlowFuse settings.
 FlowFuse Setting | Entra Setting
 ----|----
 `ACS URL` | `Reply URL (Assertion Consumer Service URL)`
-`Identity Provider Single Sign-On URL` | `App Federation Metadata Url`
-`Identity Provider Issuer ID / URL` | `Entity ID`
+`Identity Provider Single Sign-On URL` | `Login URL`
+`Identity Provider Issuer ID / URL` | `Microsoft Entra Identifier`
 `X.509 Certificate Public Key` | `Certificate (Base64)`
 
 Within the `SAML Signing Certificate` configuration, the `Signing Option` must be set to `Sign SAML response and assertion`.

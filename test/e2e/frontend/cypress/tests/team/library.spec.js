@@ -9,6 +9,8 @@ describe('FlowForge - Library', () => {
             cy.visit('team/ateam/library')
 
             cy.get('[data-el="page-name"]').contains('Library')
+            cy.get('[data-el="ff-tab"]').contains('Blueprints').click()
+
             cy.contains('Shared repository to store common flows and nodes.')
             cy.contains('No Blueprints Available')
             cy.contains('This is a FlowFuse Premium feature. Please upgrade your instance of FlowFuse in order to use it.')
@@ -18,7 +20,6 @@ describe('FlowForge - Library', () => {
         it('should load the Library page and display the unavailable feature banner for Team Library tab', () => {
             cy.visit('team/ateam/library')
 
-            cy.get('[data-el="ff-tab"]').contains('Team Library').click()
             cy.contains('Create your own Team Library')
             cy.contains('This is a FlowFuse Premium feature. Please upgrade your instance of FlowFuse in order to use it.')
         })

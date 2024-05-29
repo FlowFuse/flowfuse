@@ -5,12 +5,10 @@
         class="space-y-6"
         @submit.prevent="$emit('on-submit', input, copyParts)"
     >
-        <SectionTopMenu
-            :hero="creatingNew ? (creatingApplication ? 'Create a new Application' : 'Create Instance') : 'Update Instance'"
-        />
+        <SectionTopMenu v-if="hasHeader" :hero="heroTitle" />
 
         <!-- Form title -->
-        <div class="mb-8 text-sm text-gray-500">
+        <div v-if="hasHeader" class="mb-8 text-sm text-gray-500">
             <template v-if="creatingNew">
                 <template v-if="!creatingApplication || applicationSelection">
                     Let's get your new Node-RED instance setup in no time.
@@ -79,11 +77,24 @@
             </template>
             <template v-else>
                 <div v-if="creatingNew && flowBlueprintsEnabled && atLeastOneFlowBlueprint && !isCopyProject">
-                    <div class="max-w-sm" data-form="blueprint">
+                    <div data-form="blueprint">
                         <label class="block text-sm font-medium text-gray-800 mb-2">Blueprint:</label>
-                        <BlueprintTileSmall :blueprint="selectedBlueprint" />
-                        <div v-if="showFlowBlueprintSelection" class="mt-1" data-action="choose-blueprint">
-                            <span class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline inline items-center text-sm" @click="input.flowBlueprintId = ''">Choose a different Blueprint</span>
+                        <BlueprintTileSmall :blueprint="selectedBlueprint" @click="previewBlueprint" />
+                        <div v-if="showFlowBlueprintSelection" class="mt-2 flex gap-4" data-action="blueprint-actions">
+                            <div
+                                class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline text-sm flex gap-1 items-center"
+                                @click="previewBlueprint(selectedBlueprint)"
+                            >
+                                <ProjectIcon class="ff-btn--icon" />
+                                <span>Preview Blueprint</span>
+                            </div>
+                            <div
+                                class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline text-sm flex gap-1 items-center"
+                                @click="input.flowBlueprintId = ''"
+                            >
+                                <FolderIcon class="ff-btn--icon" />
+                                <span>Choose a different Blueprint</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -140,7 +151,7 @@
                             data-form="project-type"
                         >
                             <ff-tile-selection-option
-                                v-for="(projType, index) in projectTypes"
+                                v-for="(projType, index) in filteredProjectTypes"
                                 :key="index"
                                 :label="projType.name"
                                 :description="projType.description"
@@ -227,6 +238,7 @@
                             :project-type="selectedProjectType"
                             :subscription="subscription"
                             :trialMode="isTrialProjectSelected"
+                            :prorationMode="team?.type?.properties?.billing?.proration"
                         />
                     </div>
                 </template>
@@ -262,11 +274,12 @@
                 No changes have been made
             </label>
         </div>
+        <AssetDetailDialog ref="flow-renderer-dialog" />
     </form>
 </template>
 
 <script>
-import { RefreshIcon } from '@heroicons/vue/outline'
+import { FolderIcon, RefreshIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
 import billingApi from '../../../api/billing.js'
@@ -278,6 +291,9 @@ import templatesApi from '../../../api/templates.js'
 import FormRow from '../../../components/FormRow.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
+import AssetDetailDialog from '../../../components/dialogs/AssetDetailDialog.vue'
+
+import ProjectIcon from '../../../components/icons/Projects.js'
 
 import NameGenerator from '../../../utils/name-generator/index.js'
 
@@ -291,6 +307,8 @@ import InstanceCreditBanner from './InstanceCreditBanner.vue'
 export default {
     name: 'InstanceForm',
     components: {
+        AssetDetailDialog,
+        FolderIcon,
         ExportInstanceComponents,
         FeatureUnavailableToTeam,
         FormRow,
@@ -299,7 +317,8 @@ export default {
         RefreshIcon,
         SectionTopMenu,
         BlueprintSelection,
-        BlueprintTileSmall
+        BlueprintTileSmall,
+        ProjectIcon
     },
     props: {
         team: {
@@ -350,6 +369,10 @@ export default {
         preDefinedInputs: {
             default: null,
             type: Object
+        },
+        hasHeader: {
+            default: true,
+            type: Boolean
         }
     },
     emits: ['on-submit'],
@@ -483,6 +506,12 @@ export default {
         },
         blueprintSelectionVisible () {
             return this.creatingNew && this.showFlowBlueprintSelection && !this.input.flowBlueprintId
+        },
+        heroTitle () {
+            return this.creatingNew ? (this.creatingApplication ? 'Create a new Application' : 'Create Instance') : 'Update Instance'
+        },
+        filteredProjectTypes () {
+            return this.projectTypes.filter(pt => !pt.disabled)
         }
     },
     watch: {
@@ -728,6 +757,9 @@ export default {
         },
         selectBlueprint (blueprint) {
             this.input.flowBlueprintId = blueprint.id
+        },
+        previewBlueprint (blueprint) {
+            this.$refs['flow-renderer-dialog'].show(blueprint)
         }
     }
 }

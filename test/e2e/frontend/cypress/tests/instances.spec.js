@@ -220,10 +220,37 @@ describe('FlowForge - Instances', () => {
 
     it('can be created', () => {
         cy.intercept('POST', '/api/*/projects').as('createInstance')
+        cy.intercept('GET', 'api/v1/project-types', (req) => req.reply(res => {
+            const disabledInstance = {
+                id: 'kRPW9AWzmw',
+                name: 'Disabled Instance Type',
+                active: true,
+                disabled: true,
+                description: 'disabled project type description',
+                order: 1,
+                properties: {},
+                createdAt: '2024-05-27T10:59:36.469Z',
+                defaultStack: null,
+                instanceCount: 9,
+                stackCount: 2
+            }
+            res.body = {
+                ...res.body,
+                ...{
+                    types: [
+                        ...res.body.types,
+                        disabledInstance
+                    ]
+                }
+            }
+            return res
+        })).as('getProjectTypes')
         const INSTANCE_NAME = `new-instance-${Math.random().toString(36).substring(2, 7)}`
 
         navigateToInstances('ATeam')
         cy.get('[data-action="create-project"]').click()
+
+        cy.wait('@getProjectTypes')
         cy.url().should('include', '/ateam/instances/create')
 
         cy.get('[data-action="create-project"]').should('be.disabled')
@@ -239,6 +266,9 @@ describe('FlowForge - Instances', () => {
 
         // select instance type
         cy.get('[data-form="project-type"]').contains('type1').click()
+
+        // disabled instance types should not be visible
+        cy.get('[data-form="project-type"]').contains('Disabled Instance Type').should('not.exist')
 
         cy.get('[data-form="project-template"]').should('exist') // template section visible for create
 

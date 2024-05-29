@@ -120,16 +120,10 @@ for teams to use.
 
 ### Managing Stacks
 
-The Stacks page can be used to manage the Stacks on the platform.
+> Admin Settings > Stacks
 
-It can be used to create and edit the stacks on the platform.
-
-You can create a new version of an existing stack via the
-drop-down menu in the stack table. This allows the platform to notify users
-that an update is available for their instance, allowing them to upgrade the stack
-at their convenience.
-
-It is *not* possible to edit a stack that is being used by Instances.
+The Stacks page can be used to manage the Stacks on the platform. It can be used
+to create and edit the stacks on the platform.
 
 For Deployment specific information about working with stacks, refer to the
 documentation of your chosen deployment model:
@@ -137,6 +131,41 @@ documentation of your chosen deployment model:
  - [Local Stacks](/docs/install/local/stacks.md)
  - [Docker Stacks](/docs/install/docker/stacks.md)
  - [Kubernetes Stacks](/docs/install/kubernetes/stacks.md)
+
+#### Create Stack
+
+##### Upgrading Stacks
+
+You can create a new version of an existing stack via the
+drop-down menu in the stack table. This allows the platform to notify users
+that an update is available for their instance, allowing them to upgrade the stack
+at their convenience.
+
+![Screenshot of FlowFuse showing where admins can create new stacks](./images/admin-stacks-create-new-version.png){data-zoomable}
+<em>Screenshot of FlowFuse showing where admins can create new stacks</em>
+
+Node-RED instances that use the old stack will offer the new stack as a one-click upgrade option.
+
+##### Create New Stack
+
+Alternatively, click 'Create stack' to create an entirely new stack.
+
+![Screenshot of FlowFuse showing the "Create Stack" dialog](./images/admin-stack-create.png){data-zoomable}
+<em>Screenshot of FlowFuse showing the "Create Stack" dialog</em>
+
+When prompted for the Node-RED version, the value here depends on the setup you're running:
+
+- **Local**: Provide the exact stack name (Node-RED version) that was installed. For example,
+if you ran the script with `latest` and it resulted in `3.1.9` being installed, you should enter `3.1.9`.
+This must match the directory name created in your `stacks` directory. If you changed the
+directory name for any reason, make sure to use that name.
+- **Docker**: Support the container image name ([docs](/docs/install/docker/stacks.md))
+- **k8s**: Support the container image name ([docs](/docs/install/kubernetes/stacks.md))
+
+#### Updating Stacks
+
+It is *not* possible to edit a stack that is being used by Instances.
+
 
 ### Managing Templates
 

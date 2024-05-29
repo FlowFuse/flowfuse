@@ -1,5 +1,10 @@
 <template>
-    <div v-ff-tooltip="blueprint.description" class="ff-blueprint-tile-sm" :class="'ff-blueprint-group--' + categoryClass">
+    <div
+        v-ff-tooltip="blueprint.description"
+        class="ff-blueprint-tile-sm cursor-pointer" :class="'ff-blueprint-group--' + categoryClass"
+        data-action="click-small-blueprint-tile"
+        @click="onClick"
+    >
         <div class="ff-blueprint-tile--header">
             <component :is="getIcon(blueprint.icon)" class="ff-icon" />
         </div>
@@ -21,6 +26,7 @@ export default {
             type: Object
         }
     },
+    emits: ['click'],
     computed: {
         categoryClass () {
             // to lower case and strip spaces
@@ -48,6 +54,9 @@ export default {
                 }
                 return icon
             })
+        },
+        onClick () {
+            this.$emit('click', this.blueprint)
         }
     }
 }

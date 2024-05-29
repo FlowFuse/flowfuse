@@ -4,6 +4,8 @@ navTitle: LDAP SSO
 
 # Configuring LDAP based Single Sign-On
 
+_This feature is only available on self-hosted Enterprise licensed instances of FlowFuse._
+
 The SSO Configurations are managed by the platform Administrator under the
 `Admin Settings > Settings > SSO` section.
 

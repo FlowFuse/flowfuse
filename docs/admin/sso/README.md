@@ -39,5 +39,3 @@ address in User Settings.
   - [Configuring LDAP SSO](ldap)
 
 
-
- 

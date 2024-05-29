@@ -170,6 +170,7 @@
     <TeamDeviceCreateDialog
         ref="teamDeviceCreateDialog"
         :team="team"
+        :teamDeviceCount="teamDeviceCount"
         @device-created="deviceCreated"
         @device-updated="deviceUpdated"
     >

@@ -28,16 +28,16 @@ export default {
         return {
             navigation: [
                 {
+                    label: 'Team Library',
+                    to: {
+                        name: 'LibraryTeamLibrary'
+                    }
+                },
+                {
                     label: 'Blueprints',
                     to: {
                         name: 'LibraryBlueprints'
 
-                    }
-                },
-                {
-                    label: 'Team Library',
-                    to: {
-                        name: 'LibraryTeamLibrary'
                     }
                 }
             ]
