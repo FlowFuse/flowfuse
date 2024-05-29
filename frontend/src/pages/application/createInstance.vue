@@ -16,14 +16,8 @@
     </Teleport>
     <ff-page>
         <div class="max-w-2xl m-auto">
-            <ff-loading
-                v-if="loading"
-                message="Creating instance..."
-            />
-            <ff-loading
-                v-else-if="sourceInstanceId && !sourceInstance"
-                message="Loading instance to Copy From..."
-            />
+            <ff-loading v-if="isLoading" />
+            <ff-loading v-else-if="sourceInstanceId && !sourceInstance" message="Loading instance to Copy From..." />
             <InstanceForm
                 v-else
                 :instance="instanceDetails"
@@ -84,7 +78,10 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'team'])
+        ...mapState('account', ['features', 'team']),
+        isLoading () {
+            return this.loading || !this.team
+        }
     },
     created () {
         if (this.sourceInstanceId) {
@@ -107,7 +104,6 @@ export default {
 
             try {
                 await this.createInstance(instanceFields, copyParts)
-
                 await this.$store.dispatch('account/refreshTeam')
 
                 this.$emit('application-updated')
