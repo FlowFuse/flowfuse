@@ -1,7 +1,7 @@
 <template>
     <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the runtime limit for this team." />
     <FeatureUnavailableToTeam v-else-if="teamInstanceLimitReached" fullMessage="You have reached the instance limit for this team." />
-    <form class="space-y-6" @submit.prevent="$emit('on-submit', input, copyParts)">
+    <form class="space-y-6" @submit.prevent="onSubmit">
         <SectionTopMenu v-if="hasHeader" :hero="heroTitle" />
         <!-- Form title -->
         <div v-if="hasHeader" class="mb-8 text-sm text-gray-500">
@@ -31,7 +31,7 @@
                     Application
                 </template>
             </FormRow>
-            <div class="italic text-gray-500 pl-1 pt-0.5 text-sm .max-w-sm truncate">{{ selectedApplication?.description || '' }}</div>
+            <div class="italic text-gray-500 pl-1 pt-0.5 text-sm truncate">{{ selectedApplication?.description || '' }}</div>
         </div>
         <!-- No Existing Applications, or we are creating a new one -->
         <div v-else-if="creatingApplication" class="space-y-6">
@@ -100,13 +100,18 @@
                         v-model="input.name"
                         :error="errors.name || submitErrors?.name"
                         :disabled="!creatingNew"
+                        container-class="max-w-xl"
                         data-form="project-name"
                     >
                         <template #default>
                             Instance Name
                         </template>
                         <template v-if="creatingNew" #appended-description>
-                            The instance name is used to access the editor so must be suitable for using in a url. It is not currently possible to rename the instance after it has been created.
+                            <p v-if="hasValidName" class="instance-name-confirmation">
+                                <CheckCircleIcon class="ff-btn--icon" />
+                                <span>Your instance will be created as "<i>{{ instanceName }}</i>".</span>
+                            </p>
+                            The instance name is used to access the editor, so it must be suitable for use in a URL. It is not currently possible to rename the instance after it has been created.
                         </template>
                         <template v-if="creatingNew" #append>
                             <ff-button kind="secondary" @click="refreshName">
@@ -225,7 +230,7 @@
 </template>
 
 <script>
-import { FolderIcon, RefreshIcon } from '@heroicons/vue/outline'
+import { CheckCircleIcon, FolderIcon, RefreshIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
 import billingApi from '../../../api/billing.js'
@@ -240,6 +245,7 @@ import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavail
 import AssetDetailDialog from '../../../components/dialogs/AssetDetailDialog.vue'
 
 import ProjectIcon from '../../../components/icons/Projects.js'
+import { capitalize } from '../../../composables/String.js'
 
 import NameGenerator from '../../../utils/name-generator/index.js'
 
@@ -264,6 +270,7 @@ export default {
         SectionTopMenu,
         BlueprintSelection,
         BlueprintTileSmall,
+        CheckCircleIcon,
         ProjectIcon
     },
     props: {
@@ -348,7 +355,7 @@ export default {
                 createInstance: true,
 
                 // Only read name from existing project, never source
-                name: this.instance?.name || NameGenerator(),
+                name: this.instance?.name || capitalize(NameGenerator()),
 
                 // Handle both full instance objects and short-form instance details
                 projectType: instance?.projectType?.id || instance?.projectType || '',
@@ -458,11 +465,17 @@ export default {
         },
         filteredProjectTypes () {
             return this.projectTypes.filter(pt => !pt.disabled)
+        },
+        instanceName () {
+            return this.input.name.trim().replace(/\s/g, '-').toLowerCase()
+        },
+        hasValidName () {
+            return this.validateName(this.input.name)
         }
     },
     watch: {
         'input.name': function (value) {
-            if (/^[a-zA-Z][a-zA-Z0-9-]*$/.test(value)) {
+            if (this.validateName(value)) {
                 this.errors.name = ''
             } else {
                 this.errors.name = 'Names must only include a→z, A→Z, -, 0→9 and can not start with 0→9'
@@ -646,7 +659,10 @@ export default {
     },
     methods: {
         refreshName () {
-            this.input.name = NameGenerator()
+            this.input.name = capitalize(NameGenerator())
+        },
+        validateName (value) {
+            return /^[a-zA-Z][a-zA-Z0-9-\s]*$/.test(value)
         },
         findStackById (stackId) {
             return this.stacks.find(stack => stack.id === stackId)
@@ -706,7 +722,26 @@ export default {
         },
         previewBlueprint (blueprint) {
             this.$refs['flow-renderer-dialog'].show(blueprint)
+        },
+        onSubmit () {
+            this.$emit(
+                'on-submit',
+                {
+                    ...this.input,
+                    name: this.instanceName
+                },
+                this.copyParts
+            )
         }
     }
 }
 </script>
+
+<style scoped lang="scss">
+.instance-name-confirmation {
+  margin: 5px 0;
+  display: flex;
+  gap: 5px;
+  color: $ff-green-600;
+}
+</style>
