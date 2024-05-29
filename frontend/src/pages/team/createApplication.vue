@@ -12,28 +12,25 @@
         <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
     </Teleport>
     <ff-page>
-        <template #header>
-            <ff-page-header title="Applications">
-                <template #context>
-                    Let's get your new Node-RED application setup in no time.
-                </template>
-            </ff-page-header>
-        </template>
-        <ff-loading v-if="loading" message="Creating Application..." />
-        <InstanceForm
-            v-else
-            :instance="projectDetails"
-            :has-header="false"
-            :applications="applications"
-            :applicationSelection="applicationCreated"
-            :team="team"
-            :applicationFieldsLocked="applicationCreated"
-            :applicationFieldsVisible="true"
-            :billing-enabled="!!features.billing"
-            :flow-blueprints-enabled="!!features.flowBlueprints"
-            :submit-errors="errors"
-            @on-submit="handleFormSubmit"
-        />
+        <div class="max-w-2xl m-auto">
+            <ff-loading
+                v-if="loading"
+                message="Creating Application..."
+            />
+            <InstanceForm
+                v-else
+                :instance="projectDetails"
+                :applications="applications"
+                :applicationSelection="applicationCreated"
+                :team="team"
+                :applicationFieldsLocked="applicationCreated"
+                :applicationFieldsVisible="true"
+                :billing-enabled="!!features.billing"
+                :flow-blueprints-enabled="!!features.flowBlueprints"
+                :submit-errors="errors"
+                @on-submit="handleFormSubmit"
+            />
+        </div>
     </ff-page>
 </template>
 
