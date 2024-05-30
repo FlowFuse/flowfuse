@@ -112,6 +112,8 @@ export default {
 <style lang="scss">
 .ff-blueprint-tile {
   background-color: $ff-white;
+  width: 250px;
+
   .ff-dialog-container {
     .ff-dialog-box {
       max-width: 75rem;

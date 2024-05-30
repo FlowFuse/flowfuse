@@ -271,7 +271,7 @@ describe('Snapshots API', function () {
                 response.json().should.have.property('code', 'not_found')
             })
 
-            it('Snapshot contains only meta data', async function () {
+            it('Device Snapshot contains only meta data', async function () {
                 const snapshotResponse = await createSnapshot()
                 const result = snapshotResponse.json()
 
@@ -280,7 +280,12 @@ describe('Snapshots API', function () {
                 response.statusCode.should.equal(200)
                 const data = response.json()
                 should(data).be.an.Object()
-                data.should.only.have.keys('id', 'name', 'description')
+                if (kind === 'device') {
+                    data.should.only.have.keys('id', 'name', 'description', 'createdAt', 'updatedAt', 'user', 'ownerType', 'modules', 'deviceId', 'device')
+                } else {
+                    data.should.only.have.keys('id', 'name', 'description', 'createdAt', 'updatedAt', 'user', 'ownerType', 'modules', 'projectId', 'project')
+                }
+                data.should.not.have.keys('settings', 'flows', 'credentialSecret')
                 data.should.have.property('id', result.id)
                 data.should.have.property('name', result.name)
                 data.should.have.property('description', result.description)

@@ -131,10 +131,39 @@ You will need to setup the version(s) of Node-RED you want to use in your stacks
 From the `flowfuse` directory run
 
 ```bash
-npm run install-stack --vers=3.0.2
+npm run install-stack --vers=3.1.9
 ```
 
-Where `3.0.2` is the version of Node-RED you want to use in the stack.
+Where `3.1.9` is the version of Node-RED you want to use in the stack.
+
+#### Working with Local Nodes
+
+If you want to test local, in-development nodes in FlowFuse, you can create a dedicated stack for this purpose.
+
+```bash
+npm run install-stack --vers=3.1.9
+```
+
+Navigate to the stacks directory:
+
+```bash
+cd /var/stacks
+```
+
+Rename the directory to something more appropriate:
+
+```bash
+mv "3.1.9" "3.1.9-local"
+```
+
+Install your local repository directly into the stack:
+
+```bash
+cd 3.1.9-local
+npm install /path/to/your/nodes-repo
+```
+
+With your stack created from the terminal, you can now add it via the FlowFuse Admin UI - see [Managing Stacks](/docs/admin/introduction/#create-new-stack).
 
 ### Running FlowFuse
 

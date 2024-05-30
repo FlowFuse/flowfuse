@@ -5,10 +5,13 @@
                 <slot name="hero">
                     <div class="flex-grow items-center grid gap-1">
                         <div class="inline-flex flex-wrap gap-1">
-                            <div class="flex items-center mr-6">
+                            <div v-if="!hasCustomBreadcrumbs" class="flex items-center mr-6">
                                 <slot name="breadcrumbs" />
                                 <ff-nav-breadcrumb data-el="page-name" data-cy="page-name">{{ title }}</ff-nav-breadcrumb>
                                 <InformationCircleIcon v-if="hasInfoDialog" class="ml-3 min-w-[20px] ff-icon text-gray-800 cursor-pointer hover:text-blue-700" @click="openInfoDialog()" />
+                            </div>
+                            <div v-else class="flex items-center mr-6">
+                                <slot name="custom-breadcrumbs" />
                             </div>
                             <slot name="status" />
                         </div>
@@ -66,6 +69,9 @@ export default {
     computed: {
         hasInfoDialog () {
             return !!this.$slots.helptext
+        },
+        hasCustomBreadcrumbs () {
+            return !!this.$slots['custom-breadcrumbs']
         }
     },
     methods: {

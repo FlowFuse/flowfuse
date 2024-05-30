@@ -1,6 +1,26 @@
 import multipleBlueprints from '../../fixtures/blueprints/multiple-blueprints.json'
 import singleBlueprint from '../../fixtures/blueprints/single-blueprint.json'
 
+const canPreviewBlueprintByClickingTheBlueprintTile = () => {
+    cy.get('[data-el="flow-view-dialog"]').should('not.be.visible')
+    cy.get('[data-action="click-small-blueprint-tile"]').should('exist')
+    cy.get('[data-action="click-small-blueprint-tile"]').click()
+    cy.get('[data-el="flow-view-dialog"]').should('be.visible')
+    cy.get('[data-el="flow-view-dialog"]').within(() => {
+        cy.get('[data-action="dialog-confirm"]').click()
+    })
+}
+
+const canPreviewBlueprintByClickingThePreviewBlueprintButton = () => {
+    cy.get('[data-el="flow-view-dialog"]').should('not.be.visible')
+    cy.get('[data-action="blueprint-actions"]').should('exist')
+    cy.get('[data-action="blueprint-actions"]').contains('Preview Blueprint').click()
+    cy.get('[data-el="flow-view-dialog"]').should('be.visible')
+    cy.get('[data-el="flow-view-dialog"]').within(() => {
+        cy.get('[data-action="dialog-confirm"]').click()
+    })
+}
+
 describe('FlowForge - Blueprints', () => {
     // Blueprint Details
     const NAME = 'Test Blueprint'
@@ -71,7 +91,9 @@ describe('FlowForge - Blueprints', () => {
         cy.get('[data-form="blueprint"]').should('exist')
         cy.get('[data-form="blueprint"]').contains(singleBlueprint.blueprints[0].name)
 
-        cy.get('[data-action="choose-blueprint"]').should('not.exist')
+        canPreviewBlueprintByClickingTheBlueprintTile()
+
+        cy.get('[data-action="blueprint-actions"]').should('not.exist')
 
         cy.get('[data-form="blueprint-selection"]').should('not.exist')
         cy.get('[data-form="project-name"]').should('exist')
@@ -85,8 +107,11 @@ describe('FlowForge - Blueprints', () => {
         cy.get('[data-form="blueprint"]').should('exist')
         cy.get('[data-form="blueprint"]').contains(multipleBlueprints.blueprints[0].name)
 
-        cy.get('[data-action="choose-blueprint"]').should('exist')
-        cy.get('[data-action="choose-blueprint"] span').click()
+        canPreviewBlueprintByClickingTheBlueprintTile()
+        canPreviewBlueprintByClickingThePreviewBlueprintButton()
+
+        cy.get('[data-action="blueprint-actions"]').should('exist')
+        cy.get('[data-action="blueprint-actions"]').contains('Choose a different Blueprint').click()
 
         cy.get('[data-form="blueprint-selection"]').should('exist')
         cy.get('[data-form="project-name"]').should('not.exist')
@@ -121,6 +146,8 @@ describe('FlowForge - Blueprints', () => {
 
                 cy.get('[data-form="blueprint"]').should('exist')
                 cy.get('[data-form="blueprint"]').contains(defaultBlueprint.name)
+
+                canPreviewBlueprintByClickingTheBlueprintTile()
 
                 // fill out form
 

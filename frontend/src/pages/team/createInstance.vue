@@ -1,38 +1,36 @@
 <template>
-    <Teleport
-        v-if="mounted"
-        to="#platform-sidenav"
-    >
+    <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigation>
             <template #options>
                 <a @click="$router.back()">
-                    <nav-item
-                        :icon="icons.chevronLeft"
-                        label="Back"
-                    />
+                    <nav-item :icon="icons.chevronLeft" label="Back" />
                 </a>
             </template>
         </SideNavigation>
     </Teleport>
     <ff-page>
-        <div class="max-w-2xl m-auto">
-            <ff-loading
-                v-if="loading"
-                message="Creating instance..."
-            />
-            <InstanceForm
-                v-else
-                :instance="instanceDetails"
-                :team="team"
-                :applicationSelection="true"
-                :applications="applications"
-                :billing-enabled="!!features.billing"
-                :flow-blueprints-enabled="!!features.flowBlueprints"
-                :submit-errors="errors"
-                :pre-defined-inputs="preDefinedInputs"
-                @on-submit="handleFormSubmit"
-            />
-        </div>
+        <template #header>
+            <ff-page-header title="Instances">
+                <template #context>
+                    Let's get your new Node-RED instance setup in no time.
+                </template>
+            </ff-page-header>
+        </template>
+
+        <ff-loading v-if="loading" message="Creating instance..." />
+        <InstanceForm
+            v-else
+            :instance="instanceDetails"
+            :team="team"
+            :applicationSelection="true"
+            :applications="applications"
+            :billing-enabled="!!features.billing"
+            :flow-blueprints-enabled="!!features.flowBlueprints"
+            :submit-errors="errors"
+            :pre-defined-inputs="preDefinedInputs"
+            :has-header="false"
+            @on-submit="handleFormSubmit"
+        />
     </ff-page>
 </template>
 

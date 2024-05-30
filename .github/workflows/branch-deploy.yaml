@@ -180,7 +180,7 @@ jobs:
       PR_NUMBER: ${{ github.event.number }}
     steps:
       - name: Configure AWS credentials for EKS interaction
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}

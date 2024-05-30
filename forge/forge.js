@@ -239,7 +239,7 @@ module.exports = async (options = {}) => {
                         'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
                         'worker-src': ["'self'", 'blob:'],
                         'connect-src': ["'self'"],
-                        'img-src': ["'self'", 'data:', 'www.gravatar.com'],
+                        'img-src': ["'self'", 'data:', 'flowfuse.com', 'www.gravatar.com'],
                         'font-src': ["'self'"],
                         'style-src': ["'self'", 'https:', "'unsafe-inline'"],
                         'upgrade-insecure-requests': null

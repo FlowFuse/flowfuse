@@ -34,7 +34,7 @@
                     </div>
                 </div>
                 <!-- TeamType Type -->
-                <div class="grid grid-1">
+                <div class="grid">
                     <ff-tile-selection v-model="input.teamTypeId" data-form="team-type">
                         <ff-tile-selection-option
                             v-for="(teamType, index) in teamTypes" :key="index"

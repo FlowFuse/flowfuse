@@ -309,18 +309,18 @@
     </template>
     <template v-else-if="entry.event === 'platform.stack.created'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.stack">Stack '{{ entry.body.stack.name }}' has been created.</span>
-        <span v-else-if="!error">Stack data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.stack">Node-RED Version '{{ entry.body.stack.name }}' has been created.</span>
+        <span v-else-if="!error">Node-RED Version data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'platform.stack.deleted'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.stack">Stack '{{ entry.body.stack.name }}' has been deleted.</span>
-        <span v-else-if="!error">Stack data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.stack">Node-RED Version '{{ entry.body.stack.name }}' has been deleted.</span>
+        <span v-else-if="!error">Node-RED Version data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'platform.stack.updated'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.stack">Stack '{{ entry.body.stack.name }}' has been updated with the following changes: <AuditEntryUpdates :updates="entry.body.updates" /></span>
-        <span v-else-if="!error">Stack data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.stack">Node-RED Version '{{ entry.body.stack.name }}' has been updated with the following changes: <AuditEntryUpdates :updates="entry.body.updates" /></span>
+        <span v-else-if="!error">Node-RED Version data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'platform.settings.updated' || entry.event === 'platform.settings.update'">
         <label>{{ AuditEvents[entry.event] }}</label>
@@ -518,12 +518,12 @@
     </template>
     <template v-else-if="entry.event === 'project.stack.changed'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project">The stack for Instance '{{ entry.body.project?.name }}' has been changed to Stack '{{ entry.body.stack?.name }}'</span>
+        <span v-if="!error && entry.body?.project">The Node-RED Version for Instance '{{ entry.body.project?.name }}' has been changed to Node-RED Version '{{ entry.body.stack?.name }}'</span>
         <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.stack.restart'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project">The stack for Instance '{{ entry.body.project?.name }}' has been restarted</span>
+        <span v-if="!error && entry.body?.project">The Node-RED Version for Instance '{{ entry.body.project?.name }}' has been restarted</span>
         <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.settings.updated'">
