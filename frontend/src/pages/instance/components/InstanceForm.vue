@@ -86,7 +86,7 @@
                             </div>
                             <div
                                 class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline text-sm flex gap-1 items-center"
-                                @click="input.flowBlueprintId = ''"
+                                @click="openBlueprintSelectorDialog"
                             >
                                 <FolderIcon class="ff-btn--icon" />
                                 <span>Choose a different Blueprint</span>
@@ -227,6 +227,13 @@
             </label>
         </div>
         <AssetDetailDialog ref="flow-renderer-dialog" />
+        <BlueprintSelectorDialog
+            v-if="blueprints.length"
+            ref="blueprint-selector-dialog"
+            :blueprints="blueprints"
+            :active-blueprint="selectedBlueprint"
+            @blueprint-updated="input.flowBlueprintId = $event.id"
+        />
     </form>
 </template>
 
@@ -244,6 +251,7 @@ import FormRow from '../../../components/FormRow.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 import AssetDetailDialog from '../../../components/dialogs/AssetDetailDialog.vue'
+import BlueprintSelectorDialog from '../../../components/dialogs/BlueprintSelectorDialog.vue'
 
 import ProjectIcon from '../../../components/icons/Projects.js'
 
@@ -260,6 +268,7 @@ export default {
     name: 'InstanceForm',
     components: {
         AssetDetailDialog,
+        BlueprintSelectorDialog,
         FolderIcon,
         ExportInstanceComponents,
         FeatureUnavailableToTeam,
@@ -719,6 +728,9 @@ export default {
         },
         selectBlueprint (blueprint) {
             this.input.flowBlueprintId = blueprint.id
+        },
+        openBlueprintSelectorDialog () {
+            this.$refs['blueprint-selector-dialog'].show()
         },
         previewBlueprint (blueprint) {
             this.$refs['flow-renderer-dialog'].show(blueprint)
