@@ -218,7 +218,7 @@ describe('FlowForge - Instances', () => {
 
         cy.wait('@getInstance')
 
-        cy.contains('type1 / stack1')
+        cy.contains('type1 / stack 1')
     })
 
     it('can be created', () => {
