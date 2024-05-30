@@ -72,13 +72,13 @@ module.exports = async function (settings = {}, config = {}) {
 
     // Platform Setup
     const template = await factory.createProjectTemplate({ name: 'template1' }, userAlice)
-    const stack = await factory.createStack({ name: 'stack1' }, projectType)
-    await factory.createStack({ name: 'stack2' }, projectType)
+    const stack = await factory.createStack({ name: 'stack1', label: 'stack 1' }, projectType)
+    await factory.createStack({ name: 'stack2', label: 'stack 2' }, projectType)
 
     // Unused templates and project types
     await factory.createProjectTemplate({ name: 'template2' }, userAlice)
     const spareProjectType = await factory.createProjectType({ name: 'type2' })
-    await factory.createStack({ name: 'stack1-for-type2' }, spareProjectType)
+    await factory.createStack({ name: 'stack1-for-type2', label: 'stack 1 for type2' }, spareProjectType)
 
     // Ensure projectTypes are allowed to be used by the default team type
     const teamType = await forge.db.models.TeamType.findOne({ where: { id: 1 } })
