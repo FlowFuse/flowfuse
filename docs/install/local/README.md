@@ -263,17 +263,17 @@ Please ensure you do this before the following steps.
 To upgrade to the latest release you can follow these steps. Replace `x.y.z` with the
 version you are upgrading to.
 
- 1. Stop FlowFuse `sudo service flowforge stop` [^2]
+ 1. Stop FlowFuse `sudo service flowfuse stop` [^2]
  2. Change into the `app` directory
     * `cd /opt/flowforge/app` (Linux/MacOS)
     * `cd c:\flowforge\app` (Windows)
  3. NPM install the desired version
-    * `sudo -u flowforge npm install @flowforge/flowforge@x.y.z` (Linux/MacOS) [^3]
-    * `npm install @flowforge/flowforge@x.y.z` (Windows)
+    * `sudo -u flowforge npm install @flowfuse/flowfuse@x.y.z` (Linux/MacOS) [^3]
+    * `npm install @flowfuse/flowfuse@x.y.z` (Windows)
  4. Check the release notes for any additional steps needed to upgrade the particular version
- 5. Restart FlowFuse `sudo service flowforge start` [^2]
+ 5. Restart FlowFuse `sudo service flowfuse start` [^2]
  
-If you are running as your normal user you can drop the `sudo -u flowforge` and just run `npm install @flowforge/flowforge@x.y.z`
+If you are running as your normal user you can drop the `sudo -u flowfuse` and just run `npm install @flowfuse/flowfuse@x.y.z`
 
 [^2]: Assumes you are running FlowFuse as a Linux service.
-[^3]: Assumes you are running FlowFuse as the `flowforge` user as created by the installer
+[^3]: Assumes you are running FlowFuse as the `flowfuse` user as created by the installer
