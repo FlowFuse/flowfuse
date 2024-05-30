@@ -10,7 +10,7 @@
                 </ff-button>
             </template>
         </SectionTopMenu>
-        <div data-el="blueprints" class="grid grid-cols-3 gap-4 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 max-w-screen-xl">
+        <div data-el="blueprints" class="flex flex-wrap gap-4 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 max-w-screen-xl">
             <BlueprintTile
                 v-for="(flowBlueprint, index) in activeFlowBlueprints"
                 :key="index"
