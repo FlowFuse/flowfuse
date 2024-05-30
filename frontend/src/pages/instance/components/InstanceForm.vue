@@ -67,144 +67,139 @@
         </FormRow>
 
         <div v-if="!creatingApplication || input.createInstance" :class="creatingApplication ? 'ml-6' : ''" class="space-y-6">
-            <template v-if="blueprintSelectionVisible">
-                <!-- Blueprints Selection First -->
-                <BlueprintSelection :blueprints="blueprints" @selected="selectBlueprint" />
-            </template>
-            <template v-else>
-                <div v-if="creatingNew && flowBlueprintsEnabled && atLeastOneFlowBlueprint && !isCopyProject">
-                    <div data-form="blueprint">
-                        <label class="block text-sm font-medium text-gray-800 mb-2">Blueprint:</label>
-                        <BlueprintTileSmall :blueprint="selectedBlueprint" @click="previewBlueprint" />
-                        <div v-if="showFlowBlueprintSelection" class="mt-2 flex gap-4" data-action="blueprint-actions">
-                            <div
-                                class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline text-sm flex gap-1 items-center"
-                                @click="previewBlueprint(selectedBlueprint)"
-                            >
-                                <ProjectIcon class="ff-btn--icon" />
-                                <span>Preview Blueprint</span>
-                            </div>
-                            <div
-                                class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline text-sm flex gap-1 items-center"
-                                @click="openBlueprintSelectorDialog"
-                            >
-                                <FolderIcon class="ff-btn--icon" />
-                                <span>Choose a different Blueprint</span>
-                            </div>
+            <!-- Instance Name -->
+            <div>
+                <FormRow
+                    v-model="input.name"
+                    :error="errors.name || submitErrors?.name"
+                    :disabled="!creatingNew"
+                    container-class="max-w-xl"
+                    data-form="project-name"
+                >
+                    <template #default>
+                        Instance Name
+                    </template>
+                    <template v-if="creatingNew" #appended-description>
+                        <p v-if="hasValidName" class="instance-name-confirmation">
+                            <CheckCircleIcon class="ff-btn--icon" />
+                            <span>Your instance will be created as "<i>{{ instanceName }}</i>".</span>
+                        </p>
+                        The instance name is used to access the editor, so it must be suitable for use in a URL. It is not currently possible to rename the instance after it has been created.
+                    </template>
+                    <template v-if="creatingNew" #append>
+                        <ff-button kind="secondary" @click="refreshName">
+                            <template #icon>
+                                <RefreshIcon />
+                            </template>
+                        </ff-button>
+                    </template>
+                </FormRow>
+            </div>
+
+            <div v-if="creatingNew && flowBlueprintsEnabled && atLeastOneFlowBlueprint && !isCopyProject">
+                <div data-form="blueprint">
+                    <label class="block text-sm font-medium text-gray-800 mb-2">Blueprint:</label>
+                    <BlueprintTileSmall :blueprint="selectedBlueprint" @click="previewBlueprint" />
+                    <div v-if="showFlowBlueprintSelection" class="mt-2 flex gap-4" data-action="blueprint-actions">
+                        <div
+                            class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline text-sm flex gap-1 items-center"
+                            @click="previewBlueprint(selectedBlueprint)"
+                        >
+                            <ProjectIcon class="ff-btn--icon" />
+                            <span>Preview Blueprint</span>
+                        </div>
+                        <div
+                            class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline text-sm flex gap-1 items-center"
+                            @click="openBlueprintSelectorDialog"
+                        >
+                            <FolderIcon class="ff-btn--icon" />
+                            <span>Choose a different Blueprint</span>
                         </div>
                     </div>
                 </div>
-                <!-- Instance Name -->
-                <div>
-                    <FormRow
-                        v-model="input.name"
-                        :error="errors.name || submitErrors?.name"
-                        :disabled="!creatingNew"
-                        container-class="max-w-xl"
-                        data-form="project-name"
-                    >
-                        <template #default>
-                            Instance Name
-                        </template>
-                        <template v-if="creatingNew" #appended-description>
-                            <p v-if="hasValidName" class="instance-name-confirmation">
-                                <CheckCircleIcon class="ff-btn--icon" />
-                                <span>Your instance will be created as "<i>{{ instanceName }}</i>".</span>
-                            </p>
-                            The instance name is used to access the editor, so it must be suitable for use in a URL. It is not currently possible to rename the instance after it has been created.
-                        </template>
-                        <template v-if="creatingNew" #append>
-                            <ff-button kind="secondary" @click="refreshName">
-                                <template #icon>
-                                    <RefreshIcon />
-                                </template>
-                            </ff-button>
-                        </template>
-                    </FormRow>
-                </div>
+            </div>
 
-                <!-- Instance Type -->
-                <div v-if="errors.projectType" class="text-red-400 text-xs">
-                    {{ errors.projectType }}
-                </div>
-                <template v-else>
-                    <div v-if="projectTypes.length > 0" class="flex flex-wrap items-stretch">
-                        <label class="w-full block text-sm font-medium text-gray-700">Choose your Instance Type</label>
-                        <InstanceCreditBanner :subscription="subscription" />
-                        <ff-tile-selection v-model="input.projectType" class="mt-5" data-form="project-type">
-                            <ff-tile-selection-option
-                                v-for="(projType, index) in filteredProjectTypes"
-                                :key="index"
-                                :label="projType.name"
-                                :description="projType.description"
-                                :price="projType.price"
-                                :price-interval="projType.priceInterval"
-                                :value="projType.id"
-                                :disabled="projType.disabled"
-                            />
-                        </ff-tile-selection>
-                    </div>
-
-                    <!-- Stack -->
-                    <div class="flex flex-wrap gap-1 items-stretch">
-                        <label class="w-full block text-sm font-medium text-gray-700 mb-4">Choose your Node-RED Version</label>
-                        <label v-if="!input.projectType" class="text-sm text-gray-400">
-                            Please select a Instance Type first.
-                        </label>
-                        <label v-if="errors.stack" class="text-sm text-gray-400">
-                            {{ errors.stack }}
-                        </label>
-                        <ff-tile-selection v-if="input.projectType" v-model="input.stack" data-form="instance-stack">
-                            <ff-tile-selection-option
-                                v-for="(stack, index) in stacks"
-                                :key="index"
-                                :value="stack.id"
-                                :label="stack.label || stack.name"
-                            />
-                        </ff-tile-selection>
-                    </div>
-
-                    <!-- Template -->
-                    <div v-if="creatingNew && templates.length > 1 " class="flex flex-wrap gap-1 items-stretch">
-                        <label class="w-full block text-sm font-medium text-gray-700 mb-1">Template</label>
-                        <label v-if="!input.projectType || !input.stack" class="text-sm text-gray-400">
-                            Please select a Instance Type &amp; Node-RED Version first.
-                        </label>
-                        <label v-if="errors.template" class="text-sm text-gray-400">{{ errors.template }}</label>
-                        <ff-tile-selection v-if="input.projectType && input.stack" v-model="input.template" data-form="project-template">
-                            <ff-tile-selection-option
-                                v-for="(t, index) in templates"
-                                :key="index"
-                                :value="t.id"
-                                :disabled="isCopyProject"
-                                :label="t.name"
-                                :description="t.description"
-                            />
-                        </ff-tile-selection>
-                    </div>
-
-                    <!-- Copying a instance -->
-                    <template v-if="isCopyProject">
-                        <p class="text-gray-500">
-                            Select the components to copy from '{{ sourceInstance?.name }}'
-                        </p>
-                        <ExportInstanceComponents id="exportSettings" v-model="copyParts" />
-                    </template>
-
-                    <!-- Billing details -->
-                    <div v-if="showBilling">
-                        <InstanceChargesTable
-                            :project-type="selectedProjectType"
-                            :subscription="subscription"
-                            :trialMode="isTrialProjectSelected"
-                            :prorationMode="team?.type?.properties?.billing?.proration"
+            <!-- Instance Type -->
+            <div v-if="errors.projectType" class="text-red-400 text-xs">
+                {{ errors.projectType }}
+            </div>
+            <template v-else>
+                <div v-if="projectTypes.length > 0" class="flex flex-wrap items-stretch">
+                    <label class="w-full block text-sm font-medium text-gray-700">Choose your Instance Type</label>
+                    <InstanceCreditBanner :subscription="subscription" />
+                    <ff-tile-selection v-model="input.projectType" class="mt-5" data-form="project-type">
+                        <ff-tile-selection-option
+                            v-for="(projType, index) in filteredProjectTypes"
+                            :key="index"
+                            :label="projType.name"
+                            :description="projType.description"
+                            :price="projType.price"
+                            :price-interval="projType.priceInterval"
+                            :value="projType.id"
+                            :disabled="projType.disabled"
                         />
-                    </div>
+                    </ff-tile-selection>
+                </div>
+
+                <!-- Stack -->
+                <div class="flex flex-wrap gap-1 items-stretch">
+                    <label class="w-full block text-sm font-medium text-gray-700 mb-4">Choose your Node-RED Version</label>
+                    <label v-if="!input.projectType" class="text-sm text-gray-400">
+                        Please select a Instance Type first.
+                    </label>
+                    <label v-if="errors.stack" class="text-sm text-gray-400">
+                        {{ errors.stack }}
+                    </label>
+                    <ff-tile-selection v-if="input.projectType" v-model="input.stack" data-form="instance-stack">
+                        <ff-tile-selection-option
+                            v-for="(stack, index) in stacks"
+                            :key="index"
+                            :value="stack.id"
+                            :label="stack.label || stack.name"
+                        />
+                    </ff-tile-selection>
+                </div>
+
+                <!-- Template -->
+                <div v-if="creatingNew && templates.length > 1 " class="flex flex-wrap gap-1 items-stretch">
+                    <label class="w-full block text-sm font-medium text-gray-700 mb-1">Template</label>
+                    <label v-if="!input.projectType || !input.stack" class="text-sm text-gray-400">
+                        Please select a Instance Type &amp; Node-RED Version first.
+                    </label>
+                    <label v-if="errors.template" class="text-sm text-gray-400">{{ errors.template }}</label>
+                    <ff-tile-selection v-if="input.projectType && input.stack" v-model="input.template" data-form="project-template">
+                        <ff-tile-selection-option
+                            v-for="(t, index) in templates"
+                            :key="index"
+                            :value="t.id"
+                            :disabled="isCopyProject"
+                            :label="t.name"
+                            :description="t.description"
+                        />
+                    </ff-tile-selection>
+                </div>
+
+                <!-- Copying a instance -->
+                <template v-if="isCopyProject">
+                    <p class="text-gray-500">
+                        Select the components to copy from '{{ sourceInstance?.name }}'
+                    </p>
+                    <ExportInstanceComponents id="exportSettings" v-model="copyParts" />
                 </template>
+
+                <!-- Billing details -->
+                <div v-if="showBilling">
+                    <InstanceChargesTable
+                        :project-type="selectedProjectType"
+                        :subscription="subscription"
+                        :trialMode="isTrialProjectSelected"
+                        :prorationMode="team?.type?.properties?.billing?.proration"
+                    />
+                </div>
             </template>
         </div>
-        <!-- Submit -->
-        <div v-if="!blueprintSelectionVisible" class="flex flex-wrap gap-1 items-center">
+
+        <div class="flex flex-wrap gap-1 items-center">
             <ff-button v-if="!creatingNew" class="ff-btn--secondary" @click="$router.back()">
                 Cancel
             </ff-button>
@@ -257,7 +252,6 @@ import ProjectIcon from '../../../components/icons/Projects.js'
 
 import NameGenerator from '../../../utils/name-generator/index.js'
 
-import BlueprintSelection from '../Blueprints/BlueprintSelection.vue'
 import BlueprintTileSmall from '../Blueprints/BlueprintTileSmall.vue'
 
 import ExportInstanceComponents from './ExportInstanceComponents.vue'
@@ -277,7 +271,6 @@ export default {
         InstanceCreditBanner,
         RefreshIcon,
         SectionTopMenu,
-        BlueprintSelection,
         BlueprintTileSmall,
         CheckCircleIcon,
         ProjectIcon
@@ -465,9 +458,6 @@ export default {
         },
         selectedBlueprint () {
             return this.blueprints.find((blueprint) => blueprint.id === this.input.flowBlueprintId)
-        },
-        blueprintSelectionVisible () {
-            return this.creatingNew && this.showFlowBlueprintSelection && !this.input.flowBlueprintId
         },
         heroTitle () {
             return this.creatingNew ? (this.creatingApplication ? 'Create a new Application' : 'Create Instance') : 'Update Instance'
