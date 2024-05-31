@@ -7,7 +7,7 @@
         <div>
             <h4>{{ group }}</h4>
         </div>
-        <div class="grid grid-cols-3 gap-3" data-form="blueprint-selection">
+        <div class="gap-3 blueprint-group" data-form="blueprint-selection">
             <BlueprintTile v-for="print in prints" :key="print.id" :blueprint="print" @selected="$emit('selected', print)" />
         </div>
     </div>
@@ -63,4 +63,8 @@ export default {
 
 <style lang="scss">
 @import '../../../stylesheets/components/blueprint-selection.scss';
+.blueprint-group {
+  display: flex;
+  flex-wrap: wrap;
+}
 </style>

@@ -71,4 +71,79 @@ describe('Storage Session controller', function () {
             s3Sessions.should.not.have.property('token5')
         })
     })
+
+    describe('removeUserFromTeamSessions', function () {
+        it('remove user sessions from a teams instance\'s', async function () {
+            const projectType = await app.factory.createProjectType({
+                name: 'projectType2',
+                description: 'default project type',
+                properties: { foo: 'bar' }
+            })
+
+            const template = await app.factory.createProjectTemplate({
+                name: 'template1',
+                settings: {
+                    httpAdminRoot: '',
+                    codeEditor: '',
+                    palette: {
+                        npmrc: 'example npmrc',
+                        catalogue: ['https://example.com/catalog'],
+                        modules: [
+                            { name: 'node-red-dashboard', version: '3.0.0' },
+                            { name: 'node-red-contrib-ping', version: '0.3.0' }
+                        ]
+                    }
+                },
+                policy: {
+                    httpAdminRoot: true,
+                    dashboardUI: true,
+                    codeEditor: true
+                }
+            }, app.TestObjects.userAlice)
+            const stack = await app.factory.createStack({ name: 'stack1' }, projectType)
+            const application = await app.factory.createApplication({ name: 'application-1' }, app.TestObjects.team1)
+
+            const p1 = await app.factory.createInstance(
+                { name: 'project-1' },
+                application,
+                stack,
+                template,
+                projectType,
+                { start: false }
+            )
+            const p2 = await app.factory.createInstance(
+                { name: 'project-2' },
+                application,
+                stack,
+                template,
+                projectType,
+                { start: false }
+            )
+
+            // p1 - two active sessions for alice, one for bob
+            // p2 - no sessions for alice
+            const s1 = await app.db.models.StorageSession.create({
+                sessions: '{"token1":{"user":"alice","client":"node-red-editor","scope":["*"],"accessToken":"token1","expires":1676376174919},"token2":{"user":"alice","client":"node-red-editor","scope":["*"],"accessToken":"token2","expires":1676376174919},"token3":{"user":"bob","client":"node-red-editor","scope":["*"],"accessToken":"token3","expires":1676376174919}}',
+                ProjectId: p1.id
+            })
+            const s2 = await app.db.models.StorageSession.create({
+                sessions: '{"token4":{"user":"bob","client":"node-red-editor","scope":["*"],"accessToken":"token3","expires":1676376174919}}',
+                ProjectId: p2.id
+            })
+
+            await app.db.controllers.StorageSession.removeUserFromTeamSessions(app.TestObjects.userAlice, app.TestObjects.team1)
+
+            await Promise.all([
+                s1.reload(),
+                s2.reload()
+            ])
+
+            const s1Sessions = JSON.parse(s1.sessions)
+            const s2Sessions = JSON.parse(s2.sessions)
+            s1Sessions.should.not.have.property('token1')
+            s1Sessions.should.not.have.property('token2')
+            s1Sessions.should.have.property('token3')
+            s2Sessions.should.have.property('token4')
+        })
+    })
 })

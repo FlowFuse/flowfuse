@@ -13,12 +13,12 @@
                 <template #icon-right>
                     <PlusSmIcon />
                 </template>
-                Create SSO SAML Configuration
+                Create SSO Configuration
             </ff-button>
         </template>
         <template #context-menu="{row}">
-            <ff-list-item label="Edit Properties" @click.stop="providerSelected(row)" />
-            <ff-list-item label="Delete SAML Configuration" kind="danger" @click.stop="deleteProvider(row)" />
+            <ff-list-item label="Edit" @click.stop="providerSelected(row)" />
+            <ff-list-item label="Delete" kind="danger" @click.stop="deleteProvider(row)" />
         </template>
     </ff-data-table>
 </template>
@@ -51,6 +51,7 @@ export default {
         providerColumns () {
             return [
                 { label: 'Active', key: 'active', class: ['w-16'] },
+                { label: 'Type', key: 'type', class: ['w-16'] },
                 { label: 'Configuration Name', key: 'name' },
                 { label: 'Email Domain', key: 'domainFilter' }
             ]
@@ -67,6 +68,14 @@ export default {
     methods: {
         fetchData: async function () {
             const data = await ssoApi.getProviders()
+            data.providers.sort((A, B) => {
+                if (A.active === B.active) {
+                    return A.name.localeCompare(B.name)
+                } else if (A.active) {
+                    return -1
+                }
+                return 1
+            })
             this.providers = data.providers
             this.loading = false
         },
@@ -75,9 +84,9 @@ export default {
         },
         deleteProvider: function (provider) {
             Dialog.show({
-                header: 'Delete SAML Provider',
+                header: 'Delete SSO Provider',
                 kind: 'danger',
-                text: 'Are you sure you want to delete this SAML Provider configuration? Any users with a matching email domain will no longer be able to login using SSO and will have to reset their FlowFuse password to continue.',
+                text: 'Are you sure you want to delete this SSO configuration? Any users with a matching email domain will no longer be able to login using SSO and will have to reset their FlowFuse password to continue.',
                 confirmLabel: 'Delete'
             }, async () => {
                 ssoApi.deleteProvider(provider.id)

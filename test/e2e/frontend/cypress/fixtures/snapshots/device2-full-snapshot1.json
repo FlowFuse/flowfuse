@@ -1,0 +1,20 @@
+{
+  "flows": {
+    "flows": [{"id":"8a47f02e3a227d35","type":"tab","label":"Device info flows","disabled":false,"info":"","env":[]},{"id":"36113d72fe3d5757","type":"inject","z":"8a47f02e3a227d35","name":"","props":[{"p":"payload"},{"p":"payload.FF_INSTANCE_NAME","v":"FF_INSTANCE_NAME","vt":"env"},{"p":"payload.FF_DEVICE_NAME","v":"FF_DEVICE_NAME","vt":"env"}],"repeat":"6","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"{}","payloadType":"json","x":140,"y":140,"wires":[["5493f53d471a35ba"]]},{"id":"5493f53d471a35ba","type":"debug","z":"8a47f02e3a227d35","name":"debug 1","active":true,"tosidebar":true,"console":true,"tostatus":false,"complete":"payload","targetType":"msg","statusVal":"","statusType":"auto","x":340,"y":140,"wires":[]},{"id":"970460dbdcb949f7","type":"comment","z":"8a47f02e3a227d35","name":"System info","info":"","x":150,"y":80,"wires":[]}]
+  },
+  "id": "KR6Ov5pj5z",
+  "name": "application device snapshot 1",
+  "description": "a device snapshot",
+  "createdAt": "2024-01-01T11:22:33.444Z",
+  "updatedAt": "2024-01-01T11:22:33.444Z",
+  "ownerType": "device",
+  "settings": {
+    "settings": {},
+    "env": {},
+    "modules": {
+      "@flowfuse/nr-file-nodes": "0.0.5",
+      "@flowfuse/nr-project-nodes": "file:../../../Users/Stephen/repos/github/flowfuse/dev-env/packages/nr-project-nodes",
+      "node-red": "3.1.9"
+    }
+  }
+}

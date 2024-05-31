@@ -1,4 +1,4 @@
-const { KEY_HOSTNAME, KEY_SETTINGS } = require('../../db/models/ProjectSettings')
+const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HEALTH_CHECK_INTERVAL } = require('../../db/models/ProjectSettings')
 const { Roles } = require('../../lib/roles')
 
 const { isFQDN } = require('../../lib/validate')
@@ -312,6 +312,7 @@ module.exports = async function (app) {
                     name: { type: 'string' },
                     hostname: { type: 'string' },
                     settings: { type: 'object' },
+                    launcherSettings: { type: 'object' },
                     projectType: { type: 'string' },
                     stack: { type: 'string' },
                     sourceProject: {
@@ -478,6 +479,19 @@ module.exports = async function (app) {
             changesToPersist.stack = { from: request.project.stack, to: stack }
         }
 
+        // Launcher settings
+        if (request.body?.launcherSettings?.healthCheckInterval) {
+            const oldInterval = await request.project.getSetting(KEY_HEALTH_CHECK_INTERVAL)
+            const newInterval = parseInt(request.body.launcherSettings.healthCheckInterval, 10)
+            if (isNaN(newInterval) || newInterval < 5000) {
+                reply.code(400).send({ code: 'invalid_heathCheckInterval', error: 'Invalid heath check interval' })
+                return
+            }
+            if (oldInterval !== newInterval) {
+                changesToPersist.healthCheckInterval = { from: oldInterval, to: newInterval }
+            }
+        }
+
         /// Persist the changes
         const updates = new app.auditLog.formatters.UpdatesCollection()
         const transaction = await app.db.sequelize.transaction() // start a transaction
@@ -539,6 +553,11 @@ module.exports = async function (app) {
                 if (changesToPersist.stack?.to) {
                     await request.project.setProjectStack(changesToPersist.stack.to, { transaction })
                 }
+            }
+
+            if (changesToPersist.healthCheckInterval) {
+                await request.project.updateSetting(KEY_HEALTH_CHECK_INTERVAL, changesToPersist.healthCheckInterval.to, { transaction })
+                updates.pushDifferences({ healthCheckInterval: changesToPersist.healthCheckInterval.from }, { healthCheckInterval: changesToPersist.healthCheckInterval.to })
             }
 
             await transaction.commit() // all good, commit the transaction
@@ -795,7 +814,9 @@ module.exports = async function (app) {
             reply.code(400).send({ code: 'project_suspended', error: 'Project suspended' })
             return
         }
+        // get settings from the driver
         const settings = await app.containers.settings(request.project)
+        // add instance settings
         settings.env = settings.env || {}
         settings.baseURL = request.project.url
         settings.forgeURL = app.config.base_url
@@ -805,6 +826,7 @@ module.exports = async function (app) {
         settings.auditURL = request.project.auditURL
         settings.state = request.project.state
         settings.stack = request.project.ProjectStack?.properties || {}
+        settings.healthCheckInterval = await request.project.getSetting(KEY_HEALTH_CHECK_INTERVAL)
         settings.settings = await app.db.controllers.Project.getRuntimeSettings(request.project)
         if (settings.settings.env) {
             settings.env = Object.assign({}, settings.settings.env, settings.env)

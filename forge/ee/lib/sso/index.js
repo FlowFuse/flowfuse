@@ -1,3 +1,5 @@
+const { Client } = require('ldapts')
+
 const { Roles, TeamRoles } = require('../../../lib/roles')
 
 module.exports.init = async function (app) {
@@ -30,38 +32,141 @@ module.exports.init = async function (app) {
      * @returns whether the request has been handled or not
      */
     async function handleLoginRequest (request, reply) {
-        let user
-        if (/@/.test(request.body.username)) {
-        // Provided an email we can use to check SSO against
-            user = {
-                email: request.body.username
-            }
-        } else {
-        // Looks like a username was provided - look up real user so we can
-        // check if their email requires SSO
-            user = await app.db.models.User.byUsernameOrEmail(request.body.username)
-        }
+        const user = await app.db.models.User.byUsernameOrEmail(request.body.username)
         if (user) {
-            if (await isSSOEnabledForEmail(user.email)) {
-                if (request.body.username.toLowerCase() !== user.email.toLowerCase() || request.body.password) {
-                    // A SSO enabled user has tried to login with their username, or have provided a password.
-                    // If they are an admin, allow them to continue - we need to let admins bypass SSO so they
-                    // cannot be locked out.
-                    if (user.admin) {
-                        return false
+            const providerConfig = await app.db.models.SAMLProvider.forEmail(user.email)
+            if (providerConfig) {
+                if (providerConfig.type === 'saml') {
+                    if (request.body.username.toLowerCase() !== user.email.toLowerCase() || request.body.password) {
+                        // A SSO enabled user has tried to login with their username, or have provided a password.
+                        // If they are an admin, allow them to continue - we need to let admins bypass SSO so they
+                        // cannot be locked out.
+                        if (user.admin) {
+                            return false
+                        }
+                        // We need them to provide just their email address to avoid
+                        // us exposing their email domain
+                        reply.code(401).send({ code: 'sso_required', error: 'Please login with your email address' })
+                    } else {
+                        reply.code(401).send({ code: 'sso_required', redirect: `/ee/sso/login?u=${user.email}` })
                     }
-                    // We need them to provide just their email address to avoid
-                    // us exposing their email domain
-                    reply.code(401).send({ code: 'sso_required', error: 'Please login with your email address' })
-                } else {
-                    reply.code(401).send({ code: 'sso_required', redirect: `/ee/sso/login?u=${user.email}` })
+                    return true
+                } else if (providerConfig.type === 'ldap') {
+                    if (!request.body.password) {
+                        reply.code(401).send({ code: 'password_required', error: 'Password required' })
+                        return true
+                    }
+                    const userInfo = app.auditLog.formatters.userObject(request.body)
+                    const ldapVerified = await verifyLDAPUser(providerConfig, user, request.body.password)
+                    if (ldapVerified) {
+                        const sessionInfo = await app.createSessionCookie(request.body.username)
+                        if (sessionInfo) {
+                            userInfo.id = sessionInfo.session.UserId
+                            user.sso_enabled = true
+                            user.email_verified = true
+                            if (user.mfa_enabled) {
+                                // They are mfa_enabled - but have authenticated via SSO
+                                // so we will let them in without further challenge
+                                sessionInfo.session.mfa_verified = true
+                                await sessionInfo.session.save()
+                            }
+                            await user.save()
+                            reply.setCookie('sid', sessionInfo.session.sid, sessionInfo.cookieOptions)
+                            if (sessionInfo.session.User.mfa_enabled && !sessionInfo.mfa_verified) {
+                                reply.code(403).send({ code: 'mfa_required', error: 'MFA required' })
+                                return true
+                            }
+                            await app.auditLog.User.account.login(userInfo, null)
+                            reply.send()
+                            return true
+                        } else {
+                            const resp = { code: 'user_suspended', error: 'User Suspended' }
+                            await app.auditLog.User.account.login(userInfo, resp, userInfo)
+                            reply.code(403).send(resp)
+                            return true
+                        }
+                    } else if (user.admin) {
+                        // If they are an admin, fallback to checking their local password
+                        // so they won't be locked out due to an LDAP error
+                        return false
+                    } else {
+                        const resp = { code: 'unauthorized', error: 'unauthorized' }
+                        await app.auditLog.User.account.login(userInfo, resp, userInfo)
+                        reply.code(401).send(resp)
+                        return true
+                    }
                 }
-                return true
             }
         }
         return false
     }
 
+    /**
+     * Verifies a user's ldap credentials
+     * @param {*} providerConfig the ldap config
+     * @param {User} user the User object to verify
+     * @param {String} password the password
+     * @returns True if it verifies, false if not
+     */
+    async function verifyLDAPUser (providerConfig, user, password) {
+        let userClient
+        let url = providerConfig.options.server
+        if (!/^ldaps?:\/\//.test(url)) {
+            if (providerConfig.options.tls) {
+                url = 'ldaps://' + url
+            } else {
+                url = 'ldap://' + url
+            }
+        }
+        const clientOptions = { url }
+        if (providerConfig.options.tls) {
+            if (!providerConfig.options.tlsVerifyServer) {
+                clientOptions.tlsOptions = {
+                    rejectUnauthorized: false
+                }
+            }
+        }
+        const adminClient = new Client(clientOptions)
+        try {
+            await adminClient.bind(providerConfig.options.username, providerConfig.options.password)
+        } catch (err) {
+            app.log.error(`Failed to bind LDAP client: Provider '${providerConfig.name}' ${url} ${err}`)
+            return null
+        }
+        try {
+            // Any errors from here must unbind the adminClient - so wrap all in try/catch
+
+            const filter = providerConfig.options.userFilter.replace(/\${username}/g, user.username).replace(/\${email}/g, user.email)
+            const { searchEntries } = await adminClient.search(providerConfig.options.baseDN, {
+                filter
+            })
+            if (searchEntries.length === 1) {
+                const userDN = searchEntries[0].dn
+                userClient = new Client(clientOptions)
+                try {
+                    await userClient.bind(userDN, password)
+                    return true
+                } catch (err) {
+                    // Failed to bind user
+                    return false
+                }
+            }
+        } catch (err) {
+            app.log.error(`Error validating LDAP User '${user.username}' Provider '${providerConfig.name}' ${url} ${err}`)
+        } finally {
+            try {
+                if (adminClient) {
+                    await adminClient.unbind()
+                }
+            } catch (err) {}
+            try {
+                if (userClient) {
+                    await userClient.unbind()
+                }
+            } catch (err) {}
+        }
+        return false
+    }
     /**
      * Update a user's team memberships according to the SAML Assertions
      * received when they logged in.

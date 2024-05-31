@@ -198,5 +198,45 @@ describe('FlowForge - Instance editor', () => {
                 cy.get('[data-action="open-dashboard"]').should('exist')
             })
         })
+
+        it('displays a disabled dashboard button if there\'s a configured dashboard available but the instance is unavailable', () => {
+            cy.intercept(
+                'GET',
+                '/api/*/projects/*',
+                (req) => req.reply(res => {
+                    res.body = {
+                        ...res.body,
+                        ...{
+                            meta: {
+                                versions: { launcher: '2.3.1' },
+                                state: 'suspended'
+                            },
+                            settings: { dashboard2UI: '/dashboard' }
+                        }
+                    }
+                    return res
+                })).as('getProjects')
+
+            cy.login('bob', 'bbPassword')
+            cy.home()
+
+            cy.request('GET', '/api/v1/user/teams')
+                .then((response) => {
+                    const team = response.body.teams.find(
+                        (team) => team.name === 'ATeam'
+                    )
+                    return cy.request('GET', `/api/v1/teams/${team.id}/projects`)
+                })
+                .then((response) => {
+                    const instance = response.body.projects.find(
+                        (project) => project.name === 'instance-1-1'
+                    )
+                    cy.visit(`/instance/${instance.id}/editor`)
+                })
+
+            cy.get('[data-el="tabs-drawer"]').within(() => {
+                cy.get('[data-action="open-dashboard"]').should('exist').should('be.disabled')
+            })
+        })
     })
 })

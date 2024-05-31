@@ -17,9 +17,10 @@ const { DataTypes, Op } = require('sequelize')
 
 const Controllers = require('../controllers')
 
-const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA, KEY_PROTECTED } = require('./ProjectSettings')
+const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA, KEY_PROTECTED, KEY_HEALTH_CHECK_INTERVAL } = require('./ProjectSettings')
 
 const BANNED_NAME_LIST = [
+    'app',
     'www',
     'node-red',
     'nodered',
@@ -358,7 +359,8 @@ module.exports = {
                                     { key: KEY_SETTINGS },
                                     { key: KEY_HOSTNAME },
                                     { key: KEY_HA },
-                                    { key: KEY_PROTECTED }
+                                    { key: KEY_PROTECTED },
+                                    { key: KEY_HEALTH_CHECK_INTERVAL }
                                 ]
                             },
                             required: false

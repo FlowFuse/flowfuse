@@ -51,7 +51,7 @@ body:
   id: estimation
   attributes:
     label: Have you provided an initial effort estimate for this issue?
-    description: See our [handbook](https://FlowFuse.com/handbook/development/releases/planning/#effort-estimation) for more details.
+    description: See our [handbook](https://flowfuse.com/handbook/development/project-management/#sizing-issues) for more details.
     multiple: false
     options:
       - I have provided an initial effort estimate

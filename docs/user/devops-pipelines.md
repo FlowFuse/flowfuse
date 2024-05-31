@@ -8,7 +8,7 @@ navTitle: DevOps Pipelines
 **Navigation**: `Team > Application > DevOps Pipelines`
 
 
-<img src="./images/ui-devops-pipelines.jpg" width="100%" />
+<img src="./images/ui-devops-pipelines.png" width="100%" />
 
 
 In FlowFuse it is possible to configure a DevOps pipeline for your Node-RED instances.

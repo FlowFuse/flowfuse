@@ -12,6 +12,15 @@
                 <CheckCircleIcon class="ff-icon-lg" />
                 <label class="text-green-800">Default</label>
             </div>
+            <ff-button
+                data-action="show-blueprint"
+                class="ff-btn--secondary"
+                @click="$refs['flow-renderer-dialog'].show(blueprint)"
+            >
+                <template #icon>
+                    <ProjectIcon />
+                </template>
+            </ff-button>
             <ff-button v-if="!editable" data-action="select-blueprint" @click="choose(blueprint)">
                 Select
             </ff-button>
@@ -19,6 +28,7 @@
                 Edit
             </ff-button>
         </div>
+        <AssetDetailDialog ref="flow-renderer-dialog" :title="blueprint.name" />
     </div>
 </template>
 
@@ -27,12 +37,20 @@ import { CheckCircleIcon, QuestionMarkCircleIcon } from '@heroicons/vue/outline'
 import { defineAsyncComponent } from 'vue'
 import { mapState } from 'vuex'
 
+import ProjectIcon from '../../components/icons/Projects.js'
 import product from '../../services/product.js'
+import FfDialog from '../../ui-components/components/DialogBox.vue'
+import FormRow from '../FormRow.vue'
+import AssetDetailDialog from '../dialogs/AssetDetailDialog.vue'
 
 export default {
     name: 'BlueprintTile',
     components: {
-        CheckCircleIcon
+        FfDialog,
+        FormRow,
+        AssetDetailDialog,
+        CheckCircleIcon,
+        ProjectIcon
     },
     props: {
         blueprint: {
@@ -90,3 +108,22 @@ export default {
     }
 }
 </script>
+
+<style lang="scss">
+.ff-blueprint-tile {
+  background-color: $ff-white;
+  width: 250px;
+
+  .ff-dialog-container {
+    .ff-dialog-box {
+      max-width: 75rem;
+      .ff-dialog-content {
+        padding: 0;
+      }
+      .ff-dialog-actions {
+        padding: 5px 15px;
+      }
+    }
+  }
+}
+</style>

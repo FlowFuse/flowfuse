@@ -359,14 +359,15 @@ module.exports.init = async function (app) {
                     }
                 } else if (billableCount > 0) {
                     // Need to add the device item to the subscription
+                    app.log.info(`Updating team ${team.hashid} subscription device count to ${billableCount}`)
                     const update = {
+                        proration_behavior: prorationBehavior,
                         items: [{
                             price: deviceBillingIds.price,
                             quantity: billableCount
                         }]
                     }
                     try {
-                        app.log.info(update)
                         await stripe.subscriptions.update(subscription.subscription, update)
                     } catch (error) {
                         console.error(error)

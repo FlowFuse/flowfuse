@@ -64,6 +64,24 @@
             </template>
             <template #input>&nbsp;</template>
         </FormRow>
+        <FormRow v-model="input['user:offboarding-required']" type="checkbox" data-el="offboarding-required">
+            Redirect offboarding users
+            <template #description>
+                When deleting their accounts, users will be redirected to an offboarding form / URL.
+            </template>
+        </FormRow>
+        <FormRow
+            v-if="input['user:offboarding-required']"
+            :error="errors.offboardingUrl"
+            containerClass="max-w-sm ml-9" data-el="offboarding-url"
+        >
+            <div class="flex items-center space-x-2">
+                <p>Offboarding URL: </p>
+            </div>
+            <template #input>
+                <input v-model="input['user:offboarding-url']" type="text" class="w-full">
+            </template>
+        </FormRow>
         <FormHeading>Teams</FormHeading>
         <FormRow v-model="input['team:create']" type="checkbox">
             Allow users to create teams
@@ -159,6 +177,7 @@ import settingsApi from '../../../api/settings.js'
 import teamTypesApi from '../../../api/teamTypes.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
+import { isValidURL } from '../../../composables/String.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -171,6 +190,8 @@ const validSettings = [
     'user:tcs-required',
     'user:tcs-url',
     'user:tcs-date',
+    'user:offboarding-required',
+    'user:offboarding-url',
     'team:create',
     'team:user:invite:external',
     'telemetry:enabled',
@@ -194,7 +215,8 @@ export default {
             platformStatsToken: null,
             errors: {
                 requiresEmail: null,
-                termsAndConditions: null
+                termsAndConditions: null,
+                offboardingUrl: null
             },
             teamTypes: [],
             instanceTypes: [],
@@ -226,6 +248,11 @@ export default {
                     if (s !== 'user:tsc-url' || this.input['user:tcs-required']) {
                         // Check to see if the property has changed.
                         // In the case of tsc-url, we only do that if tcs-required is true
+                        result = result || (this.input[s] !== this.settings[s])
+                    }
+                    if (s !== 'user:offboarding-required' || this.input['user:offboarding-url']) {
+                    // Check to see if the property has changed.
+                    // In the case of tsc-url, we only do that if tcs-required is true
                         result = result || (this.input[s] !== this.settings[s])
                     }
                 })
@@ -327,6 +354,21 @@ export default {
                 }
             }
             this.errors.termsAndConditions = ''
+
+            if (this.input['user:offboarding-required']) {
+                const url = this.input['user:offboarding-url'] || ''
+                if (url.trim() === '') {
+                    this.errors.offboardingUrl = 'A URL for the offboarding redirect must be set.'
+                    return false
+                }
+
+                if (!isValidURL(url)) {
+                    this.errors.offboardingUrl = 'A valid URL for the offboarding redirect must be set.'
+                    return false
+                }
+            }
+            this.errors.offboardingUrl = ''
+
             return true
         },
         async saveChanges () {
@@ -346,6 +388,13 @@ export default {
                     options['user:tcs-url'] = ''
                 } else {
                     delete options['user:tcs-url']
+                }
+            }
+            if (!this.input['user:offboarding-required']) {
+                if (this.settings['user:offboarding-required']) {
+                    options['user:offboarding-url'] = ''
+                } else {
+                    delete options['user:offboarding-url']
                 }
             }
             // if tcs-url present in options then it has changed - set tcs-updated as well

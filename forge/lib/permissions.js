@@ -79,6 +79,13 @@ const Permissions = {
     'device:snapshot:set-target': { description: 'Set Device Target Snapshot', role: Roles.Member },
     'device:audit-log': { description: 'View a Device Audit Log', role: Roles.Viewer },
 
+    // Snapshots (common)
+    'snapshot:meta': { description: 'View a Snapshot', role: Roles.Viewer },
+    'snapshot:full': { description: 'View full snapshot details excluding credentials', role: Roles.Member },
+    'snapshot:export': { description: 'Export a snapshot including credentials', role: Roles.Member },
+    'snapshot:delete': { description: 'Delete a Snapshot', role: Roles.Owner },
+    'snapshot:import': { description: 'Import a Snapshot', role: Roles.Owner },
+
     // Project Types
     'project-type:create': { description: 'Create a ProjectType', role: Roles.Admin },
     'project-type:list': { description: 'List all ProjectTypes' },

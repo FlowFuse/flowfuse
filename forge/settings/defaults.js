@@ -32,7 +32,13 @@ module.exports = {
     // flag for Terms & Conditions date
     'user:tcs-date': null,
 
-    // Can user's create their own teams
+    // flag for required offboarding
+    'user:offboarding-required': false,
+
+    // URL to link to offboarding form
+    'user:offboarding-url': '',
+
+    // Can users create their own teams
     'team:create': false,
 
     // Should we auto-create a team for a user when they register

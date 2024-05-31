@@ -650,7 +650,7 @@ li.ff-list-item {
         }
       }
     }
-    &:not(.editable):hover {
+    &:not(.editable):not(.disabled):hover {
       cursor: pointer;
       border: 2px solid var(--ff-tile-selection-color);
     }
@@ -661,7 +661,6 @@ li.ff-list-item {
       }
     }
     &.disabled {
-      pointer-events: none;
       opacity: 0.5;
     }
   }

@@ -10,7 +10,7 @@ const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
-const { KEY_HOSTNAME } = FF_UTIL.require('forge/db/models/ProjectSettings')
+const { KEY_HOSTNAME, KEY_HEALTH_CHECK_INTERVAL } = FF_UTIL.require('forge/db/models/ProjectSettings')
 const { START_DELAY, STOP_DELAY } = FF_UTIL.require('forge/containers/stub/index.js')
 
 describe('Project API', function () {
@@ -1653,6 +1653,85 @@ describe('Project API', function () {
                 { name: 'one', value: '1' },
                 { name: 'two', value: '2' }
             ]) // should be unchanged
+        })
+        it('Change launcher health check interval - owner', async function () {
+            // Setup some flows/credentials
+            await addFlowsToProject(app,
+                TestObjects.project1.id,
+                TestObjects.tokens.project,
+                TestObjects.tokens.alice,
+                [{ id: 'node1' }],
+                { testCreds: 'abc' },
+                'key1',
+                {}
+            )
+            // call "Update a project" with new httpAdminRoot
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/projects/${TestObjects.project1.id}`,
+                payload: {
+                    launcherSettings: {
+                        healthCheckInterval: 9876
+                    }
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+
+            const newValue = await TestObjects.project1.getSetting(KEY_HEALTH_CHECK_INTERVAL)
+            should(newValue).equal(9876)
+        })
+        it('Change launcher health check interval bad value - owner', async function () {
+            // Setup some flows/credentials
+            await addFlowsToProject(app,
+                TestObjects.project1.id,
+                TestObjects.tokens.project,
+                TestObjects.tokens.alice,
+                [{ id: 'node1' }],
+                { testCreds: 'abc' },
+                'key1',
+                {}
+            )
+            // call "Update a project" with new httpAdminRoot
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/projects/${TestObjects.project1.id}`,
+                payload: {
+                    launcherSettings: {
+                        healthCheckInterval: 999 // 999 is below the 5000 is the minimum
+                    }
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(400)
+            const result = response.json()
+            result.should.have.property('code', 'invalid_heathCheckInterval')
+        })
+        it('Change launcher health check interval - member', async function () {
+            // Setup some flows/credentials
+            // app, id, token, userToken, flows, creds, key, settings
+            await addFlowsToProject(
+                app,
+                TestObjects.project1.id,
+                TestObjects.tokens.project,
+                TestObjects.tokens.alice,
+                [{ id: 'node1' }],
+                { testCreds: 'abc' },
+                'key1',
+                {}
+            )
+            // call "Update a project" with new httpAdminRoot
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/projects/${TestObjects.project1.id}`,
+                payload: {
+                    launcherSettings: {
+                        healthCheckInterval: 9876
+                    }
+                },
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(403)
         })
 
         describe('Update hostname', function () {

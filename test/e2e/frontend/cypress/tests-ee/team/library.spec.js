@@ -44,6 +44,7 @@ describe('FlowForge - Library', () => {
         it('allows users to create new Blueprints if they don\'t have  any', () => {
             interceptBlueprints()
 
+            cy.get('[data-el="ff-tab"]').contains('Blueprints').click()
             cy.wait(['@getBlueprints'])
 
             cy.get('[data-cy="page-name"]').contains('Library')
@@ -63,6 +64,7 @@ describe('FlowForge - Library', () => {
         it('groups multiple blueprints by their category', () => {
             interceptBlueprints(multipleBlueprints)
 
+            cy.get('[data-el="ff-tab"]').contains('Blueprints').click()
             cy.get('[data-el="page-name"]').contains('Library')
 
             cy.get('[data-el="category"]')
@@ -92,9 +94,10 @@ describe('FlowForge - Library', () => {
                 })
         })
 
-        it('allows you to select a predefined blueprint and create an instance', () => {
+        it('allows users to select a predefined blueprint and create an instance', () => {
             interceptBlueprints(multipleBlueprints)
 
+            cy.get('[data-el="ff-tab"]').contains('Blueprints').click()
             cy.get('[data-el="5678"]').contains('Select').click()
 
             cy.window().then((win) => expect(win.location.href).to.contain('instances/create'))
@@ -102,13 +105,37 @@ describe('FlowForge - Library', () => {
             cy.contains('Create Instance')
             cy.contains('Blueprint 2')
         })
+
+        it('allows users to preview predefined blueprints', () => {
+            interceptBlueprints(multipleBlueprints)
+
+            cy.get('[data-el="ff-tab"]').contains('Blueprints').click()
+            cy.get('[data-el="flow-view-dialog"]').should('exist').should('not.be.visible')
+
+            cy.get('[data-el="1234"]').within(() => {
+                cy.get('[data-action="show-blueprint"]').should('exist').should('be.visible').click()
+                cy.get('[data-el="flow-view-dialog"]').should('be.visible')
+                cy.get('[data-action="dialog-confirm"]').click()
+                cy.get('[data-el="flow-view-dialog"]').should('exist').should('not.be.visible')
+            })
+            cy.get('[data-el="5678"]').within(() => {
+                cy.get('[data-action="show-blueprint"]').should('exist').should('be.visible').click()
+                cy.get('[data-el="flow-view-dialog"]').should('be.visible')
+                cy.get('[data-action="dialog-confirm"]').click()
+                cy.get('[data-el="flow-view-dialog"]').should('exist').should('not.be.visible')
+            })
+            cy.get('[data-el="91011"]').within(() => {
+                cy.get('[data-action="show-blueprint"]').should('exist').should('be.visible').click()
+                cy.get('[data-el="flow-view-dialog"]').should('be.visible')
+                cy.get('[data-action="dialog-confirm"]').click()
+                cy.get('[data-el="flow-view-dialog"]').should('exist').should('not.be.visible')
+            })
+        })
     })
 
     describe('Team Library tab', () => {
         it('allows users to inspect existing Team Libraries ', () => {
             interceptLibraries([], 'folder')
-
-            cy.get('[data-el="ff-tab"]').contains('Team Library').click()
 
             cy.wait(['@getLibraries'])
 
@@ -124,8 +151,6 @@ describe('FlowForge - Library', () => {
 
         it('allows users to create Team Libraries if they don\'t have any', () => {
             interceptLibraries(listingLibraryItems, 'folder')
-
-            cy.get('[data-el="ff-tab"]').contains('Team Library').click()
 
             cy.wait(['@getLibraries'])
 

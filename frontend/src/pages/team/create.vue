@@ -11,12 +11,12 @@
     <ff-page>
         <ff-loading v-if="redirecting" message="Redirecting to Stripe..." />
         <ff-loading v-else-if="loading" message="Creating Team..." />
-        <div v-else class="max-w-2xl m-auto">
+        <div v-else class="m-auto">
             <form class="space-y-6">
                 <FormHeading>Create a new team</FormHeading>
                 <div class="mb-8 text-sm text-gray-500">Teams are how you organize who collaborates on your projects.</div>
                 <!-- TeamType Type -->
-                <div class="flex flex-wrap gap-1 items-stretch">
+                <div class="grid">
                     <ff-tile-selection v-model="input.teamTypeId">
                         <ff-tile-selection-option
                             v-for="(teamType, index) in teamTypes" :key="index"

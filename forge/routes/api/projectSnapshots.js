@@ -12,6 +12,11 @@
 const { createSnapshot } = require('../../services/snapshots')
 
 module.exports = async function (app) {
+    /** @type {typeof import('../../db/controllers/Snapshot.js')} */
+    const snapshotController = app.db.controllers.Snapshot
+    /** @type {typeof import('../../db/views/ProjectSnapshot.js')} */
+    const projectSnapshotView = app.db.views.ProjectSnapshot
+
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.snapshotId !== undefined) {
             if (request.params.snapshotId) {
@@ -122,24 +127,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const project = await request.snapshot.getProject()
-        const deviceSettings = await project.getSetting('deviceSettings') || {
-            targetSnapshot: null
-        }
-        if (deviceSettings.targetSnapshot === request.snapshot.id) {
-            // We're about to delete the active snapshot for this project
-            await project.updateSetting('deviceSettings', {
-                targetSnapshot: null
-            })
-            // The cascade relationship will ensure Device.targetSnapshotId is cleared
-            if (app.comms) {
-                const team = await project.getTeam()
-                app.comms.devices.sendCommandToProjectDevices(team.hashid, project.id, 'update', {
-                    snapshot: null
-                })
-            }
-        }
-        await request.snapshot.destroy()
+        await snapshotController.deleteSnapshot(request.snapshot)
         await app.auditLog.Project.project.snapshot.deleted(request.session.User, null, request.project, request.snapshot)
         reply.send({ status: 'okay' })
     })
@@ -248,13 +236,15 @@ module.exports = async function (app) {
             reply.code(400).send({ code: 'bad_request', error: 'credentialSecret is mandatory in the body' })
         }
 
-        const snapshot = await app.db.controllers.ProjectSnapshot.exportSnapshot(
-            request.project,
-            request.snapshot,
-            request.body
-        )
+        const options = {
+            credentialSecret: request.body.credentialSecret,
+            credentials: request.body.credentials,
+            owner: request.project // the instance owns the snapshot
+        }
+
+        const snapshot = await snapshotController.exportSnapshot(request.snapshot, options)
         if (snapshot) {
-            const snapshotExport = app.db.views.ProjectSnapshot.snapshotExport(snapshot, request.session.User)
+            const snapshotExport = projectSnapshotView.snapshotExport(snapshot, request.session.User)
             await app.auditLog.Project.project.snapshot.exported(request.session.User, null, request.project, snapshot)
             reply.send(snapshotExport)
         } else {

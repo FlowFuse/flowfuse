@@ -117,7 +117,7 @@ d
         })
     })
 
-    describe('handleLoginRequest', async function () {
+    describe('handleLoginRequest - SAML', async function () {
         let localApp
         beforeEach(async function () {
             localApp = fastify()

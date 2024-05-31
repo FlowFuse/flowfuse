@@ -53,7 +53,10 @@
                 </div>
                 <div v-for="(instanceType, index) in instanceTypes" :key="index">
                     <FormHeading>Instance Type: {{ instanceType.name }}</FormHeading>
-                    <FormRow v-model="input.properties.instances[instanceType.id].active" type="checkbox" class="mb-4">Available</FormRow>
+                    <div class="grid gap-3 grid-cols-4">
+                        <FormRow v-model="input.properties.instances[instanceType.id].active" type="checkbox" class="mb-4">Available</FormRow>
+                        <FormRow v-if="input.properties.instances[instanceType.id].active" v-model="input.properties.instances[instanceType.id].creatable" type="checkbox" class="mb-4">Creatable</FormRow>
+                    </div>
                     <div v-if="input.properties.instances[instanceType.id].active" class="grid gap-3 grid-cols-4 pl-4">
                         <div class="grid gap-3 grid-cols-2">
                             <FormRow v-model="input.properties.instances[instanceType.id].limit"># Limit</FormRow>
@@ -213,10 +216,13 @@ export default {
                 // Need to ensure we have input.properties.instances entries
                 // for all known instance types
                 this.instanceTypes.forEach(instanceType => {
-                    if (!this.input.properties.instances[instanceType.id]) {
+                    const typeProperties = this.input.properties.instances[instanceType.id]
+                    if (!typeProperties) {
                         this.input.properties.instances[instanceType.id] = {
                             active: false
                         }
+                    } else if (typeProperties.active && typeProperties.creatable === undefined) {
+                        typeProperties.creatable = true
                     }
                 })
 

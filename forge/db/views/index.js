@@ -29,8 +29,16 @@ const modelTypes = [
 
 async function register (app, viewType, viewModule) {
     module.exports[viewType] = {}
-    if (typeof viewModule === 'function') {
+    if (typeof viewModule === 'object' && typeof viewModule.init === 'function') {
         // New style:
+        //  - views export an object with an init function
+        //  - allows the views to contain their own schema definitions
+        //  - allows type inference to work via /** import('path_to_view') */ for
+        //    static analysis, type checking and DX improvements
+        viewModule.init(app)
+        module.exports[viewType] = viewModule
+    } else if (typeof viewModule === 'function') {
+        // Current style:
         //  - views export a function that is called to get the view functions back
         //  - allows the views to contain their own schema definitions as well
         module.exports[viewType] = viewModule(app)
