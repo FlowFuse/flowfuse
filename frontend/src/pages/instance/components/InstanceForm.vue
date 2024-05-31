@@ -147,21 +147,23 @@
 
                     <!-- Stack -->
                     <div class="flex flex-wrap gap-1 items-stretch">
-                        <label class="w-full block text-sm font-medium text-gray-700 mb-4">Choose your Node-RED Version</label>
-                        <label v-if="!input.projectType" class="text-sm text-gray-400">
-                            Please select a Instance Type first.
-                        </label>
-                        <label v-if="errors.stack" class="text-sm text-gray-400">
-                            {{ errors.stack }}
-                        </label>
-                        <ff-tile-selection v-if="input.projectType" v-model="input.stack" data-form="instance-stack">
-                            <ff-tile-selection-option
-                                v-for="(stack, index) in stacks"
-                                :key="index"
-                                :value="stack.id"
-                                :label="stack.label || stack.name"
-                            />
-                        </ff-tile-selection>
+                        <label class="w-full block text-sm font-medium text-gray-700 mb-1">Choose your Node-RED Version</label>
+                        <FormRow
+                            v-model="input.stack"
+                            value="id" :options="stacks"
+                            :disabled="emptyStacks"
+                            data-el="stack-selector"
+                            container-class="max-w-sm w-full"
+                        >
+                            <template #description>
+                                <label v-if="!input.projectType" class="text-sm text-gray-400">
+                                    Please select a Instance Type first.
+                                </label>
+                                <label v-if="errors.stack" class="text-sm text-gray-400">
+                                    {{ errors.stack }}
+                                </label>
+                            </template>
+                        </FormRow>
                     </div>
 
                     <!-- Template -->
@@ -471,6 +473,9 @@ export default {
         },
         hasValidName () {
             return this.validateName(this.input.name)
+        },
+        emptyStacks () {
+            return this.stacks.length === 0
         }
     },
     watch: {
@@ -676,7 +681,9 @@ export default {
             this.errors.stack = ''
 
             const stackList = await stacksApi.getStacks(null, null, null, projectType.id)
-            this.stacks = stackList.stacks.filter(stack => stack.active)
+            this.stacks = stackList.stacks
+                .filter(stack => stack.active)
+                .map(stack => { return { ...stack, value: stack.id } })
 
             if (this.stacks.length === 0) {
                 this.input.stack = null
