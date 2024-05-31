@@ -2,21 +2,21 @@ import multipleBlueprints from '../../fixtures/blueprints/multiple-blueprints.js
 import singleBlueprint from '../../fixtures/blueprints/single-blueprint.json'
 
 const canPreviewBlueprintByClickingTheBlueprintTile = () => {
-    cy.get('[data-el="flow-view-dialog"]').should('not.be.visible')
+    cy.get('[data-el="flow-view-dialog"].preview-main-blueprint').should('not.be.visible')
     cy.get('[data-action="click-small-blueprint-tile"]').should('exist')
     cy.get('[data-action="click-small-blueprint-tile"]').click()
-    cy.get('[data-el="flow-view-dialog"]').should('be.visible')
-    cy.get('[data-el="flow-view-dialog"]').within(() => {
+    cy.get('[data-el="flow-view-dialog"].preview-main-blueprint').should('be.visible')
+    cy.get('[data-el="flow-view-dialog"].preview-main-blueprint').within(() => {
         cy.get('[data-action="dialog-confirm"]').click()
     })
 }
 
 const canPreviewBlueprintByClickingThePreviewBlueprintButton = () => {
-    cy.get('[data-el="flow-view-dialog"]').should('not.be.visible')
+    cy.get('[data-el="flow-view-dialog"].preview-main-blueprint').should('not.be.visible')
     cy.get('[data-action="blueprint-actions"]').should('exist')
     cy.get('[data-action="blueprint-actions"]').contains('Preview Blueprint').click()
-    cy.get('[data-el="flow-view-dialog"]').should('be.visible')
-    cy.get('[data-el="flow-view-dialog"]').within(() => {
+    cy.get('[data-el="flow-view-dialog"].preview-main-blueprint').should('be.visible')
+    cy.get('[data-el="flow-view-dialog"].preview-main-blueprint').within(() => {
         cy.get('[data-action="dialog-confirm"]').click()
     })
 }
@@ -95,7 +95,6 @@ describe('FlowForge - Blueprints', () => {
 
         cy.get('[data-action="blueprint-actions"]').should('not.exist')
 
-        cy.get('[data-form="blueprint-selection"]').should('not.exist')
         cy.get('[data-form="project-name"]').should('exist')
         cy.get('[data-form="project-type"]').should('exist')
     })
@@ -113,20 +112,35 @@ describe('FlowForge - Blueprints', () => {
         cy.get('[data-action="blueprint-actions"]').should('exist')
         cy.get('[data-action="blueprint-actions"]').contains('Choose a different Blueprint').click()
 
-        cy.get('[data-form="blueprint-selection"]').should('exist')
-        cy.get('[data-form="project-name"]').should('not.exist')
-        cy.get('[data-form="project-type"]').should('not.exist')
-
         // check we have two blueprint groups
-        cy.get('[data-form="blueprint-group"]').its('length').should('eq', 2)
+        cy.get('[data-form="blueprint-group"]')
+            .its('length')
+            .should('eq', 2)
         // and one blueprint in the first group, and 2 in the second
-        cy.get('[data-form="blueprint-group"]').first().find('[data-el="blueprint-tile"]').its('length').should('eq', 1)
-        cy.get('[data-form="blueprint-group"]').eq(1).find('[data-el="blueprint-tile"]').its('length').should('eq', 2)
+        cy.get('[data-form="blueprint-group"]')
+            .first()
+            .find('[data-el="blueprint-tile"]')
+            .its('length')
+            .should('eq', 1)
+
+        cy.get('[data-form="blueprint-group"]')
+            .eq(1)
+            .find('[data-el="blueprint-tile"]')
+            .its('length')
+            .should('eq', 2)
 
         // select the second blueprint
-        cy.get('[data-form="blueprint-group"]').eq(1).find('[data-el="blueprint-tile"] [data-action="select-blueprint"]').first().click()
+        cy.get('[data-form="blueprint-group"]')
+            .eq(1)
+            .find('[data-el="blueprint-tile"] [data-action="select-blueprint"]')
+            .first()
+            .click()
 
-        // chck our newly selected blueprint is now in the blueprint preview with the CreateInstance form
+        cy.get('[data-el=blueprint-selector-dialog]').within(() => {
+            cy.get('[data-action="dialog-confirm"]').click()
+        })
+
+        // check our newly selected blueprint is now in the blueprint preview with the CreateInstance form
         cy.get('[data-form="blueprint"]').contains(multipleBlueprints.blueprints[1].name)
     })
 

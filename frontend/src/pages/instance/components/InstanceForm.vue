@@ -221,7 +221,7 @@
                 No changes have been made
             </label>
         </div>
-        <AssetDetailDialog ref="flow-renderer-dialog" />
+        <AssetDetailDialog ref="flow-renderer-dialog" class="preview-main-blueprint" />
         <BlueprintSelectorDialog
             v-if="blueprints.length"
             ref="blueprint-selector-dialog"

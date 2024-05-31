@@ -29,7 +29,7 @@
                 Edit
             </ff-button>
         </div>
-        <AssetDetailDialog ref="flow-renderer-dialog" :title="blueprint.name" />
+        <AssetDetailDialog v-if="displayPreviewButton" ref="flow-renderer-dialog" :title="blueprint.name" />
     </div>
 </template>
 

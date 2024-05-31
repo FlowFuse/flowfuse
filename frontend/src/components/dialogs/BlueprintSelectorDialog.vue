@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" data-el="blueprint-selector-dialog" class="blueprints-selector-dialog">
+    <ff-dialog ref="dialog" data-el="blueprint-selector-dialog" class="blueprints-selector-dialog" header="Select a Blueprint">
         <template #default>
             <section class="blueprints-container">
                 <div class="header">
