@@ -148,7 +148,13 @@
                     <!-- Stack -->
                     <div class="flex flex-wrap gap-1 items-stretch">
                         <label class="w-full block text-sm font-medium text-gray-700 mb-1">Choose your Node-RED Version</label>
-                        <FormRow v-model="input.stack" value="id" :options="stacks" :disabled="emptyStacks" data-el="stack-selector">
+                        <FormRow
+                            v-model="input.stack"
+                            value="id" :options="stacks"
+                            :disabled="emptyStacks"
+                            data-el="stack-selector"
+                            container-class="max-w-sm w-full"
+                        >
                             <template #description>
                                 <label v-if="!input.projectType" class="text-sm text-gray-400">
                                     Please select a Instance Type first.
