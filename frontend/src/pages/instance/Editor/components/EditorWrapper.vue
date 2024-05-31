@@ -23,9 +23,7 @@
 </template>
 
 <script>
-import cookie from '../../../../composables/cookie.js'
 import InstanceStatusBadge from '../../components/InstanceStatusBadge.vue'
-
 const States = {
     STOPPED: 'stopped',
     LOADING: 'loading',
@@ -74,22 +72,17 @@ export default {
     },
     methods: {
         eventListener (event) {
-            // todo related to the frontend/src/App.vue:124 changes
-            // if (event.origin === this.instance.url) {
-            switch (event.data.type) {
-            case 'load':
-                this.emitMessage('prevent-redirect', true)
-
-                this.emitMessage('set-cookie', { name: 'test-cookie', value: 'something something dark side' })
-                // this.emitMessage('set-cookie', { name: 'sid', value: cookie.get('sid') })
-                // this.emitMessage('set-cookie', { name: 'connect.sid', value: cookie.get('connect.sid') })
-                break
-            case 'navigate':
-                window.location.href = event.data.payload
-                break
-            default:
+            if (event.origin === this.instance.url) {
+                switch (event.data.type) {
+                case 'load':
+                    this.emitMessage('prevent-redirect', true)
+                    break
+                case 'navigate':
+                    window.location.href = event.data.payload
+                    break
+                default:
+                }
             }
-            // }
         },
         emitMessage (type, payload = {}) {
             this.$refs.iframe.contentWindow.postMessage({ type, payload }, '*')

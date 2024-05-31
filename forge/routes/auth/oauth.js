@@ -141,34 +141,25 @@ module.exports = async function (app) {
         }
         const requestId = base64URLEncode(crypto.randomBytes(32))
         await requestCache.set(requestId, requestObject)
-        console.log('/account/authorize', 1, { requestId, requestCache })
+
         const isNodeRED = /^(editor($|-))|httpAuth-/.test(scope)
         if (isNodeRED) {
-            console.log('/account/authorize', 2, {
-                'request.session': request.session,
-                'request.sid': request.sid
-            })
             if (request.sid) {
                 // This is the editor auth flow. If logged-in, redirect straight
                 // to the complete route. Otherwise prompt to login
                 request.session = await app.db.controllers.Session.getOrExpire(request.sid)
                 if (request.session) {
-                    // todo This is where things get interesting, I'm also losing my debugger headers which makes my life harder
-
                     // Logged in with valid session - bounce to complete page
-                    console.log('/account/authorize', 3)
                     reply.redirect(`${app.config.base_url}/account/complete/${requestId}`)
                     return
                 }
             }
             // Redirect to login page with requestId in url - add /editor to bypass the
             // approval page
-            console.log('/account/authorize', 4, { 'request.sid': request.sid })
             reply.redirect(`${app.config.base_url}/account/request/${requestId}/editor`)
             return
         }
         // Redirect to login page with requestId in url - to bounce to an approve page
-        console.log('/account/authorize', 5)
         reply.redirect(`${app.config.base_url}/account/request/${requestId}`)
     })
 
@@ -179,7 +170,6 @@ module.exports = async function (app) {
     }, async function (request, reply) {
         const requestId = request.params.code
         const requestObject = await requestCache.get(requestId)
-        console.log('/account/complete/:code', request.sid, { requestId, requestObject })
         if (!requestObject) {
             return badRequest(reply, 'invalid_request', 'Invalid request')
         }
@@ -294,7 +284,7 @@ module.exports = async function (app) {
             redirect_uri,
             refresh_token
         } = request.body
-        console.log('aaaaaaaaaaaaaaaaaaaaaaaaaa')
+
         if (request.validationError) {
             badRequest(reply, 'invalid_request', request.validationError.message)
             return
@@ -404,8 +394,6 @@ module.exports = async function (app) {
                 reply.send(response)
             }
         } else if (grant_type === 'refresh_token') {
-            console.log('bbbbbbbbbb')
-
             const existingToken = await app.db.models.AccessToken.byRefreshToken(refresh_token)
             if (!existingToken) {
                 badRequest(reply, 'invalid_request', 'Invalid refresh_token')
@@ -435,7 +423,7 @@ module.exports = async function (app) {
                 badRequest(reply, 'invalid_request', 'Invalid refresh_token')
                 return
             }
-            console.log('qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq')
+
             const response = {
                 access_token: accessToken.token,
                 expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000),

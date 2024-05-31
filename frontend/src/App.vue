@@ -121,25 +121,6 @@ export default {
     mounted () {
         this.$store.dispatch('account/checkState')
         this.$store.dispatch('product/checkFlags')
-
-        // todo We could mimic the parent/child communication pattern that we introduced to aid page redirects with the
-        //  editor and use it here to manualy set cookies if everything else fails (as last resort)
-        if (window.parent !== window.self) {
-            // todo wasn't able to set cookies in chrome, probably due to missing https protocol, chrome and safari are
-            //  picky that way
-            // document.cookie = 'regularCookie=dontMindMe;'
-
-            // window.parent.postMessage({ type: 'load', payload: true }, '*')
-            // window.addEventListener('message', this.handleEvent)
-        }
-    },
-    methods: {
-        handleEvent (event) {
-            if (event.data.type === 'set-cookie') {
-                console.log('hello from the other side! 22222', event.data)
-                document.cookie = `${event.data?.payload?.name}=${event.data?.payload?.value};`
-            }
-        }
     }
 }
 </script>

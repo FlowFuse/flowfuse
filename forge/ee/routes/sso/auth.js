@@ -114,7 +114,6 @@ module.exports = fp(async function (app, opts) {
         config: { allowAnonymous: true },
         preValidation: fastifyPassport.authenticate('saml', { session: false })
     }, async (request, reply, err, user, info, status) => {
-        console.log('/ee/sso/login/callback')
         if (request.user) {
             const userInfo = app.auditLog.formatters.userObject(request.user)
             // They have completed authentication and we know who they are.
@@ -130,7 +129,6 @@ module.exports = fp(async function (app, opts) {
                 }
                 await request.user.save()
                 userInfo.id = sessionInfo.session.UserId
-                console.log('/ee/sso/login/callback')
                 reply.setCookie('sid', sessionInfo.session.sid, sessionInfo.cookieOptions)
                 await app.auditLog.User.account.login(userInfo, null)
                 let redirectTo = '/'
