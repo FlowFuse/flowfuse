@@ -83,6 +83,8 @@ import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavail
 
 import DangerSettings from './Danger.vue'
 
+import Dialog from '../../../services/dialog.js'
+
 import CustomHostnameDialog from './dialogs/CustomHostnameDialog.vue'
 
 export default {
@@ -228,8 +230,26 @@ export default {
                 this.errors.customHostname = 'not a valid hostname'
             } else {
                 try {
-                    await instanceAPI.setCustomHostname(this.instance.id, this.input.customHostname)
-                    this.original.customHostname = this.input.customHostname
+                    const response = await instanceAPI.setCustomHostname(this.instance.id, this.input.customHostname)
+                    if (response) {
+                        if (!response.found) {
+                            // need to show alert about setting up DNS CNAME
+                            const warning = {
+                                header: 'Hostname DNS not configured',
+                                kind: 'primary',
+                                html: `<p><code>${this.input.customHostname}</code> does not resolve to <code>${response.cname}</code>, please add a CNAME entry to your DNS</p><p>See docs <a href="">here</a></p>`,
+                                confirmLabel: 'OK',
+                                canBeCanceled: false
+                            }
+                            this.original.customHostname = this.input.customHostname
+                            Dialog.show(warning, () => {
+                                this.$router.push({ name: 'Instance', params: { id: this.instance.id } })
+                    this.$emit('instance-updated')
+                            })
+                            return
+                        }
+                    }
+                    
                     this.$router.push({ name: 'Instance', params: { id: this.instance.id } })
                     this.$emit('instance-updated')
                 } catch (err) {

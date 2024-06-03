@@ -184,7 +184,7 @@ const disableProtectedMode = async (instanceId) => {
 }
 
 const setCustomHostname = async (instanceId, hostname) => {
-    return client.put(`/api/v1/projects/${instanceId}/customHostname`, { hostname })
+    return client.put(`/api/v1/projects/${instanceId}/customHostname`, { hostname }).then(res => res.data)
 }
 
 const clearCustomHostname = async (instanceId) => {
