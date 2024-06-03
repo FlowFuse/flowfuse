@@ -9,8 +9,8 @@ const snapshots = {
 }
 
 const IDX_DEPLOY_SNAPSHOT = 0
-const IDX_COMPARE_SNAPSHOT = 1
-const IDX_VIEW_SNAPSHOT = 2
+const IDX_VIEW_SNAPSHOT = 1
+const IDX_COMPARE_SNAPSHOT = 2
 const IDX_DOWNLOAD_SNAPSHOT = 3
 const IDX_DOWNLOAD_PACKAGE = 4
 const IDX_DELETE_SNAPSHOT = 5
@@ -176,7 +176,7 @@ describe('FlowForge - Devices - With Billing', () => {
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
         // click the View Snapshot option
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_VIEW_SNAPSHOT).click()
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_COMPARE_SNAPSHOT).click()
 
         cy.wait('@fullSnapshot')
 
