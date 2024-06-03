@@ -11,6 +11,12 @@ NodeJS of version 20 or later is recommended, through the device agent supports 
 
 The Device Agent can be installed on most Linux distributions, Windows, and MacOS.
 
+The Device Agent connects back to the FlowFuse platform on port 443. You will need to ensure your network permits traffic on that port. For FlowFuse Cloud, the device agent will connect to:
+
+ - `app.flowfuse.com:443`
+ - `mqtt.flowfuse.cloud:443`
+
+
 ## Installing the Device Agent
 
 The Device Agent is published to the public npm repository as [@flowfuse/device-agent](https://www.npmjs.com/package/@flowfuse/device-agent).

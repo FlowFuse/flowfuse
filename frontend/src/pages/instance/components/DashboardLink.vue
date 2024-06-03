@@ -55,7 +55,16 @@ export default {
             if (this.disabled || !this.instance?.settings?.dashboard2UI) {
                 return
             }
-            const url = `${removeSlashes(this.instance.url, false, true)}/${removeSlashes(this.instance.settings.dashboard2UI, true, false)}`
+            let baseURL = removeSlashes(this.instance.url, false, true)
+            // Check to see if the editor path has been set
+            if (this.instance.settings?.httpAdminRoot) {
+                const adminRoot = removeSlashes(this.instance.settings?.httpAdminRoot, true, true)
+                if (baseURL.endsWith(adminRoot)) {
+                    // Strip off the editor path to get to the right root url
+                    baseURL = baseURL.substring(0, baseURL.length - adminRoot.length)
+                }
+            }
+            const url = `${removeSlashes(baseURL, false, true)}/${removeSlashes(this.instance.settings.dashboard2UI, true, false)}`
             const fixedTarget = '_db2_' + this.instance.id
             window.open(url, fixedTarget)
         }

@@ -149,11 +149,11 @@ export default {
         },
         filteredRows: function () {
             if (this.search === '') {
-                return this.editable.settings.env
+                return this.editable.settings.env.filter(row => !row.deprecated)
             }
             const search = this.search.toLowerCase()
             return this.editable.settings.env.filter(row => {
-                return row.name.toLowerCase().includes(search) || row.value.toLowerCase().includes(search)
+                return !row.deprecated && (row.name.toLowerCase().includes(search) || row.value.toLowerCase().includes(search))
             })
         },
         noDataMessage: function () {
