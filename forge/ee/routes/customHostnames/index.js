@@ -1,5 +1,3 @@
-const dns = require('dns/promises')
-
 module.exports = async function (app) {
     app.log.debug('registering custom hostname routes')
     app.addHook('preHandler', app.verifySession)
@@ -55,26 +53,11 @@ module.exports = async function (app) {
         if (request.body.hostname) {
             try {
                 const response = await request.project.setCustomHostname(request.body.hostname)
-                // let found
-                // const cname = app.config.driver.options?.customHostname?.cnameTarget
-                // if (cname) {
-                //     try {
-                //         const targets = await dns.resolveCname(request.body.hostname)
-                //         found = targets.includes(cname)
-                //     } catch (err) {
-                //         found = false
-                //     }
-                // }
                 app.db.controllers.Project.setInflightState(request.project, 'starting')
                 restartInstance(request.project, request.session.User)
-                // response = { hostname: request.body.hostname }
-                // if (cname) {
-                //     response.cname = cname
-                //     response.found = found
-                // }
                 reply.send(response)
             } catch (err) {
-                console.log(err)
+                // console.log(err)
                 reply.code(409).send({ code: 'hostname_node_available', error: 'Hostname not available' })
             }
         } else {

@@ -81,9 +81,9 @@ import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 
-import DangerSettings from './Danger.vue'
-
 import Dialog from '../../../services/dialog.js'
+
+import DangerSettings from './Danger.vue'
 
 import CustomHostnameDialog from './dialogs/CustomHostnameDialog.vue'
 
@@ -244,12 +244,12 @@ export default {
                             this.original.customHostname = this.input.customHostname
                             Dialog.show(warning, () => {
                                 this.$router.push({ name: 'Instance', params: { id: this.instance.id } })
-                    this.$emit('instance-updated')
+                                this.$emit('instance-updated')
                             })
                             return
                         }
                     }
-                    
+
                     this.$router.push({ name: 'Instance', params: { id: this.instance.id } })
                     this.$emit('instance-updated')
                 } catch (err) {

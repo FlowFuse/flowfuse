@@ -1,4 +1,5 @@
 const dns = require('dns/promises')
+
 const { KEY_CUSTOM_HOSTNAME } = require('../../../db/models/ProjectSettings')
 
 module.exports.init = function (app) {
@@ -32,7 +33,7 @@ module.exports.init = function (app) {
                             found = false
                         }
                     }
-                    response = { hostname: hostname }
+                    const response = { hostname }
                     if (cname) {
                         response.cname = cname
                         response.found = found
