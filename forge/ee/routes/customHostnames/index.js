@@ -47,7 +47,7 @@ module.exports = async function (app) {
     app.get('/status', {
         preHandler: app.needsPermission('project:edit')
     }, async (request, reply) => {
-        const hostname = request.project.getSetting(KEY_CUSTOM_HOSTNAME)
+        const hostname = await request.project.getSetting(KEY_CUSTOM_HOSTNAME)
         const cname = app.config.driver.options?.customHostname?.cnameTarget
         if (cname && hostname) {
             // let found = false
@@ -60,7 +60,7 @@ module.exports = async function (app) {
             } catch (err) {
                 // found = false
             }
-            reply.code(410).send({ code: '', error: 'CNAME not found' })
+            reply.code(410).send({ code: 'domain_not_valid', error: 'CNAME not found' })
         }
         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
     })
@@ -77,13 +77,12 @@ module.exports = async function (app) {
         app.log.debug(`custom hostname put ${JSON.stringify(request.body)}`)
         if (request.body.hostname) {
             try {
-                const response = await request.project.setCustomHostname(request.body.hostname)
+                await request.project.setCustomHostname(request.body.hostname)
                 app.db.controllers.Project.setInflightState(request.project, 'starting')
                 restartInstance(request.project, request.session.User)
-                reply.send(response)
+                reply.send(await request.project.getCustomHostname() || {})
             } catch (err) {
-                // console.log(err)
-                reply.code(409).send({ code: 'hostname_node_available', error: 'Hostname not available' })
+                reply.code(409).send({ code: 'hostname_not_available', error: 'Hostname not available' })
             }
         } else {
             reply.code(400).send({})
@@ -105,8 +104,8 @@ module.exports = async function (app) {
             await app.containers.stop(project, { skipBilling: true })
             await app.auditLog.Project.project.suspended(user, null, project)
             project.state = 'running'
-            await project.reload()
             await project.save()
+            await project.reload()
             const startResult = await app.containers.start(project)
             startResult.started.then(async () => {
                 await app.auditLog.Project.project.started(user, null, project)

@@ -1,5 +1,3 @@
-const dns = require('dns/promises')
-
 const { KEY_CUSTOM_HOSTNAME } = require('../../../db/models/ProjectSettings')
 
 module.exports.init = function (app) {
@@ -22,23 +20,7 @@ module.exports.init = function (app) {
                     if (app.config.domain && hostname.endsWith(app.config.domain.toLowerCase())) {
                         throw new Error('Name unavailable (domain clash)')
                     }
-                    this.updateSetting(KEY_CUSTOM_HOSTNAME, hostname)
-                    let found
-                    const cname = app.config.driver.options?.customHostname?.cnameTarget
-                    if (cname) {
-                        try {
-                            const targets = await dns.resolveCname(hostname)
-                            found = targets.includes(cname)
-                        } catch (err) {
-                            found = false
-                        }
-                    }
-                    const response = { hostname }
-                    if (cname) {
-                        response.cname = cname
-                        response.found = found
-                    }
-                    return response
+                    return this.updateSetting(KEY_CUSTOM_HOSTNAME, hostname)
                 } else {
                     return this.removeSetting(KEY_CUSTOM_HOSTNAME)
                 }

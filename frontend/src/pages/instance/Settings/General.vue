@@ -40,26 +40,39 @@
             Default URL
         </FormRow>
         <div v-if="customHostnameAvailable">
-            <div v-if="customHostnameLauncherVersion">
-                <div v-if="customHostnameTeamAvailable">
-                    <FormRow v-model="input.customHostname" :error="errors.customHostname">
-                        Custom Hostname
-                        <template #description>
-                            <p>This needs to be a fully qualified hostname</p>
-                            <p>Please refer to this documentation for details of how to configure your DNS</p>
-                        </template>
-                    </FormRow>
-                    <div style="padding-top: 5px">
-                        <ff-button size="small" data-action="save-hostname" kind="secondary" :disabled="customHostnameChanged" @click="showCustomHostnameDialog()">Save</ff-button>
-                        <CustomHostnameDialog ref="customHostnameDialog" @confirm="saveCustomHostname" />
-                    </div>
-                </div>
-                <FeatureUnavailableToTeam v-if="!customHostnameTeamAvailable" featureName="Instance Custom Domain Name" />
-            </div>
-            <div v-else>
-                <p>To be able to use Custom Hostnames you will need to update your stack version.</p>
-                <p>There should be a button below to do this.</p>
-            </div>
+            <FormRow v-model="input.customHostname" :error="errors.customHostname">
+                Custom domain
+                <template #description>
+                    <p>
+                        This allows you to access your instance from a custom domain or subdomain. This requires the DNS entry for the domain to
+                        be updated to point at the FlowFuse platform.
+                        For more information, see the <a class="ff-link" target="_blank" href="https://flowfuse.com/docs/cloud/introduction/#custom-hostnames">documentation</a>.
+                    </p>
+                </template>
+                <template v-if="!customHostnameTeamAvailable" #input>
+                    <FeatureUnavailableToTeam featureName="Custom domain name" />
+                </template>
+                <template v-else-if="!customHostnameLauncherVersion" #input>
+                    To enable custom domains you will need to update to the latest
+                    stack using the option below.
+                </template>
+                <template v-if="customHostnameLauncherVersion && customHostnameTeamAvailable" #append>
+                    <ff-button size="small" data-action="save-hostname" kind="secondary" :disabled="!customHostnameValid" @click="saveCustomHostname()">Save</ff-button>
+                </template>
+            </FormRow>
+            <p v-if="customHostnameLauncherVersion && customHostnameTeamAvailable && original.customHostname" class="text-xs pl-2 mt-1">
+                <span v-if="checkingDomain">
+                    <RefreshIcon class="w-4 inline" />
+                    Checking domain status...
+                </span>
+                <span v-else-if="domainStatusValid" class="text-green-700">
+                    <BadgeCheckIcon class="w-4 inline" /> DNS verified
+                </span>
+                <span v-else class="text-red-700">
+                    <ExclamationIcon class="w-4 inline" />
+                    DNS check failed
+                </span>
+            </p>
         </div>
         <DangerSettings
             :instance="instance"
@@ -71,6 +84,7 @@
 </template>
 
 <script>
+import { BadgeCheckIcon, ExclamationIcon, RefreshIcon } from '@heroicons/vue/solid'
 import SemVer from 'semver'
 
 import { mapState } from 'vuex'
@@ -85,16 +99,16 @@ import Dialog from '../../../services/dialog.js'
 
 import DangerSettings from './Danger.vue'
 
-import CustomHostnameDialog from './dialogs/CustomHostnameDialog.vue'
-
 export default {
     name: 'InstanceSettings',
     components: {
+        BadgeCheckIcon,
+        ExclamationIcon,
+        RefreshIcon,
         FormRow,
         FormHeading,
         FeatureUnavailableToTeam,
-        DangerSettings,
-        CustomHostnameDialog
+        DangerSettings
     },
     inheritAttrs: false,
     props: {
@@ -128,7 +142,9 @@ export default {
             errors: {
                 customHostname: ''
             },
-            url: ''
+            url: '',
+            checkingDomain: false,
+            domainStatusValid: false
         }
     },
     computed: {
@@ -136,8 +152,8 @@ export default {
         isHA () {
             return !!this.instance?.ha
         },
-        customHostnameChanged () {
-            return this.original.customHostname === this.input.customHostname
+        customHostnameValid () {
+            return this.errors.customHostname === '' && this.original.customHostname !== this.input.customHostname
         },
         customHostnameAvailable () {
             const available = this.features.customHostnames
@@ -150,7 +166,9 @@ export default {
         customHostnameLauncherVersion () {
             const launcherVersion = this.instance?.meta?.versions?.launcher
             if (!launcherVersion) {
-                return false
+                // Not sure the launcher version - could be suspended/started
+                // Be optimistic
+                return true
             }
 
             // needs to be  v2.5.0 or better
@@ -158,7 +176,28 @@ export default {
         }
     },
     watch: {
-        project: 'fetchData'
+        project: 'fetchData',
+        'input.customHostname': function (v) {
+            v = v || ''
+            const validChars = /^[a-zA-Z0-9-.]{1,253}\.?$/g
+            let isValid = true
+            const trimmedValue = v.trim()
+            if (trimmedValue.length > 0) {
+                // contains valid chars
+                if (!validChars.test(trimmedValue)) {
+                    isValid = false
+                }
+                // doesn't end with '.'
+                if (trimmedValue.endsWith('.')) {
+                    isValid = false
+                }
+            }
+            if (isValid) {
+                this.errors.customHostname = ''
+            } else {
+                this.errors.customHostname = 'Not a valid domain name'
+            }
+        }
     },
     mounted () {
         this.fetchData()
@@ -193,69 +232,56 @@ export default {
             this.input.customHostname = this.instance.customHostname
             this.original.customHostname = this.instance.customHostname
             this.url = this.instance.url
+
+            if (this.input.customHostname) {
+                this.checkCustomHostnameStatus()
+            }
         },
-        async showCustomHostnameDialog () {
-            this.$refs.customHostnameDialog.show(this.instance)
+        async checkCustomHostnameStatus () {
+            this.checkingDomain = true
+            try {
+                const result = await instanceAPI.checkCustomHostnameStatus(this.instance.id)
+                if (result) {
+                    this.domainStatusValid = true
+                } else {
+                    this.domainStatusValid = false
+                }
+            } catch (_) {
+                this.domainStatusValid = false
+            } finally {
+                this.checkingDomain = false
+            }
         },
         async saveCustomHostname () {
-            const validChars = /^[a-zA-Z0-9-.]{1,253}\.?$/g
-            let isValid = true
-            this.errors.customHostname = ''
+            // Validation of the value has already passed
+            const domainName = this.input.customHostname.trim()
 
-            if (this.input.customHostname.trim().length === 0) {
-                try {
-                    await instanceAPI.clearCustomHostname(this.instance.id)
-                    this.original.customHostname = this.input.customHostname
-                    this.input.customHostname = ''
-                    this.original.customHostname = ''
-                    this.$router.push({ name: 'Instance', params: { id: this.instance.id } })
-                    this.$emit('instance-updated')
-                } catch (err) {
-                    this.errors.customHostname = 'hostname not available'
-                }
-                return
-            }
-
-            // contains valid chars
-            if (!validChars.test(this.input.customHostname)) {
-                isValid = false
-            }
-
-            // doesn't end with '.'
-            if (this.input.customHostname.endsWith('.')) {
-                isValid = false
-            }
-
-            if (!isValid) {
-                this.errors.customHostname = 'not a valid hostname'
-            } else {
-                try {
-                    const response = await instanceAPI.setCustomHostname(this.instance.id, this.input.customHostname)
-                    if (response) {
-                        if (!response.found) {
-                            // need to show alert about setting up DNS CNAME
-                            const warning = {
-                                header: 'Hostname DNS not configured',
-                                kind: 'primary',
-                                html: `<p><code>${this.input.customHostname}</code> does not resolve to <code>${response.cname}</code>, please add a CNAME entry to your DNS</p><p>See docs <a href="https://flowfuse.com/docs/cloud/introduction/#custom-hostnames">here</a></p>`,
-                                confirmLabel: 'OK',
-                                canBeCanceled: false
-                            }
-                            this.original.customHostname = this.input.customHostname
-                            Dialog.show(warning, () => {
-                                this.$router.push({ name: 'Instance', params: { id: this.instance.id } })
-                                this.$emit('instance-updated')
-                            })
-                            return
-                        }
+            Dialog.show({
+                header: 'Custom domain',
+                kind: 'primary',
+                html: 'Changing the custom domain for an instance will cause it to be restarted to enable the change.'
+            }, async () => {
+                if (domainName.length === 0) {
+                    try {
+                        await instanceAPI.clearCustomHostname(this.instance.id)
+                        this.input.customHostname = ''
+                        this.original.customHostname = ''
+                        this.$emit('instance-updated')
+                    } catch (err) {
+                        // TODO: notify of failure to clear
                     }
-
-                    this.$router.push({ name: 'Instance', params: { id: this.instance.id } })
-                    this.$emit('instance-updated')
-                } catch (err) {
-                    this.errors.customHostname = 'hostname not available'
+                } else {
+                    try {
+                        this.checkingDomain = true
+                        await instanceAPI.setCustomHostname(this.instance.id, domainName)
+                        await this.checkCustomHostnameStatus()
+                        this.original.customHostname = domainName
+                        this.$emit('instance-updated')
+                    } catch (err) {
+                        this.errors.customHostname = 'domain not available'
+                    }
                 }
-            }
+            })
         }
     }
 }

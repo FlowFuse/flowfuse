@@ -191,6 +191,14 @@ const clearCustomHostname = async (instanceId) => {
     return client.delete(`/api/v1/projects/${instanceId}/customHostname`)
 }
 
+const checkCustomHostnameStatus = async (instanceId) => {
+    return client.get(`/api/v1/projects/${instanceId}/customHostname/status`).then(res => {
+        return res.status === 200
+    }).catch(_ => {
+        return false
+    })
+}
+
 export default {
     create,
     getInstance,
@@ -216,5 +224,6 @@ export default {
     enableProtectedMode,
     disableProtectedMode,
     setCustomHostname,
-    clearCustomHostname
+    clearCustomHostname,
+    checkCustomHostnameStatus
 }
