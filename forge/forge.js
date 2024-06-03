@@ -192,11 +192,6 @@ module.exports = async (options = {}) => {
         // console.error(error.stack)
     })
 
-    server.addHook('onSend', async (request, reply, error) => {
-        reply.header('Content-Security-Policy', "frame-ancestors 'self' *.flowforge.cloud *.flowfuse:* *.flowforge:*")
-        reply.header('X-Frame-Options', 'allow-from \'self\' *.flowforge.cloud *.flowfuse:* *.other.flowforge:*')
-    })
-
     try {
         // Config : loads environment configuration
         await server.register(config.attach, options)
@@ -240,7 +235,8 @@ module.exports = async (options = {}) => {
                 contentSecurityPolicy = {
                     directives: {
                         'base-uri': ["'self'"],
-                        'default-src': ["'self'"],
+                        'default-src': ["'self'", `*.${runtimeConfig.domain}`],
+                        'frame-src': ["'self'", `*.${runtimeConfig.domain}`],
                         'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
                         'worker-src': ["'self'", 'blob:'],
                         'connect-src': ["'self'"],
@@ -248,7 +244,7 @@ module.exports = async (options = {}) => {
                         'font-src': ["'self'"],
                         'style-src': ["'self'", 'https:', "'unsafe-inline'"],
                         'upgrade-insecure-requests': null,
-                        'frame-ancestors': ["'self'", '*.flowforge.cloud', '*.other.host:*', 'http://some.other.host:3000']
+                        'frame-ancestors': ["'self'"]
                     }
                 }
             } else {
