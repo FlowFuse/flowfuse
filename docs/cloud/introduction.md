@@ -142,8 +142,7 @@ FlowFuse Cloud can support custom hostnames for instances.
 
 This feature allows a Team Admin to set an additional hostname for an instance.
 This hostname must be on a domain the Team Admin controls and can set up a DNS
-CNAME entry to point to the correct loadbalancer. TODO add IP address when
-production updated.
+CNAME entry to point to the correct loadbalancer, for FlowFuse Cloud this should be `custom-loadbalancer.flowfuse.com`
 
 ## Removing your account
 

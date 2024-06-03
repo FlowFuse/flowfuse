@@ -98,6 +98,7 @@ Option        | Description
 `driver.options.privateCA` | The name of a ConfigMap containing a file called `certs.pem` which holds locally trusted CA cert chain. Default: not set
 `driver.options.customHostname.enabled` | Enables the custom hostname feature. Default: `false`
 `driver.options.customHostname.certManagerIssuer` | The name of the CertManager ClusterIssuer to provision HTTPS certificates for custom hostnames. Default: not set
+`driver.options.customHostname.cnameTarget` | This is hostname that users should be the target of a CNAME DNS entry for the hostname.
 
 ## MQTT Broker configuration
 

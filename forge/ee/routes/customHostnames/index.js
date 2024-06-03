@@ -1,3 +1,7 @@
+const dns = require('dns/promises')
+
+const { KEY_CUSTOM_HOSTNAME } = require('../../../db/models/ProjectSettings')
+
 module.exports = async function (app) {
     app.log.debug('registering custom hostname routes')
     app.addHook('preHandler', app.verifySession)
@@ -38,6 +42,27 @@ module.exports = async function (app) {
                 reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             }
         }
+    })
+
+    app.get('/domainstatus', {
+        preHandler: app.needsPermission('project:edit')
+    }, async (request, reply) => {
+        const hostname = request.project.getSetting(KEY_CUSTOM_HOSTNAME)
+        const cname = app.config.driver.options?.customHostname?.cnameTarget
+        if (cname && hostname) {
+            // let found = false
+            try {
+                const targets = await dns.resolveCname(hostname)
+                if (targets.includes(cname)) {
+                    reply.code(200).send({})
+                    return
+                }
+            } catch (err) {
+                // found = false
+            }
+            reply.code(410).send({ code: '', error: 'CNAME not found' })
+        }
+        reply.code(404).send({ code: 'not_found', error: 'Not Found' })
     })
 
     app.get('/', {

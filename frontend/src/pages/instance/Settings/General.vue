@@ -237,7 +237,7 @@ export default {
                             const warning = {
                                 header: 'Hostname DNS not configured',
                                 kind: 'primary',
-                                html: `<p><code>${this.input.customHostname}</code> does not resolve to <code>${response.cname}</code>, please add a CNAME entry to your DNS</p><p>See docs <a href="">here</a></p>`,
+                                html: `<p><code>${this.input.customHostname}</code> does not resolve to <code>${response.cname}</code>, please add a CNAME entry to your DNS</p><p>See docs <a href="https://flowfuse.com/docs/cloud/introduction/#custom-hostnames">here</a></p>`,
                                 confirmLabel: 'OK',
                                 canBeCanceled: false
                             }
