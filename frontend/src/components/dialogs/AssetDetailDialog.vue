@@ -2,7 +2,7 @@
     <ff-dialog ref="dialog" :header="header" confirm-label="Close" :closeOnConfirm="true" data-el="flow-view-dialog" boxClass="!min-w-[80%] !min-h-[80%] !w-[80%] !h-[80%]" contentClass="overflow-hidden flex-grow" @confirm="confirm()">
         <template #default>
             <div v-if="mode==='compare'" class="w-full h-full">
-                <div class="flex gap-2">
+                <div class="flex gap-2" data-el="snapshot-compare-toolbar">
                     <ff-dropdown v-model="compareSnapshot" class="flex-grow">
                         <ff-dropdown-option v-for="option in compareSnapshotList" :key="option.value" :value="option.value" :label="option.label" :title="option.description" class="text-sm">
                             {{ option.label }}
