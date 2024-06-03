@@ -14,6 +14,7 @@
             <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
                 <template #context-menu="{row}">
                     <ff-list-item :disabled="!canViewSnapshot(row)" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
+                    <ff-list-item :disabled="!canViewSnapshot(row)" label="Compare Snapshot..." @click="showCompareSnapshotDialog(row)" />
                     <ff-list-item :disabled="!canDownload(row)" label="Download Snapshot" @click="showDownloadSnapshotDialog(row)" />
                     <ff-list-item :disabled="!canDownloadPackage(row)" label="Download package.json" @click="downloadSnapshotPackage(row)" />
                     <ff-list-item :disabled="!canDelete(row)" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />
@@ -41,6 +42,7 @@
     </div>
     <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" />
     <AssetDetailDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
+    <AssetDetailDialog ref="snapshotCompareDialog" data-el="dialog-compare-snapshot" />
 </template>
 
 <script>
@@ -140,6 +142,24 @@ export default {
         showViewSnapshotDialog (row) {
             SnapshotsApi.getFullSnapshot(row.id).then((data) => {
                 this.$refs.snapshotViewerDialog.show(data)
+            }).catch(err => {
+                console.error(err)
+                Alerts.emit('Failed to get snapshot.', 'warning')
+            })
+        },
+        showCompareSnapshotDialog (snapshot) {
+            SnapshotsApi.getFullSnapshot(snapshot.id).then((data) => {
+                const snapshotList = this.snapshots.map(s => {
+                    return {
+                        label: s.name,
+                        description: s.description || '',
+                        value: s.id
+                    }
+                })
+                const snapshotLoaderCallback = (snapshotId) => {
+                    return SnapshotsApi.getFullSnapshot(snapshotId)
+                }
+                this.$refs.snapshotCompareDialog.showCompareSnapshots(data, snapshotList, snapshotLoaderCallback)
             }).catch(err => {
                 console.error(err)
                 Alerts.emit('Failed to get snapshot.', 'warning')
