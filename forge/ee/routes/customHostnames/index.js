@@ -44,7 +44,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.get('/domainstatus', {
+    app.get('/status', {
         preHandler: app.needsPermission('project:edit')
     }, async (request, reply) => {
         const hostname = request.project.getSetting(KEY_CUSTOM_HOSTNAME)
