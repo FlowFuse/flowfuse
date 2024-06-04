@@ -208,8 +208,8 @@ export default {
             dialog.show({
                 header: 'Delete Account',
                 kind: 'danger',
-                html: `<p>Are you sure you want to delete your account?</p>
-                       <p>This action cannot be undone.</p>`,
+                text: `Are you sure you want to delete your account?
+                       This action cannot be undone.`,
                 confirmLabel: 'Delete'
             }, async () => {
                 userApi.deleteUser()

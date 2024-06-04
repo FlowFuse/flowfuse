@@ -262,7 +262,7 @@ export default {
                 html += '<p>Application instances using this template will need to be manually restarted to pick up the changes.</p>'
             }
             if (this.modulesChanged) {
-                html += '<p>NOTE: Exiting instances will not inherit the modules in this list.  They must be added manually in the instance settings.</p>'
+                html += '<p>NOTE: Existing instances will not inherit the modules in this list.  They must be added manually in the instance settings.</p>'
             }
             Dialog.show({
                 header: 'Update Template',
