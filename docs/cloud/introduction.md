@@ -142,7 +142,13 @@ FlowFuse Cloud can support custom hostnames for instances.
 
 This feature allows a Team Admin to set an additional hostname for an instance.
 This hostname must be on a domain the Team Admin controls and can set up a DNS
-CNAME entry to point to the correct loadbalancer, for FlowFuse Cloud this should be `custom-loadbalancer.flowfuse.com`
+CNAME entry to point to the correct loadbalancer, for FlowFuse Cloud this should 
+be `custom-loadbalancer.flowfuse.com`
+
+If you also use CAA DNS entries to control which Certificate Authorities can issue
+certificates for your domains, you will need to add a record allowing LetsEncrypt
+to issue certificate. Please see details [here](https://letsencrypt.org/docs/caa/).
+The platform will issue certificates using the `http-01` validation method.
 
 ## Removing your account
 
