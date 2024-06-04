@@ -221,10 +221,10 @@
                 No changes have been made
             </label>
         </div>
-        <AssetDetailDialog ref="flow-renderer-dialog" class="preview-main-blueprint" />
+        <AssetDetailDialog ref="flowRendererDialog" class="preview-main-blueprint" />
         <BlueprintSelectorDialog
             v-if="blueprints.length"
-            ref="blueprint-selector-dialog"
+            ref="blueprintSelectorDialog"
             :blueprints="blueprints"
             :active-blueprint="selectedBlueprint"
             @blueprint-updated="input.flowBlueprintId = $event.id"
@@ -720,10 +720,10 @@ export default {
             this.input.flowBlueprintId = blueprint.id
         },
         openBlueprintSelectorDialog () {
-            this.$refs['blueprint-selector-dialog'].show()
+            this.$refs.blueprintSelectorDialog.show()
         },
         previewBlueprint (blueprint) {
-            this.$refs['flow-renderer-dialog'].show(blueprint)
+            this.$refs.flowRendererDialog.show(blueprint)
         },
         onSubmit () {
             this.$emit(

@@ -16,7 +16,7 @@
                 v-if="displayPreviewButton"
                 data-action="show-blueprint"
                 class="ff-btn--secondary"
-                @click="$refs['flow-renderer-dialog'].show(blueprint)"
+                @click="$refs.flowRendererDialog.show(blueprint)"
             >
                 <template #icon>
                     <ProjectIcon />
@@ -29,7 +29,7 @@
                 Edit
             </ff-button>
         </div>
-        <AssetDetailDialog v-if="displayPreviewButton" ref="flow-renderer-dialog" :title="blueprint.name" />
+        <AssetDetailDialog v-if="displayPreviewButton" ref="flowRendererDialog" :title="blueprint.name" />
     </div>
 </template>
 
