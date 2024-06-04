@@ -61,7 +61,7 @@ describe('FlowForge - Devices - With Billing', () => {
         cy.contains('A device must be in developer mode and online to create a snapshot.')
     })
 
-    it('doesn\'t show any "Premium Feature Only" guidance if billing is enabled', () => {
+    it('doesn\'t show any "Enterprise Feature Only" guidance if billing is enabled', () => {
         cy.contains('span', 'application-device-a').click()
         cy.get('[data-nav="device-snapshots"]').click()
         cy.get('[data-el="page-banner-feature-unavailable"]').should('not.exist')

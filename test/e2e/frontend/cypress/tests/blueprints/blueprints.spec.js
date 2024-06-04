@@ -4,7 +4,7 @@ describe('FlowForge - Blueprints', () => {
         cy.home()
     })
 
-    it('should flag it\'s a premium feature in the Admin navigation', () => {
+    it('should flag it\'s an enterprise feature in the Admin navigation', () => {
         cy.visit('/admin/overview')
         cy.get('[data-nav="admin-flow-blueprints"]').should('exist')
         cy.get('[data-nav="admin-flow-blueprints"] [data-el="premium-feature"]').should('exist')

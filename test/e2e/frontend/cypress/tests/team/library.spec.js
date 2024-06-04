@@ -13,7 +13,7 @@ describe('FlowForge - Library', () => {
 
             cy.contains('Shared repository to store common flows and nodes.')
             cy.contains('No Blueprints Available')
-            cy.contains('This is a FlowFuse Premium feature. Please upgrade your instance of FlowFuse in order to use it.')
+            cy.contains('This is a FlowFuse Enterprise feature. Please upgrade your instance of FlowFuse in order to use it.')
         })
     })
     describe('Team Library', () => {
@@ -21,7 +21,7 @@ describe('FlowForge - Library', () => {
             cy.visit('team/ateam/library')
 
             cy.contains('Create your own Team Library')
-            cy.contains('This is a FlowFuse Premium feature. Please upgrade your instance of FlowFuse in order to use it.')
+            cy.contains('This is a FlowFuse Enterprise feature. Please upgrade your instance of FlowFuse in order to use it.')
         })
     })
 })
