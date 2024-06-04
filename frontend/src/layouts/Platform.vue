@@ -17,10 +17,15 @@
                 />
             </TransitionGroup>
             <interview-popup v-if="interview?.enabled" :flag="interview.flag" :payload="interview.payload" />
-            <ff-dialog ref="dialog" data-el="platform-dialog" :header="dialog.header" :kind="dialog.kind" :disable-primary="dialog.disablePrimary" :confirm-label="dialog.confirmLabel" @cancel="clearDialog(true)" @confirm="dialog.onConfirm">
-                <p v-if="dialog.text">{{ dialog.text }}</p>
+            <ff-dialog ref="dialog" data-el="platform-dialog" :header="dialog.header" :kind="dialog.kind" :disable-primary="dialog.disablePrimary" :confirm-label="dialog.confirmLabel" :canBeCanceled="dialog.canBeCanceled" @cancel="clearDialog(true)" @confirm="dialog.onConfirm">
+                <template v-if="dialog.textLines">
+                    <div class="space-y-2">
+                        <p v-for="(text, $index) in dialog.textLines" :key="$index">{{ text }}</p>
+                    </div>
+                </template>
+                <p v-else-if="dialog.text">{{ dialog.text }}</p>
                 <!-- eslint-disable-next-line vue/no-v-html -->
-                <div class="space-y-2" v-html="dialog.html" />
+                <div v-else class="space-y-2" v-html="dialog.html" />
             </ff-dialog>
         </div>
     </div>
