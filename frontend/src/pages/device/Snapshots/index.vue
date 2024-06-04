@@ -31,7 +31,7 @@
             </ff-data-table>
         </template>
         <template v-else-if="!loading">
-            <EmptyState :feature-unavailable="!features.deviceEditor" :feature-unavailable-message="'This requires Developer Mode on Devices, which a FlowFuse Premium Feature'">
+            <EmptyState :feature-unavailable="!features.deviceEditor" :feature-unavailable-message="'This requires Developer Mode on Devices, which is a FlowFuse Enterprise Feature'">
                 <template #img>
                     <img src="../../../images/empty-states/instance-snapshots.png">
                 </template>
