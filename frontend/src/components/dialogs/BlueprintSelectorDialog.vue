@@ -1,8 +1,8 @@
 <template>
     <ff-dialog ref="dialog" data-el="blueprint-selector-dialog" class="blueprints-selector-dialog" header="Select a Blueprint">
         <template #default>
-            <section class="blueprints-container">
-                <div class="header">
+            <section class="blueprints-container w-full md:w-full lg:w-2/5 xl:w-2/5 2xl:w-2/5">
+                <div class="header hidden 2xl:block xl:block lg:block">
                     <h3>Select Your Blueprint</h3>
                     <p>To get started, we have a collection of pre-built flow templates that you can use as a starting point for your Node-RED Instance.</p>
                 </div>
@@ -16,7 +16,7 @@
                     />
                 </div>
             </section>
-            <section class="flow-viewer-container">
+            <section class="flow-viewer-container hidden 2xl:block xl:block lg:block w-full md:w-full lg:w-3/5 xl:w-3/5 2xl:w-3/5">
                 <div ref="viewer" class="viewer" @click.stop.prevent />
             </section>
         </template>
@@ -118,17 +118,13 @@ export default {
 
       .ff-dialog-content {
         display: flex;
+        flex-direction: row;
         padding: 0;
         overflow: auto;
 
         .blueprints-container {
-          padding: 10px;
+          padding: 10px 10px 0;
           overflow: auto;
-          max-width: 40%;
-          min-width: 450px;
-          flex: 1;
-          display: flex;
-          flex-direction: column;
 
           .header {
             padding: 0 0 10px;
@@ -155,12 +151,22 @@ export default {
               line-height: 1.5;
               margin-top: 10px;
             }
-          }
 
+            .blueprint-group {
+              display: flex;
+              flex-direction: row;
+              flex-wrap: wrap;
+
+              .ff-blueprint-tile {
+                width: auto;
+                max-width: 250px;
+                flex: 1 1 200px;
+              }
+            }
+          }
         }
 
         .flow-viewer-container {
-          flex: 1;
           overflow: hidden;
 
           .viewer {
