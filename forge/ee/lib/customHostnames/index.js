@@ -1,11 +1,8 @@
 const { KEY_CUSTOM_HOSTNAME } = require('../../../db/models/ProjectSettings')
 
 module.exports.init = function (app) {
-    app.log.debug(`EE CustomHostname ${app.config.driver.type}\n ${JSON.stringify(app.config.driver.options)}`)
-    // TODO localfs should be removed before check in
     if (app.config.driver.type === 'kubernetes' || app.config.driver.type === 'stub') {
-        if (app.config.driver.options?.customHostname?.enabled) {
-            app.log.info('Enabling Custom Hostname Feature')
+        if (app.config.driver.options?.customHostname?.enabled && app.config.driver.options?.customHostname?.cnameTarget) {
             app.config.features.register('customHostnames', true, true)
             app.db.models.Project.prototype.getCustomHostname = async function () {
                 return this.getSetting(KEY_CUSTOM_HOSTNAME)

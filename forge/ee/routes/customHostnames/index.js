@@ -3,7 +3,6 @@ const dns = require('dns/promises')
 const { KEY_CUSTOM_HOSTNAME } = require('../../../db/models/ProjectSettings')
 
 module.exports = async function (app) {
-    app.log.debug('registering custom hostname routes')
     app.addHook('preHandler', app.verifySession)
     app.addHook('preHandler', async (request, reply) => {
         if (!app.config.features.enabled('customHostnames')) {

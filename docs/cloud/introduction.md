@@ -120,35 +120,32 @@ All incoming connections MUST use the hostname and not an IP address.
 
 ## Single-Sign On
 
-FlowFuse supports configuring SAML-based Single Sign-On for particular email domains.
+FlowFuse supports configuring both SAML and LDAP based Single Sign-On for particular email domains.
 
 This can be configured on request for FlowFuse Cloud by submitting a support request
 via our [Contact Us](https://flowfuse.com/contact-us/) page.
 
-You must have the ability to configure a SAML endpoint on your Identity Provider,
+For SAML providers, you must have the ability to configure a SAML endpoint on your Identity Provider,
 and have the authority to configure SSO for your email domain.
 
 We have currently validated our SSO support with the following Identity Providers:
 
+ - Microsoft Entra
  - Google Workspace
  - OneLogin
+ - Keycloak
 
 If you are using a different Identity Provider, please still get in touch, and we
 can evaluate what will be required to enable it.
 
 ## Custom Hostnames
 
-FlowFuse Cloud can support custom hostnames for instances.
+FlowFuse Cloud can support custom hostnames for instances in Enterprise teams.
 
-This feature allows a Team Admin to set an additional hostname for an instance.
-This hostname must be on a domain the Team Admin controls and can set up a DNS
-CNAME entry to point to the correct loadbalancer, for FlowFuse Cloud this should 
-be `custom-loadbalancer.flowfuse.com`
+This allows you to point your own subdomain, such as `dashboard.example.com` at
+one of your instances.
 
-If you also use CAA DNS entries to control which Certificate Authorities can issue
-certificates for your domains, you will need to add a record allowing LetsEncrypt
-to issue certificate. Please see details [here](https://letsencrypt.org/docs/caa/).
-The platform will issue certificates using the `http-01` validation method.
+See [Custom Hostnames](/docs/user/custom-hostnames.md) for more information.
 
 ## Removing your account
 
