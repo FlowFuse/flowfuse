@@ -22,7 +22,7 @@
         <template #actions>
             <div class="flex justify-end">
                 <ff-button kind="secondary" data-action="dialog-cancel" @click="closeDialog">Cancel</ff-button>
-                <ff-button data-action="dialog-confirm" @click="confirmSelection">Confirm Changes</ff-button>
+                <ff-button data-action="dialog-confirm" @click="confirmSelection">Confirm Choice</ff-button>
             </div>
         </template>
     </ff-dialog>
