@@ -1,4 +1,4 @@
-const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA, KEY_PROTECTED, KEY_HEALTH_CHECK_INTERVAL } = require('../models/ProjectSettings')
+const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA, KEY_PROTECTED, KEY_HEALTH_CHECK_INTERVAL, KEY_CUSTOM_HOSTNAME } = require('../models/ProjectSettings')
 
 module.exports = function (app) {
     app.addSchema({
@@ -33,6 +33,7 @@ module.exports = function (app) {
                 type: 'object',
                 additionalProperties: true
             },
+            customHostname: { type: 'string' },
             launcherSettings: {
                 type: 'object',
                 properties: {
@@ -93,6 +94,10 @@ module.exports = function (app) {
         if (app.config.features.enabled('protectedInstance')) {
             const settingsProtectedRow = proj.ProjectSettings?.find(row => row.key === KEY_PROTECTED)
             result.protected = settingsProtectedRow?.value || { enabled: false }
+        }
+        if (app.config.features.enabled('customHostnames')) {
+            const settingsCustomHostnameRow = proj.ProjectSettings?.find(row => row.key === KEY_CUSTOM_HOSTNAME)
+            result.customHostname = settingsCustomHostnameRow?.value || undefined
         }
 
         if (proj.Application) {

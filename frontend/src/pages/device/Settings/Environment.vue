@@ -26,7 +26,7 @@ export default {
             const dialogOpts = {
                 header: 'Unsaved changes',
                 kind: 'danger',
-                html: '<p>You have unsaved changes. Are you sure you want to leave?</p>',
+                text: 'You have unsaved changes. Are you sure you want to leave?',
                 confirmLabel: 'Yes, lose changes'
             }
             const answer = await dialog.showAsync(dialogOpts)

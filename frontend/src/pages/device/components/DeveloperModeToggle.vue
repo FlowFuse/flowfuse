@@ -70,17 +70,9 @@ export default {
                     header: 'Disable Developer Mode',
                     kind: 'danger',
                     confirmLabel: 'Confirm',
-                    html: `<p>
-                        Disabling developer mode will turn off access to the editor and
-                        may redeploy the current target snapshot to the device.
-                    </p>
-                    <p>
-                        Any changes made to the device whilst in developer mode will be lost.
-                    </p>
-                    <p>
-                        To avoid losses, you can cancel this operation and create a snapshot
-                        in the developer mode tab.
-                    </p>`
+                    text: `Disabling developer mode will turn off access to the editor and may redeploy the current target snapshot to the device.
+                           Any changes made to the device whilst in developer mode will be lost.
+                           To avoid losses, you can cancel this operation and create a snapshot in the developer mode tab.`
                 }
                 const dialogResult = await Dialog.showAsync(msg)
                 if (dialogResult === 'confirm') {

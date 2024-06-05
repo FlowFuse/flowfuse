@@ -22,7 +22,7 @@ export default {
     props: {
         message: {
             type: String,
-            default: 'This is a FlowFuse Premium feature'
+            default: 'This is a FlowFuse Enterprise feature'
         }
     }
 }

@@ -315,7 +315,7 @@ export default {
                 header: 'Delete Pipeline Stage',
                 kind: 'danger',
                 confirmLabel: 'Delete',
-                html: `<p>Are you sure you want to delete the pipeline stage "${this.stage.name}"?</p>`
+                text: `Are you sure you want to delete the pipeline stage "${this.stage.name}"?`
             }
             Dialog.show(msg, async () => {
                 await PipelineAPI.deletePipelineStage(

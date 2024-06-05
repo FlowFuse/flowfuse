@@ -811,7 +811,8 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         if (request.project.state === 'suspended') {
-            reply.code(400).send({ code: 'project_suspended', error: 'Project suspended' })
+            app.log.warn(`Instance ${request.project} attempted to get settings whilst suspended`)
+            reply.code(400).send({ code: 'project_suspended', error: 'Instance suspended' })
             return
         }
         // get settings from the driver

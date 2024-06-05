@@ -257,16 +257,16 @@ export default {
             this.editable.errors = {}
         },
         showSaveTemplateDialog () {
-            let html = '<p>Are you sure you want to save this template?</p>'
+            const lines = ['Are you sure you want to save this template?']
             if (this.needsRestart) {
-                html += '<p>Application instances using this template will need to be manually restarted to pick up the changes.</p>'
+                lines.push('Application instances using this template will need to be manually restarted to pick up the changes.')
             }
             if (this.modulesChanged) {
-                html += '<p>NOTE: Exiting instances will not inherit the modules in this list.  They must be added manually in the instance settings.</p>'
+                lines.push('NOTE: Existing instances will not inherit the modules in this list.  They must be added manually in the instance settings.')
             }
             Dialog.show({
                 header: 'Update Template',
-                html,
+                text: lines.join('\n'),
                 confirmLabel: 'Save Template'
             }, this.saveTemplate)
         },

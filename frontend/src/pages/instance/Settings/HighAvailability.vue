@@ -83,10 +83,8 @@ export default {
         async enableHA () {
             const msg = {
                 header: 'Enable High Availability mode',
-                html: `<p>Enabling HA mode will require a restart of the instance.</p>
-                       <p>Once enabled, the editor will be disabled. The flows can only
-                          be updated by using a DevOps Pipeline to deploy to this instance
-                          from another one, or by disabling HA mode first.</p>`
+                text: `Enabling HA mode will require a restart of the instance.
+                       Once enabled, the editor will be disabled. The flows can only be updated by using a DevOps Pipeline to deploy to this instance from another one, or by disabling HA mode first.`
             }
             Dialog.show(msg, async () => {
                 this.updating = true
@@ -103,7 +101,7 @@ export default {
         async disableHA () {
             const msg = {
                 header: 'Disable High Availability mode',
-                html: '<p>Disabling HA mode will require a restart of the instance.</p>'
+                text: 'Disabling HA mode will require a restart of the instance.'
             }
             Dialog.show(msg, async () => {
                 this.updating = true
