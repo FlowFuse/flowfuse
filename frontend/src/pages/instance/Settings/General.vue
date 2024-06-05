@@ -172,7 +172,7 @@ export default {
             }
 
             // needs to be  v2.5.0 or better
-            return SemVer.satisfies(SemVer.coerce(launcherVersion), '>=2.4.0')
+            return SemVer.satisfies(SemVer.coerce(launcherVersion), '>=2.5.0')
         }
     },
     watch: {
