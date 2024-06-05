@@ -26,7 +26,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.get('[data-nav="application-pipelines"]').get('[data-el="premium-feature"]').should('exist')
     })
 
-    it('is prompted that DevOps Pipelines are a premium feature', () => {
+    it('is prompted that DevOps Pipelines are an enterprise feature', () => {
         cy.visit(`/application/${application.id}/pipelines`)
         cy.url().should('include', `/application/${application.id}/pipelines`)
         cy.get('[data-el="page-banner-feature-unavailable"]').should('exist')

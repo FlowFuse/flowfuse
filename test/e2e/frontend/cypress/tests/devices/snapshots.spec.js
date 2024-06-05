@@ -10,14 +10,14 @@ describe('FlowForge - Devices', () => {
         cy.get('[data-action=open-editor]').should('not.exist')
     })
 
-    it('exposes a "Snapshots" tab if assigned to an Application & informs users this is a Premium Feature', () => {
+    it('exposes a "Snapshots" tab if assigned to an Application & informs users this is a Enterprise Feature', () => {
         cy.contains('span', 'application-device-a').click()
         cy.get('[data-nav="device-snapshots"]').should('exist')
         cy.get('[data-nav="device-snapshots"]').click()
         cy.get('[data-el="page-banner-feature-unavailable"]').should('exist')
     })
 
-    it('exposes a "Snapshots" tab if not assigned to anything & informs users this is a Premium Feature', () => {
+    it('exposes a "Snapshots" tab if not assigned to anything & informs users this is a Enterprise Feature', () => {
         cy.contains('span', 'team2-unassigned-device').click()
         cy.get('[data-nav="device-snapshots"]').should('exist')
         cy.get('[data-nav="device-snapshots"]').click()

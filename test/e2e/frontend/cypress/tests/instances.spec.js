@@ -148,10 +148,13 @@ describe('FlowForge - Instances', () => {
                 expect(projectName).to.equal('instance-1-1')
             })
 
-            cy.get('[data-form="instance-stack"]').contains('stack2').click()
+            // can't use .select('value') because we're not dealing with a select input
+            cy.get('[data-el="stack-selector"]').click()
+            cy.get('[data-el="stack-selector"]').contains('stack 2').click()
             cy.get('[data-action="update-project"]').should('not.be.disabled') // changes _have_ now been made
 
-            cy.get('[data-form="instance-stack"]').contains('stack1').click() // re-select
+            cy.get('[data-el="stack-selector"]').click()
+            cy.get('[data-el="stack-selector"]').contains('stack 1').click() // re-select
             cy.get('[data-action="update-project"]').should('be.disabled')
 
             cy.get('[data-form="project-type"]').contains('type2').click()
@@ -165,7 +168,7 @@ describe('FlowForge - Instances', () => {
         cy.wait('@getInstance')
 
         cy.contains('instance-1-1')
-        cy.contains('type2 / stack1-for-type2')
+        cy.contains('type2 / stack 1 for type2')
 
         // Put it back how it was
         cy.get('[data-nav="instance-settings"]').click()
@@ -181,7 +184,7 @@ describe('FlowForge - Instances', () => {
         cy.wait('@getInstance')
 
         cy.contains('instance-1-1')
-        cy.contains('type1 / stack1')
+        cy.contains('type1 / stack 1')
     })
 
     it('can be copied', () => {
@@ -215,7 +218,7 @@ describe('FlowForge - Instances', () => {
 
         cy.wait('@getInstance')
 
-        cy.contains('type1 / stack1')
+        cy.contains('type1 / stack 1')
     })
 
     it('can be created', () => {
