@@ -1,9 +1,8 @@
 <template>
-    <ff-dialog ref="dialog" data-el="blueprint-selector-dialog" class="blueprints-selector-dialog" header="Select a Blueprint">
+    <ff-dialog ref="dialog" data-el="blueprint-selector-dialog" class="blueprints-selector-dialog" header="Choose a Blueprint">
         <template #default>
             <section class="blueprints-container w-full md:w-full lg:w-2/5 xl:w-2/5 2xl:w-2/5">
                 <div class="header hidden 2xl:block xl:block lg:block">
-                    <h3>Select Your Blueprint</h3>
                     <p>To get started, we have a collection of pre-built flow templates that you can use as a starting point for your Node-RED Instance.</p>
                 </div>
                 <div class="blueprint-selection-wrapper">
