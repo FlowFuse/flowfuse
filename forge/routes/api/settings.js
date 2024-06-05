@@ -44,6 +44,9 @@ module.exports = async function (app) {
                 base_url: app.config.base_url,
                 license: app.license.status()
             }
+            if (app.config.features.enabled('customHostnames')) {
+                response.cnameTarget = app.config.driver.options?.customHostname?.cnameTarget
+            }
 
             if (request.session.User.admin) {
                 response['platform:licensed'] = isLicensed

@@ -19,6 +19,7 @@
                 <template #context-menu="{row}">
                     <ff-list-item :disabled="!hasPermission('project:snapshot:rollback')" label="Deploy Snapshot" @click="showRollbackDialog(row)" />
                     <ff-list-item :disabled="!hasPermission('snapshot:full')" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
+                    <ff-list-item :disabled="!hasPermission('snapshot:full')" label="Compare Snapshot..." @click="showCompareSnapshotDialog(row)" />
                     <ff-list-item :disabled="!hasPermission('project:snapshot:export')" label="Download Snapshot" @click="showDownloadSnapshotDialog(row)" />
                     <ff-list-item :disabled="!hasPermission('project:snapshot:read')" label="Download package.json" @click="downloadSnapshotPackage(row)" />
                     <ff-list-item :disabled="!hasPermission('project:snapshot:set-target')" label="Set as Device Target" @click="showDeviceTargetDialog(row)" />
@@ -57,6 +58,7 @@
         <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" :project="instance" />
         <SnapshotImportDialog ref="snapshotImportDialog" title="Upload Snapshot" data-el="dialog-import-snapshot" :owner="instance" owner-type="instance" @snapshot-import-success="onSnapshotImportSuccess" @snapshot-import-failed="onSnapshotImportFailed" @canceled="onSnapshotImportCancel" />
         <AssetDetailDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
+        <AssetDetailDialog ref="snapshotCompareDialog" data-el="dialog-compare-snapshot" />
     </div>
 </template>
 
@@ -211,10 +213,9 @@ export default {
         showRollbackDialog (snapshot) {
             Dialog.show({
                 header: 'Deploy Snapshot',
-                html: `<p>This will overwrite the current instance.</p>
-            <p>All changes to the flows, settings and environment variables made since
-                the last snapshot will be lost.</p>
-            <p>Are you sure you want to deploy to this snapshot?</p>`,
+                text: `This will overwrite the current instance.
+                       All changes to the flows, settings and environment variables made since the last snapshot will be lost.
+                       Are you sure you want to deploy to this snapshot?`,
                 confirmLabel: 'Confirm'
             }, async () => {
                 await SnapshotApi.rollbackSnapshot(this.instance.id, snapshot.id)
@@ -225,8 +226,8 @@ export default {
         showDeviceTargetDialog (snapshot) {
             Dialog.show({
                 header: 'Set Device Target Snapshot',
-                html: `<p>Are you sure you want to set this snapshot as the device target?</p>
-            <p>All devices assigned to this instance will be restarted on this snapshot.</p>`,
+                text: `Are you sure you want to set this snapshot as the device target?
+                       All devices assigned to this instance will be restarted on this snapshot.`,
                 confirmLabel: 'Set Target'
             }, async () => {
                 await InstanceApi.updateInstanceDeviceSettings(this.instance.id, {
@@ -268,7 +269,24 @@ export default {
                 Alerts.emit('Failed to get snapshot.', 'warning')
             })
         },
-
+        showCompareSnapshotDialog (snapshot) {
+            SnapshotsApi.getFullSnapshot(snapshot.id).then((data) => {
+                const snapshotList = this.snapshots.map(s => {
+                    return {
+                        label: s.name,
+                        description: s.description || '',
+                        value: s.id
+                    }
+                })
+                const snapshotLoaderCallback = (snapshotId) => {
+                    return SnapshotsApi.getFullSnapshot(snapshotId)
+                }
+                this.$refs.snapshotCompareDialog.showCompareSnapshots(data, snapshotList, snapshotLoaderCallback)
+            }).catch(err => {
+                console.error(err)
+                Alerts.emit('Failed to get snapshot.', 'warning')
+            })
+        },
         // snapshot actions - import
         showImportSnapshotDialog () {
             this.busyImportingSnapshot = true
