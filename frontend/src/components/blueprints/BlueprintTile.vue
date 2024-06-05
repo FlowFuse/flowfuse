@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-blueprint-tile" :class="'ff-blueprint-group--' + categoryClass" data-el="blueprint-tile">
+    <div class="ff-blueprint-tile" :class="{['ff-blueprint-group--' + categoryClass]: true, active}" data-el="blueprint-tile">
         <div class="ff-blueprint-tile--header">
             <component :is="getIcon(blueprint.icon)" class="ff-icon" />
         </div>
@@ -13,9 +13,10 @@
                 <label class="text-green-800">Default</label>
             </div>
             <ff-button
+                v-if="displayPreviewButton"
                 data-action="show-blueprint"
                 class="ff-btn--secondary"
-                @click="$refs['flow-renderer-dialog'].show(blueprint)"
+                @click="$refs.flowRendererDialog.show(blueprint)"
             >
                 <template #icon>
                     <ProjectIcon />
@@ -28,7 +29,7 @@
                 Edit
             </ff-button>
         </div>
-        <AssetDetailDialog ref="flow-renderer-dialog" :title="blueprint.name" />
+        <AssetDetailDialog v-if="displayPreviewButton" ref="flowRendererDialog" :title="blueprint.name" />
     </div>
 </template>
 
@@ -58,6 +59,14 @@ export default {
             type: Object
         },
         editable: {
+            type: Boolean,
+            default: false
+        },
+        displayPreviewButton: {
+            type: Boolean,
+            default: true
+        },
+        active: {
             type: Boolean,
             default: false
         }
@@ -113,6 +122,11 @@ export default {
 .ff-blueprint-tile {
   background-color: $ff-white;
   width: 250px;
+
+  &.active {
+    border-color: $ff-blue-600;
+    transition: border-color .3s;
+  }
 
   .ff-dialog-container {
     .ff-dialog-box {
