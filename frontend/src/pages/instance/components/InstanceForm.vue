@@ -141,26 +141,26 @@
                     </ff-tile-selection>
                 </div>
 
-                    <!-- Stack -->
-                    <div class="flex flex-wrap gap-1 items-stretch">
-                        <label class="w-full block text-sm font-medium text-gray-700 mb-1">Choose your Node-RED Version</label>
-                        <FormRow
-                            v-model="input.stack"
-                            value="id" :options="stacks"
-                            :disabled="emptyStacks"
-                            data-el="stack-selector"
-                            container-class="max-w-sm w-full"
-                        >
-                            <template #description>
-                                <label v-if="!input.projectType" class="text-sm text-gray-400">
-                                    Please select a Instance Type first.
-                                </label>
-                                <label v-if="errors.stack" class="text-sm text-gray-400">
-                                    {{ errors.stack }}
-                                </label>
-                            </template>
-                        </FormRow>
-                    </div>
+                <!-- Stack -->
+                <div class="flex flex-wrap gap-1 items-stretch">
+                    <label class="w-full block text-sm font-medium text-gray-700 mb-1">Choose your Node-RED Version</label>
+                    <FormRow
+                        v-model="input.stack"
+                        value="id" :options="stacks"
+                        :disabled="emptyStacks"
+                        data-el="stack-selector"
+                        container-class="max-w-sm w-full"
+                    >
+                        <template #description>
+                            <label v-if="!input.projectType" class="text-sm text-gray-400">
+                                Please select a Instance Type first.
+                            </label>
+                            <label v-if="errors.stack" class="text-sm text-gray-400">
+                                {{ errors.stack }}
+                            </label>
+                        </template>
+                    </FormRow>
+                </div>
 
                 <!-- Template -->
                 <div v-if="creatingNew && templates.length > 1 " class="flex flex-wrap gap-1 items-stretch">
