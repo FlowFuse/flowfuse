@@ -14,6 +14,7 @@ const KEY_HOSTNAME = 'hostname'
 const KEY_HA = 'ha'
 const KEY_PROTECTED = 'protected'
 const KEY_HEALTH_CHECK_INTERVAL = 'healthCheckInterval'
+const KEY_CUSTOM_HOSTNAME = 'customHostname'
 
 module.exports = {
     KEY_SETTINGS,
@@ -21,6 +22,7 @@ module.exports = {
     KEY_HA,
     KEY_PROTECTED,
     KEY_HEALTH_CHECK_INTERVAL,
+    KEY_CUSTOM_HOSTNAME,
     name: 'ProjectSettings',
     schema: {
         ProjectId: { type: DataTypes.UUID, unique: 'pk_settings' },
@@ -58,6 +60,12 @@ module.exports = {
                         where: { key: KEY_HOSTNAME, value: hostname.toLowerCase() }
                     })
                     return count !== 0
+                },
+                isCustomHostnameUsed: async (hostname) => {
+                    const count = await this.count({
+                        where: { key: KEY_CUSTOM_HOSTNAME, value: hostname.toLowerCase() }
+                    })
+                    return count !== 0 || this.isHostnameUsed(hostname)
                 }
             }
         }
