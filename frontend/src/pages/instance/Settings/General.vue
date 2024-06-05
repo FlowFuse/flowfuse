@@ -44,9 +44,9 @@
                 Custom domain
                 <template #description>
                     <p>
-                        This allows you to access your instance from a custom domain or subdomain. This requires the DNS entry for the domain to
+                        This allows you to access your instance from a custom subdomain. This requires the DNS entry for the subdomain to
                         be updated to point at the FlowFuse platform.
-                        For more information, see the <a class="ff-link" target="_blank" href="https://flowfuse.com/docs/cloud/introduction/#custom-hostnames">documentation</a>.
+                        For more information, see the <a class="ff-link" target="_blank" href="https://flowfuse.com/docs/user/custom-hostnames">documentation</a>.
                     </p>
                 </template>
                 <template v-if="!customHostnameTeamAvailable" #input>
@@ -148,7 +148,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'team']),
+        ...mapState('account', ['features', 'team', 'settings']),
         isHA () {
             return !!this.instance?.ha
         },
@@ -179,7 +179,7 @@ export default {
         project: 'fetchData',
         'input.customHostname': function (v) {
             v = v || ''
-            const validChars = /^[a-zA-Z0-9-.]{1,253}\.?$/g
+            const validChars = /^[a-zA-Z0-9-.]{1,253}\.[a-zA-Z0-9-.]{1,253}\.[a-zA-Z0-9-.]{1,253}$/g
             let isValid = true
             const trimmedValue = v.trim()
             if (trimmedValue.length > 0) {
@@ -195,7 +195,7 @@ export default {
             if (isValid) {
                 this.errors.customHostname = ''
             } else {
-                this.errors.customHostname = 'Not a valid domain name'
+                this.errors.customHostname = 'Not a valid subdomain name'
             }
         }
     },
@@ -256,10 +256,19 @@ export default {
             // Validation of the value has already passed
             const domainName = this.input.customHostname.trim()
 
+            const message = []
+            if (domainName === '') {
+                message.push('Clearing the custom domain will cause the instance to be restarted to enable the change.')
+            } else {
+                message.push('Setting the custom domain will cause the instance to be restarted to enabled the change.')
+                message.push('The domain must have a <code>CNAME</code> record pointing at:')
+                message.push(`<code>${this.settings.cnameTarget}</code>`)
+            }
+
             Dialog.show({
                 header: 'Custom domain',
                 kind: 'primary',
-                html: 'Changing the custom domain for an instance will cause it to be restarted to enable the change.'
+                html: `<p>${message.join('</p><p>')}</p>`
             }, async () => {
                 if (domainName.length === 0) {
                     try {
