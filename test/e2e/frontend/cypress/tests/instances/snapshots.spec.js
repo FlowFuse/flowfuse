@@ -4,10 +4,11 @@ import instanceFullSnapshot from '../../fixtures/snapshots/instance2-full-snapsh
 import instanceSnapshot from '../../fixtures/snapshots/instance2-snapshot2.json'
 const IDX_DEPLOY_SNAPSHOT = 0
 const IDX_VIEW_SNAPSHOT = 1
-const IDX_DOWNLOAD_SNAPSHOT = 2
-const IDX_DOWNLOAD_PACKAGE = 3
-const IDX_SET_TARGET = 4
-const IDX_DELETE_SNAPSHOT = 5
+const IDX_COMPARE_SNAPSHOT = 2
+const IDX_DOWNLOAD_SNAPSHOT = 3
+const IDX_DOWNLOAD_PACKAGE = 4
+const IDX_SET_TARGET = 5
+const IDX_DELETE_SNAPSHOT = 6
 
 describe('FlowForge - Instance Snapshots', () => {
     let projectId
@@ -68,9 +69,10 @@ describe('FlowForge - Instance Snapshots', () => {
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
 
         // check the options are present
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').should('have.length', 6)
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').should('have.length', 7)
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DEPLOY_SNAPSHOT).contains('Deploy Snapshot')
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_VIEW_SNAPSHOT).contains('View Snapshot')
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_COMPARE_SNAPSHOT).contains('Compare Snapshot...')
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_SNAPSHOT).contains('Download Snapshot')
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_PACKAGE).contains('Download package.json')
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_SET_TARGET).contains('Set as Device Target')
@@ -93,6 +95,34 @@ describe('FlowForge - Instance Snapshots', () => {
 
         // check the flow renders an SVG in the content section
         cy.get('[data-el="dialog-view-snapshot"] .ff-dialog-content svg').should('exist')
+    })
+
+    it('provides functionality to compare snapshots', () => {
+        cy.intercept('GET', '/api/*/snapshots/*/full', instanceFullSnapshot).as('fullSnapshot')
+        // click kebab menu in row 1
+        cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
+        // click the View Snapshot option
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_COMPARE_SNAPSHOT).click()
+
+        cy.wait('@fullSnapshot')
+
+        cy.get('[data-el="dialog-compare-snapshot"]').should('be.visible')
+
+        // check the snapshot name in the dialog header
+        cy.get('[data-el="dialog-compare-snapshot"] .ff-dialog-header').contains('instance-2 snapshot-2')
+
+        // initially, the compare button should be disabled
+        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] [data-action="compare-snapshots"]').should('be.disabled')
+
+        // select the snapshot to compare with
+        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] .ff-dropdown[disabled=false]').click()
+        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+        // click compare button
+        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] [data-action="compare-snapshots"]').click()
+        cy.wait('@fullSnapshot')
+
+        // check the flow renders an SVG in the content section
+        cy.get('[data-el="dialog-compare-snapshot"] .ff-dialog-content svg').should('exist')
     })
 
     it('download snapshot', () => {
