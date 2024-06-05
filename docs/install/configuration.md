@@ -97,7 +97,7 @@ Option        | Description
 `driver.options.logPassthrough` | Prints the Node-RED logs in JSON format to stdout of the instance pods. This should be set with the `forge.logPassthrough=true` Helm chart value. Default: `false`
 `driver.options.privateCA` | The name of a ConfigMap containing a file called `certs.pem` which holds locally trusted CA cert chain. Default: not set
 `driver.options.customHostname.enabled` | Enables the custom hostname feature. Default: `false`
-`driver.options.customHostname.cnameTarget` | This is hostname that users should be the target of a CNAME DNS entry for the hostname. This value is required to enable this feature. Default: not set
+`driver.options.customHostname.cnameTarget` | The hostname users should configure their DNS entries to point at. This value is required to enable this feature. Default: not set
 `driver.options.customHostname.ingressClass` | The name of the Ingress Class that should be used for the custom hostname. Default: not set
 `driver.options.customHostname.certManagerIssuer` | The name of the CertManager ClusterIssuer to provision HTTPS certificates for custom hostnames. Default: not set
 
