@@ -320,11 +320,11 @@ export default {
             }
             warning.push('Do you want to continue?')
 
-            const warningMessage = `<p>${warning.join('<br>')}</p>`
+            const warningMessage = warning.join('\n')
             Dialog.show({
                 header: 'Update device group members',
                 kind: 'danger',
-                html: warningMessage,
+                text: warningMessage,
                 confirmLabel: 'Confirm',
                 cancelLabel: 'No'
             }, async () => {

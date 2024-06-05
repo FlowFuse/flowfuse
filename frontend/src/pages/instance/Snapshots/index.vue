@@ -211,10 +211,9 @@ export default {
         showRollbackDialog (snapshot) {
             Dialog.show({
                 header: 'Deploy Snapshot',
-                html: `<p>This will overwrite the current instance.</p>
-            <p>All changes to the flows, settings and environment variables made since
-                the last snapshot will be lost.</p>
-            <p>Are you sure you want to deploy to this snapshot?</p>`,
+                text: `This will overwrite the current instance.
+                       All changes to the flows, settings and environment variables made since the last snapshot will be lost.
+                       Are you sure you want to deploy to this snapshot?`,
                 confirmLabel: 'Confirm'
             }, async () => {
                 await SnapshotApi.rollbackSnapshot(this.instance.id, snapshot.id)
@@ -225,8 +224,8 @@ export default {
         showDeviceTargetDialog (snapshot) {
             Dialog.show({
                 header: 'Set Device Target Snapshot',
-                html: `<p>Are you sure you want to set this snapshot as the device target?</p>
-            <p>All devices assigned to this instance will be restarted on this snapshot.</p>`,
+                text: `Are you sure you want to set this snapshot as the device target?
+                       All devices assigned to this instance will be restarted on this snapshot.`,
                 confirmLabel: 'Set Target'
             }, async () => {
                 await InstanceApi.updateInstanceDeviceSettings(this.instance.id, {

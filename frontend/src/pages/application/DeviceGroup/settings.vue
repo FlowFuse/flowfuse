@@ -103,8 +103,8 @@ export default {
             Dialog.show({
                 header: 'Delete Account',
                 kind: 'danger',
-                html: `<p>Are you sure you want to delete this device group?</p>
-                       <p>This action cannot be undone.</p>`,
+                text: `Are you sure you want to delete this device group?
+                       This action cannot be undone.`,
                 confirmLabel: 'Delete'
             }, async () => {
                 try {
