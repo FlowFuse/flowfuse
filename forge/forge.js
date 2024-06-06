@@ -235,14 +235,16 @@ module.exports = async (options = {}) => {
                 contentSecurityPolicy = {
                     directives: {
                         'base-uri': ["'self'"],
-                        'default-src': ["'self'"],
+                        'default-src': ["'self'", `*.${runtimeConfig.domain}`],
+                        'frame-src': ["'self'", `*.${runtimeConfig.domain}`],
                         'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
                         'worker-src': ["'self'", 'blob:'],
                         'connect-src': ["'self'"],
                         'img-src': ["'self'", 'data:', 'flowfuse.com', 'www.gravatar.com'],
                         'font-src': ["'self'"],
                         'style-src': ["'self'", 'https:', "'unsafe-inline'"],
-                        'upgrade-insecure-requests': null
+                        'upgrade-insecure-requests': null,
+                        'frame-ancestors': ["'self'"]
                     }
                 }
             } else {
