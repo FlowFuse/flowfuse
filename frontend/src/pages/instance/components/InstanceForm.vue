@@ -98,7 +98,7 @@
 
             <div v-if="creatingNew && flowBlueprintsEnabled && atLeastOneFlowBlueprint && !isCopyProject">
                 <div data-form="blueprint">
-                    <label class="block text-sm font-medium text-gray-800 mb-2">Blueprint:</label>
+                    <label class="block text-sm font-medium text-gray-800 mb-2">Blueprint</label>
                     <BlueprintTileSmall :blueprint="selectedBlueprint" @click="previewBlueprint" />
                     <div v-if="showFlowBlueprintSelection" class="mt-2 flex gap-4" data-action="blueprint-actions">
                         <div
