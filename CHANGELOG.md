@@ -1,3 +1,78 @@
+#### 2.5.0: Release
+
+ - Replace github.token with secret (#3905)
+ - Resolve cross domain communication between the app and the embedded editor (#3801) @cstns
+ - Remove stray : in instance form (#3984) @knolleary
+ - ci: Skip labeler action on release pull requests (#3985) @ppawlowski
+ - Add a Blueprint selection dialog (#3965) @cstns
+ - Snapshot compare (#3978) @Steve-Mcl
+ - Add custom hostname support to Instances (#3830) @hardillb
+ - Remove use of html option in Dialog when only used for newlines (#3979) @knolleary
+ - Update FF Premium references to FF Enterprise (#3980) @knolleary
+ - Handle httpAdminRoot when computing dashboard url (#3971) @knolleary
+ - Add port details to Device Agent docs (#3970) @knolleary
+ - Hide deprecated env vars in the UI (#3967) @knolleary
+ - Replace stack tile selector with regular select on instance creation forms (#3959) @cstns
+ - Update localfs upgrade docs (#3964) @knolleary
+ - Fix styling for admin blueprint tiles (#3961) @cstns
+ - Use original timestamp for sorting instances on Last Updated column (#3893) @Steve-Mcl
+ - Add 'app' to list of banned instance names (#3958) @knolleary
+ - Add LDAP support for SSO (#3925) @knolleary
+ - Revert billing_cycle_anchor change to fix coupons (#3952) @knolleary
+ - Improve the instance name selection on the creation form (#3955) @cstns
+ - Relabel stack to node red version (#3954) @cstns
+ - Alter application instance creation page to resemble a standalone page (#3947) @cstns
+ - Ensure node red version in app device snapshot (#3948) @Steve-Mcl
+ - Fix instance creation form getting stuck without a team after refresh (#3945) @cstns
+ - Bump cypress-io/github-action from 4 to 6 (#3937) @app/dependabot
+ - Bump actions/upload-artifact from 3 to 4 (#3936) @app/dependabot
+ - Bump JS-DevTools/npm-publish from 2 to 3 (#3938) @app/dependabot
+ - Bump tj-actions/changed-files from 41 to 44 (#3939) @app/dependabot
+ - Hide disabled instance types from the instance creation form (#3932) @cstns
+ - Enable clicking on the Blueprint tile in Instance creation form (#3931) @cstns
+ - Add charges table to device create dialog (#3902) @knolleary
+ - make the team instance creation page look more like a page (#3930) @cstns
+ - Default tab fixed for Library page - issue #3871 (#3897) @friyad
+ - Add flowfuse.com to the list of places allowed to load images from (#3924) @hardillb
+ - Update MS Entra SSO terminology (#3919) @knolleary
+ - Bump flowfuse/github-actions-workflows from 0.1.0 to 0.10.0 (#3909) @app/dependabot
+ - Bump tibdex/github-app-token from 1 to 2 (#3911) @app/dependabot
+ - Docs - Update some of the "Stacks" docs and include instructions for local node development (#3903) @joepavitt
+ - Bump aws-actions/configure-aws-credentials from 3 to 4 (#3908) @app/dependabot
+ - ci: Do not apply automatic labels on dependabot pull requests (#3913) @ppawlowski
+ - Bump actions/checkout from 3 to 4 (#3907) @app/dependabot
+ - Bump actions/setup-node from 3 to 4 (#3910) @app/dependabot
+ - ci: Enable dependabot for gha (#3906) @ppawlowski
+ - Improve snapshot actions across devices, instances and applications (#3885) @Steve-Mcl
+ - Double down on flow validation (#3887) @cstns
+ - ci: Update `update-issue-status` workflow to use github token (#3900) @ppawlowski
+ - Adding e2e tests to confirm that admins can navigate cancelled teams (#3886) @cstns
+ - Allow Create Team view to go full width (#3898) @knolleary
+ - Fix image in dev-ops-pipeline docs (#3899) @hardillb
+ - Add Blueprints preview (#3863) @cstns
+ - Ensure proration_behaviour set when adding first device (#3891) @knolleary
+ - Remove licensing page and redirect to pricing page (#3858) @sumitshinde-84
+ - Prevent password reuse (#3882) @knolleary
+ - Adds creatable flag on TeamType/Instance settings (#3873) @knolleary
+ - Add info to Docs for snapshot down/upload (#3876) @Steve-Mcl
+ - Add username to response logging (#3881) @knolleary
+ - docs: Align nginx ingress setup process (#3880) @ppawlowski
+ - Excluding admins from billing related redirects (#3872) @cstns
+ - Set secure flag on session cookie when running on https (#3877) @knolleary
+ - billing: Start billing cycle on the 1st each month (#3748) @ZJvandeWeg
+ - Point to new FlowFuse branded version (#3864) @hardillb
+ - docs: Add AWS EKS setup with Terraform (#3879) @ppawlowski
+ - Dashboard role uses should get team summary view on api (#3878) @knolleary
+ - Frontend for Uploading a Snapshot (#3869) @Steve-Mcl
+ - Backend API for Upload A Snapshot (#3868) @Steve-Mcl
+ - Fix tile-select option sizing (#3861) @knolleary
+ - docs: Rebrand premium to enterprise (#3860) @ZJvandeWeg
+ - Remove 'other' option from sign-up form (#3857) @knolleary
+ - Offboarding surveys (#3853) @cstns
+ - Bump marked from 12.0.0 to 12.0.2 (#3792) @app/dependabot
+ - Fix link in issue templates (#3852) @knolleary
+ - Docs - Add docs for Snapshot preview (#3846) @joepavitt
+
 #### 2.4.0: Release
 
  - Visualise a snapshots flows (#3835) @Steve-Mcl
