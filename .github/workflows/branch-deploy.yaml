@@ -167,6 +167,42 @@ jobs:
           echo "**Deployed commit SHA:** ${{ github.event.pull_request.head.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "**Deployed to:** [https://${{ env.PR_NUMBER }}.flowfuse.dev](https://${{ env.PR_NUMBER }}.flowfuse.dev)" >> $GITHUB_STEP_SUMMARY
 
+  notify-slack:
+    name: Notify about pre-staging deployment
+    needs: [deploy]
+    if: always()
+    runs-on: ubuntu-latest
+    env:
+      PR_NUMBER: ${{ github.event.number }}
+
+    steps:
+    - name: Map users  
+      id: map-actor-to-slack
+      uses: icalia-actions/map-github-actor@v0.0.2
+      with:
+        actor-map: ${{ vars.SLACK_GITHUB_USERS_MAP }}
+        default-mapping: C067BD0377F
+
+    - name: Set message
+      run: |
+        if [[ "${{ needs.deploy.result }}" != "success" ]]; then
+          echo "SLACK_MESSAGE=Something went wrong during PR ${{ env.PR_NUMBER }} pre-staging deployment" >> $GITHUB_ENV
+        else
+          echo "SLACK_MESSAGE=Your pre-staging environment for PR ${{ env.PR_NUMBER }} is ready: https://${{ env.PR_NUMBER }}.flowfuse.dev" >> $GITHUB_ENV
+        fi
+
+    - name: Send deployment notification
+      uses: ravsamhq/notify-slack-action@v2
+      with:
+        status: ${{ needs.deploy.result }}
+        notification_title: 'FlowFuse pre-staging deployment'
+        message_format: "{emoji} ${{ env.SLACK_MESSAGE }}"
+        footer: "<{run_url}|View Workflow Run>"
+        mention_users: ${{ steps.map-actor-to-slack.outputs.actor-mapping }}
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.GH_WORKFLOWS_WEBHOOK }}
+
+
   destroy:
     name: Remove application
     runs-on: ubuntu-latest
