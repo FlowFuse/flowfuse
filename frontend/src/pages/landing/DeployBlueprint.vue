@@ -1,12 +1,6 @@
 <template>
     <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigation>
-            <template #options>
-                <a @click="$router.back()">
-                    <nav-item :icon="icons.chevronLeft" label="Back" />
-                </a>
-            </template>
-        </SideNavigation>
+        <SideNavigationTeamOptions />
     </Teleport>
     <ff-page>
         <template #header>
@@ -41,8 +35,7 @@ import instanceApi from '../../api/instances.js'
 
 import teamApi from '../../api/team.js'
 
-import NavItem from '../../components/NavItem.vue'
-import SideNavigation from '../../components/SideNavigation.vue'
+import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import Alerts from '../../services/alerts.js'
 import InstanceForm from '../instance/components/InstanceForm.vue'
 
@@ -50,8 +43,7 @@ export default {
     name: 'DeployBlueprint',
     components: {
         InstanceForm,
-        NavItem,
-        SideNavigation
+        SideNavigationTeamOptions
     },
     data () {
         return {
@@ -75,7 +67,11 @@ export default {
                 label: application.name,
                 description: application.description
             }))
-        }
+        },
+        sideNavigation: [{
+            name: 'General',
+            path: './settings'
+        }]
     },
     mounted () {
         this.mounted = true
