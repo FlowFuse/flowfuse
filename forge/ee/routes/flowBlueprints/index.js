@@ -1,5 +1,6 @@
 const { registerPermissions } = require('../../../lib/permissions')
 const { Roles } = require('../../../lib/roles.js')
+const { schema } = require('../../db/models/FlowTemplate.js')
 
 const hasValueChanged = (requestProp, existingProp) => (requestProp !== undefined && existingProp !== requestProp)
 
@@ -241,6 +242,42 @@ module.exports = async function (app) {
             const resp = { code: 'unexpected_error', error: responseMessage }
             reply.code(400).send(resp)
         }
+    })
+
+    app.get('/export', {
+        preHandler: app.needsPermission('flow-blueprint:edit'),
+        schema: {
+            summary: '',
+            tags: ['Flow Blueprints'],
+            query: {
+                id: { type: 'array', items: { type: 'string' }}
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    allOf: [{ $ref: 'FlowBlueprintExport' }],
+                    properties: {
+                        count: { type: 'integer'},
+                    },
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        let where = {}
+        if (request.query.id && typeof request.query.id === 'string') {
+            where = { id: app.db.models.FlowTemplate.decodeHashid(request.query.id)[0] }
+        } else if (request.query.id && Array.isArray(request.query.id)) {
+            where = { id : request.query.id.map(i => app.db.models.FlowTemplate.decodeHashid(i)[0]) }
+        }
+        const flowTemplates = await app.db.models.FlowTemplate.getAll({}, where)
+        console.log(flowTemplates.templates, where)
+        reply.send({
+            blueprints: flowTemplates.templates.map(bp => app.db.views.FlowTemplate.flowBlueprintExport(bp)),
+            count: flowTemplates.templates.length
+        })
     })
 
     /**
