@@ -91,6 +91,8 @@ instance.
 If using FlowFuse user Authentication you can also generate HTTP Bearer tokens that
 can be used to access APIs hosted in Instances with HTTP-in/HTTP-response nodes.
 
+More information on using HTTP Access Tokens can be found [here](./http-access-tokens.md).
+
 ## Palette
 
 This allows you to manage what extra nodes are installed inside Node-RED, as well
