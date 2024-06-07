@@ -76,7 +76,8 @@ const getters = {
     offline (state) {
         return state.offline
     },
-    isAdminUser: (state) => !!state.user.admin
+    isAdminUser: (state) => !!state.user.admin,
+    defaultUserTeam: (state) => state.teams.find(team => team.id === state.user.defaultTeam)
 }
 
 const mutations = {
