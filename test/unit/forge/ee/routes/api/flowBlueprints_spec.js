@@ -15,7 +15,8 @@ describe('Flow Blueprints API', function () {
         team2: null,
         instance2: null,
         /** @type {TestModelFactory} */
-        factory: null
+        factory: null,
+        blueprints: []
     }
 
     let app
@@ -561,7 +562,7 @@ describe('Flow Blueprints API', function () {
                 const [, result] = await createBlueprint({
                     name: generateName('flow blueprint')
                 }, TestObjects.tokens.alice)
-                TestObjects.blueprints = [result.id]
+                TestObjects.blueprints.push(result.id)
             }
         })
         it('Admin can export all blueprints', async function () {
@@ -572,7 +573,8 @@ describe('Flow Blueprints API', function () {
             })
             const body = response.json()
             response.should.have.property('statusCode', 200)
-            body.should.have.property('count', 3)
+            const allBP = await app.db.models.FlowTemplate.getAll()
+            body.should.have.property('count', allBP.templates.length)
         })
         it('None-admin can not export all blueprints', async function () {
             const response = await app.inject({
@@ -585,7 +587,7 @@ describe('Flow Blueprints API', function () {
         it('Should export only requested ', async function () {
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/flow-blueprints/export?id=${TestObjects.blueprints[1]}`,
+                url: `/api/v1/flow-blueprints/export?id=${TestObjects.blueprints[0]}`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
             const body = response.json()
@@ -595,7 +597,7 @@ describe('Flow Blueprints API', function () {
         it('Should export only requested ', async function () {
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/flow-blueprints/export?id=${TestObjects.blueprints[0]}&id=${TestObjects.blueprints[2]}`,
+                url: `/api/v1/flow-blueprints/export?id=${TestObjects.blueprints[0]}&id=${TestObjects.blueprints[1]}`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
             const body = response.json()
