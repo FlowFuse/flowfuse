@@ -1,6 +1,5 @@
 const { registerPermissions } = require('../../../lib/permissions')
 const { Roles } = require('../../../lib/roles.js')
-const { schema } = require('../../db/models/FlowTemplate.js')
 
 const hasValueChanged = (requestProp, existingProp) => (requestProp !== undefined && existingProp !== requestProp)
 
@@ -245,20 +244,20 @@ module.exports = async function (app) {
     })
 
     app.get('/export', {
-        preHandler: app.needsPermission('flow-blueprint:edit'),
+        preHandler: app.needsPermission('flow-blueprint:create'),
         schema: {
-            summary: '',
+            summary: 'Export one or more Blueprints',
             tags: ['Flow Blueprints'],
             query: {
-                id: { type: 'array', items: { type: 'string' }}
+                id: { type: 'array', items: { type: 'string' } }
             },
             response: {
                 200: {
                     type: 'object',
                     allOf: [{ $ref: 'FlowBlueprintExport' }],
                     properties: {
-                        count: { type: 'integer'},
-                    },
+                        count: { type: 'integer' }
+                    }
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -270,13 +269,66 @@ module.exports = async function (app) {
         if (request.query.id && typeof request.query.id === 'string') {
             where = { id: app.db.models.FlowTemplate.decodeHashid(request.query.id)[0] }
         } else if (request.query.id && Array.isArray(request.query.id)) {
-            where = { id : request.query.id.map(i => app.db.models.FlowTemplate.decodeHashid(i)[0]) }
+            where = { id: request.query.id.map(i => app.db.models.FlowTemplate.decodeHashid(i)[0]) }
         }
         const flowTemplates = await app.db.models.FlowTemplate.getAll({}, where)
         reply.send({
             blueprints: flowTemplates.templates.map(bp => app.db.views.FlowTemplate.flowBlueprintExport(bp)),
             count: flowTemplates.templates.length
         })
+    })
+
+    app.post('/import', {
+        preHandler: app.needsPermission('flow-blueprint:create'),
+        schema: {
+            summary: 'Import one or more Blueprints',
+            tags: ['Flow Blueprints'],
+            body: {
+                type: 'object',
+                allOf: [{ $ref: 'FlowBlueprintExport' }]
+            },
+            response: {
+                201: {
+                    type: 'object',
+                    properties: {
+                        blueprints: { type: 'array', items: { $ref: 'FlowBlueprintSummary' } },
+                        count: { type: 'integer' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const newBlueprints = request.body
+        const existingBlueprints = await app.db.models.FlowTemplate.getAll()
+        const response = {
+            count: 0,
+            blueprints: []
+        }
+        for (const nbp of newBlueprints.blueprints) {
+            // check for clash
+            let clash = false
+            for (const existing of existingBlueprints.templates) {
+                if (existing.name === nbp.name) {
+                    clash = true
+                    break
+                }
+            }
+            if (clash) {
+                nbp.name = `${nbp.name} (new)`
+            }
+            nbp.order = 0
+            nbp.default = false
+            nbp.active = true
+            const flowTemplate = await app.db.models.FlowTemplate.create(nbp)
+            const imported = app.db.views.FlowTemplate.flowBlueprintSummary(flowTemplate, true)
+            response.blueprints.push(imported)
+            response.count++
+        }
+
+        reply.code(201).send(response)
     })
 
     /**

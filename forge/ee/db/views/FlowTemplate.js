@@ -68,7 +68,7 @@ module.exports = function (app) {
     })
 
     app.addSchema({
-        $id: "FlowBlueprintExport",
+        $id: 'FlowBlueprintExport',
         type: 'object',
         properties: {
             blueprints: {
@@ -81,11 +81,11 @@ module.exports = function (app) {
                         category: { type: 'string' },
                         icon: { type: 'string' },
                         flows: { type: 'object', additionalProperties: true },
-                        modules: { type: 'object', additionalProperties: true },
+                        modules: { type: 'object', additionalProperties: true }
                     }
                 }
             },
-            count: { type: 'integer'}
+            count: { type: 'integer' }
         }
     })
 
