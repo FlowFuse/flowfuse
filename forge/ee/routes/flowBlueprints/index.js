@@ -273,7 +273,6 @@ module.exports = async function (app) {
             where = { id : request.query.id.map(i => app.db.models.FlowTemplate.decodeHashid(i)[0]) }
         }
         const flowTemplates = await app.db.models.FlowTemplate.getAll({}, where)
-        console.log(flowTemplates.templates, where)
         reply.send({
             blueprints: flowTemplates.templates.map(bp => app.db.views.FlowTemplate.flowBlueprintExport(bp)),
             count: flowTemplates.templates.length
