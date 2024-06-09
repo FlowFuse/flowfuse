@@ -186,7 +186,7 @@ jobs:
     - name: Set message
       run: |
         if [[ "${{ needs.deploy.result }}" != "success" ]]; then
-          echo "HEADER='{
+          HEADER='{
             "type": "header",
             "text": {
               "type": "plain_text",
@@ -196,7 +196,7 @@ jobs:
           },'
           echo "SLACK_MESSAGE_HEADER=$HEADER" >> $GITHUB_ENV
         else
-          echo "HEADER='{
+          HEADER='{
             "type": "header",
             "text": {
               "type": "plain_text",
