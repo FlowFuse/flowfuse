@@ -187,7 +187,7 @@ jobs:
       id: slack
       uses: slackapi/slack-github-action@v1.26.0
       with:
-        channel-id: 'C03AP45RSFP'
+        channel-id: 'C067BD0377F'
         payload: |
           {
             "blocks": [
@@ -204,7 +204,7 @@ jobs:
                 "fields": [
                   {
                     "type": "mrkdwn",
-                    "text": "*Status:*\n${{ job.status == 'success' && ':heavy_check_mark: Success' || ':x: Failure '}}"
+                    "text": "*Status:*\n${{ job.status == 'success' && ':white_check_mark: Success' || ':x: Failure '}}"
                   },
                   {
                     "type": "mrkdwn",
