@@ -187,8 +187,11 @@ jobs:
       run: |
         if [[ "${{ needs.deploy.result }}" != "success" ]]; then
           echo "SLACK_MESSAGE=Hey <@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>, something went wrong during PR ${{ env.PR_NUMBER }} pre-staging deployment" >> $GITHUB_ENV
+          echo "TITLE_EMOJI=:x:" >> $GITHUB_ENV
+          echo "PAYLOAD="
         else
-          echo "SLACK_MESSAGE=Hey <@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>, your pre-staging environment for PR ${{ env.PR_NUMBER }} is ready!\n: Deployed commit SHA: ${{ github.event.pull_request.head.sha }}\nDeployed to: https://${{ env.PR_NUMBER }}.flowfuse.dev" >> $GITHUB_ENV
+          echo "SLACK_MESSAGE=Hey <@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>, your pre-staging environment for PR ${{ env.PR_NUMBER }} is ready!\n Deployed commit SHA: ${{ github.event.pull_request.head.sha }}\nDeployed to: https://${{ env.PR_NUMBER }}.flowfuse.dev" >> $GITHUB_ENV
+          echo "TITLE_EMOJI=:check-green:" >> $GITHUB_ENV
         fi
 
     # - name: Send deployment notification
@@ -216,14 +219,29 @@ jobs:
                   "type": "header",
                   "text": {
                     "type": "plain_text",
-                    "text": "PR ${{ env.PR_NUMBER }} pre-staging deployment"
+                    "text": "${{ env.TITLE_EMOJI }} Pull Request ${{ env.PR_NUMBER }} pre-staging deployment",
+                    "emoji": true
                   }
                 },
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ env.SLACK_MESSAGE }}"
+                    "text": "Hey <@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>, pre-staging environment for your <PR-${{ env.PR_NUMBER }}|${{ github.event.pull_request.url }}> is ready! :tada:"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Deployed from <${{ github.event.pull_request.head.sha }}|${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}>"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Deployed to: <https://${{ env.PR_NUMBER }}.flowfuse.dev|https://${{ env.PR_NUMBER }}.flowfuse.dev>"
                   }
                 }
               ]
