@@ -176,9 +176,6 @@ jobs:
       PR_NUMBER: ${{ github.event.number }}
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
     - name: Map users  
       id: map-actor-to-slack
       uses: icalia-actions/map-github-actor@v0.0.2
@@ -186,33 +183,11 @@ jobs:
         actor-map: ${{ vars.SLACK_GITHUB_USERS_MAP }}
         default-mapping: C067BD0377F
 
-    - name: Set message
-      run: |
-        if [[ "${{ needs.deploy.result }}" != "success" ]]; then
-          echo "PAYLOAD_FILE=${{ github.workspace }}/.github/files/slack_notification_template_failure.json" >> $GITHUB_ENV
-        else
-          echo "PAYLOAD_FILE=${{ github.workspace }}/.github/files/slack_notification_template_success.json" >> $GITHUB_ENV
-        fi
-
-    # - name: Send deployment notification
-    #   uses: ravsamhq/notify-slack-action@v2
-    #   with:
-    #     status: ${{ needs.deploy.result }}
-    #     notification_title: 'FlowFuse pre-staging deployment'
-    #     message_format: "{emoji} ${{ env.SLACK_MESSAGE }}"
-    #     footer: "<{run_url}|View Workflow Run>"
-    #     mention_users: ${{ steps.map-actor-to-slack.outputs.actor-mapping }}
-    #   env:
-    #     SLACK_WEBHOOK_URL: ${{ secrets.GH_WORKFLOWS_WEBHOOK }}
     - name: Post to a Slack channel
       id: slack
       uses: slackapi/slack-github-action@v1.26.0
       with:
-        # Slack channel id, channel name, or user id to post message.
-        # See also: https://api.slack.com/methods/chat.postMessage#channels
         channel-id: 'C03AP45RSFP'
-        # For posting a rich message using Block Kit
-        # payload-file-path: ${{ env.PAYLOAD_FILE }}
         payload: |
           {
             "blocks": [
