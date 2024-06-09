@@ -186,12 +186,25 @@ jobs:
     - name: Set message
       run: |
         if [[ "${{ needs.deploy.result }}" != "success" ]]; then
-          echo "SLACK_MESSAGE=Hey <@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>, something went wrong during PR ${{ env.PR_NUMBER }} pre-staging deployment" >> $GITHUB_ENV
-          echo "TITLE_EMOJI=:x:" >> $GITHUB_ENV
-          echo "PAYLOAD="
+          echo "HEADER='{
+            "type": "header",
+            "text": {
+              "type": "plain_text",
+              "text": ":x: Pull Request ${{ env.PR_NUMBER }} pre-staging deployment",
+              "emoji": true
+            }
+          },'
+          echo "SLACK_MESSAGE_HEADER=$HEADER" >> $GITHUB_ENV
         else
-          echo "SLACK_MESSAGE=Hey <@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>, your pre-staging environment for PR ${{ env.PR_NUMBER }} is ready!\n Deployed commit SHA: ${{ github.event.pull_request.head.sha }}\nDeployed to: https://${{ env.PR_NUMBER }}.flowfuse.dev" >> $GITHUB_ENV
-          echo "TITLE_EMOJI=:check-green:" >> $GITHUB_ENV
+          echo "HEADER='{
+            "type": "header",
+            "text": {
+              "type": "plain_text",
+              "text": ":check-green: Pull Request ${{ env.PR_NUMBER }} pre-staging deployment",
+              "emoji": true
+            }
+          },'
+          echo "SLACK_MESSAGE_HEADER=$HEADER" >> $GITHUB_ENV
         fi
 
     # - name: Send deployment notification
@@ -215,14 +228,7 @@ jobs:
         payload: |
             {
               "blocks": [
-                {
-                  "type": "header",
-                  "text": {
-                    "type": "plain_text",
-                    "text": "${{ env.TITLE_EMOJI }} Pull Request ${{ env.PR_NUMBER }} pre-staging deployment",
-                    "emoji": true
-                  }
-                },
+                ${{ env.SLACK_MESSAGE_HEADER }}
                 {
                   "type": "section",
                   "text": {
