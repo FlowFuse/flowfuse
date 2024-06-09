@@ -233,7 +233,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "Hey <@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>, pre-staging environment for your <${{ github.event.pull_request.url }}|PR-${{ env.PR_NUMBER }}> is ready! :tada:"
+                    "text": "Hey <@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>, pre-staging environment for your <${{ github.event.pull_request.html_url.html_url }}|PR-${{ env.PR_NUMBER }}> is ready! :tada:"
                   }
                 },
                 {
