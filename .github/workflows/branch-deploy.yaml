@@ -229,12 +229,14 @@ jobs:
                 "fields": [
                   {
                     "type": "mrkdwn",
-                    "text": "*Pull Request:*\n<${{ github.event.pull_request.html_url.html_url }}|PR-${{ env.PR_NUMBER }}>"
+                    "text": "*Status:*\n${{ job.status == 'success' && ':heavy_check_mark: Success' || ':x: Failure '}}"
                   },
                   {
                     "type": "mrkdwn",
-                    "text": "*Status:*\n${{ job.status }}"
+                    "text": "*Pull Request:*\n<https://github.com/FlowFuse/flowfuse/pull/${{ env.PR_NUMBER }}|PR-${{ env.PR_NUMBER }}>"
                   },
+                  
+                  ${{ github.event.pull_request.title }}
                   {
                     "type": "mrkdwn",
                     "text": "*Workflow run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
@@ -254,7 +256,7 @@ jobs:
                   },
                   {
                     "type": "mrkdwn",
-                    "text": "*Deployed to:*\n<https://${{ env.PR_NUMBER }}.flowfuse.dev|${{ env.PR_NUMBER }}.flowfuse.dev>"
+                    "text": "*Deployed to:*\n<https://${{ env.PR_NUMBER }}.flowfuse.dev|https://${{ env.PR_NUMBER }}.flowfuse.dev>"
                   }
                 ]
               }
