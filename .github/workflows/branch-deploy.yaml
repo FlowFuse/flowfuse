@@ -186,25 +186,9 @@ jobs:
     - name: Set message
       run: |
         if [[ "${{ needs.deploy.result }}" != "success" ]]; then
-          HEADER='{
-            "type": "header",
-            "text": {
-              "type": "plain_text",
-              "text": ":x: Pull Request ${{ env.PR_NUMBER }} pre-staging deployment",
-              "emoji": true
-            }
-          },'
-          echo "SLACK_MESSAGE_HEADER=$HEADER" >> $GITHUB_ENV
+          echo "PAYLOAD_FILE=${{ github.workspace }}/.github/files/slack_notification_template_failure.json" >> $GITHUB_ENV
         else
-          HEADER='{
-            "type": "header",
-            "text": {
-              "type": "plain_text",
-              "text": ":check-green: Pull Request ${{ env.PR_NUMBER }} pre-staging deployment",
-              "emoji": true
-            }
-          },'
-          echo "SLACK_MESSAGE_HEADER=$HEADER" >> $GITHUB_ENV
+          echo "PAYLOAD_FILE=${{ github.workspace }}/.github/files/slack_notification_template_success.json" >> $GITHUB_ENV
         fi
 
     # - name: Send deployment notification
@@ -225,33 +209,7 @@ jobs:
         # See also: https://api.slack.com/methods/chat.postMessage#channels
         channel-id: 'C03AP45RSFP'
         # For posting a rich message using Block Kit
-        payload: |
-            {
-              "blocks": [
-                ${{ env.SLACK_MESSAGE_HEADER }}
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "Hey <@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>, pre-staging environment for your <${{ github.event.pull_request.html_url.html_url }}|PR-${{ env.PR_NUMBER }}> is ready! :tada:"
-                  }
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "Deployed from <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}|${{ github.event.pull_request.head.sha }}>"
-                  }
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "Deployed to: <https://${{ env.PR_NUMBER }}.flowfuse.dev|https://${{ env.PR_NUMBER }}.flowfuse.dev>"
-                  }
-                }
-              ]
-            }
+        payload-file-path: ${{ env.PAYLOAD_FILE }}
       env:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
 
