@@ -212,7 +212,53 @@ jobs:
         # See also: https://api.slack.com/methods/chat.postMessage#channels
         channel-id: 'C03AP45RSFP'
         # For posting a rich message using Block Kit
-        payload-file-path: ${{ env.PAYLOAD_FILE }}
+        # payload-file-path: ${{ env.PAYLOAD_FILE }}
+        payload: |
+          {
+            "blocks": [
+              {
+                "type": "header",
+                "text": {
+                  "type": "plain_text",
+                  "text": "Pull Request ${{ env.PR_NUMBER }} pre-staging deployment",
+                  "emoji": true
+                }
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Pull Request:*\n<${{ github.event.pull_request.html_url.html_url }}|PR-${{ env.PR_NUMBER }}>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Status:*\n${{ job.status }}"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Workflow run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
+                ]
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Author:*\n<@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Commit SHA:*\n<${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}|${{ github.event.pull_request.head.sha }}>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Deployed to:*\n<https://${{ env.PR_NUMBER }}.flowfuse.dev|${{ env.PR_NUMBER }}.flowfuse.dev>"
+                  }
+                ]
+              }
+            ]
+          }
       env:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
 
