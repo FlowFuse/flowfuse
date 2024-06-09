@@ -186,21 +186,50 @@ jobs:
     - name: Set message
       run: |
         if [[ "${{ needs.deploy.result }}" != "success" ]]; then
-          echo "SLACK_MESSAGE=Something went wrong during PR ${{ env.PR_NUMBER }} pre-staging deployment" >> $GITHUB_ENV
+          echo "SLACK_MESSAGE=Hey ${{ steps.map-actor-to-slack.outputs.actor-mapping }}, something went wrong during PR ${{ env.PR_NUMBER }} pre-staging deployment" >> $GITHUB_ENV
         else
-          echo "SLACK_MESSAGE=Your pre-staging environment for PR ${{ env.PR_NUMBER }} is ready: https://${{ env.PR_NUMBER }}.flowfuse.dev" >> $GITHUB_ENV
+          echo "SLACK_MESSAGE=Hey ${{ steps.map-actor-to-slack.outputs.actor-mapping }}, your pre-staging environment for PR ${{ env.PR_NUMBER }} is ready!\n: Deployed commit SHA: ${{ github.event.pull_request.head.sha }}\nDeployed to: https://${{ env.PR_NUMBER }}.flowfuse.dev" >> $GITHUB_ENV
         fi
 
-    - name: Send deployment notification
-      uses: ravsamhq/notify-slack-action@v2
+    # - name: Send deployment notification
+    #   uses: ravsamhq/notify-slack-action@v2
+    #   with:
+    #     status: ${{ needs.deploy.result }}
+    #     notification_title: 'FlowFuse pre-staging deployment'
+    #     message_format: "{emoji} ${{ env.SLACK_MESSAGE }}"
+    #     footer: "<{run_url}|View Workflow Run>"
+    #     mention_users: ${{ steps.map-actor-to-slack.outputs.actor-mapping }}
+    #   env:
+    #     SLACK_WEBHOOK_URL: ${{ secrets.GH_WORKFLOWS_WEBHOOK }}
+    - name: Post to a Slack channel
+      id: slack
+      uses: slackapi/slack-github-action@v1.26.0
       with:
-        status: ${{ needs.deploy.result }}
-        notification_title: 'FlowFuse pre-staging deployment'
-        message_format: "{emoji} ${{ env.SLACK_MESSAGE }}"
-        footer: "<{run_url}|View Workflow Run>"
-        mention_users: ${{ steps.map-actor-to-slack.outputs.actor-mapping }}
+        # Slack channel id, channel name, or user id to post message.
+        # See also: https://api.slack.com/methods/chat.postMessage#channels
+        channel-id: 'C03AP45RSFP'
+        # For posting a rich message using Block Kit
+        payload: |
+          {
+            "text": "GitHub Action build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}",
+            "blocks": [
+              {
+              "type": "header",
+              "text": {
+                  "type": "plain_text",
+                  "text": "PR ${{ env.PR_NUMBER }} pre-staging deployment"
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "${{ env.SLACK_MESSAGE }}"
+                }
+              }
+            ]
+          }
       env:
-        SLACK_WEBHOOK_URL: ${{ secrets.GH_WORKFLOWS_WEBHOOK }}
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
 
 
   destroy:
