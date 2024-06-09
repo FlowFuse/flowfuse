@@ -210,24 +210,24 @@ jobs:
         channel-id: 'C03AP45RSFP'
         # For posting a rich message using Block Kit
         payload: |
-          {
-            "text": "GitHub Action build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}",
-            "blocks": [
-              {
-              "type": "header",
-              "text": {
-                  "type": "plain_text",
-                  "text": "PR ${{ env.PR_NUMBER }} pre-staging deployment"
-              },
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "${{ env.SLACK_MESSAGE }}"
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "PR ${{ env.PR_NUMBER }} pre-staging deployment"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ env.SLACK_MESSAGE }}"
+                  }
                 }
-              }
-            ]
-          }
+              ]
+            }
       env:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
 
