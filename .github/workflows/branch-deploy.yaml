@@ -227,14 +227,14 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "Hey <@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>, pre-staging environment for your <PR-${{ env.PR_NUMBER }}|${{ github.event.pull_request.url }}> is ready! :tada:"
+                    "text": "Hey <@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>, pre-staging environment for your <${{ github.event.pull_request.url }}|PR-${{ env.PR_NUMBER }}> is ready! :tada:"
                   }
                 },
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "Deployed from <${{ github.event.pull_request.head.sha }}|${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}>"
+                    "text": "Deployed from <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}|${{ github.event.pull_request.head.sha }}>"
                   }
                 },
                 {
