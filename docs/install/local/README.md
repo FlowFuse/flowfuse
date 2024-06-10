@@ -7,7 +7,9 @@ navTitle: Local Install
 This version of the FlowFuse platform is intended for running on a single machine
 for a smaller deployment (e.g. evaluation or home user).
 
-Note that the local install does not currently support HTTPS.
+
+
+<div style="background-color: #fff4b9; border:1px solid #ffc400; color: #a27110; padding: 12px; border-radius: 6px; font-style: italic;">Note: Local installation does not currently support HTTPS!!!</div>
 
 ## Prerequisites
 
