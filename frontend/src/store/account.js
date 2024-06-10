@@ -81,7 +81,10 @@ const getters = {
         return state.offline
     },
     isAdminUser: (state) => !!state.user.admin,
-    defaultUserTeam: (state) => state.teams.find(team => team.id === state.user.defaultTeam),
+    defaultUserTeam: (state, getters) => {
+        const defaultTeamId = state.user.defaultTeam || getters.teams[0]?.id
+        return state.teams.find(team => team.id === defaultTeamId)
+    },
     blueprints: state => state.teamBlueprints[state.team?.id] || [],
     defaultBlueprint: (state, getters) => getters.blueprints?.find(blueprint => blueprint.default)
 }

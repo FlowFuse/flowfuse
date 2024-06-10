@@ -62,7 +62,7 @@ export default {
     },
     computed: {
         ...mapState('account', ['features', 'team', 'user']),
-        ...mapGetters('account', ['blueprints', 'defaultBlueprint']),
+        ...mapGetters('account', ['blueprints', 'defaultBlueprint', 'defaultUserTeam']),
         applicationsList () {
             return this.applications.map(application => ({
                 value: application.id,
@@ -91,7 +91,7 @@ export default {
         this.setPredefinedInputs()
     },
     async created () {
-        await this.setTeam({ id: this.user.defaultTeam })
+        await this.setTeam(this.defaultUserTeam)
             .then(async () => {
                 this.applications = (await teamApi.getTeamApplications(this.team.id)).applications
             })
