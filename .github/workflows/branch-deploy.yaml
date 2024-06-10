@@ -13,7 +13,7 @@ jobs:
     name: Build and contenerize
     if: |
       github.event_name == 'pull_request' && 
-      github.event.action != 'closed' &&
+      github.event.action == 'closed' &&
       contains(github.event.pull_request.labels.*.name, 'deploy:pr')
     runs-on: ubuntu-latest
     env:
@@ -55,7 +55,7 @@ jobs:
     needs: build
     if: |
       github.event_name == 'pull_request' && 
-      github.event.action != 'closed' &&
+      github.event.action == 'closed' &&
       contains(github.event.pull_request.labels.*.name, 'deploy:pr')
     runs-on: ubuntu-latest
     environment: staging
