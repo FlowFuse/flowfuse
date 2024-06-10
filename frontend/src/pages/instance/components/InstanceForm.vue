@@ -99,7 +99,7 @@
             <div v-if="creatingNew && flowBlueprintsEnabled && atLeastOneFlowBlueprint && !isCopyProject">
                 <div data-form="blueprint">
                     <label class="block text-sm font-medium text-gray-800 mb-2">Blueprint</label>
-                    <BlueprintTileSmall :blueprint="selectedBlueprint" @click="previewBlueprint" />
+                    <BlueprintTileSmall v-if="selectedBlueprint" :blueprint="selectedBlueprint" @click="previewBlueprint" />
                     <div v-if="showFlowBlueprintSelection" class="mt-2 flex gap-4" data-action="blueprint-actions">
                         <div
                             class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline text-sm flex gap-1 items-center"
@@ -227,7 +227,6 @@
         <BlueprintSelectorDialog
             v-if="blueprints.length"
             ref="blueprintSelectorDialog"
-            :blueprints="blueprints"
             :active-blueprint="selectedBlueprint"
             @blueprint-updated="input.flowBlueprintId = $event.id"
         />
@@ -236,10 +235,9 @@
 
 <script>
 import { CheckCircleIcon, FolderIcon, RefreshIcon } from '@heroicons/vue/outline'
-import { mapState } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 
 import billingApi from '../../../api/billing.js'
-import flowBlueprintsApi from '../../../api/flowBlueprints.js'
 import instanceTypesApi from '../../../api/instanceTypes.js'
 import stacksApi from '../../../api/stacks.js'
 import templatesApi from '../../../api/templates.js'
@@ -332,7 +330,7 @@ export default {
             type: Boolean
         }
     },
-    emits: ['on-submit'],
+    emits: ['on-submit', 'blueprint-updated'],
     data () {
         const instance = this.instance || this.sourceInstance
 
@@ -348,7 +346,6 @@ export default {
             stacks: [],
             templates: [],
             projectTypes: [],
-            blueprints: [],
             activeProjectTypeCount: 0,
             subscription: null,
             input: {
@@ -385,6 +382,7 @@ export default {
     },
     computed: {
         ...mapState('account', ['settings']),
+        ...mapGetters('account', ['blueprints', 'defaultBlueprint']),
         creatingApplication () {
             return (this.applicationSelection && !this.applications.length) || (this.creatingNew && this.applicationFieldsVisible)
         },
@@ -491,6 +489,9 @@ export default {
             } else {
                 this.selectedProjectType = null
             }
+        },
+        'input.flowBlueprintId': function (value) {
+            this.$emit('blueprint-updated', value)
         }
     },
     async created () {
@@ -620,7 +621,7 @@ export default {
             this.updateInstanceType(this.input.projectType)
         }
 
-        this.blueprints = await blueprintsPromise
+        await blueprintsPromise
         if (this.blueprints.length === 0) {
             // Falls back to the default blueprint server side no error needed
             console.warn('Flow Blueprints enabled but none available')
@@ -662,6 +663,7 @@ export default {
         }
     },
     methods: {
+        ...mapActions('account', ['getTeamBlueprints']),
         refreshName () {
             this.input.name = NameGenerator()
         },
@@ -715,16 +717,9 @@ export default {
             if (!this.flowBlueprintsEnabled || this.isCopyProject) {
                 return []
             }
-            const response = await flowBlueprintsApi.getFlowBlueprintsForTeam(this.team.id)
-            const blueprints = response.blueprints
+            await this.getTeamBlueprints(this.team.id)
 
-            const defaultBlueprint = blueprints.find((blueprint) => blueprint.default) || blueprints[0]
-            this.input.flowBlueprintId = defaultBlueprint?.id
-
-            return blueprints
-        },
-        selectBlueprint (blueprint) {
-            this.input.flowBlueprintId = blueprint.id
+            this.input.flowBlueprintId = this.defaultBlueprint?.id
         },
         openBlueprintSelectorDialog () {
             this.$refs.blueprintSelectorDialog.show()

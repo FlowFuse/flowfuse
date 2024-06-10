@@ -4,13 +4,12 @@
     </Teleport>
     <ff-page>
         <template #header>
-            <ff-page-header title="Instances">
+            <ff-page-header :title="blueprintTitle">
                 <template #context>
                     Let's get your new Node-RED instance setup in no time.
                 </template>
             </ff-page-header>
         </template>
-
         <ff-loading v-if="loading" message="Creating instance..." />
         <InstanceForm
             v-else
@@ -23,13 +22,14 @@
             :pre-defined-inputs="preDefinedInputs"
             :has-header="false"
             @on-submit="handleFormSubmit"
+            @blueprint-updated="onBlueprintUpdated"
         />
     </ff-page>
 </template>
 
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 
 import instanceApi from '../../api/instances.js'
 
@@ -56,11 +56,13 @@ export default {
             mounted: false,
             errors: {
                 name: ''
-            }
+            },
+            blueprintId: null
         }
     },
     computed: {
         ...mapState('account', ['features', 'team', 'user']),
+        ...mapGetters('account', ['blueprints', 'defaultBlueprint']),
         applicationsList () {
             return this.applications.map(application => ({
                 value: application.id,
@@ -68,10 +70,21 @@ export default {
                 description: application.description
             }))
         },
-        sideNavigation: [{
-            name: 'General',
-            path: './settings'
-        }]
+        updatedBlueprint () {
+            return this.blueprints.find(blueprint => blueprint.id === this.blueprintId)
+        },
+        preDefinedBlueprint () {
+            return this.blueprints.find(blueprint => blueprint.id === this.preDefinedInputs?.flowBlueprintId)
+        },
+        blueprintName () {
+            return this.updatedBlueprint?.name ||
+                this.preDefinedBlueprint?.name ||
+                this.defaultBlueprint?.name ||
+                'Blueprint'
+        },
+        blueprintTitle () {
+            return `Deploy ${this.blueprintName}`
+        }
     },
     mounted () {
         this.mounted = true
@@ -121,6 +134,9 @@ export default {
             const createPayload = { ...instanceDetails, applicationId }
 
             return instanceApi.create(createPayload)
+        },
+        onBlueprintUpdated (blueprintId) {
+            this.blueprintId = blueprintId
         }
     }
 }
