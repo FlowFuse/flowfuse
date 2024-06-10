@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" data-el="blueprint-selector-dialog" class="blueprints-selector-dialog" header="Choose a Blueprint">
+    <ff-dialog ref="dialog" data-el="blueprint-selector-dialog" class="blueprints-selector-dialog" header="Choose a Blueprint" style="display: block;">
         <template #default>
             <section class="blueprints-container w-full md:w-full lg:w-2/5 xl:w-2/5 2xl:w-2/5">
                 <div class="header hidden 2xl:block xl:block lg:block">
@@ -43,13 +43,12 @@ export default {
             default: null
         }
     },
-    emits: ['blueprint-updated'],
+    emits: ['blueprint-updated', 'close'],
     setup () {
         return {
             show () {
                 this.syncCurrentBlueprint()
                 this.renderFlows()
-                this.$refs.dialog.show()
             }
         }
     },
@@ -64,9 +63,7 @@ export default {
     },
     watch: {
         currentBlueprint (val) {
-            if (val) {
-                this.renderFlows()
-            }
+            if (val) { this.renderFlows() }
         },
         activeBlueprint (val) {
             this.syncCurrentBlueprint()
@@ -81,18 +78,16 @@ export default {
     },
     methods: {
         closeDialog () {
-            this.$refs.dialog.close()
+            this.$emit('close')
         },
         onBlueprintSelected (blueprint) {
             this.currentBlueprint = blueprint
         },
         renderFlows () {
             const flows = this.currentBlueprint.flows.flows
-            setTimeout(() => {
-                this.renderer.renderFlows(flows, {
-                    container: this.$refs.viewer
-                })
-            }, 20)
+            this.renderer.renderFlows(flows, {
+                container: this.$refs.viewer
+            })
         },
         mountRenderer () {
             return new Promise((resolve) => {

@@ -110,7 +110,7 @@
                         </div>
                         <div
                             class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline text-sm flex gap-1 items-center"
-                            @click="openBlueprintSelectorDialog"
+                            @click="blueprintDialogVisible = true"
                         >
                             <FolderIcon class="ff-btn--icon" />
                             <span>Choose a different Blueprint</span>
@@ -225,10 +225,11 @@
         </div>
         <AssetDetailDialog ref="flowRendererDialog" class="preview-main-blueprint" />
         <BlueprintSelectorDialog
-            v-if="blueprints.length"
+            v-if="blueprintDialogVisible && blueprints.length"
             ref="blueprintSelectorDialog"
             :active-blueprint="selectedBlueprint"
             @blueprint-updated="input.flowBlueprintId = $event.id"
+            @close="blueprintDialogVisible = false"
         />
     </form>
 </template>
@@ -377,7 +378,8 @@ export default {
                 nodes: true,
                 envVars: 'all'
             },
-            selectedProjectType: null
+            selectedProjectType: null,
+            blueprintDialogVisible: false
         }
     },
     computed: {
@@ -720,9 +722,6 @@ export default {
             await this.getTeamBlueprints(this.team.id)
 
             this.input.flowBlueprintId = this.defaultBlueprint?.id
-        },
-        openBlueprintSelectorDialog () {
-            this.$refs.blueprintSelectorDialog.show()
         },
         previewBlueprint (blueprint) {
             this.$refs.flowRendererDialog.show(blueprint)
