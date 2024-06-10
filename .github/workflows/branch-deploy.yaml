@@ -170,7 +170,7 @@ jobs:
   notify-slack:
     name: Notify about pre-staging deployment
     needs: [deploy]
-    if: always()
+    if: ${{ needs.deploy.result != 'skipped' }}
     runs-on: ubuntu-latest
     env:
       PR_NUMBER: ${{ github.event.number }}
