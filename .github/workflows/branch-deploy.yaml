@@ -167,6 +167,78 @@ jobs:
           echo "**Deployed commit SHA:** ${{ github.event.pull_request.head.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "**Deployed to:** [https://${{ env.PR_NUMBER }}.flowfuse.dev](https://${{ env.PR_NUMBER }}.flowfuse.dev)" >> $GITHUB_STEP_SUMMARY
 
+  notify-slack:
+    name: Notify about pre-staging deployment
+    needs: [deploy]
+    if: always()
+    runs-on: ubuntu-latest
+    env:
+      PR_NUMBER: ${{ github.event.number }}
+
+    steps:
+    - name: Map users  
+      id: map-actor-to-slack
+      uses: icalia-actions/map-github-actor@v0.0.2
+      with:
+        actor-map: ${{ vars.SLACK_GITHUB_USERS_MAP }}
+        default-mapping: C067BD0377F
+
+    - name: Post to a Slack channel
+      id: slack
+      uses: slackapi/slack-github-action@v1.26.0
+      with:
+        channel-id: 'C067BD0377F'
+        payload: |
+          {
+            "blocks": [
+              {
+                "type": "header",
+                "text": {
+                  "type": "plain_text",
+                  "text": "Pull Request ${{ env.PR_NUMBER }} pre-staging deployment",
+                  "emoji": true
+                }
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Status:*\n${{ job.status == 'success' && ':white_check_mark: Success' || ':x: Failure '}}"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Pull Request:*\n<https://github.com/FlowFuse/flowfuse/pull/${{ env.PR_NUMBER }}|${{ github.event.pull_request.title }}>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Workflow run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
+                  }
+                ]
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Author:*\n<@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Commit SHA:*\n<${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}|${{ github.event.pull_request.head.sha }}>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Deployed to:*\n<https://${{ env.PR_NUMBER }}.flowfuse.dev|https://${{ env.PR_NUMBER }}.flowfuse.dev>"
+                  }
+                ]
+              }
+            ]
+          }
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
+
+
   destroy:
     name: Remove application
     runs-on: ubuntu-latest
