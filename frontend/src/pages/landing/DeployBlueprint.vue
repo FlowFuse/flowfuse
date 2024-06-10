@@ -93,7 +93,7 @@ export default {
     async created () {
         await this.setTeam(this.defaultUserTeam)
             .then(async () => {
-                this.applications = (await teamApi.getTeamApplications(this.team.id)).applications
+                this.applications = (await teamApi.getTeamApplications(this.defaultUserTeam.id)).applications
             })
             .catch(() => {})
     },
