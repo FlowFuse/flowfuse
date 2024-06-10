@@ -207,7 +207,7 @@ jobs:
                 "fields": [
                   {
                     "type": "mrkdwn",
-                    "text": "*Status:*\n${{ job.status == 'success' && ':white_check_mark: Success' || ':x: Failure '}}"
+                    "text": "*Status:*\n${{ needs.deploy.result == 'success' && ':white_check_mark: Success' || ':x: Failure '}}"
                   },
                   {
                     "type": "mrkdwn",
