@@ -14,7 +14,7 @@ describe('FlowForge - Library', () => {
     })
 
     describe('Blueprints', () => {
-        it.only('should load the Library page and display the unavailable feature banner for the Blueprints tab', () => {
+        it('should load the Library page and display the unavailable feature banner for the Blueprints tab', () => {
             interceptBlueprints(multipleBlueprints)
 
             cy.visit('team/ateam/library')
