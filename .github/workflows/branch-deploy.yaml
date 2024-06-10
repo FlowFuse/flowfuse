@@ -63,6 +63,9 @@ jobs:
       IMAGE_NAME: 'forge-k8s'
       PR_NUMBER: ${{ github.event.number }}
     steps:
+      - name: Simulate job failure
+        run: exit 1
+    
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -170,7 +173,7 @@ jobs:
   notify-slack:
     name: Notify about pre-staging deployment
     needs: [deploy]
-    # if: ${{ needs.deploy.result != 'skipped' }}
+    if: ${{ needs.deploy.result != 'skipped' }}
     runs-on: ubuntu-latest
     env:
       PR_NUMBER: ${{ github.event.number }}
