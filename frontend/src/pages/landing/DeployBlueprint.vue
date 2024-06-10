@@ -17,7 +17,7 @@
             :applicationSelection="true"
             :applications="applicationsList"
             :billing-enabled="!!features.billing"
-            :flow-blueprints-enabled="!!features.flowBlueprints"
+            :flow-blueprints-enabled="true"
             :submit-errors="errors"
             :pre-defined-inputs="preDefinedInputs"
             :has-header="false"
