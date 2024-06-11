@@ -459,7 +459,7 @@ export default {
             return this.blueprints.length > 1 && this.flowBlueprintsEnabled
         },
         selectedBlueprint () {
-            return this.blueprints.find((blueprint) => parseInt(blueprint.id) === parseInt(this.input.flowBlueprintId))
+            return this.blueprints.find((blueprint) => `${blueprint.id}` === `${this.input.flowBlueprintId}`)
         },
         heroTitle () {
             return this.creatingNew ? (this.creatingApplication ? 'Create a new Application' : 'Create Instance') : 'Update Instance'
