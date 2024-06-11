@@ -2,7 +2,6 @@
     "count": 2,
     "blueprints": [
         {
-            "id": "1234",
             "name": "Blueprint 1",
             "active": true,
             "description": "This is a blueprint",
@@ -13,7 +12,6 @@
             "modules": {"@flowfuse/node-red-dashboard":"^0.11.6"}
         },
         {
-            "id": "5678",
             "name": "Blueprint 2",
             "active": true,
             "description": "This is another blueprint",
@@ -24,7 +22,6 @@
             "modules": {"@flowfuse/node-red-dashboard":"^0.11.6"}
         },
         {
-            "id": "91011",
             "name": "Blueprint 3",
             "active": true,
             "description": "This is yet another blueprint",
