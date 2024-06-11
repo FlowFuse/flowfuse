@@ -9,7 +9,7 @@ for a smaller deployment (e.g. evaluation or home user).
 
 
 
-<div style="background-color: #fff4b9; border:1px solid #ffc400; color: #a27110; padding: 12px; border-radius: 6px; font-style: italic;">Note: Local installation does not currently support HTTPS!!!</div>
+**Note: Local installation does not support HTTPS**
 
 ## Prerequisites
 
