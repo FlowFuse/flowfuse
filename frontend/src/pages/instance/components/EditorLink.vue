@@ -46,12 +46,14 @@ export default {
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
         isImmersiveEditor () {
-            const nrSemver = SemVer.parse(this.instance?.meta?.versions?.['node-red'])
-            // Supported from 4.0.0-beta.4 and later. This requires a bit more effort to check
-            if (nrSemver && nrSemver.major >= 4 && (nrSemver.prerelease.length === 0 || nrSemver.prerelease[1] >= 4)) {
-                return SemVer.satisfies(SemVer.coerce(this.instance?.meta?.versions?.launcher), '>=2.5.0')
-            }
             return false
+
+            // const nrSemver = SemVer.parse(this.instance?.meta?.versions?.['node-red'])
+            // // Supported from 4.0.0-beta.4 and later. This requires a bit more effort to check
+            // if (nrSemver && nrSemver.major >= 4 && (nrSemver.prerelease.length === 0 || nrSemver.prerelease[1] >= 4)) {
+            //     return SemVer.satisfies(SemVer.coerce(this.instance?.meta?.versions?.launcher), '>=2.5.0')
+            // }
+            // return false
         },
         url () {
             if (this.isImmersiveEditor) {
