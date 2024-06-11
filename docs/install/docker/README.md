@@ -62,7 +62,7 @@ cd docker-compose-1.x.y
 
 Configuration details are stored in the `etc/flowforge.yml` and the `docker-compose.yml` files.
 
-Before starting you will need to edit this file to update the the following fields in the `etc/flowforge.yml` file:
+1.  Edit `etc/flowforge.yml` file and update the following parameters:
 
 - `domain`
 - `base_url`
@@ -70,9 +70,37 @@ Before starting you will need to edit this file to update the the following fiel
 
 These will need to be updated to replace `.example.com` with the domain you chose earlier. 
 
+Example with Domain setup as `*.myforge.com`:
+
+```
+domain: myforge.com
+base_url: http://forge.myforge.com
+api_url: http://forge:3000
+```
+
+```
+broker:
+  url: mqtt://flowforge-broker:1883
+  public_url: ws://mqtt.myforge.com
+```
+
+
 Please note that once set, the `domain` and `base_url` values should not be changed as these values are used as part of the configuration stored in the database of each Node-RED instance. The ability to migrate `domains` is on the feature backlog.
 
-You also need to update all the `VIRTUAL_HOST` entries in the `docker-compose.yml` file to replace `.example.com`  with the same domain.
+2. Edit `docker-compose.yml`:
+   
+- `VIRTUAL_HOST`
+- `LETSENCRYPT_HOST` (if leveraging HTTPS in next steps)
+
+These will need to be updated to replace `.example.com` with the domain you chose earlier.
+
+Example with Domain setup as `*.myforge.com`:
+
+```
+environment:
+    - "VIRTUAL_HOST=forge.myforge.com"
+    - "LETSENCRYPT_HOST=forge.myforge.com"
+```
 
 For more details on the options available, see the [configuration guide](../configuration.md).
 
