@@ -140,6 +140,10 @@ module.exports.copySnapshot = async (
         )
     }
 
+    // ensure the target title doesn't get overridden
+    const targetSettings = await toInstance.getSetting('settings')
+    snapshotToCopyProps.settings.settings.header.title = targetSettings.header.title
+
     const newSnapshot = await app.db.models.ProjectSnapshot.create({
         ...snapshotToCopyProps,
         ...targetSnapshotProperties,
