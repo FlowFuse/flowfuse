@@ -178,6 +178,8 @@ You will also need to update the `etc/flowforge.yml` file to change the `broker.
 
 ## Running FlowFuse
 
+**Note: Make sure all configuration are done above before proceeding. Configuration in etc/flowforge.yml for `domain` and `base_url` should not be changed.**
+
 We need to manually download the `flowfuse/node-red` container that will be used for the default stack.
 
 This is done with this command:
