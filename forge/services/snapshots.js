@@ -140,7 +140,6 @@ module.exports.copySnapshot = async (
         )
     }
 
-
     const newSnapshot = await app.db.models.ProjectSnapshot.create({
         ...snapshotToCopyProps,
         ...targetSnapshotProperties,

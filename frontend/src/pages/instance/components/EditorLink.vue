@@ -17,7 +17,7 @@
 
 <script>
 import { ExternalLinkIcon } from '@heroicons/vue/solid'
-import SemVer from 'semver'
+// import SemVer from 'semver'
 
 import { mapState } from 'vuex'
 
