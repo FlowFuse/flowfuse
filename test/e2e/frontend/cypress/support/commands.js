@@ -158,3 +158,11 @@ Cypress.Commands.add('isInViewport', { prevSubject: true }, (subject) => {
 
     return subject
 })
+
+Cypress.Commands.add('clearBrowserData', () => {
+    cy.clearCookies()
+    cy.clearLocalStorage()
+    cy.window().then((win) => {
+        win.sessionStorage.clear()
+    })
+})
