@@ -153,7 +153,7 @@ module.exports.copySnapshot = async (
         await app.db.controllers.Project.importProjectSnapshot(
             toInstance,
             newSnapshot,
-            { mergeEnvVars: true, updateEditorSettings: false }
+            { mergeEnvVars: true, mergeEditorSettings: false }
         )
     }
 
