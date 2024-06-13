@@ -29,7 +29,7 @@
 
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapActions, mapGetters, mapState, useStore } from 'vuex'
 
 import instanceApi from '../../api/instances.js'
 
@@ -37,6 +37,7 @@ import teamApi from '../../api/team.js'
 
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import Alerts from '../../services/alerts.js'
+import LocalStorageService from '../../services/storage/local-storage.service.js'
 import InstanceForm from '../instance/components/InstanceForm.vue'
 
 export default {
@@ -44,6 +45,15 @@ export default {
     components: {
         InstanceForm,
         SideNavigationTeamOptions
+    },
+    beforeRouteEnter (to, from, next) {
+        const store = useStore()
+
+        if (!store.state.account.user && !LocalStorageService.getItem('redirectUrlAfterLogin')) {
+            LocalStorageService.setItem('redirectUrlAfterLogin', to.fullPath)
+        }
+
+        next()
     },
     data () {
         return {
@@ -89,6 +99,7 @@ export default {
     mounted () {
         this.mounted = true
         this.setPredefinedInputs()
+        this.setRedirectUrl(null)
     },
     async created () {
         await this.setTeam(this.defaultUserTeam)
@@ -98,7 +109,7 @@ export default {
             .catch(() => {})
     },
     methods: {
-        ...mapActions('account', ['setTeam']),
+        ...mapActions('account', ['setTeam', 'setRedirectUrl']),
         async handleFormSubmit (formData, copyParts) {
             this.loading = true
             const { applicationId, applicationName, applicationDescription, ...instanceFields } = formData

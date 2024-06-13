@@ -6,39 +6,45 @@ import settingsApi from '../api/settings.js'
 import teamApi from '../api/team.js'
 import userApi from '../api/user.js'
 import router from '../routes.js'
+import LocalStorageService from '../services/storage/local-storage.service.js'
 
 // initial state
-const state = () => ({
-    // Runtime settings
-    settings: null,
-    // Feature flags
-    features: {},
-    // We do not know if there is a valid session yet
-    pending: true,
-    // A login attempt is inflight
-    loginInflight: false,
-    // redirect url,
-    redirectUrlAfterLogin: null,
-    // The active user
-    user: null,
-    // The active team
-    team: null,
-    // The active user's membership details of the active team
-    teamMembership: null,
-    // The user's teams
-    teams: [],
-    // stores active notifications that require user attention, key'd by notification type (e.g. invites)
-    notifications: {},
-    // An error during login
-    loginError: null,
-    //
-    pendingTeamChange: false,
-    // As an SPA, if we get a network error we should present
-    // a suitable 'offline' message.
-    offline: null,
+const state = () => {
+    const redirectUrlAfterLogin = LocalStorageService.getItem('redirectUrlAfterLogin')
 
-    teamBlueprints: {}
-})
+    LocalStorageService.getItem('redirectUrlAfterLogin')
+    return {
+        // Runtime settings
+        settings: null,
+        // Feature flags
+        features: {},
+        // We do not know if there is a valid session yet
+        pending: true,
+        // A login attempt is inflight
+        loginInflight: false,
+        // redirect url,
+        redirectUrlAfterLogin,
+        // The active user
+        user: null,
+        // The active team
+        team: null,
+        // The active user's membership details of the active team
+        teamMembership: null,
+        // The user's teams
+        teams: [],
+        // stores active notifications that require user attention, key'd by notification type (e.g. invites)
+        notifications: {},
+        // An error during login
+        loginError: null,
+        //
+        pendingTeamChange: false,
+        // As an SPA, if we get a network error we should present
+        // a suitable 'offline' message.
+        offline: null,
+
+        teamBlueprints: {}
+    }
+}
 
 // getters
 const getters = {
@@ -135,6 +141,11 @@ const mutations = {
     },
     setRedirectUrl (state, url) {
         state.redirectUrlAfterLogin = url
+        if ([undefined, null, ''].includes(url)) {
+            LocalStorageService.removeItem('redirectUrlAfterLogin')
+        } else {
+            LocalStorageService.setItem('redirectUrlAfterLogin', url)
+        }
     },
     setPendingTeamChange (state) {
         state.pendingTeamChange = true
@@ -349,6 +360,9 @@ const actions = {
         const blueprints = response.blueprints
 
         return state.commit('setTeamBlueprints', { teamId, blueprints })
+    },
+    setRedirectUrl (state, url) {
+        state.commit('setRedirectUrl', url)
     }
 }
 
