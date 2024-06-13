@@ -62,6 +62,9 @@ describe('elapsedTime', () => {
         const soon = new Date()
         soon.setMinutes(soon.getMinutes() + 30)
         soon.setSeconds(soon.getSeconds() + 15)
+        // This test would occasionally fail due to a combination of the random ms value in `soon`, the time taken to
+        // run the test and the fact that the elapsed time string is calculated using Math.floor
+        soon.setMilliseconds(soon.getMilliseconds() + 500) // Grace to prevent random test fails.
 
         expect(elapsedTime(soon)).toBe('30 minutes, 15 seconds')
     })
