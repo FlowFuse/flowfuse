@@ -14,7 +14,7 @@ we welcome contributions from the community.
 
 This guide assumes you have a working development environment including:
 
- - Node.js 16
+ - Node.js 18/20
  - Platform build tools
    - Linux: `apt-get install build-essential`
    - MacOS: `xcode-select --install`
@@ -30,7 +30,6 @@ that make up the platform.
 Repository    | Description
 --------------|---------------------
 [FlowFuse](https://github.com/FlowFuse/flowfuse) | This is the core of the platform.
-[forge-ui-components](https://github.com/FlowFuse/forge-ui-components) | Common UI components used in the platform.
 [installer](https://github.com/FlowFuse/installer) | The installer for the platform
 [driver-localfs](https://github.com/FlowFuse/driver-localfs) | The LocalFS driver. This deploys instances to the local system.
 [driver-docker](https://github.com/FlowFuse/driver-docker) | The Docker driver. This deploys instances as containers in a Docker-managed environment.
@@ -43,12 +42,12 @@ With the project split across multiple repositories, setting up a development
 environment manually takes quite a lot of steps to ensure everything is checked
 out and configured properly.
 
-To make it easier, you can use the [FlowFuse Development Environment](https://github.com/FlowFuse/flowforge-dev-env) project to get set up.
+To make it easier, you can use the [FlowFuse Development Environment](https://github.com/FlowFuse/dev-env) project to get set up.
 
 The following steps will get your development environment setup in no time:
 
 ```bash
-git clone https://github.com/FlowFuse/flowforge-dev-env.git
+git clone https://github.com/FlowFuse/dev-env.git
 cd flowforge-dev-env
 npm install
 npm run init
@@ -60,7 +59,7 @@ the repositories that need it.
 All of the repositories are cloned under the `packages` directory:
 
 ```txt
-flowforge-dev-env
+dev-env
 └── packages
     ├── device-agent
     ├── docker-compose
@@ -77,7 +76,7 @@ flowforge-dev-env
 ```
 
 More details on using the FlowForge Development Environment are available in its
-[documentation](https://github.com/FlowFuse/flowforge-dev-env).
+[documentation](https://github.com/FlowFuse/dev-env).
 
 ### FlowFuse Code Structure
 
