@@ -224,11 +224,17 @@ module.exports = {
    * @param {*} settings the new settings to merge in
    * @param {*} options options for the merge
    * @param {boolean} options.mergeEnvVars if true, merge the env vars (new keys added, existing keys untouched, removed keys untouched)
+   * @param {boolean} options.mergeEditorSettings if false (default), will overwrite all settings. If true, it will merge the settings together - only overwriting certain ones.
    */
-    mergeSettings: function (app, existingSettings, settings, { mergeEnvVars = false } = {}) {
+    mergeSettings: function (app, existingSettings, settings, { mergeEnvVars = false, mergeEditorSettings = false } = {}) {
         // Quick deep clone that is safe as we know settings are JSON-safe
         const result = JSON.parse(JSON.stringify(existingSettings))
+        const skipList = ['disableEditor', 'page_title', 'header_title']
         templateFields.forEach((name) => {
+            if (mergeEditorSettings && skipList.includes(name)) {
+                return
+            }
+
             const value = getTemplateValue(settings, name)
             if (value !== undefined) {
                 setTemplateValue(result, name, value)
