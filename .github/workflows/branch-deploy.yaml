@@ -8,6 +8,10 @@ on:
       - closed
       - labeled
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.number }}
+  cancel-in-progress: false
+
 jobs:
   build:
     name: Build and contenerize
