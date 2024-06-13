@@ -21,6 +21,27 @@ function checkIfLandedOnLoginPage () {
         })
 }
 
+function interceptAndSetDefaultBlueprint () {
+    // Intercepting the blueprints call to avoid side effects when running multiple suites at once
+    // other suites alter the default blueprint, so we need to set it back to a predictable state
+    cy.intercept(
+        'GET',
+        '/api/*/flow-blueprints*',
+        (req) => req.reply(res => {
+            const blueprints = res.body.blueprints.map(bp => {
+                if (bp.name === 'Blueprint 1') {
+                    bp.default = 1
+                } else {
+                    bp.default = 0
+                }
+                return bp
+            })
+            res.body = { ...res.body, ...{ blueprints } }
+            return res
+        })
+    ).as('setDefaultBlueprint')
+}
+
 describe('FlowFuse - Deploy Blueprint', () => {
     beforeEach(() => {
         cy.login('alice', 'aaPassword')
@@ -45,8 +66,11 @@ describe('FlowFuse - Deploy Blueprint', () => {
             it('reverts to the default blueprint when no blueprint id is given', () => {
                 cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')
                 cy.intercept('POST', '/api/*/projects').as('createInstance')
+                interceptAndSetDefaultBlueprint()
 
                 cy.visit('/deploy/blueprint')
+
+                cy.wait('@setDefaultBlueprint')
 
                 cy.get('[data-el="page-name"]').contains('Deploy Blueprint 1')
 
@@ -73,8 +97,11 @@ describe('FlowFuse - Deploy Blueprint', () => {
                 cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')
                 cy.intercept('GET', '/api/*/flow-blueprints*').as('getFlowBlueprints')
                 cy.intercept('POST', '/api/*/projects').as('createInstance')
+                interceptAndSetDefaultBlueprint()
 
                 cy.visit('/deploy/blueprint?blueprintId=non-existing-id')
+
+                cy.wait('@setDefaultBlueprint')
 
                 cy.get('[data-el="page-name"]').contains('Deploy Blueprint 1')
 
@@ -129,12 +156,15 @@ describe('FlowFuse - Deploy Blueprint', () => {
             it('reverts to the default blueprint when no blueprint id is given after logging in', () => {
                 cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')
                 cy.intercept('POST', '/api/*/projects').as('createInstance')
+                interceptAndSetDefaultBlueprint()
 
                 cy.visit('/deploy/blueprint')
 
                 checkIfLandedOnLoginPage()
 
                 followLoginForm()
+
+                cy.wait('@setDefaultBlueprint')
 
                 cy.get('[data-el="page-name"]').contains('Deploy Blueprint 1')
 
@@ -161,12 +191,15 @@ describe('FlowFuse - Deploy Blueprint', () => {
                 cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')
                 cy.intercept('GET', '/api/*/flow-blueprints*').as('getFlowBlueprints')
                 cy.intercept('POST', '/api/*/projects').as('createInstance')
+                interceptAndSetDefaultBlueprint()
 
                 cy.visit('/deploy/blueprint?blueprintId=non-existing-id')
 
                 checkIfLandedOnLoginPage()
 
                 followLoginForm()
+
+                cy.wait('@setDefaultBlueprint')
 
                 cy.get('[data-el="page-name"]').contains('Deploy Blueprint 1')
 
