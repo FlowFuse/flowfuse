@@ -459,7 +459,7 @@ export default {
             return this.blueprints.length > 1 && this.flowBlueprintsEnabled
         },
         selectedBlueprint () {
-            return this.blueprints.find((blueprint) => `${blueprint.id}` === `${this.input.flowBlueprintId}`)
+            return this.blueprints.find((blueprint) => `${blueprint.id}` === `${this.input.flowBlueprintId}`) || this.defaultBlueprint
         },
         heroTitle () {
             return this.creatingNew ? (this.creatingApplication ? 'Create a new Application' : 'Create Instance') : 'Update Instance'
@@ -492,8 +492,12 @@ export default {
                 this.selectedProjectType = null
             }
         },
-        'input.flowBlueprintId': function (value) {
-            this.$emit('blueprint-updated', value)
+        'input.flowBlueprintId': function (newValue, oldValue) {
+            if (newValue !== oldValue) {
+                // use computed blueprint id, as it may sometimes receive invalid pre-defined blueprint id's
+                this.input.flowBlueprintId = this.selectedBlueprint.id
+            }
+            this.$emit('blueprint-updated', newValue, oldValue)
         }
     },
     async created () {
