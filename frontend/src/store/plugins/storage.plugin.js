@@ -29,9 +29,6 @@ function updateVuexFromStorageDriver (store, storageDriver) {
         const storedState = JSON.parse(storageDriver.getItem(STORE_KEY))
         Object.keys(storedState)
             .forEach(storeKey => {
-                // We have to replace vuex module state key by key to avoid breaking reactivity and time-travel debugging
-                // with the vuex browser plugin.
-                // Updating the entire store/module at once or using state.replaceState(storedState) will have the same outcome
                 Object.keys(storedState[storeKey])
                     .filter(k => k) // filter out 'global' module
                     .forEach(key => {
@@ -88,7 +85,13 @@ export default (store) => {
                 }, {})
             })
 
-        LocalStorageService.setItem(STORE_KEY, filterByStorageType(result, 'localStorage'))
-        SessionStorageService.setItem(STORE_KEY, filterByStorageType(result, 'sessionStorage'))
+        LocalStorageService.setItem(
+            STORE_KEY,
+            JSON.stringify(filterByStorageType(result, 'localStorage'))
+        )
+        SessionStorageService.setItem(
+            STORE_KEY,
+            JSON.stringify(filterByStorageType(result, 'sessionStorage'))
+        )
     })
 }
