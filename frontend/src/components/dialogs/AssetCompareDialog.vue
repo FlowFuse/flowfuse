@@ -112,7 +112,7 @@ export default {
             this.cleanup()
             const flowRenderer = new FlowRenderer()
             flowRenderer.renderFlows(this.flow, {
-                container: this.$refs.viewer
+                container: this.$refs.compareViewer
             })
         },
         async renderComparison (snapshotId) {
@@ -141,8 +141,8 @@ export default {
             while (this.$refs.compareViewer?.firstChild) {
                 this.$refs.compareViewer.removeChild(this.$refs.compareViewer.firstChild)
             }
-            while (this.$refs.viewer?.firstChild) {
-                this.$refs.viewer.removeChild(this.$refs.viewer.firstChild)
+            while (this.$refs.compareViewer?.firstChild) {
+                this.$refs.compareViewer.removeChild(this.$refs.compareViewer.firstChild)
             }
         }
     }
