@@ -682,7 +682,7 @@ export default {
             const stackList = await stacksApi.getStacks(null, null, null, projectType.id)
             this.stacks = stackList.stacks
                 .filter(stack => stack.active)
-                .map(stack => { return { ...stack, value: stack.id } })
+                .map(stack => { return { ...stack, value: stack.id, label: stack.label || stack.name } })
 
             if (this.stacks.length === 0) {
                 this.input.stack = null
