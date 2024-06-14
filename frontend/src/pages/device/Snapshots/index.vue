@@ -63,7 +63,7 @@
         <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" />
         <SnapshotImportDialog ref="snapshotImportDialog" title="Upload Snapshot" data-el="dialog-import-snapshot" :show-owner-select="false" :owner="device" owner-type="device" @snapshot-import-success="onSnapshotImportSuccess" @snapshot-import-failed="onSnapshotImportFailed" @canceled="onSnapshotImportCancel" />
         <AssetDetailDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
-        <AssetDetailDialog ref="snapshotCompareDialog" data-el="dialog-compare-snapshot" />
+        <AssetCompareDialog ref="snapshotCompareDialog" data-el="dialog-compare-snapshot" />
     </div>
 </template>
 
@@ -78,6 +78,7 @@ import SnapshotApi from '../../../api/snapshots.js'
 
 import EmptyState from '../../../components/EmptyState.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import AssetCompareDialog from '../../../components/dialogs/AssetCompareDialog.vue'
 import AssetDetailDialog from '../../../components/dialogs/AssetDetailDialog.vue'
 import SnapshotImportDialog from '../../../components/dialogs/SnapshotImportDialog.vue'
 import UserCell from '../../../components/tables/cells/UserCell.vue'
@@ -102,6 +103,7 @@ export default {
         SnapshotImportDialog,
         SnapshotExportDialog,
         AssetDetailDialog,
+        AssetCompareDialog,
         PlusSmIcon,
         UploadIcon
     },
@@ -172,6 +174,15 @@ export default {
         },
         busy () {
             return this.busyMakingSnapshot || this.busyImportingSnapshot
+        },
+        snapshotList () {
+            return this.snapshots.map(s => {
+                return {
+                    label: s.name,
+                    description: s.description || '',
+                    value: s.id
+                }
+            })
         }
     },
     watch: {
@@ -277,7 +288,6 @@ export default {
         onSnapshotImportCancel () {
             this.busyImportingSnapshot = false
         },
-
         getSortKeyForSnapshotSource (snapshot) {
             if (snapshot.ownerType === 'device') {
                 return 'Device:' + snapshot.device?.name || 'No Name'
@@ -329,22 +339,12 @@ export default {
             })
         },
         showCompareSnapshotDialog (snapshot) {
-            SnapshotApi.getFullSnapshot(snapshot.id).then((data) => {
-                const snapshotList = this.snapshots.map(s => {
-                    return {
-                        label: s.name,
-                        description: s.description || '',
-                        value: s.id
-                    }
+            SnapshotApi.getFullSnapshot(snapshot.id)
+                .then((data) => this.$refs.snapshotCompareDialog.show(data, this.snapshotList))
+                .catch(err => {
+                    console.error(err)
+                    Alerts.emit('Failed to get snapshot.', 'warning')
                 })
-                const snapshotLoaderCallback = (snapshotId) => {
-                    return SnapshotApi.getFullSnapshot(snapshotId)
-                }
-                this.$refs.snapshotCompareDialog.showCompareSnapshots(data, snapshotList, snapshotLoaderCallback)
-            }).catch(err => {
-                console.error(err)
-                Alerts.emit('Failed to get snapshot.', 'warning')
-            })
         },
         showDownloadSnapshotDialog (snapshot) {
             this.$refs.snapshotExportDialog.show(snapshot)
