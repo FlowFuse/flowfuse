@@ -50,7 +50,7 @@ export default {
         const store = useStore()
 
         if (!store.state.account.user && !LocalStorageService.getItem('redirectUrlAfterLogin')) {
-            LocalStorageService.setItem('redirectUrlAfterLogin', to.fullPath)
+            store.dispatch('account/setRedirectUrl', to.fullPath)
         }
 
         next()
