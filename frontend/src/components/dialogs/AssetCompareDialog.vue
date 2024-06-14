@@ -141,9 +141,6 @@ export default {
             while (this.$refs.compareViewer?.firstChild) {
                 this.$refs.compareViewer.removeChild(this.$refs.compareViewer.firstChild)
             }
-            while (this.$refs.compareViewer?.firstChild) {
-                this.$refs.compareViewer.removeChild(this.$refs.compareViewer.firstChild)
-            }
         }
     }
 }
