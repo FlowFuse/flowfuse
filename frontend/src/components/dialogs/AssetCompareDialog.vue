@@ -29,9 +29,7 @@
             <div v-if="changes.length" class="flex justify-between items-center gap-2 mt-2 ml-2">
                 <div class="whitespace-nowrap">Change {{ changeIndex + 1 }} of {{ changes.length }}:</div>
                 <div class="text-sm text-gray-500 flex-grow truncate overflow-ellipsis">
-                    {{
-                        changes[changeIndex].toString()
-                    }}
+                    {{ changes[changeIndex].toString() }}
                 </div>
                 <ff-button kind="secondary" size="small" class="w-14" @click="gotoPreviousDifference">Prev</ff-button>
                 <ff-button kind="secondary" size="small" class="w-14" @click="gotoNextDifference">Next</ff-button>
@@ -59,7 +57,7 @@ import SnapshotsApi from '../../api/snapshots.js'
 import Alerts from '../../services/alerts.js'
 
 export default {
-    name: 'FlowViewerDialog',
+    name: 'AssetCompareDialog',
     props: {
         title: {
             type: String,
