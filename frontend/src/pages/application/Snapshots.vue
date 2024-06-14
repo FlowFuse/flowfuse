@@ -160,7 +160,7 @@ export default {
         },
         showCompareSnapshotDialog (snapshot) {
             SnapshotsApi.getFullSnapshot(snapshot.id)
-                .then((data) => this.$refs.snapshotCompareDialog.showCompareSnapshots(data, this.snapshotList))
+                .then((data) => this.$refs.snapshotCompareDialog.show(data, this.snapshotList))
                 .catch(err => {
                     console.error(err)
                     Alerts.emit('Failed to get snapshot.', 'warning')

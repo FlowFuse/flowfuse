@@ -71,7 +71,7 @@ export default {
          * @param {{flows: { flows :[]}}} v1Snapshot - A snapshot object as the base for comparison
          * @param {[{label: String, value: String}]} snapshotList - A list of snapshots to compare against where label is the snapshot name and value is the snapshot id
          */
-            showCompareSnapshots (v1Snapshot, snapshotList) {
+            show (v1Snapshot, snapshotList) {
                 this.mode = 'compare'
                 this.payload = v1Snapshot
                 this.compareSnapshot = null
