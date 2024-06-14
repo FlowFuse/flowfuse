@@ -59,7 +59,7 @@ describe('FlowFuse - Deploy Blueprint', () => {
     describe('Users with accounts', () => {
         describe('And authenticated', () => {
             beforeEach(() => {
-                cy.intercept('POST', '/api/v1/auth/login').as('login')
+                cy.intercept('POST', '/api/*/auth/login').as('login')
                 cy.login('alice', 'aaPassword')
             })
 
@@ -93,7 +93,7 @@ describe('FlowFuse - Deploy Blueprint', () => {
             })
 
             it('reverts to the default blueprint when an invalid blueprint id is given', () => {
-                cy.intercept('GET', '/api/v1/projects/*').as('getInstance')
+                cy.intercept('GET', '/api/*/projects/*').as('getInstance')
                 cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')
                 cy.intercept('GET', '/api/*/flow-blueprints*').as('getFlowBlueprints')
                 cy.intercept('POST', '/api/*/projects').as('createInstance')
@@ -120,7 +120,7 @@ describe('FlowFuse - Deploy Blueprint', () => {
             })
 
             it('can deploy pre-defined blueprints', () => {
-                cy.intercept('GET', '/api/v1/projects/*').as('getInstance')
+                cy.intercept('GET', '/api/*/projects/*').as('getInstance')
                 cy.get('@blueprints')
                     .then(blueprints => {
                         const predefinedBlueprint = blueprints[1]
@@ -187,7 +187,7 @@ describe('FlowFuse - Deploy Blueprint', () => {
             })
 
             it('reverts to the default blueprint when an invalid blueprint id is given after logging in', () => {
-                cy.intercept('GET', '/api/v1/projects/*').as('getInstance')
+                cy.intercept('GET', '/api/*/projects/*').as('getInstance')
                 cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')
                 cy.intercept('GET', '/api/*/flow-blueprints*').as('getFlowBlueprints')
                 cy.intercept('POST', '/api/*/projects').as('createInstance')
@@ -218,7 +218,7 @@ describe('FlowFuse - Deploy Blueprint', () => {
             })
 
             it('can deploy pre-defined blueprints after logging in', () => {
-                cy.intercept('GET', '/api/v1/projects/*').as('getInstance')
+                cy.intercept('GET', '/api/*/projects/*').as('getInstance')
                 cy.get('@blueprints')
                     .then(blueprints => {
                         const predefinedBlueprint = blueprints[1]
