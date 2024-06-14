@@ -42,7 +42,7 @@
     </div>
     <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" />
     <AssetDetailDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
-    <AssetDetailDialog ref="snapshotCompareDialog" data-el="dialog-compare-snapshot" />
+    <AssetCompareDialog ref="snapshotCompareDialog" data-el="dialog-compare-snapshot" />
 </template>
 
 <script>
@@ -54,6 +54,7 @@ import SnapshotsApi from '../../api/snapshots.js'
 
 import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
+import AssetCompareDialog from '../../components/dialogs/AssetCompareDialog.vue'
 import AssetDetailDialog from '../../components/dialogs/AssetDetailDialog.vue'
 import UserCell from '../../components/tables/cells/UserCell.vue'
 import { downloadData } from '../../composables/Download.js'
@@ -74,6 +75,7 @@ export default {
         SectionTopMenu,
         SnapshotExportDialog,
         AssetDetailDialog,
+        AssetCompareDialog,
         EmptyState
     },
     mixins: [permissionsMixin],
@@ -124,7 +126,16 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership'])
+        ...mapState('account', ['teamMembership']),
+        snapshotList () {
+            return this.snapshots.map(s => {
+                return {
+                    label: s.name,
+                    description: s.description || '',
+                    value: s.id
+                }
+            })
+        }
     },
     mounted () {
         this.loadSnapshots()
@@ -148,22 +159,12 @@ export default {
             })
         },
         showCompareSnapshotDialog (snapshot) {
-            SnapshotsApi.getFullSnapshot(snapshot.id).then((data) => {
-                const snapshotList = this.snapshots.map(s => {
-                    return {
-                        label: s.name,
-                        description: s.description || '',
-                        value: s.id
-                    }
+            SnapshotsApi.getFullSnapshot(snapshot.id)
+                .then((data) => this.$refs.snapshotCompareDialog.show(data, this.snapshotList))
+                .catch(err => {
+                    console.error(err)
+                    Alerts.emit('Failed to get snapshot.', 'warning')
                 })
-                const snapshotLoaderCallback = (snapshotId) => {
-                    return SnapshotsApi.getFullSnapshot(snapshotId)
-                }
-                this.$refs.snapshotCompareDialog.showCompareSnapshots(data, snapshotList, snapshotLoaderCallback)
-            }).catch(err => {
-                console.error(err)
-                Alerts.emit('Failed to get snapshot.', 'warning')
-            })
         },
         showDownloadSnapshotDialog (snapshot) {
             this.$refs.snapshotExportDialog.show(snapshot)
