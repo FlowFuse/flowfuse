@@ -1,9 +1,9 @@
 /* eslint-disable n/no-process-exit */
 'use strict'
 
-require('./email_environment.js')
-
 const TestModelFactory = require('../../lib/TestModelFactory')
+
+const smtp = require('./environments/smtp.js')
 
 const app = require('./environments/standard')
 
@@ -12,6 +12,8 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 ;(async function () {
     const PORT = 3002
+
+    await smtp()
 
     const flowforge = await app({
         trialMode: true

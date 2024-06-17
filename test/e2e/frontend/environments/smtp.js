@@ -1,20 +1,34 @@
 const childProcess = require('child_process')
-const path = require('path')
 
 const mailpitLogger = (data) => {
     console.info(`Mailpit: ${data}`)
 }
 
-module.exports = (async function (settings = {}, config = {}) {
+module.exports = async function (config = {}) {
+    let { webPort, smtpPort } = config
+
+    webPort = webPort || 8025
+    smtpPort = smtpPort || 1025
+
     mailpitLogger('Starting e-mail server...')
 
     const dockerCommand = 'docker'
-    const args = ['compose', '-f', path.join(__dirname, 'docker-compose.yml'), 'up']
+    const args = [
+        'run',
+        '--rm',
+        '--name=mailpit',
+        `-p=${webPort}:8025`,
+        `-p=${smtpPort}:1025`,
+        '-e=MP_MAX_MESSAGES=5000',
+        '-e=MP_SMTP_AUTH_ACCEPT_ANY=1',
+        '-e=MP_SMTP_AUTH_ALLOW_INSECURE=1',
+        'axllent/mailpit'
+    ]
 
     const dockerProcess = childProcess.spawn(dockerCommand, args)
 
     dockerProcess.on('spawn', () => {
-        mailpitLogger('Web UI available at http://localhost:8025/ with SMTP listening on port 1025')
+        mailpitLogger(`Web UI available at http://localhost:${webPort}/ with SMTP listening on port ${smtpPort}`)
     })
 
     // dockerProcess.stdout.on('data', mailpitLogger)
@@ -33,4 +47,4 @@ module.exports = (async function (settings = {}, config = {}) {
     // process.on('exit', cleanup)
     // process.on('SIGINT', cleanup)
     // process.on('SIGTERM', cleanup)
-})()
+}
