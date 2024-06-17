@@ -1,6 +1,8 @@
 /* eslint-disable n/no-process-exit */
 'use strict'
 
+require('./email_environment.js')
+
 const TestModelFactory = require('../../lib/TestModelFactory')
 
 const app = require('./environments/standard')
