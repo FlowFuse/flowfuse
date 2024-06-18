@@ -168,7 +168,7 @@ module.exports = {
         return projectExport
     },
 
-    importProjectSnapshot: async function restoreSnapshot (app, project, snapshot, { mergeEnvVars } = { mergeEnvVars: false }) {
+    importProjectSnapshot: async function restoreSnapshot (app, project, snapshot, { mergeEnvVars, mergeEditorSettings } = { mergeEnvVars: false, mergeEditorSettings: false }) {
         const t = await app.db.sequelize.transaction() // start a transaction
         try {
             if (snapshot?.flows?.flows) {
@@ -203,7 +203,7 @@ module.exports = {
                 }
                 const newSettings = app.db.controllers.ProjectTemplate.validateSettings(snapshotSettings, project.ProjectTemplate)
                 const currentProjectSettings = await project.getSetting('settings') || {} // necessary?
-                const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings, { mergeEnvVars })
+                const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings, { mergeEnvVars, mergeEditorSettings })
                 await project.updateSetting('settings', updatedSettings, { transaction: t }) // necessary?
             }
             await t.commit() // all good, commit the transaction

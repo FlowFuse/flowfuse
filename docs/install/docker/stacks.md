@@ -44,7 +44,7 @@ FROM flowfuse/node-red
 WORKDIR /usr/src/node-red
 RUN npm install node-red-dashboard
 
-WORKDIR /usr/src/flowfuse-nr-launcher
+WORKDIR /usr/src/flowforge-nr-launcher
 ```
 
 To build the container run the following:
