@@ -287,7 +287,7 @@ module.exports = async (options = {}) => {
                 if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
                     contentSecurityPolicy.directives['connect-src'].push(posthogHost)
                 } else {
-                    contentSecurityPolicy.directives['connect-src'] = posthogHost
+                    contentSecurityPolicy.directives['connect-src'] = [posthogHost]
                 }
             }
             if (runtimeConfig.telemetry?.frontend?.sentry) {
