@@ -3,6 +3,16 @@
         <SideNavigationTeamOptions />
     </Teleport>
     <ff-page>
+        <Teleport v-if="mounted" to="#platform-banner">
+            <div
+                v-if="isVisitingAdmin" class="ff-banner"
+                data-el="banner-team-as-admin"
+            >
+                You are viewing this team as an Administrator
+            </div>
+            <SubscriptionExpiredBanner :team="team" />
+            <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
+        </Teleport>
         <template #header>
             <ff-page-header :title="blueprintTitle">
                 <template #context>
@@ -31,11 +41,16 @@
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
 import { mapActions, mapGetters, mapState, useStore } from 'vuex'
 
+import { Roles } from '../../../../forge/lib/roles.js'
+import ApplicationApi from '../../api/application.js'
+
 import instanceApi from '../../api/instances.js'
 
 import teamApi from '../../api/team.js'
-
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
+import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
+import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
+
 import Alerts from '../../services/alerts.js'
 import LocalStorageService from '../../services/storage/local-storage.service.js'
 import InstanceForm from '../instance/components/InstanceForm.vue'
@@ -43,6 +58,8 @@ import InstanceForm from '../instance/components/InstanceForm.vue'
 export default {
     name: 'DeployBlueprint',
     components: {
+        SubscriptionExpiredBanner,
+        TeamTrialBanner,
         InstanceForm,
         SideNavigationTeamOptions
     },
@@ -73,6 +90,9 @@ export default {
     computed: {
         ...mapState('account', ['features', 'team', 'user']),
         ...mapGetters('account', ['blueprints', 'defaultBlueprint', 'defaultUserTeam']),
+        isVisitingAdmin: function () {
+            return (this.teamMembership.role === Roles.Admin)
+        },
         applicationsList () {
             return this.applications.map(application => ({
                 value: application.id,
