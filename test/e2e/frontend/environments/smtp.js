@@ -16,7 +16,6 @@ module.exports = async function (config = {}) {
     const args = [
         'run',
         '--rm',
-        '--name=mailpit',
         `-p=${webPort}:8025`,
         `-p=${smtpPort}:1025`,
         '-e=MP_MAX_MESSAGES=5000',
