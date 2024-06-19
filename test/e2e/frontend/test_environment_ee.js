@@ -38,11 +38,15 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
                 }
             }
         },
-        smtp: {
-            host: 'localhost',
-            port: smtpConfig.smtpPort,
-            secure: false,
-            debug: true
+        email: {
+            enabled: true,
+            debug: true,
+            smtp: {
+                host: 'localhost',
+                port: smtpConfig.smtpPort,
+                secure: false,
+                debug: true
+            }
         }
     })
 

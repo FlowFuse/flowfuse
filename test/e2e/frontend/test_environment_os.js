@@ -16,11 +16,15 @@ const app = require('./environments/standard.js')
     const flowforge = await app({}, {
         host: 'localhost',
         port: PORT,
-        smtp: {
-            host: 'localhost',
-            port: smtpConfig.smtpPort,
-            secure: false,
-            debug: true
+        email: {
+            enabled: true,
+            debug: true,
+            smtp: {
+                host: 'localhost',
+                port: smtpConfig.smtpPort,
+                secure: false,
+                debug: true
+            }
         }
     })
 
