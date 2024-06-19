@@ -19,9 +19,6 @@ module.exports = async function (settings = {}, config = {}) {
             type: 'sqlite',
             storage: ':memory:'
         },
-        email: {
-            enabled: true
-        },
         driver: {
             type: 'stub'
         },
