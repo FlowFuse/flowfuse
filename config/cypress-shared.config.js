@@ -6,7 +6,6 @@ module.exports = {
     viewportWidth: 1024,
     viewportHeight: 768,
     e2e: {
-        experimentalSessionAndOrigin: true,
         downloadsFolder,
         fixturesFolder: 'test/e2e/frontend/cypress/fixtures',
         screenshotsFolder: 'test/e2e/frontend/cypress/screenshots',
