@@ -45,7 +45,7 @@ export default {
                 this.dialog.confirmLabel = msg.confirmLabel
                 this.dialog.kind = msg.kind
                 this.dialog.disablePrimary = msg.disablePrimary
-                if (Object.hasOwn(msg, 'canBeCanceled')) {
+                if (Object.prototype.hasOwnProperty.call(msg, 'canBeCanceled')) {
                     this.dialog.canBeCanceled = msg.canBeCanceled
                 }
             }
