@@ -1788,4 +1788,109 @@ describe('Billing routes', function () {
             })
         })
     })
+
+    describe('Trial state', function () {
+        const ONE_DAY = 86400000
+        const FIVE_MINS = 300000
+
+        const getTeamInfo = async (team) => {
+            return (await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${team.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })).json()
+        }
+        let trialTeamType
+        before(async function () {
+            trialTeamType = await app.factory.createTeamType({
+                name: 'trial-type-2',
+                properties: {
+                    instances: {
+                        [TestObjects.projectType1.hashid]: { active: true }
+                    },
+                    trial: {
+                        active: true,
+                        duration: 5
+                    }
+                }
+            })
+        })
+
+        it('Allows team trial to be extended by admin - active trial', async function () {
+            // Create trial team
+            const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam'), TeamTypeId: trialTeamType.id })
+            await trialTeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+            await app.factory.createTrialSubscription(trialTeam, 5)
+
+            const teamInfo = await getTeamInfo(trialTeam)
+
+            teamInfo.should.have.property('billing')
+            teamInfo.billing.should.have.property('active', false)
+            teamInfo.billing.should.have.property('unmanaged', false)
+            teamInfo.billing.should.have.property('canceled', false)
+            teamInfo.billing.should.have.property('pastDue', false)
+            teamInfo.billing.should.have.property('trial', true)
+            teamInfo.billing.should.have.property('trialEnded', false)
+            teamInfo.billing.should.have.property('customer', '')
+            teamInfo.billing.should.have.property('subscription', '')
+            teamInfo.billing.should.have.property('trialEndsAt')
+            const endDateDelta = (new Date(teamInfo.billing.trialEndsAt)) - Date.now()
+            const trialDuration = ONE_DAY * 5
+            endDateDelta.should.be.within(trialDuration - FIVE_MINS, trialDuration + FIVE_MINS)
+
+            const newEndDate = Date.now() + ONE_DAY * 10
+
+            // Set the end date for 10 days from now
+            const response = await app.inject({
+                method: 'POST',
+                url: `/ee/billing/teams/${trialTeam.hashid}/trial`,
+                payload: {
+                    trialEndsAt: newEndDate
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const updatedTeamInfo = await getTeamInfo(trialTeam)
+            updatedTeamInfo.billing.should.have.property('trial', true)
+            updatedTeamInfo.billing.should.have.property('trialEnded', false)
+            const newEndDateDelta = (new Date(updatedTeamInfo.billing.trialEndsAt)) - Date.now()
+            const newTrialDuration = ONE_DAY * 10
+            newEndDateDelta.should.be.within(newTrialDuration - FIVE_MINS, newTrialDuration + FIVE_MINS)
+        })
+        it('Prevents setting team trial end date beyond a year', async function () {
+            // Create trial team
+            const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam'), TeamTypeId: trialTeamType.id })
+            await trialTeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+            await app.factory.createTrialSubscription(trialTeam, 5)
+
+            const newEndDate = Date.now() + ONE_DAY * 370
+
+            // Set the end date for 10 days from now
+            const response = await app.inject({
+                method: 'POST',
+                url: `/ee/billing/teams/${trialTeam.hashid}/trial`,
+                payload: {
+                    trialEndsAt: newEndDate
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(400)
+        })
+
+        it('Prevents non-admin from modifying team trial settings', async function () {
+            const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam'), TeamTypeId: trialTeamType.id })
+            await trialTeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+            await app.factory.createTrialSubscription(trialTeam, 5)
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/ee/billing/teams/${trialTeam.hashid}/trial`,
+                payload: {
+                    trialEndsAt: Date.now() + ONE_DAY
+                },
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(403)
+        })
+    })
 })

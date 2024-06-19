@@ -16,7 +16,8 @@ const { Roles } = require('../../../lib/roles.js')
 
 module.exports = async function (app) {
     registerPermissions({
-        'team:billing:manual': { description: 'Setups up manual billing on a team', role: Roles.Admin }
+        'team:billing:manual': { description: 'Setups up manual billing on a team', role: Roles.Admin },
+        'team:billing:trial': { description: 'Modify team trial settings', role: Roles.Admin }
     })
 
     /** @type {import('stripe').Stripe} */
@@ -419,6 +420,33 @@ module.exports = async function (app) {
 
             // Catch all
             response.code(500).type('application/json').send({ code: err.code || 'unexpected_error', error: responseMessage })
+        }
+    })
+
+    /**
+     * Update team trial settings
+     * Admin only
+     * @name /ee/billing/teams/:team/trial
+     * @static
+     * @memberof forge.ee.billing
+     */
+    app.post('/teams/:teamId/trial', {
+        preHandler: app.needsPermission('team:billing:trial')
+    }, async (request, response) => {
+        const team = request.team
+        try {
+            await app.billing.updateTrialSettings(team, request.body)
+            response.code(200).send({})
+        } catch (err) {
+            // Standard errors
+            let responseMessage
+            if (err.errors) {
+                responseMessage = err.errors.map(err => err.message).join(',')
+            } else {
+                responseMessage = err.toString()
+            }
+            // Catch all
+            response.code(400).type('application/json').send({ code: err.code || 'unexpected_error', error: responseMessage })
         }
     })
 
