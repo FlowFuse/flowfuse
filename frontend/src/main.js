@@ -18,8 +18,6 @@ import './index.css'
 
 import ForgeUIComponents from './ui-components/index.js'
 
-store.commit('initializeStore')
-
 const app = createApp(App)
     .use(ForgeUIComponents)
     .use(store)
