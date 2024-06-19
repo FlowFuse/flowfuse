@@ -135,7 +135,13 @@ export default {
             const { applicationId, applicationName, applicationDescription, ...instanceFields } = formData
 
             try {
-                const instance = await this.createInstance(applicationId, instanceFields, copyParts)
+                const createApplicationPayload = { name: applicationName, description: applicationDescription, teamId: this.team.id }
+
+                if (!applicationId) {
+                    this.application = await ApplicationApi.createApplication(createApplicationPayload)
+                }
+
+                const instance = await this.createInstance(applicationId || this.application.id, instanceFields, copyParts)
 
                 await this.$store.dispatch('account/refreshTeam')
 
