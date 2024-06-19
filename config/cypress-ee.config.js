@@ -10,8 +10,5 @@ module.exports = defineConfig({
             baseUrl: 'http://localhost:3002',
             specPattern: 'test/e2e/frontend/cypress/tests-ee'
         }
-    },
-    env: {
-        mailpitUrl: 'http://localhost:8026/'
     }
 })
