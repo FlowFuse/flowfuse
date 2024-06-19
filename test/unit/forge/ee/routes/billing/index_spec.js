@@ -1876,6 +1876,25 @@ describe('Billing routes', function () {
             })
             response.statusCode.should.equal(400)
         })
+        it('Prevents setting team trial end date for non trial team', async function () {
+            // Create trial team
+            const team = await app.factory.createTeam({ name: generateName('noBillingTeam') })
+            await team.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+            await app.factory.createSubscription(team)
+
+            const newEndDate = Date.now() + ONE_DAY * 370
+
+            // Set the end date for 10 days from now
+            const response = await app.inject({
+                method: 'POST',
+                url: `/ee/billing/teams/${team.hashid}/trial`,
+                payload: {
+                    trialEndsAt: newEndDate
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(400)
+        })
 
         it('Prevents non-admin from modifying team trial settings', async function () {
             const trialTeam = await app.factory.createTeam({ name: generateName('noBillingTeam'), TeamTypeId: trialTeamType.id })
