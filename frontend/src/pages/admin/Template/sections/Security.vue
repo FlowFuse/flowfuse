@@ -32,7 +32,7 @@
             </div>
         </template>
         <FeatureUnavailableToTeam v-if="!ffAuthFeatureAvailable" featureName="FlowFuse User Authentication" />
-        <ff-radio-group v-model="editable.settings.httpNodeAuth_type" orientation="vertical" :options="authOptions2" />
+        <ff-radio-group v-model="editable.settings.httpNodeAuth_type" data-el="http-auth-option-ff" orientation="vertical" :options="authOptions2" />
     </form>
 </template>
 
