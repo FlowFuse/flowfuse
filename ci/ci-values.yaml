@@ -4,7 +4,7 @@ forge:
   localPostgresql: true
   broker:
     enabled: true
-    createMetricsUser: false
+    createMetricsUser: true
 
 postgresql:
   persistence:
