@@ -146,6 +146,10 @@ export default {
                 await this.$store.dispatch('account/refreshTeam')
 
                 this.$router.push({ name: 'Instance', params: { id: instance.id } })
+                    .then(() => {
+                        this.loading = false
+                    })
+                    .catch(() => {})
             } catch (err) {
                 this.instanceDetails = instanceFields
                 if (err.response?.status === 409) {
@@ -156,9 +160,8 @@ export default {
                     Alerts.emit('Failed to create instance')
                     console.error(err)
                 }
+                this.loading = false
             }
-
-            this.loading = false
         },
         setPredefinedInputs () {
             if (this.$route?.query && this.$route?.query?.blueprintId) {
