@@ -210,7 +210,7 @@ export default {
             }
             await InstanceApi.updateInstance(this.project.id, { settings })
             this.$emit('instance-updated')
-            alerts.emit('Instance successfully updated.', 'confirmation')
+            alerts.emit('Instance settings successfully updated. NOTE: changes will be applied once the instance is restarted.', 'confirmation', 6000)
         },
         async getTokens () {
             const response = await InstanceApi.getHTTPTokens(this.project.id)
