@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" data-el="blueprint-selector-dialog" class="blueprints-selector-dialog" header="Choose a Blueprint" style="display: block;">
+    <ff-dialog ref="dialog" data-el="blueprint-selector-dialog" class="blueprints-selector-dialog" header="Choose a Blueprint">
         <template #default>
             <section class="blueprints-container w-full md:w-full lg:w-2/5 xl:w-2/5 2xl:w-2/5">
                 <div class="header hidden 2xl:block xl:block lg:block">
@@ -109,6 +109,7 @@ export default {
 <style lang="scss">
 .blueprints-selector-dialog {
     margin: 0 !important;
+    display: block;
 
     .ff-dialog-box {
       max-width: 90vw;
