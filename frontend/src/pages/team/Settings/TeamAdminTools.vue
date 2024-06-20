@@ -14,7 +14,22 @@
                 <td><div class="py-2">{{ team.billing.subscription || 'none' }}</div></td>
             </tr>
         </table>
-
+        <div v-if="!isUnmanaged && trialMode" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+            <div class="flex-grow">
+                <table class="table-fixed max-w-sm">
+                    <tr v-if="!trialHasEnded">
+                        <td class="font-medium font-bold pr-4">Trial Ends:</td>
+                        <td><div class="py-2">{{ trialEndDate }}</div></td>
+                    </tr>
+                    <tr v-else>
+                        <td class="font-medium font-bold pr-4">Trial Ended</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="min-w-fit flex-shrink-0">
+                <ff-button kind="danger" @click="confirmExtendTrial()">Extend Trial</ff-button>
+            </div>
+        </div>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
                 <div class="max-w-sm pr-2">
@@ -48,6 +63,7 @@
         </div>
     </div>
     <ConfirmTeamManualBillingDialog ref="confirmTeamManualBillingDialog" @setup-manual-billing="setupManualBilling" />
+    <ExtendTeamTrialDialog ref="extendTeamTrialDialog" @extend-team-trial="extendTrial" />
 </template>
 
 <script>
@@ -57,14 +73,19 @@ import billingApi from '../../../api/billing.js'
 
 import FormHeading from '../../../components/FormHeading.vue'
 
+import formatDateMixin from '../../../mixins/DateTime.js'
+
 import ConfirmTeamManualBillingDialog from '../dialogs/ConfirmTeamManualBillingDialog.vue'
+import ExtendTeamTrialDialog from '../dialogs/ExtendTeamTrialDialog.vue'
 
 export default {
     name: 'TeamAdminTools',
     components: {
         FormHeading,
-        ConfirmTeamManualBillingDialog
+        ConfirmTeamManualBillingDialog,
+        ExtendTeamTrialDialog
     },
+    mixins: [formatDateMixin],
     props: {
         team: {
             type: Object,
@@ -91,6 +112,9 @@ export default {
         },
         trialHasEnded () {
             return this.team.billing?.trialEnded
+        },
+        trialEndDate () {
+            return this.formatDateTime(this.team.billing?.trialEndsAt)
         }
     },
     methods: {
@@ -99,6 +123,18 @@ export default {
         },
         async setupManualBilling (teamTypeId) {
             billingApi.setupManualBilling(this.team.id, teamTypeId).then(async () => {
+                await this.$store.dispatch('account/refreshTeams')
+                await this.$store.dispatch('account/refreshTeam')
+            }).catch(err => {
+                console.warn(err)
+            })
+        },
+        confirmExtendTrial () {
+            this.$refs.extendTeamTrialDialog.show(this.team)
+        },
+        async extendTrial (endDate) {
+            const newEndDate = Date.parse(`${endDate}T12:00:00.000Z`)
+            billingApi.setTrialExpiry(this.team.id, newEndDate).then(async () => {
                 await this.$store.dispatch('account/refreshTeams')
                 await this.$store.dispatch('account/refreshTeam')
             }).catch(err => {
