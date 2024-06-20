@@ -154,5 +154,13 @@ export default [
         meta: {
             title: 'Team - Create Instance'
         }
+    },
+    {
+        path: '/deploy/blueprint',
+        component: CreateInstance,
+        name: 'DeployBlueprint',
+        meta: {
+            title: 'Deploy Blueprint'
+        }
     }
 ]
