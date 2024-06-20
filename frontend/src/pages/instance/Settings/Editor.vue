@@ -137,7 +137,7 @@ export default {
             })
             await InstanceApi.updateInstance(this.project.id, { settings })
             this.$emit('instance-updated')
-            alerts.emit('Instance successfully updated.', 'confirmation')
+            alerts.emit('Instance settings successfully updated. Restart the instance to apply the changes.', 'confirmation', 6000)
         }
     }
 }

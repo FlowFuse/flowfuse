@@ -3,7 +3,6 @@
 
 const TestModelFactory = require('../../lib/TestModelFactory')
 
-const smtp = require('./environments/smtp')
 const app = require('./environments/standard')
 
 const FF_UTIL = require('flowforge-test-utils')
@@ -11,12 +10,6 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 ;(async function () {
     const PORT = 3002
-    const smtpConfig = {
-        smtpPort: 1026,
-        webPort: 8026
-    }
-
-    await smtp({ smtpPort: smtpConfig.smtpPort, webPort: smtpConfig.webPort })
 
     const flowforge = await app({
         trialMode: true
@@ -40,13 +33,11 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
         },
         email: {
             enabled: true,
-            debug: true,
-            smtp: {
-                host: 'localhost',
-                port: smtpConfig.smtpPort,
-                secure: false,
-                debug: true
-            }
+            debug: true
+        },
+        // configure a broker so that device app.comms is loaded and can be stubbed
+        broker: {
+            url: ':test:'
         }
     })
 
