@@ -19,7 +19,7 @@
         </div>
 
         <!-- Application Selection -->
-        <div v-if="applicationSelection && applications.length > 0">
+        <div v-if="applicationSelection && hasApplicationsToChooseFrom">
             <FormRow
                 v-model="input.applicationId"
                 :options="applications"
@@ -475,6 +475,9 @@ export default {
         },
         emptyStacks () {
             return this.stacks.length === 0
+        },
+        hasApplicationsToChooseFrom () {
+            return this.applications.length > 0
         }
     },
     watch: {
