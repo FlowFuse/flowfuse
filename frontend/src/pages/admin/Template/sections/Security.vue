@@ -11,24 +11,26 @@
             <LockSetting v-model="editable.policy.httpNodeAuth_type" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.httpNodeAuth_type" />
         </div>
         <ff-radio-group v-model="editable.settings.httpNodeAuth_type" orientation="vertical" :options="authOptions1" />
-        <div class="flex flex-col sm:flex-row sm:ml-4">
-            <div class="space-y-4 w-full max-w-md sm:mr-8">
-                <FormRow v-model="editable.settings.httpNodeAuth_user" :disabled="editable.settings.httpNodeAuth_type !=='basic' || !editTemplate && !editable.policy.httpNodeAuth_user" :type="(editTemplate||editable.policy.httpNodeAuth_user)?'text':'uneditable'">
-                    HTTP Auth Username
-                    <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeAuth_user" /></template>
-                </FormRow>
+        <template v-if="editable.settings?.httpNodeAuth_type === 'basic'">
+            <div class="flex flex-col sm:flex-row sm:ml-4">
+                <div class="space-y-4 w-full max-w-md sm:mr-8">
+                    <FormRow v-model="editable.settings.httpNodeAuth_user" :disabled="editable.settings.httpNodeAuth_type !=='basic' || !editTemplate && !editable.policy.httpNodeAuth_user" :type="(editTemplate||editable.policy.httpNodeAuth_user)?'text':'uneditable'">
+                        HTTP Auth Username
+                        <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeAuth_user" /></template>
+                    </FormRow>
+                </div>
+                <LockSetting v-model="editable.policy.httpNodeAuth_user" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.httpNodeAuth_user" />
             </div>
-            <LockSetting v-model="editable.policy.httpNodeAuth_user" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.httpNodeAuth_user" />
-        </div>
-        <div class="flex flex-col sm:flex-row sm:ml-4">
-            <div class="space-y-4 w-full max-w-md sm:mr-8">
-                <FormRow v-model="editable.settings.httpNodeAuth_pass" :disabled="editable.settings.httpNodeAuth_type !=='basic' || !editTemplate && !editable.policy.httpNodeAuth_pass" :type="(editTemplate||editable.policy.httpNodeAuth_pass)?'password':'uneditable'">
-                    HTTP Auth Password
-                    <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeAuth_pass" /></template>
-                </FormRow>
+            <div class="flex flex-col sm:flex-row sm:ml-4">
+                <div class="space-y-4 w-full max-w-md sm:mr-8">
+                    <FormRow v-model="editable.settings.httpNodeAuth_pass" :disabled="editable.settings.httpNodeAuth_type !=='basic' || !editTemplate && !editable.policy.httpNodeAuth_pass" :type="(editTemplate||editable.policy.httpNodeAuth_pass)?'password':'uneditable'">
+                        HTTP Auth Password
+                        <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeAuth_pass" /></template>
+                    </FormRow>
+                </div>
+                <LockSetting v-model="editable.policy.httpNodeAuth_pass" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.httpNodeAuth_pass" />
             </div>
-            <LockSetting v-model="editable.policy.httpNodeAuth_pass" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.httpNodeAuth_pass" />
-        </div>
+        </template>
         <FeatureUnavailableToTeam v-if="!ffAuthFeatureAvailable" featureName="FlowFuse User Authentication" />
         <ff-radio-group v-model="editable.settings.httpNodeAuth_type" orientation="vertical" :options="authOptions2" />
     </form>
@@ -104,7 +106,7 @@ export default {
                     label: 'FlowFuse User Authentication',
                     value: 'flowforge-user',
                     disabled: !this.ffAuthFeatureAvailable || (!this.editTemplate && !this.editable.policy.httpNodeAuth_type),
-                    description: 'Only members of the application instance\'s team will be able to access the routes'
+                    description: 'Only members of the instance\'s team will be able to access the routes'
                 }
             ]
         }
