@@ -10,7 +10,7 @@
     </Teleport>
     <ff-page>
         <template #header>
-            <ff-page-header title="Instances">
+            <ff-page-header :title="pageTitle">
                 <template #context>
                     Let's get your new Node-RED instance setup in no time.
                 </template>
@@ -36,7 +36,7 @@
 
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import instanceApi from '../../api/instances.js'
 import teamApi from '../../api/team.js'
@@ -81,7 +81,29 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'team'])
+        ...mapState('account', ['features', 'team']),
+        ...mapGetters('account', ['blueprints', 'defaultBlueprint', 'defaultUserTeam']),
+        isLandingFromExternalLink () {
+            return this.$route.name === 'DeployBlueprint'
+        },
+        blueprintName () {
+            return this.updatedBlueprint?.name ||
+            this.preDefinedBlueprint?.name ||
+            this.defaultBlueprint?.name ||
+            'Blueprint'
+        },
+        updatedBlueprint () {
+            return this.blueprints.find(blueprint => blueprint.id === this.blueprintId)
+        },
+        blueprintTitle () {
+            return `Deploy ${this.blueprintName}`
+        },
+        pageTitle () {
+            return this.isLandingFromExternalLink ? this.blueprintTitle : 'Instances'
+        },
+        preDefinedBlueprint () {
+            return this.blueprints.find(blueprint => blueprint.id === this.preDefinedInputs?.flowBlueprintId)
+        }
     },
     async created () {
         const data = await teamApi.getTeamApplications(this.team.id)
