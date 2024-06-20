@@ -109,7 +109,7 @@ export default {
             }
             await InstanceApi.updateInstance(this.project.id, { launcherSettings })
             this.$emit('instance-updated')
-            alerts.emit('Instance settings successfully updated. NOTE: changes will be applied once the instance is restarted.', 'confirmation', 6000)
+            alerts.emit('Instance settings successfully updated. Restart the instance to apply the changes.', 'confirmation', 6000)
         }
     }
 }
