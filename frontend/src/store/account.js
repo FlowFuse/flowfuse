@@ -360,5 +360,12 @@ export default {
     state,
     getters,
     actions,
-    mutations
+    mutations,
+    meta: {
+        persistence: {
+            redirectUrlAfterLogin: {
+                storage: 'localStorage'
+            }
+        }
+    }
 }
