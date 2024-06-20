@@ -29,10 +29,13 @@ module.exports = function (config = {}) {
 
         dockerProcess.on('spawn', () => {
             mailpitLogger(`Web UI available at http://localhost:${webPort}/ with SMTP listening on port ${smtpPort}`)
-            resolve(dockerProcess)
         })
 
-        // dockerProcess.stdout.on('data', mailpitLogger)
+        dockerProcess.stdout.on('data', (data) => {
+            if (data.toString().includes('accessible via http://localhost')) {
+                resolve(dockerProcess)
+            }
+        })
         dockerProcess.stderr.on('data', mailpitLogger)
 
         dockerProcess.on('close', (code) => {
