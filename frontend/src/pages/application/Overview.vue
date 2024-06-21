@@ -11,6 +11,7 @@
             </template>
             <template #tools>
                 <ff-button
+                    v-if="hasPermission('project:create')"
                     data-action="create-instance"
                     :to="{ name: 'ApplicationCreateInstance' }"
                 >
@@ -30,7 +31,7 @@
                 @row-selected="selectedCloudRow"
             >
                 <template
-                    v-if="hasPermission('device:edit')"
+                    v-if="hasPermission('project:change-status')"
                     #context-menu="{row}"
                 >
                     <ff-list-item
@@ -72,6 +73,7 @@
                 </template>
                 <template #actions>
                     <ff-button
+                        v-if="hasPermission('project:create')"
                         :to="{ name: 'ApplicationCreateInstance' }"
                     >
                         <template #icon-left><PlusSmIcon /></template>
