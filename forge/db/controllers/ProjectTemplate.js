@@ -231,7 +231,7 @@ module.exports = {
         const result = JSON.parse(JSON.stringify(existingSettings))
         const skipList = ['disableEditor', 'page_title', 'header_title']
         templateFields.forEach((name) => {
-            if (mergeEditorSettings && skipList.includes(name)) {
+            if (!mergeEditorSettings && skipList.includes(name)) {
                 return
             }
 
