@@ -1696,7 +1696,7 @@ describe('Pipelines API', function () {
 
                         const instanceSettings = await TestObjects.instanceTwo.getSetting('settings')
                         instanceSettings.should.have.property('header')
-                        instanceSettings.header.should.have.property('title','instance-two')
+                        instanceSettings.header.should.have.property('title', 'instance-two')
 
                         // Verify the container driver was asked to restart the flows
                         app.log.info.calledWith(`[stub driver] Restarting flows ${TestObjects.instanceTwo.id}`).should.be.true()
