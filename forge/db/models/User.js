@@ -122,6 +122,12 @@ module.exports = {
                         [Op.or]: [{ invitorId: user.id }, { inviteeId: user.id }]
                     }
                 })
+                await M.AccessToken.destroy({
+                    where: {
+                        ownerType: 'user',
+                        ownerId: '' + user.id
+                    }
+                })
             }
         }
     },
