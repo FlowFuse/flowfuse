@@ -128,18 +128,33 @@ with FlowFuse SAML SSO.
 
 Microsoft provide a guide for creating a custom SAML Application [here](https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/add-application-portal).
 
-The following table maps the Entra terminology to the FlowFuse settings.
+The following tables map the Entra terminology to the FlowFuse settings.
 
 FlowFuse Setting | Entra Setting
 ----|----
 `ACS URL` | `Reply URL (Assertion Consumer Service URL)`
-`Identity Provider Single Sign-On URL` | `Login URL`
 `Identity Provider Issuer ID / URL` | `Microsoft Entra Identifier`
+`Identity Provider Single Sign-On URL` | `Login URL`
 `X.509 Certificate Public Key` | `Certificate (Base64)`
 
-Within the `SAML Signing Certificate` configuration, the `Signing Option` must be set to `Sign SAML response and assertion`.
+Follow these steps to properly configure SAML SSO for Microsoft Entra:
 
-The `Unique User Identifier (Name ID)` claim must be configured to return the value of the `user.mail` source attribute.
+1. In FlowFuse:
+   1. Create a draft SSO configuration in FlowFuse with the appropriate email domain
+2. In Entra:
+   1. Create a SAML application - use the guide linked above for more information
+   2. Copy the following values from the FlowFuse SSO configuration into the corresponding Entra configuration:
+      1. Set `Reply URL` to the value of `ACS URL`
+      2. Set `Identifier (Entity ID)` to the value of `Entity ID/Issuer`
+   3. Within the `SAML Signing Certificate` configuration, the `Signing Option` must be set to `Sign SAML response and assertion`.
+   4. The `Unique User Identifier (Name ID)` claim must be configured to return the value of the `user.mail` source attribute.
+   5. Download the `Federation Metadata XML` file from the `SAML Certificates` section of the Entra application.
+3. In FlowFuse:
+   1. From the metadata XML file, copy the follow properties into the FlowFuse SSO configuration:
+      1. Set `Identity Provider Single Sign-On URL` to the value of the `Location` attribute of the `<SingleSignOnService>` tag. This should look like `https://login.microsoftonline.com/<app-id>/saml2`.
+      2. Set `Identity Provider Issuer ID / URL` to the value of the `entityID` attribute of the `<EntityDescriptor>` tag. This should look like `https://sts.windows.net/<app-id>/`
+      3. Set `X.509 Certificate Public Key` to the value of the `<ds:X509Certificate>` tag. This does *not* need to have the `-----BEGIN CERTIFICATE-----/-----END CERTIFICATE-----` wrapper.
+
 
 #### Group Membership Configuration
 
