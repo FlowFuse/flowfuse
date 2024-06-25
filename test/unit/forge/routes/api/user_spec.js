@@ -910,6 +910,29 @@ describe('User API', async function () {
             })
             deleteResponse.statusCode.should.equal(404)
         })
+        it('Deleting a user removes any PATs from the db', async function () {
+            const userToDelete = await app.db.models.User.create({ username: 'wayne', name: 'Wayne Vane', email: 'wayne@example.com', email_verified: true, password: 'wwPassword' })
+            await login('wayne', 'wwPassword')
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.wayne },
+                payload: {
+                    name: 'Waynes Token',
+                    scope: ''
+                }
+            })
+            response.statusCode.should.equal(200)
+
+            const userId = userToDelete.id
+            const tokens = await app.db.models.AccessToken.getPersonalAccessTokens({ id: userId })
+            tokens.should.have.length(1)
+
+            await userToDelete.destroy()
+
+            const tokens2 = await app.db.models.AccessToken.getPersonalAccessTokens({ id: userId })
+            tokens2.should.have.length(0)
+        })
     })
 
     describe('User invites', async function () {
