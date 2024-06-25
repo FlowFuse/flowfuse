@@ -18,7 +18,7 @@ module.exports = async function (settings = {}, config = {}) {
         },
         db: {
             type: 'sqlite',
-            storage: 'forge-test.db'
+            storage: ':memory:'
         },
         email: {
             enabled: true,
