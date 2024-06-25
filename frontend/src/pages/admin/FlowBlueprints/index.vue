@@ -2,12 +2,26 @@
     <div class="space-y-6">
         <SectionTopMenu hero="Flow Blueprints">
             <template #tools>
-                <ff-button data-action="create-flow-blueprint" @click="showBlueprintForm()">
-                    <template #icon-right>
-                        <PlusSmIcon />
-                    </template>
-                    Create Flow Blueprint
-                </ff-button>
+                <div class="tools">
+                    <ff-button data-action="export-flow-blueprints" @click="exportFlowBlueprints">
+                        <template #icon-right>
+                            <DownloadIcon class="ff-icon" />
+                        </template>
+                        Export Flow Blueprints
+                    </ff-button>
+                    <ff-button data-action="import-flow-blueprints" @click="showImportFlowBlueprintsDialog()">
+                        <template #icon-right>
+                            <UploadIcon class="ff-icon" />
+                        </template>
+                        Import Flow Blueprints
+                    </ff-button>
+                    <ff-button data-action="create-flow-blueprint" @click="showBlueprintForm()">
+                        <template #icon-right>
+                            <PlusSmIcon class="ff-icon" />
+                        </template>
+                        Create Flow Blueprint
+                    </ff-button>
+                </div>
             </template>
         </SectionTopMenu>
         <div data-el="blueprints" class="flex flex-wrap gap-4 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 max-w-screen-xl">
@@ -40,10 +54,12 @@
         @flow-blueprint-updated="flowBlueprintUpdated"
         @show-delete-dialog="showDeleteBlueprint"
     />
+    <ImportFlowBlueprintsDialog ref="importFlowBlueprintsDialog" />
 </template>
 
 <script>
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { DownloadIcon, PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
+import { ChevronRightIcon } from '@heroicons/vue/solid'
 import { markRaw } from 'vue'
 
 import { mapState } from 'vuex'
@@ -58,14 +74,19 @@ import MarkdownCell from '../../../components/tables/cells/MarkdownCell.vue'
 import Dialog from '../../../services/dialog.js'
 
 import FlowBlueprintFormDialog from './dialogs/FlowBlueprintFormDialog.vue'
+import ImportFlowBlueprintsDialog from './dialogs/ImportFlowBlueprintsDialog.vue'
 
 const marked = require('marked')
 
 export default {
     name: 'AdminFlowBlueprints',
     components: {
+        ChevronRightIcon,
+        UploadIcon,
+        ImportFlowBlueprintsDialog,
         SectionTopMenu,
         PlusSmIcon,
+        DownloadIcon,
         FlowBlueprintFormDialog,
         BlueprintTile
     },
@@ -117,6 +138,9 @@ export default {
 
             this.$refs.adminFlowBlueprintDialog.show(null, this.teamTypes)
         },
+        showImportFlowBlueprintsDialog () {
+            this.$refs.importFlowBlueprintsDialog.show()
+        },
         showDeleteBlueprint (flowBlueprint) {
             Dialog.show({
                 header: 'Delete Flow Blueprint',
@@ -150,7 +174,17 @@ export default {
                 }
             })
             this.teamTypes.sort((A, B) => { return A.order - B.order })
+        },
+        exportFlowBlueprints () {
+            console.log('downloading')
         }
     }
 }
 </script>
+
+<style lang="scss">
+.tools {
+  display: flex;
+  gap: 5px;
+}
+</style>
