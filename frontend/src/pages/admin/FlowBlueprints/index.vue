@@ -7,13 +7,13 @@
                         <template #icon-right>
                             <DownloadIcon class="ff-icon" />
                         </template>
-                        Export Flow Blueprints
+                        Export
                     </ff-button>
                     <ff-button data-action="import-flow-blueprints" @click="showImportFlowBlueprintsDialog()">
                         <template #icon-right>
                             <UploadIcon class="ff-icon" />
                         </template>
-                        Import Flow Blueprints
+                        Import
                     </ff-button>
                     <ff-button data-action="create-flow-blueprint" @click="showBlueprintForm()">
                         <template #icon-right>
@@ -54,12 +54,11 @@
         @flow-blueprint-updated="flowBlueprintUpdated"
         @show-delete-dialog="showDeleteBlueprint"
     />
-    <ImportFlowBlueprintsDialog ref="importFlowBlueprintsDialog" />
+    <ImportFlowBlueprintsDialog ref="importFlowBlueprintsDialog" @import-blueprints="onImportFlowBlueprints" />
 </template>
 
 <script>
 import { DownloadIcon, PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
-import { ChevronRightIcon } from '@heroicons/vue/solid'
 import { markRaw } from 'vue'
 
 import { mapState } from 'vuex'
@@ -71,6 +70,9 @@ import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 
 import BlueprintTile from '../../../components/blueprints/BlueprintTile.vue'
 import MarkdownCell from '../../../components/tables/cells/MarkdownCell.vue'
+import { downloadData } from '../../../composables/Download.js'
+import { dateToSlug } from '../../../composables/String.js'
+import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
 import FlowBlueprintFormDialog from './dialogs/FlowBlueprintFormDialog.vue'
@@ -81,7 +83,6 @@ const marked = require('marked')
 export default {
     name: 'AdminFlowBlueprints',
     components: {
-        ChevronRightIcon,
         UploadIcon,
         ImportFlowBlueprintsDialog,
         SectionTopMenu,
@@ -162,9 +163,15 @@ export default {
             this.loading = true
             const result = await FlowBlueprintsApi.getFlowBlueprints({ filter: 'all' }, this.nextCursor, 30)
             this.nextCursor = result.meta.next_cursor
-            result.blueprints.forEach(flowBlueprint => {
+            await this.setBlueprints(result.blueprints)
+            await this.setTeamTypes()
+        },
+        async setBlueprints (blueprints) {
+            blueprints.forEach(flowBlueprint => {
                 this.flowBlueprints.set(flowBlueprint.id, flowBlueprint)
             })
+        },
+        async setTeamTypes () {
             const teamTypes = (await teamTypesApi.getTeamTypes()).types
             this.teamTypes = teamTypes.map(tt => {
                 return {
@@ -176,7 +183,23 @@ export default {
             this.teamTypes.sort((A, B) => { return A.order - B.order })
         },
         exportFlowBlueprints () {
-            console.log('downloading')
+            FlowBlueprintsApi.exportFlowBlueprints()
+                .then((data) => {
+                    const filename = `blueprints_export_${dateToSlug(new Date())}.json`
+                    downloadData(data.blueprints, filename)
+                })
+                .catch(err => console.error(err.message))
+        },
+        onImportFlowBlueprints (blueprints) {
+            FlowBlueprintsApi.importFlowBlueprints(blueprints)
+                .then(response => this.setBlueprints(response.blueprints))
+                .then(() => {
+                    Alerts.emit('Blueprints successfully imported!', 'confirmation', 7500)
+                })
+                .catch(err => {
+                    Alerts.emit('Something went wrong!', 'warning', 7500)
+                    console.error(err.message)
+                })
         }
     }
 }

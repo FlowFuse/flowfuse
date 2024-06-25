@@ -1,36 +1,48 @@
 <template>
-    <ff-dialog ref="dialog" header="Import Blueprints" confirm-label="Upload" @confirm="onConfirm">
+    <ff-dialog
+        ref="dialog"
+        header="Import Blueprints"
+        :close-on-confirm="false"
+        confirm-label="Upload"
+        :disablePrimary="disablePrimaryButton"
+        @confirm="onConfirm"
+        @cancel="clearModal"
+    >
         <h3>Easily transfer your existing blueprints into FlowFuse.</h3>
         <p>You can start by</p>
         <section class="file-upload-section" :class="{disabled: !!input}">
-            <input
-                id="fileUpload"
-                ref="fileUpload"
-                type="file"
-                accept="application/json, text/plain"
-                style="display:none;"
-                @change="onFileChange"
-            >
-            <ff-button kind="secondary" size="full-width" :disabled="!!input" @click="$refs.fileUpload.click()">
-                <template #default>
-                    <span class="file-input">
-                        <span>Choosing your file</span>
-                        <span><DocumentAddIcon class="ff-btn--icon" /></span>
-                    </span>
+            <FormRow :error="errors.file" data-form="file" container-class="max-w-full file-row">
+                <template #input>
+                    <input
+                        id="fileUpload"
+                        ref="fileUpload"
+                        type="file"
+                        accept="application/json, text/plain"
+                        style="display:none;"
+                        @change="onFileChange"
+                    >
+                    <ff-button kind="secondary" size="full-width" :disabled="!!input" @click="$refs.fileUpload.click()">
+                        <template #default>
+                            <span class="file-input">
+                                <span>Choosing your file</span>
+                                <span><DocumentAddIcon class="ff-btn--icon" /></span>
+                            </span>
+                        </template>
+                    </ff-button>
+                    <div v-if="file" class="loaded-file">
+                        <span><DocumentIcon class="ff-btn--icon" /></span>
+                        <span>{{ file.name }}</span>
+                        <span class="clear" @click="file=null"><XIcon class="ff-btn--icon" /></span>
+                    </div>
                 </template>
-            </ff-button>
-            <div v-if="file" class="loaded-file">
-                <span><DocumentIcon class="ff-btn--icon" /></span>
-                <span>{{ file.name }}</span>
-                <span class="clear" @click="file=null"><XIcon class="ff-btn--icon" /></span>
-            </div>
+            </FormRow>
         </section>
         <h4 class="text-center divider">
             <span class="line" />
             <span class="text">or</span>
         </h4>
         <section class="textarea-section" :class="{disabled: !!file}">
-            <FormRow :error="errors.name" type="textarea" data-form="name" container-class="max-w-full">
+            <FormRow :error="errors.input" type="textarea" data-form="name" container-class="max-w-full">
                 <div class="textarea-wrapper">
                     <span>Pasting A JSON</span>
                     <span v-if="input" class="clear" @click="clearInput">clear</span>
@@ -58,6 +70,7 @@ import FormRow from '../../../../components/FormRow.vue'
 export default {
     name: 'ImportFlowBlueprintsDialog',
     components: { FormRow, DocumentAddIcon, DocumentIcon, XIcon },
+    emits: ['import-blueprints'],
     setup () {
         return {
             show () {
@@ -69,28 +82,86 @@ export default {
         return {
             input: null,
             file: null,
+            fileOutput: null,
             errors: {
-                name: null
+                input: null,
+                file: null
             }
         }
     },
+    computed: {
+        jsonInput () {
+            if (this.input) {
+                try {
+                    return JSON.parse(this.input)
+                } catch (err) {
+                }
+            }
+
+            return null
+        },
+        disablePrimaryButton () {
+            if ((this.input && this.errors.input) || (this.file && this.errors.file)) {
+                return true
+            }
+
+            return false
+        }
+    },
     watch: {
-        input () {
+        input (newVal) {
+            if (!newVal) {
+                this.errors.input = null
+            }
+
+            try {
+                JSON.parse(newVal)
+                this.errors.input = null
+            } catch (err) {
+                this.errors.input = 'Invalid JSON'
+            }
+
             this.file = null
         },
-        file () {
+        file (newVal) {
+            if (!newVal) {
+                this.errors.file = null
+            }
             this.input = null
         }
     },
     methods: {
         onFileChange (event) {
             this.file = event.target && event.target.files && event.target.files[0]
+
+            const reader = new FileReader()
+
+            reader.onload = (e) => {
+                try {
+                    this.fileOutput = JSON.parse(e.target.result)
+                    this.errors.file = null
+                } catch (err) {
+                    this.errors.file = 'Invalid JSON'
+                }
+            }
+            reader.readAsText(this.file)
         },
         clearInput () {
             this.input = null
         },
+        clearModal () {
+            this.input = null
+            this.file = null
+        },
         onConfirm () {
+            if (this.errors.input || this.errors.file) {
+                return false
+            }
 
+            const bp = this.fileOutput || this.jsonInput
+            this.$emit('import-blueprints', bp)
+            this.$refs.dialog.close()
+            this.clearModal()
         }
     }
 }
@@ -104,6 +175,11 @@ export default {
     gap: 10px;
 
     .file-upload-section {
+      .file-row > div {
+        flex-direction: column;
+        align-items: baseline;
+      }
+
       .ff-btn {
         width: 100%;
       }
