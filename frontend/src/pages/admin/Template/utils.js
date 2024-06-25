@@ -321,7 +321,7 @@ function parseDotEnv (data) {
 
     // For convenience and simplicity (MVP), force all newlines to be \n
     const newline = '\n'
-    data = data.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+    data = data.replace(/\r\n/g, newline).replace(/\r/g, newline)
 
     const lines = data.split(newline)
     let currentKey = null
