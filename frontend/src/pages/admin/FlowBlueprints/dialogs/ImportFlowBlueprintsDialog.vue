@@ -5,6 +5,7 @@
         :close-on-confirm="false"
         confirm-label="Upload"
         :disablePrimary="disablePrimaryButton"
+        data-dialog="import-flow-blueprints"
         @confirm="onConfirm"
         @cancel="clearModal"
     >
@@ -17,11 +18,18 @@
                         id="fileUpload"
                         ref="fileUpload"
                         type="file"
+                        data-el="upload-input"
                         accept="application/json, text/plain"
                         style="display:none;"
                         @change="onFileChange"
                     >
-                    <ff-button kind="secondary" size="full-width" :disabled="!!input" @click="$refs.fileUpload.click()">
+                    <ff-button
+                        kind="secondary"
+                        size="full-width"
+                        :disabled="!!input"
+                        data-action="upload"
+                        @click="$refs.fileUpload.click()"
+                    >
                         <template #default>
                             <span class="file-input">
                                 <span>Choosing your file</span>
@@ -32,7 +40,9 @@
                     <div v-if="file" class="loaded-file">
                         <span><DocumentIcon class="ff-btn--icon" /></span>
                         <span>{{ file.name }}</span>
-                        <span class="clear" @click="file=null"><XIcon class="ff-btn--icon" /></span>
+                        <span class="clear" data-action="clear-file" @click="file=null">
+                            <XIcon class="ff-btn--icon" />
+                        </span>
                     </div>
                 </template>
             </FormRow>
@@ -45,12 +55,13 @@
             <FormRow :error="errors.input" type="textarea" data-form="name" container-class="max-w-full">
                 <div class="textarea-wrapper">
                     <span>Pasting A JSON</span>
-                    <span v-if="input" class="clear" @click="clearInput">clear</span>
+                    <span v-if="input" class="clear" data-action="clear-input" @click="clearInput">clear</span>
                 </div>
                 <template #input>
                     <textarea
                         v-model="input"
                         :disabled="!!file"
+                        data-el="input-textarea"
                         class="w-full"
                         rows="10"
                         placeholder="Paste in a collection of blueprints here, in a JSON array."
@@ -101,11 +112,10 @@ export default {
             return null
         },
         disablePrimaryButton () {
-            if ((this.input && this.errors.input) || (this.file && this.errors.file)) {
+            if (!this.input && !this.file) {
                 return true
             }
-
-            return false
+            return !!((this.input && this.errors.input) || (this.file && this.errors.file))
         }
     },
     watch: {
