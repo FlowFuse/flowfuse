@@ -38,7 +38,7 @@
                     </ff-data-table-row>
                 </template>
                 <template #rows>
-                    <ff-data-table-row v-for="(item, itemIdx) in filteredRows" :key="item.index">
+                    <ff-data-table-row v-for="(item) in filteredRows" :key="item.index">
                         <td class="ff-data-table--cell !pl-1 !pr-0 !py-1 border min-w-max max-w-sm align-top">
                             <FormRow
                                 v-model="item.name"
@@ -66,7 +66,7 @@
                         </td>
                         <td class="ff-data-table--cell !p-1 border w-16 align-top">
                             <div v-if="(!readOnly && (editTemplate|| item.policy === undefined))" class="flex justify-center mt-1">
-                                <ff-button kind="tertiary" size="small" @click="removeEnv(itemIdx)">
+                                <ff-button kind="tertiary" size="small" @click="removeEnv(item.index)">
                                     <template #icon>
                                         <TrashIcon />
                                     </template>
