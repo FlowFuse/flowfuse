@@ -13,7 +13,7 @@
                 class="w-full max-w-5xl text-sm"
                 :show-search="true"
                 search-placeholder="Search environment variables..."
-                :columns="[,,,]"
+                :columns="editTemplate ? [,,,,] : [,,,]"
                 :noDataMessage="noDataMessage"
             >
                 <template #actions>
