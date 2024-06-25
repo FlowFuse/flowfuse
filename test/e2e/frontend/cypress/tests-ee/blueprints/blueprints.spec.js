@@ -280,7 +280,7 @@ describe('FlowForge - Blueprints', () => {
         cy.get('[data-el="blueprints"]').contains('IMPORTED BLUEPRINT')
     })
 
-    it.only('can import copied blueprints', () => {
+    it('can import copied blueprints', () => {
         cy.visit('/admin/flow-blueprints')
 
         cy.get('[data-action="import-flow-blueprints"]').click()
