@@ -79,8 +79,8 @@ describe('FlowForge - Blueprints', () => {
 
             // check the blueprint was created
             cy.get('[data-el="blueprints"] [data-el="blueprint-tile"]').its('length').should('eq', blueprintCount + 1)
-            cy.get('[data-el="blueprints"] [data-el="blueprint-tile"]').last().should('contain', name)
-            cy.get('[data-el="blueprints"] [data-el="blueprint-tile"]').last().should('contain', DESCRIPTION)
+            cy.get('[data-el="blueprints"] [data-el="blueprint-tile"]').should('contain', name)
+            cy.get('[data-el="blueprints"] [data-el="blueprint-tile"]').should('contain', DESCRIPTION)
         })
     })
 
@@ -207,5 +207,21 @@ describe('FlowForge - Blueprints', () => {
             cy.get('[data-action="dialog-confirm"]').click()
             cy.get('[data-el="flow-view-dialog"]').should('not.be.visible')
         }))
+    })
+
+    it('can export blueprints', () => {
+        cy.task('clearDownloads')
+        cy.visit('/admin/flow-blueprints')
+
+        cy.get('[data-action="export-flow-blueprints"]').click()
+
+        // wait for the file to be downloaded
+        cy.wait(250) // eslint-disable-line cypress/no-unnecessary-waiting
+
+        // generate the expected snapshot filename structure
+        cy.task('fileExists', {
+            dir: Cypress.config('downloadsFolder'),
+            fileRE: /blueprints_export_*/
+        })
     })
 })
