@@ -299,30 +299,94 @@ function prepareTemplateForEdit (template) {
 /**
  * Parse .env file data into an object
  * NOTES:
- * * Variable expansion is not supported
- * * Comments are not supported
- * * Only simple key/value pairs are supported
- * * Only single-line values are supported
+ * * SPECIFICATION:
+ *   * Simple key/value pairs are supported
+ *   * Multiline values are supported
+ *   * Single and double quoted values are supported
+ *   * Single line comments are skipped
+ *   * Leading and trailing whitespace is trimmed if unquoted
+ *   * Leading and trailing whitespace is preserved if quoted
+ *   * Blank lines are skipped
+ *   * Windows and Mac newlines are converted to Unix newlines (opinionated)
+ * * UNSUPPORTED: The following features are not supported:
+ *   * Variable expansion is not supported
+ *   * Escaped quotes are not supported
+ *   * Multiline keys are not supported
+ *   * Multiline comments are not supported
  * @param {String} data The env file data to parse
  * @returns key/value pairs
  */
 function parseDotEnv (data) {
     const result = {}
-    const lines = data.split('\n')
+
+    // For convenience and simplicity (MVP), force all newlines to be \n
+    const newline = '\n'
+    data = data.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+
+    const lines = data.split(newline)
+    let currentKey = null
+    let currentValue = ''
+    let isMultiline = false
+    let quoteType = null
+
     for (const line of lines) {
+        // Skip empty lines and comments that are not part of a multiline value
+        if (!isMultiline && (!line.trim() || line.trim().startsWith('#'))) {
+            continue
+        }
+
+        // Handle continuation of multiline value
+        if (isMultiline) {
+            currentValue += newline + line
+            if (line.trim().endsWith(quoteType)) {
+                result[currentKey] = currentValue.slice(0, -1)
+                currentKey = null
+                currentValue = ''
+                isMultiline = false
+                quoteType = null
+            }
+            continue
+        }
+
+        // Match key/value pair
         const match = line.match(/^([^=:#]+?)[=:](.*)/)
         if (match) {
             const key = match[1].trim()
-            let value // get value from match[2], trimming any surrounding quotes
-            const valueMatch = match[2].trim().match(/^(['"]?)(.+)\1$/)
+            const value = match[2].trim()
+
+            // Detect multiline value start
+            const valueMatch = value.match(/^(['"])([\s\S]*)\1$/)
             if (valueMatch) {
-                value = valueMatch[2]
+                result[key] = valueMatch[2]
             } else {
-                value = match[2].trim()
+                if (value.startsWith('"') || value.startsWith("'")) {
+                    isMultiline = true
+                    quoteType = value[0]
+                    currentKey = key
+                    currentValue = value.slice(1) // Remove starting quote
+                    if (currentValue.endsWith(quoteType)) {
+                        result[key] = currentValue.slice(0, -1) // Remove ending quote if it's a single-line quoted value
+                        isMultiline = false
+                        currentKey = null
+                        currentValue = ''
+                        quoteType = null
+                    }
+                } else if (value.endsWith('\\')) {
+                    isMultiline = true
+                    currentKey = key
+                    currentValue = value.slice(0, -1) // Remove trailing backslash
+                } else {
+                    result[key] = value
+                }
             }
-            result[key] = value
         }
     }
+
+    // Handle case where file ends during a multiline value
+    if (isMultiline && currentKey) {
+        result[currentKey] = currentValue
+    }
+
     return result
 }
 
