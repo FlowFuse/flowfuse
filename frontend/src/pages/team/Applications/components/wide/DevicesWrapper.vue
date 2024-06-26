@@ -8,7 +8,7 @@
     <section v-else class="ff-applications-list-instances" data-el="application-devices">
         <label>Devices</label>
         <div v-for="device in Array.from(application.devices.values())" :key="device.id" @click.stop="openDevice(device)">
-            <ApplicationDevice :device="device" />
+            <DeviceRow :device="device" />
         </div>
     </section>
 
@@ -20,11 +20,11 @@
 </template>
 
 <script>
-import ApplicationDevice from './ApplicationDevice.vue'
+import DeviceRow from './DeviceRow.vue'
 
 export default {
     name: 'DevicesWrapper',
-    components: { ApplicationDevice },
+    components: { DeviceRow },
     props: {
         application: {
             type: Object,

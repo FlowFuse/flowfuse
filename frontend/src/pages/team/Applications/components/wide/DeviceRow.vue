@@ -37,7 +37,7 @@ import DeviceModeBadge from '../../../../device/components/DeviceModeBadge.vue'
 import EditorLink from '../../../../instance/components/EditorLink.vue'
 
 export default {
-    name: 'ApplicationDevice',
+    name: 'DeviceRow',
     components: {
         DeviceModeBadge,
         EditorLink,

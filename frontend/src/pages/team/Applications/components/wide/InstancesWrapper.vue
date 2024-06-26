@@ -14,7 +14,7 @@
             data-el="application-instance-item"
             @click.stop="openInstance(instance)"
         >
-            <ApplicationInstance :instance="instance" @instance-deleted="$emit('instance-deleted')" />
+            <InstanceRow :instance="instance" @instance-deleted="$emit('instance-deleted')" />
         </div>
     </section>
     <div v-if="hasMoreInstances" class="ff-applications-list--details">
@@ -25,11 +25,11 @@
 </template>
 
 <script>
-import ApplicationInstance from './ApplicationInstance.vue'
+import InstanceRow from './InstanceRow.vue'
 
 export default {
     name: 'InstancesWrapper',
-    components: { ApplicationInstance },
+    components: { InstanceRow },
     props: {
         application: {
             type: Object,
