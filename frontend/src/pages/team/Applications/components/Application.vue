@@ -9,8 +9,8 @@
 <script>
 import ApplicationHeader from './ApplicationHeader.vue'
 
-import DevicesWrapper from './DevicesWrapper.vue'
-import InstancesWrapper from './InstancesWrapper.vue'
+import DevicesWrapper from './compact/DevicesWrapper.vue'
+import InstancesWrapper from './compact/InstancesWrapper.vue'
 
 export default {
     name: 'ApplicationListItem',

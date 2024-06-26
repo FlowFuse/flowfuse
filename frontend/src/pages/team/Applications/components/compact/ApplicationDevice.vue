@@ -1,5 +1,4 @@
 <template>
-    <DeviceModeBadge :mode="device.mode" type="icon" class="flex justify-center mr-3" />
     <div class="ff-applications-list--instance">
         <label>{{ device.name }}</label>
         <span>{{ device.editor?.url }}</span>
@@ -30,16 +29,14 @@
 </template>
 
 <script>
-import StatusBadge from '../../../../components/StatusBadge.vue'
-import AuditMixin from '../../../../mixins/Audit.js'
-import DaysSince from '../../../application/Snapshots/components/cells/DaysSince.vue'
-import DeviceModeBadge from '../../../device/components/DeviceModeBadge.vue'
-import EditorLink from '../../../instance/components/EditorLink.vue'
+import StatusBadge from '../../../../../components/StatusBadge.vue'
+import AuditMixin from '../../../../../mixins/Audit.js'
+import DaysSince from '../../../../application/Snapshots/components/cells/DaysSince.vue'
+import EditorLink from '../../../../instance/components/EditorLink.vue'
 
 export default {
     name: 'ApplicationDevice',
     components: {
-        DeviceModeBadge,
         EditorLink,
         DaysSince,
         StatusBadge
