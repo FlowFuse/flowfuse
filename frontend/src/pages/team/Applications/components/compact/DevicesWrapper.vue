@@ -9,7 +9,7 @@
         <label><IconDeviceSolid class="ff-icon ff-icon-sm text-teal-700" /> Devices</label>
         <div class="wrapper">
             <div v-for="device in Array.from(application.devices.values())" :key="device.id" @click.stop="openDevice(device)">
-                <ApplicationDevice :device="device" />
+                <DeviceTile :device="device" />
             </div>
             <div v-if="hasMoreDevices" class="has-more ff-applications-list--instance">HAS MORE</div>
         </div>
@@ -19,11 +19,11 @@
 <script>
 import IconDeviceSolid from '../../../../../components/icons/DeviceSolid.js'
 
-import ApplicationDevice from './ApplicationDevice.vue'
+import DeviceTile from './DeviceTile.vue'
 
 export default {
     name: 'DevicesWrapper',
-    components: { IconDeviceSolid, ApplicationDevice },
+    components: { IconDeviceSolid, DeviceTile },
     props: {
         application: {
             type: Object,

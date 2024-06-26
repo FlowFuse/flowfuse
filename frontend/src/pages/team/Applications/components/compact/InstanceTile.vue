@@ -52,7 +52,7 @@ import InstanceActionsLinkCell from '../../../../instance/components/cells/Insta
 import InstanceEditorLinkCell from '../../../../instance/components/cells/InstanceEditorLink.vue'
 
 export default {
-    name: 'ApplicationInstance',
+    name: 'InstanceTile',
     components: {
         InstanceEditorLinkCell,
         DaysSince,

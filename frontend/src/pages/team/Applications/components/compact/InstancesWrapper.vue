@@ -15,7 +15,7 @@
                 data-el="application-instance-item"
                 @click.stop="openInstance(instance)"
             >
-                <ApplicationInstance :instance="instance" @instance-deleted="$emit('instance-deleted')" />
+                <InstanceTile :instance="instance" @instance-deleted="$emit('instance-deleted')" />
             </div>
             <div v-if="hasMoreInstances" class="has-more ff-applications-list--instance">HAS MORE</div>
         </div>
@@ -25,11 +25,11 @@
 <script>
 import IconNodeRedSolid from '../../../../../components/icons/NodeRedSolid.js'
 
-import ApplicationInstance from './ApplicationInstance.vue'
+import InstanceTile from './InstanceTile.vue'
 
 export default {
     name: 'InstancesWrapper',
-    components: { IconNodeRedSolid, ApplicationInstance },
+    components: { IconNodeRedSolid, InstanceTile },
     props: {
         application: {
             type: Object,

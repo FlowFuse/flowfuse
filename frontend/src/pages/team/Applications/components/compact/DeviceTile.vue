@@ -35,7 +35,7 @@ import DaysSince from '../../../../application/Snapshots/components/cells/DaysSi
 import EditorLink from '../../../../instance/components/EditorLink.vue'
 
 export default {
-    name: 'ApplicationDevice',
+    name: 'DeviceTile',
     components: {
         EditorLink,
         DaysSince,
