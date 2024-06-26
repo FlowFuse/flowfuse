@@ -2,12 +2,26 @@
     <div class="space-y-6">
         <SectionTopMenu hero="Flow Blueprints">
             <template #tools>
-                <ff-button data-action="create-flow-blueprint" @click="showBlueprintForm()">
-                    <template #icon-right>
-                        <PlusSmIcon />
-                    </template>
-                    Create Flow Blueprint
-                </ff-button>
+                <div class="tools">
+                    <ff-button data-action="export-flow-blueprints" @click="exportFlowBlueprints">
+                        <template #icon-right>
+                            <DownloadIcon class="ff-icon" />
+                        </template>
+                        Export
+                    </ff-button>
+                    <ff-button data-action="import-flow-blueprints" @click="showImportFlowBlueprintsDialog()">
+                        <template #icon-right>
+                            <UploadIcon class="ff-icon" />
+                        </template>
+                        Import
+                    </ff-button>
+                    <ff-button data-action="create-flow-blueprint" @click="showBlueprintForm()">
+                        <template #icon-right>
+                            <PlusSmIcon class="ff-icon" />
+                        </template>
+                        Create Flow Blueprint
+                    </ff-button>
+                </div>
             </template>
         </SectionTopMenu>
         <div data-el="blueprints" class="flex flex-wrap gap-4 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 max-w-screen-xl">
@@ -40,10 +54,11 @@
         @flow-blueprint-updated="flowBlueprintUpdated"
         @show-delete-dialog="showDeleteBlueprint"
     />
+    <ImportFlowBlueprintsDialog ref="importFlowBlueprintsDialog" @import-blueprints="onImportFlowBlueprints" />
 </template>
 
 <script>
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { DownloadIcon, PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 
 import { mapState } from 'vuex'
@@ -55,17 +70,24 @@ import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 
 import BlueprintTile from '../../../components/blueprints/BlueprintTile.vue'
 import MarkdownCell from '../../../components/tables/cells/MarkdownCell.vue'
+import { downloadData } from '../../../composables/Download.js'
+import { dateToSlug } from '../../../composables/String.js'
+import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
 import FlowBlueprintFormDialog from './dialogs/FlowBlueprintFormDialog.vue'
+import ImportFlowBlueprintsDialog from './dialogs/ImportFlowBlueprintsDialog.vue'
 
 const marked = require('marked')
 
 export default {
     name: 'AdminFlowBlueprints',
     components: {
+        UploadIcon,
+        ImportFlowBlueprintsDialog,
         SectionTopMenu,
         PlusSmIcon,
+        DownloadIcon,
         FlowBlueprintFormDialog,
         BlueprintTile
     },
@@ -117,6 +139,9 @@ export default {
 
             this.$refs.adminFlowBlueprintDialog.show(null, this.teamTypes)
         },
+        showImportFlowBlueprintsDialog () {
+            this.$refs.importFlowBlueprintsDialog.show()
+        },
         showDeleteBlueprint (flowBlueprint) {
             Dialog.show({
                 header: 'Delete Flow Blueprint',
@@ -138,9 +163,15 @@ export default {
             this.loading = true
             const result = await FlowBlueprintsApi.getFlowBlueprints({ filter: 'all' }, this.nextCursor, 30)
             this.nextCursor = result.meta.next_cursor
-            result.blueprints.forEach(flowBlueprint => {
+            await this.setBlueprints(result.blueprints)
+            await this.setTeamTypes()
+        },
+        async setBlueprints (blueprints) {
+            blueprints.forEach(flowBlueprint => {
                 this.flowBlueprints.set(flowBlueprint.id, flowBlueprint)
             })
+        },
+        async setTeamTypes () {
             const teamTypes = (await teamTypesApi.getTeamTypes()).types
             this.teamTypes = teamTypes.map(tt => {
                 return {
@@ -150,7 +181,33 @@ export default {
                 }
             })
             this.teamTypes.sort((A, B) => { return A.order - B.order })
+        },
+        exportFlowBlueprints () {
+            FlowBlueprintsApi.exportFlowBlueprints()
+                .then((data) => {
+                    const filename = `blueprints_export_${dateToSlug(new Date())}.json`
+                    downloadData(data.blueprints, filename)
+                })
+                .catch(err => console.error(err.message))
+        },
+        onImportFlowBlueprints (blueprints) {
+            FlowBlueprintsApi.importFlowBlueprints(blueprints)
+                .then(response => this.setBlueprints(response.blueprints))
+                .then(() => {
+                    Alerts.emit('Blueprints successfully imported!', 'confirmation', 7500)
+                })
+                .catch(err => {
+                    Alerts.emit('Something went wrong!', 'warning', 7500)
+                    console.error(err.message)
+                })
         }
     }
 }
 </script>
+
+<style lang="scss" scoped>
+.tools {
+  display: flex;
+  gap: 5px;
+}
+</style>

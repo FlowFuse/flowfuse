@@ -99,11 +99,25 @@ const updateFlowBlueprint = async (flowBlueprintId, options) => {
     })
 }
 
+const importFlowBlueprints = async (blueprints) => {
+    return client.post('/api/v1/flow-blueprints/import', { blueprints }).then(res => {
+        return res.data
+    })
+}
+
+const exportFlowBlueprints = async () => {
+    return client.get('/api/v1/flow-blueprints/export').then(res => {
+        return res.data
+    })
+}
+
 export default {
     getFlowBlueprints,
     getFlowBlueprintsForTeam,
     getFlowBlueprint,
     createFlowBlueprint,
     deleteFlowBlueprint,
-    updateFlowBlueprint
+    updateFlowBlueprint,
+    importFlowBlueprints,
+    exportFlowBlueprints
 }

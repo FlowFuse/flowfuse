@@ -1,6 +1,8 @@
 const TestModelFactory = require('../../../lib/TestModelFactory')
 const StripeMock = require('../../../lib/stripeMock.js')
 
+const multipleBlueprints = require('../cypress/fixtures/blueprints/multiple-blueprints.json')
+
 const FF_UTIL = require('flowforge-test-utils')
 const Forge = FF_UTIL.require('forge/forge.js')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
@@ -171,6 +173,12 @@ module.exports = async function (settings = {}, config = {}) {
     // create a device group and add deviceB to it
     const deviceGroupA = await factory.createApplicationDeviceGroup({ name: 'application-device-group-a' }, application2)
     await factory.addDeviceToGroup(deviceB, deviceGroupA)
+
+    if (forge.license.active()) {
+        for (const blueprint of multipleBlueprints.blueprints) {
+            await factory.createBlueprint(blueprint)
+        }
+    }
 
     forge.teams = [team1, team2]
     forge.projectTypes = [projectType, spareProjectType]
