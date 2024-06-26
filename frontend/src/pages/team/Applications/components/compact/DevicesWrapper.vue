@@ -8,7 +8,7 @@
     <section v-else class="ff-applications-list-instances--compact" data-el="application-devices">
         <label><IconDeviceSolid class="ff-icon ff-icon-sm text-teal-700" /> Devices</label>
         <div class="wrapper">
-            <div v-for="device in Array.from(application.devices.values())" :key="device.id" @click.stop="openDevice(device)">
+            <div v-for="device in Array.from(application.devices.values())" :key="device.id" class="item-wrapper" @click.stop="openDevice(device)">
                 <DeviceTile :device="device" />
             </div>
             <div v-if="hasMoreDevices" class="has-more ff-applications-list--instance">HAS MORE</div>

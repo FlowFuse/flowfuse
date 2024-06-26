@@ -12,6 +12,7 @@
             v-for="instance in instances"
             :key="instance.id"
             data-el="application-instance-item"
+            class="item-wrapper"
             @click.stop="openInstance(instance)"
         >
             <InstanceRow :instance="instance" @instance-deleted="$emit('instance-deleted')" />

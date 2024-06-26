@@ -105,15 +105,25 @@
 
     > .wrapper {
         display: flex;
+        background: none;
+        border: none;
+        padding: 0;
 
-        > div {
+        .item-wrapper {
             background-color: white;
             border-color: $ff-grey-300;
             border-width: 1px;
             border-style: solid;
             border-radius: 6px;
             padding: 12px;
-            display: grid;
+        }
+        
+        
+        > div {
+            background: none;
+            border: none;
+            padding: 0;
+            display: flex;
             align-items: center;
             &:hover {
                 cursor: pointer;

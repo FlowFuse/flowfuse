@@ -7,7 +7,7 @@
 
     <section v-else class="ff-applications-list-instances" data-el="application-devices">
         <label>Devices</label>
-        <div v-for="device in Array.from(application.devices.values())" :key="device.id" @click.stop="openDevice(device)">
+        <div v-for="device in Array.from(application.devices.values())" :key="device.id" class="item-wrapper" @click.stop="openDevice(device)">
             <DeviceRow :device="device" />
         </div>
     </section>
