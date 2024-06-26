@@ -1,30 +1,35 @@
 <template>
     <ApplicationHeader :application="application" />
 
-    <InstancesList :application="application" @instance-deleted="onInstanceDeleted" />
+    <InstancesWrapper :application="application" :viewMode="viewMode" @instance-deleted="onInstanceDeleted" />
 
-    <DevicesList :application="application" />
+    <DevicesWrapper :application="application" :viewMode="viewMode" />
 </template>
 
 <script>
 
 import ApplicationHeader from './ApplicationHeader.vue'
 
-import DevicesList from './DevicesList.vue'
+import DevicesWrapper from './DevicesWrapper.vue'
 
-import InstancesList from './InstancesList.vue'
+import InstancesWrapper from './InstancesWrapper.vue'
 
 export default {
     name: 'ApplicationItem',
     components: {
         ApplicationHeader,
-        DevicesList,
-        InstancesList
+        DevicesWrapper,
+        InstancesWrapper
     },
     props: {
         application: {
             type: Object,
             required: true
+        },
+        viewMode: {
+            type: String,
+            required: false,
+            default: 'wide'
         }
     },
     emits: ['instance-deleted'],

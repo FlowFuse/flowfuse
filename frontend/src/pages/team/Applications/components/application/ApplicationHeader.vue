@@ -11,7 +11,7 @@
 <script>
 import { TemplateIcon } from '@heroicons/vue/outline'
 
-import ApplicationSummaryLabel from '../../components/ApplicationSummaryLabel.vue'
+import ApplicationSummaryLabel from '../../../components/ApplicationSummaryLabel.vue'
 
 export default {
     name: 'ApplicationHeader',

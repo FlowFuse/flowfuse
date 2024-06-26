@@ -29,6 +29,7 @@
                         </template>
                         Create Application
                     </ff-button>
+                    <ff-button @click="toggleViewMode">Toggle view</ff-button>
                 </template>
             </ff-page-header>
         </template>
@@ -38,7 +39,7 @@
             <template v-else-if="!loading && applications.size > 0">
                 <ul class="ff-applications-list" data-el="applications-list">
                     <li v-for="application in applicationsList" :key="application.id">
-                        <ApplicationItem :application="application" />
+                        <ApplicationItem :application="application" :view-mode="viewMode" />
                     </li>
                 </ul>
             </template>
@@ -89,7 +90,7 @@ import EmptyState from '../../../components/EmptyState.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 
-import ApplicationItem from './components/ApplicationItem.vue'
+import ApplicationItem from './components/application/ApplicationItem.vue'
 
 const ASSOCIATIONS_LIMIT = 3
 
@@ -117,7 +118,8 @@ export default {
             applications: new Map(),
             columns: [
                 { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true }
-            ]
+            ],
+            viewMode: 'compact'
         }
     },
     computed: {
@@ -221,6 +223,11 @@ export default {
                     ...applicationProps
                 })
             })
+        },
+        toggleViewMode () {
+            if (this.viewMode === 'compact') {
+                this.viewMode = 'wide'
+            } else this.viewMode = 'compact'
         }
     }
 }

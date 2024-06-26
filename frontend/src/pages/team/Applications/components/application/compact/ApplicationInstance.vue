@@ -45,18 +45,18 @@
 </template>
 
 <script>
-import InstanceStatusPolling from '../../../../components/InstanceStatusPolling.vue'
-import IconNodeRedSolid from '../../../../components/icons/NodeRedSolid.js'
-import AuditMixin from '../../../../mixins/Audit.js'
-import { InstanceStateMutator } from '../../../../utils/InstanceStateMutator.js'
-import DaysSince from '../../../application/Snapshots/components/cells/DaysSince.vue'
-import InstanceStatusBadge from '../../../instance/components/InstanceStatusBadge.vue'
-import DashboardLinkCell from '../../../instance/components/cells/DashboardLink.vue'
-import InstanceActionsLinkCell from '../../../instance/components/cells/InstanceActionsLink.vue'
-import InstanceEditorLinkCell from '../../../instance/components/cells/InstanceEditorLink.vue'
+import InstanceStatusPolling from '../../../../../../components/InstanceStatusPolling.vue'
+import IconNodeRedSolid from '../../../../../../components/icons/NodeRedSolid.js'
+import AuditMixin from '../../../../../../mixins/Audit.js'
+import { InstanceStateMutator } from '../../../../../../utils/InstanceStateMutator.js'
+import DaysSince from '../../../../../application/Snapshots/components/cells/DaysSince.vue'
+import InstanceStatusBadge from '../../../../../instance/components/InstanceStatusBadge.vue'
+import DashboardLinkCell from '../../../../../instance/components/cells/DashboardLink.vue'
+import InstanceActionsLinkCell from '../../../../../instance/components/cells/InstanceActionsLink.vue'
+import InstanceEditorLinkCell from '../../../../../instance/components/cells/InstanceEditorLink.vue'
 
 export default {
-    name: 'ApplicationInstance',
+    name: 'CompactApplicationInstanceItem',
     components: {
         InstanceEditorLinkCell,
         DaysSince,

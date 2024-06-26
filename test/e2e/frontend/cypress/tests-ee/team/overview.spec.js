@@ -100,8 +100,8 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                         expect(text).to.match(/2 x Instances, 2 x Devices, 2 x Device Groups, (9|[1-9]\d+) x Snapshots, 4 x Pipelines|2 x Instances, 2 x Devices, 1 x Device Group, (4|[1-9]\d+) x Snapshots/)
                     })
 
-                    cy.get('[data-el="application-instances"]').find('li').should('have.length', 2)
-                    cy.get('[data-el="application-instances"] li:contains("instance-2-with-devices")').within(() => {
+                    cy.get('[data-el="application-instances"]').find('[data-el="application-instance-item"]').should('have.length', 2)
+                    cy.get('[data-el="application-instances"] [data-el="application-instance-item"]:contains("instance-2-with-devices")').within(() => {
                         cy.contains('stopped')
                         cy.contains('Instance Stopped')
                         cy.contains('moments ago')
@@ -110,7 +110,7 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                         cy.get('[data-el="action-button"]').should('exist')
                     })
 
-                    cy.get('[data-el="application-instances"] li:contains("instance-2-1")').within(() => {
+                    cy.get('[data-el="application-instances"] [data-el="application-instance-item"]:contains("instance-2-1")').within(() => {
                         cy.contains('instance-2-1')
                         cy.contains('running')
                         cy.contains('http://instance-2-1.example.com')
@@ -119,8 +119,8 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                         cy.get('[data-el="action-button"]').should('exist')
                     })
 
-                    cy.get('[data-el="application-devices"]').find('li').should('have.length', 2)
-                    cy.get('[data-el="application-devices"] li:contains("application-device-a")').within(() => {
+                    cy.get('[data-el="application-devices"]').find('[data-el="application-device-item"]').should('have.length', 2)
+                    cy.get('[data-el="application-devices"] [data-el="application-device-item"]:contains("application-device-a")').within(() => {
                         cy.contains('running')
                         cy.contains('Device Assigned to Application')
                         cy.contains('moments ago')
@@ -129,7 +129,7 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                         cy.get('[data-el="action-button"]').should('not.exist')
                     })
 
-                    cy.get('[data-el="application-devices"] li:contains("application-device-b")').within(() => {
+                    cy.get('[data-el="application-devices"] [data-el="application-device-item"]:contains("application-device-b")').within(() => {
                         cy.contains('stopped')
 
                         cy.contains('Device last seen')

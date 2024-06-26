@@ -30,14 +30,14 @@
 </template>
 
 <script>
-import StatusBadge from '../../../../components/StatusBadge.vue'
-import AuditMixin from '../../../../mixins/Audit.js'
-import DaysSince from '../../../application/Snapshots/components/cells/DaysSince.vue'
-import DeviceModeBadge from '../../../device/components/DeviceModeBadge.vue'
-import EditorLink from '../../../instance/components/EditorLink.vue'
+import StatusBadge from '../../../../../../components/StatusBadge.vue'
+import AuditMixin from '../../../../../../mixins/Audit.js'
+import DaysSince from '../../../../../application/Snapshots/components/cells/DaysSince.vue'
+import DeviceModeBadge from '../../../../../device/components/DeviceModeBadge.vue'
+import EditorLink from '../../../../../instance/components/EditorLink.vue'
 
 export default {
-    name: 'ApplicationDevice',
+    name: 'CompactApplicationDeviceItem',
     components: {
         DeviceModeBadge,
         EditorLink,
