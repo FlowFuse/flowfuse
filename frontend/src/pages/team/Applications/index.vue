@@ -38,7 +38,7 @@
             <template v-else-if="!loading && applications.size > 0">
                 <ul class="ff-applications-list" data-el="applications-list">
                     <li v-for="application in applicationsList" :key="application.id">
-                        <ApplicationListItem :application="application" />
+                        <ApplicationItem :application="application" />
                     </li>
                 </ul>
             </template>
@@ -89,14 +89,14 @@ import EmptyState from '../../../components/EmptyState.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 
-import ApplicationListItem from './components/Application.vue'
+import ApplicationItem from './components/ApplicationItem.vue'
 
 const ASSOCIATIONS_LIMIT = 3
 
 export default {
     name: 'TeamApplications',
     components: {
-        ApplicationListItem,
+        ApplicationItem,
         EmptyState,
         PlusSmIcon
     },
