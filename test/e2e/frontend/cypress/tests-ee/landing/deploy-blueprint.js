@@ -269,6 +269,7 @@ describe('FlowFuse - Deploy Blueprint', () => {
                 password: 'super-secret-password'
             }
             cy.intercept('POST', '/api/*/projects').as('createInstance')
+            interceptAndSetDefaultBlueprint()
 
             cy.visit('/deploy/blueprint')
 
@@ -298,6 +299,8 @@ describe('FlowFuse - Deploy Blueprint', () => {
 
                     followLoginForm(newUser.username, newUser.password)
 
+                    cy.wait('@setDefaultBlueprint')
+
                     cy.get('[data-form="application-name"]').type('My first Application!')
                     cy.get('[data-form="application-description"]').type('Coherent description goes here >><<')
 
@@ -326,6 +329,7 @@ describe('FlowFuse - Deploy Blueprint', () => {
                 email: `formidable-padawan-${stamp}@qwe.com`,
                 password: 'super-secret-password'
             }
+            interceptAndSetDefaultBlueprint()
             cy.intercept('POST', '/api/*/projects').as('createInstance')
 
             cy.visit('/deploy/blueprint?blueprintId=non-existing-id')
@@ -355,6 +359,8 @@ describe('FlowFuse - Deploy Blueprint', () => {
                     cy.get('[data-action="verify-email"]').click()
 
                     followLoginForm(newUser.username, newUser.password)
+
+                    cy.wait('@setDefaultBlueprint')
 
                     cy.get('[data-form="application-name"]').type('My first Application!')
                     cy.get('[data-form="application-description"]').type('Coherent description goes here >><<')
