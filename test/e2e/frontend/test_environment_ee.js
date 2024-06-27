@@ -12,11 +12,13 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 ;(async function () {
     const PORT = 3002
     const smtpConfig = {
-        smtpPort: 1026,
-        webPort: 8026
+        smtpPort: process.env.SMTP_PORT || 1026,
+        webPort: process.env.SMTP_WEB_PORT || 8026
     }
 
-    await smtp({ smtpPort: smtpConfig.smtpPort, webPort: smtpConfig.webPort })
+    if (!process.env.NO_SMTP_SERVER) {
+        await smtp({ smtpPort: smtpConfig.smtpPort, webPort: smtpConfig.webPort })
+    }
 
     const flowforge = await app({
         trialMode: true
@@ -42,7 +44,7 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
             enabled: true,
             debug: true,
             smtp: {
-                host: 'localhost',
+                host: process.env.SMTP_HOST || 'localhost',
                 port: smtpConfig.smtpPort,
                 secure: false,
                 debug: true

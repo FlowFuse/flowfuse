@@ -7,11 +7,13 @@ const app = require('./environments/standard.js')
 ;(async function () {
     const PORT = 3001
     const smtpConfig = {
-        smtpPort: 1025,
-        webPort: 8025
+        smtpPort: process.env.SMTP_PORT || 1025,
+        webPort: process.env.SMTP_WEB_PORT || 8025
     }
 
-    await smtp({ smtpPort: smtpConfig.smtpPort, webPort: smtpConfig.webPort })
+    if (!process.env.NO_SMTP_SERVER) {
+        await smtp({ smtpPort: smtpConfig.smtpPort, webPort: smtpConfig.webPort })
+    }
 
     const flowforge = await app({}, {
         host: 'localhost',
@@ -20,7 +22,7 @@ const app = require('./environments/standard.js')
             enabled: true,
             debug: true,
             smtp: {
-                host: 'localhost',
+                host: process.env.SMTP_HOST || 'localhost',
                 port: smtpConfig.smtpPort,
                 secure: false,
                 debug: true
