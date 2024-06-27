@@ -12,6 +12,6 @@ module.exports = defineConfig({
         }
     },
     env: {
-        mailpitUrl: 'http://localhost:8026/'
+        mailpitUrl: `http://localhost:${process.env.SMTP_WEB_PORT || '8025'}/`
     }
 })
