@@ -10,5 +10,8 @@ module.exports = defineConfig({
             baseUrl: 'http://localhost:3001',
             specPattern: 'test/e2e/frontend/cypress/tests'
         }
+    },
+    env: {
+        mailpitUrl: `http://localhost:${process.env.SMTP_WEB_PORT || '8025'}/`
     }
 })
