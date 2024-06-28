@@ -1,14 +1,29 @@
 <template>
     <ff-layout-box class="ff-login">
-        <div v-if="!pending">
+        <div v-if="!pending" data-form="login">
             <ff-loading v-if="loggingIn" message="Logging in..." color="white" />
             <template v-else-if="!mfaRequired">
                 <label>username / email</label>
-                <ff-text-input ref="login-username" v-model="input.username" label="username" :error="errors.username" @enter="login" />
+                <ff-text-input
+                    ref="login-username"
+                    v-model="input.username"
+                    label="username"
+                    :error="errors.username"
+                    data-el="login-username"
+                    @enter="login"
+                />
                 <span class="ff-error-inline" data-el="errors-username">{{ errors.username }}</span>
                 <div v-if="passwordRequired">
                     <label>password</label>
-                    <ff-text-input ref="login-password" v-model="input.password" label="password" :error="errors.password" type="password" @enter="login" />
+                    <ff-text-input
+                        ref="login-password"
+                        v-model="input.password"
+                        label="password"
+                        :error="errors.password"
+                        type="password"
+                        data-el="login-password"
+                        @enter="login"
+                    />
                     <span class="ff-error-inline" data-el="errors-password">{{ errors.password }}</span>
                 </div>
                 <label class="ff-error-inline" data-el="errors-general">{{ errors.general }}</label>

@@ -99,7 +99,7 @@
             <div v-if="creatingNew && flowBlueprintsEnabled && atLeastOneFlowBlueprint && !isCopyProject">
                 <div data-form="blueprint">
                     <label class="block text-sm font-medium text-gray-800 mb-2">Blueprint</label>
-                    <BlueprintTileSmall :blueprint="selectedBlueprint" @click="previewBlueprint" />
+                    <BlueprintTileSmall v-if="selectedBlueprint" :blueprint="selectedBlueprint" @click="previewBlueprint" />
                     <div v-if="showFlowBlueprintSelection" class="mt-2 flex gap-4" data-action="blueprint-actions">
                         <div
                             class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline text-sm flex gap-1 items-center"
@@ -110,7 +110,7 @@
                         </div>
                         <div
                             class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline text-sm flex gap-1 items-center"
-                            @click="openBlueprintSelectorDialog"
+                            @click="blueprintDialogVisible = true"
                         >
                             <FolderIcon class="ff-btn--icon" />
                             <span>Choose a different Blueprint</span>
@@ -225,21 +225,20 @@
         </div>
         <AssetDetailDialog ref="flowRendererDialog" class="preview-main-blueprint" />
         <BlueprintSelectorDialog
-            v-if="blueprints.length"
+            v-if="blueprintDialogVisible && blueprints.length"
             ref="blueprintSelectorDialog"
-            :blueprints="blueprints"
             :active-blueprint="selectedBlueprint"
             @blueprint-updated="input.flowBlueprintId = $event.id"
+            @close="blueprintDialogVisible = false"
         />
     </form>
 </template>
 
 <script>
 import { CheckCircleIcon, FolderIcon, RefreshIcon } from '@heroicons/vue/outline'
-import { mapState } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 
 import billingApi from '../../../api/billing.js'
-import flowBlueprintsApi from '../../../api/flowBlueprints.js'
 import instanceTypesApi from '../../../api/instanceTypes.js'
 import stacksApi from '../../../api/stacks.js'
 import templatesApi from '../../../api/templates.js'
@@ -332,7 +331,7 @@ export default {
             type: Boolean
         }
     },
-    emits: ['on-submit'],
+    emits: ['on-submit', 'blueprint-updated'],
     data () {
         const instance = this.instance || this.sourceInstance
 
@@ -348,7 +347,6 @@ export default {
             stacks: [],
             templates: [],
             projectTypes: [],
-            blueprints: [],
             activeProjectTypeCount: 0,
             subscription: null,
             input: {
@@ -380,11 +378,13 @@ export default {
                 nodes: true,
                 envVars: 'all'
             },
-            selectedProjectType: null
+            selectedProjectType: null,
+            blueprintDialogVisible: false
         }
     },
     computed: {
         ...mapState('account', ['settings']),
+        ...mapGetters('account', ['blueprints', 'defaultBlueprint']),
         creatingApplication () {
             return (this.applicationSelection && !this.applications.length) || (this.creatingNew && this.applicationFieldsVisible)
         },
@@ -459,7 +459,7 @@ export default {
             return this.blueprints.length > 1 && this.flowBlueprintsEnabled
         },
         selectedBlueprint () {
-            return this.blueprints.find((blueprint) => blueprint.id === this.input.flowBlueprintId)
+            return this.blueprints.find((blueprint) => `${blueprint.id}` === `${this.input.flowBlueprintId}`) || this.defaultBlueprint
         },
         heroTitle () {
             return this.creatingNew ? (this.creatingApplication ? 'Create a new Application' : 'Create Instance') : 'Update Instance'
@@ -491,6 +491,13 @@ export default {
             } else {
                 this.selectedProjectType = null
             }
+        },
+        'input.flowBlueprintId': function (newValue, oldValue) {
+            if (newValue !== oldValue) {
+                // use computed blueprint id, as it may sometimes receive invalid pre-defined blueprint id's
+                this.input.flowBlueprintId = this.selectedBlueprint.id
+            }
+            this.$emit('blueprint-updated', newValue, oldValue)
         }
     },
     async created () {
@@ -620,7 +627,7 @@ export default {
             this.updateInstanceType(this.input.projectType)
         }
 
-        this.blueprints = await blueprintsPromise
+        await blueprintsPromise
         if (this.blueprints.length === 0) {
             // Falls back to the default blueprint server side no error needed
             console.warn('Flow Blueprints enabled but none available')
@@ -662,6 +669,7 @@ export default {
         }
     },
     methods: {
+        ...mapActions('account', ['getTeamBlueprints']),
         refreshName () {
             this.input.name = NameGenerator()
         },
@@ -715,19 +723,9 @@ export default {
             if (!this.flowBlueprintsEnabled || this.isCopyProject) {
                 return []
             }
-            const response = await flowBlueprintsApi.getFlowBlueprintsForTeam(this.team.id)
-            const blueprints = response.blueprints
+            await this.getTeamBlueprints(this.team.id)
 
-            const defaultBlueprint = blueprints.find((blueprint) => blueprint.default) || blueprints[0]
-            this.input.flowBlueprintId = defaultBlueprint?.id
-
-            return blueprints
-        },
-        selectBlueprint (blueprint) {
-            this.input.flowBlueprintId = blueprint.id
-        },
-        openBlueprintSelectorDialog () {
-            this.$refs.blueprintSelectorDialog.show()
+            this.input.flowBlueprintId = this.defaultBlueprint?.id
         },
         previewBlueprint (blueprint) {
             this.$refs.flowRendererDialog.show(blueprint)
