@@ -11,7 +11,7 @@ const app = require('./environments/standard.js')
         webPort: process.env.SMTP_WEB_PORT || 8025
     }
 
-    if (!process.env.NO_SMTP_SERVER) {
+    if (!process.env.NO_SMTP_SERVER || process.env.NO_SMTP_SERVER === 'false') {
         await smtp({ smtpPort: smtpConfig.smtpPort, webPort: smtpConfig.webPort })
     }
 
