@@ -299,6 +299,10 @@ module.exports = class TestModelFactory {
         )
     }
 
+    async createBlueprint (blueprintDetails) {
+        return await this.forge.db.models.FlowTemplate.create(blueprintDetails)
+    }
+
     get Roles () {
         return { ...Roles }
     }

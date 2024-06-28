@@ -1,8 +1,8 @@
 {
-    "count": 2,
+    "count": 3,
     "blueprints": [
         {
-            "id": "1234",
+            "id": "1",
             "name": "Blueprint 1",
             "active": true,
             "description": "This is a blueprint",
@@ -13,7 +13,7 @@
             "modules": {"@flowfuse/node-red-dashboard":"^0.11.6"}
         },
         {
-            "id": "5678",
+            "id": "2",
             "name": "Blueprint 2",
             "active": true,
             "description": "This is another blueprint",
@@ -24,7 +24,7 @@
             "modules": {"@flowfuse/node-red-dashboard":"^0.11.6"}
         },
         {
-            "id": "91011",
+            "id": "3",
             "name": "Blueprint 3",
             "active": true,
             "description": "This is yet another blueprint",

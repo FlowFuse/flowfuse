@@ -98,7 +98,7 @@ describe('FlowForge - Library', () => {
             interceptBlueprints(multipleBlueprints)
 
             cy.get('[data-el="ff-tab"]').contains('Blueprints').click()
-            cy.get('[data-el="5678"]').contains('Select').click()
+            cy.get('[data-el="2"]').contains('Select').click()
 
             cy.window().then((win) => expect(win.location.href).to.contain('instances/create'))
 
@@ -112,19 +112,19 @@ describe('FlowForge - Library', () => {
             cy.get('[data-el="ff-tab"]').contains('Blueprints').click()
             cy.get('[data-el="flow-view-dialog"]').should('exist').should('not.be.visible')
 
-            cy.get('[data-el="1234"]').within(() => {
+            cy.get('[data-el="1"]').within(() => {
                 cy.get('[data-action="show-blueprint"]').should('exist').should('be.visible').click()
                 cy.get('[data-el="flow-view-dialog"]').should('be.visible')
                 cy.get('[data-action="dialog-confirm"]').click()
                 cy.get('[data-el="flow-view-dialog"]').should('exist').should('not.be.visible')
             })
-            cy.get('[data-el="5678"]').within(() => {
+            cy.get('[data-el="2"]').within(() => {
                 cy.get('[data-action="show-blueprint"]').should('exist').should('be.visible').click()
                 cy.get('[data-el="flow-view-dialog"]').should('be.visible')
                 cy.get('[data-action="dialog-confirm"]').click()
                 cy.get('[data-el="flow-view-dialog"]').should('exist').should('not.be.visible')
             })
-            cy.get('[data-el="91011"]').within(() => {
+            cy.get('[data-el="3"]').within(() => {
                 cy.get('[data-action="show-blueprint"]').should('exist').should('be.visible').click()
                 cy.get('[data-el="flow-view-dialog"]').should('be.visible')
                 cy.get('[data-action="dialog-confirm"]').click()

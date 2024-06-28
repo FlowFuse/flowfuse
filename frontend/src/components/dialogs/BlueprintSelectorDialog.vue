@@ -29,6 +29,7 @@
 </template>
 <script>
 import FlowRenderer from '@flowfuse/flow-renderer'
+import { mapGetters } from 'vuex'
 
 import BlueprintSelection from '../../pages/instance/Blueprints/BlueprintSelection.vue'
 
@@ -36,21 +37,18 @@ export default {
     name: 'BlueprintSelectorDialog',
     components: { BlueprintSelection },
     props: {
-        blueprints: {
-            required: true,
-            type: Array
-        },
         activeBlueprint: {
             type: Object,
-            required: true
+            required: false,
+            default: null
         }
     },
-    emits: ['blueprint-updated'],
+    emits: ['blueprint-updated', 'close'],
     setup () {
         return {
             show () {
+                this.syncCurrentBlueprint()
                 this.renderFlows()
-                this.$refs.dialog.show()
             }
         }
     },
@@ -60,34 +58,36 @@ export default {
             renderer: null
         }
     },
+    computed: {
+        ...mapGetters('account', ['blueprints', 'defaultBlueprint'])
+    },
     watch: {
         currentBlueprint (val) {
-            if (val) {
-                this.renderFlows()
-            }
+            if (val) { this.renderFlows() }
+        },
+        activeBlueprint (val) {
+            this.syncCurrentBlueprint()
         }
     },
     mounted () {
         this.mountRenderer()
-            .then(() => this.setCurrentBlueprint())
+            .then(() => this.syncCurrentBlueprint())
             .catch((error) => {
                 console.error('Error mounting renderer', error)
             })
     },
     methods: {
         closeDialog () {
-            this.$refs.dialog.close()
+            this.$emit('close')
         },
         onBlueprintSelected (blueprint) {
             this.currentBlueprint = blueprint
         },
         renderFlows () {
             const flows = this.currentBlueprint.flows.flows
-            setTimeout(() => {
-                this.renderer.renderFlows(flows, {
-                    container: this.$refs.viewer
-                })
-            }, 20)
+            this.renderer.renderFlows(flows, {
+                container: this.$refs.viewer
+            })
         },
         mountRenderer () {
             return new Promise((resolve) => {
@@ -95,8 +95,8 @@ export default {
                 resolve()
             })
         },
-        setCurrentBlueprint () {
-            this.currentBlueprint = this.activeBlueprint
+        syncCurrentBlueprint () {
+            this.currentBlueprint = this.activeBlueprint || this.defaultBlueprint
         },
         confirmSelection () {
             this.$emit('blueprint-updated', this.currentBlueprint)
@@ -109,6 +109,7 @@ export default {
 <style lang="scss">
 .blueprints-selector-dialog {
     margin: 0 !important;
+    display: block;
 
     .ff-dialog-box {
       max-width: 90vw;
