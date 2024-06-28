@@ -168,3 +168,103 @@ Cypress.Commands.add('clearBrowserData', () => {
         win.sessionStorage.clear()
     })
 })
+
+// Convenience commands that use an admin user to change global platform settings
+Cypress.Commands.add('adminEnableSignUp', () => {
+    cy.login('alice', 'aaPassword')
+
+    cy.url()
+        .then((currentUrl) => {
+            if (!currentUrl.includes('/admin/settings/general')) {
+                cy.visit('/admin/settings/general')
+            }
+        })
+        .then(() => cy.get('[data-el="enable-signup"] input'))
+        .then(($checkbox) => {
+            if (!$checkbox.is(':checked')) {
+                cy.get('[data-el="enable-signup"] .ff-checkbox').click()
+                cy.get('[data-action="save-settings"]').click()
+            }
+        })
+
+    cy.logout()
+    cy.clearBrowserData()
+})
+Cypress.Commands.add('adminDisableSignUp', () => {
+    cy.login('alice', 'aaPassword')
+
+    cy.url()
+        .then((currentUrl) => {
+            if (!currentUrl.includes('/admin/settings/general')) {
+                cy.visit('/admin/settings/general')
+            }
+        })
+        .then(() => cy.get('[data-el="enable-signup"] input'))
+        .then(($checkbox) => {
+            if ($checkbox.is(':checked')) {
+                cy.get('[data-el="enable-signup"] .ff-checkbox').click()
+                cy.get('[data-action="save-settings"]').click()
+            }
+        })
+
+    cy.logout()
+    cy.clearBrowserData()
+})
+
+Cypress.Commands.add('adminEnableTeamAutoCreate', () => {
+    cy.login('alice', 'aaPassword')
+
+    cy.url()
+        .then((currentUrl) => {
+            if (!currentUrl.includes('/admin/settings/general')) {
+                cy.visit('/admin/settings/general')
+            }
+        })
+        .then(() => cy.get('[data-el="team-auto-create"] input'))
+        .then($checkbox => {
+            if (!$checkbox.is(':checked')) {
+                cy.get('[data-el="team-auto-create"] .ff-checkbox')
+                    .click()
+                cy.get('[data-action="save-settings"]')
+                    .click()
+            }
+        })
+
+    cy.logout()
+    cy.clearBrowserData()
+})
+Cypress.Commands.add('adminDisableTeamAutoCreate', () => {
+    cy.login('alice', 'aaPassword')
+
+    cy.url()
+        .then((currentUrl) => {
+            if (!currentUrl.includes('/admin/settings/general')) {
+                cy.visit('/admin/settings/general')
+            }
+        })
+        .then(() => cy.get('[data-el="team-auto-create"] input'))
+        .then($checkbox => {
+            if ($checkbox.is(':checked')) {
+                cy.get('[data-el="team-auto-create"] .ff-checkbox').click()
+                cy.get('[data-action="save-settings"]').click()
+            }
+        })
+
+    cy.logout()
+    cy.clearBrowserData()
+})
+
+Cypress.Commands.add('adminGetAllBlueprints', () => {
+    cy.login('alice', 'aaPassword')
+
+    cy.intercept('GET', '/api/*/flow-blueprints*').as('getAllBlueprints')
+    cy.visit('/deploy/blueprint')
+    cy.wait('@getAllBlueprints')
+        .then(interception => interception.response.body.blueprints)
+        .then(blueprints => {
+            cy.wrap(blueprints).as('allBlueprints')
+        })
+
+    cy.logout()
+    cy.clearBrowserData()
+})

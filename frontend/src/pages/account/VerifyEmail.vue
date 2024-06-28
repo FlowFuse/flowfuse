@@ -8,7 +8,7 @@
                 <h3 class="text-lg font-bold">Please verify your email</h3>
                 <p class="text-gray-400">Once verified, you will be able to access the platform.</p>
                 <div class="mx-auto mt-10">
-                    <ff-button class="mx-auto" @click="verifyEmail()">Verify my email</ff-button>
+                    <ff-button class="mx-auto" data-action="verify-email" @click="verifyEmail()">Verify my email</ff-button>
                 </div>
             </div>
         </form>

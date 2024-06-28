@@ -19,7 +19,7 @@
         </div>
 
         <!-- Application Selection -->
-        <div v-if="applicationSelection && applications.length > 0">
+        <div v-if="applicationSelection && hasApplicationsToChooseFrom">
             <FormRow
                 v-model="input.applicationId"
                 :options="applications"
@@ -414,16 +414,18 @@ export default {
         showBilling () {
             return this.billingEnabled && (this.creatingNew || this.projectTypeChanged)
         },
+        applicationFormValid () {
+            return ((this.creatingNew && this.applicationFieldsVisible) ? this.input.applicationName : true) &&
+              (this.applicationSelection && (!this.hasApplicationsToChooseFrom && !this.input.applicationName) ? this.input.applicationId : true)
+        },
+        instanceFormValid () {
+            return this.input.name && !this.errors.name &&
+              this.input.projectType && !this.errors.projectType &&
+              this.input.stack && !this.errors.stack &&
+              (this.creatingNew ? (this.input.template && !this.errors.template) : true)
+        },
         formValid () {
-            const applicationFormValid = ((this.creatingNew && this.applicationFieldsVisible) ? this.input.applicationName : true) &&
-                (this.applicationSelection ? this.input.applicationId : true)
-
-            const instanceFormValid = this.input.name && !this.errors.name &&
-                this.input.projectType && !this.errors.projectType &&
-                this.input.stack && !this.errors.stack &&
-                (this.creatingNew ? (this.input.template && !this.errors.template) : true)
-
-            return applicationFormValid && ((this.creatingApplication && !this.input.createInstance) || instanceFormValid)
+            return this.applicationFormValid && ((this.creatingApplication && !this.input.createInstance) || this.instanceFormValid)
         },
         submitEnabled () {
             return this.formValid && this.formDirty
@@ -475,6 +477,9 @@ export default {
         },
         emptyStacks () {
             return this.stacks.length === 0
+        },
+        hasApplicationsToChooseFrom () {
+            return this.applications.length > 0
         }
     },
     watch: {
