@@ -12,7 +12,7 @@
                 <SubscriptionExpiredBanner :team="team" />
                 <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
             </Teleport>
-            <router-view :team="team" :teamMembership="teamMembership" />
+            <router-view />
         </div>
         <div v-else-if="!canAccessTeam">
             <EmptyState>

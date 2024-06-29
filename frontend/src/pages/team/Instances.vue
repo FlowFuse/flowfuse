@@ -100,16 +100,6 @@ export default {
         EmptyState
     },
     mixins: [permissionsMixin],
-    props: {
-        team: {
-            type: Object,
-            required: true
-        },
-        teamMembership: {
-            type: Object,
-            required: true
-        }
-    },
     data () {
         return {
             loading: false,
