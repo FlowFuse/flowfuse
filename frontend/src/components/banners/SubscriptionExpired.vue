@@ -29,8 +29,6 @@
 <script>
 import { ChevronRightIcon, ExclamationCircleIcon } from '@heroicons/vue/outline'
 
-import { mapState } from 'vuex'
-
 import permissionsMixin from '../../mixins/Permissions.js'
 
 export default {
@@ -40,14 +38,7 @@ export default {
         ChevronRightIcon
     },
     mixins: [permissionsMixin],
-    props: {
-        team: {
-            type: Object,
-            required: true
-        }
-    },
     computed: {
-        ...mapState('account', ['teamMembership']),
         billingPath () {
             return '/team/' + this.team.slug + '/billing'
         },

@@ -9,7 +9,7 @@
         </template>
         <div class="flex flex-col sm:flex-row">
             <div class="flex-grow pt-4">
-                <router-view :team="team" :teamMembership="teamMembership" />
+                <router-view />
             </div>
         </div>
     </ff-page>
@@ -24,16 +24,6 @@ import permissionsMixin from '../../../mixins/Permissions.js'
 export default {
     name: 'TeamSettings',
     mixins: [permissionsMixin],
-    props: {
-        team: {
-            type: Object,
-            required: true
-        },
-        teamMembership: {
-            type: Object,
-            required: true
-        }
-    },
     data: function () {
         return {
             sideOptions: [

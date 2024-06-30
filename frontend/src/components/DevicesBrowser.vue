@@ -7,7 +7,7 @@
             v-if="loadingStatuses || loadingDevices"
             message="Loading Devices..."
         />
-        <template v-else>
+        <template v-else-if="team">
             <FeatureUnavailableToTeam v-if="teamDeviceLimitReached" fullMessage="You have reached the device limit for this team." :class="{'mt-0': displayingTeam }" />
             <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the runtime limit for this team." :class="{'mt-0': displayingTeam }" />
             <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-lastseen" label="Last Seen" :devices="Array.from(allDeviceStatuses.values())" property="lastseen" :filter="filter" @filter-selected="applyFilter" />
@@ -168,6 +168,7 @@
     </div>
 
     <TeamDeviceCreateDialog
+        v-if="team"
         ref="teamDeviceCreateDialog"
         :team="team"
         :teamDeviceCount="teamDeviceCount"
@@ -221,6 +222,7 @@ import { ClockIcon } from '@heroicons/vue/outline'
 import { PlusSmIcon } from '@heroicons/vue/solid'
 
 import { markRaw } from 'vue'
+import { mapState } from 'vuex'
 
 import ApplicationApi from '../api/application.js'
 import deviceApi from '../api/devices.js'
@@ -280,15 +282,6 @@ export default {
             type: Object,
             required: false,
             default: null
-        },
-        team: {
-            type: Object,
-            required: true
-        },
-        // Used for hasPermission
-        teamMembership: {
-            type: Object,
-            required: true
         }
     },
     emits: ['instance-updated'],
@@ -321,6 +314,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['team', 'teamMembership']),
         columns () {
             const columns = [
                 { label: 'Device', key: 'name', class: ['w-64'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },

@@ -11,11 +11,7 @@
             </template>
         </SectionTopMenu>
 
-        <DevicesBrowser
-            :application="application"
-            :team="team"
-            :teamMembership="teamMembership"
-        />
+        <DevicesBrowser :application="application" />
     </div>
 </template>
 
@@ -33,14 +29,6 @@ export default {
     mixins: [permissionsMixin],
     props: {
         application: {
-            type: Object,
-            required: true
-        },
-        team: {
-            type: Object,
-            required: true
-        },
-        teamMembership: {
             type: Object,
             required: true
         }

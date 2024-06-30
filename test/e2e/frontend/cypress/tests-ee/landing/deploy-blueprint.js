@@ -1,11 +1,11 @@
-function followLoginForm () {
+function followLoginForm (username = 'alice', password = 'aaPassword') {
     cy.intercept('POST', '/account/login').as('getLogin')
 
     cy.get('[data-form="login"]').should('be.visible')
 
-    cy.get('[data-el="login-username"]').type('alice')
+    cy.get('[data-el="login-username"]').type(username)
     cy.get('[data-action="login"]').click()
-    cy.get('[data-el="login-password"]').type('aaPassword')
+    cy.get('[data-el="login-password"]').type(password)
     cy.get('[data-action="login"]').click()
 
     cy.wait('@getLogin')
@@ -43,23 +43,20 @@ function interceptAndSetDefaultBlueprint () {
 }
 
 describe('FlowFuse - Deploy Blueprint', () => {
-    beforeEach(() => {
-        cy.login('alice', 'aaPassword')
-        cy.intercept('GET', '/api/*/flow-blueprints*').as('getSneakyBlueprints')
-        cy.visit('/deploy/blueprint')
-        cy.wait('@getSneakyBlueprints')
-            .then(interception => interception.response.body.blueprints)
-            .then(blueprints => {
-                cy.wrap(blueprints).as('blueprints')
-            })
-        cy.logout()
-        cy.clearBrowserData()
+    before(() => {
+        cy.adminEnableSignUp()
+        cy.adminEnableTeamAutoCreate()
+    })
+
+    after(() => {
+        cy.adminDisableSignUp()
+        cy.adminDisableTeamAutoCreate()
     })
 
     describe('Users with accounts', () => {
         describe('And authenticated', () => {
             beforeEach(() => {
-                cy.intercept('POST', '/api/v1/auth/login').as('login')
+                cy.intercept('POST', '/api/*/auth/login').as('login')
                 cy.login('alice', 'aaPassword')
             })
 
@@ -93,7 +90,7 @@ describe('FlowFuse - Deploy Blueprint', () => {
             })
 
             it('reverts to the default blueprint when an invalid blueprint id is given', () => {
-                cy.intercept('GET', '/api/v1/projects/*').as('getInstance')
+                cy.intercept('GET', '/api/*/projects/*').as('getInstance')
                 cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')
                 cy.intercept('GET', '/api/*/flow-blueprints*').as('getFlowBlueprints')
                 cy.intercept('POST', '/api/*/projects').as('createInstance')
@@ -120,8 +117,12 @@ describe('FlowFuse - Deploy Blueprint', () => {
             })
 
             it('can deploy pre-defined blueprints', () => {
-                cy.intercept('GET', '/api/v1/projects/*').as('getInstance')
-                cy.get('@blueprints')
+                cy.adminGetAllBlueprints()
+
+                cy.login('alice', 'aaPassword')
+
+                cy.intercept('GET', '/api/*/projects/*').as('getInstance')
+                cy.get('@allBlueprints')
                     .then(blueprints => {
                         const predefinedBlueprint = blueprints[1]
 
@@ -187,7 +188,7 @@ describe('FlowFuse - Deploy Blueprint', () => {
             })
 
             it('reverts to the default blueprint when an invalid blueprint id is given after logging in', () => {
-                cy.intercept('GET', '/api/v1/projects/*').as('getInstance')
+                cy.intercept('GET', '/api/*/projects/*').as('getInstance')
                 cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')
                 cy.intercept('GET', '/api/*/flow-blueprints*').as('getFlowBlueprints')
                 cy.intercept('POST', '/api/*/projects').as('createInstance')
@@ -218,8 +219,11 @@ describe('FlowFuse - Deploy Blueprint', () => {
             })
 
             it('can deploy pre-defined blueprints after logging in', () => {
-                cy.intercept('GET', '/api/v1/projects/*').as('getInstance')
-                cy.get('@blueprints')
+                cy.adminGetAllBlueprints()
+
+                cy.intercept('GET', '/api/*/projects/*').as('getInstance')
+
+                cy.get('@allBlueprints')
                     .then(blueprints => {
                         const predefinedBlueprint = blueprints[1]
 
@@ -254,12 +258,204 @@ describe('FlowFuse - Deploy Blueprint', () => {
             })
         })
     })
-})
 
-// describe('Users without accounts', () => {
-//     beforeEach(() => {
-//         cy.login('alice', 'aaPassword')
-//         cy.home()
-//     })
-// })
-// })
+    describe('Users without accounts', () => {
+        it('that follow registration land on the deploy blueprint page with the default blueprint if no id is given', () => {
+            const stamp = new Date().getTime()
+            const newUser = {
+                username: `formidable-padawan-${stamp}`,
+                fullName: 'Ezra Bridger',
+                email: `formidable-padawan-${stamp}@qwe.com`,
+                password: 'super-secret-password'
+            }
+            cy.intercept('POST', '/api/*/projects').as('createInstance')
+            interceptAndSetDefaultBlueprint()
+
+            cy.visit('/deploy/blueprint')
+
+            cy.get('[data-action="sign-up"]').click()
+
+            cy.get('[data-form="signup-username"]').type(newUser.username)
+            cy.get('[data-form="signup-fullname"]').type(newUser.fullName)
+            cy.get('[data-form="signup-email"]').type(newUser.email)
+            cy.get('[data-form="signup-password"]').type(newUser.password)
+
+            cy.get('[data-action="sign-up"]').click()
+
+            cy.mhGetMailsByRecipient(newUser.email)
+                .should('have.length', 1)
+                .mhFirst()
+                .mhGetBody()
+                .then((body) => {
+                    const activationLink = body.match(/(http|https):\/\/.*\/account\/verify\/\S+/)[0]
+                    cy.wrap(activationLink).as('activationLink')
+                })
+
+            cy.get('@activationLink')
+                .then((activationLink) => {
+                    cy.visit(activationLink)
+
+                    cy.get('[data-action="verify-email"]').click()
+
+                    followLoginForm(newUser.username, newUser.password)
+
+                    cy.wait('@setDefaultBlueprint')
+
+                    cy.get('[data-form="application-name"]').type('My first Application!')
+                    cy.get('[data-form="application-description"]').type('Coherent description goes here >><<')
+
+                    cy.get('[data-action="click-small-blueprint-tile"]').contains('Blueprint 1')
+                    cy.get('[data-form="project-type"]').children().first().click()
+
+                    return cy.get('[data-form="project-name"] input')
+                        .invoke('val')
+                })
+                .then((instanceName) => {
+                    cy.get('[data-action="create-project"]').click()
+                    cy.wait('@createInstance')
+
+                    cy.get('[data-el="page-name"]').contains(instanceName)
+                    cy.contains('type1 / stack 1')
+
+                    cy.url().should('match', /^.*\/instance\/.*\/overview/)
+                })
+        })
+
+        it('that follow registration land on the deploy blueprint page with the default blueprint when an invalid blueprint id is given', () => {
+            const stamp = new Date().getTime()
+            const newUser = {
+                username: `formidable-padawan-${stamp}`,
+                fullName: 'Ezra Bridger',
+                email: `formidable-padawan-${stamp}@qwe.com`,
+                password: 'super-secret-password'
+            }
+            interceptAndSetDefaultBlueprint()
+            cy.intercept('POST', '/api/*/projects').as('createInstance')
+
+            cy.visit('/deploy/blueprint?blueprintId=non-existing-id')
+
+            cy.get('[data-action="sign-up"]').click()
+
+            cy.get('[data-form="signup-username"]').type(newUser.username)
+            cy.get('[data-form="signup-fullname"]').type(newUser.fullName)
+            cy.get('[data-form="signup-email"]').type(newUser.email)
+            cy.get('[data-form="signup-password"]').type(newUser.password)
+
+            cy.get('[data-action="sign-up"]').click()
+
+            cy.mhGetMailsByRecipient(newUser.email)
+                .should('have.length', 1)
+                .mhFirst()
+                .mhGetBody()
+                .then((body) => {
+                    const activationLink = body.match(/(http|https):\/\/.*\/account\/verify\/\S+/)[0]
+                    cy.wrap(activationLink).as('activationLink')
+                })
+
+            cy.get('@activationLink')
+                .then((activationLink) => {
+                    cy.visit(activationLink)
+
+                    cy.get('[data-action="verify-email"]').click()
+
+                    followLoginForm(newUser.username, newUser.password)
+
+                    cy.wait('@setDefaultBlueprint')
+
+                    cy.get('[data-form="application-name"]').type('My first Application!')
+                    cy.get('[data-form="application-description"]').type('Coherent description goes here >><<')
+
+                    cy.get('[data-action="click-small-blueprint-tile"]').contains('Blueprint 1')
+                    cy.get('[data-form="project-type"]').children().first().click()
+
+                    return cy.get('[data-form="project-name"] input')
+                        .invoke('val')
+                })
+                .then((instanceName) => {
+                    cy.get('[data-action="create-project"]').click()
+                    cy.wait('@createInstance')
+
+                    cy.get('[data-el="page-name"]').contains(instanceName)
+                    cy.contains('type1 / stack 1')
+
+                    cy.url().should('match', /^.*\/instance\/.*\/overview/)
+                })
+        })
+
+        it('that follow registration land on the deploy blueprint page with the correct predefined blueprint', () => {
+            const stamp = new Date().getTime()
+            const newUser = {
+                username: `formidable-padawan-${stamp}`,
+                fullName: 'Ezra Bridger',
+                email: `formidable-padawan-${stamp}@qwe.com`,
+                password: 'super-secret-password'
+            }
+
+            cy.adminGetAllBlueprints()
+
+            cy.intercept('POST', '/api/*/projects').as('createInstance')
+
+            cy.get('@allBlueprints')
+                .then(blueprints => {
+                    const predefinedBlueprint = blueprints[1]
+                    cy.wrap(predefinedBlueprint).as('predefinedBlueprint')
+
+                    cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')
+                    cy.intercept('GET', '/api/*/flow-blueprints*').as('getFlowBlueprints')
+                    cy.intercept('POST', '/api/*/projects').as('createInstance')
+
+                    cy.visit(`/deploy/blueprint?blueprintId=${predefinedBlueprint.id}`)
+
+                    cy.get('[data-action="sign-up"]').click()
+
+                    cy.get('[data-form="signup-username"]').type(newUser.username)
+                    cy.get('[data-form="signup-fullname"]').type(newUser.fullName)
+                    cy.get('[data-form="signup-email"]').type(newUser.email)
+                    cy.get('[data-form="signup-password"]').type(newUser.password)
+
+                    cy.get('[data-action="sign-up"]').click()
+
+                    cy.mhGetMailsByRecipient(newUser.email)
+                        .should('have.length', 1)
+                        .mhFirst()
+                        .mhGetBody()
+                })
+                .then((body) => {
+                    const activationLink = body.match(/(http|https):\/\/.*\/account\/verify\/\S+/)[0]
+                    cy.wrap(activationLink).as('activationLink')
+                })
+                .then(() => cy.get('@activationLink'))
+                .then((activationLink) => {
+                    cy.visit(activationLink)
+
+                    cy.get('[data-action="verify-email"]').click()
+
+                    followLoginForm(newUser.username, newUser.password)
+
+                    cy.get('[data-form="application-name"]').type('My first Application!')
+                    cy.get('[data-form="application-description"]').type('Coherent description goes here >><<')
+                })
+                .then(() => cy.get('@predefinedBlueprint'))
+                .then((predefinedBlueprint) => {
+                    cy.get('[data-action="click-small-blueprint-tile"]').contains(predefinedBlueprint.name)
+                    cy.get('[data-form="project-type"]').children().first().click()
+
+                    return cy.get('[data-form="project-name"] input')
+                        .invoke('val')
+                })
+                .then((instanceName) => {
+                    cy.get('[data-action="create-project"]').click()
+                    cy.wait('@createInstance')
+
+                    cy.get('[data-el="page-name"]').contains(instanceName)
+                    cy.contains('type1 / stack 1')
+
+                    cy.url().should('match', /^.*\/instance\/.*\/overview/)
+                })
+                .then(() => cy.window())
+                .then((win) => {
+                    expect(win.location.href).to.match(/.*\/instance\/[^/]+\/overview/)
+                })
+        })
+    })
+})

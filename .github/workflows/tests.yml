@@ -139,6 +139,16 @@ jobs:
     name: UI tests
     needs: check-changes
     runs-on: ubuntu-latest
+    services:
+      email-service:
+        image: axllent/mailpit
+        ports:
+          - 8025:8025
+          - 1025:1025
+        options: >-
+          --env MP_MAX_MESSAGES=5000
+          --env MP_SMTP_AUTH_ACCEPT_ANY=1
+          --env MP_SMTP_AUTH_ALLOW_INSECURE=1
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -155,6 +165,11 @@ jobs:
           config-file: config/cypress-os.config.js
           build: npm run build
           start: npm run cy:web-server:os
+        env:
+          NO_SMTP_SERVER: 'true'
+          SMTP_HOST: 'localhost'
+          SMTP_PORT: '1025'
+          SMTP_WEB_PORT: '8025'
       - name: Run UI E2E (Cypress) Tests - EE
         uses: cypress-io/github-action@v6
         with:
@@ -162,6 +177,11 @@ jobs:
             config-file: config/cypress-ee.config.js
             build: npm run build
             start: npm run cy:web-server:ee
+        env:
+          NO_SMTP_SERVER: 'true'
+          SMTP_HOST: 'localhost'
+          SMTP_PORT: '1025'
+          SMTP_WEB_PORT: '8025'
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

@@ -16,33 +16,17 @@
                 </template>
             </ff-page-header>
         </template>
-        <DevicesBrowser
-            :team="team"
-            :teamMembership="teamMembership"
-        />
+        <DevicesBrowser />
     </ff-page>
 </template>
 
 <script>
 import DevicesBrowser from '../../../components/DevicesBrowser.vue'
 
-import permissionsMixin from '../../../mixins/Permissions.js'
-
 export default {
     name: 'TeamDevices',
     components: {
         DevicesBrowser
-    },
-    mixins: [permissionsMixin],
-    props: {
-        team: {
-            type: Object,
-            required: true
-        },
-        teamMembership: {
-            type: Object,
-            required: true
-        }
     }
 }
 </script>

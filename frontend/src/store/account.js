@@ -349,6 +349,9 @@ const actions = {
         const blueprints = response.blueprints
 
         return state.commit('setTeamBlueprints', { teamId, blueprints })
+    },
+    setRedirectUrl (state, url) {
+        state.commit('setRedirectUrl', url)
     }
 }
 

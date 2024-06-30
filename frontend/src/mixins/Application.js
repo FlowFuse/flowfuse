@@ -1,4 +1,3 @@
-import { Roles } from '../../../forge/lib/roles.js'
 import ApplicationApi from '../api/application.js'
 import alerts from '../services/alerts.js'
 
@@ -16,9 +15,6 @@ export default {
         }
     },
     computed: {
-        isVisitingAdmin () {
-            return this.teamMembership?.role === Roles.Admin
-        },
         isLoading () {
             return this.loading.deleting || this.loading.suspend
         },
