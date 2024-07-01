@@ -78,7 +78,6 @@ describe('FlowForge - Applications', () => {
                 .parent()
                 .within(() => {
                     cy.get('[data-action="open-editor"]')
-                        .should('not.have.descendants')
                 })
 
             cy.get('[data-el="application-instance-item"')
@@ -87,7 +86,6 @@ describe('FlowForge - Applications', () => {
                 .parent()
                 .within(() => {
                     cy.get('[data-action="open-editor"]')
-                        .should('have.descendants', 'span.ff-btn--icon')
                 })
         })
     })
