@@ -85,6 +85,10 @@ export default {
         device: {
             type: Object,
             required: true
+        },
+        application: { // required for deviceActionsMixin fetchData
+            required: true,
+            type: Object
         }
     },
     emits: ['device-action'],

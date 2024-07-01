@@ -15,10 +15,15 @@ export default {
             return this.team !== null && !this.displayingInstance && !this.displayingApplication
         },
         displayingApplication () {
-            return Object.hasOwnProperty.call(this, 'application') && this.application !== null && !this.displayingInstance
+            const hasPropOrDataAttr = Object.hasOwnProperty.call(this.$props, 'application') ||
+                Object.hasOwnProperty.call(this.$data, 'application')
+
+            return hasPropOrDataAttr && this.application !== null && !this.displayingInstance
         },
         displayingInstance () {
-            return Object.hasOwnProperty.call(this, 'instance') && this.instance !== null
+            const hasPropOrDataAttr = Object.hasOwnProperty.call(this.$props, 'instance') ||
+                Object.hasOwnProperty.call(this.$data, 'instance')
+            return hasPropOrDataAttr && this.instance !== null
         },
         teamDeviceCount () {
             return this.team.deviceCount + this.deviceCountDeltaSincePageLoad
@@ -27,7 +32,10 @@ export default {
     data () {
         return {
             allDeviceStatuses: new Map(), // every device known
-            deviceCountDeltaSincePageLoad: 0
+            deviceCountDeltaSincePageLoad: 0,
+            // Server side
+            filter: null,
+            nextCursor: null
         }
     },
     emits: ['delete-device'],

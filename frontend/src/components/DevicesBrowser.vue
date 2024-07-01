@@ -292,9 +292,6 @@ export default {
 
             // Devices lists
             devices: new Map(), // devices currently available to be displayed
-            // Server side
-            filter: null,
-            nextCursor: null,
 
             unsearchedHasMoreThanOnePage: true,
             unfilteredHasMoreThanOnePage: true,

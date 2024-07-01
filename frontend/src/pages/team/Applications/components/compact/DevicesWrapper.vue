@@ -17,7 +17,7 @@
                 class="item-wrapper"
                 @click.stop="openDevice(device)"
             >
-                <DeviceTile :device="device" @device-action="onDeviceAction" />
+                <DeviceTile :device="device" :application="application" @device-action="onDeviceAction" />
             </div>
             <div v-if="hasMoreDevices" class="has-more item-wrapper">
                 <router-link :to="{name: 'ApplicationDevices', params: {id: application.id}}">
