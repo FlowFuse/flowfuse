@@ -3,6 +3,7 @@
     <div
         v-else
         class="forge-badge"
+        :data-el="`status-badge-${status}`"
         :class="['forge-status-' + status, pendingChange ? 'opacity-40' : '']"
     >
         <ExclamationCircleIcon v-if="status === 'error' || status === 'crashed'" class="w-4 h-4" />

@@ -6,11 +6,11 @@
         </router-link>
         .
     </div>
-    <section v-else class="ff-applications-list-instances--compact" data-el="application-instances">
+    <section v-else class="ff-applications-list-instances--compact">
         <label class="delimiter">
             <IconNodeRedSolid class="ff-icon ff-icon-sm text-red-800" /> Instances
         </label>
-        <div class="items-wrapper" :class="{one: singleInstance, two: twoInstances, three: threeInstances}">
+        <div class="items-wrapper" :class="{one: singleInstance, two: twoInstances, three: threeInstances}" data-el="application-instances">
             <div
                 v-for="instance in instances"
                 :key="instance.id"
