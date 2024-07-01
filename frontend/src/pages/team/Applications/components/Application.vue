@@ -1,12 +1,16 @@
 <template>
-    <ApplicationHeader :application="application" />
+    <ApplicationHeader :application="localApplication" />
 
-    <InstancesWrapper :application="application" @instance-deleted="onInstanceDeleted" />
+    <InstancesWrapper :application="localApplication" @delete-instance="onInstanceDelete" />
 
-    <DevicesWrapper :application="application" />
+    <DevicesWrapper :application="localApplication" @delete-device="$emit('device-deleted')" />
+
+    <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="onInstanceDeleted" />
 </template>
 
 <script>
+import ConfirmInstanceDeleteDialog from '../../../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
+
 import ApplicationHeader from './ApplicationHeader.vue'
 
 import DevicesWrapper from './compact/DevicesWrapper.vue'
@@ -15,6 +19,7 @@ import InstancesWrapper from './compact/InstancesWrapper.vue'
 export default {
     name: 'ApplicationListItem',
     components: {
+        ConfirmInstanceDeleteDialog,
         ApplicationHeader,
         InstancesWrapper,
         DevicesWrapper
@@ -25,12 +30,31 @@ export default {
             required: true
         }
     },
-    emits: ['instance-deleted'],
+    emits: ['instance-deleted', 'device-deleted'],
+    data () {
+        return {
+            localApplication: null
+        }
+    },
+    watch: {
+        application: 'setLocalApplication'
+    },
+    created () {
+        this.setLocalApplication()
+    },
     methods: {
         onInstanceDeleted (instance) {
-            if (this.application.instances.has(instance.id)) {
-                this.application.instances.delete(instance.id)
+            if (this.localApplication.instances.has(instance.id)) {
+                this.localApplication.instances.delete(instance.id)
+                this.localApplication.instanceCount--
+                this.$emit('instance-deleted')
             }
+        },
+        onInstanceDelete (instance) {
+            this.$refs.confirmInstanceDeleteDialog.show(instance)
+        },
+        setLocalApplication () {
+            this.localApplication = this.application
         }
     }
 }

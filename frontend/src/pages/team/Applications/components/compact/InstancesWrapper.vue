@@ -7,30 +7,39 @@
         .
     </div>
     <section v-else class="ff-applications-list-instances--compact" data-el="application-instances">
-        <label><IconNodeRedSolid class="ff-icon ff-icon-sm text-red-800" /> Instances</label>
-        <div class="wrapper">
+        <label class="delimiter">
+            <IconNodeRedSolid class="ff-icon ff-icon-sm text-red-800" /> Instances
+        </label>
+        <div class="items-wrapper" :class="{one: singleInstance, two: twoInstances, three: threeInstances}">
             <div
                 v-for="instance in instances"
                 :key="instance.id"
                 data-el="application-instance-item"
                 class="item-wrapper"
-                @click.stop="openInstance(instance)"
             >
-                <InstanceTile :instance="instance" @instance-deleted="$emit('instance-deleted')" />
+                <InstanceTile :instance="instance" @delete-instance="$emit('delete-instance', $event)" />
             </div>
-            <div v-if="hasMoreInstances" class="has-more ff-applications-list--instance">HAS MORE</div>
+            <div v-if="hasMoreInstances" class="has-more item-wrapper">
+                <router-link :to="{name: 'ApplicationInstances', params: {id: application.id}}">
+                    {{ remainingInstances }}
+                    More...
+                    <ChevronRightIcon class="ff-icon" />
+                </router-link>
+            </div>
         </div>
     </section>
 </template>
 
 <script>
+import { ChevronRightIcon } from '@heroicons/vue/solid'
+
 import IconNodeRedSolid from '../../../../../components/icons/NodeRedSolid.js'
 
 import InstanceTile from './InstanceTile.vue'
 
 export default {
     name: 'InstancesWrapper',
-    components: { IconNodeRedSolid, InstanceTile },
+    components: { ChevronRightIcon, IconNodeRedSolid, InstanceTile },
     props: {
         application: {
             type: Object,
@@ -38,7 +47,7 @@ export default {
             default: null
         }
     },
-    emits: ['instance-deleted'],
+    emits: ['delete-instance'],
     computed: {
         instances () {
             return Array.from(this.application.instances.values())
@@ -48,21 +57,21 @@ export default {
         },
         hasNoInstances () {
             return this.application.instances.size === 0
-        }
-    },
-    methods: {
-        openInstance (instance) {
-            this.$router.push({
-                name: 'Instance',
-                params: {
-                    id: instance.id
-                }
-            })
+        },
+        remainingInstances () {
+            if (this.hasNoInstances || this.hasMoreInstances) {
+                return this.application.instanceCount - this.application.instances.size
+            } else return 0
+        },
+        singleInstance () {
+            return this.application.instanceCount === 1
+        },
+        twoInstances () {
+            return this.application.instanceCount === 2
+        },
+        threeInstances () {
+            return this.application.instanceCount === 3
         }
     }
 }
 </script>
-
-<style scoped lang="scss">
-
-</style>
