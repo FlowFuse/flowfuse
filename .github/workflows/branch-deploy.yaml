@@ -270,6 +270,10 @@ jobs:
       
       - name: Remove resources
         run: |
-          helm uninstall --namespace "pr-${{ env.PR_NUMBER }}" flowfuse-pr-${{ env.PR_NUMBER }}
-          sleep 15
-          kubectl delete namespace "pr-${{ env.PR_NUMBER }}"
+          if helm list -n "pr-${{ env.PR_NUMBER }}" --filter "^flowfuse-pr-${{ env.PR_NUMBER }}$" | grep "flowfuse-pr-${{ env.PR_NUMBER }}"; then
+            helm uninstall --namespace "pr-${{ env.PR_NUMBER }}" flowfuse-pr-${{ env.PR_NUMBER }}
+            sleep 15
+            kubectl delete namespace "pr-${{ env.PR_NUMBER }}"
+          else
+            echo "Release flowfuse-pr-${{ env.PR_NUMBER }} does not exist"
+          fi
