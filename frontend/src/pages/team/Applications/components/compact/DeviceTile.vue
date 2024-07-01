@@ -1,7 +1,7 @@
 <template>
     <div class="device-tile">
         <div class="status">
-            <StatusBadge :status="device.status" text="" />
+            <StatusBadge :status="device.status" />
         </div>
         <div class="details">
             <span>{{ device.name }}</span>
