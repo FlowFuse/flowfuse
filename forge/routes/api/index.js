@@ -7,6 +7,7 @@
  */
 const Admin = require('./admin.js')
 const Application = require('./application.js')
+const Assistant = require('./assistant.js')
 const Device = require('./device.js')
 const Project = require('./project.js')
 const ProjectType = require('./projectType.js')
@@ -34,6 +35,7 @@ module.exports = async function (app) {
     app.register(Device, { prefix: '/devices' })
     app.register(ProjectType, { prefix: '/project-types' })
     app.register(Snapshot, { prefix: '/snapshots' })
+    app.register(Assistant, { prefix: '/assistant' })
     app.get('*', function (request, reply) {
         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
     })

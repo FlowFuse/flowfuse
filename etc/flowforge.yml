@@ -68,6 +68,17 @@ driver:
 
 
 #################################################
+# Assistant Configuration                       #
+#################################################
+
+# assistant:
+#   enabled: true
+#   service:
+#     url: https://assistant.service
+#     token: token_for_service
+#     requestTimeout: 60000
+
+#################################################
 # File Server config                            #
 #################################################
 
