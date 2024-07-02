@@ -60,7 +60,7 @@ export default {
                 this.errors.password = 'Password must be at least 8 characters'
                 return
             }
-            if (this.input.password.length > 1024) {
+            if (this.input.password.length > 128) {
                 this.errors.password = 'Password too long'
                 return
             }

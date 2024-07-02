@@ -120,7 +120,7 @@ export default {
             } else {
                 this.errors.password = ''
             }
-            if (this.input.password && this.input.password.length > 1024) {
+            if (this.input.password && this.input.password.length > 128) {
                 this.errors.password = 'Password too long'
                 return
             } else {
