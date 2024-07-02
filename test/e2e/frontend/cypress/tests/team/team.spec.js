@@ -123,7 +123,7 @@ describe('Navigation', () => {
         cy.contains('instance-2-with-devices')
     })
 
-    it.only('correctly changes the team when manually selecting a different team', () => {
+    it('correctly changes the team when manually selecting a different team', () => {
         cy.login('bob', 'bbPassword')
         cy.home()
 
