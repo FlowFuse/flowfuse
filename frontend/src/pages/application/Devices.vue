@@ -18,7 +18,6 @@
 <script>
 import DevicesBrowser from '../../components/DevicesBrowser.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
-import permissionsMixin from '../../mixins/Permissions.js'
 
 export default {
     name: 'ApplicationDevices',
@@ -26,7 +25,6 @@ export default {
         DevicesBrowser,
         SectionTopMenu
     },
-    mixins: [permissionsMixin],
     props: {
         application: {
             type: Object,

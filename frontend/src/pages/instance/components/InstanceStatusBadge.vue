@@ -1,6 +1,7 @@
 <template>
     <StatusBadge
         :status="status"
+        :text="text"
         :pendingChange="optimisticStateChange || pendingStateChange"
     />
 </template>
@@ -25,6 +26,10 @@ export default {
         optimisticStateChange: {
             type: Boolean,
             default: false
+        },
+        text: {
+            type: [Number, String],
+            default: null
         }
     }
 }

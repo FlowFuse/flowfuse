@@ -6,10 +6,12 @@
         :disabled="buttonDisabled"
         @click.stop="openDashboard()"
     >
-        <template #icon-right>
+        <template v-if="showExternalLink" #icon-right>
             <ExternalLinkIcon />
         </template>
-        Dashboard
+        <slot name="default">
+            Dashboard
+        </slot>
     </ff-button>
 </template>
 
@@ -43,6 +45,10 @@ export default {
         instance: {
             default: null,
             type: Object
+        },
+        showExternalLink: {
+            type: Boolean,
+            default: true
         }
     },
     computed: {
