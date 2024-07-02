@@ -94,3 +94,60 @@ describe('FlowForge - Team', () => {
         })
     })
 })
+
+describe('Navigation', () => {
+    it('correctly changes the team when navigating via url between teams', () => {
+        cy.login('bob', 'bbPassword')
+        cy.home()
+
+        cy.get('[data-action="team-selection"].ff-dropdown.ff-dropdown--closed.ff-team-selection')
+            .within(() => {
+                cy.contains('ATeam')
+            })
+        cy.contains('application-1')
+
+        cy.get('[data-nav="team-instances"]').click()
+        cy.contains('instance-1-1')
+        cy.contains('instance-1-2')
+
+        cy.visit('/team/bteam/applications')
+
+        cy.get('[data-action="team-selection"].ff-dropdown.ff-dropdown--closed.ff-team-selection')
+            .within(() => {
+                cy.contains('BTeam')
+            })
+        cy.contains('application-2')
+
+        cy.get('[data-nav="team-instances"]').click()
+        cy.contains('instance-2-1')
+        cy.contains('instance-2-with-devices')
+    })
+
+    it('correctly changes the team when manually selecting a different team', () => {
+        cy.login('bob', 'bbPassword')
+        cy.home()
+
+        cy.get('[data-action="team-selection"].ff-dropdown.ff-dropdown--closed.ff-team-selection')
+            .within(() => {
+                cy.contains('ATeam')
+            })
+        cy.contains('application-1')
+
+        cy.get('[data-nav="team-instances"]').click()
+        cy.contains('instance-1-1')
+        cy.contains('instance-1-2')
+
+        cy.get('[data-action="team-selection"].ff-dropdown.ff-dropdown--closed.ff-team-selection').click()
+        cy.get('[data-action="switch-team"]').contains('BTeam').parent().click()
+
+        cy.get('[data-action="team-selection"].ff-dropdown.ff-dropdown--closed.ff-team-selection')
+            .within(() => {
+                cy.contains('BTeam')
+            })
+        cy.contains('application-2')
+
+        cy.get('[data-nav="team-instances"]').click()
+        cy.contains('instance-2-1')
+        cy.contains('instance-2-with-devices')
+    })
+})

@@ -18,12 +18,6 @@ export default {
         FormRow,
         FormHeading
     },
-    props: {
-        team: {
-            type: Object,
-            required: true
-        }
-    },
     data () {
         return {
             input: {

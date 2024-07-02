@@ -147,10 +147,6 @@ export default {
         instance: {
             required: true,
             type: Object
-        },
-        isVisitingAdmin: {
-            required: true,
-            type: Boolean
         }
     },
     data () {

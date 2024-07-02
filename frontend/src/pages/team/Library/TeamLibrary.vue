@@ -106,7 +106,6 @@ export default {
     },
     computed: {
         ...mapState('account', ['team', 'teamMembership'])
-
     },
     created () {
         this.$watch(

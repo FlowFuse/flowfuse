@@ -87,12 +87,6 @@ export default {
         SparklesIcon,
         TemplateIcon
     },
-    props: {
-        team: {
-            type: Object,
-            required: true
-        }
-    },
     data () {
         return {
             errors: {
@@ -109,7 +103,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user', 'features']),
+        ...mapState('account', ['user', 'features', 'team']),
         formValid () {
             return this.input.teamName && !this.pendingSlugCheck && !this.errors.slug && !this.errors.teamName
         },

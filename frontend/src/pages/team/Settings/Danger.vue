@@ -46,12 +46,6 @@ export default {
         ConfirmTeamDeleteDialog,
         TeamAdminTools
     },
-    props: {
-        team: {
-            type: Object,
-            required: true
-        }
-    },
     data () {
         return {
             applicationCount: -1,
@@ -60,7 +54,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user', 'features']),
+        ...mapState('account', ['user', 'features', 'team']),
         isAdmin: function () {
             return this.user.admin
         }

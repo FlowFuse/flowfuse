@@ -58,6 +58,7 @@ import instanceApi from '../../api/instances.js'
 import NavItem from '../../components/NavItem.vue'
 import SideNavigation from '../../components/SideNavigation.vue'
 import applicationMixin from '../../mixins/Application.js'
+import permissionMixin from '../../mixins/Permissions.js'
 import Alerts from '../../services/alerts.js'
 import InstanceForm from '../instance/components/InstanceForm.vue'
 
@@ -68,7 +69,7 @@ export default {
         NavItem,
         SideNavigation
     },
-    mixins: [applicationMixin],
+    mixins: [applicationMixin, permissionMixin],
     inheritAttrs: false,
     props: {
         sourceInstanceId: {
