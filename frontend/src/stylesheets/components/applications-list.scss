@@ -31,7 +31,7 @@
         background-color: white !important;
         display: flex;
         justify-content: space-between;
-        padding: 18px;
+        padding: 12px;
         border: 1px solid $ff-grey-300;
         >span {
             display: flex;
@@ -42,6 +42,7 @@
             cursor: pointer;
             border-color: $ff-blue-600;
 
+            .ff-application-list--icon,
             .ff-application-list--icon .ff-icon {
                 color: $ff-blue-600;
             }
