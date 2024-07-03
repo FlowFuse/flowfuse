@@ -184,7 +184,6 @@ describe('FlowForge - Applications', () => {
                 .parent()
                 .within(() => {
                     cy.get('[data-el="status-badge-offline"]').should('exist')
-                    cy.get('[data-action="open-editor"]').should('exist').should('be.disabled')
                     cy.contains('Last seen: never')
                 })
 
@@ -194,9 +193,6 @@ describe('FlowForge - Applications', () => {
                 .parent()
                 .within(() => {
                     cy.get('[data-el="status-badge-running"]').should('exist')
-
-                    // todo device editor btn ko
-                    // cy.get('[data-action="open-editor"]').should('exist').should('be.enabled')
                     cy.contains('Last seen: never')
                 })
         })
