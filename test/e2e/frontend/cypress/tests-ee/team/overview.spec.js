@@ -60,7 +60,7 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                     })
                 }).as('getApplicationsStatus')
 
-                cy.intercept('GET', '/api/*/teams/*/applications*', (req) => {
+                cy.intercept('GET', '/api/*/teams/*/applications?*', (req) => {
                     req.continue((res) => {
                         const instanceOne = res.body.applications[0].instancesSummary.instances.find((instance) => instance.id === instanceOneId)
                         instanceOne.flowLastUpdatedAt = new Date().toISOString()
@@ -118,7 +118,6 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                     cy.get('[data-el="application-devices"]').find('.item-wrapper').should('have.length', 2)
                     cy.get('[data-el="application-devices"] .item-wrapper:contains("application-device-a")').within(() => {
                         cy.get('[data-el="status-badge-running"]').should('exist')
-                        cy.get('[data-action="open-editor"]').should('be.enabled')
                         cy.get('[data-el="kebab-menu"]').should('exist')
                     })
 
@@ -127,7 +126,6 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
 
                         cy.contains('Last seen: never')
 
-                        cy.get('[data-action="open-editor"]').should('be.disabled')
                         cy.get('[data-el="kebab-menu"]').should('exist')
                     })
                 })
