@@ -12,22 +12,6 @@
             </span>
         </div>
         <div class="actions">
-            <EditorLink
-                :instance="device"
-                :editorDisabled="false"
-                :disabled="isEditorDisabled"
-                disabledReason="Device must be running, in developer mode and have the editor enabled and connected"
-            >
-                <ff-button
-                    v-ff-tooltip:left="isEditorDisabled ? 'Device must be running, in developer mode and have the editor enabled and connected' : undefined"
-                    kind="secondary"
-                    data-action="open-editor"
-                    class="whitespace-nowrap"
-                    :disabled="isEditorDisabled"
-                >
-                    <ProjectIcon class="ff-btn--icon ff-icon" />
-                </ff-button>
-            </EditorLink>
             <ff-kebab-menu>
                 <ff-list-item
                     label="Edit Details"
@@ -63,19 +47,15 @@
 
 <script>
 import StatusBadge from '../../../../../components/StatusBadge.vue'
-import ProjectIcon from '../../../../../components/icons/Projects.js'
 import AuditMixin from '../../../../../mixins/Audit.js'
 import deviceActionsMixin from '../../../../../mixins/DeviceActions.js'
 import permissionsMixin from '../../../../../mixins/Permissions.js'
 import FfKebabMenu from '../../../../../ui-components/components/KebabMenu.vue'
 import DaysSince from '../../../../application/Snapshots/components/cells/DaysSince.vue'
-import EditorLink from '../../../../instance/components/EditorLink.vue'
 
 export default {
     name: 'DeviceTile',
     components: {
-        ProjectIcon,
-        EditorLink,
         StatusBadge,
         FfKebabMenu,
         DaysSince
@@ -91,12 +71,7 @@ export default {
             type: Object
         }
     },
-    emits: ['device-action'],
-    computed: {
-        isEditorDisabled () {
-            return !this.device.editor?.enabled || !this.device.editor?.connected || !this.device.editor?.local
-        }
-    }
+    emits: ['device-action']
 }
 </script>
 
