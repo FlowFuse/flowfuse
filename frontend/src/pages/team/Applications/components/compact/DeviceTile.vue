@@ -1,10 +1,10 @@
 <template>
-    <div class="device-tile">
+    <div class="device-tile" data-el="device-tile">
         <div class="status">
             <StatusBadge :status="device.status" />
         </div>
         <div class="details">
-            <span>{{ device.name }}</span>
+            <span class="cursor-pointer">{{ device.name }}</span>
             <span>
                 Last seen:
                 <DaysSince v-if="device.lastSeenAt" :date="device.lastSeenAt" />
