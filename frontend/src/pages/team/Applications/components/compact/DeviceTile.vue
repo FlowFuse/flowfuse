@@ -12,22 +12,22 @@
             </span>
         </div>
         <div class="actions">
-            <EditorLink
-                :instance="device"
-                :editorDisabled="false"
-                :disabled="isEditorDisabled"
-                disabledReason="Device must be running, in developer mode and have the editor enabled and connected"
-            >
-                <ff-button
-                    v-ff-tooltip:left="isEditorDisabled ? 'Device must be running, in developer mode and have the editor enabled and connected' : undefined"
-                    kind="secondary"
-                    data-action="open-editor"
-                    class="whitespace-nowrap"
-                    :disabled="isEditorDisabled"
-                >
-                    <ProjectIcon class="ff-btn--icon ff-icon" />
-                </ff-button>
-            </EditorLink>
+            <!--            <EditorLink-->
+            <!--                :instance="device"-->
+            <!--                :editorDisabled="false"-->
+            <!--                :disabled="isEditorDisabled"-->
+            <!--                disabledReason="Device must be running, in developer mode and have the editor enabled and connected"-->
+            <!--            >-->
+            <!--                <ff-button-->
+            <!--                    v-ff-tooltip:left="isEditorDisabled ? 'Device must be running, in developer mode and have the editor enabled and connected' : undefined"-->
+            <!--                    kind="secondary"-->
+            <!--                    data-action="open-editor"-->
+            <!--                    class="whitespace-nowrap"-->
+            <!--                    :disabled="isEditorDisabled"-->
+            <!--                >-->
+            <!--                    <ProjectIcon class="ff-btn&#45;&#45;icon ff-icon" />-->
+            <!--                </ff-button>-->
+            <!--            </EditorLink>-->
             <ff-kebab-menu>
                 <ff-list-item
                     label="Edit Details"
