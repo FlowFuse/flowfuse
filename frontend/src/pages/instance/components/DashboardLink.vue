@@ -62,9 +62,10 @@ export default {
                 return
             }
             let baseURL = removeSlashes(this.instance.url, false, true)
+            const adminRootSetting = this.instance.settings?.httpAdminRoot || this.instance.template?.settings?.httpAdminRoot
             // Check to see if the editor path has been set
-            if (this.instance.settings?.httpAdminRoot) {
-                const adminRoot = removeSlashes(this.instance.settings?.httpAdminRoot, true, true)
+            if (adminRootSetting) {
+                const adminRoot = removeSlashes(adminRootSetting, true, true)
                 if (baseURL.endsWith(adminRoot)) {
                     // Strip off the editor path to get to the right root url
                     baseURL = baseURL.substring(0, baseURL.length - adminRoot.length)

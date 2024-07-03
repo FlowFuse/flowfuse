@@ -21,7 +21,7 @@
 
 <script>
 import { ExternalLinkIcon } from '@heroicons/vue/solid'
-// import SemVer from 'semver'
+import SemVer from 'semver'
 
 import { mapState } from 'vuex'
 
@@ -50,14 +50,12 @@ export default {
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
         isImmersiveEditor () {
-            return false
-
-            // const nrSemver = SemVer.parse(this.instance?.meta?.versions?.['node-red'])
-            // // Supported from 4.0.0-beta.4 and later. This requires a bit more effort to check
-            // if (nrSemver && nrSemver.major >= 4 && (nrSemver.prerelease.length === 0 || nrSemver.prerelease[1] >= 4)) {
-            //     return SemVer.satisfies(SemVer.coerce(this.instance?.meta?.versions?.launcher), '>=2.5.0')
-            // }
-            // return false
+            // Immersive Editor only available for:
+            // - Node-RED 4.0.2+
+            // - Launcher 2.6.0+
+            const validNR = SemVer.satisfies(this.instance?.meta?.versions?.['node-red'], '>=4.0.2', { includePrerelease: true })
+            const validLauncher = SemVer.satisfies(SemVer.coerce(this.instance?.meta?.versions?.launcher), '>=2.6.0')
+            return validNR && validLauncher
         },
         url () {
             if (this.isImmersiveEditor) {
