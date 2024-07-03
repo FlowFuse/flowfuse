@@ -224,10 +224,8 @@ import { PlusSmIcon } from '@heroicons/vue/solid'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import ApplicationApi from '../api/application.js'
 import deviceApi from '../api/devices.js'
-import instanceApi from '../api/instances.js'
-import teamApi from '../api/team.js'
+import deviceActionsMixin from '../mixins/DeviceActions.js'
 
 import permissionsMixin from '../mixins/Permissions.js'
 
@@ -244,7 +242,6 @@ import DeviceCredentialsDialog from '../pages/team/Devices/dialogs/DeviceCredent
 import TeamDeviceCreateDialog from '../pages/team/Devices/dialogs/TeamDeviceCreateDialog.vue'
 
 import Alerts from '../services/alerts.js'
-import Dialog from '../services/dialog.js'
 
 import { debounce } from '../utils/eventHandling.js'
 import { createPollTimer } from '../utils/timers.js'
@@ -269,7 +266,7 @@ export default {
         EmptyState,
         DevicesStatusBar
     },
-    mixins: [permissionsMixin],
+    mixins: [permissionsMixin, deviceActionsMixin],
     inheritAttrs: false,
     props: {
         // One of the two must be provided
@@ -294,13 +291,7 @@ export default {
             deletingDevice: false,
 
             // Devices lists
-            allDeviceStatuses: new Map(), // every device known
             devices: new Map(), // devices currently available to be displayed
-            deviceCountDeltaSincePageLoad: 0,
-
-            // Server side
-            filter: null,
-            nextCursor: null,
 
             unsearchedHasMoreThanOnePage: true,
             unfilteredHasMoreThanOnePage: true,
@@ -368,15 +359,6 @@ export default {
 
             return output
         },
-        displayingInstance () {
-            return this.instance !== null
-        },
-        displayingApplication () {
-            return this.application !== null && !this.displayingInstance
-        },
-        displayingTeam () {
-            return this.team !== null && !this.displayingInstance && !this.displayingApplication
-        },
         hasLoadedModel () {
             return (
                 (this.displayingInstance && !!this.instance?.id) ||
@@ -386,9 +368,6 @@ export default {
         },
         moreThanOnePage () {
             return !!this.nextCursor
-        },
-        teamDeviceCount () {
-            return this.team.deviceCount + this.deviceCountDeltaSincePageLoad
         },
         teamRuntimeLimitReached () {
             let teamTypeRuntimeLimit = this.team.type.properties?.runtimes?.limit
@@ -484,54 +463,8 @@ export default {
             this.$refs.teamDeviceCreateDialog.show(null, this.instance, this.application, showApplicationsList)
         },
 
-        showEditDeviceDialog (device) {
-            this.$refs.teamDeviceCreateDialog.show(device)
-        },
-
         showSelectTargetSnapshotDialog () {
             this.$refs.snapshotAssignDialog.show()
-        },
-
-        deviceCreated (device) {
-            if (device) {
-                setTimeout(() => {
-                    this.$refs.deviceCredentialsDialog.show(device)
-                }, 500)
-
-                this.updateLocalCopyOfDevice(device)
-            }
-        },
-
-        deviceUpdated (device) {
-            this.updateLocalCopyOfDevice(device)
-        },
-
-        deleteLocalCopyOfDevice (device) {
-            if (this.allDeviceStatuses.get(device.id)) {
-                this.deviceCountDeltaSincePageLoad--
-            }
-            this.allDeviceStatuses.delete(device.id)
-            this.devices.delete(device.id)
-        },
-
-        updateLocalCopyOfDevice (device) {
-            if (!this.allDeviceStatuses.get(device.id)) {
-                this.deviceCountDeltaSincePageLoad++
-            }
-
-            // Only grab status props to avoid polluting allDeviceStatuses with extra info
-            const currentDeviceStatus = this.allDeviceStatuses.get(device.id)
-            if (currentDeviceStatus) {
-                const updatedDeviceStatusPropsOnly = Object.keys(currentDeviceStatus).reduce((acc, key) => {
-                    acc[key] = device[key]
-                    return acc
-                }, { ...currentDeviceStatus })
-                this.allDeviceStatuses.set(device.id, updatedDeviceStatusPropsOnly)
-            } else {
-                this.allDeviceStatuses.set(device.id, device)
-            }
-
-            this.devices.set(device.id, device)
         },
 
         async assignDevice (device, instanceId) {
@@ -570,44 +503,6 @@ export default {
             if (this.hasLoadedModel) {
                 await this.fetchAllDeviceStatuses(reset)
             }
-        },
-
-        // Actual fetching methods
-        async fetchData (nextCursor = null, limit = null, extraParams = { statusOnly: false }) {
-            const query = null // handled via extraParams
-            if (this.displayingInstance) {
-                return await instanceApi.getInstanceDevices(this.instance.id, nextCursor, limit, query, extraParams)
-            }
-
-            if (this.displayingApplication) {
-                return await ApplicationApi.getApplicationDevices(this.application.id, nextCursor, limit, query, extraParams)
-            }
-
-            if (this.displayingTeam) {
-                return await teamApi.getTeamDevices(this.team.id, nextCursor, limit, query, extraParams)
-            }
-
-            console.warn('Trying to fetch data without a loaded model.')
-
-            return null
-        },
-
-        async fetchAllDeviceStatuses (reset = false) {
-            const data = await this.fetchData(null, null, { statusOnly: true })
-
-            if (reset) {
-                this.allDeviceStatuses = new Map()
-            }
-
-            if (data.meta?.next_cursor || data.devices.length < data.count) {
-                console.warn('Device Status API should not be paginating')
-            }
-
-            data.devices.forEach(device => {
-                this.allDeviceStatuses.set(device.id, device)
-            })
-
-            this.loadingStatuses = false
         },
 
         async fetchDevices (resetPage = false) {
@@ -658,68 +553,6 @@ export default {
             }
 
             this.loadingDevices = false
-        },
-
-        deviceAction (action, deviceId) {
-            const device = this.devices.get(deviceId)
-            if (action === 'edit') {
-                this.showEditDeviceDialog(device)
-            } else if (action === 'delete') {
-                Dialog.show({
-                    header: 'Delete Device',
-                    kind: 'danger',
-                    text: 'Are you sure you want to delete this device? Once deleted, there is no going back.',
-                    confirmLabel: 'Delete'
-                }, async () => {
-                    try {
-                        await deviceApi.deleteDevice(device.id)
-                        Alerts.emit('Successfully deleted the device', 'confirmation')
-                        this.deleteLocalCopyOfDevice(device)
-                    } catch (err) {
-                        Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
-                    }
-                })
-            } else if (action === 'updateCredentials') {
-                this.$refs.deviceCredentialsDialog.show(device)
-            } else if (action === 'removeFromProject') {
-                Dialog.show({
-                    header: 'Remove Device from Instance',
-                    kind: 'danger',
-                    text: 'Are you sure you want to remove this device from the instance? This will stop the flows running on the device.',
-                    confirmLabel: 'Remove'
-                }, async () => {
-                    await deviceApi.updateDevice(device.id, { instance: null })
-
-                    if (this.displayingInstance) {
-                        this.deleteLocalCopyOfDevice(device)
-                    } else {
-                        this.updateLocalCopyOfDevice({ ...device, instance: undefined, application: undefined, ownerType: '' })
-                    }
-
-                    Alerts.emit('Successfully removed the device from the instance.', 'confirmation')
-                })
-            } else if (action === 'removeFromApplication') {
-                Dialog.show({
-                    header: 'Remove Device from Application',
-                    kind: 'danger',
-                    text: 'Are you sure you want to remove this device from the application? This will stop the flows running on the device.',
-                    confirmLabel: 'Remove'
-                }, async () => {
-                    await deviceApi.updateDevice(device.id, { application: null })
-
-                    if (this.displayingApplication) {
-                        this.deleteLocalCopyOfDevice(device)
-                    } else {
-                        this.updateLocalCopyOfDevice({ ...device, instance: undefined, application: undefined, ownerType: '' })
-                    }
-
-                    Alerts.emit('Successfully removed the device from the application.', 'confirmation')
-                })
-            } else if (action === 'assignToProject') {
-                this.$refs.deviceAssignInstanceDialog.show(device)
-            } else if (action === 'assignToApplication') {
-                this.$refs.deviceAssignApplicationDialog.show(device, false)
-            }
         },
 
         getOwnerSortKeyForDevice (device) {

@@ -3,6 +3,7 @@
     <div
         v-else
         class="forge-badge"
+        :data-el="`status-badge-${status}`"
         :class="['forge-status-' + status, pendingChange ? 'opacity-40' : '']"
     >
         <ExclamationCircleIcon v-if="status === 'error' || status === 'crashed'" class="w-4 h-4" />
@@ -18,7 +19,7 @@
         <AnimIconInstalling v-if="status === 'installing' || status === 'updating'" class="w-3 h-3" />
         <SupportIcon v-if="status === 'safe'" class="w-4 h-4" />
         <LockClosedIcon v-if="status === 'protected'" class="w-4 h-4" />
-        <span class="ml-1">{{ text === null ? status : text }}</span>
+        <span v-if="text !== ''" class="ml-1">{{ text === null ? status : text }}</span>
     </div>
 </template>
 

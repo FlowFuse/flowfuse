@@ -32,8 +32,6 @@
                 :devices="devicesArray"
                 :deviceGroups="deviceGroupsArray"
                 :is-visiting-admin="isVisitingAdmin"
-                :team="team"
-                :team-membership="teamMembership"
                 @application-updated="updateApplication"
                 @application-delete="showConfirmDeleteApplicationDialog"
                 @instance-start="instanceStart"
@@ -52,8 +50,6 @@ import { ChipIcon, ClockIcon, CogIcon, TerminalIcon, ViewListIcon } from '@heroi
 
 import { mapState } from 'vuex'
 
-import InstanceApi from '../../api/instances.js'
-
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
@@ -62,12 +58,8 @@ import PipelinesIcon from '../../components/icons/Pipelines.js'
 import ProjectsIcon from '../../components/icons/Projects.js'
 
 import applicationMixin from '../../mixins/Application.js'
+import instanceActionsMixin from '../../mixins/InstanceActions.js'
 import permissionsMixin from '../../mixins/Permissions.js'
-
-import alerts from '../../services/alerts.js'
-import Dialog from '../../services/dialog.js'
-
-import { InstanceStateMutator } from '../../utils/InstanceStateMutator.js'
 
 import ConfirmInstanceDeleteDialog from '../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 
@@ -83,14 +75,14 @@ export default {
         SubscriptionExpiredBanner,
         TeamTrialBanner
     },
-    mixins: [permissionsMixin, applicationMixin],
+    mixins: [permissionsMixin, applicationMixin, instanceActionsMixin],
     data: function () {
         return {
             mounted: false
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership', 'team', 'features']),
+        ...mapState('account', ['features']),
         navigation () {
             const routes = [
                 { label: 'Instances', to: `/application/${this.application.id}/instances`, tag: 'application-overview', icon: ProjectsIcon },
@@ -132,74 +124,6 @@ export default {
         this.mounted = true
     },
     methods: {
-        instanceUpdated: function (newData) {
-            const mutator = new InstanceStateMutator(newData)
-            mutator.clearState()
-
-            this.applicationInstances.set(newData.id, {
-                ...this.applicationInstances.get(newData.id),
-                ...newData
-            })
-        },
-        showConfirmDeleteApplicationDialog () {
-            this.$refs.confirmApplicationDeleteDialog.show(this.application)
-        },
-        async instanceStart (instance) {
-            const mutator = new InstanceStateMutator(instance)
-            mutator.setStateOptimistically('starting')
-            try {
-                await InstanceApi.startInstance(instance)
-                mutator.setStateAsPendingFromServer()
-            } catch (err) {
-                console.warn('Instance start failed.', err)
-                alerts.emit('Instance start failed.', 'warning')
-
-                mutator.restoreState()
-            }
-        },
-        async instanceRestart (instance) {
-            const mutator = new InstanceStateMutator(instance)
-            mutator.setStateOptimistically('restarting')
-            try {
-                await InstanceApi.restartInstance(instance)
-                mutator.setStateAsPendingFromServer()
-            } catch (err) {
-                console.warn('Instance restart failed.', err)
-                alerts.emit('Instance restart failed.', 'warning')
-
-                mutator.restoreState()
-            }
-        },
-        instanceShowConfirmSuspend (instance) {
-            Dialog.show({
-                header: 'Suspend Instance',
-                text: `Are you sure you want to suspend ${instance.name}`,
-                confirmLabel: 'Suspend',
-                kind: 'danger'
-            }, () => {
-                const mutator = new InstanceStateMutator(instance)
-                mutator.setStateOptimistically('suspending')
-
-                InstanceApi.suspendInstance(instance).then(() => {
-                    mutator.setStateAsPendingFromServer()
-
-                    alerts.emit('Instance suspend request succeeded.', 'confirmation')
-                }).catch(err => {
-                    console.warn(err)
-                    alerts.emit('Instance failed to suspend.', 'warning')
-
-                    mutator.restoreState()
-                })
-            })
-        },
-        instanceShowConfirmDelete (instance) {
-            this.$refs.confirmInstanceDeleteDialog.show(instance)
-        },
-        onInstanceDeleted (instance) {
-            if (this.applicationInstances.has(instance.id)) {
-                this.applicationInstances.delete(instance.id)
-            }
-        }
     }
 }
 </script>

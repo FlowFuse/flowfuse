@@ -1,18 +1,22 @@
 <template>
-    <ff-button
-        v-ff-tooltip:left="(editorDisabled || disabled) ? disabledReason : undefined"
-        kind="secondary"
-        data-action="open-editor"
-        :disabled="editorDisabled || disabled || !url"
-        class="whitespace-nowrap"
-        :has-right-icon="!isImmersiveEditor"
-        @click.stop="openEditor()"
-    >
-        <template #icon-right>
-            <ExternalLinkIcon />
-        </template>
-        {{ editorDisabled ? 'Editor Disabled' : 'Open Editor' }}
-    </ff-button>
+    <div :data-type="`${isImmersiveEditor ? 'immersive' : 'standard'}-editor`" @click.stop="openEditor()">
+        <slot name="default">
+            <ff-button
+                v-ff-tooltip:left="(editorDisabled || disabled) ? disabledReason : undefined"
+                kind="secondary"
+                data-action="open-editor"
+                :disabled="editorDisabled || disabled || !url"
+                class="whitespace-nowrap"
+                :has-right-icon="!isImmersiveEditor"
+                @click.stop="openEditor()"
+            >
+                <template #icon-right>
+                    <ExternalLinkIcon />
+                </template>
+                {{ editorDisabled ? 'Editor Disabled' : 'Open Editor' }}
+            </ff-button>
+        </slot>
+    </div>
 </template>
 
 <script>
