@@ -18,5 +18,5 @@ export const dateToSlug = (date) => {
     const hours = String(date.getHours()).padStart(2, '0')
     const minutes = String(date.getMinutes()).padStart(2, '0')
 
-    return `${year}-${month}-${day}-${hours}:${minutes}`
+    return `${year}-${month}-${day}_${hours}-${minutes}`
 }
