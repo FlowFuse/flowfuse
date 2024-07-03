@@ -58,12 +58,13 @@
         color: $ff-grey-500;
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 6px;
 
         &::after {
             content: '';
             height: 1px;
             flex-grow: 1;
+            margin-left: 9px;
             background-color: $ff-grey-300;
         }
     }
@@ -113,7 +114,7 @@
     .actions {
         display: flex;
         justify-content: flex-end;
-        gap: 5px;
+        gap: 9px;
     }
 }
 
@@ -197,13 +198,17 @@
                     display: flex;
                     align-items: center;
                 }
+                &:hover {
+                    color: $ff-blue-600;
+                    border-color: $ff-blue-800;
+                }
             }
 
             .instance-tile,
             .device-tile {
                 display: flex;
                 flex: 1;
-                gap: 5px;
+                gap: 12px;
                 justify-content: space-between;
                 align-items: center;
 
@@ -229,12 +234,16 @@
                             color: $ff-grey-400;
                         }
                     }
+                    &:hover {
+                        cursor: pointer;
+                        color: $ff-blue-600;
+                    }
                 }
 
                 .actions {
                     display: flex;
                     align-items: center;
-                    gap: 3px;
+                    gap: 9px;
 
                     button {
                         padding: 6px 10px;
