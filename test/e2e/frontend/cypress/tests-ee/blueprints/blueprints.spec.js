@@ -80,15 +80,9 @@ describe('FlowForge - Blueprints', () => {
             cy.get('[data-el="create-blueprint-dialog"]').should('not.be.visible')
 
             // check the blueprint was created
-            cy.get('[data-el="blueprints"] [data-el="blueprint-tile"]')
-                .its('length')
-                .should('eq', blueprintCount + 1)
-            cy.get('[data-el="blueprints"] [data-el="blueprint-tile"]')
-                .children()
-                .should('contain', name)
-            cy.get('[data-el="blueprints"] [data-el="blueprint-tile"]')
-                .children()
-                .should('contain', DESCRIPTION)
+            cy.get('[data-el="blueprints"] [data-el="blueprint-tile"]').its('length').should('eq', blueprintCount + 1)
+            cy.get('[data-el="blueprints"] [data-el="blueprint-tile"]').should('contain', name)
+            cy.get('[data-el="blueprints"] [data-el="blueprint-tile"]').should('contain', DESCRIPTION)
         })
     })
 
@@ -215,5 +209,111 @@ describe('FlowForge - Blueprints', () => {
             cy.get('[data-action="dialog-confirm"]').click()
             cy.get('[data-el="flow-view-dialog"]').should('not.be.visible')
         }))
+    })
+
+    it('can export blueprints', () => {
+        cy.task('clearDownloads')
+        cy.visit('/admin/flow-blueprints')
+
+        cy.get('[data-action="export-flow-blueprints"]').click()
+
+        // wait for the file to be downloaded
+        cy.wait(250) // eslint-disable-line cypress/no-unnecessary-waiting
+
+        // generate the expected snapshot filename structure
+        cy.task('fileExists', {
+            dir: Cypress.config('downloadsFolder'),
+            fileRE: /blueprints_export_*/
+        })
+    })
+
+    it('can import blueprints from a file', () => {
+        cy.visit('/admin/flow-blueprints')
+
+        cy.get('[data-action="import-flow-blueprints"]').click()
+
+        cy.get('[data-action="dialog-confirm"]').should('be.disabled')
+
+        // uploading file containing invalid JSON
+        cy.get('[data-action="upload"]').click()
+        cy.get('[data-el="upload-input"]', { force: true }).selectFile({
+            contents: Cypress.Buffer.from('invalid-JSON'),
+            fileName: 'file.txt',
+            lastModified: Date.now()
+        }, { force: true })
+
+        cy.get('[data-el="input-textarea"]').should('be.disabled')
+        cy.get('[data-el="form-row-error"]').should('contain', 'Invalid JSON')
+        cy.get('[data-action="dialog-confirm"').should('be.disabled')
+
+        cy.get('[data-action="clear-file"]').click()
+
+        cy.get('[data-el="form-row-error"]').should('not.exist')
+        cy.get('[data-action="dialog-confirm"').should('be.disabled')
+        cy.get('[data-el="input-textarea"]').should('not.be.disabled')
+
+        // uploading file containing valid JSON, but not valid blueprint
+        cy.get('[data-action="upload"]').click()
+        cy.get('[data-el="upload-input"]', { force: true }).selectFile({
+            contents: Cypress.Buffer.from('{}'),
+            fileName: 'file.txt',
+            lastModified: Date.now()
+        }, { force: true })
+        cy.get('[data-el="form-row-error"]').should('not.exist')
+
+        cy.get('[data-el="input-textarea"]').should('be.disabled')
+        cy.get('[data-action="dialog-confirm"]').should('not.be.disabled')
+        cy.get('[data-action="dialog-confirm"').should('not.be.disabled')
+
+        // uploading file containing valid Blueprint JSON
+        cy.get('[data-action="clear-file"]').click()
+        cy.get('[data-el="upload-input"]', { force: true }).selectFile({
+            contents: Cypress.Buffer.from(JSON.stringify([{ ...singleBlueprint.blueprints, name: 'IMPORTED BLUEPRINT' }])),
+            fileName: 'file.txt',
+            lastModified: Date.now()
+        }, { force: true })
+        cy.get('[data-el="form-row-error"]').should('not.exist')
+        cy.get('[data-el="input-textarea"]').should('be.disabled')
+        cy.get('[data-dialog="import-flow-blueprints"]').within(() => {
+            cy.get('[data-action="dialog-confirm"]').click()
+        })
+
+        cy.contains('Blueprints successfully imported!')
+        cy.get('[data-el="blueprints"]').contains('IMPORTED BLUEPRINT')
+    })
+
+    it('can import copied blueprints', () => {
+        cy.visit('/admin/flow-blueprints')
+
+        cy.get('[data-action="import-flow-blueprints"]').click()
+
+        cy.get('[data-action="dialog-confirm"]').should('be.disabled')
+
+        cy.get('[data-el="input-textarea"]').type('invalid-json')
+        cy.get('[data-el="form-row-error"]').should('contain', 'Invalid JSON')
+        cy.get('[data-action="upload"]').should('be.disabled')
+        cy.get('[data-action="dialog-confirm"').should('be.disabled')
+
+        cy.get('[data-action="clear-input"]').click()
+        cy.get('[data-el="form-row-error"]').should('not.exist')
+        cy.get('[data-action="upload"]').should('not.be.disabled')
+        cy.get('[data-action="dialog-confirm"').should('be.disabled')
+
+        cy.get('[data-el="input-textarea"]').type('{}')
+        cy.get('[data-el="form-row-error"]').should('not.exist')
+        cy.get('[data-action="upload"]').should('be.disabled')
+        cy.get('[data-action="dialog-confirm"').should('not.be.disabled')
+
+        cy.get('[data-action="clear-input"]').click()
+        cy.get('[data-el="input-textarea"]')
+            .invoke('val', JSON.stringify([{ ...singleBlueprint.blueprints, name: 'ANOTHER IMPORTED BLUEPRINT' }]))
+            .trigger('input')
+
+        cy.get('[data-dialog="import-flow-blueprints"]').within(() => {
+            cy.get('[data-action="dialog-confirm"]').click()
+        })
+
+        cy.contains('Blueprints successfully imported!')
+        cy.get('[data-el="blueprints"]').contains('ANOTHER IMPORTED BLUEPRINT')
     })
 })
