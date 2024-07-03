@@ -18,7 +18,31 @@ module.exports = async function (app) {
      * use an alternative means of accessing it.
     */
     app.post('/function', {
-        preHandler: app.needsPermission('assistant:function')
+        preHandler: app.needsPermission('assistant:function'),
+        schema: {
+            hide: true, // dont show in swagger
+            body: {
+                type: 'object',
+                properties: {
+                    // The prompt to send to the assistant (required)
+                    prompt: { type: 'string' },
+                    // A correlation id for the transaction (required)
+                    transactionId: { type: 'string' },
+                    // Additional context for the function (optional)
+                    context: { type: 'object', additionalProperties: true }
+                },
+                required: ['prompt', 'transactionId']
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    additionalProperties: true
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
     },
     async (request, reply) => {
         // const method = request.params.method // FUTURE: allow for different methods
