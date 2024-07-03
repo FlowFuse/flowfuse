@@ -1,5 +1,7 @@
 import { nextTick } from 'vue'
 
+import flowBlueprintsApi from '../api/flowBlueprints.js'
+
 import settingsApi from '../api/settings.js'
 import teamApi from '../api/team.js'
 import userApi from '../api/user.js'
@@ -33,7 +35,9 @@ const state = () => ({
     pendingTeamChange: false,
     // As an SPA, if we get a network error we should present
     // a suitable 'offline' message.
-    offline: null
+    offline: null,
+
+    teamBlueprints: {}
 })
 
 // getters
@@ -76,7 +80,13 @@ const getters = {
     offline (state) {
         return state.offline
     },
-    isAdminUser: (state) => !!state.user.admin
+    isAdminUser: (state) => !!state.user.admin,
+    defaultUserTeam: (state, getters) => {
+        const defaultTeamId = state.user.defaultTeam || getters.teams[0]?.id
+        return state.teams.find(team => team.id === defaultTeamId)
+    },
+    blueprints: state => state.teamBlueprints[state.team?.id] || [],
+    defaultBlueprint: (state, getters) => getters.blueprints?.find(blueprint => blueprint.default)
 }
 
 const mutations = {
@@ -134,6 +144,9 @@ const mutations = {
     },
     setOffline (state, value) {
         state.offline = value
+    },
+    setTeamBlueprints (state, { teamId, blueprints }) {
+        state.teamBlueprints[teamId] = blueprints
     }
 }
 
@@ -330,6 +343,15 @@ const actions = {
     },
     setOffline (state, value) {
         state.commit('setOffline', value)
+    },
+    async getTeamBlueprints (state, teamId) {
+        const response = await flowBlueprintsApi.getFlowBlueprintsForTeam(teamId)
+        const blueprints = response.blueprints
+
+        return state.commit('setTeamBlueprints', { teamId, blueprints })
+    },
+    setRedirectUrl (state, url) {
+        state.commit('setRedirectUrl', url)
     }
 }
 
@@ -338,5 +360,12 @@ export default {
     state,
     getters,
     actions,
-    mutations
+    mutations,
+    meta: {
+        persistence: {
+            redirectUrlAfterLogin: {
+                storage: 'localStorage'
+            }
+        }
+    }
 }

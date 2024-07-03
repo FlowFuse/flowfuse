@@ -54,8 +54,8 @@ describe('FlowForge - Blueprints', () => {
         cy.visit('/admin/flow-blueprints')
 
         cy.wait('@getFlowBlueprints').then(({ response }) => {
-            const blueprintCount = response.body.count
-            const name = NAME + ' ' + blueprintCount
+            const blueprintCount = response.body.blueprints.filter(bl => bl.active).length
+            const name = `${NAME} (NEW)`
             cy.get('[data-el="create-blueprint-dialog"]').should('not.be.visible')
             cy.get('[data-action="create-flow-blueprint"]').click()
             cy.get('[data-el="create-blueprint-dialog"]').should('be.visible')
@@ -69,8 +69,10 @@ describe('FlowForge - Blueprints', () => {
             cy.get('[data-el="create-blueprint-dialog"] [data-form="order"] input[type="number"]').type(ORDER)
             cy.get('[data-el="create-blueprint-dialog"] [data-form="description"] textarea').type(DESCRIPTION)
 
-            cy.get('[data-el="create-blueprint-dialog"] [data-form="flows"] textarea').type(FLOWS, { parseSpecialCharSequences: false })
-            cy.get('[data-el="create-blueprint-dialog"] [data-form="modules"] textarea').type(MODULES, { parseSpecialCharSequences: false })
+            cy.get('[data-el="create-blueprint-dialog"] [data-form="flows"] textarea')
+                .type(FLOWS, { parseSpecialCharSequences: false })
+            cy.get('[data-el="create-blueprint-dialog"] [data-form="modules"] textarea')
+                .type(MODULES, { parseSpecialCharSequences: false })
 
             cy.get('[data-el="create-blueprint-dialog"] [data-form="confirm-dialog"]').should('not.be.disabled')
             cy.get('[data-el="create-blueprint-dialog"] [data-form="confirm-dialog"]').click()
