@@ -1,10 +1,15 @@
 <template>
-    <div v-if="hasNoDevices" class="ff-no-data">
-        This Application currently has no
-        <router-link :to="`/application/${application.id}/devices`" class="ff-link">attached devices</router-link>
-        .
-    </div>
-
+    <section v-if="hasNoDevices" class="ff-no-data--boxed">
+        <label class="delimiter">
+            <IconDeviceSolid class="ff-icon ff-icon-sm text-teal-700" />
+            Devices
+        </label>
+        <span class="message">
+            This Application currently has no
+            <router-link :to="`/application/${application.id}/devices`" class="ff-link">attached devices</router-link>
+            .
+        </span>
+    </section>
     <section v-else class="ff-applications-list-instances--compact" data-el="application-devices">
         <label class="delimiter">
             <IconDeviceSolid class="ff-icon ff-icon-sm text-teal-700" />

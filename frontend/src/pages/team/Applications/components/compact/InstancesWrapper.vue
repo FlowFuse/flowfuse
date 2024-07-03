@@ -1,11 +1,16 @@
 <template>
-    <div v-if="hasNoInstances" class="ff-no-data">
-        This Application currently has no
-        <router-link :to="`/application/${application.id}/instances`" class="ff-link">
-            attached Node-RED Instances
-        </router-link>
-        .
-    </div>
+    <section v-if="hasNoInstances" class="ff-no-data--boxed">
+        <label class="delimiter">
+            <IconNodeRedSolid class="ff-icon ff-icon-sm text-red-800" /> Instances
+        </label>
+        <span class="message">
+            This Application currently has no
+            <router-link :to="`/application/${application.id}/instances`" class="ff-link">
+                attached Node-RED Instances
+            </router-link>
+            .
+        </span>
+    </section>
     <section v-else class="ff-applications-list-instances--compact">
         <label class="delimiter">
             <IconNodeRedSolid class="ff-icon ff-icon-sm text-red-800" /> Instances

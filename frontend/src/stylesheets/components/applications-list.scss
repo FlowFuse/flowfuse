@@ -26,7 +26,7 @@
         }
     }
     .ff-application-list--app {
-        background-color: white;
+        background-color: white !important;
         display: flex;
         justify-content: space-between;
         padding: 18px;
@@ -51,6 +51,20 @@
         span {
             color: $ff-grey-400;
             font-size: 0.75rem;;
+        }
+    }
+    .delimiter {
+        font-size: 0.875rem;
+        color: $ff-grey-500;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        &::after {
+            content: '';
+            height: 1px;
+            flex-grow: 1;
+            background-color: $ff-grey-300;
         }
     }
 }
@@ -106,21 +120,6 @@
 .ff-applications-list-instances--compact {
     padding: 12px;
     padding-top: 6px;
-
-    .delimiter {
-        font-size: 0.875rem;
-        color: $ff-grey-500;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-
-        &::after {
-            content: '';
-            height: 1px;
-            flex-grow: 1;
-            background-color: $ff-grey-300;
-        }
-    }
 
     .items-wrapper {
         display: grid;
