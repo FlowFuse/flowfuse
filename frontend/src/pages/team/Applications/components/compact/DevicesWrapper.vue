@@ -26,8 +26,10 @@
             </div>
             <div v-if="hasMoreDevices" class="has-more item-wrapper">
                 <router-link :to="{name: 'ApplicationDevices', params: {id: application.id}}">
-                    {{ remainingDevices }}
-                    More...
+                    <span>
+                        {{ remainingDevices }}
+                        More...
+                    </span>
                     <ChevronRightIcon class="ff-icon" />
                 </router-link>
             </div>
