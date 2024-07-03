@@ -10,6 +10,8 @@
         }
 
         > section:last-of-type {
+            border-bottom-left-radius: 6px;
+            border-bottom-right-radius: 6px;
             border-bottom: 1px solid $ff-grey-300;
         }
         
