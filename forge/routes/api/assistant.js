@@ -48,7 +48,7 @@ module.exports = async function (app) {
         // const method = request.params.method // FUTURE: allow for different methods
         const method = 'function' // for now, only function node/code generation is supported
 
-        const serviceUrl = app.config.assistant?.service.url
+        const serviceUrl = app.config.assistant?.service?.url
         const serviceToken = app.config.assistant?.service?.token
         const enabled = app.config.assistant?.enabled !== false && serviceUrl
         const requestTimeout = app.config.assistant?.service?.requestTimeout || 60000
