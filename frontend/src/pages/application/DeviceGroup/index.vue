@@ -55,7 +55,6 @@
                 :deviceGroup="deviceGroup"
                 :applicationDevices="devicesArray"
                 :is-visiting-admin="isVisitingAdmin"
-                :team="team"
                 @device-group-updated="load"
                 @device-group-members-updated="load"
             />
