@@ -197,6 +197,10 @@
                     display: flex;
                     align-items: center;
                 }
+                &:hover {
+                    color: $ff-blue-600;
+                    border-color: $ff-blue-800;
+                }
             }
 
             .instance-tile,
@@ -228,6 +232,10 @@
                         &:last-child {
                             color: $ff-grey-400;
                         }
+                    }
+                    &:hover {
+                        cursor: pointer;
+                        color: $ff-blue-600;
                     }
                 }
 
