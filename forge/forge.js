@@ -410,7 +410,7 @@ module.exports = async (options = {}) => {
             hidePoweredBy: true,
             strictTransportSecurity,
             frameguard: {
-                action: 'deny'
+                action: 'sameorigin'
             },
             referrerPolicy: {
                 policy: 'origin-when-cross-origin'
