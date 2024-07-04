@@ -14,13 +14,55 @@ the platform.
 
 Experience the full capabilities of FlowFuse by obtaining a complimentary 30-day Enterprise license. This trial offers you an opportunity to thoroughly evaluate the features and functionalities of FlowFuse in your environment. To begin your trial, simply complete the form below.
 
+<p id="license-message"></p>
+
 <script charset="utf-8" type="text/javascript" src="//js-eu1.hsforms.net/forms/embed/v2.js"></script>
 <script>
-  hbspt.forms.create({
+function GenerateLicense(formData) {
+    if (formData) {
+        const jsonData = typeof formData === 'object' ? JSON.stringify(formData) : formData;
+
+        fetch('https://energetic-sanderling-4472.flowfuse.cloud/license/trial', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: jsonData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const messageElement = document.getElementById('license-message');
+            if (messageElement) {
+                messageElement.innerHTML = `<strong>Thank you for requesting a trial license. Below is your license </strong>: <code style="display:block;overflow-wrap: anywhere;"">${data[0].license}</code>`;
+
+            } else {
+                console.error('Message element not found');
+            }
+        })
+        .catch(error => {
+            const messageElement = document.getElementById('license-message');
+            if (messageElement) {
+                messageElement.textContent = 'Error generating license. Please try again later.';
+            } else {
+                console.error('Message element not found');
+            }
+        });
+    }
+}
+
+hbspt.forms.create({
     region: "eu1",
     portalId: "26586079",
-    formId: "41e858e1-6756-45be-9082-3980237fa229"
-  });
+    formId: "41e858e1-6756-45be-9082-3980237fa229",
+    onFormSubmitted: function ($form, data) {
+        GenerateLicense(data.submissionValues);
+    }
+});
 </script>
 
 ## One-Click Docker Installer
