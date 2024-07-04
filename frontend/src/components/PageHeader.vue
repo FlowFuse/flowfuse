@@ -60,6 +60,8 @@ import { AdjustmentsIcon, CogIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkC
 import { ref } from 'vue'
 import { mapGetters, mapState } from 'vuex'
 
+import navigationMixin from '../mixins/Navigation.js'
+
 import NavItem from './NavItem.vue'
 import TeamSelection from './TeamSelection.vue'
 
@@ -71,9 +73,10 @@ export default {
         }
     },
     emits: ['menu-toggle'],
+    mixins: [navigationMixin],
     computed: {
         ...mapState('account', ['user', 'team', 'teams']),
-        ...mapGetters('account', ['notifications']),
+        ...mapGetters('account', ['notifications', 'defaultUserTeam']),
         navigationOptions () {
             return [
                 {
@@ -110,7 +113,7 @@ export default {
                     label: 'Sign Out',
                     icon: LogoutIcon,
                     tag: 'sign-out',
-                    onclick: this.signout
+                    onclick: this.signOut
                 }
             ].filter(option => option !== undefined)
         }
@@ -142,16 +145,8 @@ export default {
         }
     },
     methods: {
-        home () {
-            if (this.team?.slug) {
-                this.$router.push({ name: 'Team', params: { team_slug: this.team.slug } })
-            }
-        },
         to (route) {
             window.open(route.url, '_blank')
-        },
-        signout () {
-            this.$router.push({ name: 'Sign out' })
         }
     }
 }
