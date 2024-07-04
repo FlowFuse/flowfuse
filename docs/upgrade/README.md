@@ -24,6 +24,24 @@ Details of how to upgrade can be found for each deployment model:
 - [Kubernetes](../install/kubernetes/README.md#upgrade)
 
 
+### Upgrading to 2.6.0
+
+This release introduces the Embedded Editor function with can be used to embed the Node-RED editor into the FlowFuse Application. 
+To make use of this new feature when running on AWS EKS a change to the NGINX Ingress controller and how it interacts with the AWS 
+NLB is requried.
+
+The following annotation needs to be added in the values passed to the ingress-nginx helm chart
+
+```
+controller:
+  service:
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: proxy_protocol_v2.enabled=true
+```
+
+The Proxy Protocol feature will be enabled only on newly created Target Groups. 
+To enable the Proxy Protocol on an existing Target Group, manual intervention is required. For detailed instructions, please refer to the [official AWS documentation](https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-target-groups.html#enable-proxy-protocol).
+
 ### Upgrading to 2.0.0
 
 > **⚠️**  Breaking changes introduced!
