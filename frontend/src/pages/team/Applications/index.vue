@@ -142,9 +142,6 @@ export default {
 
                 const applicationsPromise = teamApi.getTeamApplications(this.team.id, { associationsLimit: ASSOCIATIONS_LIMIT })
 
-                // Not waited for as it can resolve in any order
-                this.updateApplicationAssociationStatuses()
-
                 const applications = (await applicationsPromise).applications
                 applications.forEach((applicationData) => {
                     const application = applicationsMap.get(applicationData.id) || {}
@@ -179,6 +176,8 @@ export default {
                     })
                 })
                 this.applications = applicationsMap
+                // Only update statuses *after* populating this.applications
+                this.updateApplicationAssociationStatuses()
             }
             this.loading = false
         },
