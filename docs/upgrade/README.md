@@ -23,6 +23,29 @@ Details of how to upgrade can be found for each deployment model:
 - [Docker](../install/docker/README.md#upgrade)
 - [Kubernetes](../install/kubernetes/README.md#upgrade)
 
+### Upgrading to 2.6.0
+
+#### Persistent Storage
+
+As part of this release there is a new option for Persistent File Storage for Kubernetes based deployments.
+This change removes the need to use the customised File Nodes and the FlowFuse File Server by mounting a 
+Persistent Volume into the Pods running the instances.
+
+To enable this feature the following needs to be created
+
+- A Kubernetes StorageClass that points to storage provider that can 
+dynamically provision new Persistent Volumes. e.g. the [AWS EFS CSI driver](https://github.com/kubernetes-sigs/aws-efs-csi-driver)
+- Pass the following values to the FlowFuse Helm Chart
+    ```
+    forge:
+      persistentStorage:
+        enabled: true
+        storageClass: '<name of StorageClass>'
+        size: '5Gi'
+    ```
+    Where size is the default size for the volume.
+
+Details for how to setup a AWS EFS backed StorageClass can be found on the aws-efs-csi-driver [site](https://github.com/kubernetes-sigs/aws-efs-csi-driver/blob/master/docs/efs-create-filesystem.md).
 
 ### Upgrading to 2.0.0
 
