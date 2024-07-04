@@ -2,7 +2,7 @@
     <div class="instance-tile">
         <div class="status">
             <InstanceStatusBadge
-                :status="localInstance.meta.state"
+                :status="localInstance.meta?.state"
                 text=""
                 :pendingStateChange="localInstance.pendingStateChange"
                 :optimisticStateChange="localInstance.optimisticStateChange"
