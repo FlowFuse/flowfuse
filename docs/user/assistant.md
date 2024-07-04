@@ -4,12 +4,20 @@ navTitle: FlowFuse Assistant
 
 # FlowFuse Assistant Plugin
 
-**Introduced in FlowFuse 2.6**
+**Introduced in FlowFuse 2.6 on FlowFuse Cloud only. This feature is not yet available for self-hosted customers.**
 
-Node-RED instances running within FlowFuse will automatically include the **FlowFuse Assistant**
-plugin that aims to helps you work faster and smarter. The plugin currently supports 2 features:
+The FlowFuse Assistant brings the power of AI to the Node-RED editor.
+
+Node-RED instances running within FlowFuse Cloud will include the **FlowFuse Assistant**
+plugin that aims to helps you work faster and smarter.
+
+The plugin currently supports 2 features:
+
 1. Function node creation directly from the Node-RED editor toolbar
 2. In-line Function code generation within the function node editor
+
+To enable the Assistant, ensure your Instance is running the latest Stack.
+
 
 
 ### Function Node Creation
