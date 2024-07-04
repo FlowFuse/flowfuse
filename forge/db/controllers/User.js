@@ -17,16 +17,38 @@ module.exports = {
             ),
             attributes: ['password']
         })
-        // Always call compareSync, even if no user found, to ensure
-        // constant timing in the response.
-        if (compareHash(password || '', user ? user.password : '')) {
+        // To avoid timing vulnerabilities to discover if a user is valid or not,
+        // we always want to call the compareHash function, even if we want to reject
+        // the request at this point. The `forceFailure` flag lets us do that.
+        let forceFailure = false
+        let userPassword = ''
+
+        if (user) {
+            userPassword = user.password
+        } else {
+            forceFailure = true
+        }
+        // Do not allow arbitary length passwords to be passed to compareHash
+        if (!password || password.length > 128) {
+            password = ''
+            forceFailure = true
+        }
+        if (compareHash(password, userPassword)) {
+            if (forceFailure) {
+                // Don't care what the result is - we've already chosen to
+                // reject the login attempt
+                return false
+            }
             return true
         }
         return false
     },
 
     changePassword: async function (app, user, oldPassword, newPassword) {
-        if (compareHash(oldPassword, user.password)) {
+        if (oldPassword && oldPassword.length < 129 && compareHash(oldPassword, user.password)) {
+            if (newPassword.length > 128) {
+                throw new Error('Password Too Long (max 128)')
+            }
             if (zxcvbn(newPassword).score < 3) {
                 throw new Error('Password Too Weak')
             }
@@ -46,6 +68,9 @@ module.exports = {
     },
 
     resetPassword: async function (app, user, newPassword) {
+        if (newPassword.length > 128) {
+            throw new Error('Password Too Long (max 128)')
+        }
         if (zxcvbn(newPassword).score < 2) {
             throw new Error('Password Too Weak')
         }
