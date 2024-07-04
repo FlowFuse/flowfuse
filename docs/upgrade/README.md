@@ -26,9 +26,12 @@ Details of how to upgrade can be found for each deployment model:
 
 ### Upgrading to 2.6.0
 
-This release introduces the Embedded Editor function with can be used to embed the Node-RED editor into the FlowFuse Application. 
-To make use of this new feature when running on AWS EKS a change to the NGINX Ingress controller and how it interacts with the AWS 
-NLB is requried.
+
+#### Required AWS EKS configuration change
+
+This release introduces the new Embedded Editor which integrates the Node-RED editor with the FlowFuse dashboard when using Node-RED 4.0. This has required some changes to be made on how certain HTTP headers are passed between the NGINX Ingress controller and AWS NLB.
+
+The following configuration change must be applied otherwise users will not be able to login to Node-RED 4.0 instances.
 
 The following configuration needs to be added in the values passed to the ingress-nginx helm chart. See [full configuration](https://flowfuse.com/docs/install/kubernetes/aws/#nginx-ingress) for the reference.
 
