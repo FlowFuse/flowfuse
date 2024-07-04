@@ -77,3 +77,5 @@ FlowFuse supports reading and writing persistent files and persistent context.
  - [Shared Team Library](/docs/user/shared-library.md) - Share flows easily between different Node-RED instances in your team.
  - [Node-RED Tools Plugin](/docs/migration/node-red-tools.md) - A plugin for Node-RED that lets you work with your flows outside of FlowFuse.
  - [High Availability mode](/docs/user/high-availability.md) - Run multiple copies of your instance for scaling and availability.
+ - [FlowFuse Assistant](/docs/user/assistant.md) - A plugin for Node-RED that helps you code faster.
+ 
