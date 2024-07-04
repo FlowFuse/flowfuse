@@ -51,7 +51,7 @@ function clearRedirectUrl (to, from) {
     if (
         store.state?.account?.user &&
         store.state?.account?.redirectUrlAfterLogin &&
-        from.fullPath === store.state?.account?.redirectUrlAfterLogin) {
+        store.state?.account?.redirectUrlAfterLogin.includes(from.fullPath)) {
         store.dispatch('account/setRedirectUrl', null)
     }
 }
