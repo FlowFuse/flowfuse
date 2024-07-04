@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+import { useStore } from 'vuex'
+
 import Home from './pages/Home.vue'
 import PageNotFound from './pages/PageNotFound.vue'
 
@@ -43,6 +45,17 @@ const router = createRouter({
     routes
 })
 
+function clearRedirectUrl (to, from) {
+    const store = useStore()
+
+    if (
+        store.state?.account?.user &&
+        store.state?.account?.redirectUrlAfterLogin &&
+        store.state?.account?.redirectUrlAfterLogin.includes(from.fullPath)) {
+        store.dispatch('account/setRedirectUrl', null)
+    }
+}
+
 /*
     Set Page Title when switching views
 */
@@ -84,8 +97,11 @@ router.beforeEach((to, from, next) => {
     Array.from(document.querySelectorAll('[data-vue-router-controlled]')).map(el => el.parentNode.removeChild(el))
 
     // Skip rendering meta tags if there are none.
-    if (!nearestWithMeta) return next()
-
+    if (!nearestWithMeta) {
+        next()
+        clearRedirectUrl(to, from)
+        return
+    }
     // Turn the meta tag definitions into actual elements in the head.
     nearestWithMeta.meta.metaTags.map(tagDef => {
         const tag = document.createElement('meta')
@@ -103,6 +119,7 @@ router.beforeEach((to, from, next) => {
         .forEach(tag => document.head.appendChild(tag))
 
     next()
+    clearRedirectUrl(to, from)
 })
 
 export default router
