@@ -20,7 +20,6 @@
                 v-for="device in Array.from(application.devices.values())"
                 :key="device.id"
                 class="item-wrapper"
-                @click.stop="openDevice(device)"
             >
                 <DeviceTile :device="device" :application="application" @device-action="onDeviceAction" />
             </div>

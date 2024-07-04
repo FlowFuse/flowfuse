@@ -4,12 +4,16 @@
             <StatusBadge :status="device.status" />
         </div>
         <div class="details">
-            <span class="cursor-pointer">{{ device.name }}</span>
-            <span>
-                Last seen:
-                <DaysSince v-if="device.lastSeenAt" :date="device.lastSeenAt" />
-                <template v-else>never</template>
-            </span>
+            <div class="detail-wrapper">
+                <span class="cursor-pointer name" @click="openDevice(device)">{{ device.name }}</span>
+            </div>
+            <div class="detail-wrapper">
+                <span class="detail">
+                    Last seen:
+                    <DaysSince v-if="device.lastSeenAt" :date="device.lastSeenAt" />
+                    <template v-else>never</template>
+                </span>
+            </div>
         </div>
         <div class="actions">
             <ff-kebab-menu>
@@ -71,7 +75,17 @@ export default {
             type: Object
         }
     },
-    emits: ['device-action']
+    emits: ['device-action'],
+    methods: {
+        openDevice (device) {
+            this.$router.push({
+                name: 'Device',
+                params: {
+                    id: device.id
+                }
+            })
+        }
+    }
 }
 </script>
 
