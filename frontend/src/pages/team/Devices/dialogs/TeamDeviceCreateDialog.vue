@@ -61,10 +61,6 @@ export default {
     },
     mixins: [formatCurrency],
     props: {
-        team: {
-            type: Object,
-            required: true
-        },
         teamDeviceCount: {
             type: Number,
             required: true
@@ -113,7 +109,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features']),
+        ...mapState('account', ['features', 'team']),
         deviceIsBillable () {
             return this.features.billing && // billing enabled
                 !this.team.billing?.unmanaged &&

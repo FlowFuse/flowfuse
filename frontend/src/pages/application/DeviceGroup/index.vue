@@ -55,8 +55,6 @@
                 :deviceGroup="deviceGroup"
                 :applicationDevices="devicesArray"
                 :is-visiting-admin="isVisitingAdmin"
-                :team="team"
-                :team-membership="teamMembership"
                 @device-group-updated="load"
                 @device-group-members-updated="load"
             />
@@ -68,8 +66,6 @@
 import { CheckCircleIcon, CogIcon, ExclamationIcon } from '@heroicons/vue/outline'
 
 import { mapState } from 'vuex'
-
-import { Roles } from '../../../../../forge/lib/roles.js'
 
 import ApplicationApi from '../../../api/application.js'
 
@@ -103,10 +99,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership', 'team']),
-        isVisitingAdmin () {
-            return this.teamMembership?.role === Roles.Admin
-        },
+        ...mapState('account', ['team']),
         navigation () {
             const routes = [
                 {

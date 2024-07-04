@@ -97,10 +97,6 @@ export default {
         application: {
             type: Object,
             required: true
-        },
-        team: {
-            type: Object,
-            required: true
         }
     },
     data () {
@@ -142,7 +138,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features']),
+        ...mapState('account', ['features', 'team']),
         featureEnabledForTeam () {
             return !!this.team?.type?.properties?.features?.deviceGroups
         },

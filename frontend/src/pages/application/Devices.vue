@@ -11,18 +11,13 @@
             </template>
         </SectionTopMenu>
 
-        <DevicesBrowser
-            :application="application"
-            :team="team"
-            :teamMembership="teamMembership"
-        />
+        <DevicesBrowser :application="application" />
     </div>
 </template>
 
 <script>
 import DevicesBrowser from '../../components/DevicesBrowser.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
-import permissionsMixin from '../../mixins/Permissions.js'
 
 export default {
     name: 'ApplicationDevices',
@@ -30,17 +25,8 @@ export default {
         DevicesBrowser,
         SectionTopMenu
     },
-    mixins: [permissionsMixin],
     props: {
         application: {
-            type: Object,
-            required: true
-        },
-        team: {
-            type: Object,
-            required: true
-        },
-        teamMembership: {
             type: Object,
             required: true
         }
