@@ -76,7 +76,7 @@ export default {
     mixins: [navigationMixin],
     computed: {
         ...mapState('account', ['user', 'team', 'teams']),
-        ...mapGetters('account', ['notifications', 'defaultUserTeam']),
+        ...mapGetters('account', ['notifications']),
         navigationOptions () {
             return [
                 {

@@ -2,7 +2,7 @@ import { mapState } from 'vuex'
 
 export default {
     computed: {
-        ...mapState('account', ['team'])
+        ...mapState('account', ['team', 'defaultUserTeam'])
     },
     methods: {
         home () {
