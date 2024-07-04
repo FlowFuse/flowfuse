@@ -42,6 +42,10 @@ export default {
     },
     methods: {
         redirectOnLoad () {
+            if (this.redirectUrlAfterLogin) {
+                return this.$router.push(this.redirectUrlAfterLogin)
+            }
+
             // Only bounce to team view if there's no redirectUrlAfterLogin set
             if (!this.redirectUrlAfterLogin && this.user.email_verified) {
                 if (this.team) {
