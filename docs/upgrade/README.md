@@ -35,10 +35,10 @@ The following configuration needs to be added in the values passed to the ingres
 ```
 controller:
    config:
-    use-proxy-protocol: true
-  service:
-    annotations:
-      service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: proxy_protocol_v2.enabled=true
+      use-proxy-protocol: true
+   service:
+      annotations:
+         service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: proxy_protocol_v2.enabled=true
    externalTrafficPolicy: Cluster
 ```
 
