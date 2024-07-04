@@ -213,6 +213,7 @@ controller:
     configNameSpace: $(POD_NAMESPACE)/udp-services
   config:
     proxy-body-size: "0"
+    use-proxy-protocol: true
   service:
     # AWS Annotations for LoadBalaner with Certificate ARN
     annotations:
@@ -221,9 +222,11 @@ controller:
       service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
       service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
       service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "120"
+      service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: proxy_protocol_v2.enabled=true
     # TLS (https) terminated at ELB, so internal endpoint is 'http'
     targetPorts:
       https: http
+    externalTrafficPolicy: Cluster
   ingressClassResource:
     default: true
 ```
