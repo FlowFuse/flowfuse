@@ -30,13 +30,16 @@ This release introduces the Embedded Editor function with can be used to embed t
 To make use of this new feature when running on AWS EKS a change to the NGINX Ingress controller and how it interacts with the AWS 
 NLB is requried.
 
-The following annotation needs to be added in the values passed to the ingress-nginx helm chart
+The following configuration needs to be added in the values passed to the ingress-nginx helm chart. See [full configuration](https://flowfuse.com/docs/install/kubernetes/aws/#nginx-ingress) for the reference.
 
 ```
 controller:
+   config:
+    use-proxy-protocol: true
   service:
     annotations:
       service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: proxy_protocol_v2.enabled=true
+   externalTrafficPolicy: Cluster
 ```
 
 The Proxy Protocol feature will be enabled only on newly created Target Groups. 
