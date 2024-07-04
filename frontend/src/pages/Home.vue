@@ -13,7 +13,7 @@
 
 <script>
 
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import FlowFuseLogo from '../components/Logo.vue'
 
@@ -31,7 +31,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['pending', 'user', 'team', 'teams', 'redirectUrlAfterLogin'])
+        ...mapState('account', ['pending', 'user', 'team', 'teams', 'redirectUrlAfterLogin']),
+        ...mapGetters('account', ['defaultUserTeam'])
     },
     watch: {
         team: 'redirectOnLoad',
@@ -47,12 +48,12 @@ export default {
             }
 
             // Only bounce to team view if there's no redirectUrlAfterLogin set
-            if (!this.redirectUrlAfterLogin && this.user.email_verified) {
-                if (this.team) {
+            if (this.user.email_verified) {
+                if (this.team || this.defaultUserTeam) {
                     this.$router.push({
                         name: 'Team',
                         params: {
-                            team_slug: this.team.slug
+                            team_slug: this.team?.slug || this.defaultUserTeam?.slug
                         }
                     })
                 }
