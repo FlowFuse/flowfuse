@@ -38,7 +38,11 @@
             <template v-else-if="!loading && applications.size > 0">
                 <ul class="ff-applications-list" data-el="applications-list">
                     <li v-for="application in applicationsList" :key="application.id">
-                        <ApplicationListItem :application="application" />
+                        <ApplicationListItem
+                            :application="application"
+                            @instance-deleted="fetchData(false)"
+                            @device-deleted="fetchData(false)"
+                        />
                     </li>
                 </ul>
             </template>
@@ -101,16 +105,6 @@ export default {
         PlusSmIcon
     },
     mixins: [permissionsMixin],
-    props: {
-        team: {
-            type: Object,
-            required: true
-        },
-        teamMembership: {
-            type: Object,
-            required: true
-        }
-    },
     data () {
         return {
             loading: false,
@@ -141,10 +135,10 @@ export default {
         }
     },
     methods: {
-        async fetchData () {
-            this.loading = true
+        async fetchData (withLoading = true) {
+            this.loading = withLoading
             if (this.team.id) {
-                this.applications = new Map()
+                const applicationsMap = new Map()
 
                 const applicationsPromise = teamApi.getTeamApplications(this.team.id, { associationsLimit: ASSOCIATIONS_LIMIT })
 
@@ -153,7 +147,7 @@ export default {
 
                 const applications = (await applicationsPromise).applications
                 applications.forEach((applicationData) => {
-                    const application = this.applications.get(applicationData.id) || {}
+                    const application = applicationsMap.get(applicationData.id) || {}
                     if (!application.instances) {
                         application.instances = new Map()
                     }
@@ -179,11 +173,12 @@ export default {
                     application.instanceCount = instancesSummary.count
                     application.deviceCount = devicesSummary.count
 
-                    this.applications.set(applicationData.id, {
+                    applicationsMap.set(applicationData.id, {
                         ...application,
                         ...applicationProps
                     })
                 })
+                this.applications = applicationsMap
             }
             this.loading = false
         },

@@ -1,6 +1,15 @@
+import { mapState } from 'vuex'
+
 import { Permissions } from '../../../forge/lib/permissions.js'
+import { Roles } from '../../../forge/lib/roles.js'
 
 export default {
+    computed: {
+        ...mapState('account', ['team', 'teamMembership']),
+        isVisitingAdmin () {
+            return this.teamMembership?.role === Roles.Admin
+        }
+    },
     methods: {
         hasPermission (scope) {
             if (!Permissions[scope]) {

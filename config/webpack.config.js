@@ -25,7 +25,8 @@ module.exports = function (env, argv) {
             path: getPath('frontend/dist/app'),
             publicPath: '/app/',
             assetModuleFilename: './assets/[hash][ext][query]',
-            filename: '[name].js'
+            filename: '[name].[contenthash].js',
+            clean: true
         },
         module: {
             rules: [
@@ -121,7 +122,9 @@ module.exports = function (env, argv) {
                 filename: getPath('frontend/dist-setup/setup.html'),
                 chunks: ['setup']
             }),
-            new MiniCssExtractPlugin(),
+            new MiniCssExtractPlugin({
+                filename: '[name].[contenthash].css'
+            }),
             new CopyPlugin({
                 patterns: [
                     { from: getPath('frontend/public'), to: '..' }

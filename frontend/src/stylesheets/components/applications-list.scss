@@ -1,15 +1,20 @@
 .ff-applications-list {
     display: flex;
     flex-direction: column;
-    min-width: fit-content; // prevent content poking out of the container
     gap: 18px;
     > li {
-        > * {
+        > *:not(.ff-dialog-container) {
             border-left: 1px solid $ff-grey-300;
             border-right: 1px solid $ff-grey-300;
             background-color: $ff-grey-100;
         }
 
+        > section:last-of-type {
+            border-bottom-left-radius: 6px;
+            border-bottom-right-radius: 6px;
+            border-bottom: 1px solid $ff-grey-300;
+        }
+        
         > :first-child {
             border-top-left-radius: 6px;
             border-top-right-radius: 6px;
@@ -23,10 +28,10 @@
         }
     }
     .ff-application-list--app {
-        background-color: white;
+        background-color: white !important;
         display: flex;
         justify-content: space-between;
-        padding: 18px;
+        padding: 12px;
         border: 1px solid $ff-grey-300;
         >span {
             display: flex;
@@ -37,6 +42,7 @@
             cursor: pointer;
             border-color: $ff-blue-600;
 
+            .ff-application-list--icon,
             .ff-application-list--icon .ff-icon {
                 color: $ff-blue-600;
             }
@@ -50,6 +56,21 @@
             font-size: 0.75rem;;
         }
     }
+    .delimiter {
+        font-size: 0.875rem;
+        color: $ff-grey-500;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        &::after {
+            content: '';
+            height: 1px;
+            flex-grow: 1;
+            margin-left: 9px;
+            background-color: $ff-grey-300;
+        }
+    }
 }
 
 .ff-applications-list-instances {
@@ -59,7 +80,6 @@
     flex-direction: column;
     gap: 6px;
     >label {
-        display: block;
         font-size: 0.875rem;
         color: $ff-grey-500;
         display: flex;
@@ -72,7 +92,7 @@
             background-color: $ff-grey-300;
         }
     }
-    > li {
+    > div {
         background-color: white;
         border-color: $ff-grey-300;
         border-width: 1px;
@@ -97,7 +117,143 @@
     .actions {
         display: flex;
         justify-content: flex-end;
-        gap: 5px;
+        gap: 9px;
+    }
+}
+
+.ff-applications-list-instances--compact {
+    padding: 12px;
+    padding-top: 6px;
+
+    .items-wrapper {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr) 120px;
+        flex: 1;
+        background: none;
+        border: none;
+        padding: 0;
+        gap: 3px;
+        margin-top: 10px;
+
+        &.one {
+            grid-template-columns: repeat(1, 1fr);
+        }
+
+        &.two {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        &.three {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        
+        @media screen and (max-width: $ff-screen-2xl) {
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: auto auto;
+
+            &.three {
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-areas: 
+              "col1 col2"
+              "col3";
+            }
+        }
+
+        @media screen and (max-width: $ff-screen-xl) {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        @media screen and (max-width: $ff-screen-sm) {
+            grid-template-columns: repeat(1, 1fr);
+
+            &.two {
+                grid-template-columns: repeat(1, 1fr);
+            }
+            
+            &.three {
+                grid-template-columns: repeat(1, 1fr);
+            }
+        }
+
+        .item-wrapper {
+            background-color: white;
+            border-color: $ff-grey-300;
+            border-width: 1px;
+            border-style: solid;
+            border-radius: 6px;
+            padding: 12px;
+            flex: 1;
+            min-width: 250px;
+
+            &.has-more {
+                display: flex;
+                align-items: center;
+                align-self: stretch;
+                min-width: auto;
+                padding: 0;
+                
+                a {
+                    align-self: stretch;
+                    flex: 1;
+                    align-content: center;
+                    padding: 12px;
+                    justify-content: space-between;
+                    display: flex;
+                    align-items: center;
+                }
+                &:hover {
+                    color: $ff-blue-600;
+                    border-color: $ff-blue-800;
+                }
+            }
+
+            .instance-tile,
+            .device-tile {
+                display: flex;
+                flex: 1;
+                gap: 12px;
+                justify-content: space-between;
+                align-items: center;
+
+                .status {
+                    svg {
+                        width: 1.5rem;
+                        height: 1.5rem;
+                    }
+                }
+
+                .details {
+                    display: flex;
+                    flex-direction: column;
+                    flex: 1;
+                    overflow: hidden;
+
+                    span, a {
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        
+                        &:last-child {
+                            color: $ff-grey-400;
+                        }
+                    }
+                    &:hover {
+                        cursor: pointer;
+                        color: $ff-blue-600;
+                    }
+                }
+
+                .actions {
+                    display: flex;
+                    align-items: center;
+                    gap: 9px;
+
+                    button {
+                        padding: 6px 10px;
+                    }
+                }
+            }
+        }
     }
 }
 
