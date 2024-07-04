@@ -19,7 +19,7 @@
 
         <ff-loading v-if="loading" message="Creating instance..." />
         <InstanceForm
-            v-else
+            v-else-if="team"
             :instance="instanceDetails"
             :team="team"
             :applicationSelection="true"
@@ -118,15 +118,15 @@ export default {
             return this.blueprints.find(blueprint => blueprint.id === this.preDefinedInputs?.flowBlueprintId)
         }
     },
+    watch: {
+        async team () {
+            await this.getData()
+        }
+    },
     async created () {
-        const data = await teamApi.getTeamApplications(this.team.id)
-        this.applications = data.applications.map((a) => {
-            return {
-                label: a.name,
-                description: a.description,
-                value: a.id
-            }
-        })
+        if (this.team) {
+            await this.getData()
+        }
 
         if (!this.applications.length && !this.isLandingFromExternalLink) {
             // need to also create an Application
@@ -194,6 +194,16 @@ export default {
         createApplication (applicationDetails) {
             const createPayload = { ...applicationDetails, teamId: this.team.id }
             return ApplicationApi.createApplication(createPayload)
+        },
+        async getData () {
+            const data = await teamApi.getTeamApplications(this.team.id)
+            this.applications = data.applications.map((a) => {
+                return {
+                    label: a.name,
+                    description: a.description,
+                    value: a.id
+                }
+            })
         }
     }
 }
