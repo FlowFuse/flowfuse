@@ -10,6 +10,6 @@ You've been invited to join team {{{invite.team.name}}} on the FlowFuse platform
     html:
 `<p>Hello!</p>
 <p>You've been invited to join team {{invite.team.name}} on the FlowFuse platform.</p>
-<p><a href="{{{ signupLink }}}">{{{ signupLink }}}</a></p>
+<p><a href="{{{ signupLink }}}">Sign Up!</a></p>
 `
 }

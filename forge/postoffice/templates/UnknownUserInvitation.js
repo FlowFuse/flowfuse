@@ -10,6 +10,6 @@ You've been invited to join the FlowFuse platform. Use the link below to sign-up
     html:
 `<p>Hello!</p>
 <p>You've been invited to join the FlowFuse platform. Use the link below to sign-up and get started.</p>
-<p><a href="{{{ signupLink }}}">{{{ signupLink }}}</a></p>
+<p><a href="{{{ signupLink }}}">Sign Up!</a></p>
 `
 }
