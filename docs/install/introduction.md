@@ -14,7 +14,7 @@ the platform.
 
 Experience the full capabilities of FlowFuse by obtaining a complimentary 30-day Enterprise license. This trial offers you an opportunity to thoroughly evaluate the features and functionalities of FlowFuse in your environment. To begin your trial, simply complete the form below.
 
-<p id="license-message"></p>
+<div id="license-message"></div>
 
 <script charset="utf-8" type="text/javascript" src="//js-eu1.hsforms.net/forms/embed/v2.js"></script>
 <script>
@@ -38,7 +38,7 @@ function GenerateLicense(formData) {
         .then(data => {
             const messageElement = document.getElementById('license-message');
             if (messageElement) {
-                messageElement.innerHTML = `<strong>Thank you for requesting a trial license. Below is your license key. Please copy it and save it securely, as it will not be available again if you leave, come back, or refresh the screen. </strong>: <code style="display:block;overflow-wrap: anywhere;padding: 10px;border: 1px solid lightgray;margin-top: 10px;"">${data[0].license}</code>`;
+                messageElement.innerHTML = `<p><strong>Thank you for requesting a trial license. Below is your license key. Please copy it and save it securely, as it will not be available again if you leave, come back, or refresh the screen:</strong></p><code style="display:block;overflow-wrap: anywhere;padding: 10px;border: 1px solid lightgray;margin-top: 10px;"">${data[0].license}</code>`;
 
             } else {
                 console.error('Message element not found');
