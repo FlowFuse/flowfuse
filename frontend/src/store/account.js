@@ -6,6 +6,7 @@ import settingsApi from '../api/settings.js'
 import teamApi from '../api/team.js'
 import userApi from '../api/user.js'
 import router from '../routes.js'
+import product from '../services/product.js'
 
 // initial state
 const state = () => ({
@@ -115,6 +116,8 @@ const mutations = {
         state.user = user
     },
     setTeam (state, team) {
+        // update the product session "team" to record all future events against them
+        product.setTeam(team)
         state.team = team
     },
     setTeamMembership (state, membership) {

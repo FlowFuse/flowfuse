@@ -52,8 +52,33 @@ function groupUpdate (type, id, properties) {
     })
 }
 
+function setTeam (team) {
+    const props = {
+        'team-name': team.name,
+        'created-at': team.createdAt,
+        'count-instances': team.instanceCount,
+        'count-devices': team.deviceCount,
+        'count-members': team.memberCount,
+        'team-type-id': team.type.id,
+        'team-type-name': team.type.name
+    }
+    if ('billing' in team) {
+        props['billing-active'] = team.billing.active
+        props['billing-canceled'] = team.billing.canceled
+        props['billing-unmanaged'] = team.billing.unmanaged
+
+        if ('trial' in team.billing) {
+            props['billing-trial'] = team.billing.trial
+            props['billing-trial-ended'] = team.billing.trialEnded
+            props['billing-trial-ends-at'] = team.billing.trialEndsAt
+        }
+    }
+    window.posthog?.group('team', team.id, props)
+}
+
 export default {
     identify,
     capture,
-    groupUpdate
+    groupUpdate,
+    setTeam
 }
