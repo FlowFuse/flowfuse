@@ -307,7 +307,7 @@ describe('FlowForge - Applications', () => {
                 .contains('6 More...')
         })
 
-        it.only('can open an instance default editor', () => {
+        it('can open an instance default editor', () => {
             cy.intercept(
                 'GET',
                 '/api/*/teams/*/applications/status*',
