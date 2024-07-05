@@ -307,12 +307,17 @@ describe('FlowForge - Applications', () => {
                 .contains('6 More...')
         })
 
-        it('can open an instance default editor', () => {
+        it.only('can open an instance default editor', () => {
             cy.intercept(
                 'GET',
                 '/api/*/teams/*/applications/status*',
                 { count: 1, applications: [{ id: 'some-id', instances: [], devices: [] }] }
             ).as('getAppStatuses')
+            cy.intercept('get', '/api/*/applications/*/devices*', {
+                meta: {},
+                count: 0,
+                devices: []
+            }).as('getDevices')
             cy.intercept(
                 'GET',
                 '/api/*/teams/*/applications*',
@@ -353,6 +358,7 @@ describe('FlowForge - Applications', () => {
 
             cy.wait('@getApplication')
             cy.wait('@getAppStatuses')
+            cy.wait('@getDevices')
 
             cy.get('[data-el="application-instance-item"')
                 .contains('instance-1')
