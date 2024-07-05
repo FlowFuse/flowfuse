@@ -38,7 +38,7 @@ function GenerateLicense(formData) {
         .then(data => {
             const messageElement = document.getElementById('license-message');
             if (messageElement) {
-                messageElement.innerHTML = `<strong>Thank you for requesting a trial license. Below is your license </strong>: <code style="display:block;overflow-wrap: anywhere;"">${data[0].license}</code>`;
+                messageElement.innerHTML = `<strong>Thank you for requesting a trial license. Below is your license key. Please copy it and save it securely, as it will not be available again if you leave, come back, or refresh the screen. </strong>: <code style="display:block;overflow-wrap: anywhere;padding: 10px;border: 1px solid lightgray;margin-top: 10px;"">${data[0].license}</code>`;
 
             } else {
                 console.error('Message element not found');
