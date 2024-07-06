@@ -1,6 +1,6 @@
 var/
 docs/
-config/
+/config/
 .github
 forge.db
 sub_modules/
