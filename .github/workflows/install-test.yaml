@@ -1,0 +1,33 @@
+name: Install Test
+on:
+  schedule:
+    - cron: "45 23 * * "
+  workflow_dispatch:
+    
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - name: install
+        run: |
+          curl -L https://github.com/FlowFuse/installer/releases/latest/download/flowfuse-installer.zip -o flowfuse-installer.zip
+          unzip flowfuse-installer.zip
+          cd flowfuse-installer/app
+          ./install.sh
+          cd ..
+      - name: start server in background
+        uses: JarvusInnovations/background-action@v1
+        with:
+          run: |
+            ./bin/flowfuse.sh
+          wait-on: |
+            http://localhost:3000
+          tail: true
+          wait-for: 2m
+          log-output: stderr,stdout
+          log-output-if: failure
+          working-directory: flowfuse-installer
+      - name: test access
+        run: |
+          curl -L -v http://localhost:3000
