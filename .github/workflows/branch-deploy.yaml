@@ -28,7 +28,7 @@ jobs:
       - name: Validate
         id: validate
         run: |
-          if [ "${{ github.actor }} == 'dependabot[bot]' ]; then
+          if [ "${{ github.actor }}" == 'dependabot[bot]' ]; then
             echo "is_member=false" >> $GITHUB_ENV
             exit 0
           fi
