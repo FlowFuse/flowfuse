@@ -1,9 +1,9 @@
 name: Install Test
 on:
   schedule:
-    - cron: "45 23 * * "
+    - cron: '45 23 * * *'
   workflow_dispatch:
-    
+
 
 jobs:
   install:
