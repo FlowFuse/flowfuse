@@ -38,6 +38,8 @@ jobs:
           else
             echo "is_member=false" >> $GITHUB_ENV
           fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build:
     name: Build and contenerize
