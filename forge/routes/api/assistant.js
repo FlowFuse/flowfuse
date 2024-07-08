@@ -12,13 +12,13 @@ module.exports = async function (app) {
     app.addHook('preHandler', app.verifySession)
 
     /**
-     * Endpoint for assistant functions
+     * Endpoint for assistant methods
      * For now, this is simply a relay to an external assistant service
      * In the future, we may decide to bring that service inside the core or
      * use an alternative means of accessing it.
     */
-    app.post('/function', {
-        preHandler: app.needsPermission('assistant:function'),
+    app.post('/:method', {
+        preHandler: app.needsPermission('assistant:method'),
         schema: {
             hide: true, // dont show in swagger
             body: {
@@ -45,8 +45,10 @@ module.exports = async function (app) {
         }
     },
     async (request, reply) => {
-        // const method = request.params.method // FUTURE: allow for different methods
-        const method = 'function' // for now, only function node/code generation is supported
+        const method = request.params.method // the method to call at the assistant service
+        if (/[^a-z0-9_]/i.test(method)) {
+            return reply.code(400).send({ code: 'invalid_method', error: 'Invalid method name' })
+        }
 
         const serviceUrl = app.config.assistant?.service?.url
         const serviceToken = app.config.assistant?.service?.token
