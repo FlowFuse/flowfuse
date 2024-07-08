@@ -46,7 +46,7 @@ module.exports = async function (app) {
     },
     async (request, reply) => {
         const method = request.params.method // the method to call at the assistant service
-        if (/[^a-z0-9_]/i.test(method)) {
+        if (/^[a-z0-9_-]+$/.test(method) === false) {
             return reply.code(400).send({ code: 'invalid_method', error: 'Invalid method name' })
         }
 
