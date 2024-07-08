@@ -35,14 +35,14 @@ jobs:
         id: validate
         run: |
           if [ "${{ github.actor }}" == 'dependabot[bot]' ]; then
-            echo "is_member=false" >> $GITHUB_ENV
+            echo "is_member=false" >> $GITHUB_OUTPUT
             exit 0
           fi
           member_status=$(gh api orgs/flowfuse/memberships/${{ github.actor }} -q '.state')
           if [ "${member_status}" == "active" ]; then
-            echo "is_member=true" >> $GITHUB_ENV
+            echo "is_member=true" >> $GITHUB_OUTPUT
           else
-            echo "is_member=false" >> $GITHUB_ENV
+            echo "is_member=false" >> $GITHUB_OUTPUT
           fi
           echo "Member status: $member_status"
         env:
