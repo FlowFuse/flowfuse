@@ -2,10 +2,11 @@
 /* eslint-disable n/no-process-exit */
 'use strict'
 
-
 const semver = require('semver')
 
 const forge = require('./forge')
+
+
 
 /**
   * The main entry point to the FlowFuse application.
@@ -67,6 +68,7 @@ const forge = require('./forge')
                 server.log.info('****************************************************')
                 server.log.info('* FlowFuse is now running and can be accessed at: *')
                 server.log.info(`*   ${server.config.base_url.padEnd(47, ' ')}*`)
+                server.log.info('****************************************************')
                 server.log.info('****************************************************')
             }
             if (enableRepl) {
