@@ -813,7 +813,7 @@ describe('Device API', async function () {
                 // ensure old flowforge module is not present
                 result.modules.should.not.have.property('@flowforge/nr-project-nodes')
             })
-            it.only('`@flowfuse/nr-assistant` dependency is included in the starter snapshot', async function () {
+            it('`@flowfuse/nr-assistant` dependency is included in the starter snapshot', async function () {
                 const agentVersion = '1.11.0' // min agent version required for application assignment
                 const device = await createDevice({ name: 'Ad1a-dep-test2', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion })
                 // assign the new device to application
