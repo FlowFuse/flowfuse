@@ -1,24 +1,59 @@
-name: Create fresh app instance for PR
+name: Create pre-staging environment
 
 on:
   pull_request:
     types: 
+      - opened
       - synchronize
       - reopened
       - closed
-      - labeled
+    paths-ignore:
+      - 'docs/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.number }}
   cancel-in-progress: false
 
 jobs:
+  # This job validates if the user, who triggered the workflow, is a member of the organization
+  # Note: Any workflow re-runs will use the privileges of github.actor, even if the actor initiating the re-run (github.triggering_actor) has different privileges.
+  validate-user:
+    name: Validate trigger author
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'pull_request'
+    outputs:
+      is_org_member: ${{ steps.validate.outputs.is_member }}
+    steps:
+      - name: Generate a token
+        id: generate_token
+        uses: tibdex/github-app-token@v2
+        with:
+          app_id: ${{ secrets.GH_BOT_APP_ID }}
+          private_key: ${{ secrets.GH_BOT_APP_KEY }}
+      - name: Validate
+        id: validate
+        run: |
+          if [ "${{ github.actor }}" == 'dependabot[bot]' ]; then
+            echo "is_member=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          member_status=$(gh api orgs/flowfuse/memberships/${{ github.actor }} -q '.state')
+          if [ "${member_status}" == "active" ]; then
+            echo "is_member=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_member=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
+
   build:
     name: Build and contenerize
+    needs: validate-user
     if: |
+      needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'pull_request' && 
-      github.event.action != 'closed' &&
-      contains(github.event.pull_request.labels.*.name, 'deploy:pr')
+      github.event.action != 'closed'
     runs-on: ubuntu-latest
     env:
       IMAGE_NAME: 'forge-k8s'
@@ -56,11 +91,11 @@ jobs:
 
   deploy:
     name: Deploy application
-    needs: build
+    needs: [ validate-user, build ]
     if: |
+      needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'pull_request' && 
-      github.event.action != 'closed' &&
-      contains(github.event.pull_request.labels.*.name, 'deploy:pr')
+      github.event.action != 'closed'
     runs-on: ubuntu-latest
     environment: staging
     env:
@@ -245,11 +280,12 @@ jobs:
 
   destroy:
     name: Remove application
+    needs: [ validate-user ]
     runs-on: ubuntu-latest
-    if: | 
+    if: |
+      needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'pull_request' && 
-      github.event.action == 'closed' &&
-      contains(github.event.pull_request.labels.*.name, 'deploy:pr')
+      github.event.action == 'closed'
     environment: staging
     env:
       IMAGE_NAME: 'forge-k8s'
