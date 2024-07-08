@@ -61,19 +61,12 @@ export default {
             if (this.disabled || !this.instance?.settings?.dashboard2UI) {
                 return
             }
-            let baseURL = removeSlashes(this.instance.url, false, true)
-            const adminRootSetting = this.instance.settings?.httpAdminRoot || this.instance.template?.settings?.httpAdminRoot
-            // Check to see if the editor path has been set
-            if (adminRootSetting) {
-                const adminRoot = removeSlashes(adminRootSetting, true, true)
-                if (baseURL.endsWith(adminRoot)) {
-                    // Strip off the editor path to get to the right root url
-                    baseURL = baseURL.substring(0, baseURL.length - adminRoot.length)
-                }
-            }
-            const url = `${removeSlashes(baseURL, false, true)}/${removeSlashes(this.instance.settings.dashboard2UI, true, false)}`
+            // The dashboard url will *always* be relative to the root as we
+            // do not expose `httpNodeRoot` to customise the base path
+            const baseURL = new URL(removeSlashes(this.instance.url, false, true))
+            baseURL.pathname = removeSlashes(this.instance.settings.dashboard2UI, true, false)
             const fixedTarget = '_db2_' + this.instance.id
-            window.open(url, fixedTarget)
+            window.open(baseURL.toString(), fixedTarget)
         }
     }
 }

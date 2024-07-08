@@ -1,3 +1,11 @@
+#### 2.6.1: Release
+
+ - Set nodejs version back to 16 for package build (#4121) @hardillb
+ - Fix dashboard link in compact application view (#4120) @knolleary
+ - PostHog - Add .group call to automatically map all events to the relevant team (#4115) @joepavitt
+ - Onboarding email formatting (#4110) @cstns
+ - PostHog - Better capturing of Snapshot-based activity (#4116) @joepavitt
+
 #### 2.6.0: Release
 
  - chore: Add conditional check before uninstalling and deleting resources in branch-deploy.yaml (#4080)
