@@ -1,4 +1,4 @@
-name: Create fresh app instance for PR
+name: Create pre-staging environment
 
 on:
   pull_request:
