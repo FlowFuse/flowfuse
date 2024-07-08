@@ -25,6 +25,12 @@ jobs:
     outputs:
       is_org_member: ${{ steps.validate.outputs.is_member }}
     steps:
+      - name: Generate a token
+        id: generate_token
+        uses: tibdex/github-app-token@v2
+        with:
+          app_id: ${{ secrets.GH_BOT_APP_ID }}
+          private_key: ${{ secrets.GH_BOT_APP_KEY }}
       - name: Validate
         id: validate
         run: |
@@ -39,7 +45,7 @@ jobs:
             echo "is_member=false" >> $GITHUB_ENV
           fi
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
 
   build:
     name: Build and contenerize
