@@ -22,9 +22,6 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'pull_request'
-    permissions:
-      contents: read
-      pull-requests: read
     outputs:
       is_org_member: ${{ steps.validate.outputs.is_member }}
     steps:
