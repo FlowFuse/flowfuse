@@ -44,24 +44,8 @@ jobs:
           else
             echo "is_member=false" >> $GITHUB_OUTPUT
           fi
-          echo "Member status: $member_status"
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
-      - name: debug
-        run: |
-          echo "is_member=${{ steps.validate.outputs.is_member }}"
-
-  debug:
-    name: debug
-    needs: validate-user
-    runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'pull_request' && 
-      github.event.action != 'closed'
-    steps:
-      - name: debug
-        run: |
-          echo "is_member: ${{ needs.validate-user.outputs.is_org_member }}"
 
   build:
     name: Build and contenerize
