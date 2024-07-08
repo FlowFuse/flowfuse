@@ -6,8 +6,6 @@ const semver = require('semver')
 
 const forge = require('./forge')
 
-
-
 /**
   * The main entry point to the FlowFuse application.
   *
