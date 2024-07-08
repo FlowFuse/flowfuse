@@ -152,7 +152,7 @@ module.exports = async function (app) {
                         // as of FF v1.14.0, we permit project nodes to work on application owned devices
                         // the support for this is in @flowfuse/nr-project-nodes > v0.5.0
                         '@flowfuse/nr-project-nodes': '>0.5.0', // TODO: get this from the "settings" (future)
-                        '@flowfuse/nr-assistant': '*'
+                        '@flowfuse/nr-assistant': '>=0.1.0'
                     },
                     env: {
                         FF_SNAPSHOT_ID: '0',
@@ -193,7 +193,7 @@ module.exports = async function (app) {
                         settings.modules['@flowfuse/nr-project-nodes'] = '>0.5.0'
                     }
                     if (!settings.modules['@flowfuse/nr-assistant']) {
-                        settings.modules['@flowfuse/nr-assistant'] = '*'
+                        settings.modules['@flowfuse/nr-assistant'] = '>=0.1.0'
                     }
                     if (!settings.modules['node-red']) {
                         // if the snapshot does not have the node-red module specified, ensure it is set to a valid version
