@@ -33,8 +33,7 @@ jobs:
             exit 0
           fi
           member_status=$(gh api orgs/flowfuse/memberships/${{ github.actor }} -q '.state' 2>/dev/null )
-          if [ "${member_status}" == "active" ]
-          then
+          if [ "${member_status}" == "active" ]; then
             echo "is_member=true" >> $GITHUB_ENV
           else
             echo "is_member=false" >> $GITHUB_ENV
