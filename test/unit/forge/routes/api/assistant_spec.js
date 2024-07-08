@@ -92,73 +92,112 @@ describe('Assistant API', async function () {
             response.statusCode.should.equal(501)
         })
     })
-    describe('function service', async function () {
-        it('anonymous cannot access /function', async function () {
-            const response = await app.inject({
-                method: 'GET',
-                url: '/api/v1/assistant/function'
-            })
-            response.statusCode.should.equal(401)
-        })
-        it('random token cannot access /function', async function () {
-            const response = await app.inject({
-                method: 'GET',
-                url: '/api/v1/assistant/function',
-                headers: { authorization: 'Bearer blah-blah' }
-            })
-            response.statusCode.should.equal(401)
-        })
-        it('device token can access /function', async function () {
-            // const device = await createDevice({ name: 'Ad1', type: 'Ad1_type', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
-            const deviceCreateResponse = await app.inject({
-                method: 'POST',
-                url: '/api/v1/devices',
-                body: {
-                    name: 'Ad1',
-                    type: 'Ad1_type',
-                    team: TestObjects.ATeam.hashid
-                },
-                cookies: { sid: TestObjects.tokens.alice }
-            })
-            const device = deviceCreateResponse.json()
-            sinon.stub(axios, 'post').resolves({ data: { status: 'ok' } })
+
+    describe('method constraints', async function () {
+        it('should return 400 if method contains capital letters', async function () {
             const response = await app.inject({
                 method: 'POST',
-                url: '/api/v1/assistant/function',
-                headers: { authorization: 'Bearer ' + device.credentials.token },
-                payload: { prompt: 'multiply by 5', transactionId: '1234' }
-            })
-            axios.post.calledOnce.should.be.true()
-            response.statusCode.should.equal(200)
-        })
-        it('instance token can access /function', async function () {
-            sinon.stub(axios, 'post').resolves({ data: { status: 'ok' } })
-            const response = await app.inject({
-                method: 'POST',
-                url: '/api/v1/assistant/function',
+                url: '/api/v1/assistant/InvalidMethod',
                 headers: { authorization: 'Bearer ' + TestObjects.tokens.instance },
                 payload: { prompt: 'multiply by 5', transactionId: '1234' }
             })
-            axios.post.calledOnce.should.be.true()
-            response.statusCode.should.equal(200)
+            response.statusCode.should.equal(400)
         })
-        it('fails when prompt is not supplied', async function () {
+        it('should return 400 if method contains invalid characters', async function () {
             const response = await app.inject({
                 method: 'POST',
-                url: '/api/v1/assistant/function',
+                url: '/api/v1/assistant/inv@lid',
                 headers: { authorization: 'Bearer ' + TestObjects.tokens.instance },
-                payload: { transactionId: '1234' }
+                payload: { prompt: 'multiply by 5', transactionId: '1234' }
             })
             response.statusCode.should.equal(400)
         })
-        it('fails when transactionId is not supplied', async function () {
+        it('should return 400 if method contains escaped characters', async function () {
             const response = await app.inject({
                 method: 'POST',
-                url: '/api/v1/assistant/function',
+                url: '/api/v1/assistant/method%2Fwith%2Fslashes',
                 headers: { authorization: 'Bearer ' + TestObjects.tokens.instance },
-                payload: { prompt: 'multiply by 5' }
+                payload: { prompt: 'multiply by 5', transactionId: '1234' }
             })
             response.statusCode.should.equal(400)
+        })
+    })
+
+    describe('service tests', async function () {
+        function serviceTests (serviceName) {
+            it('anonymous cannot access', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/assistant/${serviceName}n`
+                })
+                response.statusCode.should.equal(401)
+            })
+            it('random token cannot access', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/assistant/${serviceName}`,
+                    headers: { authorization: 'Bearer blah-blah' }
+                })
+                response.statusCode.should.equal(401)
+            })
+            it('device token can access', async function () {
+                // const device = await createDevice({ name: 'Ad1', type: 'Ad1_type', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const deviceCreateResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/devices',
+                    body: {
+                        name: 'Ad1',
+                        type: 'Ad1_type',
+                        team: TestObjects.ATeam.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                const device = deviceCreateResponse.json()
+                sinon.stub(axios, 'post').resolves({ data: { status: 'ok' } })
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/assistant/${serviceName}`,
+                    headers: { authorization: 'Bearer ' + device.credentials.token },
+                    payload: { prompt: 'multiply by 5', transactionId: '1234' }
+                })
+                axios.post.calledOnce.should.be.true()
+                response.statusCode.should.equal(200)
+            })
+            it('instance token can access', async function () {
+                sinon.stub(axios, 'post').resolves({ data: { status: 'ok' } })
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/assistant/${serviceName}`,
+                    headers: { authorization: 'Bearer ' + TestObjects.tokens.instance },
+                    payload: { prompt: 'multiply by 5', transactionId: '1234' }
+                })
+                axios.post.calledOnce.should.be.true()
+                response.statusCode.should.equal(200)
+            })
+            it('fails when prompt is not supplied', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/assistant/${serviceName}`,
+                    headers: { authorization: 'Bearer ' + TestObjects.tokens.instance },
+                    payload: { transactionId: '1234' }
+                })
+                response.statusCode.should.equal(400)
+            })
+            it('fails when transactionId is not supplied', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/assistant/${serviceName}`,
+                    headers: { authorization: 'Bearer ' + TestObjects.tokens.instance },
+                    payload: { prompt: 'multiply by 5' }
+                })
+                response.statusCode.should.equal(400)
+            })
+        }
+        describe('function service', async function () {
+            serviceTests('function')
+        })
+        describe('json service', async function () {
+            serviceTests('json')
         })
     })
 })
