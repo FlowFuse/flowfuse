@@ -1,5 +1,6 @@
 #### 2.6.1: Release
 
+
  - Set nodejs version back to 16 for package build (#4121) @hardillb
  - Fix dashboard link in compact application view (#4120) @knolleary
  - PostHog - Add .group call to automatically map all events to the relevant team (#4115) @joepavitt

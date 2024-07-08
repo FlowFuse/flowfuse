@@ -8,6 +8,7 @@ base_url: http://localhost:3000
 # Database Configuration                        #
 #################################################
 
+
 db:
   logging: false
   ## The database type: sqlite|postgres
