@@ -22,6 +22,9 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       is_org_member: ${{ steps.validate.outputs.is_member }}
     steps:
@@ -32,7 +35,7 @@ jobs:
             echo "is_member=false" >> $GITHUB_ENV
             exit 0
           fi
-          member_status=$(gh api orgs/flowfuse/memberships/${{ github.actor }} -q '.state' 2>/dev/null )
+          member_status=$(gh api orgs/flowfuse/memberships/${{ github.actor }} -q '.state')
           if [ "${member_status}" == "active" ]; then
             echo "is_member=true" >> $GITHUB_ENV
           else
