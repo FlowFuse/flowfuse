@@ -21,7 +21,6 @@ jobs:
     name: Validate trigger author
     runs-on: ubuntu-latest
     if: |
-      github.actor != 'dependabot[bot]' &&
       github.event_name == 'pull_request'
     outputs:
       is_org_member: ${{ steps.validate.outputs.is_member }}
@@ -29,8 +28,12 @@ jobs:
       - name: Validate
         id: validate
         run: |
-          status=$(gh api orgs/${{ github.event.pull_request.organisation }}/memberships/${{ github.actor }} -q '.state' 2>/dev/null )
-          if [ "${status}" == "active" ]
+          if [ "${{ github.actor }} == 'dependabot[bot]' ]; then
+            echo "is_member=false" >> $GITHUB_ENV
+            exit 0
+          fi
+          member_status=$(gh api orgs/flowfuse/memberships/${{ github.actor }} -q '.state' 2>/dev/null )
+          if [ "${member_status}" == "active" ]
           then
             echo "is_member=true" >> $GITHUB_ENV
           else
@@ -42,7 +45,6 @@ jobs:
     needs: validate-user
     if: |
       needs.validate-user.outputs.is_org_member == 'true' &&
-      github.actor != 'dependabot[bot]' &&
       github.event_name == 'pull_request' && 
       github.event.action != 'closed'
     runs-on: ubuntu-latest
@@ -85,7 +87,6 @@ jobs:
     needs: [ validate-user, build ]
     if: |
       needs.validate-user.outputs.is_org_member == 'true' &&
-      github.actor != 'dependabot[bot]' &&
       github.event_name == 'pull_request' && 
       github.event.action != 'closed'
     runs-on: ubuntu-latest
