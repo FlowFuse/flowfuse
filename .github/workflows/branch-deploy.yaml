@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # This job validates if the user, who triggered the workflow, iss a member of the organization
+  # This job validates if the user, who triggered the workflow, is a member of the organization
   # Note: Any workflow re-runs will use the privileges of github.actor, even if the actor initiating the re-run (github.triggering_actor) has different privileges.
   validate-user:
     name: Validate trigger author
