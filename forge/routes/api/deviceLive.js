@@ -151,7 +151,8 @@ module.exports = async function (app) {
                         'node-red': nodeRedVersion,
                         // as of FF v1.14.0, we permit project nodes to work on application owned devices
                         // the support for this is in @flowfuse/nr-project-nodes > v0.5.0
-                        '@flowfuse/nr-project-nodes': '>0.5.0' // TODO: get this from the "settings" (future)
+                        '@flowfuse/nr-project-nodes': '>0.5.0', // TODO: get this from the "settings" (future)
+                        '@flowfuse/nr-assistant': '*'
                     },
                     env: {
                         FF_SNAPSHOT_ID: '0',
@@ -190,6 +191,9 @@ module.exports = async function (app) {
                     // if the snapshot does not have the new module specified OR it is a version <= 0.5.0, update it
                     if (!settings.modules['@flowfuse/nr-project-nodes'] || SemVer.satisfies(SemVer.coerce(settings.modules['@flowfuse/nr-project-nodes']), '<=0.5.0')) {
                         settings.modules['@flowfuse/nr-project-nodes'] = '>0.5.0'
+                    }
+                    if (!settings.modules['@flowfuse/nr-assistant']) {
+                        settings.modules['@flowfuse/nr-assistant'] = '*'
                     }
                     if (!settings.modules['node-red']) {
                         // if the snapshot does not have the node-red module specified, ensure it is set to a valid version
@@ -245,6 +249,10 @@ module.exports = async function (app) {
         response.features = {
             'shared-library': !!(app.config.features.enabled('shared-library') && teamType.getFeatureProperty('shared-library', true)),
             projectComms: !!(app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true))
+        }
+        response.assistant = {
+            enabled: app.config.assistant?.enabled || false,
+            requestTimeout: app.config.assistant?.requestTimeout || 60000
         }
         reply.send(response)
     })
