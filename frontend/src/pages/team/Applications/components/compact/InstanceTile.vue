@@ -10,12 +10,24 @@
         </div>
         <div class="details">
             <div class="detail-wrapper">
-                <span :title="localInstance.name" class="cursor-pointer name" @click="openInstance">
+                <span
+                    :title="localInstance.name"
+                    class="cursor-pointer name"
+                    :class="{'no-highlight': isHoveringInstanceUrl}"
+                    @click="openInstance"
+                >
                     {{ localInstance.name }}
                 </span>
             </div>
             <div class="detail-wrapper detail">
-                <a v-if="isInstanceRunning" :href="localInstance.url" target="_blank" class="editor-link" @click.stop>
+                <a
+                    v-if="isInstanceRunning"
+                    :href="localInstance.url"
+                    target="_blank"
+                    class="editor-link"
+                    @click.stop @mouseover="isHoveringInstanceUrl = true"
+                    @mouseleave="isHoveringInstanceUrl = false"
+                >
                     {{ localInstance.url }}
                 </a>
                 <span v-else class="editor-link inactive">
@@ -110,7 +122,8 @@ export default {
     emits: ['delete-instance'],
     data () {
         return {
-            localInstance: this.instance
+            localInstance: this.instance,
+            isHoveringInstanceUrl: false
         }
     },
     computed: {

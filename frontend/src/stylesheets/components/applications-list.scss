@@ -231,9 +231,9 @@
 
                     .name {
                         color: $ff-black;
-                        
-                        &:hover {
-                            color: $ff-blue-800 !important;
+
+                        &.no-highlight {
+                            color: $ff-black !important;
                         }
                     }
                     
@@ -251,7 +251,7 @@
                     }
 
                     a:hover {
-                        color: $ff-grey-600;
+                        color: $ff-blue-600;
                     }
                 }
 
