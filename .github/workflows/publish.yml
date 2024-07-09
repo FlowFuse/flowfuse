@@ -41,7 +41,6 @@ jobs:
 
   dispatch_container_build:
     needs: publish
-    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Generate a token
