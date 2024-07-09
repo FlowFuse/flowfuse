@@ -67,7 +67,6 @@ const forge = require('./forge')
                 server.log.info('* FlowFuse is now running and can be accessed at: *')
                 server.log.info(`*   ${server.config.base_url.padEnd(47, ' ')}*`)
                 server.log.info('****************************************************')
-                server.log.info('****************************************************')
             }
             if (enableRepl) {
                 const repl = require('repl')
