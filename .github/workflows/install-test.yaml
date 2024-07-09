@@ -15,7 +15,7 @@ jobs:
       - name: install
         run: |
           npm install @flowfuse/flowfuse
-          mkdir etc
+          mkdir etc var
           cp node_modules/@flowfuse/flowfuse/etc/flowforge.yml etc/
           ls -lh node_modules/.bin
       - name: start server in background
