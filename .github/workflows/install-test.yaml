@@ -14,23 +14,21 @@ jobs:
           node-version: 20
       - name: install
         run: |
-          curl -L https://github.com/FlowFuse/installer/releases/latest/download/flowfuse-installer.zip -o flowfuse-installer.zip
-          unzip flowfuse-installer.zip
-          cd flowfuse-installer/app
-          ./install.sh
-          cd ..
+          npm install @flowfuse/flowfuse
+          mkdir etc
+          cp node_modules/@flowfuse/flowfuse/etc/flowforge.yml etc/
+          ls -lh node_modules/.bin
       - name: start server in background
         uses: JarvusInnovations/background-action@v1
         with:
           run: |
-            ./bin/flowfuse.sh
+            node_modules/.bin/flowfuse
           wait-on: |
             http://localhost:3000
           tail: true
           wait-for: 2m
           log-output: stderr,stdout
           log-output-if: failure
-          working-directory: flowfuse-installer
       - name: test access
         run: |
           curl -L -v http://localhost:3000
