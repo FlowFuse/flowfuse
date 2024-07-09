@@ -374,5 +374,90 @@ describe('FlowForge - Applications', () => {
                         .should('not.be.disabled')
                 })
         })
+
+        describe('can search through', () => {
+            it('applications', () => {
+                cy.intercept(
+                    'GET',
+                    '/api/*/teams/*/applications/status*',
+                    {
+                        count: 1,
+                        applications: [
+                            { id: '1', instances: [], devices: [] },
+                            { id: '2', instances: [], devices: [] },
+                            { id: '3', instances: [], devices: [] }
+                        ]
+                    }
+                ).as('getAppStatuses')
+                cy.intercept('get', '/api/*/applications/*/devices*', {
+                    meta: {},
+                    count: 0,
+                    devices: []
+                }).as('getDevices')
+                cy.intercept(
+                    'GET',
+                    '/api/*/teams/*/applications*',
+                    {
+                        count: 1,
+                        applications: [
+                            {
+                                id: '1',
+                                name: 'My First App',
+                                description: 'My first empty app description',
+                                instancesSummary: {
+                                    instances: []
+                                },
+                                devicesSummary: {
+                                    devices: []
+                                }
+                            },
+                            {
+                                id: '2',
+                                name: 'My Second App',
+                                description: 'My second empty app description',
+                                instancesSummary: {
+                                    instances: []
+                                },
+                                devicesSummary: {
+                                    devices: []
+                                }
+                            },
+                            {
+                                id: '3',
+                                name: 'My Third App',
+                                description: 'My third empty app description',
+                                instancesSummary: {
+                                    instances: []
+                                },
+                                devicesSummary: {
+                                    devices: []
+                                }
+                            }
+                        ]
+                    }
+                ).as('getApplication')
+
+                cy.home()
+
+                cy.wait('@getAppStatuses')
+                cy.wait('@getApplication')
+                cy.wait('@getDevices')
+
+                // check that we have three apps
+                cy.get('[data-el="applications-list"]').children().should('have.length', 3)
+
+                // check that we have three apps after searching a term common to all three
+                cy.get('[data-form="search"]').type('my')
+                cy.get('[data-el="applications-list"]').children().should('have.length', 3)
+
+                // check that we have three apps after clearing the search input
+                cy.get('[data-form="search"] input').clear()
+                cy.get('[data-el="applications-list"]').children().should('have.length', 3)
+
+                // check that we have a single app after searching a term unique to one
+                cy.get('[data-form="search"] input').type('second')
+                cy.get('[data-el="applications-list"]').children().should('have.length', 1).contains('My Second App')
+            })
+        })
     })
 })

@@ -10,6 +10,6 @@ Use the link below to verify your email address.
     html:
 `<p>Hello, <b>{{{safeName.html}}}</b>,</p>
 <p>Use the link below to verify your email address.</p>
-<p><a href="{{{ confirmEmailLink }}}">{{{ confirmEmailLink }}}</a></p>
+<p><a href="{{{ confirmEmailLink }}}">Confirm Email address</a></p>
 `
 }

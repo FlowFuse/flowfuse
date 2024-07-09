@@ -1,6 +1,6 @@
-var/
+/var/
 docs/
-config/
+/config/
 .github
 forge.db
 sub_modules/
@@ -11,5 +11,5 @@ frontend/src/
 frontend/public/
 forge/containers/localfs_root/
 forge/licensing/dev-private-key_enc.pem
-test/
-ci/
+/test/
+/ci/

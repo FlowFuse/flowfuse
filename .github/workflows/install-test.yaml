@@ -1,0 +1,34 @@
+name: Install Test
+on:
+  schedule:
+    - cron: '45 23 * * *'
+  workflow_dispatch:
+
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: install
+        run: |
+          npm install @flowfuse/flowfuse
+          mkdir etc var
+          cp node_modules/@flowfuse/flowfuse/etc/flowforge.yml etc/
+          ls -lh node_modules/.bin
+      - name: start server in background
+        uses: JarvusInnovations/background-action@v1
+        with:
+          run: |
+            node_modules/.bin/flowfuse
+          wait-on: |
+            http://localhost:3000
+          tail: true
+          wait-for: 2m
+          log-output: stderr,stdout
+          log-output-if: failure
+      - name: test access
+        run: |
+          curl -L -v http://localhost:3000

@@ -36,8 +36,16 @@
             <ff-loading v-if="loading" message="Loading Applications..." />
 
             <template v-else-if="!loading && applications.size > 0">
-                <ul class="ff-applications-list" data-el="applications-list">
-                    <li v-for="application in applicationsList" :key="application.id">
+                <ff-text-input
+                    v-model="filterTerm"
+                    class="ff-data-table--search"
+                    data-form="search"
+                    placeholder="Search Applications..."
+                >
+                    <template #icon><SearchIcon /></template>
+                </ff-text-input>
+                <ul v-if="filteredApplications.length > 0" class="ff-applications-list" data-el="applications-list">
+                    <li v-for="application in filteredApplications" :key="application.id">
                         <ApplicationListItem
                             :application="application"
                             @instance-deleted="fetchData(false)"
@@ -45,6 +53,9 @@
                         />
                     </li>
                 </ul>
+                <p v-else class="no-results">
+                    No Data Found. Try Another Search.
+                </p>
             </template>
 
             <EmptyState v-else>
@@ -86,7 +97,7 @@
 </template>
 
 <script>
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { PlusSmIcon, SearchIcon } from '@heroicons/vue/outline'
 
 import teamApi from '../../../api/team.js'
 import EmptyState from '../../../components/EmptyState.vue'
@@ -100,6 +111,7 @@ const ASSOCIATIONS_LIMIT = 3
 export default {
     name: 'TeamApplications',
     components: {
+        SearchIcon,
         ApplicationListItem,
         EmptyState,
         PlusSmIcon
@@ -111,12 +123,25 @@ export default {
             applications: new Map(),
             columns: [
                 { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true }
-            ]
+            ],
+            filterTerm: ''
         }
     },
     computed: {
         applicationsList () {
             return Array.from(this.applications.values())
+        },
+        filteredApplications () {
+            if (this.filterTerm) {
+                return this.applicationsList.filter(app => {
+                    const includes = []
+                    const appNameMatch = app.name.toLowerCase().includes(this.filterTerm.toLowerCase())
+
+                    includes.push(appNameMatch)
+
+                    return includes.includes(true)
+                })
+            } return this.applicationsList
         }
     },
     watch: {
@@ -222,4 +247,9 @@ export default {
 
 <style lang="scss">
 @import "../../../stylesheets/components/applications-list";
+
+.no-results {
+  text-align: center;
+  color: $ff-grey-400;
+}
 </style>
