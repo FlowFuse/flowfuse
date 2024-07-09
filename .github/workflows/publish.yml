@@ -9,12 +9,14 @@ on:
       localfs_ref:
         description: 'localfs package ref'
         required: false
+  pull_request:
+    branches:
+      - main
   workflow_run:
     workflows: 
       - 'Tests'
     branches: 
       - main
-      - ci-bump-publish-workflow
     types: 
       - completed
 
