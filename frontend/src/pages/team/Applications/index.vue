@@ -129,7 +129,13 @@ export default {
     },
     computed: {
         applicationsList () {
-            return Array.from(this.applications.values())
+            return Array.from(this.applications.values()).map(app => {
+                return {
+                    ...app,
+                    instances: Array.from(app.instances.values()),
+                    devices: Array.from(app.devices.values())
+                }
+            })
         },
         filteredApplications () {
             if (this.filterTerm) {
@@ -234,9 +240,6 @@ export default {
                         ...deviceStatusData
                     })
                 })
-
-                application.instances = Array.from(application.instances.values())
-                application.devices = Array.from(application.devices.values())
 
                 this.applications.set(applicationData.id, {
                     ...application,
