@@ -235,6 +235,9 @@ export default {
                     })
                 })
 
+                application.instances = Array.from(application.instances.values())
+                application.devices = Array.from(application.devices.values())
+
                 this.applications.set(applicationData.id, {
                     ...application,
                     ...applicationProps

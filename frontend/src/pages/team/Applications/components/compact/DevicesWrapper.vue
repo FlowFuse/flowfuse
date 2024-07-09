@@ -17,7 +17,7 @@
         </label>
         <div class="items-wrapper" :class="{one: singleDevice, two: twoDevices, three: threeDevices}">
             <div
-                v-for="device in Array.from(application.devices.values())"
+                v-for="device in devices"
                 :key="device.id"
                 class="item-wrapper"
                 @click.stop="openDevice(device)"
@@ -91,14 +91,14 @@ export default {
     emits: ['delete-device'],
     computed: {
         hasMoreDevices () {
-            return this.application.deviceCount > this.application.devices.size
+            return this.application.deviceCount > this.application.devices.length
         },
         hasNoDevices () {
-            return this.application.devices.size === 0
+            return this.application.devices.length === 0
         },
         remainingDevices () {
             if (this.hasNoDevices || this.hasMoreDevices) {
-                return this.application.deviceCount - this.application.devices.size
+                return this.application.deviceCount - this.application.devices.length
             } else return 0
         },
         singleDevice () {
