@@ -13,7 +13,7 @@ jobs:
         run: |
           curl -L https://github.com/FlowFuse/installer/releases/latest/download/flowfuse-installer.zip -o flowfuse-installer.zip
           unzip flowfuse-installer.zip
-          cd flowfuse-installer/app
+          cd flowfuse-installer
           ./install.sh
           cd ..
       - name: start server in background
