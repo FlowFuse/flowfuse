@@ -9,9 +9,6 @@ on:
       localfs_ref:
         description: 'localfs package ref'
         required: false
-  pull_request:
-    branches:
-      - main
   workflow_run:
     workflows: 
       - 'Tests'
@@ -26,14 +23,14 @@ concurrency:
 
 jobs:
   publish:
-    # if: |
-    #   ( github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main' ) ||
-    #   ( github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' )
+    if: |
+      ( github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main' ) ||
+      ( github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' )
     uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.20.0'
     with:
       package_name: flowfuse
       build_package: true
-      publish_package: false
+      publish_package: true
       package_dependencies: |
         @flowfuse/driver-localfs
     secrets:
