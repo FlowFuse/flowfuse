@@ -4,10 +4,13 @@
             <IconDeviceSolid class="ff-icon ff-icon-sm text-teal-700" />
             Devices
         </label>
-        <span class="message">
+        <span v-if="!isSearching" class="message">
             This Application currently has no
             <router-link :to="`/application/${application.id}/devices`" class="ff-link">attached devices</router-link>
             .
+        </span>
+        <span v-else class="message">
+            No device matches your criteria.
         </span>
     </section>
     <section v-else class="ff-applications-list-instances--compact" data-el="application-devices">
@@ -86,19 +89,24 @@ export default {
             type: Object,
             required: true,
             default: null
+        },
+        isSearching: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
     emits: ['delete-device'],
     computed: {
         hasMoreDevices () {
-            return this.application.deviceCount > this.application.devices.length
+            return this.application.deviceCount > this.devices.length
         },
         hasNoDevices () {
-            return this.application.devices.length === 0
+            return this.devices.length === 0
         },
         remainingDevices () {
             if (this.hasNoDevices || this.hasMoreDevices) {
-                return this.application.deviceCount - this.application.devices.length
+                return this.application.deviceCount - this.devices.length
             } else return 0
         },
         singleDevice () {
@@ -111,7 +119,7 @@ export default {
             return this.application.deviceCount === 3
         },
         devices () {
-            return this.application.devices
+            return this.application.devices.slice(0, 3)
         }
     },
     mounted () {

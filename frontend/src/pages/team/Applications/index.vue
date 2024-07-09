@@ -40,7 +40,7 @@
                     v-model="filterTerm"
                     class="ff-data-table--search"
                     data-form="search"
-                    placeholder="Search Applications..."
+                    placeholder="Search Applications, Instances and Devices..."
                 >
                     <template #icon><SearchIcon /></template>
                 </ff-text-input>
@@ -48,6 +48,7 @@
                     <li v-for="application in filteredApplications" :key="application.id">
                         <ApplicationListItem
                             :application="application"
+                            :is-searching="filterTerm.length > 0"
                             @instance-deleted="fetchData(false)"
                             @device-deleted="fetchData(false)"
                         />
@@ -106,8 +107,6 @@ import Alerts from '../../../services/alerts.js'
 
 import ApplicationListItem from './components/Application.vue'
 
-const ASSOCIATIONS_LIMIT = 3
-
 export default {
     name: 'TeamApplications',
     components: {
@@ -139,14 +138,44 @@ export default {
         },
         filteredApplications () {
             if (this.filterTerm) {
-                return this.applicationsList.filter(app => {
-                    const includes = []
-                    const appNameMatch = app.name.toLowerCase().includes(this.filterTerm.toLowerCase())
+                return this.applicationsList
+                    .filter(app => {
+                        const filteredInstances = app.instances.filter(instance => {
+                            return instance.name.toLowerCase().includes(this.filterTerm.toLowerCase())
+                        })
+                        const filteredDevices = app.devices.filter(device => {
+                            return device.name.toLowerCase().includes(this.filterTerm.toLowerCase())
+                        })
 
-                    includes.push(appNameMatch)
+                        return [
+                            app.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                            filteredInstances.length > 0,
+                            filteredDevices.length > 0
+                        ].includes(true)
+                    })
+                    .map(app => {
+                        const filteredInstances = app.instances.filter(instance => {
+                            return instance.name.toLowerCase().includes(this.filterTerm.toLowerCase())
+                        })
+                        const filteredDevices = app.devices.filter(device => {
+                            return device.name.toLowerCase().includes(this.filterTerm.toLowerCase())
+                        })
 
-                    return includes.includes(true)
-                })
+                        const filteredInstancesOrEntireSet = filteredInstances.length
+                            ? filteredInstances
+                            : (filteredDevices.length > 0 ? filteredInstances : app.instances)
+                        const filteredDevicesOrEntireSet = filteredDevices.length
+                            ? filteredDevices
+                            : (filteredInstances.length > 0 ? filteredDevices : app.devices)
+
+                        return {
+                            ...app,
+                            instances: filteredInstancesOrEntireSet,
+                            instanceCount: filteredInstancesOrEntireSet.length,
+                            devices: filteredDevicesOrEntireSet,
+                            deviceCount: filteredDevicesOrEntireSet.length
+                        }
+                    })
             } return this.applicationsList
         }
     },
@@ -171,7 +200,7 @@ export default {
             if (this.team.id) {
                 const applicationsMap = new Map()
 
-                const applicationsPromise = teamApi.getTeamApplications(this.team.id, { associationsLimit: ASSOCIATIONS_LIMIT })
+                const applicationsPromise = teamApi.getTeamApplications(this.team.id)
 
                 const applications = (await applicationsPromise).applications
                 applications.forEach((applicationData) => {
@@ -213,7 +242,7 @@ export default {
             this.loading = false
         },
         async updateApplicationAssociationStatuses () {
-            const applicationsAssociationsStatuses = (await teamApi.getTeamApplicationsAssociationsStatuses(this.team.id, { associationsLimit: ASSOCIATIONS_LIMIT })).applications
+            const applicationsAssociationsStatuses = (await teamApi.getTeamApplicationsAssociationsStatuses(this.team.id)).applications
 
             applicationsAssociationsStatuses.forEach((applicationData) => {
                 const application = this.applications.get(applicationData.id) || {}
