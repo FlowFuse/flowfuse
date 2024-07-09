@@ -46,7 +46,7 @@ DevOps Pipelines enable you to link multiple Node-RED instances together in a de
 
     ![Execute Pipeline](./images/getting-started/Execute-Pipeline.png)
 
-[Learn more about DevOps Pipelines](devops-pipelines.md)
+[Learn more about DevOps Pipelines](/docs/user/devops-pipelines/)
 
 ## Working with Devices 
 

@@ -26,6 +26,11 @@ const create = async (projectId, options) => {
 }
 
 const rollbackSnapshot = async (instanceId, snapshotId) => {
+    product.capture('ff-snapshot-rollback', {
+        'snapshot-id': snapshotId
+    }, {
+        instance: instanceId
+    })
     return instanceApi.rollbackInstance(instanceId, snapshotId)
 }
 
