@@ -4,32 +4,41 @@
 const smtp = require('./environments/smtp.js')
 const app = require('./environments/standard.js')
 
+const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localTransport.js')
+
 async function emailConfig () {
-    if (!process.env.NO_SMTP_SERVER || process.env.NO_SMTP_SERVER === 'false') {
-        const smtpConfig = {
-            smtpPort: process.env.SMTP_PORT || 1025,
-            webPort: process.env.SMTP_WEB_PORT || 8025
-        }
-        await smtp({
-            smtpPort: smtpConfig.smtpPort,
-            webPort: smtpConfig.webPort
-        })
+    switch (true) {
+    case !process.env.NO_SMTP_SERVER || process.env.NO_SMTP_SERVER === 'false':
+        // running locally with docker smtp container
+        await smtp({ smtpPort: 1025, webPort: 8025 })
         return {
             enabled: true,
             debug: true,
             smtp: {
-                host: process.env.SMTP_HOST || 'localhost',
-                port: smtpConfig.smtpPort,
+                host: 'localhost',
+                port: 1025,
                 secure: false,
                 debug: true
             }
         }
-    } else {
-        const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localTransport.js')
+    case process.env.NO_SMTP_SERVER === 'true' && process.env.LIGHT === 'true':
+        // running locally with LocalTransport
         return {
             enabled: true,
             debug: true,
             transport: new LocalTransport()
+        }
+    case process.env.NO_SMTP_SERVER === 'true' && process.env.SMTP_HOST:
+        // running in CI
+        return {
+            enabled: true,
+            debug: true,
+            smtp: {
+                host: process.env.SMTP_HOST,
+                port: process.env.SMTP_PORT,
+                secure: false,
+                debug: true
+            }
         }
     }
 }
