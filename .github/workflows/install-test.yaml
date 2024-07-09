@@ -9,11 +9,14 @@ jobs:
   install:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - name: install
         run: |
           curl -L https://github.com/FlowFuse/installer/releases/latest/download/flowfuse-installer.zip -o flowfuse-installer.zip
           unzip flowfuse-installer.zip
-          cd flowfuse-installer/app
+          cd flowfuse-installer
           ./install.sh
           cd ..
       - name: start server in background
