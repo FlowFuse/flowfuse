@@ -12,7 +12,7 @@ const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localT
 
 async function emailConfig () {
     switch (true) {
-    case !process.env.NO_SMTP_SERVER || process.env.NO_SMTP_SERVER === 'false':
+    case !process.env.NO_SMTP_SERVER && !process.env.GITHUB_ACTIONS:
         // running locally with docker smtp container
         await smtp({ smtpPort: 1026, webPort: 8026 })
         return {
@@ -25,14 +25,7 @@ async function emailConfig () {
                 debug: true
             }
         }
-    case process.env.NO_SMTP_SERVER === 'true' && process.env.LIGHT === 'true':
-        // running locally with LocalTransport
-        return {
-            enabled: true,
-            debug: true,
-            transport: new LocalTransport()
-        }
-    case process.env.NO_SMTP_SERVER === 'true' && process.env.SMTP_HOST:
+    case process.env.GITHUB_ACTIONS === 'true':
         // running in CI
         return {
             enabled: true,
@@ -43,6 +36,13 @@ async function emailConfig () {
                 secure: false,
                 debug: true
             }
+        }
+    default:
+        // running locally with LocalTransport
+        return {
+            enabled: true,
+            debug: true,
+            transport: new LocalTransport()
         }
     }
 }

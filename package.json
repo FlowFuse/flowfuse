@@ -37,7 +37,7 @@
         "test:docs": "node test/e2e/docs/valid-links.js ./docs",
         "test:system": "mocha 'test/system/**/*_spec.js' --timeout 10000 --node-option=unhandled-rejections=strict",
         "cy:web-server": "npm-run-all --parallel cy:web-server:os cy:web-server:ee",
-        "cy:web-server-light": "cross-env NO_SMTP_SERVER=true LIGHT=true npm-run-all --parallel cy:web-server:os cy:web-server:ee",
+        "cy:web-server-light": "cross-env NO_SMTP_SERVER=true npm-run-all --parallel cy:web-server:os cy:web-server:ee",
         "cy:web-server:os": "node ./test/e2e/frontend/test_environment_os",
         "cy:web-server:ee": "node ./test/e2e/frontend/test_environment_ee",
         "cy:run": "npm-run-all --parallel cy:run:os cy:run:ee",
