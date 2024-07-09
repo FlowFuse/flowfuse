@@ -9,16 +9,38 @@ const app = require('./environments/standard')
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 
-;(async function () {
-    const PORT = 3002
-    const smtpConfig = {
-        smtpPort: process.env.SMTP_PORT || 1026,
-        webPort: process.env.SMTP_WEB_PORT || 8026
-    }
-
+async function emailConfig () {
     if (!process.env.NO_SMTP_SERVER || process.env.NO_SMTP_SERVER === 'false') {
-        await smtp({ smtpPort: smtpConfig.smtpPort, webPort: smtpConfig.webPort })
+        const smtpConfig = {
+            smtpPort: process.env.SMTP_PORT || 1026,
+            webPort: process.env.SMTP_WEB_PORT || 8026
+        }
+        await smtp({
+            smtpPort: smtpConfig.smtpPort,
+            webPort: smtpConfig.webPort
+        })
+        return {
+            enabled: true,
+            debug: true,
+            smtp: {
+                host: process.env.SMTP_HOST || 'localhost',
+                port: smtpConfig.smtpPort,
+                secure: false,
+                debug: true
+            }
+        }
+    } else {
+        const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localTransport.js')
+        return {
+            enabled: true,
+            debug: true,
+            transport: new LocalTransport()
+        }
     }
+}
+
+(async function () {
+    const PORT = 3002
 
     const flowforge = await app({
         trialMode: true
@@ -40,16 +62,7 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
                 }
             }
         },
-        email: {
-            enabled: true,
-            debug: true,
-            smtp: {
-                host: process.env.SMTP_HOST || 'localhost',
-                port: smtpConfig.smtpPort,
-                secure: false,
-                debug: true
-            }
-        }
+        email: await emailConfig()
     })
 
     const factory = new TestModelFactory(flowforge)
