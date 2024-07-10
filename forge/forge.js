@@ -404,7 +404,7 @@ module.exports = async (options = {}) => {
                 preload: true,
                 maxAge: 2592000
             }
-            server.register(require('fastify-https-always'), { productionOnly: false })
+            // server.register(require('fastify-https-always'), { productionOnly: false })
         }
 
         await server.register(helmet, {
