@@ -397,7 +397,7 @@ module.exports = async (options = {}) => {
             strictTransportSecurity = {
                 includeSubDomains: false,
                 preload: true,
-                maxAge: 86400
+                maxAge: 2592000
             }
             server.register(require('fastify-https-always'), {productionOnly: false})
         }
