@@ -128,7 +128,7 @@ describe('Assistant API', async function () {
             it('anonymous cannot access', async function () {
                 const response = await app.inject({
                     method: 'GET',
-                    url: `/api/v1/assistant/${serviceName}n`
+                    url: `/api/v1/assistant/${serviceName}`
                 })
                 response.statusCode.should.equal(401)
             })
