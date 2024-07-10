@@ -21,7 +21,11 @@
                             To get started, enter the following code into your Authenticator app, then click next to continue.
                         </p>
                         <div class="text-center mt-4">
-                            <p class="text-2xl w-64 text-wrap font-mono break-all tracking-wider mx-auto my-2">{{ secretCode }}</p>
+                            <p class="text-2xl w-72 text-wrap font-mono tracking-wider mx-auto my-2">
+                                <template v-for="i in secretCode" :key="i">
+                                    <span class="mx-1">{{ i }}</span><wbr>
+                                </template>
+                            </p>
                             <p>
                                 <a class="cursor-pointer" @click="hideSecret()">Show QR code</a>
                             </p>
@@ -76,14 +80,14 @@ export default {
                 this.step = 0
                 this.qrcode = ''
                 this.showQRCode = true
-                this.secretCode = ''
+                this.secretCode = []
                 this.verifyToken = ''
                 this.verifyError = ''
                 this.$refs.dialog.show()
                 try {
                     const mfaDetails = await userApi.enableMFA()
                     this.qrcode = mfaDetails.qrcode
-                    this.secretCode = mfaDetails.url.split('=')[1]
+                    this.secretCode = mfaDetails.url.split('=')[1].match(/.{1,4}/g)
                 } catch (err) {
 
                 }
@@ -95,7 +99,8 @@ export default {
             step: 0,
             showQRCode: true,
             qrcode: '',
-            verifyToken: ''
+            verifyToken: '',
+            secretCode: []
         }
     },
     computed: {
