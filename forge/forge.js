@@ -318,7 +318,7 @@ module.exports = async (options = {}) => {
                     'www.google.com.*',
                     'www.google.*',
                     'googleads.g.doubleclick.net',
-                    'www.googleadservices.com',
+                    'www.googleadservices.com'
                 ]
                 if (contentSecurityPolicy.directives['img-src'] && Array.isArray(contentSecurityPolicy.directives['img-src'])) {
                     contentSecurityPolicy.directives['img-src'].push(...googleImageDomains)
@@ -404,7 +404,7 @@ module.exports = async (options = {}) => {
                 preload: true,
                 maxAge: 2592000
             }
-            server.register(require('fastify-https-always'), {productionOnly: false})
+            server.register(require('fastify-https-always'), { productionOnly: false })
         }
 
         await server.register(helmet, {

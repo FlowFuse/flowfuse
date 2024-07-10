@@ -320,7 +320,6 @@ describe('Check HTTP Security Headers set', () => {
                 }
             })
             const headers = response.headers
-            console.log(headers)
             headers.should.have.property('strict-transport-security')
         })
     })
