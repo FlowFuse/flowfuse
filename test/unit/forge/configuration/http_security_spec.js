@@ -314,9 +314,13 @@ describe('Check HTTP Security Headers set', () => {
             app = await FF_UTIL.setupApp(config)
             const response = await app.inject({
                 method: 'GET',
-                url: '/'
+                url: '/',
+                headers: {
+                    'X-Forwarded-Proto': 'https'
+                }
             })
             const headers = response.headers
+            console.log(headers)
             headers.should.have.property('strict-transport-security')
         })
     })
