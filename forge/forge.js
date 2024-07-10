@@ -304,7 +304,8 @@ module.exports = async (options = {}) => {
                     'www.google.co.uk',
                     'google.com',
                     'googleads.g.doubleclick.net',
-                    'www.googleservices.com'
+                    'www.googleservices.com',
+                    'www.googleadservices.com'
                 ]
                 if (contentSecurityPolicy.directives['script-src'] && Array.isArray(contentSecurityPolicy.directives['script-src'])) {
                     contentSecurityPolicy.directives['script-src'].push(...googleDomains)
@@ -313,8 +314,11 @@ module.exports = async (options = {}) => {
                 }
                 const googleImageDomains = [
                     'www.google.com',
-                    'www.google.co.uk',
-                    'googleads.g.doubleclick.net'
+                    'www.google.co.*',
+                    'www.google.com.*',
+                    'www.google.*',
+                    'googleads.g.doubleclick.net',
+                    'www.googleadservices.com',
                 ]
                 if (contentSecurityPolicy.directives['img-src'] && Array.isArray(contentSecurityPolicy.directives['img-src'])) {
                     contentSecurityPolicy.directives['img-src'].push(...googleImageDomains)
@@ -322,6 +326,7 @@ module.exports = async (options = {}) => {
                     contentSecurityPolicy.directives['img-src'] = googleImageDomains
                 }
                 const googleConnectDomains = [
+                    'www.google.com',
                     'google.com'
                 ]
                 if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
