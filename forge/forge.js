@@ -241,7 +241,7 @@ module.exports = async (options = {}) => {
                         'worker-src': ["'self'", 'blob:'],
                         'connect-src': ["'self'"],
                         'img-src': ["'self'", 'data:', 'flowfuse.com', 'www.gravatar.com'],
-                        'font-src': ["'self'"],
+                        'font-src': ["'self'", 'data'],
                         'style-src': ["'self'", 'https:', "'unsafe-inline'"],
                         'upgrade-insecure-requests': null,
                         'frame-ancestors': ["'self'"]
@@ -397,8 +397,9 @@ module.exports = async (options = {}) => {
             strictTransportSecurity = {
                 includeSubDomains: false,
                 preload: true,
-                maxAge: 3600
+                maxAge: 86400
             }
+            server.register(require('fastify-https-always'), {productionOnly: false})
         }
 
         await server.register(helmet, {
