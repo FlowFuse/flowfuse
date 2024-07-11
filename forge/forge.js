@@ -346,9 +346,9 @@ module.exports = async (options = {}) => {
                     'fonts.gstatic.com'
                 ]
                 if (contentSecurityPolicy.directives['font-src'] && Array.isArray(contentSecurityPolicy.directives['font-src'])) {
-                    contentSecurityPolicy.directives['font-src'].push(...googleFrameDomains)
+                    contentSecurityPolicy.directives['font-src'].push(...googleFontDomains)
                 } else {
-                    contentSecurityPolicy.directives['font-src'] = googleFrameDomains
+                    contentSecurityPolicy.directives['font-src'] = googleFontDomains
                 }
             }
             if (runtimeConfig.support?.enabled && runtimeConfig.support.frontend?.hubspot?.trackingcode) {
