@@ -427,7 +427,7 @@ describe('FlowForge - Applications', () => {
                 cy.get('[data-el="applications-list"]').children().should('have.length', 1).contains('My Second App')
             })
 
-            it.only('devices and instances', () => {
+            it('devices and instances', () => {
                 cy.intercept(
                     'GET',
                     '/api/*/teams/*/applications/status*',
