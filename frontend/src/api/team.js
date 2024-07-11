@@ -74,12 +74,17 @@ const deleteTeam = async (teamId) => {
  * Get a list of applications
  * This function does not get instance status
  * @param {string} teamId The Team ID (hash) to get applications and instances for
+ * @param associationsLimit
+ * @param includeApplicationSummary
  * @returns An array of application objects containing an array of instances
  */
-const getTeamApplications = async (teamId, { associationsLimit } = {}) => {
-    const options = {}
+const getTeamApplications = async (teamId, { associationsLimit, includeApplicationSummary = false } = {}) => {
+    const options = { params: {} }
     if (associationsLimit) {
-        options.params = { associationsLimit }
+        options.params.associationsLimit = associationsLimit
+    }
+    if (includeApplicationSummary) {
+        options.params.includeApplicationSummary = includeApplicationSummary
     }
     const result = await client.get(`/api/v1/teams/${teamId}/applications`, options)
     return result.data

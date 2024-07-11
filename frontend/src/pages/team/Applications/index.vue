@@ -200,7 +200,7 @@ export default {
             if (this.team.id) {
                 const applicationsMap = new Map()
 
-                const applicationsPromise = teamApi.getTeamApplications(this.team.id)
+                const applicationsPromise = teamApi.getTeamApplications(this.team.id, { includeApplicationSummary: true })
 
                 const applications = (await applicationsPromise).applications
                 applications.forEach((applicationData) => {
@@ -242,7 +242,7 @@ export default {
             this.loading = false
         },
         async updateApplicationAssociationStatuses () {
-            const applicationsAssociationsStatuses = (await teamApi.getTeamApplicationsAssociationsStatuses(this.team.id)).applications
+            const applicationsAssociationsStatuses = (await teamApi.getTeamApplicationsAssociationsStatuses(this.team.id, { includeApplicationSummary: true })).applications
 
             applicationsAssociationsStatuses.forEach((applicationData) => {
                 const application = this.applications.get(applicationData.id) || {}
