@@ -63,6 +63,22 @@ module.exports = async function (app) {
 
         // post to the assistant service
         const headers = {}
+        if (request.session?.ownerType) {
+            switch (request.session.ownerType) {
+            case 'team':
+                headers['ff-owner-type'] = 'team'
+                headers['ff-owner-id'] = app.db.models.Team.encodeHashid(request.session.ownerId)
+                break
+            case 'device':
+                headers['ff-owner-type'] = 'device'
+                headers['ff-owner-id'] = app.db.models.Device.encodeHashid(request.session.ownerId)
+                break
+            case 'project':
+            case 'instance':
+                headers['ff-owner-type'] = request.session.ownerType
+                headers['ff-owner-id'] = request.session.ownerId
+            }
+        }
         if (serviceToken) {
             headers.Authorization = `Bearer ${serviceToken}`
         }
