@@ -10,6 +10,14 @@ const { default: axios } = require('axios')
  */
 module.exports = async function (app) {
     app.addHook('preHandler', app.verifySession)
+    app.addHook('preHandler', (request, reply, done) => {
+        // Only permit requests made by a device or instance
+        if (request.session?.ownerType !== 'device' && request.session?.ownerType !== 'project') {
+            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+        } else {
+            done()
+        }
+    })
 
     /**
      * Endpoint for assistant methods

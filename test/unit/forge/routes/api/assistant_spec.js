@@ -140,6 +140,18 @@ describe('Assistant API', async function () {
                 })
                 response.statusCode.should.equal(401)
             })
+            it('user token can not access', async function () {
+                sinon.stub(axios, 'post').resolves({ data: { status: 'ok' } })
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/assistant/${serviceName}`,
+                    // headers: { authorization: 'Bearer ' + TestObjects.tokens.alice },
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: { prompt: 'multiply by 5', transactionId: '1234' }
+                })
+                response.statusCode.should.equal(401)
+                axios.post.calledOnce.should.be.false()
+            })
             it('device token can access', async function () {
                 // const device = await createDevice({ name: 'Ad1', type: 'Ad1_type', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
                 const deviceCreateResponse = await app.inject({

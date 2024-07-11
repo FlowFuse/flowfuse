@@ -112,7 +112,7 @@ const Permissions = {
     'platform:audit-log': { description: 'View platform audit log', role: Roles.Admin },
 
     // assistant
-    'assistant:method': { description: 'Access the assistant method endpoint', role: Roles.Member }
+    'assistant:method': { description: 'Access the assistant method endpoint', role: null }
 }
 
 module.exports = {
