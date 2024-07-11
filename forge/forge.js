@@ -107,8 +107,14 @@ module.exports = async (options = {}) => {
                         response.request.ownerId = server.db.models.Device.encodeHashid(reply.request?.session?.ownerId)
                         response.request.ownerType = 'device'
                         break
-                    default:
+                    case 'project':
+                    case 'instance':
                         response.request.ownerId = reply.request?.session?.ownerId
+                        response.request.ownerType = reply.request?.session?.ownerType
+                        break
+                    default:
+                        // Don't log the id as we don't know how to hash it
+                        // Log the type so we can spot cases we aren't handling and address it
                         response.request.ownerType = reply.request?.session?.ownerType
                     }
                 }
