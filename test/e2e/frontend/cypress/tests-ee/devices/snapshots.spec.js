@@ -289,4 +289,34 @@ describe('FlowForge - Devices - With Billing', () => {
         cy.get('[data-el="snapshots"] tbody').find('tr').contains('uploaded snapshot2')
         cy.get('[data-el="snapshots"] tbody').find('tr').contains('snapshot2 description')
     })
+    it('Can rollback a snapshot', () => {
+        // Premise: Ensure the rollback endpoint is available and callable
+        // (NOTE: this is not testing the full mechanics of the rollback feature, only to prevent repeat regression. See #2032)
+        cy.intercept('PUT', '/api/*/devices/*').as('rollbackSnapshot')
+
+        cy.intercept('GET', '/api/*/applications/*/snapshots*', deviceSnapshots).as('getSnapshots')
+        cy.intercept('GET', '/api/*/snapshots/*/full', deviceFullSnapshot).as('fullSnapshot')
+
+        cy.contains('span', 'application-device-a').click()
+        cy.get('[data-nav="device-snapshots"]').click()
+
+        // click kebab menu in row 1
+        cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
+
+        // click the Rollback Snapshot option
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DEPLOY_SNAPSHOT).click()
+
+        cy.get('[data-el="platform-dialog"]').should('be.visible')
+        cy.get('[data-el="platform-dialog"] .ff-dialog-header').contains('Deploy Snapshot to device')
+
+        // find .ff-btn--danger with text "Confirm" and click it
+        cy.get('[data-el="platform-dialog"] .ff-btn--danger').contains('Confirm').click()
+
+        // check body sent to /api/*/devices/*
+        cy.wait('@rollbackSnapshot').then(interception => {
+            const body = interception.request.body
+            expect(body).to.have.property('targetSnapshot')
+            expect(body.targetSnapshot).to.be.a('string')
+        })
+    })
 })

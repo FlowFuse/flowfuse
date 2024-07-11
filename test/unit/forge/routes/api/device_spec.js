@@ -813,6 +813,34 @@ describe('Device API', async function () {
                 // ensure old flowforge module is not present
                 result.modules.should.not.have.property('@flowforge/nr-project-nodes')
             })
+            it('`@flowfuse/nr-assistant` dependency is included in the starter snapshot', async function () {
+                const agentVersion = '1.11.0' // min agent version required for application assignment
+                const device = await createDevice({ name: 'Ad1a-dep-test2', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion })
+                // assign the new device to application
+                await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: {
+                        application: TestObjects.Application1.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                // get the snapshot for this device
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${device.id}/live/snapshot`,
+                    headers: {
+                        authorization: `Bearer ${device.credentials.token}`
+                    }
+                })
+                const result = response.json()
+                result.should.have.property('id')
+                result.should.have.property('name', 'Starter Snapshot')
+                result.should.have.property('modules').and.be.an.Object()
+                result.modules.should.have.property('@flowfuse/nr-assistant', '>=0.1.0')
+                // // ensure old flowforge module is not present
+                // result.modules.should.not.have.property('@flowforge/nr-project-nodes')
+            })
             it('can assign to an application even if device agent version is not present', async function () {
                 // Prior to FF 2.0, we would reject application assignment if the agent version was not present
                 // Now, we permit it, but the device will be sent null snapshot when it checks in (unless agent version is updated)
