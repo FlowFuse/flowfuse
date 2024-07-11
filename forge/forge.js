@@ -85,16 +85,40 @@ module.exports = async (options = {}) => {
         level: runtimeConfig.logging.level,
         serializers: {
             res (reply) {
-                return {
+                const response = {
                     statusCode: reply.statusCode,
                     request: {
                         user: reply.request?.session?.User?.username,
+                        ownerId: undefined,
+                        ownerType: undefined,
                         url: reply.request?.raw?.url,
                         method: reply.request?.method,
                         remoteAddress: reply.request?.ip,
                         remotePort: reply.request?.socket.remotePort
                     }
                 }
+                if (reply.request?.session?.ownerType) {
+                    switch (reply.request?.session?.ownerType) {
+                    case 'team':
+                        response.request.ownerId = server.db.models.Team.encodeHashid(reply.request?.session?.ownerId)
+                        response.request.ownerType = 'team'
+                        break
+                    case 'device':
+                        response.request.ownerId = server.db.models.Device.encodeHashid(reply.request?.session?.ownerId)
+                        response.request.ownerType = 'device'
+                        break
+                    case 'project':
+                    case 'instance':
+                        response.request.ownerId = reply.request?.session?.ownerId
+                        response.request.ownerType = reply.request?.session?.ownerType
+                        break
+                    default:
+                        // Don't log the id as we don't know how to hash it
+                        // Log the type so we can spot cases we aren't handling and address it
+                        response.request.ownerType = reply.request?.session?.ownerType
+                    }
+                }
+                return response
             }
         }
     }
