@@ -1,5 +1,7 @@
 ---
 navTitle: User Sign up Flow
+meta:
+   description: Learn how users sign up for FlowFuse Cloud accounts with a detailed sequence diagram outlining the process from registration to email verification.
 ---
 
 # User Sign Up Flow

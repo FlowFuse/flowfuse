@@ -1,5 +1,7 @@
 ---
 navTitle: State Flows
+meta:
+   description: Explore key workflows in FlowFuse Cloud with detailed sequence diagrams, covering login, user sign-up, password reset, and more.
 ---
 
 # Workflows

@@ -1,6 +1,8 @@
 ---
 navGroup: Support
 navTitle: Debugging Node-RED issues
+meta:
+   description: Learn how to troubleshoot unresponsive Node-RED instances using Safe Mode.
 ---
 
 # Node-RED Safe Mode
