@@ -1,9 +1,9 @@
 <template>
     <ApplicationHeader :application="localApplication" />
 
-    <InstancesWrapper :application="localApplication" @delete-instance="onInstanceDelete" />
+    <InstancesWrapper :application="localApplication" :is-searching="isSearching" @delete-instance="onInstanceDelete" />
 
-    <DevicesWrapper :application="localApplication" @delete-device="$emit('device-deleted')" />
+    <DevicesWrapper :application="localApplication" :is-searching="isSearching" @delete-device="$emit('device-deleted')" />
 
     <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="onInstanceDeleted" />
 </template>
@@ -28,6 +28,11 @@ export default {
         application: {
             type: Object,
             required: true
+        },
+        isSearching: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
     emits: ['instance-deleted', 'device-deleted'],
