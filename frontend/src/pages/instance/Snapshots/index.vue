@@ -225,6 +225,7 @@ export default {
         showRollbackDialog (snapshot) {
             Dialog.show({
                 header: 'Deploy Snapshot',
+                kind: 'danger',
                 text: `This will overwrite the current instance.
                        All changes to the flows, settings and environment variables made since the last snapshot will be lost.
                        Are you sure you want to deploy to this snapshot?`,
