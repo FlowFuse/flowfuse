@@ -57,17 +57,17 @@ export default {
     emits: ['delete-instance'],
     computed: {
         instances () {
-            return Array.from(this.application.instances.values())
+            return this.application.instances
         },
         hasMoreInstances () {
-            return this.application.instanceCount > this.application.instances.size
+            return this.application.instanceCount > this.application.instances.length
         },
         hasNoInstances () {
-            return this.application.instances.size === 0
+            return this.application.instances.length === 0
         },
         remainingInstances () {
             if (this.hasNoInstances || this.hasMoreInstances) {
-                return this.application.instanceCount - this.application.instances.size
+                return this.application.instanceCount - this.application.instances.length
             } else return 0
         },
         singleInstance () {
