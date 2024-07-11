@@ -1,5 +1,7 @@
 ---
 navTitle: FlowFuse File Storage
+meta:
+   description: Explore FlowFuse v2.6.0's Persistent Storage for Kubernetes and Docker. Configure Node-RED's persistent volumes and manage File Storage and Persistent Context efficiently.
 ---
 
 # FlowFuse File Storage

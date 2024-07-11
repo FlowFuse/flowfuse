@@ -1,6 +1,8 @@
 ---
 navTitle: FlowFuse Device Agent Introduction
 navOrder: 1
+meta:
+   description: Learn how to effectively manage Node-RED instances on remote devices using FlowFuse's powerful Device Agent, enabling seamless deployment and management through the FlowFuse platform.
 ---
 
 # FlowFuse Device Agent

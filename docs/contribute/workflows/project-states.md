@@ -1,5 +1,7 @@
 ---
 navTitle: Instance states
+meta:
+  description: Learn about Node-RED instance states in FlowFuse Cloud, from starting and running to safe mode and suspension, with a concise state diagram.
 ---
 
 # States
