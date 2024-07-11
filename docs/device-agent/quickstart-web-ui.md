@@ -1,6 +1,8 @@
 ---
 navTitle: Quick Start with Web UI
 navOrder: 3
+meta:
+   description: Learn how to add devices and develop workflows using FlowFuse web UI on Devices.
 ---
 
 # Developing Flows on Your Device

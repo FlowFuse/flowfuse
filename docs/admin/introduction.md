@@ -1,6 +1,8 @@
 ---
 navTitle: Administering FlowFuse
 navOrder: 1
+meta:
+  descriptions: Learn how to administer FlowFuse with this comprehensive guide. Explore user management, team setup, instance and stack management, and more.
 ---
 # Administering FlowFuse
 

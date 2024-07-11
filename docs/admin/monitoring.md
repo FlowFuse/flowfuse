@@ -1,5 +1,7 @@
 ---
 navTitle: Monitoring
+meta:
+   description: Learn how to monitor statistical information about your FlowFuse platform using the API endpoint.
 ---
 
 # Platform Monitoring

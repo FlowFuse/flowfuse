@@ -1,5 +1,7 @@
 ---
 navTitle: Invite External Users
+meta:
+   description: Learn how to invite external users to your team in FlowFuse Cloud. Follow our guide with clear steps and diagrams for seamless collaboration.
 ---
 
 # Invite External User Flow

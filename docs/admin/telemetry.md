@@ -1,5 +1,7 @@
 ---
 navTitle: Telemetry
+meta:
+  description: Learn how FlowFuse collects anonymous usage information to improve platform performance without compromising user privacy.
 ---
 
 # Usage Telemetry

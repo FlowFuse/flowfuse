@@ -1,5 +1,7 @@
 ---
 navTitle: LDAP SSO
+meta:
+   description: Learn how to configure LDAP-based Single Sign-On (SSO) on FlowFuse's self-hosted Enterprise instances.
 ---
 
 # Configuring LDAP based Single Sign-On

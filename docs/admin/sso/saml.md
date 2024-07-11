@@ -1,5 +1,7 @@
 ---
 navTitle: SAML SSO
+meta:
+   description: Learn how to configure SAML-based Single Sign-On (SSO) on FlowFuse's self-hosted Enterprise instances.
 ---
 
 # Configuring SAML based Single Sign-On
