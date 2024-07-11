@@ -3,51 +3,13 @@
 
 const TestModelFactory = require('../../lib/TestModelFactory')
 
-const smtp = require('./environments/smtp')
 const app = require('./environments/standard')
 
 const FF_UTIL = require('flowforge-test-utils')
+
 const { Roles } = FF_UTIL.require('forge/lib/roles')
-const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localTransport.js')
 
-async function emailConfig () {
-    switch (true) {
-    case !process.env.NO_SMTP_SERVER && !process.env.GITHUB_ACTIONS:
-        // running locally with docker smtp container
-        await smtp({ smtpPort: 1026, webPort: 8026 })
-        return {
-            enabled: true,
-            debug: true,
-            smtp: {
-                host: 'localhost',
-                port: 1026,
-                secure: false,
-                debug: true
-            }
-        }
-    case process.env.GITHUB_ACTIONS === 'true':
-        // running in CI
-        return {
-            enabled: true,
-            debug: true,
-            smtp: {
-                host: process.env.SMTP_HOST,
-                port: process.env.SMTP_PORT,
-                secure: false,
-                debug: true
-            }
-        }
-    default:
-        // running locally with LocalTransport
-        return {
-            enabled: true,
-            debug: true,
-            transport: new LocalTransport()
-        }
-    }
-}
-
-(async function () {
+;(async function () {
     const PORT = 3002
 
     const flowforge = await app({
@@ -70,7 +32,17 @@ async function emailConfig () {
                 }
             }
         },
-        email: await emailConfig()
+        email: {
+            enabled: true,
+            debug: true,
+            smtp: {
+                host: 'localhost',
+                port: 1026,
+                webPort: 8026,
+                secure: false,
+                debug: true
+            }
+        }
     })
 
     const factory = new TestModelFactory(flowforge)
