@@ -49,3 +49,10 @@ to generate code directly within the editor.
 This is useful when you want to quickly add code to an
 existing function node without having to generate a full function node from scratch.
 
+### In-line JSON Generation
+
+The FlowFuse Assistant plugin also adds a new code lens to the JSON editor that allows you
+to generate JSON directly within the monaco editor.
+
+This is useful when you want to quickly generate JSON in a template node, change node, inject node or
+any node that the TypedInput offers the JSON editor.
