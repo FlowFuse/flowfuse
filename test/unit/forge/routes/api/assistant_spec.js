@@ -192,6 +192,34 @@ describe('Assistant API', async function () {
                 })
                 response.statusCode.should.equal(400)
             })
+            it('contains owner info in headers for an instance', async function () {
+                sinon.stub(axios, 'post').resolves({ data: { status: 'ok' } })
+                await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/assistant/${serviceName}`,
+                    headers: { authorization: 'Bearer ' + TestObjects.tokens.instance },
+                    payload: { prompt: 'multiply by 5', transactionId: '1234' }
+                })
+                axios.post.calledOnce.should.be.true()
+                axios.post.args[0][2].headers.should.have.properties({
+                    'ff-owner-type': 'project',
+                    'ff-owner-id': TestObjects.instance.id
+                })
+            })
+            it('contains owner info in headers for a device', async function () {
+                sinon.stub(axios, 'post').resolves({ data: { status: 'ok' } })
+                await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/assistant/${serviceName}`,
+                    headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
+                    payload: { prompt: 'multiply by 5', transactionId: '1234' }
+                })
+                axios.post.calledOnce.should.be.true()
+                axios.post.args[0][2].headers.should.have.properties({
+                    'ff-owner-type': 'device',
+                    'ff-owner-id': TestObjects.device.hashid
+                })
+            })
         }
         describe('function service', async function () {
             serviceTests('function')
