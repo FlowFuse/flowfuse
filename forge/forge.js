@@ -342,6 +342,14 @@ module.exports = async (options = {}) => {
                 } else {
                     contentSecurityPolicy.directives['frame-src'] = googleFrameDomains
                 }
+                const googleFontDomains = [
+                    'fonts.gstatic.com'
+                ]
+                if (contentSecurityPolicy.directives['font-src'] && Array.isArray(contentSecurityPolicy.directives['font-src'])) {
+                    contentSecurityPolicy.directives['font-src'].push(...googleFrameDomains)
+                } else {
+                    contentSecurityPolicy.directives['font-src'] = googleFrameDomains
+                }
             }
             if (runtimeConfig.support?.enabled && runtimeConfig.support.frontend?.hubspot?.trackingcode) {
                 const hubspotDomains = [
@@ -377,7 +385,8 @@ module.exports = async (options = {}) => {
                     '*.hsforms.com',
                     '*.hubspot.com',
                     '*.hs-banner.com',
-                    '*.hscollectedforms.net'
+                    '*.hscollectedforms.net',
+                    '*.hs-embed-reporting.com'
                 ]
                 if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
                     contentSecurityPolicy.directives['connect-src'].push(...hubspotConnectDomains)
