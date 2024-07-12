@@ -1,6 +1,6 @@
 <template>
     <div class="has-more item-wrapper">
-        <router-link :to="{name: linkTo, params: {id: application.id, searchQuery: searchQuery}}">
+        <router-link :to="{name: linkTo, params: {id: application.id}, query: {searchQuery}}">
             <span>
                 {{ remaining }}
                 More...
