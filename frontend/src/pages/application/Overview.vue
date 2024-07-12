@@ -26,8 +26,11 @@
                 v-if="instances?.length > 0"
                 data-el="cloud-instances"
                 :columns="cloudColumns"
-                :rows="cloudRows"
+                :rows="filteredRows"
+                :show-search="true"
+                search-placeholder="Search Instances"
                 :rows-selectable="true"
+                @update:search="updateSearch"
                 @row-selected="selectedCloudRow"
             >
                 <template
@@ -131,6 +134,11 @@ export default {
         }
     },
     emits: ['instance-delete', 'instance-suspend', 'instance-restart', 'instance-start'],
+    data () {
+        return {
+            searchTerm: ''
+        }
+    },
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
         cloudColumns () {
@@ -153,6 +161,15 @@ export default {
                 return instance
             })
         },
+        filteredRows () {
+            return this.cloudRows
+                .filter(
+                    row => [
+                        row.name.toLowerCase().includes(this.searchTerm),
+                        row.id.toLowerCase().includes(this.searchTerm)
+                    ].includes(true)
+                )
+        },
         isVisitingAdmin () {
             return this.teamMembership.role === Roles.Admin
         }
@@ -165,6 +182,9 @@ export default {
                     id: cloudInstance.id
                 }
             })
+        },
+        updateSearch (searchTerm) {
+            this.searchTerm = searchTerm
         }
     }
 }

@@ -3,12 +3,15 @@
         <label class="delimiter">
             <IconNodeRedSolid class="ff-icon ff-icon-sm text-red-800" /> Instances
         </label>
-        <span class="message">
+        <span v-if="!isSearching" class="message">
             This Application currently has no
             <router-link :to="`/application/${application.id}/instances`" class="ff-link">
                 attached Node-RED Instances
             </router-link>
             .
+        </span>
+        <span v-else class="message">
+            No instance matches your criteria.
         </span>
     </section>
     <section v-else class="ff-applications-list-instances--compact">
@@ -52,22 +55,27 @@ export default {
             type: Object,
             required: true,
             default: null
+        },
+        isSearching: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
     emits: ['delete-instance'],
     computed: {
         instances () {
-            return this.application.instances
+            return this.application.instances.slice(0, 3)
         },
         hasMoreInstances () {
-            return this.application.instanceCount > this.application.instances.length
+            return this.application.instanceCount > this.instances.length
         },
         hasNoInstances () {
-            return this.application.instances.length === 0
+            return this.instances.length === 0
         },
         remainingInstances () {
             if (this.hasNoInstances || this.hasMoreInstances) {
-                return this.application.instanceCount - this.application.instances.length
+                return this.application.instanceCount - this.instances.length
             } else return 0
         },
         singleInstance () {

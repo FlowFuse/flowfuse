@@ -10,6 +10,16 @@ const { default: axios } = require('axios')
  */
 module.exports = async function (app) {
     app.addHook('preHandler', app.verifySession)
+    app.addHook('preHandler', (request, reply, done) => {
+        // Only permit requests made by a valid device or instance token
+        if (!request.session || request.session.provisioning) {
+            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+        } else if (request.session.ownerType !== 'device' && request.session.ownerType !== 'project') {
+            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+        } else {
+            done()
+        }
+    })
 
     /**
      * Endpoint for assistant methods
@@ -18,7 +28,6 @@ module.exports = async function (app) {
      * use an alternative means of accessing it.
     */
     app.post('/:method', {
-        preHandler: app.needsPermission('assistant:method'),
         schema: {
             hide: true, // dont show in swagger
             body: {
@@ -63,6 +72,22 @@ module.exports = async function (app) {
 
         // post to the assistant service
         const headers = {}
+        if (request.session?.ownerType) {
+            switch (request.session.ownerType) {
+            case 'team':
+                headers['ff-owner-type'] = 'team'
+                headers['ff-owner-id'] = app.db.models.Team.encodeHashid(request.session.ownerId)
+                break
+            case 'device':
+                headers['ff-owner-type'] = 'device'
+                headers['ff-owner-id'] = app.db.models.Device.encodeHashid(request.session.ownerId)
+                break
+            case 'project':
+            case 'instance':
+                headers['ff-owner-type'] = request.session.ownerType
+                headers['ff-owner-id'] = request.session.ownerId
+            }
+        }
         if (serviceToken) {
             headers.Authorization = `Bearer ${serviceToken}`
         }
