@@ -141,24 +141,37 @@ export default {
                 return this.applicationsList
                     .filter(app => {
                         const filteredInstances = app.instances.filter(instance => {
-                            return instance.name.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            return [
+                                instance.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                                instance.id.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            ].includes(true)
                         })
                         const filteredDevices = app.devices.filter(device => {
-                            return device.name.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            return [
+                                device.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                                device.id.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            ].includes(true)
                         })
 
                         return [
                             app.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                            app.id.toLowerCase().includes(this.filterTerm.toLowerCase()),
                             filteredInstances.length > 0,
                             filteredDevices.length > 0
                         ].includes(true)
                     })
                     .map(app => {
                         const filteredInstances = app.instances.filter(instance => {
-                            return instance.name.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            return [
+                                instance.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                                instance.id.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            ].includes(true)
                         })
                         const filteredDevices = app.devices.filter(device => {
-                            return device.name.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            return [
+                                device.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                                device.id.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            ].includes(true)
                         })
 
                         const filteredInstancesOrEntireSet = filteredInstances.length
