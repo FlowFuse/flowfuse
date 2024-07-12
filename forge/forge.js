@@ -265,7 +265,7 @@ module.exports = async (options = {}) => {
                         'worker-src': ["'self'", 'blob:'],
                         'connect-src': ["'self'"],
                         'img-src': ["'self'", 'data:', 'flowfuse.com', 'www.gravatar.com'],
-                        'font-src': ["'self'"],
+                        'font-src': ["'self'", 'data'],
                         'style-src': ["'self'", 'https:', "'unsafe-inline'"],
                         'upgrade-insecure-requests': null,
                         'frame-ancestors': ["'self'"]
@@ -328,7 +328,8 @@ module.exports = async (options = {}) => {
                     'www.google.co.uk',
                     'google.com',
                     'googleads.g.doubleclick.net',
-                    'www.googleservices.com'
+                    'www.googleservices.com',
+                    'www.googleadservices.com'
                 ]
                 if (contentSecurityPolicy.directives['script-src'] && Array.isArray(contentSecurityPolicy.directives['script-src'])) {
                     contentSecurityPolicy.directives['script-src'].push(...googleDomains)
@@ -337,8 +338,12 @@ module.exports = async (options = {}) => {
                 }
                 const googleImageDomains = [
                     'www.google.com',
-                    'www.google.co.uk',
-                    'googleads.g.doubleclick.net'
+                    'www.google.co.*',
+                    'www.google.com.*',
+                    'www.google.*',
+                    'googleads.g.doubleclick.net',
+                    'www.googleadservices.com',
+                    'www.googletagmanager.com'
                 ]
                 if (contentSecurityPolicy.directives['img-src'] && Array.isArray(contentSecurityPolicy.directives['img-src'])) {
                     contentSecurityPolicy.directives['img-src'].push(...googleImageDomains)
@@ -346,6 +351,7 @@ module.exports = async (options = {}) => {
                     contentSecurityPolicy.directives['img-src'] = googleImageDomains
                 }
                 const googleConnectDomains = [
+                    'www.google.com',
                     'google.com'
                 ]
                 if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
@@ -360,6 +366,14 @@ module.exports = async (options = {}) => {
                     contentSecurityPolicy.directives['frame-src'].push(...googleFrameDomains)
                 } else {
                     contentSecurityPolicy.directives['frame-src'] = googleFrameDomains
+                }
+                const googleFontDomains = [
+                    'fonts.gstatic.com'
+                ]
+                if (contentSecurityPolicy.directives['font-src'] && Array.isArray(contentSecurityPolicy.directives['font-src'])) {
+                    contentSecurityPolicy.directives['font-src'].push(...googleFontDomains)
+                } else {
+                    contentSecurityPolicy.directives['font-src'] = googleFontDomains
                 }
             }
             if (runtimeConfig.support?.enabled && runtimeConfig.support.frontend?.hubspot?.trackingcode) {
@@ -396,7 +410,8 @@ module.exports = async (options = {}) => {
                     '*.hsforms.com',
                     '*.hubspot.com',
                     '*.hs-banner.com',
-                    '*.hscollectedforms.net'
+                    '*.hscollectedforms.net',
+                    '*.hs-embed-reporting.com'
                 ]
                 if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
                     contentSecurityPolicy.directives['connect-src'].push(...hubspotConnectDomains)
@@ -421,7 +436,7 @@ module.exports = async (options = {}) => {
             strictTransportSecurity = {
                 includeSubDomains: false,
                 preload: true,
-                maxAge: 3600
+                maxAge: 2592000
             }
         }
 
