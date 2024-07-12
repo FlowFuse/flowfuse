@@ -166,8 +166,7 @@ export default {
                 .filter(
                     row => [
                         row.name.toLowerCase().includes(this.searchTerm),
-                        row.id.toLowerCase().includes(this.searchTerm),
-                        row.status.toLowerCase().includes(this.searchTerm)
+                        row.id.toLowerCase().includes(this.searchTerm)
                     ].includes(true)
                 )
         },
