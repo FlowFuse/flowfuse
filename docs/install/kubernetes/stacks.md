@@ -1,5 +1,7 @@
 ---
 navTitle: Kubernetes Project Stacks
+meta:
+   description: Discover Kubernetes stacks for Node-RED instances with Helm charts. Customize memory, CPU, and container configurations using Docker for seamless FlowFuse integration.
 ---
 
 # Kubernetes Stacks

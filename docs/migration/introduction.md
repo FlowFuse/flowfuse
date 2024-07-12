@@ -1,6 +1,8 @@
 ---
 navOrder: 1
 navTitle: Introduction
+meta:
+   description: Guide to migrating Node-RED applications to FlowFuse, covering flows, credentials, environment variables, and handling static files.
 ---
 
 # Migrating a Node-RED application to FlowFuse 

@@ -1,5 +1,7 @@
 ---
 navTitle: Documentation
+meta:
+   description: Explore comprehensive documentation for FlowFuse, covering user manuals, API references, Node-RED migration guides, device management, FlowFuse Cloud setup, self-hosted installations, support resources, and contributing to FlowFuse development.
 ---
 
 # FlowFuse Documentation

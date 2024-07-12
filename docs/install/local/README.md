@@ -1,5 +1,7 @@
 ---
 navTitle: Local Install
+meta:
+   description: Learn how to install FlowFuse locally on various operating systems, including setup instructions for Node.js and configuring the platform without HTTPS support.
 ---
 
 # Local Install

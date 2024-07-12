@@ -1,5 +1,7 @@
 ---
 navTitle: Local Stacks
+meta:
+   description: Configure Node-RED instances with custom memory limits and versions using Stacks in FlowFuse for local deployments.
 ---
 
 # Local Stacks

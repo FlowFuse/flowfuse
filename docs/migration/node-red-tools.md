@@ -1,5 +1,7 @@
 ---
 navTitle: Node-RED Tools plugin
+meta:
+   description: Learn to manage Node-RED flows seamlessly with the FlowFuse Node-RED Tools plugin, enabling easy creation and deployment of instance snapshots from your local environment.
 ---
 
 # FlowFuse Node-RED Tools plugin
