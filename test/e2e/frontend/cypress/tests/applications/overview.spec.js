@@ -459,7 +459,7 @@ describe('FlowForge - Applications', () => {
                                     count: 6,
                                     instances: [
                                         {
-                                            id: 1,
+                                            id: '1',
                                             name: 'common-instance-name',
                                             meta: {
                                                 versions: {
@@ -470,7 +470,7 @@ describe('FlowForge - Applications', () => {
                                             url: 'https://www.google.com:123/search?q=rick+astley'
                                         },
                                         {
-                                            id: 2,
+                                            id: '2',
                                             name: 'not-so-common-instance-name',
                                             meta: {
                                                 versions: {
@@ -481,7 +481,7 @@ describe('FlowForge - Applications', () => {
                                             url: 'https://www.google.com:123/search?q=rick+astley'
                                         },
                                         {
-                                            id: 3,
+                                            id: '3',
                                             name: 'xyz-instance-name',
                                             meta: {
                                                 versions: {
@@ -492,8 +492,8 @@ describe('FlowForge - Applications', () => {
                                             url: 'https://www.google.com:123/search?q=rick+astley'
                                         },
                                         {
-                                            id: 4,
-                                            name: 'instance name',
+                                            id: 'unique-instance-id',
+                                            name: 'instance name with unique instance id',
                                             meta: {
                                                 versions: {
                                                     launcher: '2.3.1'
@@ -503,7 +503,7 @@ describe('FlowForge - Applications', () => {
                                             url: 'https://www.google.com:123/search?q=rick+astley'
                                         },
                                         {
-                                            id: 5,
+                                            id: '5',
                                             name: 'instance name that matches application name',
                                             meta: {
                                                 versions: {
@@ -519,7 +519,7 @@ describe('FlowForge - Applications', () => {
                                     count: 5,
                                     devices: [
                                         {
-                                            id: 1,
+                                            id: '1',
                                             name: 'common device name',
                                             lastSeenAt: null,
                                             lastSeenMs: null,
@@ -528,7 +528,7 @@ describe('FlowForge - Applications', () => {
                                             isDeploying: false
                                         },
                                         {
-                                            id: 2,
+                                            id: '2',
                                             name: 'not so common device name',
                                             lastSeenAt: null,
                                             lastSeenMs: null,
@@ -537,7 +537,7 @@ describe('FlowForge - Applications', () => {
                                             isDeploying: false
                                         },
                                         {
-                                            id: 3,
+                                            id: '3',
                                             name: 'xyz device name',
                                             lastSeenAt: null,
                                             lastSeenMs: null,
@@ -546,7 +546,7 @@ describe('FlowForge - Applications', () => {
                                             isDeploying: false
                                         },
                                         {
-                                            id: 4,
+                                            id: '4',
                                             name: 'device name',
                                             lastSeenAt: null,
                                             lastSeenMs: null,
@@ -567,7 +567,7 @@ describe('FlowForge - Applications', () => {
                                 devicesSummary: {
                                     devices: [
                                         {
-                                            id: 5,
+                                            id: '5',
                                             name: 'device name that matches application name',
                                             lastSeenAt: null,
                                             lastSeenMs: null,
@@ -601,14 +601,14 @@ describe('FlowForge - Applications', () => {
                                 }
                             },
                             {
-                                id: '5',
-                                name: 'common app name',
+                                id: 'unique-application-id',
+                                name: 'common app name with unique id',
                                 description: 'My third empty app description',
                                 instancesSummary: {
                                     count: 2,
                                     instances: [
                                         {
-                                            id: 23,
+                                            id: '23',
                                             name: 'some instance name',
                                             meta: {
                                                 versions: {
@@ -620,7 +620,7 @@ describe('FlowForge - Applications', () => {
                                         },
                                         {
 
-                                            id: 24,
+                                            id: '24',
                                             name: 'another instance name',
                                             meta: {
                                                 versions: {
@@ -636,7 +636,7 @@ describe('FlowForge - Applications', () => {
                                     count: 2,
                                     devices: [
                                         {
-                                            id: 234,
+                                            id: '234',
                                             name: 'some device name',
                                             lastSeenAt: null,
                                             lastSeenMs: null,
@@ -645,7 +645,7 @@ describe('FlowForge - Applications', () => {
                                             isDeploying: false
                                         },
                                         {
-                                            id: 123,
+                                            id: '123',
                                             name: 'another device name',
                                             lastSeenAt: null,
                                             lastSeenMs: null,
@@ -664,7 +664,7 @@ describe('FlowForge - Applications', () => {
                                     count: 2,
                                     instances: [
                                         {
-                                            id: 2325,
+                                            id: '2325',
                                             name: 'some instance name',
                                             meta: {
                                                 versions: {
@@ -675,7 +675,7 @@ describe('FlowForge - Applications', () => {
                                             url: 'https://www.google.com:123/search?q=rick+astley'
                                         },
                                         {
-                                            id: 2544,
+                                            id: '2544',
                                             name: 'peculiar instance name',
                                             meta: {
                                                 versions: {
@@ -691,7 +691,7 @@ describe('FlowForge - Applications', () => {
                                     count: 2,
                                     devices: [
                                         {
-                                            id: 23435,
+                                            id: '23435',
                                             name: 'some device name',
                                             lastSeenAt: null,
                                             lastSeenMs: null,
@@ -700,7 +700,7 @@ describe('FlowForge - Applications', () => {
                                             isDeploying: false
                                         },
                                         {
-                                            id: 13234,
+                                            id: '13234',
                                             name: 'another common device name',
                                             lastSeenAt: null,
                                             lastSeenMs: null,
@@ -719,7 +719,7 @@ describe('FlowForge - Applications', () => {
                                     count: 2,
                                     instances: [
                                         {
-                                            id: 2325,
+                                            id: '2325',
                                             name: 'some instance name',
                                             meta: {
                                                 versions: {
@@ -731,7 +731,7 @@ describe('FlowForge - Applications', () => {
                                         },
                                         {
 
-                                            id: 2544,
+                                            id: '2544',
                                             name: 'interesting instance name',
                                             meta: {
                                                 versions: {
@@ -747,8 +747,8 @@ describe('FlowForge - Applications', () => {
                                     count: 2,
                                     devices: [
                                         {
-                                            id: 23435,
-                                            name: 'some device name',
+                                            id: 'unique-device-id',
+                                            name: 'some device name with a unique device id',
                                             lastSeenAt: null,
                                             lastSeenMs: null,
                                             status: 'offline',
@@ -756,7 +756,7 @@ describe('FlowForge - Applications', () => {
                                             isDeploying: false
                                         },
                                         {
-                                            id: 13234,
+                                            id: '13234',
                                             name: 'another device name',
                                             lastSeenAt: null,
                                             lastSeenMs: null,
