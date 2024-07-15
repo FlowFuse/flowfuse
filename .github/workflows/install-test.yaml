@@ -69,7 +69,7 @@ jobs:
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "<${{ github.server_url }}/${{ github.repository }}/actions/workflows/install-test.yaml|${{ github.workflow }}>` workflow failed to complete successfully."
+                  "text": "<${{ github.server_url }}/${{ github.repository }}/actions/workflows/install-test.yaml|${{ github.workflow }}> workflow failed to complete successfully."
                 }
               },
               {
