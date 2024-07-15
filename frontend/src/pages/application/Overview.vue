@@ -28,6 +28,7 @@
                 :columns="cloudColumns"
                 :rows="filteredRows"
                 :show-search="true"
+                :search="searchTerm"
                 search-placeholder="Search Instances"
                 :rows-selectable="true"
                 @update:search="updateSearch"
@@ -172,6 +173,11 @@ export default {
         },
         isVisitingAdmin () {
             return this.teamMembership.role === Roles.Admin
+        }
+    },
+    mounted () {
+        if (this.$route?.query?.searchQuery) {
+            this.searchTerm = this.$route.query.searchQuery
         }
     },
     methods: {

@@ -194,7 +194,7 @@ export default {
         },
         filterTerm: {
             get () {
-                return this.search
+                return this.search || this.internalSearch
             },
             set (value) {
                 const valueChanged = value !== this.internalSearch
@@ -257,6 +257,11 @@ export default {
             } else {
                 return rows
             }
+        }
+    },
+    mounted () {
+        if (this.$route?.query?.searchQuery) {
+            this.internalSearch = this.$route.query.searchQuery
         }
     },
     methods: {
