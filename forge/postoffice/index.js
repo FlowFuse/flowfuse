@@ -82,7 +82,7 @@ module.exports = fp(async function (app, _opts) {
                 })
 
                 if (sesConfig.sourceArn) {
-                    mailDefaults['ses'] = {
+                    mailDefaults.ses = {
                         sourceArn: sesConfig.sourceArn
                     }
                 }
