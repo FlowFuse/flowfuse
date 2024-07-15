@@ -140,6 +140,7 @@ This assumes that the instance is running with a Service Account that has a AWS 
 Option        | Description
 --------------|------------
 `email.ses.region` | The AWS region to connect to
+`email.ses.sourceArn` | The AWS ARN of a Identity to send email as
 
 
 ## Telemetry configuration
