@@ -58,7 +58,7 @@ jobs:
                 "type": "header",
                 "text": {
                   "type": "plain_text",
-                  "text": ":x: ${{ github.workflow.name }} workflow failed",
+                  "text": ":x: ${{ github.workflow }} workflow failed",
                   "emoji": true
                 }
               },
@@ -70,7 +70,7 @@ jobs:
                 "fields": [
                   {
                     "type": "mrkdwn",
-                    "text": "${{ github.workflow.name }} failed to complete successfully."
+                    "text": "${{ github.workflow }} failed to complete successfully."
                   },
                   {
                     "type": "mrkdwn",
