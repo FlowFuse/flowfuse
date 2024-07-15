@@ -7,6 +7,7 @@ on:
 
 jobs:
   install:
+    name: Install and test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-node@v4
@@ -32,3 +33,51 @@ jobs:
       - name: test access
         run: |
           curl -L -v http://localhost:3000
+
+  notify-slack:
+    name: Notify about test failure
+    needs: [install]
+    if: failure()
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Post to a Slack channel
+      id: slack
+      uses: slackapi/slack-github-action@v1.26.0
+      with:
+        channel-id: 'C03AP45RSFP'
+        payload: |
+          {
+            "blocks": [
+              {
+                "type": "header",
+                "text": {
+                  "type": "plain_text",
+                  "text": ":fire: Install Test workflow failed",
+                  "emoji": true
+                }
+              },
+              {
+                "type": "divider"
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Status:*\n$':x: Failure '
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "`${{ github.workflow.name }}` failed to complete successfully."
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Workflow run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
+                  }
+                ]
+              }
+            ]
+          }
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
