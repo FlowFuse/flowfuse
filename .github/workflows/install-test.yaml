@@ -33,6 +33,10 @@ jobs:
       - name: test access
         run: |
           curl -L -v http://localhost:3000
+      - name: simulate the error
+        run: |
+          echo "This is the error"
+          exit 1
 
   notify-slack:
     name: Notify about test failure
