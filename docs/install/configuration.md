@@ -139,8 +139,9 @@ This assumes that the instance is running with a Service Account that has a AWS 
 
 Option        | Description
 --------------|------------
-`email.ses.region` | The AWS region to connect to
-`email.ses.sourceArn` | The AWS ARN of a Identity to send email as
+`email.ses.region` | The AWS region to connect to. Default `unset`
+`email.ses.sourceArn` | The AWS ARN of a SES Identity to send email as. Default: `unset`
+`email.ses.fromArn` | The AWS ARN of a SES Identity to set as the from field. Default to value of `email.ses.sourceArn`
 
 
 ## Telemetry configuration
