@@ -67,20 +67,17 @@ jobs:
               },
               {
                 "type": "section",
-                "fields": [
-                  {
-                    "type": "mrkdwn",
-                    "text": "`${{ github.workflow }}` workflow failed to complete successfully."
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": " ",
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Workflow run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
-                  }
-                ]
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "<${{ github.server_url }}/${{ github.repository }}/actions/workflows/install-test.yaml|${{ github.workflow }}>` workflow failed to complete successfully."
+                }
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*Workflow run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
+                }
               }
             ]
           }
