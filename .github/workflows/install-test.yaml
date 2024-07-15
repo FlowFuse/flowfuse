@@ -69,10 +69,6 @@ jobs:
                 "fields": [
                   {
                     "type": "mrkdwn",
-                    "text": "*Status:*\n$':x: Failure '
-                  },
-                  {
-                    "type": "mrkdwn",
                     "text": "`${{ github.workflow.name }}` failed to complete successfully."
                   },
                   {
