@@ -1,5 +1,5 @@
 <template>
-    <div class="has-more item-wrapper">
+    <div class="has-more item-wrapper" data-el="has-more-tile">
         <router-link :to="{name: linkTo, params: {id: application.id}, query: {searchQuery}}">
             <span>
                 {{ remaining }}
