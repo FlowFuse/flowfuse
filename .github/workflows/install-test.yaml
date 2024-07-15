@@ -70,7 +70,11 @@ jobs:
                 "fields": [
                   {
                     "type": "mrkdwn",
-                    "text": "${{ github.workflow }} failed to complete successfully."
+                    "text": "`${{ github.workflow }}` workflow failed to complete successfully."
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "",
                   },
                   {
                     "type": "mrkdwn",
