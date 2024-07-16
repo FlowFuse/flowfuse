@@ -88,7 +88,7 @@ export default [
                     return `/team/${to.params.team_slug}/members/general`
                 },
                 children: [
-                    { path: 'general', component: TeamMembersMembers },
+                    { path: 'general', name: 'TeamMembers', component: TeamMembersMembers },
                     { path: 'invitations', component: TeamMembersInvitations }
                 ]
             },

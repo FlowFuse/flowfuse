@@ -384,6 +384,10 @@ $nav_height: 60px;
             }
         }
     }
+    .ff-border-left {
+        border-width: 0 0 0 1px;
+        border-color: $ff-grey-500;
+    }
     .ff-navigation-right {
         height: 100%;
     }

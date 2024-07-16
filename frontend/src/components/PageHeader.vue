@@ -37,6 +37,12 @@
         </div>
         <div class="hidden lg:flex">
             <ff-team-selection data-action="team-selection" />
+            <div class="px-4 flex flex-col justify-center ff-border-left">
+                <ff-button kind="secondary" @click="inviteTeamMembers">
+                    <template #icon-left><UserAddIcon /></template>
+                    Invite Members
+                </ff-button>
+            </div>
             <!-- Desktop: User Options -->
             <ff-dropdown v-if="user" class="ff-navigation ff-user-options" options-align="right" data-action="user-options" data-cy="user-options">
                 <template #placeholder>
@@ -56,7 +62,7 @@
     </div>
 </template>
 <script>
-import { AdjustmentsIcon, CogIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, UserGroupIcon } from '@heroicons/vue/solid'
+import { AdjustmentsIcon, CogIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, UserAddIcon, UserGroupIcon } from '@heroicons/vue/solid'
 import { ref } from 'vue'
 import { mapGetters, mapState } from 'vuex'
 
@@ -129,7 +135,8 @@ export default {
     components: {
         NavItem,
         'ff-team-selection': TeamSelection,
-        MenuIcon
+        MenuIcon,
+        UserAddIcon
     },
     data () {
         return {
@@ -147,6 +154,14 @@ export default {
     methods: {
         to (route) {
             window.open(route.url, '_blank')
+        },
+        inviteTeamMembers () {
+            this.$router.push({
+                name: 'TeamMembers',
+                query: {
+                    action: 'invite'
+                }
+            })
         }
     }
 }
