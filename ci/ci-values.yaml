@@ -10,8 +10,9 @@ postgresql:
     enabled: false
   primary:
     resources:
-      limits: {}
-      requests: {}
+      requests:
+        cpu: 1m
+        memory: 1M
     nodeAffinityPreset:
       type: "hard"
       key: "role"
