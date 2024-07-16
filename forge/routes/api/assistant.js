@@ -103,13 +103,16 @@ module.exports = async function (app) {
         if (serviceToken) {
             headers.Authorization = `Bearer ${serviceToken}`
         }
-        const response = await axios.post(url, {
-            ...request.body
-        }, {
-            headers,
-            timeout: requestTimeout
-        })
-
-        reply.send(response.data)
+        try {
+            const response = await axios.post(url, {
+                ...request.body
+            }, {
+                headers,
+                timeout: requestTimeout
+            })
+            reply.send(response.data)
+        } catch (error) {
+            reply.code(error.response?.status || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })
+        }
     })
 }
