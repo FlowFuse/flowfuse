@@ -48,7 +48,7 @@
                     <li v-for="application in filteredApplications" :key="application.id" data-el="application-item">
                         <ApplicationListItem
                             :application="application"
-                            :is-searching="filterTerm.length > 0"
+                            :search-query="filterTerm"
                             @instance-deleted="fetchData(false)"
                             @device-deleted="fetchData(false)"
                         />

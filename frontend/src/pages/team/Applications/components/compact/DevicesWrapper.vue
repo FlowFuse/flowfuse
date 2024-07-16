@@ -27,15 +27,13 @@
             >
                 <DeviceTile :device="device" :application="application" @device-action="onDeviceAction" />
             </div>
-            <div v-if="hasMoreDevices" class="has-more item-wrapper">
-                <router-link :to="{name: 'ApplicationDevices', params: {id: application.id}}">
-                    <span>
-                        {{ remainingDevices }}
-                        More...
-                    </span>
-                    <ChevronRightIcon class="ff-icon" />
-                </router-link>
-            </div>
+            <HasMoreTile
+                v-if="hasMoreDevices"
+                link-to="ApplicationDevices"
+                :remaining="remainingDevices"
+                :application="application"
+                :search-query="searchQuery"
+            />
         </div>
 
         <TeamDeviceCreateDialog
@@ -71,18 +69,17 @@
 </template>
 
 <script>
-import { ChevronRightIcon } from '@heroicons/vue/solid'
-
 import IconDeviceSolid from '../../../../../components/icons/DeviceSolid.js'
 import deviceActionsMixin from '../../../../../mixins/DeviceActions.js'
 import DeviceCredentialsDialog from '../../../Devices/dialogs/DeviceCredentialsDialog.vue'
 import TeamDeviceCreateDialog from '../../../Devices/dialogs/TeamDeviceCreateDialog.vue'
 
 import DeviceTile from './DeviceTile.vue'
+import HasMoreTile from './HasMoreTile.vue'
 
 export default {
     name: 'DevicesWrapper',
-    components: { TeamDeviceCreateDialog, DeviceCredentialsDialog, ChevronRightIcon, IconDeviceSolid, DeviceTile },
+    components: { HasMoreTile, TeamDeviceCreateDialog, DeviceCredentialsDialog, IconDeviceSolid, DeviceTile },
     mixins: [deviceActionsMixin],
     props: {
         application: {
@@ -90,10 +87,10 @@ export default {
             required: true,
             default: null
         },
-        isSearching: {
-            type: Boolean,
+        searchQuery: {
+            type: String,
             required: false,
-            default: false
+            default: ''
         }
     },
     emits: ['delete-device'],
@@ -120,6 +117,9 @@ export default {
         },
         devices () {
             return this.application.devices.slice(0, 3)
+        },
+        isSearching () {
+            return this.searchQuery.length > 0
         }
     },
     mounted () {
