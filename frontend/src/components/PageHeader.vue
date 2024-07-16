@@ -38,6 +38,7 @@
         <div class="hidden lg:flex">
             <ff-team-selection data-action="team-selection" />
             <!-- Desktop: User Options -->
+            <NotificationsButton />
             <ff-dropdown v-if="user" class="ff-navigation ff-user-options" options-align="right" data-action="user-options" data-cy="user-options">
                 <template #placeholder>
                     <div class="ff-user">
@@ -63,6 +64,8 @@ import { mapGetters, mapState } from 'vuex'
 import navigationMixin from '../mixins/Navigation.js'
 
 import NavItem from './NavItem.vue'
+import NotificationsButton from './NotificationsButton.vue'
+
 import TeamSelection from './TeamSelection.vue'
 
 export default {
@@ -129,7 +132,8 @@ export default {
     components: {
         NavItem,
         'ff-team-selection': TeamSelection,
-        MenuIcon
+        MenuIcon,
+        NotificationsButton
     },
     data () {
         return {
