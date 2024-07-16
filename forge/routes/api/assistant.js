@@ -28,6 +28,18 @@ module.exports = async function (app) {
      * use an alternative means of accessing it.
     */
     app.post('/:method', {
+        config: {
+            rateLimit: app.config.rate_limits
+                ? {
+                    hook: 'preHandler', // apply the rate as a preHandler so that session is available
+                    max: 5, // max requests per window
+                    timeWindow: 30000, // 30 seconds
+                    keyGenerator: (request) => {
+                        return request.session?.ownerId || request.ip
+                    }
+                }
+                : false
+        },
         schema: {
             hide: true, // dont show in swagger
             body: {
