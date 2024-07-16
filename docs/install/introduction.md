@@ -60,6 +60,7 @@ hbspt.forms.create({
     portalId: "26586079",
     formId: "41e858e1-6756-45be-9082-3980237fa229",
     onFormSubmitted: function ($form, data) {
+        document.querySelector('.hbspt-form').style.display = 'none';
         GenerateLicense(data.submissionValues);
     }
 });
