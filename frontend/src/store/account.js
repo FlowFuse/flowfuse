@@ -87,7 +87,8 @@ const getters = {
         return state.teams.find(team => team.id === defaultTeamId)
     },
     blueprints: state => state.teamBlueprints[state.team?.id] || [],
-    defaultBlueprint: (state, getters) => getters.blueprints?.find(blueprint => blueprint.default)
+    defaultBlueprint: (state, getters) => getters.blueprints?.find(blueprint => blueprint.default),
+    hasNotifications: (state) => state.notifications.total > 0
 }
 
 const mutations = {
