@@ -9,6 +9,7 @@ postgresql:
   persistence:
     enabled: false
   primary:
+    resources: {}
     nodeAffinityPreset:
       type: "hard"
       key: "role"
