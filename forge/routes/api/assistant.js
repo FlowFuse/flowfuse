@@ -10,14 +10,24 @@ const { default: axios } = require('axios')
  */
 module.exports = async function (app) {
     app.addHook('preHandler', app.verifySession)
-    app.addHook('preHandler', (request, reply, done) => {
+    app.addHook('preHandler', async (request, reply) => {
         // Only permit requests made by a valid device or instance token
         if (!request.session || request.session.provisioning) {
             reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
         } else if (request.session.ownerType !== 'device' && request.session.ownerType !== 'project') {
             reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
         } else {
-            done()
+            // get the owner object and team
+            if (request.session.ownerType === 'device') {
+                request.owner = await app.db.models.Device.byId(+request.session.ownerId)
+                request.ownerType = 'device'
+                request.ownerId = request.owner.hashid
+            } else {
+                request.owner = await app.db.models.Project.byId(request.session.ownerId)
+                request.ownerType = 'project'
+                request.ownerId = request.owner.id
+            }
+            request.team = await app.db.models.Team.byId(request.owner.Team.id)
         }
     })
 
@@ -35,7 +45,7 @@ module.exports = async function (app) {
                     max: 5, // max requests per window
                     timeWindow: 30000, // 30 seconds
                     keyGenerator: (request) => {
-                        return request.session?.ownerId || request.ip
+                        return request.ownerId || request.ip
                     }
                 }
                 : false
@@ -83,22 +93,22 @@ module.exports = async function (app) {
         const url = `${serviceUrl.replace(/\/+$/, '')}/${method.replace(/^\/+/, '')}`
 
         // post to the assistant service
-        const headers = {}
-        if (request.session?.ownerType) {
-            switch (request.session.ownerType) {
-            case 'team':
-                headers['ff-owner-type'] = 'team'
-                headers['ff-owner-id'] = app.db.models.Team.encodeHashid(request.session.ownerId)
-                break
-            case 'device':
-                headers['ff-owner-type'] = 'device'
-                headers['ff-owner-id'] = app.db.models.Device.encodeHashid(request.session.ownerId)
-                break
-            case 'project':
-            case 'instance':
-                headers['ff-owner-type'] = request.session.ownerType
-                headers['ff-owner-id'] = request.session.ownerId
-            }
+        const headers = {
+            'ff-owner-type': request.ownerType,
+            'ff-owner-id': request.ownerId
+        }
+
+        // include license information, team id and trial status so that we can make decisions in the assistant service
+        const isLicensed = app.license?.active() || false
+        const licenseType = isLicensed ? (app.license.get('dev') ? 'DEV' : 'EE') : 'CE'
+        const tier = isLicensed ? app.license.get('tier') : null
+        headers['ff-license-active'] = isLicensed
+        headers['ff-license-type'] = licenseType
+        headers['ff-license-tier'] = tier
+        headers['ff-team-id'] = request.team.hashid
+        if (app.billing && request.team.getSubscription) {
+            const subscription = await request.team.getSubscription()
+            headers['ff-team-trial'] = subscription ? subscription.isTrial() : null
         }
         if (serviceToken) {
             headers.Authorization = `Bearer ${serviceToken}`
