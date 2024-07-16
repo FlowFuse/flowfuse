@@ -8,13 +8,23 @@
 
 <script>
 import { MailIcon } from '@heroicons/vue/solid'
+import { markRaw } from 'vue'
+import { mapActions, mapState } from 'vuex'
+
+import NotificationsDrawer from './drawers/notifications/NotificationsDrawer.vue'
 
 export default {
     name: 'NotificationsButton',
     components: { MailIcon },
+    computed: {
+        ...mapState('ux', ['rightDrawer'])
+    },
     methods: {
+        ...mapActions('ux', ['openRightDrawer', 'closeRightDrawer']),
         onClick () {
-            console.log(123)
+            if (this.rightDrawer.state) {
+                this.closeRightDrawer()
+            } else this.openRightDrawer({ component: markRaw(NotificationsDrawer) })
         }
     }
 }
