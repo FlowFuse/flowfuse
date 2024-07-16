@@ -12,7 +12,7 @@ postgresql:
     resources:
       requests:
         cpu: 1m
-        memory: 1M
+        memory: 1Mi
     nodeAffinityPreset:
       type: "hard"
       key: "role"
