@@ -43,8 +43,6 @@
                 <template #placeholder>
                     <div class="ff-user">
                         <img :src="user.avatar" class="ff-avatar">
-                        <ff-notification-pill v-if="notifications.total > 0" data-el="notification-pill" class="ml-3" :count="notifications.total" />
-                        <!-- <label>{{ user.name }}</label> -->
                     </div>
                 </template>
                 <template #default>
@@ -88,14 +86,6 @@ export default {
                     tag: 'user-settings',
                     onclick: this.$router.push,
                     onclickparams: { name: 'User Settings' }
-                },
-                {
-                    label: 'Team Invitations',
-                    icon: UserGroupIcon,
-                    tag: 'team-invitations',
-                    onclick: this.$router.push,
-                    onclickparams: { name: 'User Invitations' },
-                    notifications: this.notifications.invitations
                 },
                 this.user.admin
                     ? {
