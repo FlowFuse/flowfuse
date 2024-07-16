@@ -1,3 +1,70 @@
+#### 2.6.1: Release
+
+ - Set nodejs version back to 16 for package build (#4121) @hardillb
+ - Fix dashboard link in compact application view (#4120) @knolleary
+ - PostHog - Add .group call to automatically map all events to the relevant team (#4115) @joepavitt
+ - Onboarding email formatting (#4110) @cstns
+ - PostHog - Better capturing of Snapshot-based activity (#4116) @joepavitt
+
+#### 2.6.0: Release
+
+ - chore: Add conditional check before uninstalling and deleting resources in branch-deploy.yaml (#4080)
+ - Bump docker/build-push-action from 5 to 6 (#4034)
+ - Bump codecov/codecov-action from 3 to 4 (#3975)
+ - Persistent Storage upgrade docs (#4107) @hardillb
+ - User documentation update for FlowFuse Assistant (#4102) @Steve-Mcl
+ - docs: Enable proxy protocol on ingress-nginx controller installation (#4082) @ppawlowski
+ - 4078 blank page after redirect (#4106) @cstns
+ - Fix race condition in loading application status (#4103) @knolleary
+ - Add css & js webpack cache bust (#4100) @cstns
+ - Compact applications view (#4079) @cstns
+ - Handle httpAdminRoot in template when calculating dashboard link (#4097) @knolleary
+ - Apply maximum password length (#4088) @knolleary
+ - Enable immersive editor for Node-RED 4.0.2+ and Launcher 2.6.0+ (#4096) @knolleary
+ - Guard to ensure 501 is returned when config has no `service` object in `assistant` settings (#4095) @Steve-Mcl
+ - nr-assistant integration (#4089) @Steve-Mcl
+ - Remove trickle down router props (#4076) @cstns
+ - Update frameguard to sameorigin (#4092) @knolleary
+ - Frontend blueprint import export (#4068) @cstns
+ - Fix Env Var item deletion (#4072) @Steve-Mcl
+ - users without accounts should be redirected to the blueprint landing page after registration (#4020) @cstns
+ - Smtp affair (#4050) @cstns
+ - Add a new instance creation landing page (#3994) @cstns
+ - Support multiline env vars (#4069) @Steve-Mcl
+ - Ensure user PATs are deleted when user is deleted (#4063) @knolleary
+ - Add permission checks on app edit and instance add (#4060) @knolleary
+ - Remove backport workflow (#4062) @knolleary
+ - Fix Pipeline overwriting name (#4059) @hardillb
+ - Clarify docs on Entra SSO setup (#4057) @knolleary
+ - Security Settings - Improve language & hide user/pw fields when not used (#4054) @joepavitt
+ - Ensure settings change toast informs user a restart is required. (#4053) @Steve-Mcl
+ - Allow admin to extend team trial (#4052) @knolleary
+ - Fix gtag injection (#4049) @knolleary
+ - Address object missing prototype calls (#4048) @cstns
+ - Fix csp tests (#4046) @knolleary
+ - Fix posthog csp header (#4044) @knolleary
+ - Revert incorrect flowforge -> flowfuse (#4037) @hardillb
+ - Bump braces from 3.0.2 to 3.0.3 (#4025) @app/dependabot
+ - Update docs for device agent behind http proxy (#4030) @Steve-Mcl
+ - Use stack name if label not set (#4033) @knolleary
+ - Snapshot compare dx (#3991) @cstns
+ - ci: Enable concurrency in pre-staging deploy workflow (#4024) @ppawlowski
+ - Fix flaky time test (#4021) @Steve-Mcl
+ - Ensure target editor title doesn't get overwritten (#4016) @hardillb
+ - Update docs with Examples for docker install (#4017) @gdziuba
+ - Add docs on creating debug containers (#4019) @knolleary
+ - Fixes linting errors (#4012) @cstns
+ - Disable Immersive editor link (#4011) @cstns
+ - Export/import Blueprints (#3996) @hardillb
+ - Docs Updated Local Install File HTTPS (#4006) @gdziuba
+ - 4004 enable blueprints for all team types (#4005) @cstns
+ - fix: Do not send a slack notification on pre-staging termination (#4001) @ppawlowski
+ - ci: Notify on Slack about pre-staging environment (#3995) @ppawlowski
+ - Access token docs (#3989) @knolleary
+ - Bump flow viewer to latest version (#3990) @cstns
+ - Update release-publish.yml to use nodejs 18 (#3987) @hardillb
+ - Fix semver checks to enable immersive editor (#3988) @knolleary
+
 #### 2.5.0: Release
 
  - Replace github.token with secret (#3905)

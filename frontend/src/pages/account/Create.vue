@@ -193,6 +193,8 @@ export default {
                 this.errors.password = 'Password is required'
             } else if (this.input.password.length < 8) {
                 this.errors.password = 'Password needs to be longer than 8 chars'
+            } else if (this.input.password.length > 128) {
+                this.errors.password = 'Password too long'
             } else if (this.input.password === this.input.username.trim()) {
                 this.errors.password = 'Password must not match username'
             } else if (this.input.password === this.input.email.trim()) {

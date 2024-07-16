@@ -15,7 +15,7 @@ function applySystemUserDetails (snapshots, owner) {
             snapshot.user = {
                 name: owner?.name || (snapshot.project || snapshot.device || {}).name || 'Unknown',
                 username: 'Auto Snapshot',
-                avatar: '../../avatar/camera.svg'
+                avatar: '/avatar/camera.svg'
             }
         }
         return snapshot

@@ -48,14 +48,6 @@ export default {
     },
     mixins: [permissionsMixin],
     props: {
-        team: {
-            type: Object,
-            required: true
-        },
-        teamMembership: {
-            type: Object,
-            required: true
-        },
         inviteCount: {
             type: Number,
             required: true

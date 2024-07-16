@@ -81,6 +81,7 @@ import { downloadData } from '../../../composables/Download.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
+import Product from '../../../services/product.js'
 import { applySystemUserDetails } from '../../../transformers/snapshots.transformer.js'
 import DaysSince from '../../application/Snapshots/components/cells/DaysSince.vue'
 import DeviceCount from '../../application/Snapshots/components/cells/DeviceCount.vue'
@@ -224,6 +225,7 @@ export default {
         showRollbackDialog (snapshot) {
             Dialog.show({
                 header: 'Deploy Snapshot',
+                kind: 'danger',
                 text: `This will overwrite the current instance.
                        All changes to the flows, settings and environment variables made since the last snapshot will be lost.
                        Are you sure you want to deploy to this snapshot?`,
@@ -257,6 +259,11 @@ export default {
             this.$emit('instance-updated')
         },
         async downloadSnapshotPackage (snapshot) {
+            Product.capture('ff-snapshot-download', {
+                'snapshot-id': snapshot.id
+            }, {
+                instance: this.instance?.id
+            })
             const ss = await SnapshotsApi.getSummary(snapshot.id)
             const owner = ss.device || ss.project
             const ownerType = ss.device ? 'device' : 'instance'
@@ -273,6 +280,11 @@ export default {
             this.$refs.snapshotExportDialog.show(snapshot)
         },
         showViewSnapshotDialog (snapshot) {
+            Product.capture('ff-snapshot-view', {
+                'snapshot-id': snapshot.id
+            }, {
+                instance: this.instance?.id
+            })
             SnapshotsApi.getFullSnapshot(snapshot.id).then((data) => {
                 this.$refs.snapshotViewerDialog.show(data)
             }).catch(err => {
@@ -281,6 +293,11 @@ export default {
             })
         },
         showCompareSnapshotDialog (snapshot) {
+            Product.capture('ff-snapshot-compare', {
+                'snapshot-id': snapshot.id
+            }, {
+                instance: this.instance?.id
+            })
             SnapshotsApi.getFullSnapshot(snapshot.id)
                 .then((data) => this.$refs.snapshotCompareDialog.show(data, this.snapshotList))
                 .catch(err => {

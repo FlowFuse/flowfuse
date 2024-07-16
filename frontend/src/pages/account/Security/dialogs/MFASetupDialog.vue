@@ -3,12 +3,34 @@
         <template #default>
             <div class="space-y-4">
                 <template v-if="step === 0">
-                    <p>
-                        To get started, scan the following QR code into your Authenticator app, then click next to continue.
-                    </p>
-                    <div class="text-center mt-4">
-                        <img v-if="!!qrcode" :src="qrcode" class="m-auto border rounded">
-                    </div>
+                    <template v-if="showQRCode">
+                        <p>
+                            To get started, scan the following QR code into your Authenticator app, then click next to continue.
+                        </p>
+                        <div class="text-center mt-4">
+                            <template v-if="!!qrcode">
+                                <img v-if="!!qrcode" :src="qrcode" class="m-auto border rounded">
+                                <p>
+                                    <a class="cursor-pointer" @click="showSecret()">Can't scan QR code?</a>
+                                </p>
+                            </template>
+                        </div>
+                    </template>
+                    <template v-else>
+                        <p>
+                            To get started, enter the following code into your Authenticator app, then click next to continue.
+                        </p>
+                        <div class="text-center mt-4">
+                            <p class="text-2xl w-72 text-wrap font-mono tracking-wider mx-auto my-2">
+                                <template v-for="i in secretCode" :key="i">
+                                    <span class="mx-1">{{ i }}</span><wbr>
+                                </template>
+                            </p>
+                            <p>
+                                <a class="cursor-pointer" @click="hideSecret()">Show QR code</a>
+                            </p>
+                        </div>
+                    </template>
                 </template>
                 <template v-if="step === 1">
                     <p>
@@ -57,12 +79,15 @@ export default {
             async show () {
                 this.step = 0
                 this.qrcode = ''
+                this.showQRCode = true
+                this.secretCode = []
                 this.verifyToken = ''
                 this.verifyError = ''
                 this.$refs.dialog.show()
                 try {
                     const mfaDetails = await userApi.enableMFA()
                     this.qrcode = mfaDetails.qrcode
+                    this.secretCode = mfaDetails.url.split('=')[1].match(/.{1,4}/g)
                 } catch (err) {
 
                 }
@@ -72,8 +97,10 @@ export default {
     data () {
         return {
             step: 0,
+            showQRCode: true,
             qrcode: '',
-            verifyToken: ''
+            verifyToken: '',
+            secretCode: []
         }
     },
     computed: {
@@ -85,6 +112,12 @@ export default {
     methods: {
         close () {
             this.$refs.dialog.close()
+        },
+        showSecret () {
+            this.showQRCode = false
+        },
+        hideSecret () {
+            this.showQRCode = true
         },
         complete () {
             this.$emit('user-updated')

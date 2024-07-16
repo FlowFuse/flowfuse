@@ -1,6 +1,8 @@
 ---
 navTitle: Installation
 navOrder: 3
+meta: 
+   description: Explore step-by-step instructions to install and configure the FlowFuse Device Agent on various platforms, ensuring seamless connectivity with FlowFuse Cloud and MQTT services.
 ---
 
 # Installing Device Agent

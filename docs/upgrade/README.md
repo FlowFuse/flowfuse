@@ -23,6 +23,50 @@ Details of how to upgrade can be found for each deployment model:
 - [Docker](../install/docker/README.md#upgrade)
 - [Kubernetes](../install/kubernetes/README.md#upgrade)
 
+### Upgrading to 2.6.0
+
+#### Required AWS EKS configuration change
+
+This release introduces the new Embedded Editor which integrates the Node-RED editor with the FlowFuse dashboard when using Node-RED 4.0. This has required some changes to be made on how certain HTTP headers are passed between the NGINX Ingress controller and AWS NLB.
+
+The following configuration change must be applied otherwise users will not be able to login to Node-RED 4.0 instances.
+
+The following configuration needs to be added in the values passed to the ingress-nginx helm chart. See [full configuration](https://flowfuse.com/docs/install/kubernetes/aws/#nginx-ingress) for the reference.
+
+```
+controller:
+   config:
+      use-proxy-protocol: true
+   service:
+      annotations:
+         service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: proxy_protocol_v2.enabled=true
+   externalTrafficPolicy: Cluster
+```
+
+The Proxy Protocol feature will be enabled only on newly created Target Groups. 
+To enable the Proxy Protocol on an existing Target Group, manual intervention is required. For detailed instructions, please refer to the [official AWS documentation](https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-target-groups.html#enable-proxy-protocol).
+
+#### Persistent Storage
+
+As part of this release there is a new option for Persistent File Storage for Kubernetes based deployments.
+This change removes the need to use the customised File Nodes and the FlowFuse File Server by mounting a 
+Persistent Volume into the Pods running the instances.
+
+To enable this feature the following needs to be created
+
+- A Kubernetes StorageClass that points to storage provider that can 
+dynamically provision new Persistent Volumes. e.g. the [AWS EFS CSI driver](https://github.com/kubernetes-sigs/aws-efs-csi-driver)
+- Pass the following values to the FlowFuse Helm Chart
+    ```
+    forge:
+      persistentStorage:
+        enabled: true
+        storageClass: '<name of StorageClass>'
+        size: '5Gi'
+    ```
+    Where size is the default size for the volume.
+
+Details for how to setup a AWS EFS backed StorageClass can be found on the aws-efs-csi-driver [site](https://github.com/kubernetes-sigs/aws-efs-csi-driver/blob/master/docs/efs-create-filesystem.md).
 
 ### Upgrading to 2.0.0
 

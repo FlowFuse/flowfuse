@@ -1,5 +1,7 @@
 ---
 navTitle: Project Creation
+meta:
+  description: Discover how to create projects in FlowFuse Cloud with a clear sequence diagram. Learn about billing and non-billing scenarios.
 ---
 
 # Sequence For Project Creation
