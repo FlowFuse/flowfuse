@@ -176,6 +176,19 @@ module.exports = async function (app) {
                                 }
                             )
                         }
+                        await app.notifications.send(invite.invitee, 'team-invite', {
+                            invite: {
+                                id: invite.hashid
+                            },
+                            team: {
+                                id: request.team.hashid,
+                                name: request.team.name
+                            },
+                            invitor: {
+                                username: request.session.User.username
+                            },
+                            role
+                        })
                         await app.auditLog.Team.team.user.invited(request.session.User, null, request.team, invite.invitee, role)
                     }
                 } catch (err) {
