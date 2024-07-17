@@ -28,7 +28,7 @@ sequenceDiagram
     UI->>UI: Show 'Check your email' page
     UE-->>US: Email received
     US->>+UI: Enters verification code
-    US->>UI: Click "Continue button
+    US->>UI: Click "Continue" button
     UI->>+RT: POST /account/verify/token { token }
     RT->>RT: Checks {token} is for the logged in user
     RT->>DB: User.email_verified=true
