@@ -56,7 +56,7 @@ export default {
                 this.token = ''
                 this.error = 'Verification failed. Click resend to receive a new code to try again'
                 clearTimeout(this.resendTimeout)
-                this.resentTimeout = 0
+                this.resendTimeout = 0
             }
         },
         async resend () {
