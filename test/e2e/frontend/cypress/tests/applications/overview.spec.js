@@ -38,6 +38,11 @@ describe('FlowForge - Applications', () => {
         it('can display an application without devices and instances', () => {
             cy.intercept(
                 'GET',
+                '/api/*/teams/*/applications/status*',
+                { count: 1, applications: [{ id: 'some-id', instances: [], devices: [] }] }
+            ).as('getAppStatuses')
+            cy.intercept(
+                'GET',
                 '/api/*/teams/*/applications*',
                 req => req.reply(res => {
                     res.send({
@@ -69,6 +74,7 @@ describe('FlowForge - Applications', () => {
             cy.visit('/')
 
             cy.wait('@getApplication')
+            cy.wait('@getAppStatuses')
             cy.wait('@getDevices')
 
             cy.contains('My app')
@@ -101,10 +107,14 @@ describe('FlowForge - Applications', () => {
                     isDeploying: false
                 }
             ]
-
             cy.intercept(
                 'GET',
-                '/api/*/teams/*/applications*',
+                '/api/*/teams/*/applications/status*',
+                { count: 1, applications: [{ id: 'some-id', instances: [], devices: [] }] }
+            ).as('getAppStatuses')
+            cy.intercept(
+                'GET',
+                '/api/*/teams/*/applications?*',
                 (req) => req.reply(res => {
                     res.body = {
                         applications: [
@@ -115,6 +125,7 @@ describe('FlowForge - Applications', () => {
                                 instancesSummary: {
                                     instances: [
                                         {
+                                            id: 1,
                                             name: 'immersive-compatible-instance',
                                             meta: {
                                                 versions: {
@@ -125,6 +136,7 @@ describe('FlowForge - Applications', () => {
                                             url: 'https://www.google.com:123/search?q=rick+astley'
                                         },
                                         {
+                                            id: 2,
                                             name: 'immersive-incompatible-instance',
                                             meta: {
                                                 versions: {
@@ -145,19 +157,23 @@ describe('FlowForge - Applications', () => {
                     return res
                 })
             ).as('getApplication')
+
             cy.intercept('get', '/api/*/applications/*/devices*', {
                 meta: {},
                 count: 0,
-                devices
+                devices: []
+                // devices
             }).as('getDevices')
 
             cy.visit('/')
 
             cy.wait('@getApplication')
+            cy.wait('@getAppStatuses')
             cy.wait('@getDevices')
 
             cy.get('[data-el="application-instance-item"')
                 .contains('immersive-compatible-instance')
+                .parent()
                 .parent()
                 .parent()
                 .within(() => {
@@ -168,6 +184,7 @@ describe('FlowForge - Applications', () => {
 
             cy.get('[data-el="application-instance-item"')
                 .contains('immersive-incompatible-instance')
+                .parent()
                 .parent()
                 .parent()
                 .within(() => {
@@ -182,6 +199,7 @@ describe('FlowForge - Applications', () => {
                 .contains('a device')
                 .parent()
                 .parent()
+                .parent()
                 .within(() => {
                     cy.get('[data-el="status-badge-offline"]').should('exist')
                     cy.contains('Last seen: never')
@@ -191,6 +209,7 @@ describe('FlowForge - Applications', () => {
                 .contains('another device')
                 .parent()
                 .parent()
+                .parent()
                 .within(() => {
                     cy.get('[data-el="status-badge-running"]').should('exist')
                     cy.contains('Last seen: never')
@@ -198,6 +217,11 @@ describe('FlowForge - Applications', () => {
         })
 
         it('hides remaining instances if above threshold', () => {
+            cy.intercept(
+                'GET',
+                '/api/*/teams/*/applications/status*',
+                { count: 1, applications: [{ id: 'some-id', instances: [], devices: [] }] }
+            ).as('getAppStatuses')
             cy.intercept('get', '/api/*/applications/*/devices*', {
                 meta: {},
                 count: 0,
@@ -265,6 +289,7 @@ describe('FlowForge - Applications', () => {
             cy.visit('/')
 
             cy.wait('@getApplication')
+            cy.wait('@getAppStatuses')
             cy.wait('@getDevices')
 
             cy.get('[data-el="application-instance-item"')
@@ -283,6 +308,11 @@ describe('FlowForge - Applications', () => {
         })
 
         it('can open an instance default editor', () => {
+            cy.intercept(
+                'GET',
+                '/api/*/teams/*/applications/status*',
+                { count: 1, applications: [{ id: 'some-id', instances: [], devices: [] }] }
+            ).as('getAppStatuses')
             cy.intercept('get', '/api/*/applications/*/devices*', {
                 meta: {},
                 count: 0,
@@ -327,10 +357,12 @@ describe('FlowForge - Applications', () => {
             cy.visit('/')
 
             cy.wait('@getApplication')
+            cy.wait('@getAppStatuses')
             cy.wait('@getDevices')
 
             cy.get('[data-el="application-instance-item"')
                 .contains('instance-1')
+                .parent()
                 .parent()
                 .parent()
                 .within(() => {
