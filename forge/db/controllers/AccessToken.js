@@ -1,6 +1,6 @@
 const { Op } = require('sequelize')
 
-const { generateToken, sha256, randomPhrase } = require('../utils')
+const { generateToken, generateNumericToken, sha256, randomPhrase } = require('../utils')
 
 const DEFAULT_TOKEN_SESSION_EXPIRY = 1000 * 60 * 30 // 30 mins session - with refresh token support
 
@@ -58,7 +58,37 @@ module.exports = {
             }
         })
     },
+    /**
+     * Create an AccessToken for a user's email verification
+     */
+    createTokenForEmailVerification: async function (app, user) {
+        // Ensure any existing tokens are removed first
+        await app.db.controllers.AccessToken.deleteAllUserPasswordResetTokens(user)
 
+        const token = generateNumericToken()
+        const expiresAt = new Date(Date.now() + (1000 * 60 * 30)) // 30 minutes
+        await app.db.models.AccessToken.create({
+            token,
+            expiresAt,
+            scope: 'email:verify',
+            ownerId: user.id,
+            ownerType: 'user'
+        })
+        return { token }
+    },
+
+    /**
+     * Deletes any pending password-change tokens for a user.
+     */
+    deleteAllUserEmailVerificationTokens: async function (app, user) {
+        await app.db.models.AccessToken.destroy({
+            where: {
+                ownerType: 'user',
+                scope: 'email:verify',
+                ownerId: user.id
+            }
+        })
+    },
     /**
      * Create an AccessToken for the given device.
      * The token is hashed in the database. The only time the
@@ -291,7 +321,7 @@ module.exports = {
             where: {
                 token: sha256(token),
                 scope: {
-                    [Op.ne]: 'password:reset'
+                    [Op.notIn]: ['password:reset', 'email:verify']
                 }
             }
         })
@@ -309,6 +339,24 @@ module.exports = {
             where: {
                 token: sha256(token),
                 scope: 'password:reset'
+            }
+        })
+        if (accessToken) {
+            if (accessToken.expiresAt && accessToken.expiresAt.getTime() < Date.now()) {
+                await accessToken.destroy()
+                accessToken = null
+            }
+        }
+        return accessToken
+    },
+
+    getOrExpireEmailVerificationToken: async function (app, user, token) {
+        let accessToken = await app.db.models.AccessToken.findOne({
+            where: {
+                token: sha256(token),
+                ownerId: '' + user.id,
+                ownerType: 'user',
+                scope: 'email:verify'
             }
         })
         if (accessToken) {
