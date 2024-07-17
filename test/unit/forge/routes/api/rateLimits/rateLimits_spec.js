@@ -166,7 +166,7 @@ describe('Endpoint Rate Limiting', () => {
             { url: '/api/comms/auth/client', method: 'POST', shouldLimit: false },
             { url: '/api/comms/auth/acl', method: 'POST', shouldLimit: false },
             { url: '/account/logout', method: 'POST', shouldLimit: false },
-            { url: '/account/verify/:token', method: 'POST', shouldLimit: false },
+            { url: '/account/verify/token', method: 'POST', shouldLimit: true },
             // { url: '/account/verify', method: 'POST', shouldLimit: false },
             { url: '/account/authorize', method: 'GET', shouldLimit: false }, // used by oauth2, needs license
             { url: '/account/token', method: 'POST', shouldLimit: false }, // used by oauth2, needs license

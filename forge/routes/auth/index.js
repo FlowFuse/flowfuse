@@ -495,6 +495,16 @@ async function init (app, opts) {
      * Perform email verification
      */
     app.post('/account/verify/token', {
+        config: {
+            rateLimit: app.config.rate_limits
+                ? {
+                    max: 2,
+                    timeWindow: 60000,
+                    keyGenerator: app.config.rate_limits.keyGenerator,
+                    hard: true
+                }
+                : false
+        },
         schema: {
             tags: ['Authentication', 'X-HIDDEN']
         }
