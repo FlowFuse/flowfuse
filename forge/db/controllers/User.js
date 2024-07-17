@@ -101,6 +101,7 @@ module.exports = {
 
     verifyEmailToken: async function (app, user, token) {
         const accessToken = await app.db.controllers.AccessToken.getOrExpireEmailVerificationToken(user, token)
+        await app.db.controllers.AccessToken.deleteAllUserEmailVerificationTokens(user)
         if (!accessToken) {
             throw new Error('Invalid token')
         }

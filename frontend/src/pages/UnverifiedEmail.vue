@@ -8,11 +8,15 @@
             <p>
                 We sent you an email with a code in it. Enter the code below to continue.
             </p>
-            <ff-text-input v-model="token" data-form="verify-token" maxlength="6" label="token" @enter="submitVerificationToken" />
+            <div>
+                <ff-text-input v-model="token" data-form="verify-token" maxlength="6" label="token" @enter="submitVerificationToken" />
+                <span class="ff-error-inline" data-el="token-error">{{ error }}</span>
+            </div>
+
             <ff-button :disabled="token.length !== 6" data-action="submit-verify-token" @click="submitVerificationToken">Continue</ff-button>
             <p>
                 <ff-button kind="tertiary" :disabled="resendTimeoutCount > 0" @click="resend">
-                    <span>Resend email <span v-if="resendTimeoutCount > 0">({{resendTimeoutCount}})</span></span>
+                    <span>Resend email <span v-if="resendTimeoutCount > 0">({{ resendTimeoutCount }})</span></span>
                 </ff-button>
                 <ff-button kind="tertiary" @click="logout">Log out</ff-button>
             </p>
@@ -35,6 +39,7 @@ export default {
     data () {
         return {
             token: '',
+            error: '',
             resendTimeoutCount: 0,
             resendTimeout: null
         }
@@ -47,7 +52,11 @@ export default {
                 clearTimeout(this.resendTimeout)
                 window.location = '/'
             } catch (err) {
-
+                // Verification failed.
+                this.token = ''
+                this.error = 'Verification failed. Click resend to receive a new code to try again'
+                clearTimeout(this.resendTimeout)
+                this.resentTimeout = 0
             }
         },
         async resend () {
@@ -55,6 +64,7 @@ export default {
             try {
                 await userApi.triggerVerification()
             } catch (err) {
+
             }
             const tick = () => {
                 this.resendTimeoutCount--

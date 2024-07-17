@@ -63,7 +63,7 @@ module.exports = {
      */
     createTokenForEmailVerification: async function (app, user) {
         // Ensure any existing tokens are removed first
-        await app.db.controllers.AccessToken.deleteAllUserPasswordResetTokens(user)
+        await app.db.controllers.AccessToken.deleteAllUserEmailVerificationTokens(user)
 
         const token = generateNumericToken()
         const expiresAt = new Date(Date.now() + (1000 * 60 * 30)) // 30 minutes
@@ -71,21 +71,21 @@ module.exports = {
             token,
             expiresAt,
             scope: 'email:verify',
-            ownerId: user.id,
+            ownerId: '' + user.id,
             ownerType: 'user'
         })
         return { token }
     },
 
     /**
-     * Deletes any pending password-change tokens for a user.
+     * Deletes any pending email-verification tokens for a user.
      */
     deleteAllUserEmailVerificationTokens: async function (app, user) {
         await app.db.models.AccessToken.destroy({
             where: {
                 ownerType: 'user',
                 scope: 'email:verify',
-                ownerId: user.id
+                ownerId: '' + user.id
             }
         })
     },
