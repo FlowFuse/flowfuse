@@ -634,7 +634,7 @@
 
     <template v-else-if="entry.event === 'resource.memory'">
         <label>Instance High Memory usage</label>
-        <span>Instance has spent more than {{ Math.floor(entry.body.interval / 60) }} minutes at more than {{ entry.body.threshold }}% of Memory limit. This means that the flow needs a larger Instance or has a memory leak</span>
+        <span>Instance has spent more than {{ Math.floor(entry.body.interval / 60) }} minutes at more than {{ entry.body.threshold }}% of Memory limit. This means that the flow may need a larger Instance or has a memory leak</span>
     </template>
 
     <!-- Catch All -->
