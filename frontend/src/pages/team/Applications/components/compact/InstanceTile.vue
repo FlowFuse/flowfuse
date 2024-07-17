@@ -9,10 +9,31 @@
             />
         </div>
         <div class="details">
-            <span :title="localInstance.name" class="cursor-pointer" @click="openInstance">{{ localInstance.name }}</span>
-            <a :href="localInstance.url" target="_blank" @click.stop>
-                {{ localInstance.url }}
-            </a>
+            <div class="detail-wrapper">
+                <span
+                    :title="localInstance.name"
+                    class="cursor-pointer name"
+                    :class="{'no-highlight': isHoveringInstanceUrl}"
+                    @click="openInstance"
+                >
+                    {{ localInstance.name }}
+                </span>
+            </div>
+            <div class="detail-wrapper detail">
+                <a
+                    v-if="isInstanceRunning"
+                    :href="localInstance.url"
+                    target="_blank"
+                    class="editor-link"
+                    @click.stop @mouseover="isHoveringInstanceUrl = true"
+                    @mouseleave="isHoveringInstanceUrl = false"
+                >
+                    {{ localInstance.url }}
+                </a>
+                <span v-else class="editor-link inactive">
+                    {{ localInstance.url }}
+                </span>
+            </div>
         </div>
         <div class="actions">
             <DashboardLink
@@ -101,7 +122,8 @@ export default {
     emits: ['delete-instance'],
     data () {
         return {
-            localInstance: this.instance
+            localInstance: this.instance,
+            isHoveringInstanceUrl: false
         }
     },
     computed: {

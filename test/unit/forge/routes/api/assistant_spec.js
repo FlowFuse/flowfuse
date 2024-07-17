@@ -213,7 +213,11 @@ describe('Assistant API', async function () {
                 axios.post.calledOnce.should.be.true()
                 axios.post.args[0][2].headers.should.have.properties({
                     'ff-owner-type': 'project',
-                    'ff-owner-id': TestObjects.instance.id
+                    'ff-owner-id': TestObjects.instance.id,
+                    'ff-team-id': TestObjects.ATeam.hashid,
+                    'ff-license-active': false,
+                    'ff-license-type': 'CE',
+                    'ff-license-tier': null
                 })
             })
             it('contains owner info in headers for a device', async function () {
@@ -227,7 +231,11 @@ describe('Assistant API', async function () {
                 axios.post.calledOnce.should.be.true()
                 axios.post.args[0][2].headers.should.have.properties({
                     'ff-owner-type': 'device',
-                    'ff-owner-id': TestObjects.device.hashid
+                    'ff-owner-id': TestObjects.device.hashid,
+                    'ff-team-id': TestObjects.ATeam.hashid,
+                    'ff-license-active': false,
+                    'ff-license-type': 'CE',
+                    'ff-license-tier': null
                 })
             })
         }
