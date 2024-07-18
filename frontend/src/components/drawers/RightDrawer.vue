@@ -24,9 +24,11 @@ export default {
   border-left: 1px solid $ff-grey-300;
   background: white;
   height: 100%;
-  width: 0;
   right: -1000px;
   z-index: 500;
+  width: 100%;
+  max-width: 0;
+  min-width: 0;
   transition: ease-in-out .3s;
   box-shadow: -5px 0px 8px rgba(0, 0, 0, 0.1);
 
