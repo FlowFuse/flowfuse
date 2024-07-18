@@ -43,7 +43,7 @@ describe('FlowForge - Notifications', () => {
                 })
             })
 
-            it.only('to users that are part of teams', () => {
+            it('to users that are part of teams', () => {
                 cy.login('bob', 'bbPassword')
 
                 cy.intercept('/api/*/user').as('getUser')
