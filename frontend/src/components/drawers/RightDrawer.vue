@@ -1,5 +1,5 @@
 <template>
-    <div v-click-outside="closeRightDrawer" class="right-drawer" :class="{open: rightDrawer.state} ">
+    <div v-click-outside="closeRightDrawer" class="right-drawer" :class="{open: rightDrawer.state}" data-el="right-drawer">
         <component :is="rightDrawer.component" v-if="rightDrawer.component" />
     </div>
 </template>

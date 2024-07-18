@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-notifications-drawer">
+    <div class="ff-notifications-drawer" data-el="notifications-drawer">
         <div class="header">
             <h2 class="title">Notifications</h2>
             <!--            <div class="actions">-->
@@ -9,8 +9,8 @@
             <!--                <span class="forge-badge disabled">mark as unread</span>-->
             <!--            </div>-->
         </div>
-        <ul class="messages-wrapper">
-            <li v-for="notification in notificationMessages" :key="notification.id">
+        <ul v-if="hasNotificationMessages" class="messages-wrapper" data-el="messages-wrapper">
+            <li v-for="notification in notificationMessages" :key="notification.id" data-el="message">
                 <component
                     :is="notificationsComponentMap['team-invitation']"
                     :notification="notification"
@@ -20,6 +20,9 @@
                 />
             </li>
         </ul>
+        <div v-else class="empty">
+            <p>Nothing so far...</p>
+        </div>
     </div>
 </template>
 
@@ -47,6 +50,9 @@ export default {
         },
         canDeselectAll () {
             return this.selections.length > 0
+        },
+        hasNotificationMessages () {
+            return this.notificationMessages.length > 0
         }
     },
     methods: {

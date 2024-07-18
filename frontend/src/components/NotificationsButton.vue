@@ -1,6 +1,6 @@
 <template>
     <div class="notifications-button-wrapper">
-        <button class="notifications-button" @click="onClick">
+        <button class="notifications-button" data-el="notifications-button" @click="onClick">
             <MailIcon />
             <ff-notification-pill v-if="hasNotifications" data-el="notification-pill" class="ml-3" :count="notifications.total" />
         </button>

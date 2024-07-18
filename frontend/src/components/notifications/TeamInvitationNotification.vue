@@ -1,5 +1,5 @@
 <template>
-    <div class="message">
+    <div class="message" data-el="invitation-message">
         <div class="icon">
             <UserAddIcon class="ff-btn--icon" />
         </div>
