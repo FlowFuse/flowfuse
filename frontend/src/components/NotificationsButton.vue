@@ -64,6 +64,7 @@ export default {
       position: absolute;
       font-size: 0.65rem;
       padding: 0 7px;
+      background-color: $ff-red-500;
     }
   }
 
