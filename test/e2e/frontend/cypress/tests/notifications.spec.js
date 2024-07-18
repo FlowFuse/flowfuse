@@ -1,13 +1,60 @@
 describe('FlowForge - Notifications', () => {
     describe('Team Invitations', () => {
         describe('appear as notification messages', () => {
-            it('to users that have no team memberships', () => {
+            it.only('to users that have no team memberships', () => {
                 cy.login('dave', 'ddPassword')
 
                 cy.intercept('/api/*/user').as('getUser')
                 cy.intercept('/api/*/settings').as('getSettings')
                 cy.intercept('/api/*/user/teams').as('getTeams')
-                cy.intercept('/api/*/user/invitations').as('getInvitations')
+                cy.intercept('/api/*/user/invitations', {
+                    meta: {},
+                    count: 2,
+                    invitations: [
+                        {
+                            id: '1',
+                            role: 30,
+                            createdAt: new Date().setTime((new Date()).getTime() - 3600000),
+                            expiresAt: new Date().setTime((new Date()).getTime() + 3600000),
+                            team: {
+                                id: 'gY9GQjDb2k',
+                                name: 'ATeam',
+                                slug: 'ateam'
+                            },
+                            invitor: {
+                                id: 'AJ1lQQjlqR',
+                                username: 'alice',
+                                name: 'Alice Skywalker'
+                            },
+                            invitee: {
+                                id: 'qMN5ng9xYv',
+                                username: 'bob',
+                                name: 'Bob'
+                            }
+                        },
+                        {
+                            id: '2',
+                            role: 30,
+                            createdAt: new Date().setTime((new Date()).getTime() - 3600000),
+                            expiresAt: new Date().setTime((new Date()).getTime() + 3600000),
+                            team: {
+                                id: 'gY9GQjDb2k',
+                                name: 'BTeam',
+                                slug: 'bteam'
+                            },
+                            invitor: {
+                                id: 'AJ1lQQjlqR',
+                                username: 'bob',
+                                name: 'Bob Solo'
+                            },
+                            invitee: {
+                                id: 'qMN5ng9xYv',
+                                username: 'bob',
+                                name: 'Bob'
+                            }
+                        }
+                    ]
+                }).as('getInvitations')
 
                 cy.intercept('/api/*/admin/stats').as('getAdminStats')
                 cy.intercept('/api/*/admin/license').as('getAdminLicense')
