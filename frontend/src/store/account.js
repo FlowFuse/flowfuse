@@ -75,7 +75,9 @@ const getters = {
         return n
     },
     notificationMessages (state, getters) {
-        return getters.notifications.payload ?? []
+        const notifications = getters.notifications.payload ?? []
+
+        return notifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     },
     totalNotificationsCount: (state, getters) => getters.notifications.total,
     redirectUrlAfterLogin (state) {
