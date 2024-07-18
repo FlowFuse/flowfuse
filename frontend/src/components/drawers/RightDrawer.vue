@@ -32,7 +32,9 @@ export default {
 
   &.open {
     right: 0;
-    width: 40%;
+    width: 100%;
+    max-width: 30vw;
+    min-width: 400px;
   }
 }
 </style>
