@@ -5,7 +5,7 @@
         <template v-if="splash" #splash-content>
             <div data-el="splash" v-html="splash" />
         </template>
-        <form v-if="!emailSent && !ssoCreated" id="ff-sign-up" class="max-w-md m-auto" @submit.prevent="registerUser()">
+        <form v-if="!ssoCreated" id="ff-sign-up" class="max-w-md m-auto" @submit.prevent="registerUser()">
             <p
                 v-if="settings['branding:account:signUpTopBanner']"
                 data-el="banner-text"
@@ -53,11 +53,7 @@
                 </p>
             </div>
         </form>
-        <div v-else-if="emailSent">
-            <h5>Confirm your e-mail address.</h5>
-            <p>Please click the link in the email we sent to {{ input.email }}</p>
-        </div>
-        <div v-else>
+        <div v-else-if="ssoCreated">
             <p>You can now login using your SSO Provider.</p>
             <ff-button :to="{ name: 'Home' }" data-action="login">Login</ff-button>
         </div>
@@ -93,7 +89,6 @@ export default {
                 name: false
             },
             teams: [],
-            emailSent: false,
             ssoCreated: false,
             input: {
                 name: '',
@@ -232,15 +227,17 @@ export default {
             const opts = { ...this.input, name: name || this.input.username, email }
             this.busy = true // show spinner
             this.errors.general = '' // clear any previous errors
-            userApi.registerUser(opts).then(result => {
+            userApi.registerUser(opts).then(async result => {
                 if (result.sso_enabled) {
                     this.ssoCreated = true
-                } else {
-                    this.emailSent = true
                 }
                 this.busy = false
                 if (window.gtag && this.settings.adwords?.events?.conversion) {
                     window.gtag('event', 'conversion', this.settings.adwords.events.conversion)
+                }
+                if (!result.sso_enabled) {
+                    this.$store.dispatch('account/setUser', result)
+                    this.$router.push('/')
                 }
             }).catch(err => {
                 console.error(err)

@@ -81,6 +81,13 @@ module.exports = fp(async function (app, _opts) {
                     defaultProvider
                 })
 
+                if (sesConfig.sourceArn) {
+                    mailDefaults.ses = {
+                        SourceArn: sesConfig.sourceArn,
+                        FromArn: sesConfig.FromArn ? sesConfig.FromArn : sesConfig.sourceArn
+                    }
+                }
+
                 mailTransport = nodemailer.createTransport({
                     SES: { ses, aws }
                 }, mailDefaults)

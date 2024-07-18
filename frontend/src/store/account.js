@@ -177,13 +177,7 @@ const actions = {
             commit('login', user)
 
             // User is logged in
-            if (router.currentRoute.value.name === 'VerifyEmail' && user.email_verified === false) {
-                // This page has `meta.requiresLogin = false` as it needs to be
-                // accessible to non-logged-in users.
-                // By default, we redirect away from those pages for logged in users,
-                // however this is the one exception that should be allowed to
-                // continue.
-            } else if (router.currentRoute.value.meta.requiresLogin === false) {
+            if (router.currentRoute.value.meta.requiresLogin === false) {
                 // This is only for logged-out users
                 window.location = '/'
                 return
