@@ -1,7 +1,7 @@
 describe('FlowForge - Notifications', () => {
     describe('Team Invitations', () => {
         describe('appear as notification messages', () => {
-            it.only('to users that have no team memberships', () => {
+            it('to users that have no team memberships', () => {
                 cy.login('dave', 'ddPassword')
 
                 cy.intercept('/api/*/user').as('getUser')
