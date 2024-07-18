@@ -122,12 +122,11 @@ module.exports.init = async function (app) {
                         return true
                     }
                     reply.code(401).send({ code: 'sso_required', redirect: `/ee/sso/login?u=${request.body.username}` })
-                    return turn
+                    return true
                 } else if (providerConfig.type === 'ldap') {
                     return false
                 }
             }
-            
         }
         return false
     }

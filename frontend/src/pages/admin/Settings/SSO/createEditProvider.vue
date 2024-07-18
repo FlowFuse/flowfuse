@@ -243,7 +243,7 @@ export default {
                         delete opts.options.tlsVerifyServer
                     }
                     if (opts.options.provisionNewUsers) {
-                        delete opt.options.provisionNewUsers
+                        delete opts.options.provisionNewUsers
                     }
                 }
                 delete opts.type

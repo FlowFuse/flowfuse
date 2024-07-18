@@ -15,8 +15,6 @@
  * @namespace session
  * @memberof forge.routes
  */
-const crypto = require('crypto')
-
 const fp = require('fastify-plugin')
 
 const newUserSetup = require('../../lib/newUserSetup')
