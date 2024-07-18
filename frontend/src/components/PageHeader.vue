@@ -37,7 +37,7 @@
         </div>
         <div class="hidden lg:flex">
             <ff-team-selection data-action="team-selection" />
-            <div class="px-4 flex flex-col justify-center ff-border-left">
+            <div class="px-4 flex flex-col justify-center ff-border-left" v-if="showInviteButton">
                 <ff-button kind="secondary" @click="inviteTeamMembers">
                     <template #icon-left><UserAddIcon /></template>
                     Invite Members
@@ -122,6 +122,9 @@ export default {
                     onclick: this.signOut
                 }
             ].filter(option => option !== undefined)
+        },
+        showInviteButton () {
+            return this.$route.name !== 'TeamMembers'
         }
     },
     watch: {
