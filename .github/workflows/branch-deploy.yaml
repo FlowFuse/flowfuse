@@ -21,7 +21,8 @@ jobs:
     name: Validate trigger author
     runs-on: ubuntu-latest
     if: |
-      github.event_name == 'pull_request'
+      github.event_name == 'pull_request' &&
+      github.actor != 'dependabot[bot]'
     outputs:
       is_org_member: ${{ steps.validate.outputs.is_member }}
     steps:
@@ -209,7 +210,9 @@ jobs:
   notify-slack:
     name: Notify about pre-staging deployment
     needs: [deploy]
-    if: success() || failure()
+    if: |
+      ( success() || failure() ) &&
+      github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     env:
       PR_NUMBER: ${{ github.event.number }}
