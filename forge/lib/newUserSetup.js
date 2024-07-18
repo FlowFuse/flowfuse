@@ -1,3 +1,5 @@
+const crypto = require('crypto')
+
 module.exports = async function newUserSetup (app, verifiedUser) {
 
     if (app.settings.get('user:team:auto-create')) {

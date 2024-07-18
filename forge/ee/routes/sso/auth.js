@@ -204,6 +204,7 @@ module.exports = fp(async function (app, opts) {
                     redirectTo = /^\/.*/.test(state.redirectTo) ? state.redirectTo : '/'
                 }
                 if (request.session.newSSOUser) {
+                    delete request.session.newSSOUser
                     redirectTo = '/account/settings'
                 }
                 reply.redirect(redirectTo)
