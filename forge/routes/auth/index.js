@@ -512,7 +512,7 @@ async function init (app, opts) {
                 return
             }
 
-            newUserSetup(app, verifiedUser)
+            await newUserSetup(app, verifiedUser)
 
             // if (app.settings.get('user:team:auto-create')) {
             //     const teamLimit = app.license.get('teams')

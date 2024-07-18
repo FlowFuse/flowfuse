@@ -100,7 +100,7 @@ module.exports.init = async function (app) {
         } else {
             // should check if username is email address?
             const providerConfig = await app.db.models.SAMLProvider.forEmail(request.body.username)
-            if (providerConfig.options.provisionNewUsers) {
+            if (providerConfig?.options?.provisionNewUsers) {
                 if (providerConfig.type === 'saml') {
                     // need to check if create new users is allowed
                     if (!app.settings.get('user:signup') && !app.settings.get('team:user:invite:external')) {

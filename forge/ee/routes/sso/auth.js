@@ -137,7 +137,7 @@ module.exports = fp(async function (app, opts) {
                         // how do we set the redirect here to update user settings?
                         // Do we decide to create user team if no email verification
                         try {
-                            newUserSetup(app, newUser)
+                            await newUserSetup(app, newUser)
                         } catch (err) {
                             // need to work out how to fail here
                             // Do we delete the user and bail out?
