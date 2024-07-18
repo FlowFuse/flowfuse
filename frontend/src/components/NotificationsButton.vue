@@ -54,8 +54,8 @@ export default {
 
     svg {
       flex: 1;
-      width: 35px;
-      height: 35px;
+      width: 24px;
+      height: 24px;
     }
 
     .ff-notification-pill {
