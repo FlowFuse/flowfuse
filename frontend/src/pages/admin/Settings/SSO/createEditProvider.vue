@@ -43,6 +43,7 @@
                             <template #description>Supplied by your Identity Provider</template>
                             <template #input><textarea v-model="input.options.cert" class="font-mono w-full" placeholder="---BEGIN CERTIFICATE---&#10;loremipsumdolorsitamet&#10;consecteturadipiscinge&#10;---END CERTIFICATE---&#10;" rows="6" /></template>
                         </FormRow>
+                        <FormRow v-if="input.type === 'saml'" v-model="input.options.provisionNewUsers" type="checkbox">Allow Provisioning of New Users on first login</FormRow>
                         <FormRow v-model="input.options.groupMapping" type="checkbox">Manage roles using group assertions</FormRow>
                         <div v-if="input.options.groupMapping" class="pl-4 space-y-6">
                             <FormRow v-model="input.options.groupAssertionName" :error="groupAssertionNameError">
@@ -137,6 +138,7 @@ export default {
                 type: 'saml',
                 active: false,
                 options: {
+                    provisionNewUsers: false,
                     groupMapping: false
                 }
             },
@@ -239,6 +241,9 @@ export default {
                     if (!opts.options.tls) {
                         delete opts.options.tls
                         delete opts.options.tlsVerifyServer
+                    }
+                    if (opts.options.provisionNewUsers) {
+                        delete opt.options.provisionNewUsers
                     }
                 }
                 delete opts.type
