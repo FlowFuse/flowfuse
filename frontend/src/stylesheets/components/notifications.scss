@@ -30,3 +30,101 @@
         }
     }
 }
+
+$ff-notifications-drawer-side-padding: 5px;
+
+.ff-notifications-drawer {
+    > .header {
+        border-bottom: 1px solid $ff-grey-300;
+        padding: 10px 0;
+
+        .title {
+            padding: 0 $ff-notifications-drawer-side-padding;
+            margin: 0;
+        }
+
+        .actions {
+            padding: 0 5px;
+            display: flex;
+            gap: 5px;
+
+            .forge-badge {
+                background-color: $ff-grey-100;
+
+                &:hover {
+                    cursor: pointer;
+                    background-color: $ff-grey-300
+                }
+
+                &.disabled {
+                    color: $ff-grey-400;
+
+                    &:hover {
+                        cursor: not-allowed;
+                    }
+                }
+            }
+        }
+    }
+
+    .message {
+        border-bottom: 1px solid $ff-grey-300;
+        padding: 10px 0 0;
+        transition: ease-in-out .3s;
+        display: flex;
+        align-items: center;
+
+        .icon {
+            align-self: baseline;
+            
+            .ff-btn--icon {
+                width: 30px;
+                height: 30px;
+            }
+        }
+
+        .body {
+            flex: 1;
+            
+            .header {
+                display: flex;
+                padding: 0 $ff-notifications-drawer-side-padding;
+                justify-content: space-between;
+                margin-bottom: 5px;
+
+                .title {
+                    flex: 1;
+
+                    h4 {
+                        margin: 0;
+                    }
+
+                    &:hover {
+                        color: $ff-blue-500;
+                    }
+                }
+
+                input {
+                    &:hover {
+                        cursor: pointer;
+                    }
+                }
+            }
+
+            .content {
+                padding: 0 $ff-notifications-drawer-side-padding;
+            }
+
+            .footer {
+                text-align: right;
+                color: $ff-grey-400;
+                font-size: 80%;
+                padding: 0 $ff-notifications-drawer-side-padding;
+            }
+        }
+
+        &:hover {
+            background-color: $ff-grey-100;
+        }
+    }
+}

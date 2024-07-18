@@ -74,6 +74,9 @@ const getters = {
 
         return n
     },
+    notificationMessages (state, getters) {
+        return getters.notifications.payload ?? []
+    },
     totalNotificationsCount: (state, getters) => getters.notifications.total,
     redirectUrlAfterLogin (state) {
         return state.redirectUrlAfterLogin
