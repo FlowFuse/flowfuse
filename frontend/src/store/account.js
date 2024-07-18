@@ -28,8 +28,10 @@ const state = () => ({
     teamMembership: null,
     // The user's teams
     teams: [],
-    // stores active notifications that require user attention, key'd by notification type (e.g. invites)
-    notifications: {},
+    // stores active notifications that require user attention, key'd by notification type (e.g. invites) alongside a payload bucket to store all notifications
+    notifications: {
+        payload: []
+    },
     // An error during login
     loginError: null,
     //
@@ -59,16 +61,20 @@ const getters = {
         return state.teamMembership
     },
     notifications (state) {
-        const n = state.notifications
+        const n = { ...state.notifications }
+
         let sum = 0
         for (const type of Object.keys(n)) {
-            if (type !== 'total') {
+            if (!['total', 'payload'].includes(type)) {
                 sum += n[type]
             }
         }
+
         n.total = sum
+
         return n
     },
+    totalNotificationsCount: (state, getters) => getters.notifications.total,
     redirectUrlAfterLogin (state) {
         return state.redirectUrlAfterLogin
     },
@@ -88,7 +94,8 @@ const getters = {
     },
     blueprints: state => state.teamBlueprints[state.team?.id] || [],
     defaultBlueprint: (state, getters) => getters.blueprints?.find(blueprint => blueprint.default),
-    hasNotifications: (state) => state.notifications.total > 0
+    hasNotifications: (state, getters) => getters.notifications.total > 0,
+    teamInvitations: state => state.notifications.payload // filter out team invites by notification.type = invite
 }
 
 const mutations = {
@@ -130,6 +137,9 @@ const mutations = {
     setNotificationsCount (state, payload) {
         state.notifications[payload.type] = payload.count
     },
+    setNotificationsPayload (state, notifications) {
+        state.notifications.payload = notifications
+    },
     sessionExpired (state) {
         state.user = null
     },
@@ -156,15 +166,15 @@ const mutations = {
 
 // actions
 const actions = {
-    async checkState (state, redirectUrlAfterLogin) {
+    async checkState ({ commit, dispatch }, redirectUrlAfterLogin) {
         try {
             const settings = await settingsApi.getSettings()
-            state.commit('setSettings', settings)
+            commit('setSettings', settings)
 
-            state.commit('setOffline', false)
+            commit('setOffline', false)
 
             const user = await userApi.getUser()
-            state.commit('login', user)
+            commit('login', user)
 
             // User is logged in
             if (router.currentRoute.value.name === 'VerifyEmail' && user.email_verified === false) {
@@ -178,20 +188,20 @@ const actions = {
                 window.location = '/'
                 return
             } else if (user.email_verified === false || user.password_expired) {
-                state.commit('clearPending')
+                commit('clearPending')
                 router.push({ name: 'Home' })
                 return
             }
 
             // check notifications count
-            state.dispatch('countNotifications')
+            await dispatch('getNotifications')
 
             const teams = await teamApi.getTeams()
-            state.commit('setTeams', teams.teams)
+            commit('setTeams', teams.teams)
 
             if (teams.count === 0) {
-                state.commit('clearPending')
-                state.commit('setTeam', null)
+                commit('clearPending')
+                commit('setTeam', null)
                 if (/^\/team\//.test(router.currentRoute.value.path)) {
                     router.push({ name: 'Home' })
                 }
@@ -224,18 +234,18 @@ const actions = {
                     }
                     const team = await teamApi.getTeam(teamId || { slug: teamSlug })
                     const teamMembership = await teamApi.getTeamUserMembership(team.id)
-                    state.commit('setTeam', team)
-                    state.commit('setTeamMembership', teamMembership)
+                    commit('setTeam', team)
+                    commit('setTeamMembership', teamMembership)
                 }
-                state.commit('clearPending')
+                commit('clearPending')
                 if (redirectUrlAfterLogin) {
                     // If this is a user-driven login, take them to the profile page
                     router.push(redirectUrlAfterLogin)
                     // Clear the redirectUrl on nextTick
-                    nextTick(() => { state.commit('setRedirectUrl', null) })
+                    nextTick(() => { commit('setRedirectUrl', null) })
                 }
             } catch (teamLoadErr) {
-                state.commit('clearPending')
+                commit('clearPending')
                 // This means the team doesn't exist, or the user doesn't have access
                 router.push({
                     name: 'PageNotFound',
@@ -247,13 +257,13 @@ const actions = {
             }
         } catch (err) {
             // Not logged in
-            state.commit('clearPending')
+            commit('clearPending')
             window.posthog?.reset()
 
             if (router.currentRoute.value.meta.requiresLogin !== false) {
                 if (router.currentRoute.value.path !== '/') {
                     // Only remember the url if it isn't the default / path
-                    state.commit('setRedirectUrl', router.currentRoute.value.fullPath)
+                    commit('setRedirectUrl', router.currentRoute.value.fullPath)
                 }
                 router.push({ name: 'Home' })
             }
@@ -335,16 +345,6 @@ const actions = {
         const settings = await settingsApi.getSettings()
         state.commit('setSettings', settings)
     },
-    async countNotifications (state) {
-        await userApi.getTeamInvitations()
-            .then((invitations) => {
-                state.commit('setNotificationsCount', {
-                    type: 'invitations',
-                    count: invitations.count
-                })
-            })
-            .catch(_ => {})
-    },
     setOffline (state, value) {
         state.commit('setOffline', value)
     },
@@ -356,6 +356,17 @@ const actions = {
     },
     setRedirectUrl (state, url) {
         state.commit('setRedirectUrl', url)
+    },
+    async getNotifications (state) {
+        await userApi.getTeamInvitations()
+            .then((invitations) => {
+                state.commit('setNotificationsCount', {
+                    type: 'invitations',
+                    count: invitations.count
+                })
+                state.commit('setNotificationsPayload', invitations.invitations)
+            })
+            .catch(_ => {})
     }
 }
 

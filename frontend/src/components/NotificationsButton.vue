@@ -19,8 +19,8 @@ export default {
     components: { MailIcon },
     computed: {
         ...mapState('ux', ['rightDrawer']),
-        ...mapState('account', ['notifications']),
-        ...mapGetters('account', ['hasNotifications'])
+        ...mapGetters('account', ['hasNotifications']),
+        ...mapGetters('account', ['notifications'])
     },
     methods: {
         ...mapActions('ux', ['openRightDrawer', 'closeRightDrawer']),
