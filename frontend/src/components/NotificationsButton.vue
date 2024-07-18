@@ -45,7 +45,7 @@ export default {
     justify-content: center;
     width: 100%;
     height: 100%;
-    padding: 10px;
+    padding: 18px;
     position: relative;
 
     &:hover {
