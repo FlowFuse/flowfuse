@@ -81,8 +81,8 @@ describe('FlowForge - Notifications', () => {
 
                     cy.get('[data-el="invitation-message"]').should('have.length', 2)
                     cy.get('[data-el="invitation-message"]').contains('Team Invitation')
-                    cy.get('[data-el="invitation-message"]').contains('You have been invited by Alice Skywalker to join ATeam.')
-                    cy.get('[data-el="invitation-message"]').contains('You have been invited by Bob Solo to join BTeam.')
+                    cy.get('[data-el="invitation-message"]').contains('You have been invited by "Alice Skywalker" to join "ATeam".')
+                    cy.get('[data-el="invitation-message"]').contains('You have been invited by "Bob Solo" to join "BTeam".')
 
                     cy.get('[data-el="invitation-message"]').contains('Team Invitation').click()
 
@@ -149,7 +149,7 @@ describe('FlowForge - Notifications', () => {
                     cy.get('[data-el="notifications-drawer"]')
 
                     cy.get('[data-el="invitation-message"]').should('have.length', 1)
-                    cy.get('[data-el="invitation-message"]').contains('You have been invited by Alice to join Alice\'s team.')
+                    cy.get('[data-el="invitation-message"]').contains('You have been invited by "Alice" to join "Alice\'s team".')
                     cy.get('[data-el="invitation-message"]').contains('1 hour ago')
 
                     cy.get('[data-el="invitation-message"]').contains('Team Invitation').click()
