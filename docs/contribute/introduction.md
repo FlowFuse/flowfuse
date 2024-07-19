@@ -1,6 +1,13 @@
 ---
 navTitle: Introduction
 navOrder: 1
+meta:
+    description: This guide provides detailed instructions on how to contribute to the FlowFuse project, including setup, development, and testing processes.
+    tags:
+       - flowfuse
+       - developement
+       - contributing 
+      
 ---
 
 # Contributing to FlowFuse

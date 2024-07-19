@@ -1,5 +1,12 @@
 ---
 navTitle: API Design
+meta:
+  description: Detailed documentation on HTTP API design for the FlowFuse platform, including schema definitions, object IDs, route paths, and pagination.
+  tags:
+    - flowfuse
+    - nodered
+    - api
+    - contributing
 ---
 
 # HTTP API of the FlowFuse platform

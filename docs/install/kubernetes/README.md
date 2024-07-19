@@ -2,6 +2,13 @@
 navTitle: Install FlowFuse on Kubernetes
 meta: 
    description: Install FlowFuse on Kubernetes using Helm charts for easy configuration and management. Ensure efficient data storage and enable MQTT broker integration seamlessly.
+   tags:
+      - kubernetes
+      - helm
+      - postgresql
+      - dns
+      - email
+      - mqtt
 ---
 
 # Kubernetes Install

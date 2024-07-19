@@ -2,6 +2,16 @@
 navTitle: Digital Ocean Kubernetes Installation
 meta:
    description: Install FlowFuse on Digital Ocean Kubernetes with cluster setup, Nginx Ingress, SSL using Cert-manager, and Helm deployment.
+   tags:
+      - flowfuse
+      - nodered
+      - digitalocean
+      - kubernetes
+      - nginx ingress
+      - cert-manager
+      - helm
+      - dns
+      - letsencrypt
 ---
 
 # Installing FlowFuse on a Digital Ocean Kubernetes cluster

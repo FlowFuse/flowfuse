@@ -2,6 +2,13 @@
 navTitle: Installing a license
 meta:
    description: Upgrade your self-managed FlowFuse installation with enterprise features by uploading a license and enabling FlowFuse Authentication for Node-RED plugins.
+   tags:
+     - enterprise
+     - license
+     - flowfuse
+     - nodered
+     - authentication
+     - upgrade
 ---
 
 ## Upgrading to FlowFuse Enterprise

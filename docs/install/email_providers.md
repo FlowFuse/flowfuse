@@ -2,6 +2,13 @@
 navTitle: Email configuration
 meta:
    description: Explore YAML configurations for GMail and Office365 email setups in FlowFuse, including SMTP server settings and authentication.
+   tags:
+     - email
+     - gmail
+     - office365
+     - smtp
+     - configuration
+
 ---
 
 ## Example configuration for common email platforms

@@ -4,6 +4,12 @@ navOrder: 3
 navTitle: Premium Support
 meta:
    description: Get premium customer support for FlowFuse application and account-related issues by filing a ticket.
+   tags:
+     - customer support
+     - premium
+     - flowfuse
+     - nodered
+     - community forum
 ---
 # Customer Support
 

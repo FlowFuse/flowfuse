@@ -1,7 +1,15 @@
 ---
-navTitle: Docker install\
+navTitle: Docker install
 meta:
    description: Learn how to install FlowFuse using Docker Compose for on-premise deployments. Configure DNS, manage Node-RED instances, and set up HTTPS with Let's Encrypt or wildcard TLS certificates
+   tags:
+      - docker
+      - flowfuse
+      - nodered
+      - installation
+      - dns
+      - https
+      - nodered
 ---
 
 # Docker Install
