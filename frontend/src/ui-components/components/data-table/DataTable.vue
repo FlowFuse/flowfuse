@@ -18,7 +18,7 @@
                     <slot name="header">
                         <ff-data-table-row>
                             <ff-data-table-cell v-if="showRowCheckboxes" class="w-5">
-                                <ff-checkbox v-model="allChecked" @click="toggleAllChecks" />
+                                <ff-checkbox v-model="allChecked" data-action="check-all" @click="toggleAllChecks" />
                             </ff-data-table-cell>
                             <ff-data-table-cell
                                 v-for="(col, $index) in columns" :key="$index"
