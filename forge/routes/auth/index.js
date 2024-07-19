@@ -15,6 +15,8 @@
  * @namespace session
  * @memberof forge.routes
  */
+const crypto = require('crypto')
+
 const fp = require('fastify-plugin')
 
 // This defines how long the session cookie is valid for. This should match
