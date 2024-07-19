@@ -173,6 +173,45 @@
                         </template>
                     </EmptyState>
                 </template>
+                <template v-else-if="displayingApplication">
+                    <EmptyState data-el="application-no-devices">
+                        <template #img>
+                            <img src="../images/empty-states/instance-devices.png">
+                        </template>
+                        <template #header>Connect your First Device</template>
+                        <template #message>
+                            <p>
+                                Here, you will see a list of Devices belonging to this Application.
+                            </p>
+                            <p>
+                                You can deploy <router-link class="ff-link" :to="{name: 'ApplicationSnapshots'}">Snapshots</router-link> of this Application to your connected Devices.
+                            </p>
+                            <p>
+                                A full list of your Team's Devices are available <router-link
+                                    class="ff-link"
+                                    :to="{name: 'TeamDevices', params: {team_slug: team.slug}}"
+                                >
+                                    here
+                                </router-link>.
+                            </p>
+                        </template>
+                        <template #actions>
+                            <ff-button
+                                v-if="hasPermission('device:create')"
+                                class="font-normal"
+                                kind="primary"
+                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached"
+                                data-action="register-device"
+                                @click="showCreateDeviceDialog"
+                            >
+                                <template #icon-left>
+                                    <PlusSmIcon />
+                                </template>
+                                Add Device
+                            </ff-button>
+                        </template>
+                    </EmptyState>
+                </template>
                 <div v-else class="ff-no-data ff-no-data-large">
                     <span data-el="no-devices">
                         No devices found.
