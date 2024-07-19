@@ -31,7 +31,7 @@
     }
 }
 
-$ff-notifications-drawer-side-padding: 5px;
+$ff-notifications-drawer-side-padding: 12px;
 
 .ff-notifications-drawer {
     display: flex;
@@ -48,6 +48,10 @@ $ff-notifications-drawer-side-padding: 5px;
         .title {
             padding: 0 $ff-notifications-drawer-side-padding;
             margin: 0;
+            color: $ff-grey-800;
+            font-weight: bold;
+            font-size: 1.25rem;
+            line-height: 1.75rem;
         }
 
         .actions {
@@ -77,61 +81,54 @@ $ff-notifications-drawer-side-padding: 5px;
     .messages-wrapper {
         flex: 1;
         width: 100%;
+        background-color: $ff-grey-100;
         
         .message {
+            background-color: $ff-white;
             border-bottom: 1px solid $ff-grey-300;
-            padding: 10px 0 0;
+            padding: 9px $ff-notifications-drawer-side-padding;
             transition: ease-in-out .3s;
-            display: flex;
-            align-items: center;
+            cursor: pointer;
 
-            .icon {
-                align-self: baseline;
-
-                .ff-btn--icon {
-                    width: 30px;
-                    height: 30px;
-                }
+            &:hover .title {
+                color: $ff-blue-500;
             }
 
             .body {
                 flex: 1;
+                display: flex;
+                align-items: center;
+            }
 
-                .header {
-                    display: flex;
-                    padding: 0 $ff-notifications-drawer-side-padding;
-                    justify-content: space-between;
-                    margin-bottom: 5px;
+            .text {
+                padding: 0 $ff-notifications-drawer-side-padding;
+                flex-grow: 1;
+            }
 
-                    .title {
-                        flex: 1;
-
-                        h4 {
-                            margin: 0;
-                        }
-
-                        &:hover {
-                            color: $ff-blue-500;
-                        }
-                    }
-
-                    input {
-                        &:hover {
-                            cursor: pointer;
-                        }
+            .header {
+                display: flex;
+                justify-content: space-between;
+                .title {
+                    flex: 1;
+                    transition: ease-in-out .3s;
+                    h4 {
+                        margin: 0;
                     }
                 }
 
-                .content {
-                    padding: 0 $ff-notifications-drawer-side-padding;
+                input {
+                    &:hover {
+                        cursor: pointer;
+                    }
                 }
+            }
 
-                .footer {
-                    text-align: right;
-                    color: $ff-grey-400;
-                    font-size: 80%;
-                    padding: 0 $ff-notifications-drawer-side-padding;
-                }
+            .footer {
+                margin-top: 6px;
+                text-align: right;
+                color: $ff-grey-400;
+                font-size: 80%;
+                padding: 0 $ff-notifications-drawer-side-padding;
             }
 
             &:hover {
