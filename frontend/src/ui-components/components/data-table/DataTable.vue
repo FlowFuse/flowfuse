@@ -17,6 +17,9 @@
                     <!-- HEADERS -->
                     <slot name="header">
                         <ff-data-table-row>
+                            <ff-data-table-cell v-if="showRowCheckboxes" class="w-5">
+                                <ff-checkbox v-model="allChecked" @click="toggleAllChecks" />
+                            </ff-data-table-cell>
                             <ff-data-table-cell
                                 v-for="(col, $index) in columns" :key="$index"
                                 :class="[sort.key === col.key ? 'sorted' : '', col.sortable ? 'sortable' : ''].concat(col.class)"
@@ -48,6 +51,9 @@
                                 v-for="(r, $index) in filteredRows" :key="$index" :data="r" :columns="columns"
                                 :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn" @selected="rowClick(r)"
                             >
+                                <template v-if="showRowCheckboxes" #row-prepend="{row}">
+                                    <ff-checkbox v-model="checks[row[checkKeyProp]]" />
+                                </template>
                                 <template v-if="hasRowActions" #row-actions="{row}">
                                     <slot name="row-actions" :row="row" />
                                 </template>
@@ -143,6 +149,14 @@ export default {
             type: Boolean,
             default: false
         },
+        showRowCheckboxes: {
+            type: Boolean,
+            default: false
+        },
+        checkKeyProp: {
+            type: String,
+            default: 'id'
+        },
         showSearch: {
             type: Boolean,
             default: false
@@ -176,9 +190,11 @@ export default {
             default: 'No Data Found'
         }
     },
-    emits: ['update:search', 'load-more', 'row-selected', 'update:sort'],
+    emits: ['update:search', 'load-more', 'row-selected', 'update:sort', 'rows-checked'],
     data () {
         return {
+            checks: {},
+            // allChecked: false,
             internalSearch: '',
             sort: {
                 highlightColumn: null,
@@ -257,6 +273,20 @@ export default {
             } else {
                 return rows
             }
+        },
+        allChecked: function () {
+            const isChecked = (row) => !!this.checks[row[this.checkKeyProp]]
+            return this.filteredRows.map(isChecked).every((v) => v)
+        },
+        checkedRows: function () {
+            return this.filteredRows.filter((row) => this.checks[row[this.checkKeyProp]])
+        }
+    },
+    watch: {
+        checkedRows: {
+            handler (value) {
+                this.$emit('rows-checked', this.checkedRows)
+            }
         }
     },
     mounted () {
@@ -265,6 +295,18 @@ export default {
         }
     },
     methods: {
+        toggleAllChecks (pointerEvents) {
+            pointerEvents.stopPropagation()
+            pointerEvents.preventDefault()
+            const isChecked = !this.allChecked
+            if (!isChecked) {
+                this.checks = {}
+                return
+            }
+            this.filteredRows.forEach((row) => {
+                this.checks[row[this.checkKeyProp]] = true
+            })
+        },
         filterRows (rows) {
             const search = this.internalSearch
             if (!search) {
