@@ -60,8 +60,8 @@ function setTeam (team) {
             'count-instances': team.instanceCount,
             'count-devices': team.deviceCount,
             'count-members': team.memberCount,
-            'team-type-id': team.type.id,
-            'team-type-name': team.type.name
+            'team-type-id': team.type?.id,
+            'team-type-name': team.type?.name
         }
         if ('billing' in team) {
             props['billing-active'] = team.billing.active

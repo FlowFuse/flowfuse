@@ -4,10 +4,13 @@
             <IconDeviceSolid class="ff-icon ff-icon-sm text-teal-700" />
             Devices
         </label>
-        <span class="message">
+        <span v-if="!isSearching" class="message">
             This Application currently has no
             <router-link :to="`/application/${application.id}/devices`" class="ff-link">attached devices</router-link>
             .
+        </span>
+        <span v-else class="message">
+            No device matches your criteria.
         </span>
     </section>
     <section v-else class="ff-applications-list-instances--compact" data-el="application-devices">
@@ -20,19 +23,16 @@
                 v-for="device in devices"
                 :key="device.id"
                 class="item-wrapper"
-                @click.stop="openDevice(device)"
             >
                 <DeviceTile :device="device" :application="application" @device-action="onDeviceAction" />
             </div>
-            <div v-if="hasMoreDevices" class="has-more item-wrapper">
-                <router-link :to="{name: 'ApplicationDevices', params: {id: application.id}}">
-                    <span>
-                        {{ remainingDevices }}
-                        More...
-                    </span>
-                    <ChevronRightIcon class="ff-icon" />
-                </router-link>
-            </div>
+            <HasMoreTile
+                v-if="hasMoreDevices"
+                link-to="ApplicationDevices"
+                :remaining="remainingDevices"
+                :application="application"
+                :search-query="searchQuery"
+            />
         </div>
 
         <TeamDeviceCreateDialog
@@ -68,37 +68,41 @@
 </template>
 
 <script>
-import { ChevronRightIcon } from '@heroicons/vue/solid'
-
 import IconDeviceSolid from '../../../../../components/icons/DeviceSolid.js'
 import deviceActionsMixin from '../../../../../mixins/DeviceActions.js'
 import DeviceCredentialsDialog from '../../../Devices/dialogs/DeviceCredentialsDialog.vue'
 import TeamDeviceCreateDialog from '../../../Devices/dialogs/TeamDeviceCreateDialog.vue'
 
 import DeviceTile from './DeviceTile.vue'
+import HasMoreTile from './HasMoreTile.vue'
 
 export default {
     name: 'DevicesWrapper',
-    components: { TeamDeviceCreateDialog, DeviceCredentialsDialog, ChevronRightIcon, IconDeviceSolid, DeviceTile },
+    components: { HasMoreTile, TeamDeviceCreateDialog, DeviceCredentialsDialog, IconDeviceSolid, DeviceTile },
     mixins: [deviceActionsMixin],
     props: {
         application: {
             type: Object,
             required: true,
             default: null
+        },
+        searchQuery: {
+            type: String,
+            required: false,
+            default: ''
         }
     },
     emits: ['delete-device'],
     computed: {
         hasMoreDevices () {
-            return this.application.deviceCount > this.application.devices.length
+            return this.application.deviceCount > this.devices.length
         },
         hasNoDevices () {
-            return this.application.devices.length === 0
+            return this.devices.length === 0
         },
         remainingDevices () {
             if (this.hasNoDevices || this.hasMoreDevices) {
-                return this.application.deviceCount - this.application.devices.length
+                return this.application.deviceCount - this.devices.length
             } else return 0
         },
         singleDevice () {
@@ -111,7 +115,10 @@ export default {
             return this.application.deviceCount === 3
         },
         devices () {
-            return this.application.devices
+            return this.application.devices.slice(0, 3)
+        },
+        isSearching () {
+            return this.searchQuery.length > 0
         }
     },
     mounted () {

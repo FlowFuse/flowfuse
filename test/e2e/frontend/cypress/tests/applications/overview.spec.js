@@ -38,6 +38,11 @@ describe('FlowForge - Applications', () => {
         it('can display an application without devices and instances', () => {
             cy.intercept(
                 'GET',
+                '/api/*/teams/*/applications/status*',
+                { count: 1, applications: [{ id: 'some-id', instances: [], devices: [] }] }
+            ).as('getAppStatuses')
+            cy.intercept(
+                'GET',
                 '/api/*/teams/*/applications*',
                 req => req.reply(res => {
                     res.send({
@@ -69,6 +74,7 @@ describe('FlowForge - Applications', () => {
             cy.visit('/')
 
             cy.wait('@getApplication')
+            cy.wait('@getAppStatuses')
             cy.wait('@getDevices')
 
             cy.contains('My app')
@@ -101,10 +107,14 @@ describe('FlowForge - Applications', () => {
                     isDeploying: false
                 }
             ]
-
             cy.intercept(
                 'GET',
-                '/api/*/teams/*/applications*',
+                '/api/*/teams/*/applications/status*',
+                { count: 1, applications: [{ id: 'some-id', instances: [], devices: [] }] }
+            ).as('getAppStatuses')
+            cy.intercept(
+                'GET',
+                '/api/*/teams/*/applications?*',
                 (req) => req.reply(res => {
                     res.body = {
                         applications: [
@@ -115,6 +125,7 @@ describe('FlowForge - Applications', () => {
                                 instancesSummary: {
                                     instances: [
                                         {
+                                            id: 1,
                                             name: 'immersive-compatible-instance',
                                             meta: {
                                                 versions: {
@@ -125,6 +136,7 @@ describe('FlowForge - Applications', () => {
                                             url: 'https://www.google.com:123/search?q=rick+astley'
                                         },
                                         {
+                                            id: 2,
                                             name: 'immersive-incompatible-instance',
                                             meta: {
                                                 versions: {
@@ -145,19 +157,23 @@ describe('FlowForge - Applications', () => {
                     return res
                 })
             ).as('getApplication')
+
             cy.intercept('get', '/api/*/applications/*/devices*', {
                 meta: {},
                 count: 0,
-                devices
+                devices: []
+                // devices
             }).as('getDevices')
 
             cy.visit('/')
 
             cy.wait('@getApplication')
+            cy.wait('@getAppStatuses')
             cy.wait('@getDevices')
 
             cy.get('[data-el="application-instance-item"')
                 .contains('immersive-compatible-instance')
+                .parent()
                 .parent()
                 .parent()
                 .within(() => {
@@ -168,6 +184,7 @@ describe('FlowForge - Applications', () => {
 
             cy.get('[data-el="application-instance-item"')
                 .contains('immersive-incompatible-instance')
+                .parent()
                 .parent()
                 .parent()
                 .within(() => {
@@ -182,6 +199,7 @@ describe('FlowForge - Applications', () => {
                 .contains('a device')
                 .parent()
                 .parent()
+                .parent()
                 .within(() => {
                     cy.get('[data-el="status-badge-offline"]').should('exist')
                     cy.contains('Last seen: never')
@@ -191,6 +209,7 @@ describe('FlowForge - Applications', () => {
                 .contains('another device')
                 .parent()
                 .parent()
+                .parent()
                 .within(() => {
                     cy.get('[data-el="status-badge-running"]').should('exist')
                     cy.contains('Last seen: never')
@@ -198,6 +217,11 @@ describe('FlowForge - Applications', () => {
         })
 
         it('hides remaining instances if above threshold', () => {
+            cy.intercept(
+                'GET',
+                '/api/*/teams/*/applications/status*',
+                { count: 1, applications: [{ id: 'some-id', instances: [], devices: [] }] }
+            ).as('getAppStatuses')
             cy.intercept('get', '/api/*/applications/*/devices*', {
                 meta: {},
                 count: 0,
@@ -265,6 +289,7 @@ describe('FlowForge - Applications', () => {
             cy.visit('/')
 
             cy.wait('@getApplication')
+            cy.wait('@getAppStatuses')
             cy.wait('@getDevices')
 
             cy.get('[data-el="application-instance-item"')
@@ -283,6 +308,11 @@ describe('FlowForge - Applications', () => {
         })
 
         it('can open an instance default editor', () => {
+            cy.intercept(
+                'GET',
+                '/api/*/teams/*/applications/status*',
+                { count: 1, applications: [{ id: 'some-id', instances: [], devices: [] }] }
+            ).as('getAppStatuses')
             cy.intercept('get', '/api/*/applications/*/devices*', {
                 meta: {},
                 count: 0,
@@ -327,10 +357,12 @@ describe('FlowForge - Applications', () => {
             cy.visit('/')
 
             cy.wait('@getApplication')
+            cy.wait('@getAppStatuses')
             cy.wait('@getDevices')
 
             cy.get('[data-el="application-instance-item"')
                 .contains('instance-1')
+                .parent()
                 .parent()
                 .parent()
                 .within(() => {
@@ -425,6 +457,695 @@ describe('FlowForge - Applications', () => {
                 // check that we have a single app after searching a term unique to one
                 cy.get('[data-form="search"] input').type('second')
                 cy.get('[data-el="applications-list"]').children().should('have.length', 1).contains('My Second App')
+            })
+
+            it('devices and instances', () => {
+                cy.intercept(
+                    'GET',
+                    '/api/*/teams/*/applications/status*',
+                    {
+                        count: 1,
+                        applications: [
+                            { id: '1', instances: [], devices: [] },
+                            { id: '2', instances: [], devices: [] },
+                            { id: '3', instances: [], devices: [] }
+                        ]
+                    }
+                ).as('getAppStatuses')
+                cy.intercept('get', '/api/*/applications/*/devices*', {
+                    meta: {},
+                    count: 0,
+                    devices: []
+                }).as('getDevices')
+                cy.intercept(
+                    'GET',
+                    '/api/*/teams/*/applications*',
+                    {
+                        count: 1,
+                        applications: [
+                            {
+                                id: '1',
+                                name: 'My First App',
+                                description: 'My first empty app description',
+                                instancesSummary: {
+                                    count: 6,
+                                    instances: [
+                                        {
+                                            id: '1',
+                                            name: 'common-instance-name',
+                                            meta: {
+                                                versions: {
+                                                    launcher: '2.3.1'
+                                                },
+                                                state: 'running'
+                                            },
+                                            url: 'https://www.google.com:123/search?q=rick+astley'
+                                        },
+                                        {
+                                            id: '2',
+                                            name: 'not-so-common-instance-name',
+                                            meta: {
+                                                versions: {
+                                                    launcher: '2.3.1'
+                                                },
+                                                state: 'running'
+                                            },
+                                            url: 'https://www.google.com:123/search?q=rick+astley'
+                                        },
+                                        {
+                                            id: '3',
+                                            name: 'xyz-instance-name',
+                                            meta: {
+                                                versions: {
+                                                    launcher: '2.3.1'
+                                                },
+                                                state: 'running'
+                                            },
+                                            url: 'https://www.google.com:123/search?q=rick+astley'
+                                        },
+                                        {
+                                            id: 'unique-instance-id',
+                                            name: 'instance name with unique instance id',
+                                            meta: {
+                                                versions: {
+                                                    launcher: '2.3.1'
+                                                },
+                                                state: 'running'
+                                            },
+                                            url: 'https://www.google.com:123/search?q=rick+astley'
+                                        },
+                                        {
+                                            id: '5',
+                                            name: 'instance name that matches application name',
+                                            meta: {
+                                                versions: {
+                                                    launcher: '2.3.1'
+                                                },
+                                                state: 'running'
+                                            },
+                                            url: 'https://www.google.com:123/search?q=rick+astley'
+                                        }
+                                    ]
+                                },
+                                devicesSummary: {
+                                    count: 5,
+                                    devices: [
+                                        {
+                                            id: '1',
+                                            name: 'common device name',
+                                            lastSeenAt: null,
+                                            lastSeenMs: null,
+                                            status: 'offline',
+                                            mode: 'autonomous',
+                                            isDeploying: false
+                                        },
+                                        {
+                                            id: '2',
+                                            name: 'not so common device name',
+                                            lastSeenAt: null,
+                                            lastSeenMs: null,
+                                            status: 'offline',
+                                            mode: 'autonomous',
+                                            isDeploying: false
+                                        },
+                                        {
+                                            id: '3',
+                                            name: 'xyz device name',
+                                            lastSeenAt: null,
+                                            lastSeenMs: null,
+                                            status: 'offline',
+                                            mode: 'autonomous',
+                                            isDeploying: false
+                                        },
+                                        {
+                                            id: '4',
+                                            name: 'device name',
+                                            lastSeenAt: null,
+                                            lastSeenMs: null,
+                                            status: 'offline',
+                                            mode: 'autonomous',
+                                            isDeploying: false
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                id: '2',
+                                name: 'My Second App',
+                                description: 'My second empty app description',
+                                instancesSummary: {
+                                    instances: []
+                                },
+                                devicesSummary: {
+                                    devices: [
+                                        {
+                                            id: '5',
+                                            name: 'device name that matches application name',
+                                            lastSeenAt: null,
+                                            lastSeenMs: null,
+                                            status: 'offline',
+                                            mode: 'autonomous',
+                                            isDeploying: false
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                id: '3',
+                                name: 'device name that matches application name',
+                                description: 'My third empty app description',
+                                instancesSummary: {
+                                    instances: []
+                                },
+                                devicesSummary: {
+                                    devices: []
+                                }
+                            },
+                            {
+                                id: '4',
+                                name: 'instance name that matches application name',
+                                description: 'My third empty app description',
+                                instancesSummary: {
+                                    instances: []
+                                },
+                                devicesSummary: {
+                                    devices: []
+                                }
+                            },
+                            {
+                                id: 'unique-application-id',
+                                name: 'common app name with unique id',
+                                description: 'My third empty app description',
+                                instancesSummary: {
+                                    count: 2,
+                                    instances: [
+                                        {
+                                            id: '23',
+                                            name: 'some instance name',
+                                            meta: {
+                                                versions: {
+                                                    launcher: '2.3.1'
+                                                },
+                                                state: 'running'
+                                            },
+                                            url: 'https://www.google.com:123/search?q=rick+astley'
+                                        },
+                                        {
+
+                                            id: '24',
+                                            name: 'another instance name',
+                                            meta: {
+                                                versions: {
+                                                    launcher: '2.3.1'
+                                                },
+                                                state: 'running'
+                                            },
+                                            url: 'https://www.google.com:123/search?q=rick+astley'
+                                        }
+                                    ]
+                                },
+                                devicesSummary: {
+                                    count: 2,
+                                    devices: [
+                                        {
+                                            id: '234',
+                                            name: 'some device name',
+                                            lastSeenAt: null,
+                                            lastSeenMs: null,
+                                            status: 'offline',
+                                            mode: 'autonomous',
+                                            isDeploying: false
+                                        },
+                                        {
+                                            id: '123',
+                                            name: 'another device name',
+                                            lastSeenAt: null,
+                                            lastSeenMs: null,
+                                            status: 'offline',
+                                            mode: 'autonomous',
+                                            isDeploying: false
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                id: '6',
+                                name: 'another common app name',
+                                description: 'My third empty app description',
+                                instancesSummary: {
+                                    count: 2,
+                                    instances: [
+                                        {
+                                            id: '2325',
+                                            name: 'some instance name',
+                                            meta: {
+                                                versions: {
+                                                    launcher: '2.3.1'
+                                                },
+                                                state: 'running'
+                                            },
+                                            url: 'https://www.google.com:123/search?q=rick+astley'
+                                        },
+                                        {
+                                            id: '2544',
+                                            name: 'peculiar instance name',
+                                            meta: {
+                                                versions: {
+                                                    launcher: '2.3.1'
+                                                },
+                                                state: 'running'
+                                            },
+                                            url: 'https://www.google.com:123/search?q=rick+astley'
+                                        }
+                                    ]
+                                },
+                                devicesSummary: {
+                                    count: 2,
+                                    devices: [
+                                        {
+                                            id: '23435',
+                                            name: 'some device name',
+                                            lastSeenAt: null,
+                                            lastSeenMs: null,
+                                            status: 'offline',
+                                            mode: 'autonomous',
+                                            isDeploying: false
+                                        },
+                                        {
+                                            id: '13234',
+                                            name: 'another common device name',
+                                            lastSeenAt: null,
+                                            lastSeenMs: null,
+                                            status: 'offline',
+                                            mode: 'autonomous',
+                                            isDeploying: false
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                id: '7',
+                                name: 'interesting app name',
+                                description: 'My third empty app description',
+                                instancesSummary: {
+                                    count: 2,
+                                    instances: [
+                                        {
+                                            id: '2325',
+                                            name: 'some instance name',
+                                            meta: {
+                                                versions: {
+                                                    launcher: '2.3.1'
+                                                },
+                                                state: 'running'
+                                            },
+                                            url: 'https://www.google.com:123/search?q=rick+astley'
+                                        },
+                                        {
+
+                                            id: '2544',
+                                            name: 'interesting instance name',
+                                            meta: {
+                                                versions: {
+                                                    launcher: '2.3.1'
+                                                },
+                                                state: 'running'
+                                            },
+                                            url: 'https://www.google.com:123/search?q=rick+astley'
+                                        }
+                                    ]
+                                },
+                                devicesSummary: {
+                                    count: 2,
+                                    devices: [
+                                        {
+                                            id: 'unique-device-id',
+                                            name: 'some device name with a unique device id',
+                                            lastSeenAt: null,
+                                            lastSeenMs: null,
+                                            status: 'offline',
+                                            mode: 'autonomous',
+                                            isDeploying: false
+                                        },
+                                        {
+                                            id: '13234',
+                                            name: 'another device name',
+                                            lastSeenAt: null,
+                                            lastSeenMs: null,
+                                            status: 'offline',
+                                            mode: 'autonomous',
+                                            isDeploying: false
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ).as('getApplication')
+
+                cy.home()
+
+                cy.wait('@getAppStatuses')
+                cy.wait('@getApplication')
+                cy.wait('@getDevices')
+
+                // check that we have the correct number of apps, devices and instances associated with each result
+                cy.get('[data-form="search"]').type('common')
+
+                // app present due to instance/device match
+                cy.get('[data-el="application-item"]').contains('My First App')
+                    .parent()
+                    .parent()
+                    .parent()
+                    .within(() => {
+                        // devices and instances present match
+                        cy.get('[data-el="application-instance-item"]').contains('common-instance-name')
+                        cy.get('[data-el="application-instance-item"]').contains('not-so-common-instance-name')
+                        cy.get('[data-el="device-tile"]').contains('common device name')
+                        cy.get('[data-el="device-tile"]').contains('not so common device name')
+                    })
+
+                // app present due to name match
+                cy.get('[data-el="application-item"]').contains('common app name')
+                    .parent()
+                    .parent()
+                    .parent()
+                    .within(() => {
+                        // devices and instances present because no device/instance matches query but app name does
+                        cy.get('[data-el="application-instance-item"]').contains('some instance name')
+                        cy.get('[data-el="application-instance-item"]').contains('another instance name')
+                        cy.get('[data-el="device-tile"]').contains('some device name')
+                        cy.get('[data-el="device-tile"]').contains('another device name')
+                    })
+
+                cy.get('[data-form="search"] input').clear()
+                cy.get('[data-form="search"]').type('another common')
+
+                // app present due to name match but with filtered instances and devices
+                cy.get('[data-el="application-item"]').contains('another common app name')
+                    .parent()
+                    .parent()
+                    .parent()
+                    .within(() => {
+                        // no instances present because no matches exist
+                        cy.get('[data-el="application-instance-item"]').should('not.exist')
+                        // one device present that matches query
+                        cy.get('[data-el="device-tile"]').should('have.length', 1)
+                        cy.get('[data-el="device-tile"]').contains('another common device name')
+                    })
+
+                cy.get('[data-form="search"] input').clear()
+                cy.get('[data-form="search"]').type('interesting')
+
+                // app present due to name match but with filtered instances and devices
+                cy.get('[data-el="application-item"]').contains('interesting app name')
+                    .parent()
+                    .parent()
+                    .parent()
+                    .within(() => {
+                        // no devices present because no matches exist
+                        cy.get('[data-el="device-tile"]').should('not.exist')
+                        // one instance present that matches query
+                        cy.get('[data-el="application-instance-item"]').should('have.length', 1)
+                        cy.get('[data-el="application-instance-item"]').contains('interesting instance name')
+                    })
+            })
+
+            it('carries the search queries onwards to the application devices page when clicking show more', () => {
+                const devices = [
+                    {
+                        id: '1',
+                        name: 'common device name',
+                        lastSeenAt: null,
+                        lastSeenMs: null,
+                        status: 'offline',
+                        mode: 'autonomous',
+                        isDeploying: false
+                    },
+                    {
+                        id: '2',
+                        name: 'not so common device name',
+                        lastSeenAt: null,
+                        lastSeenMs: null,
+                        status: 'offline',
+                        mode: 'autonomous',
+                        isDeploying: false
+                    },
+                    {
+                        id: '3',
+                        name: 'xyz device name with common element',
+                        lastSeenAt: null,
+                        lastSeenMs: null,
+                        status: 'offline',
+                        mode: 'autonomous',
+                        isDeploying: false
+                    },
+                    {
+                        id: '4',
+                        name: 'device name that shares common attributes',
+                        lastSeenAt: null,
+                        lastSeenMs: null,
+                        status: 'offline',
+                        mode: 'autonomous',
+                        isDeploying: false
+                    },
+                    {
+                        id: '5',
+                        name: 'device name and common key',
+                        lastSeenAt: null,
+                        lastSeenMs: null,
+                        status: 'offline',
+                        mode: 'autonomous',
+                        isDeploying: false
+                    }
+                ]
+                const instances = []
+
+                cy.intercept(
+                    'GET',
+                    '/api/*/teams/*/applications/status*',
+                    {
+                        count: 1,
+                        applications: [
+                            {
+                                id: '1',
+                                instances,
+                                devices
+                            }
+                        ]
+                    }
+                ).as('getAppStatuses')
+                cy.intercept('get', '/api/*/applications/*/devices*', {
+                    meta: {},
+                    count: 5,
+                    devices
+                })
+                    .as('getDevices')
+                cy.intercept(
+                    'GET',
+                    '/api/*/teams/*/applications*',
+                    {
+                        count: 1,
+                        applications: [
+                            {
+                                id: '1',
+                                name: 'My First App',
+                                description: 'My first empty app description',
+                                instancesSummary: {
+                                    count: 0,
+                                    instances
+                                },
+                                devicesSummary: {
+                                    count: 5,
+                                    devices
+                                }
+                            }
+                        ]
+                    }
+                ).as('getApplications')
+
+                cy.intercept('GET', '/api/*/applications/1', {
+                    id: '1',
+                    name: 'My First App',
+                    description: 'My first empty app description',
+                    team: {
+                        id: 'ateam',
+                        name: 'ateam',
+                        slug: 'ateam'
+                    }
+                }).as('getApplication')
+
+                cy.intercept('GET', '/api/*/applications/1/instances*', {
+                    count: 0,
+                    instances
+                }).as('getApplicationInstances')
+
+                cy.intercept('GET', '/api/*/applications/1/devices*', {
+                    count: 5,
+                    devices
+                }).as('getApplicationDevices')
+
+                cy.home()
+
+                cy.wait('@getAppStatuses')
+                cy.wait('@getApplications')
+
+                cy.get('[data-form="search"]').type('common')
+                cy.get('[data-el="has-more-tile"]').click()
+
+                cy.wait('@getApplication')
+                cy.wait('@getApplicationInstances')
+                cy.wait('@getApplicationDevices')
+
+                cy.get('[data-form="search"]').should('exist')
+                cy.get('[data-form="search"] input')
+                    .invoke('val')
+                    .then(val => {
+                        expect(val).to.equal('common')
+                    })
+            })
+
+            it('carries the search queries onwards to the application instances page when clicking show more', () => {
+                const instances = [
+                    {
+                        id: '1',
+                        name: 'common-instance-name',
+                        meta: {
+                            versions: {
+                                launcher: '2.3.1'
+                            },
+                            state: 'running'
+                        },
+                        url: 'https://www.google.com:123/search?q=rick+astley'
+                    },
+                    {
+                        id: '2',
+                        name: 'not-so-common-instance-name',
+                        meta: {
+                            versions: {
+                                launcher: '2.3.1'
+                            },
+                            state: 'running'
+                        },
+                        url: 'https://www.google.com:123/search?q=rick+astley'
+                    },
+                    {
+                        id: '3',
+                        name: 'xyz-instance-name-common-name',
+                        meta: {
+                            versions: {
+                                launcher: '2.3.1'
+                            },
+                            state: 'running'
+                        },
+                        url: 'https://www.google.com:123/search?q=rick+astley'
+                    },
+                    {
+                        id: '4',
+                        name: 'instance-name-that-has-common-el',
+                        meta: {
+                            versions: {
+                                launcher: '2.3.1'
+                            },
+                            state: 'running'
+                        },
+                        url: 'https://www.google.com:123/search?q=rick+astley'
+                    },
+                    {
+                        id: '5',
+                        name: 'another-common-instance-name-that-matches-application-name',
+                        meta: {
+                            versions: {
+                                launcher: '2.3.1'
+                            },
+                            state: 'running'
+                        },
+                        url: 'https://www.google.com:123/search?q=rick+astley'
+                    }
+                ]
+                const devices = []
+                cy.intercept(
+                    'GET',
+                    '/api/*/teams/*/applications/status*',
+                    {
+                        count: 1,
+                        applications: [
+                            {
+                                id: '1',
+                                instances,
+                                devices
+                            }
+                        ]
+                    }
+                ).as('getAppStatuses')
+                cy.intercept('get', '/api/*/applications/*/devices*', {
+                    meta: {},
+                    count: 0,
+                    devices
+                })
+                    .as('getDevices')
+                cy.intercept(
+                    'GET',
+                    '/api/*/teams/*/applications*',
+                    {
+                        count: 1,
+                        applications: [
+                            {
+                                id: '1',
+                                name: 'My First App',
+                                description: 'My first empty app description',
+                                instancesSummary: {
+                                    count: 5,
+                                    instances
+                                },
+                                devicesSummary: {
+                                    count: 0,
+                                    devices
+                                }
+                            }
+                        ]
+                    }
+                ).as('getApplications')
+
+                cy.intercept('GET', '/api/*/applications/1', {
+                    id: '1',
+                    name: 'My First App',
+                    description: 'My first empty app description',
+                    team: {
+                        id: 'ateam',
+                        name: 'ateam',
+                        slug: 'ateam'
+                    }
+                }).as('getApplication')
+
+                cy.intercept('GET', '/api/*/applications/*/instances*', {
+                    count: 5,
+                    instances
+                }).as('getApplicationInstances')
+
+                cy.intercept('GET', '/api/*/applications/*/instances/status', {
+                    count: 5,
+                    instances: []
+                }).as('getSomeStatuses')
+
+                cy.home()
+
+                cy.wait('@getAppStatuses')
+                cy.wait('@getApplications')
+
+                cy.get('[data-form="search"]').type('common')
+                cy.get('[data-el="has-more-tile"]').click()
+
+                cy.wait('@getApplication')
+                cy.wait('@getApplicationInstances')
+                cy.wait('@getSomeStatuses')
+
+                cy.get('[data-form="search"]').should('exist')
+                cy.get('[data-form="search"] input')
+                    .invoke('val')
+                    .then(val => {
+                        expect(val).to.equal('common')
+                    })
             })
         })
     })

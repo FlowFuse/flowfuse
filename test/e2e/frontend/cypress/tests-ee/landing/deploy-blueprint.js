@@ -287,17 +287,14 @@ describe('FlowFuse - Deploy Blueprint', () => {
                 .mhFirst()
                 .mhGetBody()
                 .then((body) => {
-                    const activationLink = body.match(/(http|https):\/\/.*\/account\/verify\/\S+/)[0]
-                    cy.wrap(activationLink).as('activationLink')
+                    const verifyCode = body.match(/(\d\d\d\d\d\d)/)[0]
+                    cy.wrap(verifyCode).as('verifyCode')
                 })
 
-            cy.get('@activationLink')
-                .then((activationLink) => {
-                    cy.visit(activationLink)
-
-                    cy.get('[data-action="verify-email"]').click()
-
-                    followLoginForm(newUser.username, newUser.password)
+            cy.get('@verifyCode')
+                .then((verifyCode) => {
+                    cy.get('[data-form="verify-token"]').type(verifyCode)
+                    cy.get('[data-action="submit-verify-token"]').click()
 
                     cy.wait('@setDefaultBlueprint')
 
@@ -348,17 +345,14 @@ describe('FlowFuse - Deploy Blueprint', () => {
                 .mhFirst()
                 .mhGetBody()
                 .then((body) => {
-                    const activationLink = body.match(/(http|https):\/\/.*\/account\/verify\/\S+/)[0]
-                    cy.wrap(activationLink).as('activationLink')
+                    const verifyCode = body.match(/(\d\d\d\d\d\d)/)[0]
+                    cy.wrap(verifyCode).as('verifyCode')
                 })
 
-            cy.get('@activationLink')
-                .then((activationLink) => {
-                    cy.visit(activationLink)
-
-                    cy.get('[data-action="verify-email"]').click()
-
-                    followLoginForm(newUser.username, newUser.password)
+            cy.get('@verifyCode')
+                .then((verifyCode) => {
+                    cy.get('[data-form="verify-token"]').type(verifyCode)
+                    cy.get('[data-action="submit-verify-token"]').click()
 
                     cy.wait('@setDefaultBlueprint')
 
@@ -421,16 +415,13 @@ describe('FlowFuse - Deploy Blueprint', () => {
                         .mhGetBody()
                 })
                 .then((body) => {
-                    const activationLink = body.match(/(http|https):\/\/.*\/account\/verify\/\S+/)[0]
-                    cy.wrap(activationLink).as('activationLink')
+                    const verifyCode = body.match(/(\d\d\d\d\d\d)/)[0]
+                    cy.wrap(verifyCode).as('verifyCode')
                 })
-                .then(() => cy.get('@activationLink'))
-                .then((activationLink) => {
-                    cy.visit(activationLink)
-
-                    cy.get('[data-action="verify-email"]').click()
-
-                    followLoginForm(newUser.username, newUser.password)
+                .then(() => cy.get('@verifyCode'))
+                .then((verifyCode) => {
+                    cy.get('[data-form="verify-token"]').type(verifyCode)
+                    cy.get('[data-action="submit-verify-token"]').click()
 
                     cy.get('[data-form="application-name"]').type('My first Application!')
                     cy.get('[data-form="application-description"]').type('Coherent description goes here >><<')
