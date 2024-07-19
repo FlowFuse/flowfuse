@@ -97,7 +97,7 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                         const text = labels.toArray().join(', ')
 
                         // Test should pass for single test of full suite (objects persist between tests)
-                        expect(text).to.match(/2 x Instances, 2 x Devices, 2 x Device Groups, (9|[1-9]\d+) x Snapshots, 4 x Pipelines|2 x Instances, 2 x Devices, 1 x Device Group, (4|[1-9]\d+) x Snapshots/)
+                        expect(text).to.match(/2 x Instances, 3 x Devices, 2 x Device Groups, (9|[1-9]\d+) x Snapshots, 4 x Pipelines|2 x Instances, 3 x Devices, 1 x Device Group, (4|[1-9]\d+) x Snapshots/)
                     })
 
                     cy.get('[data-el="application-instances"]').find('.item-wrapper').should('have.length', 2)
@@ -115,7 +115,7 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                         cy.get('[data-el="kebab-menu"]').should('exist')
                     })
 
-                    cy.get('[data-el="application-devices"]').find('.item-wrapper').should('have.length', 2)
+                    cy.get('[data-el="application-devices"]').find('.item-wrapper').should('have.length', 3)
                     cy.get('[data-el="application-devices"] .item-wrapper:contains("application-device-a")').within(() => {
                         cy.get('[data-el="status-badge-running"]').should('exist')
                         cy.get('[data-el="kebab-menu"]').should('exist')
