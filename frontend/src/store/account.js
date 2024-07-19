@@ -111,6 +111,7 @@ const mutations = {
         state.user = null
         state.teams = []
         state.team = null
+        state.redirectUrlAfterLogin = null
     },
     setUser (state, user) {
         state.user = user
@@ -286,8 +287,8 @@ const actions = {
             }
         }
     },
-    async logout (state) {
-        state.commit('logout')
+    async logout ({ commit }) {
+        commit('logout')
         userApi.logout()
             .catch(_ => {})
             .finally(() => {
