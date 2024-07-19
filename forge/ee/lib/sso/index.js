@@ -102,25 +102,18 @@ module.exports.init = async function (app) {
             const providerConfig = await app.db.models.SAMLProvider.forEmail(request.body.username)
             if (providerConfig?.options?.provisionNewUsers) {
                 if (providerConfig.type === 'saml') {
-                    // need to check if create new users is allowed
-                    if (!app.settings.get('user:signup') && !app.settings.get('team:user:invite:external')) {
-                        const resp = { code: 'user_registration_unavailable', error: 'user registration not enabled' }
-                        // await app.auditLog.User.account.register(userInfo, resp, userInfo)
-                        reply.code(400).send(resp)
-                        return false
-                    }
-                    if (!app.settings.get('user:signup') && app.settings.get('team:user:invite:external')) {
-                        const invite = await app.db.models.Invitation.forExternalEmail(request.body.username)
-                        if (!invite || invite.length === 0) {
-                            // reusing error message so as not to leak invited users
-                            const resp = { code: 'user_registration_unavailable', error: 'user registration not enabled' }
-                            // await app.auditLog.User.account.register(userInfo, resp, userInfo)
-                            reply.code(400).send(resp)
-                            return false
-                        }
-                        reply.code(401).send({ code: 'sso_required', redirect: `/ee/sso/login?u=${request.body.username}` })
-                        return true
-                    }
+                    // if (!app.settings.get('user:signup') && app.settings.get('team:user:invite:external')) {
+                    //     const invite = await app.db.models.Invitation.forExternalEmail(request.body.username)
+                    //     if (!invite || invite.length === 0) {
+                    //         // reusing error message so as not to leak invited users
+                    //         const resp = { code: 'user_registration_unavailable', error: 'user registration not enabled' }
+                    //         // await app.auditLog.User.account.register(userInfo, resp, userInfo)
+                    //         reply.code(400).send(resp)
+                    //         return false
+                    //     }
+                    //     reply.code(401).send({ code: 'sso_required', redirect: `/ee/sso/login?u=${request.body.username}` })
+                    //     return true
+                    // }
                     reply.code(401).send({ code: 'sso_required', redirect: `/ee/sso/login?u=${request.body.username}` })
                     return true
                 } else if (providerConfig.type === 'ldap') {
@@ -133,26 +126,19 @@ module.exports.init = async function (app) {
                         email: request.body.username
                     }
                     if (verifyLDAPUser(providerConfig, tempUser, request.body.password)) {
-                        // need to check if create new users is allowed
-                        if (!app.settings.get('user:signup') && !app.settings.get('team:user:invite:external')) {
-                            const resp = { code: 'user_registration_unavailable', error: 'user registration not enabled' }
-                            // await app.auditLog.User.account.register(userInfo, resp, userInfo)
-                            reply.code(400).send(resp)
-                            return false
-                        }
-                        if (!app.settings.get('user:signup') && app.settings.get('team:user:invite:external')) {
-                            const invite = await app.db.models.Invitation.forExternalEmail(request.body.username)
-                            if (!invite || invite.length === 0) {
-                                // reusing error message so as not to leak invited users
-                                const resp = { code: 'user_registration_unavailable', error: 'user registration not enabled' }
-                                // await app.auditLog.User.account.register(userInfo, resp, userInfo)
-                                reply.code(400).send(resp)
-                                return false
-                            }
-                            // TODO create user
-                            console.log('create user')
-                            // return true
-                        }
+                        // if (!app.settings.get('user:signup') && app.settings.get('team:user:invite:external')) {
+                        //     const invite = await app.db.models.Invitation.forExternalEmail(request.body.username)
+                        //     if (!invite || invite.length === 0) {
+                        //         // reusing error message so as not to leak invited users
+                        //         const resp = { code: 'user_registration_unavailable', error: 'user registration not enabled' }
+                        //         // await app.auditLog.User.account.register(userInfo, resp, userInfo)
+                        //         reply.code(400).send(resp)
+                        //         return false
+                        //     }
+                        //     // TODO create user
+                        //     console.log('create user')
+                        //     // return true
+                        // }
                         // TODO create user
                         console.log('create user')
                         // return true

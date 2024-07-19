@@ -4,8 +4,6 @@ const { Authenticator } = require('@fastify/passport')
 const { MultiSamlStrategy } = require('@node-saml/passport-saml')
 const fp = require('fastify-plugin')
 
-const newUserSetup = require('../../../lib/newUserSetup')
-
 const generatePassword = () => {
     const charList = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz~!@-#$'
     return Array.from(crypto.randomFillSync(new Uint32Array(8))).map(x => charList[x % charList.length]).join('')
@@ -133,14 +131,6 @@ module.exports = fp(async function (app, opts) {
                                 done(err)
                                 return
                             }
-                        }
-                        // how do we set the redirect here to update user settings?
-                        // Do we decide to create user team if no email verification
-                        try {
-                            await newUserSetup(app, newUser)
-                        } catch (err) {
-                            // need to work out how to fail here
-                            // Do we delete the user and bail out?
                         }
                         request.session.newSSOUser = true
                         done(null, newUser)
