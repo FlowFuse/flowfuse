@@ -11,9 +11,16 @@ const directive = {
     name: 'click-outside',
     mounted (element, options) {
         const handler = function (evt) {
-            if (!evt.target !== element && !element.contains(evt.target)) {
+            const excludedNodes = options.value.exclude || []
+
+            switch (true) {
+            case !evt.target !== element && !element.contains(evt.target) && typeof options.value === 'function':
                 return options.value()
-            } else {
+            case !evt.target !== element && !element.contains(evt.target) && typeof options.value === 'object':
+                return excludedNodes.includes(evt.target.dataset?.clickExclude)
+                    ? null
+                    : options.value.handler()
+            default:
                 return null
             }
         }

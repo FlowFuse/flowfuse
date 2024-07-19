@@ -1,6 +1,6 @@
 <template>
     <div class="notifications-button-wrapper">
-        <button class="notifications-button" data-el="notifications-button" @click="onClick">
+        <button class="notifications-button" data-el="notifications-button" data-click-exclude="right-drawer" @click="onClick">
             <MailIcon />
             <ff-notification-pill v-if="hasNotifications" data-el="notification-pill" class="ml-3" :count="notifications.total" />
         </button>
@@ -47,6 +47,10 @@ export default {
     height: 100%;
     padding: 18px;
     position: relative;
+
+    > * {
+      pointer-events: none;
+    }
 
     &:hover {
       background-color: $ff-grey-700;

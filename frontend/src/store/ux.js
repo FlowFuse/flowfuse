@@ -19,11 +19,11 @@ const mutations = {
 }
 
 const actions = {
-    openRightDrawer (state, { component }) {
-        state.commit('openRightDrawer', { component })
+    openRightDrawer ({ commit }, { component }) {
+        commit('openRightDrawer', { component })
     },
-    closeRightDrawer (state) {
-        state.commit('closeRightDrawer')
+    closeRightDrawer ({ commit }) {
+        commit('closeRightDrawer')
     }
 }
 
