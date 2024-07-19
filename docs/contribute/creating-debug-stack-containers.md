@@ -1,12 +1,12 @@
 ---
 navTitle: Creating debug stack containers
 meta:
-  description: Guide for creating and using debug containers in FlowFuse without rebuilding from scratch.
-  tags:
-    - node-red
-    - flowfuse
-    - docker
-    - debugging
+   description: Guide for creating and using debug containers in FlowFuse without rebuilding from scratch.
+   tags:
+      - node-red
+      - flowfuse
+      - docker
+      - debugging
 ---
 
 Sometimes we want to be able to run some debug code within a stack running in our

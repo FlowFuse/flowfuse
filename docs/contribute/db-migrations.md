@@ -1,12 +1,12 @@
 ---
 navTitle: Database migrations
 meta:
-  description: Guide for creating and applying database migrations using custom tooling in FlowFuse.
-  tags:
-    - flowfuse
-    - contributing
-    - database
-    - migrations
+   description: Guide for creating and applying database migrations using custom tooling in FlowFuse.
+   tags:
+      - flowfuse
+      - contributing
+      - database
+      - migrations
 ---
 
 # Database Migrations

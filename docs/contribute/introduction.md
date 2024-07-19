@@ -6,8 +6,7 @@ meta:
     tags:
        - flowfuse
        - developement
-       - contributing 
-      
+       - contributing     
 ---
 
 # Contributing to FlowFuse
