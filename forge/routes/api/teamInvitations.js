@@ -171,7 +171,7 @@ module.exports = async function (app) {
                                 invite.invitee,
                                 'TeamInvitation',
                                 {
-                                    invite,
+                                    teamName: invite.team.name,
                                     signupLink: `${app.config.base_url}/account/teams/invitations`
                                 }
                             )
