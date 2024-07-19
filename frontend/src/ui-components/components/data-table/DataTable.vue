@@ -234,6 +234,9 @@ export default {
             if (this.hasContextMenu) {
                 colspan++
             }
+            if (this.showRowCheckboxes) {
+                colspan++
+            }
             return colspan
         },
         filteredRows: function () {
