@@ -195,7 +195,7 @@ export default {
                         //       in the project directly? Currently done as a two
                         //       step process
                         // eslint-disable-next-line promise/no-nesting
-                        return devicesApi.updateDevice(response.id, { project: this.instance.id }).then((response) => {
+                        return devicesApi.updateDevice(response.id, { instance: this.instance.id }).then((response) => {
                             // Reattach the credentials from the create request
                             // so they can be displayed to the user
                             response.credentials = creds
