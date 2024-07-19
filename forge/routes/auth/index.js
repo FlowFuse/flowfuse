@@ -439,7 +439,7 @@ async function init (app, opts) {
                     newUser,
                     'VerifyEmail',
                     {
-                        confirmEmailLink: `${app.config.base_url}/account/verify/${verificationToken}`
+                        token: verificationToken
                     }
                 )
             }
@@ -461,6 +461,12 @@ async function init (app, opts) {
                     // invite.external = false
                     // invite.inviteeId = verifiedUser.id
                     // await invite.save()
+                }
+            } else {
+                // Log them in
+                const sessionInfo = await app.createSessionCookie(newUser.username)
+                if (sessionInfo) {
+                    reply.setCookie('sid', sessionInfo.session.sid, sessionInfo.cookieOptions)
                 }
             }
 
@@ -488,9 +494,16 @@ async function init (app, opts) {
     /**
      * Perform email verification
      */
-    app.post('/account/verify/:token', {
+    app.post('/account/verify/token', {
         config: {
-            rateLimit: false // never rate limit this route
+            rateLimit: app.config.rate_limits
+                ? {
+                    max: 2,
+                    timeWindow: 60000,
+                    keyGenerator: app.config.rate_limits.keyGenerator,
+                    hard: true
+                }
+                : false
         },
         schema: {
             tags: ['Authentication', 'X-HIDDEN']
@@ -504,7 +517,7 @@ async function init (app, opts) {
             }
             let verifiedUser
             try {
-                verifiedUser = await app.db.controllers.User.verifyEmailToken(sessionUser, request.params.token)
+                verifiedUser = await app.db.controllers.User.verifyEmailToken(sessionUser, request.body.token)
             } catch (err) {
                 const resp = { code: 'invalid_request', error: err.toString() }
                 await app.auditLog.User.account.verify.verifyToken(request.session?.User, resp)
@@ -659,7 +672,7 @@ async function init (app, opts) {
                 request.session.User,
                 'VerifyEmail',
                 {
-                    confirmEmailLink: `${app.config.base_url}/account/verify/${verificationToken}`
+                    token: verificationToken
                 }
             )
             await app.auditLog.User.account.verify.requestToken(request.session.User, null)

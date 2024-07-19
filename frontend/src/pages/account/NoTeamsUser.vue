@@ -18,9 +18,7 @@
 <script>
 
 import { InboxInIcon, UserGroupIcon } from '@heroicons/vue/outline'
-import { mapState } from 'vuex'
-
-import userApi from '../../api/user.js'
+import { mapGetters, mapState } from 'vuex'
 
 export default {
     name: 'NoTeamsUser',
@@ -28,21 +26,18 @@ export default {
         UserGroupIcon,
         InboxInIcon
     },
-    data () {
-        return {
-            invitationCount: 0
-        }
-    },
     computed: {
-        ...mapState('account', ['settings', 'user'])
+        ...mapState('account', ['settings', 'user']),
+        ...mapGetters('account', {
+            invitationCount: 'totalNotificationsCount'
+        })
     },
     mounted () {
         this.fetchData()
     },
     methods: {
         async fetchData () {
-            const invitations = await userApi.getTeamInvitations()
-            this.invitationCount = invitations.count
+            await this.$store.dispatch('account/getNotifications')
         }
     }
 }

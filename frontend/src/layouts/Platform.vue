@@ -7,6 +7,7 @@
             </div>
             <div class="ff-view">
                 <div id="platform-banner" />
+                <RightDrawer />
                 <slot />
             </div>
             <TransitionGroup class="ff-notifications" name="notifications-list" tag="div">
@@ -36,12 +37,14 @@ import { mapState } from 'vuex'
 
 import InterviewPopup from '../components/InterviewPopup.vue'
 import PageHeader from '../components/PageHeader.vue'
+import RightDrawer from '../components/drawers/RightDrawer.vue'
 import AlertsMixin from '../mixins/Alerts.js'
 import DialogMixin from '../mixins/Dialog.js'
 
 export default {
     name: 'ff-layout-platform',
     components: {
+        RightDrawer,
         PageHeader,
         InterviewPopup
     },
