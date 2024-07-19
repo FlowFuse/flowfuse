@@ -100,7 +100,7 @@ export default {
         },
         obfuscated () {
             if (this.editable.settings.palette_npmrc) {
-                const text = this.editable.settings.palette_npmrc.replace(/_authToken="(.*)"/g, '_authToken="xxxxxxx"')
+                const text = this.editable.settings.palette_npmrc.replace(/_authToken="?(.*)"?/g, '_authToken="xxxxxxx"')
                 return text
             } else {
                 return ''

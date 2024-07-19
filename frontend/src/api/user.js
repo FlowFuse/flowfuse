@@ -124,7 +124,9 @@ const triggerVerification = async () => {
  * @returns {Promise}
  */
 const verifyEmailToken = async (token) => {
-    return client.post(`/account/verify/${token}`).then(res => {
+    return client.post('/account/verify/token', {
+        token
+    }).then(res => {
         return res.data
     })
 }
