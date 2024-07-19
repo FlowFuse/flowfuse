@@ -367,6 +367,16 @@ const deleteTeamDeviceProvisioningToken = async (teamId, tokenId) => {
 }
 
 /**
+ * Bulk delete devices
+ * @param {string} teamId - Team ID (hash)
+ * @param {Array<string>} devices - Array of device IDs (hash)
+ * @returns
+ */
+const bulkDeviceDelete = async (teamId, devices) => {
+    return await client.delete(`/api/v1/teams/${teamId}/devices/bulk`, { data: { devices } })
+}
+
+/**
  * Calls api routes in team.js
  * See [routes/api/team.js](../../../forge/routes/api/team.js)
 */
@@ -394,5 +404,6 @@ export default {
     getTeamDeviceProvisioningTokens,
     generateTeamDeviceProvisioningToken,
     updateTeamDeviceProvisioningToken,
-    deleteTeamDeviceProvisioningToken
+    deleteTeamDeviceProvisioningToken,
+    bulkDeviceDelete
 }
