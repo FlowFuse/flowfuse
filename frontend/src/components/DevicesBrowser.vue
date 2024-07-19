@@ -156,6 +156,21 @@
                                 </router-link>.
                             </p>
                         </template>
+                        <template #actions>
+                            <ff-button
+                                v-if="hasPermission('device:create')"
+                                class="font-normal"
+                                kind="primary"
+                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached"
+                                data-action="register-device"
+                                @click="showCreateDeviceDialog"
+                            >
+                                <template #icon-left>
+                                    <PlusSmIcon />
+                                </template>
+                                Add Device
+                            </ff-button>
+                        </template>
                     </EmptyState>
                 </template>
                 <div v-else class="ff-no-data ff-no-data-large">
