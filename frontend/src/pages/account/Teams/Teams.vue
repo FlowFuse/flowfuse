@@ -36,7 +36,6 @@ export default {
     },
     computed: {
         ...mapState('account', ['user', 'teams', 'settings']),
-        ...mapState('account', ['teamMembership', 'team']),
         teamCount () {
             return this.teams ? this.teams.length : 0
         }
