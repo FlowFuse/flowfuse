@@ -153,6 +153,9 @@ module.exports = fp(async function (app, _opts) {
         const template = templates[templateName] || loadTemplate(templateName)
         const templateContext = { forgeURL, user, ...context }
         templateContext.safeName = sanitizeText(user.name || 'user')
+        if (templateContext.teamName) {
+            templateContext.teamName = sanitizeText(templateContext.teamName)
+        }
         const mail = {
             to: user.email,
             subject: template.subject(templateContext, { allowProtoPropertiesByDefault: true, allowProtoMethodsByDefault: true }),
