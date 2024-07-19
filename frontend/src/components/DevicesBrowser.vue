@@ -242,11 +242,13 @@
     >
         <template #default>
             <p>The following device{{ checkedDevices.length > 1 ? 's' : '' }} will be deleted:</p>
-            <ul class="list-disc list-inside">
-                <li v-for="device in checkedDevices" :key="device.id">
-                    <span class="font-bold">{{ device.name }}</span> <span class="text-gray-500 text-sm"> ({{ device.id }})</span>
-                </li>
-            </ul>
+            <div class="max-h-96 overflow-y-auto">
+                <ul class="list-disc list-inside">
+                    <li v-for="device in checkedDevices" :key="device.id">
+                        <span class="font-bold">{{ device.name }}</span> <span class="text-gray-500 text-sm"> ({{ device.id }})</span>
+                    </li>
+                </ul>
+            </div>
             <p>This action cannot be undone.</p>
         </template>
     </ff-dialog>
