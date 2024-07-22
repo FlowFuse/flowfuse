@@ -113,9 +113,17 @@ module.exports = async function (app) {
         const namesOnlyDeduplicated = [...new Set(namesOnly.map(u => u.trim().toLowerCase()))].map(u => namesOnly.find(n => n.trim().toLowerCase() === u))
         // use a regex to determine if the user is an email address
         const emailsOnly = userDetails.filter(u => u.match(/^[^@]+@[^@]+$/))
-        const emailsOnlyDeduplicated = [...new Set(emailsOnly.map(u => getCanonicalEmail(u)))]
+        // Deduplicate the list based on the canonical email, but keep the as-provided
+        // email in the list
+        const emailsOnlyDeduplicated = {}
+        emailsOnly.forEach(email => {
+            const canonicalEmail = getCanonicalEmail(email)
+            if (!emailsOnlyDeduplicated[canonicalEmail]) {
+                emailsOnlyDeduplicated[canonicalEmail] = email
+            }
+        })
         // recombine the deduplicated lists
-        const userDetailsDeduplicated = [...namesOnlyDeduplicated, ...emailsOnlyDeduplicated]
+        const userDetailsDeduplicated = [...namesOnlyDeduplicated, ...Object.values(emailsOnlyDeduplicated)]
 
         // limit to 5 invites at a time
         if (userDetailsDeduplicated.length > 5) {
