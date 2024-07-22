@@ -118,7 +118,7 @@ module.exports = fp(async function (app, opts) {
                     }
 
                     userProperties.password = generatePassword()
-                    userProperties.username = samlUser.nameID.replace('@', '-').replaceAll('.', '_')
+                    userProperties.username = samlUser.nameID.replace('@', '-').replaceAll('.', '_').toLowerCase()
 
                     try {
                         // create user

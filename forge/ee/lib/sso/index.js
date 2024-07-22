@@ -1,6 +1,9 @@
 const { Client } = require('ldapts')
 
+const crypto = require('crypto')
+
 const { Roles, TeamRoles } = require('../../../lib/roles')
+const createTeamForUser = require('../../../lib/userTeam')
 
 module.exports.init = async function (app) {
     // Set the SSO feature flag
@@ -113,16 +116,106 @@ module.exports.init = async function (app) {
                         username: request.body.username,
                         email: request.body.username
                     }
+                    const userInfo = app.auditLog.formatters.userObject(request.body)
                     if (verifyLDAPUser(providerConfig, tempUser, request.body.password)) {
                         // TODO create user
                         console.log('create user')
-                        // return true
+                        const newUserProperties = await lookupLDAPUser(providerConfig, request.body.username)
+                        if (newUserProperties) {
+                            console.log(newUserProperties)
+                            const newUser = await app.db.models.User.create(newUserProperties)
+                            console.log(newUser)
+                            const sessionInfo = await app.createSessionCookie(newUser.username)
+                            if (sessionInfo) {
+                                userInfo.id = sessionInfo.session.UserId
+                                newUser.sso_enabled = true
+                                newUser.email_verified = true
+                                await newUser.save()
+                                // create team for new user
+                                await createTeamForUser(app, newUser)
+                                reply.setCookie('sid', sessionInfo.session.sid, sessionInfo.cookieOptions)
+                                await app.auditLog.User.account.login(userInfo, null)
+                                reply.send()
+                                return true
+                            }
+                        }
                     }
                     return false
                 }
             }
         }
         return false
+    }
+
+
+    const generatePassword = () => {
+        const charList = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz~!@-#$'
+        return Array.from(crypto.randomFillSync(new Uint32Array(8))).map(x => charList[x % charList.length]).join('')
+    }
+
+    /**
+     * Look up ldap user
+     * @param {*} providerConfig the ldap confi
+     * @param {String} username the User to lookup
+     * @returns User properties
+     */
+    async function lookupLDAPUser (providerConfig, username) {
+        let url = providerConfig.options.server
+        if (!/^ldaps?:\/\//.test(url)) {
+            if (providerConfig.options.tls) {
+                url = 'ldaps://' + url
+            } else {
+                url = 'ldap://' + url
+            }
+        }
+        const clientOptions = { url }
+        if (providerConfig.options.tls) {
+            if (!providerConfig.options.tlsVerifyServer) {
+                clientOptions.tlsOptions = {
+                    rejectUnauthorized: false
+                }
+            }
+        }
+        const adminClient = new Client(clientOptions)
+        try {
+            await adminClient.bind(providerConfig.options.username, providerConfig.options.password)
+        } catch (err) {
+            app.log.error(`Failed to bind LDAP client: Provider '${providerConfig.name}' ${url} ${err}`)
+            return null
+        }
+
+        // Any errors from here must unbind the adminClient - so wrap all in try/catch
+        try {
+            const filter = providerConfig.options.userFilter.replace(/\${username}/g, username).replace(/\${email}/g, username)
+            const { searchEntries } = await adminClient.search(providerConfig.options.baseDN, {
+                filter
+            })
+            if (searchEntries.length === 1) {
+                const userProperties = {
+                    username: username.replace('@', '-').replaceAll('.', '_').toLowerCase(),
+                    email: username,
+                    password: generatePassword()
+                }
+                // may want to extend this list at some point
+                if (searchEntries[0].displayName) {
+                    userProperties.name = searchEntries[0].displayName
+                } else {
+                    userProperties.name = username.split('@')[0]
+                }
+                return userProperties
+            }
+        } catch (err) {
+            console.log(err)
+            app.log.error(`Error looking up new LDAP User '${username}' Provider '${providerConfig.name}' ${url} ${err}`)
+        }
+        finally {
+            try {
+                if (adminClient) {
+                    await adminClient.unbind()
+                }
+            } catch (err) {}
+        }
+        return null
     }
 
     /**
