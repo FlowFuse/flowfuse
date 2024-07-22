@@ -5,7 +5,7 @@ meta:
    tags:
       - flowfuse
       - nodered
-      - local developement
+      - local development
       - stack management
 ---
 
