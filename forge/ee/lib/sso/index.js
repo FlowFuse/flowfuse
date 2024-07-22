@@ -332,7 +332,11 @@ module.exports.init = async function (app) {
                 if (!Object.hasOwn(desiredTeamMemberships, 'admin')) {
                     app.auditLog.User.user.updatedUser(0, null, [{ key: 'admin', old: true, new: false }], user)
                     user.admin = false
-                    await user.save()
+                    try {
+                        await user.save()
+                    } catch (err) {
+                        // did we just remove the last admin?
+                    }
                 }
             } else if (adminGroup && !user.admin) {
                 app.auditLog.User.user.updatedUser(0, null, [{ key: 'admin', old: false, new: true }], user)
