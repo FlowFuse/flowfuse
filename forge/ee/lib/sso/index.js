@@ -1,6 +1,6 @@
-const { Client } = require('ldapts')
-
 const crypto = require('crypto')
+
+const { Client } = require('ldapts')
 
 const { Roles, TeamRoles } = require('../../../lib/roles')
 const createTeamForUser = require('../../../lib/userTeam')
@@ -119,12 +119,9 @@ module.exports.init = async function (app) {
                     const userInfo = app.auditLog.formatters.userObject(request.body)
                     if (verifyLDAPUser(providerConfig, tempUser, request.body.password)) {
                         // TODO create user
-                        console.log('create user')
                         const newUserProperties = await lookupLDAPUser(providerConfig, request.body.username)
                         if (newUserProperties) {
-                            console.log(newUserProperties)
                             const newUser = await app.db.models.User.create(newUserProperties)
-                            console.log(newUser)
                             const sessionInfo = await app.createSessionCookie(newUser.username)
                             if (sessionInfo) {
                                 userInfo.id = sessionInfo.session.UserId
@@ -146,7 +143,6 @@ module.exports.init = async function (app) {
         }
         return false
     }
-
 
     const generatePassword = () => {
         const charList = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz~!@-#$'
@@ -199,16 +195,20 @@ module.exports.init = async function (app) {
                 // may want to extend this list at some point
                 if (searchEntries[0].displayName) {
                     userProperties.name = searchEntries[0].displayName
+                } else if (searchEntries[0].givenName) {
+                    if (searchEntries[0].sn) {
+                        userProperties.name = `${searchEntries[0].givenName} ${searchEntries[0].sn}`
+                    } else {
+                        userProperties.name = `${searchEntries[0].givenName}`
+                    }
                 } else {
                     userProperties.name = username.split('@')[0]
                 }
                 return userProperties
             }
         } catch (err) {
-            console.log(err)
             app.log.error(`Error looking up new LDAP User '${username}' Provider '${providerConfig.name}' ${url} ${err}`)
-        }
-        finally {
+        } finally {
             try {
                 if (adminClient) {
                     await adminClient.unbind()
