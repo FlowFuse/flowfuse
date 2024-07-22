@@ -255,3 +255,16 @@ The final task is to copy some of the contents of the XML file into the FlowFuse
  - Find one of the `md:SingleSignOnService` tags and copy the value of its `Location` attribute into the `Identity Provider Single Sign-On URL` property
  - Copy the contents of the `ds:X509Certificate` tag into the `X.509 Certificate Public Key` property
 
+#### Group Membership Configuration
+
+In Keycloak and the Realm setup with FlowFuse as a client:
+
+ - Create a new "Client Scope"
+ - Give it a name and ensure the "Protocol" is `SAML`
+ - After saving the scope, select the "Mappers" tab
+ - "Add mapper" and pick "By configuration"
+ - Select "Group list" from the options
+ - Give it a name and set "Group attribute name" to `ff-roles` (this must matche the value configured in FlowFuse, default 'ff-roles')
+ - Ensure that "Full group path" is unchecked
+ - Save and return to the "Clients" list and select your FlowFuse Client created earlier
+ - Under "Client scopes", use the "Add client scope" button to add the new scope
