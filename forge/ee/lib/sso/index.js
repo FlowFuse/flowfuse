@@ -114,21 +114,8 @@ module.exports.init = async function (app) {
                         email: request.body.username
                     }
                     if (verifyLDAPUser(providerConfig, tempUser, request.body.password)) {
-                        // if (!app.settings.get('user:signup') && app.settings.get('team:user:invite:external')) {
-                        //     const invite = await app.db.models.Invitation.forExternalEmail(request.body.username)
-                        //     if (!invite || invite.length === 0) {
-                        //         // reusing error message so as not to leak invited users
-                        //         const resp = { code: 'user_registration_unavailable', error: 'user registration not enabled' }
-                        //         // await app.auditLog.User.account.register(userInfo, resp, userInfo)
-                        //         reply.code(400).send(resp)
-                        //         return false
-                        //     }
-                        //     // TODO create user
-                        //     console.log('create user')
-                        //     // return true
-                        // }
                         // TODO create user
-                        // console.log('create user')
+                        console.log('create user')
                         // return true
                     }
                     return false
