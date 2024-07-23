@@ -336,7 +336,8 @@ module.exports.init = async function (app) {
                     try {
                         await user.save()
                     } catch (err) {
-                        // did we just remove the last admin?
+                        // did we just fail remove the last admin?
+                        app.log.info(`Failed to remove admin from ${user.username}, as this would have been the last admin`)
                     }
                 }
             } else if (adminGroup && !user.admin) {
