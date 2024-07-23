@@ -1,5 +1,12 @@
 ---
 navTitle: Working with Feature Flags
+meta:
+   description: Guide for adding and using feature flags at the platform-wide and team type levels in FlowFuse.
+   tags:
+      - feature flags
+      - platform features
+      - flowfuse
+      - team types
 ---
 
 When adding features to the platform it is sometimes a requirement to be able to

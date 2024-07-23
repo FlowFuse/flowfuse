@@ -1,5 +1,18 @@
 ---
 navTitle: AWS EKS Installation with Terraform and Helm
+meta:
+   description: Learn to deploy FlowFuse on AWS EKS using Terraform and Helm. Setup VPC, EKS, RDS, Route53, SES, and Nginx Ingress Controller step-by-step.
+   tags:
+     - flowfuse
+     - nodered
+     - aws
+     - eks
+     - terraform
+     - helm
+     - kubernetes
+     - cloud deployment
+     - aws setup
+     - kubernetes deployment
 ---
 
 # FlowFuse-oriented infrastructure in AWS using Terraform and Helm

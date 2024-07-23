@@ -1,5 +1,16 @@
 ---
 navTitle: DNS Setup
+meta:
+   description: Discover DNS setup for FlowFuse on Docker or Kubernetes. Learn production and local testing methods using dnsmasq, AWS ALB Ingress, Digital Ocean, and Pi Hole
+  tags:
+     - dns
+     - docker
+     - kubernetes
+     - dnsmasq
+     - aws
+     - digital ocean
+     - pi hole
+     - local testing
 ---
 
 # DNS Setup

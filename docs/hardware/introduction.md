@@ -3,6 +3,12 @@ navTitle: Overview
 navOrder: 1
 meta:
    description: Discover hardware-specific installation guides for the FlowFuse Device Agent on supported platforms like Bosch Rexroth's ctrlX and Raspberry Pi.
+   tags:
+      - flowfuse
+      - device agent
+      - ctrlx
+      - raspberry pi
+      - installation
 ---
 
 # Device Agent - Hardware
