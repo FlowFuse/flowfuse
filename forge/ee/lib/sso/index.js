@@ -322,9 +322,10 @@ module.exports.init = async function (app) {
                             // ensure we keep the highest level of access
                             desiredTeamMemberships[teamSlug] = Math.max(desiredTeamMemberships[teamSlug] || 0, teamRole)
                         }
-                    } else if (teamRole === Roles.Admin) {
-                        adminGroup = true
                     }
+                }
+                if (providerOpts.groupAdmin && providerOpts.groupAdminName === ga) {
+                    adminGroup = true
                 }
             })
 
