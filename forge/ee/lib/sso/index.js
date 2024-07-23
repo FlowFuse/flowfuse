@@ -330,15 +330,13 @@ module.exports.init = async function (app) {
             })
 
             if (user.admin && !adminGroup) {
-                if (!Object.hasOwn(desiredTeamMemberships, 'admin')) {
-                    app.auditLog.User.user.updatedUser(0, null, [{ key: 'admin', old: true, new: false }], user)
-                    user.admin = false
-                    try {
-                        await user.save()
-                    } catch (err) {
-                        // did we just fail remove the last admin?
-                        app.log.info(`Failed to remove admin from ${user.username}, as this would have been the last admin`)
-                    }
+                app.auditLog.User.user.updatedUser(0, null, [{ key: 'admin', old: true, new: false }], user)
+                user.admin = false
+                try {
+                    await user.save()
+                } catch (err) {
+                    // did we just fail remove the last admin?
+                    app.log.info(`Failed to remove admin from ${user.username}, as this would have been the last admin`)
                 }
             } else if (adminGroup && !user.admin) {
                 app.auditLog.User.user.updatedUser(0, null, [{ key: 'admin', old: false, new: true }], user)
