@@ -134,7 +134,7 @@ module.exports = fp(async function (app, opts) {
                             }
                         } else {
                             // no SSO Group mapping so create team
-                            await createTeamForUser(app, newUser)
+                            await completeUserSignup(app, newUser)
                         }
                         request.session.newSSOUser = true
                         done(null, newUser)
