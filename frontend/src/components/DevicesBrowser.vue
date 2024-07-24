@@ -20,11 +20,26 @@
                 :show-search="true"
                 search-placeholder="Search Devices"
                 :show-load-more="moreThanOnePage"
+                :check-key="row => row.id"
+                :show-row-checkboxes="true"
+                @rows-checked="checkedDevices = $event"
                 @load-more="loadMoreDevices"
                 @update:search="updateSearch"
                 @update:sort="updateSort"
             >
                 <template #actions>
+                    <ff-button
+                        v-if="hasPermission('team:device:bulk-delete')"
+                        v-ff-tooltip:top="'Delete selected devices'"
+                        :disabled="checkedDevices.length === 0"
+                        data-action="bulk-delete-devices"
+                        kind="tertiary-danger"
+                        @click="showTeamBulkDeviceDeleteDialog"
+                    >
+                        <template #icon>
+                            <TrashIcon />
+                        </template>
+                    </ff-button>
                     <ff-button
                         v-if="displayingInstance && hasPermission('project:snapshot:create')"
                         data-action="change-target-snapshot"
@@ -269,18 +284,41 @@
         ref="deviceAssignApplicationDialog"
         @assign-device="assignDeviceToApplication"
     />
+
+    <ff-dialog
+        ref="teamBulkDeviceDeleteDialog"
+        header="Confirm Bulk Device Delete"
+        class="ff-dialog-fixed-height"
+        confirm-label="Confirm"
+        data-el="team-bulk-device-delete-dialog"
+        kind="danger"
+        @confirm="confirmBulkDelete()"
+    >
+        <template #default>
+            <p>The following device{{ checkedDevices.length > 1 ? 's' : '' }} will be deleted:</p>
+            <div class="max-h-96 overflow-y-auto">
+                <ul class="list-disc list-inside">
+                    <li v-for="device in checkedDevices" :key="device.id">
+                        <span class="font-bold">{{ device.name }}</span> <span class="text-gray-500 text-sm"> ({{ device.id }})</span>
+                    </li>
+                </ul>
+            </div>
+            <p>This action cannot be undone.</p>
+        </template>
+    </ff-dialog>
 </template>
 
 <script>
-import { ClockIcon } from '@heroicons/vue/outline'
+import { ClockIcon, TrashIcon } from '@heroicons/vue/outline'
 import { PlusSmIcon } from '@heroicons/vue/solid'
 
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
 import deviceApi from '../api/devices.js'
+import teamApi from '../api/team.js'
 import deviceActionsMixin from '../mixins/DeviceActions.js'
-
+import DialogMixin from '../mixins/Dialog.js'
 import permissionsMixin from '../mixins/Permissions.js'
 
 import DeviceAssignedToLink from '../pages/application/components/cells/DeviceAssignedToLink.vue'
@@ -317,10 +355,11 @@ export default {
         PlusSmIcon,
         SnapshotAssignDialog,
         TeamDeviceCreateDialog,
+        TrashIcon,
         EmptyState,
         DevicesStatusBar
     },
-    mixins: [permissionsMixin, deviceActionsMixin],
+    mixins: [permissionsMixin, deviceActionsMixin, DialogMixin],
     inheritAttrs: false,
     props: {
         // One of the two must be provided
@@ -347,6 +386,8 @@ export default {
             // Devices lists
             devices: new Map(), // devices currently available to be displayed
 
+            checkedDevices: [], // devices currently selected in the table
+
             unsearchedHasMoreThanOnePage: true,
             unfilteredHasMoreThanOnePage: true,
 
@@ -362,7 +403,7 @@ export default {
         ...mapState('account', ['team', 'teamMembership']),
         columns () {
             const columns = [
-                { label: 'Device', key: 'name', class: ['w-64'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
+                { label: 'Device', key: 'name', sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
                 { label: 'Type', key: 'type', class: ['w-48'], sortable: !this.moreThanOnePage },
                 { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLastSeenBadge) } },
                 { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge) } }
@@ -517,6 +558,22 @@ export default {
             this.$refs.teamDeviceCreateDialog.show(null, this.instance, this.application, showApplicationsList)
         },
 
+        confirmBulkDelete () {
+            // do the delete
+            teamApi.bulkDeviceDelete(this.team?.id, this.checkedDevices.map(device => device.id))
+                .then(() => {
+                    Alerts.emit('Devices successfully deleted.', 'confirmation')
+                    this.fullReloadOfData()
+                })
+                .catch((error) => {
+                    Alerts.emit('Error deleting devices: ' + error.message, 'error')
+                })
+        },
+
+        showTeamBulkDeviceDeleteDialog () {
+            this.$refs.teamBulkDeviceDeleteDialog.show()
+        },
+
         showSelectTargetSnapshotDialog () {
             this.$refs.snapshotAssignDialog.show()
         },
@@ -539,6 +596,7 @@ export default {
 
         // Device loading
         fullReloadOfData () {
+            this.checkedDevices = []
             this.loadDevices(true)
             this.pollForDeviceStatuses(true)
         },

@@ -1,6 +1,11 @@
 const SemVer = require('semver')
 const { literal } = require('sequelize')
 
+const { ControllerError } = require('../../lib/errors')
+
+/** @type {import('../../auditLog/team').getLoggers} */
+const getTeamLogger = (app) => { return app.auditLog.Team }
+
 module.exports = {
     isDeploying: function (app, device) {
         // Needs to have a target to be considered deploying
@@ -221,5 +226,50 @@ module.exports = {
         }
 
         return paginationOptions
+    },
+
+    /**
+     * Bulk delete devices.
+     * Notes:
+     *  * All devices must belong to the same team
+     *  * All devices must be present in the database
+     * @param {*} app - Forge app instance
+     * @param {*} team - User's team
+     * @param {Array<string>} deviceIds - Array of device hashids
+     * @param {*} user - User performing the deletion (required for audit logging)
+     */
+    bulkDelete: async function (app, team, deviceIds, user) {
+        if (!deviceIds || !Array.isArray(deviceIds) || deviceIds.length === 0) {
+            throw new ControllerError('invalid_input', 'No devices specified', 400)
+        }
+
+        // convert hashids to ids
+        const idsDecoded = deviceIds.map(hashid => hashid && app.db.models.Device.decodeHashid(hashid))
+        const ids = idsDecoded.map(id => id && Array.isArray(id) ? id[0] : null).filter(id => id)
+
+        // find all where id in ids
+        const devices = await app.db.models.Device.findAll({ where: { id: ids } })
+        if (devices.length === 0) {
+            throw new ControllerError('not_found', 'No devices found', 404)
+        }
+
+        // ensure all devices are part of the same team
+        const deviceTeam = await app.db.models.Team.byId(devices[0].TeamId)
+        if (!deviceTeam || deviceTeam.id !== team.id) {
+            throw new ControllerError('invalid_input', 'Devices must belong to the users team', 400)
+        }
+        if (devices.some(d => d.TeamId !== team.id)) {
+            throw new ControllerError('invalid_input', 'All devices must belong to the same team', 400)
+        }
+
+        // delete all devices
+        await app.db.models.Device.destroy({ where: { id: ids } })
+        if (app.license.active() && app.billing) {
+            await app.billing.updateTeamDeviceCount(team)
+        }
+
+        // Log the deletion
+        const teamLogger = getTeamLogger(app)
+        teamLogger.team.device.bulkDeleted(user, null, team, devices)
     }
 }

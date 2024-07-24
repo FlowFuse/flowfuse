@@ -23,7 +23,8 @@ export default {
   position: absolute;
   border-left: 1px solid $ff-grey-300;
   background: white;
-  height: 100%;
+  height: calc(100% - 60px);
+  top: 60px;
   right: -1000px;
   z-index: 500;
   width: 100%;
