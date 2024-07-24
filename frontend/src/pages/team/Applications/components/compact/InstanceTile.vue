@@ -40,9 +40,9 @@
                 v-if="instance.settings?.dashboard2UI"
                 :instance="instance"
                 :disabled="!editorAvailable"
-                :show-external-link="false"
+                :show-external-link="showButtonLabels"
             >
-                <ChartPieIcon class="ff-icon" />
+                <ChartPieIcon v-if="!showButtonLabels" class="ff-icon" />
             </DashboardLink>
 
             <InstanceEditorLink
@@ -52,7 +52,7 @@
                 :url="instance.url"
                 :instance="instance"
             >
-                <ff-button kind="secondary" data-action="open-editor" class="whitespace-nowrap" :disabled="!isInstanceRunning">
+                <ff-button v-if="!showButtonLabels" kind="secondary" data-action="open-editor" class="whitespace-nowrap" :disabled="!isInstanceRunning">
                     <ProjectIcon class="ff-btn--icon ff-icon" />
                 </ff-button>
             </InstanceEditorLink>
@@ -117,6 +117,10 @@ export default {
         instance: {
             required: true,
             type: Object
+        },
+        showButtonLabels: {
+            type: Boolean,
+            default: true
         }
     },
     emits: ['delete-instance'],
