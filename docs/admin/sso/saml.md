@@ -116,6 +116,16 @@ the groups in the SAML Provider - rather than using the team's id. However, a te
 by a team owner. Doing so will break the link between the group and the team membership - so should only
 be done with care.
 
+## Managing Admin users
+
+The SSO Configuration can be configured to managed the admin users of the platform by enabling the
+`Manage Admin roles using group assertions` option. Once enabled, the name of a group can be provided
+that will be used to identify whether a user is an admin or not.
+
+**Note:* the platform will refuse to remove the admin flag from a user if they are the only admin
+on the platform. It is *strongly* recommended to have an admin user on the system that is not
+managed via SSO to ensure continued access in case of any issues with the SSO provider.
+
 ## Providers
 
 The following is a non-exhaustive list of the providers that are known to work
