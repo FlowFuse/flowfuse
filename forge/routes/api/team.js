@@ -292,7 +292,7 @@ module.exports = async function (app) {
         const includeInstances = true
         const includeApplicationDevices = true
         const associationsLimit = request.query.associationsLimit
-        const includeApplicationSummary = !!associationsLimit
+        const includeApplicationSummary = !!associationsLimit || request.query.includeApplicationSummary
 
         const applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances, includeApplicationDevices, associationsLimit, includeApplicationSummary })
 

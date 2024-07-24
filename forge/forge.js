@@ -86,16 +86,40 @@ module.exports = async (options = {}) => {
         level: runtimeConfig.logging.level,
         serializers: {
             res (reply) {
-                return {
+                const response = {
                     statusCode: reply.statusCode,
                     request: {
                         user: reply.request?.session?.User?.username,
+                        ownerId: undefined,
+                        ownerType: undefined,
                         url: reply.request?.raw?.url,
                         method: reply.request?.method,
                         remoteAddress: reply.request?.ip,
                         remotePort: reply.request?.socket.remotePort
                     }
                 }
+                if (reply.request?.session?.ownerType) {
+                    switch (reply.request?.session?.ownerType) {
+                    case 'team':
+                        response.request.ownerId = server.db.models.Team.encodeHashid(reply.request?.session?.ownerId)
+                        response.request.ownerType = 'team'
+                        break
+                    case 'device':
+                        response.request.ownerId = server.db.models.Device.encodeHashid(reply.request?.session?.ownerId)
+                        response.request.ownerType = 'device'
+                        break
+                    case 'project':
+                    case 'instance':
+                        response.request.ownerId = reply.request?.session?.ownerId
+                        response.request.ownerType = reply.request?.session?.ownerType
+                        break
+                    default:
+                        // Don't log the id as we don't know how to hash it
+                        // Log the type so we can spot cases we aren't handling and address it
+                        response.request.ownerType = reply.request?.session?.ownerType
+                    }
+                }
+                return response
             }
         }
     }
@@ -242,7 +266,7 @@ module.exports = async (options = {}) => {
                         'worker-src': ["'self'", 'blob:'],
                         'connect-src': ["'self'"],
                         'img-src': ["'self'", 'data:', 'flowfuse.com', 'www.gravatar.com'],
-                        'font-src': ["'self'"],
+                        'font-src': ["'self'", 'data'],
                         'style-src': ["'self'", 'https:', "'unsafe-inline'"],
                         'upgrade-insecure-requests': null,
                         'frame-ancestors': ["'self'"]
@@ -305,7 +329,8 @@ module.exports = async (options = {}) => {
                     'www.google.co.uk',
                     'google.com',
                     'googleads.g.doubleclick.net',
-                    'www.googleservices.com'
+                    'www.googleservices.com',
+                    'www.googleadservices.com'
                 ]
                 if (contentSecurityPolicy.directives['script-src'] && Array.isArray(contentSecurityPolicy.directives['script-src'])) {
                     contentSecurityPolicy.directives['script-src'].push(...googleDomains)
@@ -314,8 +339,12 @@ module.exports = async (options = {}) => {
                 }
                 const googleImageDomains = [
                     'www.google.com',
-                    'www.google.co.uk',
-                    'googleads.g.doubleclick.net'
+                    'www.google.co.*',
+                    'www.google.com.*',
+                    'www.google.*',
+                    'googleads.g.doubleclick.net',
+                    'www.googleadservices.com',
+                    'www.googletagmanager.com'
                 ]
                 if (contentSecurityPolicy.directives['img-src'] && Array.isArray(contentSecurityPolicy.directives['img-src'])) {
                     contentSecurityPolicy.directives['img-src'].push(...googleImageDomains)
@@ -323,6 +352,7 @@ module.exports = async (options = {}) => {
                     contentSecurityPolicy.directives['img-src'] = googleImageDomains
                 }
                 const googleConnectDomains = [
+                    'www.google.com',
                     'google.com'
                 ]
                 if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
@@ -337,6 +367,14 @@ module.exports = async (options = {}) => {
                     contentSecurityPolicy.directives['frame-src'].push(...googleFrameDomains)
                 } else {
                     contentSecurityPolicy.directives['frame-src'] = googleFrameDomains
+                }
+                const googleFontDomains = [
+                    'fonts.gstatic.com'
+                ]
+                if (contentSecurityPolicy.directives['font-src'] && Array.isArray(contentSecurityPolicy.directives['font-src'])) {
+                    contentSecurityPolicy.directives['font-src'].push(...googleFontDomains)
+                } else {
+                    contentSecurityPolicy.directives['font-src'] = googleFontDomains
                 }
             }
             if (runtimeConfig.support?.enabled && runtimeConfig.support.frontend?.hubspot?.trackingcode) {
@@ -373,7 +411,8 @@ module.exports = async (options = {}) => {
                     '*.hsforms.com',
                     '*.hubspot.com',
                     '*.hs-banner.com',
-                    '*.hscollectedforms.net'
+                    '*.hscollectedforms.net',
+                    '*.hs-embed-reporting.com'
                 ]
                 if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
                     contentSecurityPolicy.directives['connect-src'].push(...hubspotConnectDomains)
@@ -398,7 +437,7 @@ module.exports = async (options = {}) => {
             strictTransportSecurity = {
                 includeSubDomains: false,
                 preload: true,
-                maxAge: 3600
+                maxAge: 2592000
             }
         }
 

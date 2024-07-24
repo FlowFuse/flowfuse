@@ -16,7 +16,6 @@ import AccountSettings from './Settings.vue'
 import AccountTeamInvitations from './Teams/Invitations.vue'
 import AccountTeamTeams from './Teams/Teams.vue'
 import AccountTeams from './Teams/index.vue'
-import VerifyEmail from './VerifyEmail.vue'
 import VerifyPendingEmailChange from './VerifyPendingEmailChange.vue'
 
 import Account from './index.vue'
@@ -93,15 +92,6 @@ export default [
             title: 'Sign Up'
         },
         component: AccountCreate
-    },
-    {
-        name: 'VerifyEmail',
-        path: '/account/verify/:token',
-        props: true,
-        meta: {
-            requiresLogin: false
-        },
-        component: VerifyEmail
     },
     {
         name: 'VerifyPendingEmailChange',

@@ -265,24 +265,8 @@ describe('User controller', function () {
             // 'chris' does not have a verified email
             const user = await app.db.models.User.byUsername('chris')
             user.email_verified.should.be.false()
-            const now = Math.floor(Date.now() / 1000)
             const token = await app.db.controllers.User.generateEmailVerificationToken(user)
-
-            const decoded = jwt.decode(token)
-            const expiresInDays = Math.floor((decoded.exp - now) / (60 * 60 * 24))
-            expiresInDays.should.equal(2)
-            decoded.sub.should.equal('chris@example.com')
-        })
-        it('validates a token for pending user', async function () {
-            // 'chris' does not have a verified email
-            const user = await app.db.models.User.byUsername('chris')
-            user.email_verified.should.be.false()
-            const token = await app.db.controllers.User.generateEmailVerificationToken(user)
-
-            await app.db.controllers.User.verifyEmailToken(null, token)
-
-            const updatedUser = await app.db.models.User.byUsername('chris')
-            updatedUser.email_verified.should.be.true()
+            ;/^\d\d\d\d\d\d$/.test(token.token).should.be.true()
         })
         it('validates a token for the provided user', async function () {
             // 'chris' does not have a verified email
@@ -290,7 +274,7 @@ describe('User controller', function () {
             user.email_verified.should.be.false()
             const token = await app.db.controllers.User.generateEmailVerificationToken(user)
 
-            await app.db.controllers.User.verifyEmailToken(user, token)
+            await app.db.controllers.User.verifyEmailToken(user, token.token)
 
             const updatedUser = await app.db.models.User.byUsername('chris')
             updatedUser.email_verified.should.be.true()
@@ -304,7 +288,7 @@ describe('User controller', function () {
             const otherUser = await app.db.models.User.byUsername('alice')
 
             try {
-                await app.db.controllers.User.verifyEmailToken(otherUser, token)
+                await app.db.controllers.User.verifyEmailToken(otherUser, token.token)
             } catch (err) {
                 const updatedUser = await app.db.models.User.byUsername('chris')
                 updatedUser.email_verified.should.be.false()
@@ -314,12 +298,10 @@ describe('User controller', function () {
         })
 
         it('rejects invalid token', async function () {
-            const token = app.db.controllers.User.generateEmailVerificationToken({
-                email: 'chris@example.com',
-                password: 'invalid-hash'
-            })
+            const user = await app.db.models.User.byUsername('chris')
+            await app.db.controllers.User.generateEmailVerificationToken(user)
             try {
-                await app.db.controllers.User.verifyEmailToken(null, token)
+                await app.db.controllers.User.verifyEmailToken(user, '123123')
             } catch (err) {
                 const updatedUser = await app.db.models.User.byUsername('chris')
                 updatedUser.email_verified.should.be.false()
@@ -329,10 +311,19 @@ describe('User controller', function () {
         })
 
         it('rejects expired token', async function () {
-            // Token generated for 'chris@example.com' with expiring in the past
-            const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjaHJpc0BleGFtcGxlLmNvbSIsImV4cCI6MTYzNjkwNzUxNywiaWF0IjoxNjM3MDgwMzE3fQ.ClTQzbResx3WB2wkhS2sc_WGDKGXdWQmlkfloup7mmc'
+            const user = await app.db.models.User.byUsername('chris')
+            const token = await app.db.controllers.User.generateEmailVerificationToken(user)
+            const dbToken = await app.db.models.AccessToken.findOne({
+                where: {
+                    ownerType: 'user',
+                    ownerId: '' + user.id,
+                    scope: 'email:verify'
+                }
+            })
+            dbToken.expiresAt = new Date(Date.now() - 1000)
+            await dbToken.save()
             try {
-                await app.db.controllers.User.verifyEmailToken(null, token)
+                await app.db.controllers.User.verifyEmailToken(user, token.token)
             } catch (err) {
                 const updatedUser = await app.db.models.User.byUsername('chris')
                 updatedUser.email_verified.should.be.false()

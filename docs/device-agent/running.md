@@ -1,6 +1,8 @@
 ---
 navTitle: Running the Agent
 navOrder: 5
+meta:
+   description: Explore how to run and configure the FlowFuse Device Agent, covering startup commands, port settings, HTTP proxy setup, and offline module caching.
 ---
 
 # Running the Device Agent

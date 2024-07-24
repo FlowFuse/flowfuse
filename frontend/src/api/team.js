@@ -74,12 +74,17 @@ const deleteTeam = async (teamId) => {
  * Get a list of applications
  * This function does not get instance status
  * @param {string} teamId The Team ID (hash) to get applications and instances for
+ * @param associationsLimit
+ * @param includeApplicationSummary
  * @returns An array of application objects containing an array of instances
  */
-const getTeamApplications = async (teamId, { associationsLimit } = {}) => {
-    const options = {}
+const getTeamApplications = async (teamId, { associationsLimit, includeApplicationSummary = false } = {}) => {
+    const options = { params: {} }
     if (associationsLimit) {
-        options.params = { associationsLimit }
+        options.params.associationsLimit = associationsLimit
+    }
+    if (includeApplicationSummary) {
+        options.params.includeApplicationSummary = includeApplicationSummary
     }
     const result = await client.get(`/api/v1/teams/${teamId}/applications`, options)
     return result.data
@@ -362,6 +367,16 @@ const deleteTeamDeviceProvisioningToken = async (teamId, tokenId) => {
 }
 
 /**
+ * Bulk delete devices
+ * @param {string} teamId - Team ID (hash)
+ * @param {Array<string>} devices - Array of device IDs (hash)
+ * @returns
+ */
+const bulkDeviceDelete = async (teamId, devices) => {
+    return await client.delete(`/api/v1/teams/${teamId}/devices/bulk`, { data: { devices } })
+}
+
+/**
  * Calls api routes in team.js
  * See [routes/api/team.js](../../../forge/routes/api/team.js)
 */
@@ -389,5 +404,6 @@ export default {
     getTeamDeviceProvisioningTokens,
     generateTeamDeviceProvisioningToken,
     updateTeamDeviceProvisioningToken,
-    deleteTeamDeviceProvisioningToken
+    deleteTeamDeviceProvisioningToken,
+    bulkDeviceDelete
 }

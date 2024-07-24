@@ -319,6 +319,123 @@ describe('Team Devices API', function () {
                 runningUnseenDevices.should.have.length(0)
             })
         })
+        describe('Supports bulk operations', function () {
+            describe('delete', function () {
+                const aTeamDevices = {
+                    device1: null,
+                    device2: null
+                }
+                const bTeamDevices = {
+                    device1: null
+                }
+                beforeEach(async function () {
+                    // Add 2 sacrificial devices to this team
+                    aTeamDevices.device1 = await app.factory.createDevice({ name: 'lamb device 1' }, TestObjects.ATeam, TestObjects.Project1)
+                    aTeamDevices.device2 = await app.factory.createDevice({ name: 'lamb device 2' }, TestObjects.ATeam, TestObjects.Project1)
+                    // Add 1 device to another team
+                    bTeamDevices.device1 = await app.factory.createDevice({ name: 'goat device 1' }, TestObjects.BTeam, TestObjects.BTeamInstance)
+                })
+                afterEach(async function () {
+                    await app.db.models.Device.destroy({
+                        where: {
+                            name: ['lamb device 1', 'lamb device 2', 'goat device 1']
+                        }
+                    })
+                })
+                it('Non owner cannot delete devices', async function () {
+                    const response = await app.inject({
+                        method: 'DELETE',
+                        url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices/bulk`,
+                        cookies: { sid: TestObjects.tokens.chris },
+                        payload: {
+                            devices: [aTeamDevices.device1.hashid]
+                        }
+                    })
+                    response.statusCode.should.equal(401)
+                    const result = response.json()
+                    result.should.have.property('code', 'unauthorized')
+                    result.should.have.property('error', 'unauthorized')
+                })
+                it('Delete a single device', async function () {
+                    const response = await app.inject({
+                        method: 'DELETE',
+                        url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices/bulk`,
+                        cookies: { sid: TestObjects.tokens.alice },
+                        payload: {
+                            devices: [aTeamDevices.device1.hashid]
+                        }
+                    })
+                    response.statusCode.should.equal(200)
+                    const result = response.json()
+                    result.should.have.property('status', 'okay')
+
+                    // ensure devices
+                    const devices = await app.db.models.Device.findAll()
+                    devices.filter((device) => device.name === 'lamb device 1').should.have.length(0) // gone
+                    devices.filter((device) => device.name === 'lamb device 2').should.have.length(1) // still there
+                    devices.filter((device) => device.name === 'goat device 1').should.have.length(1) // still there
+                })
+                it('Delete multiple devices', async function () {
+                    const response = await app.inject({
+                        method: 'DELETE',
+                        url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices/bulk`,
+                        cookies: { sid: TestObjects.tokens.alice },
+                        payload: {
+                            devices: [aTeamDevices.device1.hashid, aTeamDevices.device2.hashid]
+                        }
+                    })
+                    response.statusCode.should.equal(200)
+                    const result = response.json()
+                    result.should.have.property('status', 'okay')
+
+                    // ensure devices
+                    const devices = await app.db.models.Device.findAll()
+                    devices.filter((device) => device.name === 'lamb device 1').should.have.length(0) // gone
+                    devices.filter((device) => device.name === 'lamb device 2').should.have.length(0) // gone
+                    devices.filter((device) => device.name === 'goat device 1').should.have.length(1) // still there
+                })
+                it('Cannot delete device belonging to a different team', async function () {
+                    const response = await app.inject({
+                        method: 'DELETE',
+                        url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices/bulk`,
+                        cookies: { sid: TestObjects.tokens.alice },
+                        payload: {
+                            devices: [bTeamDevices.device1.hashid]
+                        }
+                    })
+                    response.statusCode.should.equal(400)
+                    const result = response.json()
+                    result.should.have.property('code', 'invalid_input')
+                    result.should.have.property('error')
+
+                    // ensure no devices were deleted
+                    const devices = await app.db.models.Device.findAll()
+                    devices.filter((device) => device.name === 'lamb device 1').should.have.length(1) // still there
+                    devices.filter((device) => device.name === 'lamb device 2').should.have.length(1) // still there
+                    devices.filter((device) => device.name === 'goat device 1').should.have.length(1) // still there
+                })
+                it('Prevents deleting any devices mixed in with other team devices', async function () {
+                    const response = await app.inject({
+                        method: 'DELETE',
+                        url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices/bulk`,
+                        cookies: { sid: TestObjects.tokens.alice },
+                        payload: {
+                            devices: [aTeamDevices.device1.hashid, bTeamDevices.device1.hashid, aTeamDevices.device2.hashid]
+                        }
+                    })
+                    response.statusCode.should.equal(400)
+                    const result = response.json()
+                    result.should.have.property('code', 'invalid_input')
+                    result.should.have.property('error')
+
+                    // ensure no devices were deleted
+                    const devices = await app.db.models.Device.findAll()
+                    devices.filter((device) => device.name === 'lamb device 1').should.have.length(1) // still there
+                    devices.filter((device) => device.name === 'lamb device 2').should.have.length(1) // still there
+                    devices.filter((device) => device.name === 'goat device 1').should.have.length(1) // still there
+                })
+            })
+        })
     })
 
     describe('Provisioning Tokens', function () {

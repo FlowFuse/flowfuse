@@ -1,6 +1,8 @@
 module.exports = async (app) => {
     let sharedLibraryEntries = 0
+    let blueprintCount = 0
     if (app.license.active()) {
+        blueprintCount = await app.db.models.FlowTemplate?.count()
         sharedLibraryEntries = await app.db.models.StorageSharedLibrary?.count()
     }
     const licenseType = () => {
@@ -27,6 +29,7 @@ module.exports = async (app) => {
         'platform.counts.projectTemplates': await app.db.models.ProjectStack.count(),
         'platform.counts.projectStacks': await app.db.models.ProjectTemplate.count(),
         'platform.counts.libraryEntries': await app.db.models.StorageLibrary.count(),
+        'platform.counts.blueprints': blueprintCount,
         'platform.counts.sharedLibraryEntries': sharedLibraryEntries,
 
         'platform.config.driver': app.config.driver.type,

@@ -1,5 +1,7 @@
 ---
 navTitle: Reset Password Flow
+meta:
+   description: Learn how to reset passwords in FlowFuse Cloud with our step-by-step guide and detailed sequence diagrams.
 ---
 
 # Reset Password Flow

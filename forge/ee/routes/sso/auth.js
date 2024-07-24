@@ -1,6 +1,15 @@
+const crypto = require('crypto')
+
 const { Authenticator } = require('@fastify/passport')
 const { MultiSamlStrategy } = require('@node-saml/passport-saml')
 const fp = require('fastify-plugin')
+
+const { completeUserSignup } = require('../../../lib/userTeam')
+
+const generatePassword = () => {
+    const charList = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz~!@-#$'
+    return Array.from(crypto.randomFillSync(new Uint32Array(8))).map(x => charList[x % charList.length]).join('')
+}
 
 module.exports = fp(async function (app, opts) {
     app.addHook('onRequest', async (request, reply) => {
@@ -71,7 +80,6 @@ module.exports = fp(async function (app, opts) {
         }
     }, async (request, samlUser, done) => {
         if (samlUser.nameID) {
-            // console.log(profile)
             const user = await app.db.models.User.byUsernameOrEmail(samlUser.nameID)
             if (user) {
                 const state = JSON.parse(request.body.RelayState)
@@ -87,12 +95,61 @@ module.exports = fp(async function (app, opts) {
                 }
                 done(null, user)
             } else {
-                const unknownError = new Error(`Unknown user: ${samlUser.nameID}`)
-                unknownError.code = 'unknown_sso_user'
-                const userInfo = app.auditLog.formatters.userObject({ email: samlUser.nameID })
-                const resp = { code: 'unknown_sso_user', error: 'unauthorized' }
-                await app.auditLog.User.account.login(userInfo, resp, userInfo)
-                done(unknownError)
+                const state = JSON.parse(request.body.RelayState)
+                const providerOpts = await app.sso.getProviderOptions(state.provider)
+                if (providerOpts.provisionNewUsers) {
+                    // create new user from content of samlUser if available
+                    const userProperties = {
+                    //     username: request.body.username,
+                    //     name: request.body.name,
+                        email: samlUser.nameID,
+                        // email_verified: true,
+                        // password: request.body.password,
+                        admin: false,
+                        // sso_enabled: true,
+                        tcs_accepted: new Date()
+                    }
+
+                    if (samlUser['http://schemas.microsoft.com/identity/claims/displayname']) {
+                        userProperties.name = samlUser['http://schemas.microsoft.com/identity/claims/displayname']
+                    } else {
+                        userProperties.name = samlUser.nameID.split('@')[0]
+                    }
+
+                    userProperties.password = generatePassword()
+                    userProperties.username = samlUser.nameID.replace('@', '-').replaceAll('.', '_').toLowerCase()
+
+                    try {
+                        // create user
+                        const newUser = await app.db.models.User.create(userProperties)
+
+                        // check if we need to add teams from SSO
+                        if (providerOpts.groupMapping) {
+                            // This SSO provider is configured to manage team membership.
+                            try {
+                                await app.sso.updateTeamMembership(samlUser, newUser, providerOpts)
+                            } catch (err) {
+                                done(err)
+                                return
+                            }
+                        } else {
+                            // no SSO Group mapping so create team
+                            await completeUserSignup(app, newUser)
+                        }
+                        request.session.newSSOUser = true
+                        done(null, newUser)
+                    } catch (err) {
+                        // console.log(err)
+                        done(err)
+                    }
+                } else {
+                    const unknownError = new Error(`Unknown user: ${samlUser.nameID}`)
+                    unknownError.code = 'unknown_sso_user'
+                    const userInfo = app.auditLog.formatters.userObject({ email: samlUser.nameID })
+                    const resp = { code: 'unknown_sso_user', error: 'unauthorized' }
+                    await app.auditLog.User.account.login(userInfo, resp, userInfo)
+                    done(unknownError)
+                }
             }
         } else {
             const missingNameIDError = new Error('SAML response missing nameID')
@@ -135,6 +192,10 @@ module.exports = fp(async function (app, opts) {
                 if (request.body?.RelayState) {
                     const state = JSON.parse(request.body.RelayState)
                     redirectTo = /^\/.*/.test(state.redirectTo) ? state.redirectTo : '/'
+                }
+                if (request.session.newSSOUser) {
+                    delete request.session.newSSOUser
+                    redirectTo = '/account/settings'
                 }
                 reply.redirect(redirectTo)
                 return

@@ -14,6 +14,7 @@ const Permissions = {
     'team:edit': { description: 'Edit Team', role: Roles.Owner },
     'team:delete': { description: 'Delete Team', role: Roles.Owner },
     'team:audit-log': { description: 'Access Team Audit Log', role: Roles.Owner },
+    'team:device:bulk-delete': { description: 'Delete Devices', role: Roles.Owner },
     // Team Auto Device Provisioning Tokens
     'team:device:provisioning-token:create': { description: 'Create a Team Auto Device Provisioning Token', role: Roles.Owner },
     'team:device:provisioning-token:edit': { description: 'Edit a Team Auto Device Provisioning Token', role: Roles.Owner },
@@ -109,10 +110,7 @@ const Permissions = {
     'platform:debug': { description: 'View platform debug information', role: Roles.Admin },
     'platform:stats': { description: 'View platform stats information', role: Roles.Admin },
     'platform:stats:token': { description: 'Create/Delete platform stats token', role: Roles.Admin },
-    'platform:audit-log': { description: 'View platform audit log', role: Roles.Admin },
-
-    // assistant
-    'assistant:function': { description: 'Access the assistant function endpoint', role: Roles.Member }
+    'platform:audit-log': { description: 'View platform audit log', role: Roles.Admin }
 }
 
 module.exports = {
