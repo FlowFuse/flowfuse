@@ -237,7 +237,7 @@ module.exports = {
 
             // skip if locked in target template
             if (targetTemplate) {
-                if (!getTemplateValue(targetTemplate.policy, name)) {
+                if (getTemplateValue(targetTemplate.policy, name) === false) {
                     return
                 }
             }
