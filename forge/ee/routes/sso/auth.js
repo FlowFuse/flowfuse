@@ -80,7 +80,8 @@ module.exports = fp(async function (app, opts) {
         }
     }, async (request, samlUser, done) => {
         if (samlUser.nameID) {
-            // console.log(profile)
+            // eslint-disable-next-line no-console
+            console.log(samlUser)
             const user = await app.db.models.User.byUsernameOrEmail(samlUser.nameID)
             if (user) {
                 const state = JSON.parse(request.body.RelayState)
