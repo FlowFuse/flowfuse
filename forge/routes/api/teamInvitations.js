@@ -184,19 +184,24 @@ module.exports = async function (app) {
                                 }
                             )
                         }
-                        await app.notifications.send(invite.invitee, 'team-invite', {
-                            invite: {
-                                id: invite.hashid
+                        await app.notifications.send(
+                            invite.invitee,
+                            'team-invite',
+                            {
+                                invite: {
+                                    id: invite.hashid
+                                },
+                                team: {
+                                    id: request.team.hashid,
+                                    name: request.team.name
+                                },
+                                invitor: {
+                                    username: request.session.User.username
+                                },
+                                role
                             },
-                            team: {
-                                id: request.team.hashid,
-                                name: request.team.name
-                            },
-                            invitor: {
-                                username: request.session.User.username
-                            },
-                            role
-                        })
+                            `team-invite:${invite.hashid}`
+                        )
                         await app.auditLog.Team.team.user.invited(request.session.User, null, request.team, invite.invitee, role)
                     }
                 } catch (err) {
@@ -244,6 +249,10 @@ module.exports = async function (app) {
         if (invitation && invitation.teamId === request.team.id) {
             const role = invitation.role || Roles.Member
             const invitedUser = app.auditLog.formatters.userObject(invitation.external ? invitation : invitation.invitee)
+            if (!invitation.external) {
+                const notificationReference = `team-invite:${invitation.hashid}`
+                await app.notifications.remove(invitation.invitee, notificationReference)
+            }
             await invitation.destroy()
             await app.auditLog.Team.team.user.uninvited(request.session.User, null, request.team, invitedUser, role)
             reply.send({ status: 'okay' })
