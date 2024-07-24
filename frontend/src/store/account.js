@@ -326,12 +326,12 @@ const actions = {
                 return
             }
         } else {
-            if (!currentTeam || currentTeam.id === team.id) {
+            if (!currentTeam || currentTeam.id === team?.id) {
                 state.commit('clearPendingTeamChange')
                 return
             }
         }
-        if (team.id) {
+        if (team?.id) {
             teamMembership = await teamApi.getTeamUserMembership(team.id)
         }
         state.commit('setTeam', team)

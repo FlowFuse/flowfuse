@@ -64,7 +64,10 @@ export default {
                 try {
                     await teamApi.removeTeamMember(row.id, this.user.id)
                     alerts.emit(`${this.user.username} successfully removed from ${row.name}`, 'confirmation')
-                    this.$store.dispatch('account/refreshTeams')
+                    await this.$store.dispatch('account/refreshTeams')
+                    if (!this.teamCount) {
+                        await this.$store.dispatch('account/setTeam', null)
+                    }
                 } catch (err) {
                     alerts.emit(`Failed to remove ${this.user.username} from ${row.name}: ${err.response.data.error}`, 'warning')
                     console.warn(err)
