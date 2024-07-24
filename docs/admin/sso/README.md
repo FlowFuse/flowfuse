@@ -12,7 +12,7 @@ as Google Workspace, or using LDAP against a directory service provider.
 The platform can be configured with multiple SSO configurations and uses the
 user's email domain to identify which provider should be used.
 
-Since FlowFuse 2.6, the SSO configuration can be configured to automatically
+Since FlowFuse 2.7, the SSO configuration can be configured to automatically
 registers when they first sign in.
 
 Otherwise, a user will have to first register on the platform, providing a temporary

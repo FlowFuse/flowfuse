@@ -61,7 +61,7 @@ they attempt to login.
 
 ## Creating new users
 
-With FlowFuse 2.6, the SSO Configuration now includes an option to automatically
+With FlowFuse 2.7, the SSO Configuration now includes an option to automatically
 register users who sign in via the configuration.
 
 This option is not enabled by default, but can be enabled but selecting the `Allow Provisioning of New Users on first login`
