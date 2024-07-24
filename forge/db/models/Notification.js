@@ -10,6 +10,7 @@ module.exports = {
     name: 'Notification',
     schema: {
         type: { type: DataTypes.STRING, allowNull: false },
+        reference: { type: DataTypes.STRING, allowNull: true },
         read: { type: DataTypes.BOOLEAN, defaultValue: false },
         data: {
             type: DataTypes.TEXT,
@@ -43,6 +44,14 @@ module.exports = {
                     return this.findOne({
                         where: {
                             id,
+                            userId: user.id
+                        }
+                    })
+                },
+                byReference: async (reference, user) => {
+                    return this.findOne({
+                        where: {
+                            reference,
                             userId: user.id
                         }
                     })

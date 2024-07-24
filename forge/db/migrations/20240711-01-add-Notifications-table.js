@@ -17,6 +17,7 @@ module.exports = {
                 allowNull: false
             },
             type: { type: DataTypes.STRING, allowNull: false },
+            reference: { type: DataTypes.STRING, allowNull: true },
             read: { type: DataTypes.BOOLEAN, defaultValue: false },
             data: { type: DataTypes.TEXT },
             createdAt: { type: DataTypes.DATE, allowNull: false },
