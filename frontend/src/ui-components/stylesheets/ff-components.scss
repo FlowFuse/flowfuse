@@ -405,6 +405,7 @@ li.ff-list-item {
     left: 0;
     height: 16px;
     width: 16px;
+    margin-left: 4px;
     border-radius: 4px;
     background-color: transparent;
     border: 1px solid;
@@ -804,6 +805,11 @@ li.ff-list-item {
       justify-content: flex-end;
     }
   }
+}
+
+.ff-data-table tbody .ff-checkbox,
+.ff-data-table tbody .ff-radio-btn {
+    display: inline;
 }
 
 .ff-loadmore {
