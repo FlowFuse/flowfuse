@@ -7,9 +7,9 @@
             </div>
             <div class="ff-view">
                 <div id="platform-banner" />
-                <RightDrawer />
                 <slot />
             </div>
+            <RightDrawer />
             <TransitionGroup class="ff-notifications" name="notifications-list" tag="div">
                 <ff-notification-toast
                     v-for="(a, $index) in alertsReversed" :key="a.timestamp"
