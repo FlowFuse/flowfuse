@@ -17,7 +17,7 @@
  */
 const fp = require('fastify-plugin')
 
-const createTeamForUser = require('../../lib/userTeam')
+const { completeUserSignup } = require('../../lib/userTeam')
 
 // This defines how long the session cookie is valid for. This should match
 // the max session age defined in `forge/db/controllers/Session.DEFAULT_WEB_SESSION_EXPIRY
@@ -512,7 +512,7 @@ async function init (app, opts) {
                 return
             }
 
-            await createTeamForUser(app, verifiedUser)
+            await completeUserSignup(app, verifiedUser)
             reply.send({ status: 'okay' })
         } catch (err) {
             if (err.message === 'team_limit_reached') {

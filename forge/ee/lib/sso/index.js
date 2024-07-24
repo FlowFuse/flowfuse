@@ -3,7 +3,7 @@ const crypto = require('crypto')
 const { Client } = require('ldapts')
 
 const { Roles, TeamRoles } = require('../../../lib/roles')
-const createTeamForUser = require('../../../lib/userTeam')
+const { completeUserSignup } = require('../../../lib/userTeam')
 
 module.exports.init = async function (app) {
     // Set the SSO feature flag
@@ -128,8 +128,8 @@ module.exports.init = async function (app) {
                                 newUser.sso_enabled = true
                                 newUser.email_verified = true
                                 await newUser.save()
-                                // create team for new user
-                                await createTeamForUser(app, newUser)
+                                // Complete user signup - create team and accept invites
+                                await completeUserSignup(app, newUser)
                                 reply.setCookie('sid', sessionInfo.session.sid, sessionInfo.cookieOptions)
                                 await app.auditLog.User.account.login(userInfo, null)
                                 reply.send()
