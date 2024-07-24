@@ -940,10 +940,10 @@ describe('Accounts API', async function () {
         })
     })
 
-    describe.only('Session configuration', async function () {
+    describe('Session configuration', async function () {
         it('Incorrect configuration should fail', async function () {
             try {
-                const app = await setup({
+                await setup({
                     sessions: {
                         maxDuration: 300,
                         maxIdleDuration: 400
@@ -956,7 +956,7 @@ describe('Accounts API', async function () {
         })
         it('Incorrect maxIdle configuration should fail', async function () {
             try {
-                const app = await setup({
+                await setup({
                     sessions: {
                         maxIdleDuration: 604801
                     }
@@ -969,7 +969,6 @@ describe('Accounts API', async function () {
     })
 
     describe('Session length', async function () {
-        let testUser
         before(async function () {
             app = await setup({
                 sessions: {
@@ -977,7 +976,7 @@ describe('Accounts API', async function () {
                     maxIdleDuration: 120
                 }
             })
-            testUser = await app.factory.createUser({
+            await app.factory.createUser({
                 username: 'testUser',
                 name: 'Test User',
                 email: 'testReset@example.com',
