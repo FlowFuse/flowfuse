@@ -13,6 +13,7 @@
         "team.type.changed": "Team Type Changed",
         "team.device.created": "New Device Created",
         "team.device.deleted": "Device Deleted",
+        "team.device.bulk-deleted": "Devices Deleted",
         "team.device.updated": "Device Updated",
         "team.device.assigned": "Device Assigned",
         "team.device.unassigned": "Device Unassigned",

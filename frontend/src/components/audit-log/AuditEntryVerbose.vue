@@ -100,6 +100,11 @@
         <span v-if="!error && entry.body?.device">Device '{{ entry.body.device?.name }}' has been deleted.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'team.device.bulk-deleted'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.info?.count">{{ entry.body.info.count }} Device{{ entry.body.info.count > 1 ? 's have' : ' has' }} been deleted.</span>
+        <span v-else-if="!error">Additional info not found in audit entry.</span>
+    </template>
     <template v-else-if="entry.event === 'team.device.updated'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.device">Device '{{ entry.body.device?.name }}' has been updated with the following changes: <AuditEntryUpdates :updates="entry.body.updates" />.</span>
