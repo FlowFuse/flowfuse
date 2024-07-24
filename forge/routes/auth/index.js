@@ -22,7 +22,7 @@ const fp = require('fastify-plugin')
 // This defines how long the session cookie is valid for. This should match
 // the max session age defined in `forge/db/controllers/Session.DEFAULT_WEB_SESSION_EXPIRY
 // albeit in secs not millisecs due to cookie maxAge requirements
-// this can be overridden by `sessions.maxDurartion`
+// this can be overridden by `sessions.maxDuration` in config yml file
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7 // 1 week in seconds
 
 // Options to apply to our session cookie
