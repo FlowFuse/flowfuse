@@ -72,6 +72,18 @@ The general points are:
 Once you have setup both sides of the configuration you can enable it for use
 by ticking the `active` checkbox and clicking `Update configuration`.
 
+## Creating new users
+
+With FlowFuse 2.6, the SSO Configuration now includes an option to automatically
+register users who sign in via the configuration.
+
+This option is not enabled by default, but can be enabled but selecting the `Allow Provisioning of New Users on first login`
+option in the SOO configuration.
+
+When creating the user, the platform will use information provided by the SAML provider
+to create the username. The user will be directed to their settings page where they
+can modify their user details to their preferred values.
+
 ## Managing Team Membership with SAML Groups
 
 Some SAML providers allow user group information to be shared as part of the sign-in process.
