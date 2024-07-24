@@ -1,6 +1,11 @@
 const crypto = require('crypto')
 
-module.exports = async function createUserTeam (app, user) {
+/**
+ * Completes user registration
+ *   - creates user team (if `user:team:auto-create` is enabled
+ *   - accepts any invitations matching the email
+ */
+async function completeUserSignup (app, user) {
     if (app.settings.get('user:team:auto-create')) {
         const teamLimit = app.license.get('teams')
         const teamCount = await app.db.models.Team.count()
@@ -100,4 +105,8 @@ module.exports = async function createUserTeam (app, user) {
 
         await app.auditLog.User.account.verify.autoCreateInstance(user, null, instance)
     }
+}
+
+module.exports = {
+    completeUserSignup
 }

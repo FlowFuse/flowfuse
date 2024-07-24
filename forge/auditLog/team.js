@@ -56,6 +56,10 @@ module.exports = {
                 async deleted (actionedBy, error, team, device) {
                     await log('team.device.deleted', actionedBy, team?.id, generateBody({ error, device }))
                 },
+                async bulkDeleted (actionedBy, error, team, devices) {
+                    const info = { count: devices.length }
+                    await log('team.device.bulk-deleted', actionedBy, team?.id, generateBody({ error, info }))
+                },
                 async updated (actionedBy, error, team, device, updates) {
                     await log('team.device.updated', actionedBy, team?.id, generateBody({ error, device, updates }))
                 },

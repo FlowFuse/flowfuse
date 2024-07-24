@@ -4,7 +4,7 @@ const { Authenticator } = require('@fastify/passport')
 const { MultiSamlStrategy } = require('@node-saml/passport-saml')
 const fp = require('fastify-plugin')
 
-const createTeamForUser = require('../../../lib/userTeam')
+const { completeUserSignup } = require('../../../lib/userTeam')
 
 const generatePassword = () => {
     const charList = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz~!@-#$'
@@ -80,7 +80,6 @@ module.exports = fp(async function (app, opts) {
         }
     }, async (request, samlUser, done) => {
         if (samlUser.nameID) {
-            // console.log(profile)
             const user = await app.db.models.User.byUsernameOrEmail(samlUser.nameID)
             if (user) {
                 const state = JSON.parse(request.body.RelayState)
@@ -135,7 +134,7 @@ module.exports = fp(async function (app, opts) {
                             }
                         } else {
                             // no SSO Group mapping so create team
-                            await createTeamForUser(app, newUser)
+                            await completeUserSignup(app, newUser)
                         }
                         request.session.newSSOUser = true
                         done(null, newUser)

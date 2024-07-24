@@ -9,6 +9,7 @@
                 <div id="platform-banner" />
                 <slot />
             </div>
+            <RightDrawer />
             <TransitionGroup class="ff-notifications" name="notifications-list" tag="div">
                 <ff-notification-toast
                     v-for="(a, $index) in alertsReversed" :key="a.timestamp"
@@ -36,12 +37,14 @@ import { mapState } from 'vuex'
 
 import InterviewPopup from '../components/InterviewPopup.vue'
 import PageHeader from '../components/PageHeader.vue'
+import RightDrawer from '../components/drawers/RightDrawer.vue'
 import AlertsMixin from '../mixins/Alerts.js'
 import DialogMixin from '../mixins/Dialog.js'
 
 export default {
     name: 'ff-layout-platform',
     components: {
+        RightDrawer,
         PageHeader,
         InterviewPopup
     },
