@@ -940,13 +940,25 @@ describe('Accounts API', async function () {
         })
     })
 
-    describe('Session configuration', async function () {
+    describe.only('Session configuration', async function () {
         it('Incorrect configuration should fail', async function () {
             try {
                 const app = await setup({
                     sessions: {
                         maxDuration: 300,
                         maxIdleDuration: 400
+                    }
+                })
+            } catch (err) {
+                return
+            }
+            should.fail('shouldn\'t get here')
+        })
+        it('Incorrect maxIdle configuration should fail', async function () {
+            try {
+                const app = await setup({
+                    sessions: {
+                        maxIdleDuration: 604801
                     }
                 })
             } catch (err) {
