@@ -68,6 +68,7 @@ table summaries what actions are available to the different roles.
 | • Assign to/Remove from Application  | ✓     | -      | -      | -              |
 | • Assign to/Remove from Instance     | ✓     | -      | -      | -              |
 | • Delete Device                      | ✓     | -      | -      | -              |
+| • Bulk Delete Devices                | ✓     | -      | -      | -              |
 | **Team Members**                     |       |        |        |                |
 | • Invite User                        | ✓     | -      | -      | -              |
 | • Change Role                        | ✓     | -      | -      | -              |

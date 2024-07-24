@@ -1,18 +1,25 @@
 <template>
     <ff-layout-box>
-        <form class="px-4 sm:px-6 lg:px-8 mt-8 space-y-6 max-w-md" @submit.prevent>
+        <form class="px-4 sm:px-6 lg:px-8 mt-8 mx-auto space-y-6 max-w-md" @submit.prevent>
             <p>
                 Before you can access the platform, we need to verify your email
                 address.
             </p>
             <p>
-                We sent you an email with a link to click when you signed up.
+                We sent you an email with a code in it. Enter the code below to continue.
             </p>
-            <ff-button :disabled="sent" @click="resend">
-                <span v-if="!sent">Resend email</span>
-                <span v-else>Sent</span>
-            </ff-button>
-            <ff-button kind="tertiary" @click="logout">Log out</ff-button>
+            <div>
+                <ff-text-input v-model="token" data-form="verify-token" maxlength="6" label="token" @enter="submitVerificationToken" />
+                <span class="ff-error-inline" data-el="token-error">{{ error }}</span>
+            </div>
+
+            <ff-button :disabled="token.length !== 6" data-action="submit-verify-token" @click="submitVerificationToken">Continue</ff-button>
+            <p>
+                <ff-button kind="tertiary" :disabled="resendTimeoutCount > 0" @click="resend">
+                    <span>Resend email <span v-if="resendTimeoutCount > 0">({{ resendTimeoutCount }})</span></span>
+                </ff-button>
+                <ff-button kind="tertiary" @click="logout">Log out</ff-button>
+            </p>
         </form>
     </ff-layout-box>
 </template>
@@ -31,16 +38,41 @@ export default {
     },
     data () {
         return {
-            sent: false
+            token: '',
+            error: '',
+            resendTimeoutCount: 0,
+            resendTimeout: null
         }
     },
     computed: mapState('account', ['user']),
     methods: {
-        async resend () {
-            if (!this.sent) {
-                this.sent = true
-                await userApi.triggerVerification()
+        async submitVerificationToken () {
+            try {
+                await userApi.verifyEmailToken(this.token)
+                clearTimeout(this.resendTimeout)
+                window.location = '/'
+            } catch (err) {
+                // Verification failed.
+                this.token = ''
+                this.error = 'Verification failed. Click resend to receive a new code to try again'
+                clearTimeout(this.resendTimeout)
+                this.resendTimeout = 0
             }
+        },
+        async resend () {
+            this.resendTimeoutCount = 30
+            try {
+                await userApi.triggerVerification()
+            } catch (err) {
+
+            }
+            const tick = () => {
+                this.resendTimeoutCount--
+                if (this.resendTimeoutCount > 0) {
+                    this.resendTimeout = setTimeout(tick, 1000)
+                }
+            }
+            tick()
         },
         logout () {
             store.dispatch('account/logout')

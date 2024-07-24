@@ -152,6 +152,7 @@ module.exports = async function (settings = {}, config = {}) {
 
     // Unassigned devices
     await factory.createDevice({ name: 'team2-unassigned-device', type: 'type2' }, team2)
+    await factory.createDevice({ name: 'team2-unassigned-device-bulk-test-1', type: 'type2' }, team2)
 
     // Application and Instances
     const application2 = await factory.createApplication({ name: 'application-2' }, team2, stack, template, projectType)
@@ -161,6 +162,7 @@ module.exports = async function (settings = {}, config = {}) {
     await factory.createDevice({ name: 'assigned-device-a', type: 'type2' }, team2, instanceWithDevices)
     await factory.createDevice({ name: 'assigned-device-b', type: 'type2' }, team2, instanceWithDevices)
     await factory.createDevice({ name: 'assigned-device-c', type: 'type2' }, team2, instanceWithDevices)
+    await factory.createDevice({ name: 'assigned-device-d-bulk-test-2', type: 'type2' }, team2, instanceWithDevices)
     await factory.createSnapshot({ name: 'snapshot 1' }, instanceWithDevices, userBob)
     await factory.createSnapshot({ name: 'snapshot 2' }, instanceWithDevices, userBob)
     await factory.createSnapshot({ name: 'snapshot 3' }, instanceWithDevices, userBob)
@@ -168,6 +170,7 @@ module.exports = async function (settings = {}, config = {}) {
     // create devices bound to application directly
     const deviceA = await factory.createDevice({ name: 'application-device-a', type: 'type2' }, team2, null, application2)
     const deviceB = await factory.createDevice({ name: 'application-device-b', type: 'type2' }, team2, null, application2)
+    await factory.createDevice({ name: 'application-device-c-bulk-test-3', type: 'type2' }, team2, null, application2)
 
     // create a device group and add deviceB to it
     const deviceGroupA = await factory.createApplicationDeviceGroup({ name: 'application-device-group-a' }, application2)

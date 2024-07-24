@@ -9,8 +9,7 @@ const IMPLICIT_TOKEN_SCOPES = {
     device: [
         'team:projects:list', // permit a device being edited via a tunnel in developer mode to list projects
         'library:entry:create', // permit a device being edited via a tunnel in developer mode to create library entries
-        'library:entry:list', // permit a device being edited via a tunnel in developer mode to list library entries
-        'assistant:function' // permit calls to the assistant endpoint for function node/code creation
+        'library:entry:list' // permit a device being edited via a tunnel in developer mode to list library entries
     ],
     project: [
         'user:read',
@@ -18,8 +17,7 @@ const IMPLICIT_TOKEN_SCOPES = {
         'project:flows:edit',
         'team:projects:list',
         'library:entry:create',
-        'library:entry:list',
-        'assistant:function'
+        'library:entry:list'
     ]
 }
 

@@ -1,6 +1,8 @@
 ---
 navTitle: Deploying your Flows
 navOrder: 6
+meta:
+   description: Learn how to deploy Node-RED flows to devices using FlowFuse, enabling seamless development and deployment processes.
 ---
 
 # Deploying Flows to the Device Agent - Team and Enterprise tier only

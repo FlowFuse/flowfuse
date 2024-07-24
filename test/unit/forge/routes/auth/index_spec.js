@@ -7,11 +7,17 @@ describe('Accounts API', async function () {
     const TestObjects = { tokens: {} }
 
     async function registerUser (payload) {
-        return app.inject({
+        const response = await app.inject({
             method: 'POST',
             url: '/account/register',
             payload
         })
+        if (response.statusCode === 200) {
+            response.cookies.should.have.length(1)
+            response.cookies[0].should.have.property('name', 'sid')
+            TestObjects.tokens[payload.username] = response.cookies[0].value
+        }
+        return response
     }
 
     async function login (username, password) {
@@ -227,8 +233,10 @@ describe('Accounts API', async function () {
             const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
             await app.inject({
                 method: 'POST',
-                url: `/account/verify/${verificationToken}`,
-                payload: {},
+                url: '/account/verify/token',
+                payload: {
+                    token: verificationToken.token
+                },
                 cookies: { sid: TestObjects.tokens.user }
             })
             await login('user', '12345678')
@@ -267,8 +275,10 @@ describe('Accounts API', async function () {
             const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
             await app.inject({
                 method: 'POST',
-                url: `/account/verify/${verificationToken}`,
-                payload: {},
+                url: '/account/verify/token',
+                payload: {
+                    token: verificationToken.token
+                },
                 cookies: { sid: TestObjects.tokens.user2 }
             })
             await login('user2', '12345678')
@@ -310,8 +320,10 @@ describe('Accounts API', async function () {
                 const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
                 const verifyResponse = await app.inject({
                     method: 'POST',
-                    url: `/account/verify/${verificationToken}`,
-                    payload: {},
+                    url: '/account/verify/token',
+                    payload: {
+                        token: verificationToken.token
+                    },
                     cookies: { sid: TestObjects.tokens.user3 }
                 })
                 verifyResponse.statusCode.should.equal(200)
@@ -341,8 +353,10 @@ describe('Accounts API', async function () {
                 const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
                 const verifyResponse = await app.inject({
                     method: 'POST',
-                    url: `/account/verify/${verificationToken}`,
-                    payload: {},
+                    url: '/account/verify/token',
+                    payload: {
+                        token: verificationToken.token
+                    },
                     cookies: { sid: TestObjects.tokens.user4 }
                 })
                 verifyResponse.statusCode.should.equal(200)
@@ -391,9 +405,11 @@ describe('Accounts API', async function () {
                 const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
                 const verifyResponse = await app.inject({
                     method: 'POST',
-                    url: `/account/verify/${verificationToken}`,
-                    payload: {},
-                    cookies: { sid: TestObjects.tokens.user4 }
+                    url: '/account/verify/token',
+                    payload: {
+                        token: verificationToken.token
+                    },
+                    cookies: { sid: TestObjects.tokens.user5 }
                 })
                 verifyResponse.statusCode.should.equal(200)
 
@@ -453,8 +469,10 @@ describe('Accounts API', async function () {
             const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
             await app.inject({
                 method: 'POST',
-                url: `/account/verify/${verificationToken}`,
-                payload: {},
+                url: '/account/verify/token',
+                payload: {
+                    token: verificationToken.token
+                },
                 cookies: { sid: TestObjects.tokens.user }
             })
             await login('user', '12345678')
@@ -919,6 +937,63 @@ describe('Accounts API', async function () {
                 payload: { email: 'unknown@example.com' }
             })
             response.statusCode.should.equal(200)
+        })
+    })
+
+    describe('Session configuration', async function () {
+        it('Incorrect configuration should fail', async function () {
+            try {
+                await setup({
+                    sessions: {
+                        maxDuration: 300,
+                        maxIdleDuration: 400
+                    }
+                })
+            } catch (err) {
+                return
+            }
+            should.fail('shouldn\'t get here')
+        })
+        it('Incorrect maxIdle configuration should fail', async function () {
+            try {
+                await setup({
+                    sessions: {
+                        maxIdleDuration: 604801
+                    }
+                })
+            } catch (err) {
+                return
+            }
+            should.fail('shouldn\'t get here')
+        })
+    })
+
+    describe('Session length', async function () {
+        before(async function () {
+            app = await setup({
+                sessions: {
+                    maxDuration: 300,
+                    maxIdleDuration: 120
+                }
+            })
+            await app.factory.createUser({
+                username: 'testUser',
+                name: 'Test User',
+                email: 'testReset@example.com',
+                password: 'ttPassword'
+            })
+        })
+        after(async function () {
+            await app.close()
+        })
+        it('Short cookie session age', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/account/login',
+                payload: { username: 'testUser', password: 'ttPassword', remember: false }
+            })
+            response.statusCode.should.equal(200)
+            response.cookies[0].maxAge.should.equal(300)
         })
     })
 })

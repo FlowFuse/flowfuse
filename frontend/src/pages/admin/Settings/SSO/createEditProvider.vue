@@ -94,6 +94,7 @@
                             <FormRow v-model="input.options.tlsVerifyServer" type="checkbox">Verify Server Certificate</FormRow>
                         </div>
                     </template>
+                    <FormRow v-model="input.options.provisionNewUsers" type="checkbox">Allow Provisioning of New Users on first login</FormRow>
                     <ff-button :disabled="!formValid" @click="updateProvider()">
                         Update configuration
                     </ff-button>
@@ -137,6 +138,7 @@ export default {
                 type: 'saml',
                 active: false,
                 options: {
+                    provisionNewUsers: false,
                     groupMapping: false
                 }
             },
@@ -240,6 +242,9 @@ export default {
                         delete opts.options.tls
                         delete opts.options.tlsVerifyServer
                     }
+                    // if (opts.options.provisionNewUsers) {
+                    //     delete opts.options.provisionNewUsers
+                    // }
                 }
                 delete opts.type
                 delete opts.id

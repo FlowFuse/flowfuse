@@ -156,6 +156,7 @@ function randomPhrase (wordCount = 3, minLength = 2, maxLength = 15, separator =
 module.exports = {
     init: _app => { app = _app },
     generateToken: (length, prefix) => (prefix ? prefix + '_' : '') + base64URLEncode(crypto.randomBytes(length || 32)),
+    generateNumericToken: () => crypto.randomInt(0, 1000000).toString().padStart(6, '0'),
     hash: value => bcrypt.hashSync(value, 10),
     compareHash: (plain, hashed) => bcrypt.compareSync(plain, hashed),
     md5,

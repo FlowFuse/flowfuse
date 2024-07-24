@@ -1,4 +1,5 @@
 // const { Roles } = require('../../lib/roles.js')
+const { ControllerError } = require('../../lib/errors.js')
 
 /**
  * Team Devices api routes
@@ -337,6 +338,59 @@ module.exports = async function (app) {
             const resp = { code: 'unexpected_error', error: err.toString() }
             await app.auditLog.Team.team.device.provisioning.deleted(request.session.User, resp, tokenId, tokenName, request.team)
             reply.code(400).send(resp)
+        }
+    })
+    /**
+     * Bulk Delete devices
+     * @name /api/v1/teams/:teamId/devices/bulk
+     * @method DELETE
+     * @static
+     * @memberof forge.routes.api.devices
+     */
+    app.delete('/bulk', {
+        preHandler: app.needsPermission('team:device:bulk-delete'),
+        schema: {
+            summary: 'Delete devices',
+            tags: ['Team Devices'],
+            body: {
+                type: 'object',
+                properties: {
+                    devices: {
+                        type: 'array',
+                        items: { type: 'string' },
+                        minItems: 1
+                    }
+                },
+                required: ['devices']
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        try {
+            /** @type {typeof import('../../db/controllers/Device.js')} */
+            const deviceController = app.db.controllers.Device
+            await deviceController.bulkDelete(request.team, request.body?.devices, request.session?.User)
+            reply.send({ status: 'okay' })
+        } catch (err) {
+            if (err instanceof ControllerError) {
+                return reply
+                    .code(err.statusCode || 400)
+                    .send({
+                        code: err.code || 'unexpected_error',
+                        error: err.error || err.message
+                    })
+            }
+            return reply.code(err.statusCode || 500).send({
+                code: err.code || 'unexpected_error',
+                error: err.error || err.message
+            })
         }
     })
 }

@@ -3,12 +3,15 @@
         <label class="delimiter">
             <IconNodeRedSolid class="ff-icon ff-icon-sm text-red-800" /> Instances
         </label>
-        <span class="message">
+        <span v-if="!isSearching" class="message">
             This Application currently has no
             <router-link :to="`/application/${application.id}/instances`" class="ff-link">
                 attached Node-RED Instances
             </router-link>
             .
+        </span>
+        <span v-else class="message">
+            No instance matches your criteria.
         </span>
     </section>
     <section v-else class="ff-applications-list-instances--compact">
@@ -24,50 +27,53 @@
             >
                 <InstanceTile :instance="instance" @delete-instance="$emit('delete-instance', $event)" />
             </div>
-            <div v-if="hasMoreInstances" class="has-more item-wrapper">
-                <router-link :to="{name: 'ApplicationInstances', params: {id: application.id}}">
-                    <span>
-                        {{ remainingInstances }}
-                        More...
-                    </span>
-                    <ChevronRightIcon class="ff-icon" />
-                </router-link>
-            </div>
+            <HasMoreTile
+                v-if="hasMoreInstances"
+                link-to="ApplicationInstances"
+                :remaining="remainingInstances"
+                :application="application"
+                :search-query="searchQuery"
+            />
         </div>
     </section>
 </template>
 
 <script>
-import { ChevronRightIcon } from '@heroicons/vue/solid'
-
 import IconNodeRedSolid from '../../../../../components/icons/NodeRedSolid.js'
+
+import HasMoreTile from './HasMoreTile.vue'
 
 import InstanceTile from './InstanceTile.vue'
 
 export default {
     name: 'InstancesWrapper',
-    components: { ChevronRightIcon, IconNodeRedSolid, InstanceTile },
+    components: { HasMoreTile, IconNodeRedSolid, InstanceTile },
     props: {
         application: {
             type: Object,
             required: true,
             default: null
+        },
+        searchQuery: {
+            type: String,
+            required: false,
+            default: ''
         }
     },
     emits: ['delete-instance'],
     computed: {
         instances () {
-            return this.application.instances
+            return this.application.instances.slice(0, 3)
         },
         hasMoreInstances () {
-            return this.application.instanceCount > this.application.instances.length
+            return this.application.instanceCount > this.instances.length
         },
         hasNoInstances () {
-            return this.application.instances.length === 0
+            return this.instances.length === 0
         },
         remainingInstances () {
             if (this.hasNoInstances || this.hasMoreInstances) {
-                return this.application.instanceCount - this.application.instances.length
+                return this.application.instanceCount - this.instances.length
             } else return 0
         },
         singleInstance () {
@@ -78,6 +84,9 @@ export default {
         },
         threeInstances () {
             return this.application.instanceCount === 3
+        },
+        isSearching () {
+            return this.searchQuery.length > 0
         }
     }
 }

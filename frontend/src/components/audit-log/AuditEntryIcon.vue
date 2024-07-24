@@ -188,6 +188,7 @@ const iconMap = {
         'application.device.assigned',
         'team.device.created',
         'team.device.deleted',
+        'team.device.bulk-deleted',
         'team.device.updated',
         'team.device.unassigned',
         'team.device.assigned',

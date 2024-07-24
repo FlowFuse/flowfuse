@@ -1,5 +1,7 @@
 ---
 navTitle: Docker from AWS Market Place
+meta: 
+    description: Deploy FlowFuse on AWS EC2 using Docker from our AWS Marketplace AMI. Setup DNS and optional SMTP for seamless management of applications and Node-RED instances.
 ---
 
 # Installing FlowFuse from AWS Market Place
