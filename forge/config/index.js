@@ -110,6 +110,20 @@ module.exports = {
             }
         }
 
+        // need to check that maxIdleDuration is less than maxDuration
+        if (config.sessions) {
+            if (config.sessions.maxIdleDuration && config.sessions.maxDuration) {
+                if (config.sessions.maxIdleDuration > config.sessions.maxDuration) {
+                    throw new Error('Session maxIdleDuration longer than maxDuration')
+                    // config.sessions.maxIdleDuration = config.sessions.maxDuration
+                }
+            } else if (config.sessions.maxIdleDuration) {
+                if (config.sessions.maxIdleDuration > (60 * 60 * 24 * 7)) {
+                    throw new Error('Session maxIdleDuration longer than maxDuration')
+                }
+            }
+        }
+
         const defaultLogging = {
             level: 'info',
             http: 'warn',
