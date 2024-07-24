@@ -33,7 +33,7 @@
                         v-ff-tooltip:top="'Delete selected devices'"
                         :disabled="checkedDevices.length === 0"
                         data-action="bulk-delete-devices"
-                        kind="tertiary"
+                        kind="tertiary-danger"
                         @click="showTeamBulkDeviceDeleteDialog"
                     >
                         <template #icon>
@@ -349,7 +349,7 @@ export default {
         ...mapState('account', ['team', 'teamMembership']),
         columns () {
             const columns = [
-                { label: 'Device', key: 'name', class: ['w-64'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
+                { label: 'Device', key: 'name', sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
                 { label: 'Type', key: 'type', class: ['w-48'], sortable: !this.moreThanOnePage },
                 { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLastSeenBadge) } },
                 { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge) } }

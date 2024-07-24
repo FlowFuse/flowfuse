@@ -146,6 +146,13 @@
       color: $ff-white;
     }
   }
+  &--tertiary-danger {
+    color: $ff-color--danger;
+    &:hover {
+      background-color: $ff-color--danger--dark;
+      color: $ff-white;
+    }
+  }
 
   &.ff-btn-small {
     .ff-btn--icon,
