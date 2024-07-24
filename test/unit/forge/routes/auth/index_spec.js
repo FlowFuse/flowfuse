@@ -939,4 +939,61 @@ describe('Accounts API', async function () {
             response.statusCode.should.equal(200)
         })
     })
+
+    describe('Session configuration', async function () {
+        it('Incorrect configuration should fail', async function () {
+            try {
+                await setup({
+                    sessions: {
+                        maxDuration: 300,
+                        maxIdleDuration: 400
+                    }
+                })
+            } catch (err) {
+                return
+            }
+            should.fail('shouldn\'t get here')
+        })
+        it('Incorrect maxIdle configuration should fail', async function () {
+            try {
+                await setup({
+                    sessions: {
+                        maxIdleDuration: 604801
+                    }
+                })
+            } catch (err) {
+                return
+            }
+            should.fail('shouldn\'t get here')
+        })
+    })
+
+    describe('Session length', async function () {
+        before(async function () {
+            app = await setup({
+                sessions: {
+                    maxDuration: 300,
+                    maxIdleDuration: 120
+                }
+            })
+            await app.factory.createUser({
+                username: 'testUser',
+                name: 'Test User',
+                email: 'testReset@example.com',
+                password: 'ttPassword'
+            })
+        })
+        after(async function () {
+            await app.close()
+        })
+        it('Short cookie session age', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/account/login',
+                payload: { username: 'testUser', password: 'ttPassword', remember: false }
+            })
+            response.statusCode.should.equal(200)
+            response.cookies[0].maxAge.should.equal(300)
+        })
+    })
 })
