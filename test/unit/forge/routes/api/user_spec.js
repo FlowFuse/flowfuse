@@ -972,11 +972,20 @@ describe('User API', async function () {
             })
             return response.json().teams
         }
+        async function getUserNotifications (userToken) {
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user/notifications',
+                cookies: { sid: userToken }
+            })
+            return response.json().notifications
+        }
 
         it('user can accept an invite to a team', async function () {
             await login('grace', 'ggPassword')
             ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(0)
             ;(await getUserTeams(TestObjects.tokens.grace)).should.have.length(1)
+            ;(await getUserNotifications(TestObjects.tokens.grace)).should.have.length(0)
 
             // Create invitation
             const invitor = TestObjects.alice
@@ -986,6 +995,7 @@ describe('User API', async function () {
 
             const invite = result.grace
 
+            ;(await getUserNotifications(TestObjects.tokens.grace)).should.have.length(1)
             ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(1)
 
             // Accept invitation
@@ -997,12 +1007,14 @@ describe('User API', async function () {
             response.statusCode.should.equal(200)
             ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(0)
             ;(await getUserTeams(TestObjects.tokens.grace)).should.have.length(2)
+            ;(await getUserNotifications(TestObjects.tokens.grace)).should.have.length(0)
         })
 
         it('user can reject an invite to a team', async function () {
             await login('grace', 'ggPassword')
             ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(0)
             ;(await getUserTeams(TestObjects.tokens.grace)).should.have.length(1)
+            ;(await getUserNotifications(TestObjects.tokens.grace)).should.have.length(0)
 
             // Create invitation
             const invitor = TestObjects.alice
@@ -1012,6 +1024,7 @@ describe('User API', async function () {
 
             const invite = result.grace
 
+            ;(await getUserNotifications(TestObjects.tokens.grace)).should.have.length(1)
             ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(1)
 
             // Accept invitation
@@ -1023,6 +1036,7 @@ describe('User API', async function () {
             response.statusCode.should.equal(200)
             ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(0)
             ;(await getUserTeams(TestObjects.tokens.grace)).should.have.length(1)
+            ;(await getUserNotifications(TestObjects.tokens.grace)).should.have.length(0)
         })
 
         it('user cannot accept an invite they do not own', async function () {
