@@ -59,9 +59,30 @@ module.exports = {
         }
 
         for (let i = 0; i < pendingInvites.length; i++) {
-            const invite = await app.db.models.Invitation.create(pendingInvites[i].opts)
+            let invite = await app.db.models.Invitation.create(pendingInvites[i].opts)
             // Re-get the new invite so the User/Team properties are pre-fetched
-            results[pendingInvites[i].userDetail] = await app.db.models.Invitation.byId(invite.hashid)
+            invite = await app.db.models.Invitation.byId(invite.hashid)
+            results[pendingInvites[i].userDetail] = invite
+            if (!invite.external) {
+                await app.notifications.send(
+                    invite.invitee,
+                    'team-invite',
+                    {
+                        invite: {
+                            id: invite.hashid
+                        },
+                        team: {
+                            id: invite.team.hashid,
+                            name: invite.team.name
+                        },
+                        invitor: {
+                            username: invitor.username
+                        },
+                        role
+                    },
+                    `team-invite:${invite.hashid}`
+                )
+            }
         }
         return results
     },
