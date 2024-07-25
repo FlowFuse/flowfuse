@@ -1,5 +1,9 @@
 <template>
-    <NotificationMessage data-el="invitation-message" :to="{name: 'User Invitations'}">
+    <NotificationMessage
+        :notification="notification"
+        :selections="selections"
+        data-el="invitation-message" :to="{name: 'User Invitations'}"
+    >
         <template #icon>
             <UserAddIcon />
         </template>
@@ -28,10 +32,10 @@ export default {
     mixins: [NotificationMessageMixin],
     computed: {
         invitorName () {
-            return this.notification.invitor.name
+            return this.notification.data.invitor.username
         },
         teamName () {
-            return this.notification.team.name
+            return this.notification.data.team.name
         }
     }
 }

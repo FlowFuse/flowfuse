@@ -84,16 +84,22 @@ $ff-notifications-drawer-side-padding: 12px;
         background-color: $ff-grey-100;
         
         .message {
+            color: $ff-grey-400;
             background-color: $ff-white;
             border-bottom: 1px solid $ff-grey-300;
+            border-left: 3px solid rgba(0,0,0,0);
             padding: 9px $ff-notifications-drawer-side-padding;
             transition: ease-in-out .3s;
+            
             cursor: pointer;
 
             &:hover .title {
                 color: $ff-blue-500;
             }
-
+            &.unread {
+                border-left-color: $ff-blue-500;
+                color: $ff-grey-800;
+            }
             .body {
                 flex: 1;
                 display: flex;
