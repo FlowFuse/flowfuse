@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" header="Device Configuration">
+    <ff-dialog ref="dialog" header="Device Configuration" data-el="team-device-config-dialog">
         <template #default>
             <form class="text-gray-800">
                 <template v-if="!hasCredentials">
