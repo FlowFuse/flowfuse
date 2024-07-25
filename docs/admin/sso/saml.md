@@ -72,6 +72,18 @@ The general points are:
 Once you have setup both sides of the configuration you can enable it for use
 by ticking the `active` checkbox and clicking `Update configuration`.
 
+## Creating new users
+
+With FlowFuse 2.7, the SSO Configuration now includes an option to automatically
+register users who sign in via the configuration.
+
+This option is not enabled by default, but can be enabled but selecting the `Allow Provisioning of New Users on first login`
+option in the SOO configuration.
+
+When creating the user, the platform will use information provided by the SAML provider
+to create the username. The user will be directed to their settings page where they
+can modify their user details to their preferred values.
+
 ## Managing Team Membership with SAML Groups
 
 Some SAML providers allow user group information to be shared as part of the sign-in process.
@@ -115,6 +127,16 @@ The valid roles for a user in a team are:
 the groups in the SAML Provider - rather than using the team's id. However, a team's slug can be changed
 by a team owner. Doing so will break the link between the group and the team membership - so should only
 be done with care.
+
+## Managing Admin users
+
+The SSO Configuration can be configured to managed the admin users of the platform by enabling the
+`Manage Admin roles using group assertions` option. Once enabled, the name of a group can be provided
+that will be used to identify whether a user is an admin or not.
+
+**Note:* the platform will refuse to remove the admin flag from a user if they are the only admin
+on the platform. It is *strongly* recommended to have an admin user on the system that is not
+managed via SSO to ensure continued access in case of any issues with the SSO provider.
 
 ## Providers
 

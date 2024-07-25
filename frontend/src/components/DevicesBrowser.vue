@@ -318,7 +318,6 @@ import { mapState } from 'vuex'
 import deviceApi from '../api/devices.js'
 import teamApi from '../api/team.js'
 import deviceActionsMixin from '../mixins/DeviceActions.js'
-import DialogMixin from '../mixins/Dialog.js'
 import permissionsMixin from '../mixins/Permissions.js'
 
 import DeviceAssignedToLink from '../pages/application/components/cells/DeviceAssignedToLink.vue'
@@ -359,7 +358,7 @@ export default {
         EmptyState,
         DevicesStatusBar
     },
-    mixins: [permissionsMixin, deviceActionsMixin, DialogMixin],
+    mixins: [permissionsMixin, deviceActionsMixin],
     inheritAttrs: false,
     props: {
         // One of the two must be provided
