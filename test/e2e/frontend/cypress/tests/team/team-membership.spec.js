@@ -1,5 +1,5 @@
 describe('FlowForge - Team Membership', () => {
-    // let team // , project
+    let startingInviteCount
 
     beforeEach(() => {
         cy.intercept('/api/*/teams/*/invitations').as('getTeamsInvitations')
@@ -9,14 +9,19 @@ describe('FlowForge - Team Membership', () => {
 
     it('loads team members into the data table', () => {
         cy.visit('team/ateam/members/general')
-        cy.wait(['@getTeamsInvitations'])
-
+        cy.wait('@getTeamsInvitations')
         // starts off with alice and bob as members
         cy.get('[data-el="members-table"] tbody').find('tr').should('have.length', 2) // should be 2 members
 
         cy.visit('team/ateam/members/invitations')
         // starts off with one invitation already
-        cy.get('[data-el="invites-table"] tbody').find('tr').should('have.length', 1)
+        cy.get('[data-el="invites-table"] tbody').find('tr').then(el => {
+            // This is tiresome. We might have a 'No Data Found' row. But I simply
+            // cannot find a way to filter them out. Cypress docs claim .filter is
+            // the opposite of .not - yet .filter supports :contains, but .not does not.
+            startingInviteCount = el.length - el.filter(':contains("No Data Found")').length
+            cy.log('STARTING WITH', startingInviteCount)
+        })
     })
 
     it('owner/admin can invite user', () => {
@@ -36,10 +41,11 @@ describe('FlowForge - Team Membership', () => {
     })
 
     it('loads invitations into the data table', () => {
+        cy.log('HERE WITH', startingInviteCount)
         cy.intercept('/api/*/teams/*/invitations').as('getTeamsInvitations')
         cy.visit('team/ateam/members/invitations')
         cy.wait('@getTeamsInvitations')
-        cy.get('[data-el="invites-table"] tbody').find('tr').should('have.length', 2)
+        cy.get('[data-el="invites-table"] tbody').find('tr').should('have.length', startingInviteCount + 1)
     })
 
     it('user can accept a team invite', () => {
