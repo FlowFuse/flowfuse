@@ -35,7 +35,7 @@ module.exports = {
         await app.db.controllers.AccessToken.deleteAllUserPasswordResetTokens(user)
 
         const token = generateToken(32, 'ffpr')
-        const expiresAt = new Date(Date.now() + (86400 * 1000)) // 1 day
+        const expiresAt = new Date(Date.now() + (1800 * 1000)) // 1 day
         await app.db.models.AccessToken.create({
             token,
             expiresAt,
