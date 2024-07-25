@@ -54,6 +54,10 @@ export default {
             userApi.requestPasswordReset({ email: this.input.email }).then(() => {
                 // show message
                 this.flash = 'We have sent you an email with instructions to reset your password'
+                this.tooManyRequests = true
+                setTimeout(() => {
+                    this.tooManyRequests = false
+                }, 30000)
             }).catch(e => {
                 this.errors.email = ''
                 if (e.response?.status === 429) {
@@ -61,7 +65,7 @@ export default {
                     this.tooManyRequests = true
                     setTimeout(() => {
                         this.tooManyRequests = false
-                    }, 30000)
+                    }, 60000)
                 } else {
                     console.error(e)
                 }
