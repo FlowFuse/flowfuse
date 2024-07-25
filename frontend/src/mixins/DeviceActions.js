@@ -41,7 +41,14 @@ export default {
     emits: ['delete-device'],
     methods: {
         deviceAction (action, deviceId) {
-            const device = this.devices.get(deviceId)
+            let device
+            if (this.devices instanceof Map) {
+                // working with DevicesBrowser component
+                device = this.devices.get(deviceId)
+            } else {
+                // working with compact application views
+                device = this.devices.find(e => e.id === deviceId)
+            }
             if (action === 'edit') {
                 this.showEditDeviceDialog(device)
             } else if (action === 'delete') {
@@ -123,8 +130,16 @@ export default {
             } else {
                 this.allDeviceStatuses.set(device.id, device)
             }
-
-            this.devices.set(device.id, device)
+            if (this.devices instanceof Map) {
+                // working with DevicesBrowser component
+                const localDevice = this.devices.get(device.id)
+                Object.assign(localDevice, device, currentDeviceStatus)
+                this.devices.set(device.id, localDevice)
+            } else {
+                // working with compact application views
+                const localDevice = this.devices.find(e => e.id === device.id)
+                Object.assign(localDevice, device, currentDeviceStatus)
+            }
         },
 
         deviceCreated (device) {
@@ -146,7 +161,13 @@ export default {
                 this.deviceCountDeltaSincePageLoad--
             }
             this.allDeviceStatuses.delete(device.id)
-            this.devices.delete(device.id)
+            if (this.devices instanceof Map) {
+                // working with DevicesBrowser component
+                this.devices.delete(device.id)
+            } else {
+                // working with compact application views
+                this.devices = this.devices.filter(e => e.id !== device.id)
+            }
 
             if ( // updates the application device count if present
                 Object.hasOwnProperty.call(this, 'application') &&
