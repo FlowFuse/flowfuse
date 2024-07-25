@@ -137,8 +137,16 @@ export default {
                 this.devices.set(device.id, localDevice)
             } else {
                 // working with compact application views
-                const localDevice = this.devices.find(e => e.id === device.id) || {} // if not found, we are adding a new device
-                Object.assign(localDevice, device, currentDeviceStatus)
+                const localDevice = this.devices.find(e => e.id === device.id)
+                if (!localDevice) {
+                    // not found - i.e. adding new device
+                    // in theory, this should never happen as devices cannot (currently) be added from application view
+                    // but we need to _do something_ in the case of a device not found in the list
+                    this.devices.push(Object.assign({}, device, currentDeviceStatus))
+                } else {
+                    // found - i.e. update existing device
+                    Object.assign(localDevice, device, currentDeviceStatus)
+                }
             }
         },
 
