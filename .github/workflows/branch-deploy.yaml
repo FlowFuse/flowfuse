@@ -21,7 +21,8 @@ jobs:
     name: Validate trigger author
     runs-on: ubuntu-latest
     if: |
-      github.event_name == 'pull_request'
+      github.event_name == 'pull_request' &&
+      github.actor != 'dependabot[bot]'
     outputs:
       is_org_member: ${{ steps.validate.outputs.is_member }}
     steps:
@@ -209,7 +210,9 @@ jobs:
   notify-slack:
     name: Notify about pre-staging deployment
     needs: [deploy]
-    if: success() || failure()
+    if: |
+      ( success() || failure() ) &&
+      github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     env:
       PR_NUMBER: ${{ github.event.number }}
@@ -269,6 +272,10 @@ jobs:
                   {
                     "type": "mrkdwn",
                     "text": "*Deployed to:*\n<https://${{ env.PR_NUMBER }}.flowfuse.dev|https://${{ env.PR_NUMBER }}.flowfuse.dev>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Logs:*\n<https://${{ env.GRAFANA_URL }}/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22editorMode%22:%22code%22,%22expr%22:%22%7Bnamespace%3D%5C%22pr-${{ env.PR_NUMBER }}%5C%22%7D%20%7C%3D%20%60%60%20%7C%20json%22,%22queryType%22:%22range%22%7D%5D,%22range%22:%7B%22from%22:%22now-30m%22,%22to%22:%22now%22%7D%7D|View>"
                   }
                 ]
               }
@@ -276,6 +283,7 @@ jobs:
           }
       env:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
+        GRAFANA_URL: ${{ secrets.STAGING_GRAFANA_URL }}
 
 
   destroy:

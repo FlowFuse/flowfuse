@@ -1,6 +1,9 @@
+const crypto = require('crypto')
+
 const { Client } = require('ldapts')
 
 const { Roles, TeamRoles } = require('../../../lib/roles')
+const { completeUserSignup } = require('../../../lib/userTeam')
 
 module.exports.init = async function (app) {
     // Set the SSO feature flag
@@ -97,8 +100,122 @@ module.exports.init = async function (app) {
                     }
                 }
             }
+        } else {
+            // should check if username is email address?
+            const providerConfig = await app.db.models.SAMLProvider.forEmail(request.body.username)
+            if (providerConfig?.options?.provisionNewUsers) {
+                if (providerConfig.type === 'saml') {
+                    reply.code(401).send({ code: 'sso_required', redirect: `/ee/sso/login?u=${request.body.username}` })
+                    return true
+                } else if (providerConfig.type === 'ldap') {
+                    if (!request.body.password) {
+                        reply.code(401).send({ code: 'password_required', error: 'Password required' })
+                        return true
+                    }
+                    const tempUser = {
+                        username: request.body.username,
+                        email: request.body.username
+                    }
+                    const userInfo = app.auditLog.formatters.userObject(request.body)
+                    if (verifyLDAPUser(providerConfig, tempUser, request.body.password)) {
+                        // TODO create user
+                        const newUserProperties = await lookupLDAPUser(providerConfig, request.body.username)
+                        if (newUserProperties) {
+                            const newUser = await app.db.models.User.create(newUserProperties)
+                            const sessionInfo = await app.createSessionCookie(newUser.username)
+                            if (sessionInfo) {
+                                userInfo.id = sessionInfo.session.UserId
+                                newUser.sso_enabled = true
+                                newUser.email_verified = true
+                                await newUser.save()
+                                // Complete user signup - create team and accept invites
+                                await completeUserSignup(app, newUser)
+                                reply.setCookie('sid', sessionInfo.session.sid, sessionInfo.cookieOptions)
+                                await app.auditLog.User.account.login(userInfo, null)
+                                reply.send()
+                                return true
+                            }
+                        }
+                    }
+                    return false
+                }
+            }
         }
         return false
+    }
+
+    const generatePassword = () => {
+        const charList = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz~!@-#$'
+        return Array.from(crypto.randomFillSync(new Uint32Array(8))).map(x => charList[x % charList.length]).join('')
+    }
+
+    /**
+     * Look up ldap user
+     * @param {*} providerConfig the ldap confi
+     * @param {String} username the User to lookup
+     * @returns User properties
+     */
+    async function lookupLDAPUser (providerConfig, username) {
+        let url = providerConfig.options.server
+        if (!/^ldaps?:\/\//.test(url)) {
+            if (providerConfig.options.tls) {
+                url = 'ldaps://' + url
+            } else {
+                url = 'ldap://' + url
+            }
+        }
+        const clientOptions = { url }
+        if (providerConfig.options.tls) {
+            if (!providerConfig.options.tlsVerifyServer) {
+                clientOptions.tlsOptions = {
+                    rejectUnauthorized: false
+                }
+            }
+        }
+        const adminClient = new Client(clientOptions)
+        try {
+            await adminClient.bind(providerConfig.options.username, providerConfig.options.password)
+        } catch (err) {
+            app.log.error(`Failed to bind LDAP client: Provider '${providerConfig.name}' ${url} ${err}`)
+            return null
+        }
+
+        // Any errors from here must unbind the adminClient - so wrap all in try/catch
+        try {
+            const filter = providerConfig.options.userFilter.replace(/\${username}/g, username).replace(/\${email}/g, username)
+            const { searchEntries } = await adminClient.search(providerConfig.options.baseDN, {
+                filter
+            })
+            if (searchEntries.length === 1) {
+                const userProperties = {
+                    username: username.replace('@', '-').replaceAll('.', '_').toLowerCase(),
+                    email: username,
+                    password: generatePassword()
+                }
+                // may want to extend this list at some point
+                if (searchEntries[0].displayName) {
+                    userProperties.name = searchEntries[0].displayName
+                } else if (searchEntries[0].givenName) {
+                    if (searchEntries[0].sn) {
+                        userProperties.name = `${searchEntries[0].givenName} ${searchEntries[0].sn}`
+                    } else {
+                        userProperties.name = `${searchEntries[0].givenName}`
+                    }
+                } else {
+                    userProperties.name = username.split('@')[0]
+                }
+                return userProperties
+            }
+        } catch (err) {
+            app.log.error(`Error looking up new LDAP User '${username}' Provider '${providerConfig.name}' ${url} ${err}`)
+        } finally {
+            try {
+                if (adminClient) {
+                    await adminClient.unbind()
+                }
+            } catch (err) {}
+        }
+        return null
     }
 
     /**
@@ -185,6 +302,7 @@ module.exports.init = async function (app) {
             if (!Array.isArray(groupAssertions)) {
                 groupAssertions = [groupAssertions]
             }
+            let adminGroup = false
             const desiredTeamMemberships = {}
             groupAssertions.forEach(ga => {
                 // Parse the group name - format: 'ff-SLUG-ROLE'
@@ -206,7 +324,27 @@ module.exports.init = async function (app) {
                         }
                     }
                 }
+                if (providerOpts.groupAdmin && providerOpts.groupAdminName === ga) {
+                    adminGroup = true
+                }
             })
+
+            if (providerOpts.groupAdmin) {
+                if (user.admin && !adminGroup) {
+                    app.auditLog.User.user.updatedUser(0, null, [{ key: 'admin', old: true, new: false }], user)
+                    user.admin = false
+                    try {
+                        await user.save()
+                    } catch (err) {
+                        // did we just fail remove the last admin?
+                        app.log.info(`Failed to remove admin from ${user.username}, as this would have been the last admin`)
+                    }
+                } else if (adminGroup && !user.admin) {
+                    app.auditLog.User.user.updatedUser(0, null, [{ key: 'admin', old: false, new: true }], user)
+                    user.admin = true
+                    await user.save()
+                }
+            }
 
             // Get the existing memberships and generate a slug->membership object (existingMemberships)
             const existingMemberships = {}
@@ -238,8 +376,6 @@ module.exports.init = async function (app) {
                     // This team is in the desired list
                     if (desiredTeamMemberships[teamSlug] !== membership.role) {
                         // Role has changed - update membership
-                        // console.log(`changing role in team ${teamSlug} from ${membership.role} to ${desiredTeamMemberships[teamSlug]}`)
-
                         const updates = new app.auditLog.formatters.UpdatesCollection()
                         const oldRole = app.auditLog.formatters.roleObject(membership.role)
                         const role = app.auditLog.formatters.roleObject(desiredTeamMemberships[teamSlug])

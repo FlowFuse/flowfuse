@@ -15,8 +15,12 @@ export default {
     // this is used in Platform.vue in order to control the showing/hiding
     // of the app's main dialog
     bind: function (el, fcn) {
-        dialog = el
-        subscriptions.push(fcn)
+        if (!el) {
+            throw new Error('No dialog element provided')
+        } else {
+            dialog = el
+            subscriptions.push(fcn)
+        }
     },
 
     /**

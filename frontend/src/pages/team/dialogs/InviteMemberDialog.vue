@@ -3,11 +3,11 @@
         <template #default>
             <form class="space-y-2" @submit.prevent>
                 <template v-if="!responseErrors">
-                    <p v-if="!exceedsUserLimit">Invite a user to join the team by username<span v-if="externalEnabled"> or email</span>.</p>
+                    <p v-if="!exceedsUserLimit">Invite a user to join the team by username<span v-if="externalEnabled"> or email</span>. Please use a comma-separated list to invite multiple new users.</p>
                     <p v-if="hasUserLimit">Your team can have a maximum of {{ team.type.properties.userLimit }} members.</p>
                     <p v-if="exceedsUserLimit">You currently have {{ totalMembers }} (including existing invites) so cannot invite any more.</p>
-                    <div v-if="!exceedsUserLimit" class="space-y-4">
-                        <FormRow id="userInfo" v-model="input.userInfo" :error="errors.userInfo" :placeholder="'username'+(externalEnabled?' or email':'')" />
+                    <div v-if="!exceedsUserLimit" class="space-y-4 pt-2">
+                        <FormRow id="userInfo" v-model="input.userInfo" :error="errors.userInfo" :placeholder="'username, username2, ...' + (externalEnabled?' or email1, email2, ...':'')" />
                         <ff-radio-group v-model="input.role" orientation="vertical" :options="roleOptions" />
                     </div>
                 </template>

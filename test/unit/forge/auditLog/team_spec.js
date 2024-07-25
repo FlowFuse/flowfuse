@@ -306,6 +306,19 @@ describe('Audit Log > Team', async function () {
         logEntry.body.device.id.should.equal(DEVICE.hashid)
     })
 
+    it('Provides a logger for bulk deleting team devices', async function () {
+        await teamLogger.team.device.bulkDeleted(ACTIONED_BY, null, TEAM, ['abcde', 'fghij'])
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'team.device.bulk-deleted')
+        logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('info')
+        logEntry.body.info.should.only.have.keys('count')
+        logEntry.body.info.count.should.equal(2)
+    })
+
     it('Provides a logger for deleting a device in a team', async function () {
         await teamLogger.team.device.updated(ACTIONED_BY, null, TEAM, DEVICE, [{ key: 'name', old: 'old', new: 'new' }])
         // check log stored

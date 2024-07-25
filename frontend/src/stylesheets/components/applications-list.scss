@@ -227,18 +227,30 @@
                     flex-direction: column;
                     flex: 1;
                     overflow: hidden;
+                    line-height: 1.4;
 
-                    span, a {
-                        white-space: nowrap;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                        
-                        &:last-child {
-                            color: $ff-grey-400;
+                    .name {
+                        color: $ff-black;
+
+                        &.no-highlight {
+                            color: $ff-black !important;
                         }
                     }
-                    &:hover {
-                        cursor: pointer;
+                    
+                    .detail {
+                        color: $ff-grey-400;
+                    }
+                    
+                    > .detail-wrapper {
+                        display: inline-block;
+                        flex-direction: column;
+                        flex: 1;
+                        overflow: hidden;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
+                    }
+
+                    a:hover {
                         color: $ff-blue-600;
                     }
                 }
@@ -250,6 +262,17 @@
 
                     button {
                         padding: 6px 10px;
+                    }
+                }
+            }
+
+            &:hover {
+                .instance-tile,
+                .device-tile {
+                    .details {
+                        .name {
+                            color: $ff-blue-600;
+                        }
                     }
                 }
             }

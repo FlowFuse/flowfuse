@@ -38,6 +38,11 @@ describe('FlowForge - Applications', () => {
         it('can display an application without devices and instances', () => {
             cy.intercept(
                 'GET',
+                '/api/*/teams/*/applications/status*',
+                { count: 1, applications: [{ id: 'some-id', instances: [], devices: [] }] }
+            ).as('getAppStatuses')
+            cy.intercept(
+                'GET',
                 '/api/*/teams/*/applications*',
                 req => req.reply(res => {
                     res.send({
@@ -69,6 +74,7 @@ describe('FlowForge - Applications', () => {
             cy.visit('/')
 
             cy.wait('@getApplication')
+            cy.wait('@getAppStatuses')
             cy.wait('@getDevices')
 
             cy.contains('My app')
@@ -101,10 +107,14 @@ describe('FlowForge - Applications', () => {
                     isDeploying: false
                 }
             ]
-
             cy.intercept(
                 'GET',
-                '/api/*/teams/*/applications*',
+                '/api/*/teams/*/applications/status*',
+                { count: 1, applications: [{ id: 'some-id', instances: [], devices: [] }] }
+            ).as('getAppStatuses')
+            cy.intercept(
+                'GET',
+                '/api/*/teams/*/applications?*',
                 (req) => req.reply(res => {
                     res.body = {
                         applications: [
@@ -115,6 +125,7 @@ describe('FlowForge - Applications', () => {
                                 instancesSummary: {
                                     instances: [
                                         {
+                                            id: 1,
                                             name: 'immersive-compatible-instance',
                                             meta: {
                                                 versions: {
@@ -125,6 +136,7 @@ describe('FlowForge - Applications', () => {
                                             url: 'https://www.google.com:123/search?q=rick+astley'
                                         },
                                         {
+                                            id: 2,
                                             name: 'immersive-incompatible-instance',
                                             meta: {
                                                 versions: {
@@ -145,19 +157,23 @@ describe('FlowForge - Applications', () => {
                     return res
                 })
             ).as('getApplication')
+
             cy.intercept('get', '/api/*/applications/*/devices*', {
                 meta: {},
                 count: 0,
-                devices
+                devices: []
+                // devices
             }).as('getDevices')
 
             cy.visit('/')
 
             cy.wait('@getApplication')
+            cy.wait('@getAppStatuses')
             cy.wait('@getDevices')
 
             cy.get('[data-el="application-instance-item"')
                 .contains('immersive-compatible-instance')
+                .parent()
                 .parent()
                 .parent()
                 .within(() => {
@@ -168,6 +184,7 @@ describe('FlowForge - Applications', () => {
 
             cy.get('[data-el="application-instance-item"')
                 .contains('immersive-incompatible-instance')
+                .parent()
                 .parent()
                 .parent()
                 .within(() => {
@@ -182,6 +199,7 @@ describe('FlowForge - Applications', () => {
                 .contains('a device')
                 .parent()
                 .parent()
+                .parent()
                 .within(() => {
                     cy.get('[data-el="status-badge-offline"]').should('exist')
                     cy.contains('Last seen: never')
@@ -191,6 +209,7 @@ describe('FlowForge - Applications', () => {
                 .contains('another device')
                 .parent()
                 .parent()
+                .parent()
                 .within(() => {
                     cy.get('[data-el="status-badge-running"]').should('exist')
                     cy.contains('Last seen: never')
@@ -198,6 +217,11 @@ describe('FlowForge - Applications', () => {
         })
 
         it('hides remaining instances if above threshold', () => {
+            cy.intercept(
+                'GET',
+                '/api/*/teams/*/applications/status*',
+                { count: 1, applications: [{ id: 'some-id', instances: [], devices: [] }] }
+            ).as('getAppStatuses')
             cy.intercept('get', '/api/*/applications/*/devices*', {
                 meta: {},
                 count: 0,
@@ -265,6 +289,7 @@ describe('FlowForge - Applications', () => {
             cy.visit('/')
 
             cy.wait('@getApplication')
+            cy.wait('@getAppStatuses')
             cy.wait('@getDevices')
 
             cy.get('[data-el="application-instance-item"')
@@ -283,6 +308,11 @@ describe('FlowForge - Applications', () => {
         })
 
         it('can open an instance default editor', () => {
+            cy.intercept(
+                'GET',
+                '/api/*/teams/*/applications/status*',
+                { count: 1, applications: [{ id: 'some-id', instances: [], devices: [] }] }
+            ).as('getAppStatuses')
             cy.intercept('get', '/api/*/applications/*/devices*', {
                 meta: {},
                 count: 0,
@@ -327,10 +357,12 @@ describe('FlowForge - Applications', () => {
             cy.visit('/')
 
             cy.wait('@getApplication')
+            cy.wait('@getAppStatuses')
             cy.wait('@getDevices')
 
             cy.get('[data-el="application-instance-item"')
                 .contains('instance-1')
+                .parent()
                 .parent()
                 .parent()
                 .within(() => {
@@ -837,21 +869,384 @@ describe('FlowForge - Applications', () => {
                         cy.get('[data-el="application-instance-item"]').should('have.length', 1)
                         cy.get('[data-el="application-instance-item"]').contains('interesting instance name')
                     })
+            })
 
-                // can search applications using their id
-                cy.get('[data-form="search"] input').clear()
-                cy.get('[data-form="search"]').type('unique-application-id')
-                cy.get('[data-el="application-item"]').contains('common app name with unique id')
+            it('carries the search queries onwards to the application devices page when clicking show more', () => {
+                const devices = [
+                    {
+                        id: '1',
+                        name: 'common device name',
+                        lastSeenAt: null,
+                        lastSeenMs: null,
+                        status: 'offline',
+                        mode: 'autonomous',
+                        isDeploying: false
+                    },
+                    {
+                        id: '2',
+                        name: 'not so common device name',
+                        lastSeenAt: null,
+                        lastSeenMs: null,
+                        status: 'offline',
+                        mode: 'autonomous',
+                        isDeploying: false
+                    },
+                    {
+                        id: '3',
+                        name: 'xyz device name with common element',
+                        lastSeenAt: null,
+                        lastSeenMs: null,
+                        status: 'offline',
+                        mode: 'autonomous',
+                        isDeploying: false
+                    },
+                    {
+                        id: '4',
+                        name: 'device name that shares common attributes',
+                        lastSeenAt: null,
+                        lastSeenMs: null,
+                        status: 'offline',
+                        mode: 'autonomous',
+                        isDeploying: false
+                    },
+                    {
+                        id: '5',
+                        name: 'device name and common key',
+                        lastSeenAt: null,
+                        lastSeenMs: null,
+                        status: 'offline',
+                        mode: 'autonomous',
+                        isDeploying: false
+                    }
+                ]
+                const instances = []
 
-                // can search devices using their id
-                cy.get('[data-form="search"] input').clear()
-                cy.get('[data-form="search"]').type('unique-device-id')
-                cy.get('[data-el="application-item"]').contains('some device name with a unique device id')
+                cy.intercept(
+                    'GET',
+                    '/api/*/teams/*/applications/status*',
+                    {
+                        count: 1,
+                        applications: [
+                            {
+                                id: '1',
+                                instances,
+                                devices
+                            }
+                        ]
+                    }
+                ).as('getAppStatuses')
+                cy.intercept('get', '/api/*/applications/*/devices*', {
+                    meta: {},
+                    count: 5,
+                    devices
+                })
+                    .as('getDevices')
+                cy.intercept(
+                    'GET',
+                    '/api/*/teams/*/applications*',
+                    {
+                        count: 1,
+                        applications: [
+                            {
+                                id: '1',
+                                name: 'My First App',
+                                description: 'My first empty app description',
+                                instancesSummary: {
+                                    count: 0,
+                                    instances
+                                },
+                                devicesSummary: {
+                                    count: 5,
+                                    devices
+                                }
+                            }
+                        ]
+                    }
+                ).as('getApplications')
 
-                // can search instances using their id
-                cy.get('[data-form="search"] input').clear()
-                cy.get('[data-form="search"]').type('unique-instance-id')
-                cy.get('[data-el="application-item"]').contains('instance name with unique instance id')
+                cy.intercept('GET', '/api/*/applications/1', {
+                    id: '1',
+                    name: 'My First App',
+                    description: 'My first empty app description',
+                    team: {
+                        id: 'ateam',
+                        name: 'ateam',
+                        slug: 'ateam'
+                    }
+                }).as('getApplication')
+
+                cy.intercept('GET', '/api/*/applications/1/instances*', {
+                    count: 0,
+                    instances
+                }).as('getApplicationInstances')
+
+                cy.intercept('GET', '/api/*/applications/1/devices*', {
+                    count: 5,
+                    devices
+                }).as('getApplicationDevices')
+
+                cy.home()
+
+                cy.wait('@getAppStatuses')
+                cy.wait('@getApplications')
+
+                cy.get('[data-form="search"]').type('common')
+                cy.get('[data-el="has-more-tile"]').click()
+
+                cy.wait('@getApplication')
+                cy.wait('@getApplicationInstances')
+                cy.wait('@getApplicationDevices')
+
+                cy.get('[data-form="search"]').should('exist')
+                cy.get('[data-form="search"] input')
+                    .invoke('val')
+                    .then(val => {
+                        expect(val).to.equal('common')
+                    })
+            })
+
+            it('carries the search queries onwards to the application instances page when clicking show more', () => {
+                const instances = [
+                    {
+                        id: '1',
+                        name: 'common-instance-name',
+                        meta: {
+                            versions: {
+                                launcher: '2.3.1'
+                            },
+                            state: 'running'
+                        },
+                        url: 'https://www.google.com:123/search?q=rick+astley'
+                    },
+                    {
+                        id: '2',
+                        name: 'not-so-common-instance-name',
+                        meta: {
+                            versions: {
+                                launcher: '2.3.1'
+                            },
+                            state: 'running'
+                        },
+                        url: 'https://www.google.com:123/search?q=rick+astley'
+                    },
+                    {
+                        id: '3',
+                        name: 'xyz-instance-name-common-name',
+                        meta: {
+                            versions: {
+                                launcher: '2.3.1'
+                            },
+                            state: 'running'
+                        },
+                        url: 'https://www.google.com:123/search?q=rick+astley'
+                    },
+                    {
+                        id: '4',
+                        name: 'instance-name-that-has-common-el',
+                        meta: {
+                            versions: {
+                                launcher: '2.3.1'
+                            },
+                            state: 'running'
+                        },
+                        url: 'https://www.google.com:123/search?q=rick+astley'
+                    },
+                    {
+                        id: '5',
+                        name: 'another-common-instance-name-that-matches-application-name',
+                        meta: {
+                            versions: {
+                                launcher: '2.3.1'
+                            },
+                            state: 'running'
+                        },
+                        url: 'https://www.google.com:123/search?q=rick+astley'
+                    }
+                ]
+                const devices = []
+                cy.intercept(
+                    'GET',
+                    '/api/*/teams/*/applications/status*',
+                    {
+                        count: 1,
+                        applications: [
+                            {
+                                id: '1',
+                                instances,
+                                devices
+                            }
+                        ]
+                    }
+                ).as('getAppStatuses')
+                cy.intercept('get', '/api/*/applications/*/devices*', {
+                    meta: {},
+                    count: 0,
+                    devices
+                })
+                    .as('getDevices')
+                cy.intercept(
+                    'GET',
+                    '/api/*/teams/*/applications*',
+                    {
+                        count: 1,
+                        applications: [
+                            {
+                                id: '1',
+                                name: 'My First App',
+                                description: 'My first empty app description',
+                                instancesSummary: {
+                                    count: 5,
+                                    instances
+                                },
+                                devicesSummary: {
+                                    count: 0,
+                                    devices
+                                }
+                            }
+                        ]
+                    }
+                ).as('getApplications')
+
+                cy.intercept('GET', '/api/*/applications/1', {
+                    id: '1',
+                    name: 'My First App',
+                    description: 'My first empty app description',
+                    team: {
+                        id: 'ateam',
+                        name: 'ateam',
+                        slug: 'ateam'
+                    }
+                }).as('getApplication')
+
+                cy.intercept('GET', '/api/*/applications/*/instances*', {
+                    count: 5,
+                    instances
+                }).as('getApplicationInstances')
+
+                cy.intercept('GET', '/api/*/applications/*/instances/status', {
+                    count: 5,
+                    instances: []
+                }).as('getSomeStatuses')
+
+                cy.home()
+
+                cy.wait('@getAppStatuses')
+                cy.wait('@getApplications')
+
+                cy.get('[data-form="search"]').type('common')
+                cy.get('[data-el="has-more-tile"]').click()
+
+                cy.wait('@getApplication')
+                cy.wait('@getApplicationInstances')
+                cy.wait('@getSomeStatuses')
+
+                cy.get('[data-form="search"]').should('exist')
+                cy.get('[data-form="search"] input')
+                    .invoke('val')
+                    .then(val => {
+                        expect(val).to.equal('common')
+                    })
+            })
+        })
+
+        describe('device kebab menu', () => {
+            const MENU_ITEMS = [
+                {
+                    index: 0,
+                    label: 'Edit Details',
+                    dialogTitle: 'Update Device',
+                    dialogDataEl: 'team-device-create-dialog'
+                },
+                // This item will be enabled once #4249 is resolved
+                // {
+                //     index: 1,
+                //     label: 'Remove From Application',
+                //     dialogTitle: 'Remove Device from Application',
+                //     dialogDataEl: 'platform-dialog'
+                // },
+                {
+                    // index: 2, // This item will be `2` once #4249 is resolved
+                    index: 1,
+                    label: 'Regenerate Configuration',
+                    dialogTitle: 'Device Configuration',
+                    dialogDataEl: 'team-device-config-dialog',
+                    dialogCancelButtonSelector: '.ff-dialog-actions > button.ff-btn--secondary'
+                },
+                {
+                    // index: 3, // This item will be `3` once #4249 is resolved
+                    index: 2,
+                    label: 'Delete Device',
+                    dialogTitle: 'Delete Device',
+                    dialogDataEl: 'platform-dialog'
+                }
+            ]
+            it('Correct dialog is shown for kebab menu items', () => {
+                const devices = [
+                    {
+                        id: '1',
+                        name: 'a device',
+                        lastSeenAt: null,
+                        lastSeenMs: null,
+                        status: 'offline',
+                        mode: 'autonomous',
+                        isDeploying: false
+                    }
+                ]
+                cy.intercept('get', '/api/*/applications/*/devices*', {
+                    meta: {},
+                    count: devices.length,
+                    devices
+                }).as('getDevices')
+
+                cy.intercept(
+                    'GET',
+                    '/api/*/teams/*/applications*',
+                    {
+                        count: 1,
+                        applications: [
+                            {
+                                id: 'some-id',
+                                name: 'My App',
+                                description: 'My app description',
+                                instancesSummary: {
+                                    count: 0,
+                                    instances: []
+                                },
+                                devicesSummary: {
+                                    count: 5,
+                                    devices
+                                }
+                            }
+                        ]
+                    }
+                ).as('getApplications')
+                cy.intercept(
+                    'GET',
+                    '/api/*/teams/*/applications/status*',
+                    {
+                        count: 1,
+                        applications: [{ id: 'some-id', instances: [], devices: [] }]
+                    }
+                ).as('getAppStatuses')
+
+                cy.visit('/')
+
+                cy.wait('@getApplications')
+                cy.wait('@getAppStatuses')
+                cy.wait('@getDevices')
+
+                // open the kebab menu for the first device & verify that the correct dialog is opened for each item
+                MENU_ITEMS.forEach((item) => {
+                    cy.get('[data-el="device-tile"]').first().find('[data-el="kebab-menu"]').click()
+                    cy.get('[data-el="device-tile"] .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(item.index)
+                        .contains(item.label)
+                        .click()
+                    cy.get(`[data-el="${item.dialogDataEl}"]`).should('exist')
+                    // cy.get(`[data-el="${item.dialogDataEl}"]`) should have the text `item.dialogTitle`
+                    cy.get(`[data-el="${item.dialogDataEl}"] .ff-dialog-header`).contains(item.dialogTitle)
+                    // cancel the dialog
+                    cy.get(`[data-el="${item.dialogDataEl}"] ${item.dialogCancelButtonSelector || '[data-action="dialog-cancel"]'}`).click()
+                })
             })
         })
     })
