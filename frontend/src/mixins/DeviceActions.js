@@ -132,12 +132,12 @@ export default {
             }
             if (this.devices instanceof Map) {
                 // working with DevicesBrowser component
-                const localDevice = this.devices.get(device.id)
+                const localDevice = this.devices.get(device.id) || {} // if not found, we are adding a new device
                 Object.assign(localDevice, device, currentDeviceStatus)
                 this.devices.set(device.id, localDevice)
             } else {
                 // working with compact application views
-                const localDevice = this.devices.find(e => e.id === device.id)
+                const localDevice = this.devices.find(e => e.id === device.id) || {} // if not found, we are adding a new device
                 Object.assign(localDevice, device, currentDeviceStatus)
             }
         },
