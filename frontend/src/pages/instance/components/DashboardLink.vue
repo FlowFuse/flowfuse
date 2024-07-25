@@ -6,17 +6,21 @@
         :disabled="buttonDisabled"
         @click.stop="openDashboard()"
     >
-        <template v-if="showExternalLink" #icon-right>
-            <ExternalLinkIcon />
+        <template v-if="showText" #icon-right>
+            <ChartPieIcon />
         </template>
-        <slot name="default">
+        <template v-else #icon>
+            <ChartPieIcon />
+        </template>
+        <template v-if="showText">
             Dashboard
-        </slot>
+        </template>
     </ff-button>
 </template>
 
 <script>
-import { ExternalLinkIcon } from '@heroicons/vue/solid'
+
+import { ChartPieIcon } from '@heroicons/vue/outline'
 
 // utility function to remove leading and trailing slashes
 const removeSlashes = (str, leading = true, trailing = true) => {
@@ -31,7 +35,7 @@ const removeSlashes = (str, leading = true, trailing = true) => {
 
 export default {
     name: 'DashboardLink',
-    components: { ExternalLinkIcon },
+    components: { ChartPieIcon },
     inheritAttrs: false,
     props: {
         disabled: {
@@ -46,7 +50,7 @@ export default {
             default: null,
             type: Object
         },
-        showExternalLink: {
+        showText: {
             type: Boolean,
             default: true
         }

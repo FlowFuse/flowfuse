@@ -40,10 +40,8 @@
                 v-if="instance.settings?.dashboard2UI"
                 :instance="instance"
                 :disabled="!editorAvailable"
-                :show-external-link="showButtonLabels"
-            >
-                <ChartPieIcon v-if="!showButtonLabels" class="ff-icon" />
-            </DashboardLink>
+                :show-text="showButtonLabels"
+            />
 
             <InstanceEditorLink
                 v-if="!localInstance.ha?.replicas !== undefined"
@@ -51,11 +49,8 @@
                 :editorDisabled="!!(localInstance.settings?.disableEditor)"
                 :url="instance.url"
                 :instance="instance"
-            >
-                <ff-button v-if="!showButtonLabels" kind="secondary" data-action="open-editor" class="whitespace-nowrap" :disabled="!isInstanceRunning">
-                    <ProjectIcon class="ff-btn--icon ff-icon" />
-                </ff-button>
-            </InstanceEditorLink>
+                :show-text="showButtonLabels"
+            />
 
             <ff-kebab-menu @click.stop>
                 <ff-list-item
@@ -87,10 +82,7 @@
 </template>
 
 <script>
-import { ChartPieIcon } from '@heroicons/vue/outline'
-
 import InstanceStatusPolling from '../../../../../components/InstanceStatusPolling.vue'
-import ProjectIcon from '../../../../../components/icons/Projects.js'
 import AuditMixin from '../../../../../mixins/Audit.js'
 import instanceActionsMixin from '../../../../../mixins/InstanceActions.js'
 import permissionsMixin from '../../../../../mixins/Permissions.js'
@@ -105,11 +97,9 @@ export default {
     name: 'InstanceTile',
     components: {
         DashboardLink,
-        ProjectIcon,
         FfKebabMenu,
         InstanceStatusBadge,
         InstanceStatusPolling,
-        ChartPieIcon,
         InstanceEditorLink
     },
     mixins: [AuditMixin, permissionsMixin, instanceActionsMixin],
