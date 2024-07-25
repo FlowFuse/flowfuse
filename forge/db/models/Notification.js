@@ -44,7 +44,7 @@ module.exports = {
                     return this.findOne({
                         where: {
                             id,
-                            userId: user.id
+                            UserId: user.id
                         }
                     })
                 },
@@ -52,14 +52,14 @@ module.exports = {
                     return this.findOne({
                         where: {
                             reference,
-                            userId: user.id
+                            UserId: user.id
                         }
                     })
                 },
                 forUser: async (user, pagination = {}) => {
                     const limit = parseInt(pagination.limit) || 100
                     const where = {
-                        userId: user.id
+                        UserId: user.id
                     }
                     if (pagination.cursor) {
                         // As we aren't using the default cursor behaviour (Op.gt)
