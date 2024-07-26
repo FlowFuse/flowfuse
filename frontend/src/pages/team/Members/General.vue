@@ -6,8 +6,8 @@
         <ff-data-table data-el="members-table" :columns="userColumns" :rows="users" :show-search="true" search-placeholder="Search Team Members..." :search-fields="['name', 'username', 'role']">
             <template v-if="hasPermission('team:user:invite')" #actions>
                 <ff-button data-action="member-invite-button" :disabled="teamUserLimitReached" kind="primary" @click="inviteMember">
-                    <template #icon-left><PlusSmIcon class="w-4" /></template>
-                    Invite Member
+                    <template #icon-left><UserAddIcon class="w-4" /></template>
+                    Invite Members
                 </ff-button>
             </template>
             <template v-if="canEditUser" #context-menu="{row}">
@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { UserAddIcon } from '@heroicons/vue/solid'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
@@ -43,19 +43,11 @@ export default {
         ChangeTeamRoleDialog,
         ConfirmTeamUserRemoveDialog,
         FeatureUnavailableToTeam,
-        PlusSmIcon,
+        UserAddIcon,
         InviteMemberDialog
     },
     mixins: [permissionsMixin],
     props: {
-        team: {
-            type: Object,
-            required: true
-        },
-        teamMembership: {
-            type: Object,
-            required: true
-        },
         inviteCount: {
             type: Number,
             required: true
@@ -90,6 +82,11 @@ export default {
     },
     mounted () {
         this.fetchData()
+
+        // do we auto-open the dialog?
+        if (this.$route.query.action === 'invite') {
+            this.inviteMember()
+        }
     },
     methods: {
         inviteMember () {

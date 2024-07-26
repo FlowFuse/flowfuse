@@ -1,44 +1,45 @@
 <template>
-    <Teleport
-        v-if="mounted"
-        to="#platform-sidenav"
-    >
+    <Teleport v-if="mounted" to="#platform-sidenav">
         <SideNavigation>
             <template #options>
                 <a @click="$router.back()">
-                    <nav-item
-                        :icon="icons.chevronLeft"
-                        label="Back"
-                    />
+                    <nav-item :icon="icons.chevronLeft" label="Back" />
                 </a>
             </template>
         </SideNavigation>
     </Teleport>
     <ff-page>
-        <div class="max-w-2xl m-auto">
-            <ff-loading
-                v-if="loading"
-                message="Creating instance..."
-            />
-            <InstanceForm
-                v-else
-                :instance="instanceDetails"
-                :team="team"
-                :applicationSelection="true"
-                :applications="applications"
-                :billing-enabled="!!features.billing"
-                :flow-blueprints-enabled="!!features.flowBlueprints"
-                :submit-errors="errors"
-                :pre-defined-inputs="preDefinedInputs"
-                @on-submit="handleFormSubmit"
-            />
-        </div>
+        <template #header>
+            <ff-page-header :title="pageTitle">
+                <template #context>
+                    Let's get your new Node-RED instance setup in no time.
+                </template>
+            </ff-page-header>
+        </template>
+
+        <ff-loading v-if="loading" message="Creating instance..." />
+        <InstanceForm
+            v-else-if="team"
+            :instance="instanceDetails"
+            :team="team"
+            :applicationSelection="true"
+            :applications="applications"
+            :billing-enabled="!!features.billing"
+            :flow-blueprints-enabled="!!features.flowBlueprints"
+            :submit-errors="errors"
+            :pre-defined-inputs="preDefinedInputs"
+            :has-header="false"
+            @on-submit="handleFormSubmit"
+            @blueprint-updated="onBlueprintUpdated"
+        />
     </ff-page>
 </template>
 
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
-import { mapState } from 'vuex'
+import { mapGetters, mapState, useStore } from 'vuex'
+
+import ApplicationApi from '../../api/application.js'
 
 import instanceApi from '../../api/instances.js'
 import teamApi from '../../api/team.js'
@@ -46,6 +47,7 @@ import teamApi from '../../api/team.js'
 import NavItem from '../../components/NavItem.vue'
 import SideNavigation from '../../components/SideNavigation.vue'
 import Alerts from '../../services/alerts.js'
+import LocalStorageService from '../../services/storage/local-storage.service.js'
 import InstanceForm from '../instance/components/InstanceForm.vue'
 
 export default {
@@ -56,14 +58,21 @@ export default {
         SideNavigation
     },
     beforeRouteEnter (to, from, next) {
-        // we've got a user pressing "back" from the Create Application page,
-        // but this page will very likely just bounce them back as they have
-        // no applications. This breaks the cycle and redirects them back to Team > Applications
         if (from.name === 'CreateTeamApplication') {
-            next('/')
-        } else {
-            next()
+            // we've got a user pressing "back" from the Create Application page,
+            // but this page will very likely just bounce them back as they have
+            // no applications. This breaks the cycle and redirects them back to Team > Applications
+            return next('/')
         }
+
+        if (to.name === 'DeployBlueprint') {
+            const store = useStore()
+            if (!store.state.account.user && !LocalStorageService.getItem('redirectUrlAfterLogin')) {
+                store.dispatch('account/setRedirectUrl', to.fullPath)
+            }
+        }
+
+        next()
     },
     inheritAttrs: false,
     data () {
@@ -79,23 +88,47 @@ export default {
                 name: ''
             },
             instanceDetails: null,
-            preDefinedInputs: null
+            preDefinedInputs: null,
+            blueprintId: null,
+            application: null
         }
     },
     computed: {
-        ...mapState('account', ['features', 'team'])
+        ...mapState('account', ['features', 'team']),
+        ...mapGetters('account', ['blueprints', 'defaultBlueprint', 'defaultUserTeam']),
+        isLandingFromExternalLink () {
+            return this.$route.name === 'DeployBlueprint'
+        },
+        blueprintName () {
+            return this.updatedBlueprint?.name ||
+            this.preDefinedBlueprint?.name ||
+            this.defaultBlueprint?.name ||
+            'Blueprint'
+        },
+        updatedBlueprint () {
+            return this.blueprints.find(blueprint => blueprint.id === this.blueprintId)
+        },
+        blueprintTitle () {
+            return `Deploy ${this.blueprintName}`
+        },
+        pageTitle () {
+            return this.isLandingFromExternalLink ? this.blueprintTitle : 'Instances'
+        },
+        preDefinedBlueprint () {
+            return this.blueprints.find(blueprint => blueprint.id === this.preDefinedInputs?.flowBlueprintId)
+        }
+    },
+    watch: {
+        async team () {
+            await this.getData()
+        }
     },
     async created () {
-        const data = await teamApi.getTeamApplications(this.team.id)
-        this.applications = data.applications.map((a) => {
-            return {
-                label: a.name,
-                description: a.description,
-                value: a.id
-            }
-        })
+        if (this.team) {
+            await this.getData()
+        }
 
-        if (!this.applications.length) {
+        if (!this.applications.length && !this.isLandingFromExternalLink) {
             // need to also create an Application
             this.$router.push({
                 name: 'CreateTeamApplication',
@@ -115,13 +148,20 @@ export default {
 
             // Drop application id, name and description from the payload
             const { applicationId, applicationName, applicationDescription, ...instanceFields } = formData
-
             try {
-                const instance = await this.createInstance(applicationId, instanceFields, copyParts)
+                if (!applicationId) {
+                    this.application = await this.createApplication({ name: applicationName, description: applicationDescription })
+                }
+
+                const instance = await this.createInstance(applicationId || this.application.id, instanceFields, copyParts)
 
                 await this.$store.dispatch('account/refreshTeam')
 
                 this.$router.push({ name: 'Instance', params: { id: instance.id } })
+                    .then(() => {
+                        this.loading = false
+                    })
+                    .catch(() => {})
             } catch (err) {
                 this.instanceDetails = instanceFields
                 if (err.response?.status === 409) {
@@ -132,9 +172,8 @@ export default {
                     Alerts.emit('Failed to create instance')
                     console.error(err)
                 }
+                this.loading = false
             }
-
-            this.loading = false
         },
         createInstance (applicationId, instanceDetails) {
             const createPayload = { ...instanceDetails, applicationId }
@@ -146,7 +185,25 @@ export default {
                 this.preDefinedInputs = {
                     flowBlueprintId: this.$route.query.blueprintId
                 }
+                this.onBlueprintUpdated(this.$route?.query?.blueprintId)
             }
+        },
+        onBlueprintUpdated (blueprintId) {
+            this.blueprintId = blueprintId
+        },
+        createApplication (applicationDetails) {
+            const createPayload = { ...applicationDetails, teamId: this.team.id }
+            return ApplicationApi.createApplication(createPayload)
+        },
+        async getData () {
+            const data = await teamApi.getTeamApplications(this.team.id)
+            this.applications = data.applications.map((a) => {
+                return {
+                    label: a.name,
+                    description: a.description,
+                    value: a.id
+                }
+            })
         }
     }
 }

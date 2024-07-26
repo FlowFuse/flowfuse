@@ -1,12 +1,14 @@
 ---
 navTitle: Docker on Digital Ocean
+meta:
+   description: Deploy FlowFuse on Digital Ocean Droplets with Docker Compose effortlessly. Set up DNS, configure SMTP, and manage Node-RED applications seamlessly.
 ---
 
 # 1-Click Digital Ocean Droplet Install
 
-We have packaged the Docker Compose build of FlowFuse as a Digital Ocean Droplet. It can be found in the Digital Ocean Market Place [here](https://marketplace.digitalocean.com/apps/flowforge?refcode=fb23e438a477)
+We have packaged the Docker Compose build of FlowFuse as a Digital Ocean Droplet. It can be found in the [Digital Ocean Market Place](https://marketplace.digitalocean.com/apps/flowfuse?refcode=fb23e438a477).
 
-You can go straight to the deployment wizard [here](https://marketplace.digitalocean.com/apps/flowforge?refcode=fb23e438a477&action=deploy)
+You can go straight to the [deployment wizard](https://marketplace.digitalocean.com/apps/flowfuse?refcode=fb23e438a477&action=deploy)
 
 ## Prerequisites
 

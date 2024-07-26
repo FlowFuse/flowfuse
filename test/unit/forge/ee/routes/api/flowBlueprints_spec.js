@@ -15,7 +15,8 @@ describe('Flow Blueprints API', function () {
         team2: null,
         instance2: null,
         /** @type {TestModelFactory} */
-        factory: null
+        factory: null,
+        blueprints: []
     }
 
     let app
@@ -97,7 +98,7 @@ describe('Flow Blueprints API', function () {
             result.should.have.property('id')
             result.should.have.property('name', name)
             // Response is a summary object that doesn't include flows/modules
-            result.should.not.have.property('flows')
+            result.should.have.property('flows')
             result.should.not.have.property('modules')
         })
 
@@ -172,6 +173,46 @@ describe('Flow Blueprints API', function () {
     })
 
     describe('Get Flow Template', function () {
+        it('User can\'t update flow details with invalid modules payload', async function () {
+            const name = generateName('flow blueprint')
+            const description = generateName('a flow blueprint description')
+            const [statusCode] = await createBlueprint({
+                name,
+                description,
+                active: true,
+                category: 'starter',
+                flows: { flows: [1, 2, 3], credentials: {} },
+                modules: { module: 1 }
+            }, TestObjects.tokens.alice)
+
+            statusCode.should.equal(400)
+        })
+
+        it('User can\'t update flow details with invalid flows payload', async function () {
+            const name = generateName('flow blueprint')
+            const description = generateName('a flow blueprint description')
+
+            const invalidFlows = [
+                '{',
+                { credentials: {} },
+                { flows: {}, credentials: {} },
+                { flows: [], credentials: [] }
+            ]
+
+            for (const invalidFlow1 of invalidFlows) {
+                const [statusCode] = await createBlueprint({
+                    name,
+                    description,
+                    active: true,
+                    category: 'starter',
+                    flows: invalidFlow1,
+                    modules: { module: '1' }
+                }, TestObjects.tokens.alice)
+
+                statusCode.should.equal(400)
+            }
+        })
+
         it('User can get flow blueprint details', async function () {
             const name = generateName('flow blueprint')
             const description = generateName('a flow blueprint description')
@@ -181,7 +222,7 @@ describe('Flow Blueprints API', function () {
                 active: true,
                 category: 'starter',
                 flows: { flows: [1, 2, 3], credentials: {} },
-                modules: { a: 1 }
+                modules: { module: '1' }
             }, TestObjects.tokens.alice)
             statusCode.should.equal(200)
 
@@ -340,7 +381,7 @@ describe('Flow Blueprints API', function () {
                 active: false,
                 category: 'new cat',
                 flows: { flows: [1, 2, 3] },
-                modules: { a: 1 }
+                modules: { a: '1' }
             }, TestObjects.tokens.alice)
             updateStatusCode.should.equal(200)
 
@@ -350,7 +391,7 @@ describe('Flow Blueprints API', function () {
             template.should.have.property('active', false)
             template.should.have.property('category', 'new cat')
             // Response is summary view without these properties
-            template.should.not.have.property('flows')
+            template.should.have.property('flows')
             template.should.not.have.property('modules')
 
             const fullTemplate = (await app.inject({
@@ -512,6 +553,124 @@ describe('Flow Blueprints API', function () {
                 cookies: { sid: TestObjects.tokens.bob }
             })
             response.should.have.property('statusCode', 403)
+        })
+    })
+
+    describe('Export/Import Blueprints', function () {
+        before(async function () {
+            for (let i = 0; i < 3; i++) {
+                const [, result] = await createBlueprint({
+                    name: generateName('flow blueprint')
+                }, TestObjects.tokens.alice)
+                TestObjects.blueprints.push(result.id)
+            }
+        })
+        it('Admin can export all blueprints', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/flow-blueprints/export',
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            const body = response.json()
+            response.should.have.property('statusCode', 200)
+            const allBP = await app.db.models.FlowTemplate.getAll()
+            body.should.have.property('count', allBP.templates.length)
+        })
+        it('None-admin can not export all blueprints', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/flow-blueprints/export',
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.should.have.property('statusCode', 403)
+        })
+        it('Should export only requested ', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/flow-blueprints/export?id=${TestObjects.blueprints[0]}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            const body = response.json()
+            response.should.have.property('statusCode', 200)
+            body.should.have.property('count', 1)
+        })
+        it('Should export only requested ', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/flow-blueprints/export?id=${TestObjects.blueprints[0]}&id=${TestObjects.blueprints[1]}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            const body = response.json()
+            response.should.have.property('statusCode', 200)
+            body.should.have.property('count', 2)
+        })
+        it('Admin can import blueprints', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/flow-blueprints/import',
+                cookies: { sid: TestObjects.tokens.alice },
+                body: {
+                    count: 1,
+                    blueprints: [{
+                        name: 'Default',
+                        category: 'Default',
+                        icon: 'document',
+                        flows: { flows: [] },
+                        modules: {}
+                    }]
+                }
+            })
+            response.should.have.property('statusCode', 201)
+            const body = response.json()
+            body.should.have.property('count', 1)
+            const bps = await app.db.models.FlowTemplate.getAll()
+            let found = false
+            for (const existing of bps.templates) {
+                if (existing.name === 'Default') {
+                    found = true
+                    break
+                }
+            }
+            found.should.be.true()
+        })
+        it('Non-Admin can not import blueprints', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/flow-blueprints/import',
+                cookies: { sid: TestObjects.tokens.bob },
+                body: {
+                    count: 1,
+                    blueprints: [{
+                        name: 'Default',
+                        category: 'Default',
+                        icon: 'document',
+                        flows: { flows: [] },
+                        modules: {}
+                    }]
+                }
+            })
+            response.should.have.property('statusCode', 403)
+        })
+        it('Duplicate import blueprints test', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/flow-blueprints/import',
+                cookies: { sid: TestObjects.tokens.alice },
+                body: {
+                    count: 1,
+                    blueprints: [{
+                        name: 'Default',
+                        category: 'Default',
+                        icon: 'document',
+                        flows: { flows: [] },
+                        modules: {}
+                    }]
+                }
+            })
+            response.should.have.property('statusCode', 201)
+            const body = response.json()
+            body.should.have.property('count', 1)
+            body.blueprints[0].name.should.equal('Default (new)')
         })
     })
 })

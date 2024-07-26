@@ -53,7 +53,10 @@
                 </div>
                 <div v-for="(instanceType, index) in instanceTypes" :key="index">
                     <FormHeading>Instance Type: {{ instanceType.name }}</FormHeading>
-                    <FormRow v-model="input.properties.instances[instanceType.id].active" type="checkbox" class="mb-4">Available</FormRow>
+                    <div class="grid gap-3 grid-cols-4">
+                        <FormRow v-model="input.properties.instances[instanceType.id].active" type="checkbox" class="mb-4">Available</FormRow>
+                        <FormRow v-if="input.properties.instances[instanceType.id].active" v-model="input.properties.instances[instanceType.id].creatable" type="checkbox" class="mb-4">Creatable</FormRow>
+                    </div>
                     <div v-if="input.properties.instances[instanceType.id].active" class="grid gap-3 grid-cols-4 pl-4">
                         <div class="grid gap-3 grid-cols-2">
                             <FormRow v-model="input.properties.instances[instanceType.id].limit"># Limit</FormRow>
@@ -88,7 +91,9 @@
                     <FormRow v-model="input.properties.features.protectedInstance" type="checkbox">Protected Instances</FormRow>
                     <FormRow v-model="input.properties.features.instanceAutoSnapshot" type="checkbox">Instance Auto Snapshot</FormRow>
                     <FormRow v-model="input.properties.features.editorLimits" type="checkbox">API/Debug Length Limits</FormRow>
-                    <span /> <!-- to make the grid work nicely, only needed if there is an odd number of checkbox features above-->
+                    <FormRow v-model="input.properties.features.customHostnames" type="checkbox">Custom Hostnames</FormRow>
+                    <!-- BEN -->
+                    <!-- <span /> to make the grid work nicely, only needed if there is an odd number of checkbox features above -->
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
                 </div>
@@ -191,6 +196,9 @@ export default {
                     if (this.input.properties.trial.active && this.input.properties.trial.sendEmail === undefined) {
                         this.input.properties.trial.sendEmail = false
                     }
+                    if (this.input.properties.features.customHostnames === undefined) {
+                        this.input.properties.features.customHostnames = false
+                    }
                 } else {
                     this.editDisabled = false
                     this.input = {
@@ -213,10 +221,13 @@ export default {
                 // Need to ensure we have input.properties.instances entries
                 // for all known instance types
                 this.instanceTypes.forEach(instanceType => {
-                    if (!this.input.properties.instances[instanceType.id]) {
+                    const typeProperties = this.input.properties.instances[instanceType.id]
+                    if (!typeProperties) {
                         this.input.properties.instances[instanceType.id] = {
                             active: false
                         }
+                    } else if (typeProperties.active && typeProperties.creatable === undefined) {
+                        typeProperties.creatable = true
                     }
                 })
 

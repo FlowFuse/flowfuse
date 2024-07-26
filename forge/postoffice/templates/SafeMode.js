@@ -15,6 +15,6 @@ You can access the logs here:
 <p>Your FlowFuse Instance {{{ name }}} has crashed and has been placed in Safe Mode</p>
 
 <p>You can access the logs here</p>
-<a href="{{{ url }}}">{{{ url }}}</a>
+<a href="{{{ url }}}">Instance Logs</a>
 `
 }

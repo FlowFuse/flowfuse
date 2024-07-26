@@ -1,5 +1,7 @@
 ---
 navTitle: User Login Flows
+meta:
+   description: Learn user login flows in FlowFuse Cloud with clear diagrams and explanations.
 ---
 
 # User Login Flows

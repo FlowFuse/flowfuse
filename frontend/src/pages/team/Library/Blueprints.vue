@@ -14,7 +14,7 @@
             </div>
         </li>
     </ul>
-    <EmptyState v-else :featureUnavailable="!isSharedLibraryFeatureEnabledForPlatform" :featureUnavailableToTeam="!isSharedLibraryFeatureEnabledForTeam">
+    <EmptyState v-else>
         <template #img>
             <img src="../../../images/empty-states/team-library.png" alt="team-logo">
         </template>
@@ -81,10 +81,6 @@ export default {
     },
     methods: {
         async loadBlueprints () {
-            if (!this.isSharedLibraryFeatureEnabled) {
-                return
-            }
-
             const res = await flowBlueprintsApi.getFlowBlueprintsForTeam(this.team.id)
             if (Object.hasOwnProperty.call(res, 'blueprints')) {
                 this.blueprints = res.blueprints

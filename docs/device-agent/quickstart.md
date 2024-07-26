@@ -1,6 +1,8 @@
 ---
 navTitle: Quick Start
 navOrder: 2
+meta:
+   description: Learn how to add and connect devices to FlowFuse, and develop workflows using the web UI.
 ---
 
 # Developing Flows on Your Device

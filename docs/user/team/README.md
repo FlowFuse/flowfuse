@@ -54,10 +54,12 @@ table summaries what actions are available to the different roles.
 | • Access Flow Editor                 | ✓     | ✓      | ✓      | -              |
 | • Modify Flows                       | ✓     | ✓      | -      | -              |
 | **Snapshots**                        |       |        |        |                |
-| • View Snapshots                     | ✓     | ✓      | ✓      | -              |
 | • Create Snapshot                    | ✓     | ✓      | -      | -              |
-| • Rollback                           | ✓     | ✓      | -      | -              |
+| • Deploy Snapshot                    | ✓     | ✓      | -      | -              |
 | • Set as Device Target               | ✓     | ✓      | -      | -              |
+| • View Snapshots                     | ✓     | ✓      | ✓      | -              |
+| • Download Snapshot                  | ✓     | ✓      | -      | -              |
+| • Upload Snapshot                    | ✓     | -      | -      | -              |
 | • Delete Snapshot                    | ✓     | -      | -      | -              |
 | **Devices**                          |       |        |        |                |
 | • View Devices                       | ✓     | ✓      | ✓      | -              |
@@ -66,6 +68,7 @@ table summaries what actions are available to the different roles.
 | • Assign to/Remove from Application  | ✓     | -      | -      | -              |
 | • Assign to/Remove from Instance     | ✓     | -      | -      | -              |
 | • Delete Device                      | ✓     | -      | -      | -              |
+| • Bulk Delete Devices                | ✓     | -      | -      | -              |
 | **Team Members**                     |       |        |        |                |
 | • Invite User                        | ✓     | -      | -      | -              |
 | • Change Role                        | ✓     | -      | -      | -              |

@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div v-if="withHeader">
         <h3>Select Your Blueprint</h3>
         <p>To get started, we have a collection of pre-built flow templates that you can use as a starting point for your Node-RED Instance.</p>
     </div>
@@ -7,8 +7,15 @@
         <div>
             <h4>{{ group }}</h4>
         </div>
-        <div class="grid grid-cols-3 gap-3" data-form="blueprint-selection">
-            <BlueprintTile v-for="print in prints" :key="print.id" :blueprint="print" @selected="$emit('selected', print)" />
+        <div class="gap-3 blueprint-group" data-form="blueprint-selection">
+            <BlueprintTile
+                v-for="print in prints"
+                :key="print.id"
+                :blueprint="print"
+                :display-preview-button="previewTiles"
+                :active="activeBlueprint && activeBlueprint.id === print.id"
+                @selected="$emit('selected', print)"
+            />
         </div>
     </div>
 </template>
@@ -26,6 +33,18 @@ export default {
     props: {
         blueprints: {
             type: Array,
+            default: null
+        },
+        withHeader: {
+            type: Boolean,
+            default: true
+        },
+        previewTiles: {
+            type: Boolean,
+            default: true
+        },
+        activeBlueprint: {
+            type: Object,
             default: null
         }
     },
@@ -63,4 +82,8 @@ export default {
 
 <style lang="scss">
 @import '../../../stylesheets/components/blueprint-selection.scss';
+.blueprint-group {
+  display: flex;
+  flex-wrap: wrap;
+}
 </style>

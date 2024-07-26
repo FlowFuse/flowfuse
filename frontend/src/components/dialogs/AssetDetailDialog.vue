@@ -1,13 +1,13 @@
 <template>
-    <ff-dialog ref="dialog" :header="header" confirm-label="Close" :closeOnConfirm="true" data-el="snapshot-view-dialog" boxClass="!min-w-[80%] !min-h-[80%] !w-[80%] !h-[80%]" contentClass="overflow-hidden" @confirm="confirm()">
+    <ff-dialog ref="dialog" :header="header" confirm-label="Close" :closeOnConfirm="true" data-el="flow-view-dialog" boxClass="!min-w-[80%] !min-h-[80%] !w-[80%] !h-[80%]" contentClass="overflow-hidden flex-grow" @confirm="confirm()">
         <template #default>
-            <div ref="viewer" data-el="ff-flow-previewer" class="ff-flow-viewer">
+            <div ref="viewer" data-el="ff-flow-previewer" class="ff-flow-viewer" @click.stop.prevent>
                 Loading...
             </div>
         </template>
         <template #actions>
             <div class="flex justify-end">
-                <ff-button @click="confirm()">Close</ff-button>
+                <ff-button data-action="dialog-confirm" @click="confirm()">Close</ff-button>
             </div>
         </template>
     </ff-dialog>
@@ -17,15 +17,19 @@
 import FlowRenderer from '@flowfuse/flow-renderer'
 
 export default {
-    name: 'SnapshotViewerDialog',
-    components: {
-        // FlowViewer
+    name: 'FlowViewerDialog',
+    props: {
+        title: {
+            type: String,
+            default: ''
+        }
     },
     setup () {
         return {
-            show (snapshot) {
+            show (payload) { // accepts blueprints, snapshots and libraries
+                this.mode = 'view'
                 this.$refs.dialog.show()
-                this.snapshot = snapshot
+                this.payload = payload
                 setTimeout(() => {
                     this.renderFlows()
                 }, 20)
@@ -34,15 +38,15 @@ export default {
     },
     data () {
         return {
-            snapshot: []
+            payload: []
         }
     },
     computed: {
         flow () {
-            return this.snapshot?.flows?.flows || []
+            return this.payload?.flows?.flows || []
         },
         header () {
-            return this.snapshot?.name || 'Snapshot'
+            return this.payload?.name || this.title || 'Flow'
         }
     },
     mounted () {

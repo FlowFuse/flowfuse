@@ -1,16 +1,10 @@
 <template>
     <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the runtime limit for this team." />
     <FeatureUnavailableToTeam v-else-if="teamInstanceLimitReached" fullMessage="You have reached the instance limit for this team." />
-    <form
-        class="space-y-6"
-        @submit.prevent="$emit('on-submit', input, copyParts)"
-    >
-        <SectionTopMenu
-            :hero="creatingNew ? (creatingApplication ? 'Create a new Application' : 'Create Instance') : 'Update Instance'"
-        />
-
+    <form class="space-y-6" @submit.prevent="onSubmit">
+        <SectionTopMenu v-if="hasHeader" :hero="heroTitle" />
         <!-- Form title -->
-        <div class="mb-8 text-sm text-gray-500">
+        <div v-if="hasHeader" class="mb-8 text-sm text-gray-500">
             <template v-if="creatingNew">
                 <template v-if="!creatingApplication || applicationSelection">
                     Let's get your new Node-RED instance setup in no time.
@@ -25,7 +19,7 @@
         </div>
 
         <!-- Application Selection -->
-        <div v-if="applicationSelection && applications.length > 0">
+        <div v-if="applicationSelection && hasApplicationsToChooseFrom">
             <FormRow
                 v-model="input.applicationId"
                 :options="applications"
@@ -37,7 +31,7 @@
                     Application
                 </template>
             </FormRow>
-            <div class="italic text-gray-500 pl-1 pt-0.5 text-sm .max-w-sm truncate">{{ selectedApplication?.description || '' }}</div>
+            <div class="italic text-gray-500 pl-1 pt-0.5 text-sm truncate">{{ selectedApplication?.description || '' }}</div>
         </div>
         <!-- No Existing Applications, or we are creating a new one -->
         <div v-else-if="creatingApplication" class="space-y-6">
@@ -73,172 +67,142 @@
         </FormRow>
 
         <div v-if="!creatingApplication || input.createInstance" :class="creatingApplication ? 'ml-6' : ''" class="space-y-6">
-            <template v-if="blueprintSelectionVisible">
-                <!-- Blueprints Selection First -->
-                <BlueprintSelection :blueprints="blueprints" @selected="selectBlueprint" />
-            </template>
-            <template v-else>
-                <div v-if="creatingNew && flowBlueprintsEnabled && atLeastOneFlowBlueprint && !isCopyProject">
-                    <div class="max-w-sm" data-form="blueprint">
-                        <label class="block text-sm font-medium text-gray-800 mb-2">Blueprint:</label>
-                        <BlueprintTileSmall :blueprint="selectedBlueprint" />
-                        <div v-if="showFlowBlueprintSelection" class="mt-1" data-action="choose-blueprint">
-                            <span class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline inline items-center text-sm" @click="input.flowBlueprintId = ''">Choose a different Blueprint</span>
+            <!-- Instance Name -->
+            <div>
+                <FormRow
+                    v-model="input.name"
+                    :error="errors.name || submitErrors?.name"
+                    :disabled="!creatingNew"
+                    container-class="max-w-xl"
+                    data-form="project-name"
+                >
+                    <template #default>
+                        Instance Name
+                    </template>
+                    <template v-if="creatingNew" #appended-description>
+                        <p v-if="hasValidName" class="instance-name-confirmation">
+                            <CheckCircleIcon class="ff-btn--icon" />
+                            <span>Your instance will be created as "<i>{{ instanceName }}</i>".</span>
+                        </p>
+                        The instance name is used to access the editor, so it must be suitable for use in a URL. It is not currently possible to rename the instance after it has been created.
+                    </template>
+                    <template v-if="creatingNew" #append>
+                        <ff-button kind="secondary" @click="refreshName">
+                            <template #icon>
+                                <RefreshIcon />
+                            </template>
+                        </ff-button>
+                    </template>
+                </FormRow>
+            </div>
+
+            <div v-if="creatingNew && flowBlueprintsEnabled && atLeastOneFlowBlueprint && !isCopyProject">
+                <div data-form="blueprint">
+                    <label class="block text-sm font-medium text-gray-800 mb-2">Blueprint</label>
+                    <BlueprintTileSmall v-if="selectedBlueprint" :blueprint="selectedBlueprint" @click="previewBlueprint" />
+                    <div v-if="showFlowBlueprintSelection" class="mt-2 flex gap-4" data-action="blueprint-actions">
+                        <div
+                            class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline text-sm flex gap-1 items-center"
+                            @click="previewBlueprint(selectedBlueprint)"
+                        >
+                            <ProjectIcon class="ff-btn--icon" />
+                            <span>Preview Blueprint</span>
+                        </div>
+                        <div
+                            class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline text-sm flex gap-1 items-center"
+                            @click="blueprintDialogVisible = true"
+                        >
+                            <FolderIcon class="ff-btn--icon" />
+                            <span>Choose a different Blueprint</span>
                         </div>
                     </div>
                 </div>
-                <!-- Instance Name -->
-                <div>
+            </div>
+
+            <!-- Instance Type -->
+            <div v-if="errors.projectType" class="text-red-400 text-xs">
+                {{ errors.projectType }}
+            </div>
+            <template v-else>
+                <div v-if="projectTypes.length > 0" class="flex flex-wrap items-stretch">
+                    <label class="w-full block text-sm font-medium text-gray-700">Choose your Instance Type</label>
+                    <InstanceCreditBanner :subscription="subscription" />
+                    <ff-tile-selection v-model="input.projectType" class="mt-5" data-form="project-type">
+                        <ff-tile-selection-option
+                            v-for="(projType, index) in filteredProjectTypes"
+                            :key="index"
+                            :label="projType.name"
+                            :description="projType.description"
+                            :price="projType.price"
+                            :price-interval="projType.priceInterval"
+                            :value="projType.id"
+                            :disabled="projType.disabled"
+                        />
+                    </ff-tile-selection>
+                </div>
+
+                <!-- Stack -->
+                <div class="flex flex-wrap gap-1 items-stretch">
+                    <label class="w-full block text-sm font-medium text-gray-700 mb-1">Choose your Node-RED Version</label>
                     <FormRow
-                        v-model="input.name"
-                        :error="errors.name || submitErrors?.name"
-                        :disabled="!creatingNew"
-                        data-form="project-name"
+                        v-model="input.stack"
+                        value="id" :options="stacks"
+                        :disabled="emptyStacks"
+                        data-el="stack-selector"
+                        container-class="max-w-sm w-full"
                     >
-                        <template #default>
-                            Instance Name
-                        </template>
-                        <template
-                            v-if="creatingNew"
-                            #description
-                        >
-                            The instance name is used to access the editor so must be suitable for using in a url. It is not currently possible to rename the instance after it has been created.
-                        </template>
-                        <template
-                            v-if="creatingNew"
-                            #append
-                        >
-                            <ff-button
-                                kind="secondary"
-                                @click="refreshName"
-                            >
-                                <template #icon>
-                                    <RefreshIcon />
-                                </template>
-                            </ff-button>
+                        <template #description>
+                            <label v-if="!input.projectType" class="text-sm text-gray-400">
+                                Please select a Instance Type first.
+                            </label>
+                            <label v-if="errors.stack" class="text-sm text-gray-400">
+                                {{ errors.stack }}
+                            </label>
                         </template>
                     </FormRow>
                 </div>
 
-                <!-- Instance Type -->
-                <div
-                    v-if="errors.projectType"
-                    class="text-red-400 text-xs"
-                >
-                    {{ errors.projectType }}
+                <!-- Template -->
+                <div v-if="creatingNew && templates.length > 1 " class="flex flex-wrap gap-1 items-stretch">
+                    <label class="w-full block text-sm font-medium text-gray-700 mb-1">Template</label>
+                    <label v-if="!input.projectType || !input.stack" class="text-sm text-gray-400">
+                        Please select a Instance Type &amp; Node-RED Version first.
+                    </label>
+                    <label v-if="errors.template" class="text-sm text-gray-400">{{ errors.template }}</label>
+                    <ff-tile-selection v-if="input.projectType && input.stack" v-model="input.template" data-form="project-template">
+                        <ff-tile-selection-option
+                            v-for="(t, index) in templates"
+                            :key="index"
+                            :value="t.id"
+                            :disabled="isCopyProject"
+                            :label="t.name"
+                            :description="t.description"
+                        />
+                    </ff-tile-selection>
                 </div>
-                <template v-else>
-                    <div
-                        v-if="projectTypes.length > 0"
-                        class="flex flex-wrap items-stretch"
-                    >
-                        <label class="w-full block text-sm font-medium text-gray-700">Choose your Instance Type</label>
-                        <InstanceCreditBanner :subscription="subscription" />
-                        <ff-tile-selection
-                            v-model="input.projectType"
-                            class="mt-5"
-                            data-form="project-type"
-                        >
-                            <ff-tile-selection-option
-                                v-for="(projType, index) in projectTypes"
-                                :key="index"
-                                :label="projType.name"
-                                :description="projType.description"
-                                :price="projType.price"
-                                :price-interval="projType.priceInterval"
-                                :value="projType.id"
-                                :disabled="projType.disabled"
-                            />
-                        </ff-tile-selection>
-                    </div>
 
-                    <!-- Stack -->
-                    <div class="flex flex-wrap gap-1 items-stretch">
-                        <label class="w-full block text-sm font-medium text-gray-700 mb-4">Choose your Stack</label>
-                        <label
-                            v-if="!input.projectType"
-                            class="text-sm text-gray-400"
-                        >
-                            Please select a Instance Type first.</label>
-                        <label
-                            v-if="errors.stack"
-                            class="text-sm text-gray-400"
-                        >
-                            {{ errors.stack }}
-                        </label>
-                        <ff-tile-selection
-                            v-if="input.projectType"
-                            v-model="input.stack"
-                            data-form="instance-stack"
-                        >
-                            <ff-tile-selection-option
-                                v-for="(stack, index) in stacks"
-                                :key="index"
-                                :value="stack.id"
-                                :label="stack.label || stack.name"
-                            />
-                        </ff-tile-selection>
-                    </div>
-
-                    <!-- Template -->
-                    <div
-                        v-if="creatingNew && templates.length > 1 "
-                        class="flex flex-wrap gap-1 items-stretch"
-                    >
-                        <label class="w-full block text-sm font-medium text-gray-700 mb-1">Template</label>
-                        <label
-                            v-if="!input.projectType || !input.stack"
-                            class="text-sm text-gray-400"
-                        >Please select a Instance Type &amp; Stack first.</label>
-                        <label
-                            v-if="errors.template"
-                            class="text-sm text-gray-400"
-                        >{{ errors.template }}</label>
-                        <ff-tile-selection
-                            v-if="input.projectType && input.stack"
-                            v-model="input.template"
-                            data-form="project-template"
-                        >
-                            <ff-tile-selection-option
-                                v-for="(t, index) in templates"
-                                :key="index"
-                                :value="t.id"
-                                :disabled="isCopyProject"
-                                :label="t.name"
-                                :description="t.description"
-                            />
-                        </ff-tile-selection>
-                    </div>
-
-                    <!-- Copying a instance -->
-                    <template v-if="isCopyProject">
-                        <p class="text-gray-500">
-                            Select the components to copy from '{{ sourceInstance?.name }}'
-                        </p>
-                        <ExportInstanceComponents
-                            id="exportSettings"
-                            v-model="copyParts"
-                        />
-                    </template>
-
-                    <!-- Billing details -->
-                    <div v-if="showBilling">
-                        <InstanceChargesTable
-                            :project-type="selectedProjectType"
-                            :subscription="subscription"
-                            :trialMode="isTrialProjectSelected"
-                        />
-                    </div>
+                <!-- Copying a instance -->
+                <template v-if="isCopyProject">
+                    <p class="text-gray-500">
+                        Select the components to copy from '{{ sourceInstance?.name }}'
+                    </p>
+                    <ExportInstanceComponents id="exportSettings" v-model="copyParts" />
                 </template>
+
+                <!-- Billing details -->
+                <div v-if="showBilling">
+                    <InstanceChargesTable
+                        :project-type="selectedProjectType"
+                        :subscription="subscription"
+                        :trialMode="isTrialProjectSelected"
+                        :prorationMode="team?.type?.properties?.billing?.proration"
+                    />
+                </div>
             </template>
         </div>
-        <!-- Submit -->
-        <div v-if="!blueprintSelectionVisible" class="flex flex-wrap gap-1 items-center">
-            <ff-button
-                v-if="!creatingNew"
-                class="ff-btn--secondary"
-                @click="$router.back()"
-            >
+
+        <div class="flex flex-wrap gap-1 items-center">
+            <ff-button v-if="!creatingNew" class="ff-btn--secondary" @click="$router.back()">
                 Cancel
             </ff-button>
 
@@ -255,22 +219,26 @@
                     Confirm Changes
                 </template>
             </ff-button>
-            <label
-                v-if="!creatingNew && !formDirty"
-                class="text-sm text-gray-400"
-            >
+            <label v-if="!creatingNew && !formDirty" class="text-sm text-gray-400">
                 No changes have been made
             </label>
         </div>
+        <AssetDetailDialog ref="flowRendererDialog" class="preview-main-blueprint" />
+        <BlueprintSelectorDialog
+            v-if="blueprintDialogVisible && blueprints.length"
+            ref="blueprintSelectorDialog"
+            :active-blueprint="selectedBlueprint"
+            @blueprint-updated="input.flowBlueprintId = $event.id"
+            @close="blueprintDialogVisible = false"
+        />
     </form>
 </template>
 
 <script>
-import { RefreshIcon } from '@heroicons/vue/outline'
-import { mapState } from 'vuex'
+import { CheckCircleIcon, FolderIcon, RefreshIcon } from '@heroicons/vue/outline'
+import { mapActions, mapGetters, mapState } from 'vuex'
 
 import billingApi from '../../../api/billing.js'
-import flowBlueprintsApi from '../../../api/flowBlueprints.js'
 import instanceTypesApi from '../../../api/instanceTypes.js'
 import stacksApi from '../../../api/stacks.js'
 import templatesApi from '../../../api/templates.js'
@@ -278,10 +246,13 @@ import templatesApi from '../../../api/templates.js'
 import FormRow from '../../../components/FormRow.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
+import AssetDetailDialog from '../../../components/dialogs/AssetDetailDialog.vue'
+import BlueprintSelectorDialog from '../../../components/dialogs/BlueprintSelectorDialog.vue'
+
+import ProjectIcon from '../../../components/icons/Projects.js'
 
 import NameGenerator from '../../../utils/name-generator/index.js'
 
-import BlueprintSelection from '../Blueprints/BlueprintSelection.vue'
 import BlueprintTileSmall from '../Blueprints/BlueprintTileSmall.vue'
 
 import ExportInstanceComponents from './ExportInstanceComponents.vue'
@@ -291,6 +262,9 @@ import InstanceCreditBanner from './InstanceCreditBanner.vue'
 export default {
     name: 'InstanceForm',
     components: {
+        AssetDetailDialog,
+        BlueprintSelectorDialog,
+        FolderIcon,
         ExportInstanceComponents,
         FeatureUnavailableToTeam,
         FormRow,
@@ -298,8 +272,9 @@ export default {
         InstanceCreditBanner,
         RefreshIcon,
         SectionTopMenu,
-        BlueprintSelection,
-        BlueprintTileSmall
+        BlueprintTileSmall,
+        CheckCircleIcon,
+        ProjectIcon
     },
     props: {
         team: {
@@ -350,9 +325,13 @@ export default {
         preDefinedInputs: {
             default: null,
             type: Object
+        },
+        hasHeader: {
+            default: true,
+            type: Boolean
         }
     },
-    emits: ['on-submit'],
+    emits: ['on-submit', 'blueprint-updated'],
     data () {
         const instance = this.instance || this.sourceInstance
 
@@ -368,7 +347,6 @@ export default {
             stacks: [],
             templates: [],
             projectTypes: [],
-            blueprints: [],
             activeProjectTypeCount: 0,
             subscription: null,
             input: {
@@ -400,11 +378,13 @@ export default {
                 nodes: true,
                 envVars: 'all'
             },
-            selectedProjectType: null
+            selectedProjectType: null,
+            blueprintDialogVisible: false
         }
     },
     computed: {
         ...mapState('account', ['settings']),
+        ...mapGetters('account', ['blueprints', 'defaultBlueprint']),
         creatingApplication () {
             return (this.applicationSelection && !this.applications.length) || (this.creatingNew && this.applicationFieldsVisible)
         },
@@ -434,16 +414,18 @@ export default {
         showBilling () {
             return this.billingEnabled && (this.creatingNew || this.projectTypeChanged)
         },
+        applicationFormValid () {
+            return ((this.creatingNew && this.applicationFieldsVisible) ? this.input.applicationName : true) &&
+              (this.applicationSelection && (!this.hasApplicationsToChooseFrom && !this.input.applicationName) ? this.input.applicationId : true)
+        },
+        instanceFormValid () {
+            return this.input.name && !this.errors.name &&
+              this.input.projectType && !this.errors.projectType &&
+              this.input.stack && !this.errors.stack &&
+              (this.creatingNew ? (this.input.template && !this.errors.template) : true)
+        },
         formValid () {
-            const applicationFormValid = ((this.creatingNew && this.applicationFieldsVisible) ? this.input.applicationName : true) &&
-                (this.applicationSelection ? this.input.applicationId : true)
-
-            const instanceFormValid = this.input.name && !this.errors.name &&
-                this.input.projectType && !this.errors.projectType &&
-                this.input.stack && !this.errors.stack &&
-                (this.creatingNew ? (this.input.template && !this.errors.template) : true)
-
-            return applicationFormValid && ((this.creatingApplication && !this.input.createInstance) || instanceFormValid)
+            return this.applicationFormValid && ((this.creatingApplication && !this.input.createInstance) || this.instanceFormValid)
         },
         submitEnabled () {
             return this.formValid && this.formDirty
@@ -479,15 +461,30 @@ export default {
             return this.blueprints.length > 1 && this.flowBlueprintsEnabled
         },
         selectedBlueprint () {
-            return this.blueprints.find((blueprint) => blueprint.id === this.input.flowBlueprintId)
+            return this.blueprints.find((blueprint) => `${blueprint.id}` === `${this.input.flowBlueprintId}`) || this.defaultBlueprint
         },
-        blueprintSelectionVisible () {
-            return this.creatingNew && this.showFlowBlueprintSelection && !this.input.flowBlueprintId
+        heroTitle () {
+            return this.creatingNew ? (this.creatingApplication ? 'Create a new Application' : 'Create Instance') : 'Update Instance'
+        },
+        filteredProjectTypes () {
+            return this.projectTypes.filter(pt => !pt.disabled)
+        },
+        instanceName () {
+            return this.input.name.trim().replace(/\s/g, '-').toLowerCase()
+        },
+        hasValidName () {
+            return this.validateName(this.input.name)
+        },
+        emptyStacks () {
+            return this.stacks.length === 0
+        },
+        hasApplicationsToChooseFrom () {
+            return this.applications.length > 0
         }
     },
     watch: {
         'input.name': function (value) {
-            if (/^[a-zA-Z][a-zA-Z0-9-]*$/.test(value)) {
+            if (this.validateName(value)) {
                 this.errors.name = ''
             } else {
                 this.errors.name = 'Names must only include a→z, A→Z, -, 0→9 and can not start with 0→9'
@@ -499,6 +496,13 @@ export default {
             } else {
                 this.selectedProjectType = null
             }
+        },
+        'input.flowBlueprintId': function (newValue, oldValue) {
+            if (newValue !== oldValue) {
+                // use computed blueprint id, as it may sometimes receive invalid pre-defined blueprint id's
+                this.input.flowBlueprintId = this.selectedBlueprint.id
+            }
+            this.$emit('blueprint-updated', newValue, oldValue)
         }
     },
     async created () {
@@ -510,6 +514,35 @@ export default {
         this.templates = (await templateListPromise).templates.filter(template => template.active)
 
         this.activeProjectTypeCount = projectTypes.length
+
+        // Do a first pass of the instance types to disable any not allowed for this team
+        projectTypes.forEach(pt => {
+            // Need to combine the projectType billing info with any overrides
+            // from the current teamType
+            const teamTypeInstanceProperties = this.team.type.properties.instances[pt.id]
+            const existingInstanceCount = this.team.instanceCountByType?.[pt.id] || 0
+            if (this.teamRuntimeLimitReached) {
+                // The overall limit has been reached
+                pt.disabled = true
+            } else if (teamTypeInstanceProperties) {
+                if (!teamTypeInstanceProperties.active) {
+                    // This instanceType is disabled for this teamType
+                    pt.disabled = true
+                } else if (teamTypeInstanceProperties.creatable === false) {
+                    // Type is active (it can exist), but not creatable (not allowed to create more) for this team type.
+                    // This can happen follow a change of TeamType where different instance types are available.
+                    // This check treats undefined as true for backwards compatibility
+                    pt.disabled = true
+                } else if (teamTypeInstanceProperties.limit !== null && teamTypeInstanceProperties.limit <= existingInstanceCount) {
+                    // This team has reached the limit of this instance type
+                    pt.disabled = true
+                }
+            }
+            if (pt.disabled) {
+                this.activeProjectTypeCount--
+            }
+        })
+
         if (this.billingEnabled) {
             if (!this.team.billing?.unmanaged) {
                 try {
@@ -523,28 +556,17 @@ export default {
                     }
                 }
             }
+            // With billing enabled, do a second pass through the instance types
+            // to populate their billing info
             projectTypes.forEach(pt => {
                 // Need to combine the projectType billing info with any overrides
                 // from the current teamType
                 const teamTypeInstanceProperties = this.team.type.properties.instances[pt.id]
                 const existingInstanceCount = this.team.instanceCountByType?.[pt.id] || 0
-
                 pt.price = ''
                 pt.priceInterval = ''
                 pt.currency = ''
                 pt.cost = 0
-                if (this.teamRuntimeLimitReached) {
-                    // The overall limit has been reached
-                    pt.disabled = true
-                } else if (teamTypeInstanceProperties) {
-                    if (!teamTypeInstanceProperties.active) {
-                        // This instanceType is disabled for this teamType
-                        pt.disabled = true
-                    } else if (teamTypeInstanceProperties.limit !== null && teamTypeInstanceProperties.limit <= existingInstanceCount) {
-                        // This team has reached the limit of this instance type
-                        pt.disabled = true
-                    }
-                }
                 if (!pt.disabled && !this.team.billing?.unmanaged) {
                     let billingDescription
                     if (teamTypeInstanceProperties) {
@@ -574,6 +596,9 @@ export default {
                             if (!this.team.billing?.active) {
                                 // No active billing - only allow the trial instance type
                                 pt.disabled = !isTrialProjectType
+                                if (pt.disabled) {
+                                    this.activeProjectTypeCount--
+                                }
                             }
                             if (isTrialProjectType && this.team.billing?.trialProjectAllowed) {
                                 pt.price = 'Free Trial'
@@ -581,9 +606,6 @@ export default {
                             }
                         }
                     }
-                }
-                if (pt.disabled) {
-                    this.activeProjectTypeCount--
                 }
             })
         }
@@ -610,7 +632,7 @@ export default {
             this.updateInstanceType(this.input.projectType)
         }
 
-        this.blueprints = await blueprintsPromise
+        await blueprintsPromise
         if (this.blueprints.length === 0) {
             // Falls back to the default blueprint server side no error needed
             console.warn('Flow Blueprints enabled but none available')
@@ -652,8 +674,12 @@ export default {
         }
     },
     methods: {
+        ...mapActions('account', ['getTeamBlueprints']),
         refreshName () {
             this.input.name = NameGenerator()
+        },
+        validateName (value) {
+            return /^[a-zA-Z][a-zA-Z0-9-\s]*$/.test(value)
         },
         findStackById (stackId) {
             return this.stacks.find(stack => stack.id === stackId)
@@ -667,11 +693,13 @@ export default {
             this.errors.stack = ''
 
             const stackList = await stacksApi.getStacks(null, null, null, projectType.id)
-            this.stacks = stackList.stacks.filter(stack => stack.active)
+            this.stacks = stackList.stacks
+                .filter(stack => stack.active)
+                .map(stack => { return { ...stack, value: stack.id, label: stack.label || stack.name } })
 
             if (this.stacks.length === 0) {
                 this.input.stack = null
-                this.errors.stack = 'No stacks available for this instance type. Ask an Administrator to create a new stack definition'
+                this.errors.stack = 'No Node-RED Versions available for this instance type. Ask an Administrator to create a Node-RED Version stack definition'
                 return
             }
 
@@ -700,17 +728,32 @@ export default {
             if (!this.flowBlueprintsEnabled || this.isCopyProject) {
                 return []
             }
-            const response = await flowBlueprintsApi.getFlowBlueprintsForTeam(this.team.id)
-            const blueprints = response.blueprints
+            await this.getTeamBlueprints(this.team.id)
 
-            const defaultBlueprint = blueprints.find((blueprint) => blueprint.default) || blueprints[0]
-            this.input.flowBlueprintId = defaultBlueprint?.id
-
-            return blueprints
+            this.input.flowBlueprintId = this.defaultBlueprint?.id
         },
-        selectBlueprint (blueprint) {
-            this.input.flowBlueprintId = blueprint.id
+        previewBlueprint (blueprint) {
+            this.$refs.flowRendererDialog.show(blueprint)
+        },
+        onSubmit () {
+            this.$emit(
+                'on-submit',
+                {
+                    ...this.input,
+                    name: this.instanceName
+                },
+                this.copyParts
+            )
         }
     }
 }
 </script>
+
+<style scoped lang="scss">
+.instance-name-confirmation {
+  margin: 5px 0;
+  display: flex;
+  gap: 5px;
+  color: $ff-green-600;
+}
+</style>

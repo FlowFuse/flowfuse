@@ -30,7 +30,7 @@ export default {
             const dialogOpts = {
                 header: 'Unsaved changes',
                 kind: 'danger',
-                html: '<p>You have unsaved changes. Are you sure you want to leave?</p>',
+                text: 'You have unsaved changes. Are you sure you want to leave?',
                 confirmLabel: 'Yes, lose changes'
             }
             const answer = await dialog.showAsync(dialogOpts)
@@ -170,7 +170,7 @@ export default {
             })
             await InstanceApi.updateInstance(this.project.id, { settings })
             this.$emit('instance-updated')
-            alerts.emit('Instance settings successfully updated. NOTE: changes will be applied once the instance is restarted.', 'confirmation', 6000)
+            alerts.emit('Instance settings successfully updated. Restart the instance to apply the changes.', 'confirmation', 6000)
         }
     }
 }

@@ -6,10 +6,12 @@
         :disabled="buttonDisabled"
         @click.stop="openDashboard()"
     >
-        <template #icon-right>
+        <template v-if="showExternalLink" #icon-right>
             <ExternalLinkIcon />
         </template>
-        Dashboard
+        <slot name="default">
+            Dashboard
+        </slot>
     </ff-button>
 </template>
 
@@ -43,6 +45,10 @@ export default {
         instance: {
             default: null,
             type: Object
+        },
+        showExternalLink: {
+            type: Boolean,
+            default: true
         }
     },
     computed: {
@@ -55,9 +61,12 @@ export default {
             if (this.disabled || !this.instance?.settings?.dashboard2UI) {
                 return
             }
-            const url = `${removeSlashes(this.instance.url, false, true)}/${removeSlashes(this.instance.settings.dashboard2UI, true, false)}`
+            // The dashboard url will *always* be relative to the root as we
+            // do not expose `httpNodeRoot` to customise the base path
+            const baseURL = new URL(removeSlashes(this.instance.url, false, true))
+            baseURL.pathname = removeSlashes(this.instance.settings.dashboard2UI, true, false)
             const fixedTarget = '_db2_' + this.instance.id
-            window.open(url, fixedTarget)
+            window.open(baseURL.toString(), fixedTarget)
         }
     }
 }

@@ -20,6 +20,7 @@ module.exports = async function (app) {
             request.ownerType = null
             request.owner = null
             if (request.params.id) {
+                // non upload route
                 request.snapshot = await app.db.models.ProjectSnapshot.byId(request.params.id)
                 if (!request.snapshot) {
                     return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
@@ -37,6 +38,17 @@ module.exports = async function (app) {
                     }
                 } else {
                     return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                }
+            } else if (request.body.ownerId && request.body.ownerType && request.body.snapshot) {
+                // upload route
+                if (request.body.ownerType === 'device') {
+                    request.owner = await app.db.models.Device.byId(request.body.ownerId)
+                    request.ownerType = 'device'
+                } else if (request.body.ownerType === 'instance') {
+                    request.owner = await app.db.models.Project.byId(request.body.ownerId)
+                    request.ownerType = 'instance'
+                } else {
+                    return reply.code(400).send({ code: 'bad_request', error: 'Invalid ownerType' })
                 }
             }
             if (request.session.User) {
@@ -76,7 +88,12 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        reply.send(projectSnapshotView.snapshotSummary(request.snapshot))
+        // reload the snapshot to get the full details, including the User & Device/Project
+        // these are needed for viewer permissions on download "package.json" action since it
+        // needs the owner project/device & modules in the snapshot settings to generate it.
+        // Flows/settings/env are NOT included in the metadata response thanks to to the schema/view
+        await request.snapshot.reload({ include: ['User', 'Device', 'Project'] })
+        reply.send(projectSnapshotView.snapshot(request.snapshot))
     })
 
     /**
@@ -196,6 +213,90 @@ module.exports = async function (app) {
             reply.send(snapshotExport)
         } else {
             reply.send({})
+        }
+    })
+
+    /**
+     * Import a snapshot
+     */
+    app.post('/import', {
+        preHandler: app.needsPermission('snapshot:import'),
+        schema: {
+            summary: 'Upload a snapshot',
+            tags: ['Snapshots'],
+            body: {
+                type: 'object',
+                properties: {
+                    ownerId: { type: 'string' },
+                    ownerType: { type: 'string' },
+                    snapshot: {
+                        type: 'object',
+                        properties: {
+                            name: { type: 'string' },
+                            description: { type: 'string' },
+                            flows: {
+                                type: 'object',
+                                properties: {
+                                    flows: { type: 'array', items: {}, minItems: 0 },
+                                    credentials: { type: 'object' }
+                                },
+                                required: ['flows']
+                            },
+                            settings: {
+                                type: 'object',
+                                properties: {
+                                    settings: { type: 'object' },
+                                    env: { type: 'object' },
+                                    modules: { type: 'object' }
+                                },
+                                required: []
+                            }
+                        },
+                        required: ['name', 'flows', 'settings']
+                    },
+                    credentialSecret: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'Snapshot'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const owner = request.owner
+        const snapshot = request.body.snapshot
+        if (!owner || !snapshot) {
+            reply.code(400).send({ code: 'bad_request', error: 'owner and snapshot are mandatory in the body' })
+            return
+        }
+        if (snapshot.flows.credentials?.$ && !request.body.credentialSecret) {
+            reply.code(400).send({ code: 'bad_request', error: 'Credential secret is required when importing a snapshot with credentials' })
+            return
+        }
+        try {
+            const newSnapshot = await snapshotController.uploadSnapshot(owner, snapshot, request.body.credentialSecret, request.session.User)
+            if (!newSnapshot) {
+                throw new Error('Failed to upload snapshot')
+            }
+            // reload the snapshot to get the full details, including the User & Device/Project
+            await newSnapshot.reload({ include: ['User', 'Device', 'Project'] })
+            if (request.ownerType === 'device') {
+                const application = await owner.getApplication()
+                await applicationLogger.application.device.snapshot.imported(request.session.User, null, application, owner, null, null, newSnapshot)
+            } else if (request.ownerType === 'instance') {
+                await projectLogger.project.snapshot.imported(request.session.User, null, owner, null, null, newSnapshot)
+            }
+            reply.send(projectSnapshotView.snapshot(newSnapshot))
+        } catch (err) {
+            // if err message is a JSON.parse failure in decryptCreds, it's a bad secret
+            if (/JSON\.parse.*decryptCreds/si.test(err.stack)) {
+                return reply.code(400).send({ code: 'bad_request', error: 'Invalid credential secret' })
+            }
+            throw err // handled by global error handler
         }
     })
 }

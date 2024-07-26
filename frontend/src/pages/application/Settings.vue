@@ -16,36 +16,41 @@
                     Description
                 </FormRow>
             </div>
-            <div class="space-x-4 whitespace-nowrap">
-                <template v-if="!editing">
-                    <ff-button kind="primary" data-action="application-edit" @click="editName">Edit</ff-button>
-                </template>
-                <template v-else>
-                    <div class="flex gap-x-3">
-                        <ff-button kind="secondary" @click="cancelEditName">Cancel</ff-button>
-                        <ff-button kind="primary" :disabled="!formValid" data-form="submit" @click="saveApplication">Save</ff-button>
+            <template v-if="hasPermission('project:edit')">
+                <div class="space-x-4 whitespace-nowrap">
+                    <template v-if="!editing">
+                        <ff-button kind="primary" data-action="application-edit" @click="editName">Edit</ff-button>
+                    </template>
+                    <template v-else>
+                        <div class="flex gap-x-3">
+                            <ff-button kind="secondary" @click="cancelEditName">Cancel</ff-button>
+                            <ff-button kind="primary" :disabled="!formValid" data-form="submit" @click="saveApplication">Save</ff-button>
+                        </div>
+                    </template>
+                </div>
+            </template>
+            <template v-if="hasPermission('project:delete')">
+                <FormHeading class="text-red-700">Delete Application</FormHeading>
+                <div class="flex flex-col space-y-4 max-w-2xl">
+                    <div class="flex-grow">
+                        <div class="max-w-sm">
+                            {{ getDeleteApplicationText }}
+                        </div>
                     </div>
-                </template>
-            </div>
-
-            <FormHeading class="text-red-700">Delete Application</FormHeading>
-            <div class="flex flex-col space-y-4 max-w-2xl">
-                <div class="flex-grow">
-                    <div class="max-w-sm">
-                        {{ getDeleteApplicationText }}
+                    <div class="min-w-fit flex-shrink-0">
+                        <ff-button data-action="delete-application" kind="danger" :disabled="options.instances > 0" @click="$emit('application-delete')">
+                            Delete Application
+                        </ff-button>
                     </div>
                 </div>
-                <div class="min-w-fit flex-shrink-0">
-                    <ff-button data-action="delete-application" kind="danger" :disabled="options.instances > 0" @click="$emit('application-delete')">
-                        Delete Application
-                    </ff-button>
-                </div>
-            </div>
+            </template>
         </div>
     </div>
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import ApplicationAPI from '../../api/application.js'
 
 import FormHeading from '../../components/FormHeading.vue'
@@ -93,6 +98,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['teamMembership']),
         formValid () {
             return this.input.projectName
         },

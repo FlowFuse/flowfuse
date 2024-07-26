@@ -671,6 +671,62 @@ describe('Device API', async function () {
                 result.should.have.property('modules').and.be.an.Object()
                 result.modules.should.have.property('node-red', 'latest')
             })
+            it('snapshot uploaded without node-red dependency is always delivered to a device with the node-red:version', async function () {
+                const agentVersion = '1.11.2' // min agent version required for NR 3.1 (as this agent handles ESM issue)
+                const device = await createDevice({ name: 'Ad1a', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion })
+                // assign the new device to application
+                await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: {
+                        application: TestObjects.Application1.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+
+                // upload a basic snapshot for this device
+                const simpleSnapshot = {
+                    name: 'uploaded snapshot',
+                    description: '',
+                    credentialSecret: '',
+                    settings: {
+                        settings: {},
+                        env: {},
+                        modules: {}
+                    },
+                    flows: {
+                        flows: [],
+                        credentials: null
+                    },
+                    DeviceId: device.id,
+                    UserId: TestObjects.bob.id
+                }
+                const dbDevice = await app.db.models.Device.byId(device.id)
+                // uploadSnapshot (app, owner, snapshot, credentialSecret, user)
+                const snapshot = await app.db.controllers.Snapshot.uploadSnapshot(dbDevice, simpleSnapshot, '', TestObjects.bob)
+
+                // set this snapshot as the target snapshot for the device
+                await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: {
+                        targetSnapshot: snapshot.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${device.id}/live/snapshot`,
+                    headers: {
+                        authorization: `Bearer ${device.credentials.token}`
+                    }
+                })
+                const result = response.json()
+                result.should.have.property('id')
+                result.should.have.property('name', 'uploaded snapshot')
+                result.should.have.property('modules').and.be.an.Object()
+                result.modules.should.have.property('node-red', 'latest')
+            })
             it('`@flowfuse/nr-project-nodes` dependency is included in the starter snapshot', async function () {
                 const agentVersion = '1.11.0' // min agent version required for application assignment
                 const device = await createDevice({ name: 'Ad1a-dep-test', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion })
@@ -734,10 +790,10 @@ describe('Device API', async function () {
 
                 // set this snapshot as the target snapshot for the device
                 await app.inject({
-                    method: 'POST',
-                    url: `/api/v1/devices/${device.id}/settings`,
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
                     body: {
-                        targetSnapshot: snapshot.id
+                        targetSnapshot: snapshot.hashid
                     },
                     cookies: { sid: TestObjects.tokens.bob }
                 })
@@ -756,6 +812,34 @@ describe('Device API', async function () {
                 result.modules.should.have.property('@flowfuse/nr-project-nodes', '>0.5.0')
                 // ensure old flowforge module is not present
                 result.modules.should.not.have.property('@flowforge/nr-project-nodes')
+            })
+            it('`@flowfuse/nr-assistant` dependency is included in the starter snapshot', async function () {
+                const agentVersion = '1.11.0' // min agent version required for application assignment
+                const device = await createDevice({ name: 'Ad1a-dep-test2', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion })
+                // assign the new device to application
+                await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: {
+                        application: TestObjects.Application1.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                // get the snapshot for this device
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${device.id}/live/snapshot`,
+                    headers: {
+                        authorization: `Bearer ${device.credentials.token}`
+                    }
+                })
+                const result = response.json()
+                result.should.have.property('id')
+                result.should.have.property('name', 'Starter Snapshot')
+                result.should.have.property('modules').and.be.an.Object()
+                result.modules.should.have.property('@flowfuse/nr-assistant', '>=0.1.0')
+                // // ensure old flowforge module is not present
+                // result.modules.should.not.have.property('@flowforge/nr-project-nodes')
             })
             it('can assign to an application even if device agent version is not present', async function () {
                 // Prior to FF 2.0, we would reject application assignment if the agent version was not present

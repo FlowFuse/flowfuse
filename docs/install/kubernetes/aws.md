@@ -93,11 +93,15 @@ nodeGroups:
 
 ### Nginx Ingress
 
-It is recommended to run the Nginx Ingress controller even on AWS EKS (The AWS ALB load balancer currently appears to only support up to 100 Ingress Targets which limits the number of Instance/Projects that can be run).
+It is recommended to run the <a href="https://kubernetes.github.io/ingress-nginx/" target="_blank">Nginx Ingress controller</a> even on AWS EKS (The AWS ALB load balancer currently appears to only support up to 100 Ingress Targets which limits the number of Instance/Projects that can be run).
 
-Create a `nginx-values.yaml` file to pass the values to the nginx helm file.
+Create a `nginx-ingress-values.yaml` file to pass the values to the nginx helm file.
 
-You will need to replace the ARN for the SSL certificate created earlier
+```bash
+touch nginx-ingress-values.yaml
+```
+
+Fill the `nginx-ingress-values.yaml` file with the following content. Replace `<your-certificate-arn>` with the certificate ARN created earlier
 
 ```yaml
 controller:
@@ -110,42 +114,38 @@ controller:
     configNameSpace: $(POD_NAMESPACE)/udp-services
   config:
     proxy-body-size: "0"
+    use-proxy-protocol: true
   service:
     # AWS Annotations for LoadBalaner with Certificate ARN
     annotations:
-      service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:us-west-2:XXXXXXXXXXXX:certificate/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+      service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "<your-certificate-arn>"
       service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
       service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
       service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
       service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "120"
+      service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: proxy_protocol_v2.enabled=true
     # TLS (https) terminated at ELB, so internal endpoint is 'http'
     targetPorts:
       https: http
-
+    externalTrafficPolicy: Cluster
+  ingressClassResource:
+    default: true
 ```
 
-The `proxy-body-size: "0"` removes the `1m` nginx default limit, you can set this to a 
-different vale e.g. "5m" which will match the Node-RED default.
+> The `proxy-body-size: "0"` removes the `1m` nginx default limit, you can set this to a 
+> different vale e.g. "5m" which will match the Node-RED default.
 
-Add the ingress-nginx helm repo
+Install the Nginx Ingress controller with the following command:
 
 ```bash
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-```
-
-Then install with
-
-```bash
-helm install \
-  ingress-nginx \
-  --values nginx-values.yaml \
-  ingress-nginx/ingress-nginx
-```
-
-You will also want to mark the new ingressclass as the default so it is picked up by default without the need for special annotations.
-
-```bash
-kubectl annotate ingressclass nginx ingressclass.kubernetes.io/is-default-class=true
+helm repo update
+helm upgrade -i ingress-nginx ingress-nginx/ingress-nginx \
+    --create-namespace \
+    --namespace ingress \
+    --values "nginx-ingress-values.yaml" \
+    --wait \
+    --atomic
 ```
 
 ### References

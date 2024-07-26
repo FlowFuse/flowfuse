@@ -200,7 +200,7 @@ module.exports = {
                         user,
                         'VerifyEmail',
                         {
-                            confirmEmailLink: `${app.config.base_url}/account/verify/${verificationToken}`
+                            token: verificationToken
                         }
                     )
                 } catch (error) {

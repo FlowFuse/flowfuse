@@ -100,6 +100,11 @@
         <span v-if="!error && entry.body?.device">Device '{{ entry.body.device?.name }}' has been deleted.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'team.device.bulk-deleted'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.info?.count">{{ entry.body.info.count }} Device{{ entry.body.info.count > 1 ? 's have' : ' has' }} been deleted.</span>
+        <span v-else-if="!error">Additional info not found in audit entry.</span>
+    </template>
     <template v-else-if="entry.event === 'team.device.updated'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.device">Device '{{ entry.body.device?.name }}' has been updated with the following changes: <AuditEntryUpdates :updates="entry.body.updates" />.</span>
@@ -309,18 +314,18 @@
     </template>
     <template v-else-if="entry.event === 'platform.stack.created'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.stack">Stack '{{ entry.body.stack.name }}' has been created.</span>
-        <span v-else-if="!error">Stack data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.stack">Node-RED Version '{{ entry.body.stack.name }}' has been created.</span>
+        <span v-else-if="!error">Node-RED Version data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'platform.stack.deleted'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.stack">Stack '{{ entry.body.stack.name }}' has been deleted.</span>
-        <span v-else-if="!error">Stack data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.stack">Node-RED Version '{{ entry.body.stack.name }}' has been deleted.</span>
+        <span v-else-if="!error">Node-RED Version data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'platform.stack.updated'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.stack">Stack '{{ entry.body.stack.name }}' has been updated with the following changes: <AuditEntryUpdates :updates="entry.body.updates" /></span>
-        <span v-else-if="!error">Stack data not found in audit entry.</span>
+        <span v-if="!error && entry.body?.stack">Node-RED Version '{{ entry.body.stack.name }}' has been updated with the following changes: <AuditEntryUpdates :updates="entry.body.updates" /></span>
+        <span v-else-if="!error">Node-RED Version data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'platform.settings.updated' || entry.event === 'platform.settings.update'">
         <label>{{ AuditEvents[entry.event] }}</label>
@@ -390,6 +395,16 @@
     <template v-else-if="entry.event === 'application.device.snapshot.deleted'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.device && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been been deleted for Application owned Device '{{ entry.body.device?.name }}'.</span>
+        <span v-else-if="!error">Device or Snapshot data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'application.device.snapshot.exported'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.device && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been been exported for Application owned Device '{{ entry.body.device?.name }}'.</span>
+        <span v-else-if="!error">Device or Snapshot data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'application.device.snapshot.imported'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.device && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been been imported for Application owned Device '{{ entry.body.device?.name }}'.</span>
         <span v-else-if="!error">Device or Snapshot data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'application.device.snapshot.device-target-set'">
@@ -508,12 +523,12 @@
     </template>
     <template v-else-if="entry.event === 'project.stack.changed'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project">The stack for Instance '{{ entry.body.project?.name }}' has been changed to Stack '{{ entry.body.stack?.name }}'</span>
+        <span v-if="!error && entry.body?.project">The Node-RED Version for Instance '{{ entry.body.project?.name }}' has been changed to Node-RED Version '{{ entry.body.stack?.name }}'</span>
         <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.stack.restart'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project">The stack for Instance '{{ entry.body.project?.name }}' has been restarted</span>
+        <span v-if="!error && entry.body?.project">The Node-RED Version for Instance '{{ entry.body.project?.name }}' has been restarted</span>
         <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.settings.updated'">
@@ -619,12 +634,12 @@
 
     <template v-else-if="entry.event === 'resource.cpu'">
         <label>Instance High CPU usage</label>
-        <span>Instance has spent more than {{ Math.floor(entry.body.interval / 60) }} minutes at more than {{ entry.body.threshold }}% of CPU limit</span>
+        <span>Instance has spent more than {{ Math.floor(entry.body.interval / 60) }} minutes at more than {{ entry.body.threshold }}% of CPU limit. This instance may benefit from being upgraded to a larger Instance type</span>
     </template>
 
     <template v-else-if="entry.event === 'resource.memory'">
         <label>Instance High Memory usage</label>
-        <span>Instance has spent more than {{ Math.floor(entry.body.interval / 60) }} minutes at more than {{ entry.body.threshold }}% of Memory limit</span>
+        <span>Instance has spent more than {{ Math.floor(entry.body.interval / 60) }} minutes at more than {{ entry.body.threshold }}% of Memory limit. This means that the flow may need a larger Instance type or has a memory leak</span>
     </template>
 
     <!-- Catch All -->

@@ -1,5 +1,7 @@
 ---
 navTitle: FlowFuse Cloud Billing
+meta:
+  description: Learn about billing details for FlowFuse Cloud, including payment methods, team billing, billing cycles, managing instances, handling failed payments, and cancelling subscriptions.
 ---
 
 # Billing

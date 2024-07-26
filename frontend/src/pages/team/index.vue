@@ -12,7 +12,7 @@
                 <SubscriptionExpiredBanner :team="team" />
                 <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
             </Teleport>
-            <router-view :team="team" :teamMembership="teamMembership" />
+            <router-view />
         </div>
         <div v-else-if="!canAccessTeam">
             <EmptyState>
@@ -104,7 +104,8 @@ export default {
         },
         checkBilling: async function () {
             // Team Billing
-            if (this.features.billing &&
+            if (!this.user.admin &&
+                this.features.billing &&
                 (!this.team.billing?.unmanaged) &&
                 (!this.team.billing?.trial || this.team.billing?.trialEnded) &&
                 !this.team.billing?.active

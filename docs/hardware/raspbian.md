@@ -1,6 +1,8 @@
 ---
 navTitle: Raspberry Pi with Raspbian
 navOrder: 3
+meta: 
+   description: Learn how to Install and configure FlowFuse Device Agent on Raspberry Pi with Raspbian for seamless device management and automation using our step-by-step guide and installation script.
 ---
 
 # Raspberry Pi

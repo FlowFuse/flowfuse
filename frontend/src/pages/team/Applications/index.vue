@@ -36,11 +36,27 @@
             <ff-loading v-if="loading" message="Loading Applications..." />
 
             <template v-else-if="!loading && applications.size > 0">
-                <ul class="ff-applications-list" data-el="applications-list">
-                    <li v-for="application in applicationsList" :key="application.id">
-                        <ApplicationListItem :application="application" />
+                <ff-text-input
+                    v-model="filterTerm"
+                    class="ff-data-table--search"
+                    data-form="search"
+                    placeholder="Search Applications, Instances and Devices..."
+                >
+                    <template #icon><SearchIcon /></template>
+                </ff-text-input>
+                <ul v-if="filteredApplications.length > 0" class="ff-applications-list" data-el="applications-list">
+                    <li v-for="application in filteredApplications" :key="application.id" data-el="application-item">
+                        <ApplicationListItem
+                            :application="application"
+                            :search-query="filterTerm"
+                            @instance-deleted="fetchData(false)"
+                            @device-deleted="fetchData(false)"
+                        />
                     </li>
                 </ul>
+                <p v-else class="no-results">
+                    No Data Found. Try Another Search.
+                </p>
             </template>
 
             <EmptyState v-else>
@@ -82,7 +98,7 @@
 </template>
 
 <script>
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { PlusSmIcon, SearchIcon } from '@heroicons/vue/outline'
 
 import teamApi from '../../../api/team.js'
 import EmptyState from '../../../components/EmptyState.vue'
@@ -91,38 +107,89 @@ import Alerts from '../../../services/alerts.js'
 
 import ApplicationListItem from './components/Application.vue'
 
-const ASSOCIATIONS_LIMIT = 3
-
 export default {
     name: 'TeamApplications',
     components: {
+        SearchIcon,
         ApplicationListItem,
         EmptyState,
         PlusSmIcon
     },
     mixins: [permissionsMixin],
-    props: {
-        team: {
-            type: Object,
-            required: true
-        },
-        teamMembership: {
-            type: Object,
-            required: true
-        }
-    },
     data () {
         return {
             loading: false,
             applications: new Map(),
             columns: [
                 { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true }
-            ]
+            ],
+            filterTerm: ''
         }
     },
     computed: {
         applicationsList () {
-            return Array.from(this.applications.values())
+            return Array.from(this.applications.values()).map(app => {
+                return {
+                    ...app,
+                    instances: Array.from(app.instances.values()),
+                    devices: Array.from(app.devices.values())
+                }
+            })
+        },
+        filteredApplications () {
+            if (this.filterTerm) {
+                return this.applicationsList
+                    .filter(app => {
+                        const filteredInstances = app.instances.filter(instance => {
+                            return [
+                                instance.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                                instance.id.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            ].includes(true)
+                        })
+                        const filteredDevices = app.devices.filter(device => {
+                            return [
+                                device.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                                device.id.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            ].includes(true)
+                        })
+
+                        return [
+                            app.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                            app.id.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                            filteredInstances.length > 0,
+                            filteredDevices.length > 0
+                        ].includes(true)
+                    })
+                    .map(app => {
+                        const filteredInstances = app.instances.filter(instance => {
+                            return [
+                                instance.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                                instance.id.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            ].includes(true)
+                        })
+                        const filteredDevices = app.devices.filter(device => {
+                            return [
+                                device.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                                device.id.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            ].includes(true)
+                        })
+
+                        const filteredInstancesOrEntireSet = filteredInstances.length
+                            ? filteredInstances
+                            : (filteredDevices.length > 0 ? filteredInstances : app.instances)
+                        const filteredDevicesOrEntireSet = filteredDevices.length
+                            ? filteredDevices
+                            : (filteredInstances.length > 0 ? filteredDevices : app.devices)
+
+                        return {
+                            ...app,
+                            instances: filteredInstancesOrEntireSet,
+                            instanceCount: filteredInstancesOrEntireSet.length,
+                            devices: filteredDevicesOrEntireSet,
+                            deviceCount: filteredDevicesOrEntireSet.length
+                        }
+                    })
+            } return this.applicationsList
         }
     },
     watch: {
@@ -141,19 +208,16 @@ export default {
         }
     },
     methods: {
-        async fetchData () {
-            this.loading = true
+        async fetchData (withLoading = true) {
+            this.loading = withLoading
             if (this.team.id) {
-                this.applications = new Map()
+                const applicationsMap = new Map()
 
-                const applicationsPromise = teamApi.getTeamApplications(this.team.id, { associationsLimit: ASSOCIATIONS_LIMIT })
-
-                // Not waited for as it can resolve in any order
-                this.updateApplicationAssociationStatuses()
+                const applicationsPromise = teamApi.getTeamApplications(this.team.id, { includeApplicationSummary: true })
 
                 const applications = (await applicationsPromise).applications
                 applications.forEach((applicationData) => {
-                    const application = this.applications.get(applicationData.id) || {}
+                    const application = applicationsMap.get(applicationData.id) || {}
                     if (!application.instances) {
                         application.instances = new Map()
                     }
@@ -179,16 +243,19 @@ export default {
                     application.instanceCount = instancesSummary.count
                     application.deviceCount = devicesSummary.count
 
-                    this.applications.set(applicationData.id, {
+                    applicationsMap.set(applicationData.id, {
                         ...application,
                         ...applicationProps
                     })
                 })
+                this.applications = applicationsMap
+                // Only update statuses *after* populating this.applications
+                this.updateApplicationAssociationStatuses()
             }
             this.loading = false
         },
         async updateApplicationAssociationStatuses () {
-            const applicationsAssociationsStatuses = (await teamApi.getTeamApplicationsAssociationsStatuses(this.team.id, { associationsLimit: ASSOCIATIONS_LIMIT })).applications
+            const applicationsAssociationsStatuses = (await teamApi.getTeamApplicationsAssociationsStatuses(this.team.id, { includeApplicationSummary: true })).applications
 
             applicationsAssociationsStatuses.forEach((applicationData) => {
                 const application = this.applications.get(applicationData.id) || {}
@@ -228,4 +295,9 @@ export default {
 
 <style lang="scss">
 @import "../../../stylesheets/components/applications-list";
+
+.no-results {
+  text-align: center;
+  color: $ff-grey-400;
+}
 </style>

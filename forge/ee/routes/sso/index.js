@@ -17,7 +17,7 @@ module.exports = fp(async function (app, opts) {
         preHandler: app.needsPermission('saml-provider:list')
     }, async (request, reply) => {
         const providers = await app.db.models.SAMLProvider.getAll()
-        providers.providers = providers.providers.map(u => app.db.views.SAMLProvider.provider(u))
+        providers.providers = providers.providers.map(u => app.db.views.SAMLProvider.providerSummary(u))
         reply.send(providers)
     })
 
@@ -41,6 +41,7 @@ module.exports = fp(async function (app, opts) {
             name: request.body.name,
             domainFilter: request.body.domainFilter,
             active: false,
+            type: request.body.type || 'saml',
             options: {}
         }
         const provider = await app.db.models.SAMLProvider.create(opts)
@@ -66,6 +67,7 @@ module.exports = fp(async function (app, opts) {
     }, async (request, reply) => {
         const provider = await app.db.models.SAMLProvider.byId(request.params.providerId)
         if (provider) {
+            // Does not allow 'type' to be modified
             if (request.body.name !== undefined) {
                 provider.name = request.body.name
             }
@@ -76,7 +78,15 @@ module.exports = fp(async function (app, opts) {
                 provider.active = request.body.active
             }
             if (request.body.options !== undefined) {
-                provider.options = request.body.options
+                const existingLDAPPassword = provider.options.password
+                const newOptions = { ...request.body.options }
+                if (newOptions.password === '__PLACEHOLDER__') {
+                    // We have received an unmodified placeholder password value
+                    // This means it hasn't been changed in the UI, so we should
+                    // preserve the existing value
+                    newOptions.password = existingLDAPPassword
+                }
+                provider.options = newOptions
             }
             await provider.save()
 

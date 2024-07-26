@@ -811,7 +811,8 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         if (request.project.state === 'suspended') {
-            reply.code(400).send({ code: 'project_suspended', error: 'Project suspended' })
+            app.log.warn(`Instance ${request.project} attempted to get settings whilst suspended`)
+            reply.code(400).send({ code: 'project_suspended', error: 'Instance suspended' })
             return
         }
         // get settings from the driver
@@ -821,6 +822,10 @@ module.exports = async function (app) {
         settings.baseURL = request.project.url
         settings.forgeURL = app.config.base_url
         settings.fileStore = app.config.fileStore ? { ...app.config.fileStore } : null
+        settings.assistant = {
+            enabled: app.config.assistant?.enabled || false,
+            requestTimeout: app.config.assistant?.requestTimeout
+        }
         settings.teamID = request.project.Team.hashid
         settings.storageURL = request.project.storageURL
         settings.auditURL = request.project.auditURL

@@ -1,33 +1,33 @@
 <template>
     <ff-loading v-if="loading.deleting" message="Deleting Instance..." />
     <ff-loading v-if="loading.duplicating" message="Copying Instance..." />
-    <ff-loading v-if="loading.changingStack" message="Changing Stack..." />
+    <ff-loading v-if="loading.changingStack" message="Changing Node-RED Version..." />
     <ff-loading v-if="loading.settingType" message="Setting Type..." />
     <ff-loading v-if="loading.suspend" message="Suspending Instance..." />
     <ff-loading v-if="loading.importing" message="Importing Instance..." />
     <form v-if="!isLoading" class="space-y-6">
         <template v-if="hasPermission('project:edit')">
-            <FormHeading>Change Instance Stack</FormHeading>
+            <FormHeading>Change Instance Node-RED Version</FormHeading>
             <div v-if="instance.stack && instance.stack.replacedBy" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="flex-grow">
                     <div class="max-w-sm">
-                        There is a new version of the current stack available.
-                        Updating the stack will restart the instance.
+                        There is a new version of Node-RED available.
+                        Updating the Node-RED Version will restart the instance.
                     </div>
                 </div>
                 <div class="min-w-fit flex-shrink-0">
-                    <ff-button data-action="update-stack" :disabled="!instance.projectType" kind="secondary" @click="upgradeStack()">Update Stack</ff-button>
+                    <ff-button data-action="update-stack" :disabled="!instance.projectType" kind="secondary" @click="upgradeStack()">Update Node-RED Version</ff-button>
                 </div>
             </div>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="flex-grow">
                     <div class="max-w-sm">
-                        Changing the Instance Stack requires the instance to be restarted.
+                        Changing the Instances Node-RED Version requires the instance to be restarted.
                         The flows will not be running while this happens.
                     </div>
                 </div>
                 <div class="min-w-fit flex-shrink-0">
-                    <ff-button data-action="change-stack" :disabled="!instance.projectType" kind="secondary" @click="showChangeStackDialog()">Change Stack</ff-button>
+                    <ff-button data-action="change-stack" :disabled="!instance.projectType" kind="secondary" @click="showChangeStackDialog()">Change Node-RED Version</ff-button>
                     <ChangeStackDialog ref="changeStackDialog" @confirm="changeStack" />
                 </div>
             </div>
@@ -220,10 +220,10 @@ export default {
                 InstanceApi.changeStack(this.instance.id, selectedStack).then(() => {
                     this.$router.push({ name: 'Instance', params: { id: this.instance.id } })
                     this.$emit('instance-updated')
-                    alerts.emit('Instance stack successfully updated.', 'confirmation')
+                    alerts.emit('Instance Node-RED Version successfully updated.', 'confirmation')
                 }).catch(err => {
                     console.warn(err)
-                    alerts.emit('Instance stack was not updated due to an error.', 'warning')
+                    alerts.emit('Instance Node-RED Version was not updated due to an error.', 'warning')
                 }).finally(() => {
                     this.loading.changingStack = false
                 })

@@ -37,13 +37,18 @@
         </div>
         <div class="hidden lg:flex">
             <ff-team-selection data-action="team-selection" />
+            <div class="px-4 flex flex-col justify-center ff-border-left" v-if="showInviteButton">
+                <ff-button kind="secondary" @click="inviteTeamMembers">
+                    <template #icon-left><UserAddIcon /></template>
+                    Invite Members
+                </ff-button>
+            </div>
             <!-- Desktop: User Options -->
+            <NotificationsButton />
             <ff-dropdown v-if="user" class="ff-navigation ff-user-options" options-align="right" data-action="user-options" data-cy="user-options">
                 <template #placeholder>
                     <div class="ff-user">
                         <img :src="user.avatar" class="ff-avatar">
-                        <ff-notification-pill v-if="notifications.total > 0" data-el="notification-pill" class="ml-3" :count="notifications.total" />
-                        <!-- <label>{{ user.name }}</label> -->
                     </div>
                 </template>
                 <template #default>
@@ -56,11 +61,15 @@
     </div>
 </template>
 <script>
-import { AdjustmentsIcon, CogIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, UserGroupIcon } from '@heroicons/vue/solid'
+import { AdjustmentsIcon, CogIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, UserAddIcon } from '@heroicons/vue/solid'
 import { ref } from 'vue'
 import { mapGetters, mapState } from 'vuex'
 
+import navigationMixin from '../mixins/Navigation.js'
+
 import NavItem from './NavItem.vue'
+import NotificationsButton from './NotificationsButton.vue'
+
 import TeamSelection from './TeamSelection.vue'
 
 export default {
@@ -71,6 +80,7 @@ export default {
         }
     },
     emits: ['menu-toggle'],
+    mixins: [navigationMixin],
     computed: {
         ...mapState('account', ['user', 'team', 'teams']),
         ...mapGetters('account', ['notifications']),
@@ -82,14 +92,6 @@ export default {
                     tag: 'user-settings',
                     onclick: this.$router.push,
                     onclickparams: { name: 'User Settings' }
-                },
-                {
-                    label: 'Team Invitations',
-                    icon: UserGroupIcon,
-                    tag: 'team-invitations',
-                    onclick: this.$router.push,
-                    onclickparams: { name: 'User Invitations' },
-                    notifications: this.notifications.invitations
                 },
                 this.user.admin
                     ? {
@@ -110,9 +112,12 @@ export default {
                     label: 'Sign Out',
                     icon: LogoutIcon,
                     tag: 'sign-out',
-                    onclick: this.signout
+                    onclick: this.signOut
                 }
             ].filter(option => option !== undefined)
+        },
+        showInviteButton () {
+            return this.$route.name !== 'TeamMembers'
         }
     },
     watch: {
@@ -126,7 +131,9 @@ export default {
     components: {
         NavItem,
         'ff-team-selection': TeamSelection,
-        MenuIcon
+        MenuIcon,
+        UserAddIcon,
+        NotificationsButton
     },
     data () {
         return {
@@ -142,16 +149,19 @@ export default {
         }
     },
     methods: {
-        home () {
-            if (this.team?.slug) {
-                this.$router.push({ name: 'Team', params: { team_slug: this.team.slug } })
-            }
-        },
         to (route) {
             window.open(route.url, '_blank')
         },
-        signout () {
-            this.$router.push({ name: 'Sign out' })
+        inviteTeamMembers () {
+            this.$router.push({
+                name: 'TeamMembers',
+                params: {
+                    team_slug: this.team.slug
+                },
+                query: {
+                    action: 'invite'
+                }
+            })
         }
     }
 }

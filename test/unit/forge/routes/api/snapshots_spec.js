@@ -18,15 +18,26 @@ function decryptCredentials (key, cipher) {
     return JSON.parse(decrypted)
 }
 
+function encryptCredentials (secret, plain) {
+    const key = crypto.createHash('sha256').update(secret).digest()
+    const initVector = crypto.randomBytes(16)
+    const cipher = crypto.createCipheriv('aes-256-ctr', key, initVector)
+    return { $: initVector.toString('hex') + cipher.update(JSON.stringify(plain), 'utf8', 'base64') + cipher.final('base64') }
+}
+
 describe('Snapshots API', function () {
     let app
     /** @type {TestModelFactory} */ let factory = null
 
     const TestObjects = {
         application1: null,
+        application2: null,
         project1: null,
         device1: null,
+        project2: null,
+        device2: null,
         /** ATeam Owner & Admin */ alice: null,
+        /** ATeam Owner */ dave: null,
         /** ATeam Member */ bob: null,
         /** ATeam Viewer */ verity: null,
         /** BTeam Owner */ chris: null,
@@ -34,14 +45,17 @@ describe('Snapshots API', function () {
         BTeam: null,
         tokens: {
             project1: null,
+            project2: null,
             device1: null,
+            device2: null,
             /** ATeam Owner */ alice: null,
             /** ATeam Member */ bob: null,
             /** ATeam Viewer */ verity: null,
             /** BTeam Owner */ chris: null
         },
         template1: null,
-        stack1: null
+        stack1: null,
+        projectType1: null
     }
     before(async function () {
         app = await setup()
@@ -51,17 +65,20 @@ describe('Snapshots API', function () {
         TestObjects.template1 = app.template
         TestObjects.stack1 = app.stack
         TestObjects.project1 = app.project
+        TestObjects.projectType1 = app.projectType
 
         // Alice create in setup()
         TestObjects.alice = await app.db.models.User.byUsername('alice')
         TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
         TestObjects.verity = await app.db.models.User.create({ username: 'verity', name: 'Verity Viewer', email: 'verity@example.com', email_verified: true, password: 'vvPassword' })
         TestObjects.chris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', email_verified: true, password: 'ccPassword' })
+        TestObjects.dave = await app.db.models.User.create({ username: 'dave', name: 'Dave Skywalker', email: 'dave@example.com', email_verified: true, password: 'ddPassword' })
 
         // Add Bob and Verity to ATeam
         TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
         await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Member } })
         await TestObjects.ATeam.addUser(TestObjects.verity, { through: { role: Roles.Viewer } })
+        await TestObjects.ATeam.addUser(TestObjects.dave, { through: { role: Roles.Owner } })
 
         // Add BTeam and add Chris as owner
         TestObjects.BTeam = await factory.createTeam({ name: 'BTeam' })
@@ -70,15 +87,25 @@ describe('Snapshots API', function () {
         // create a device
         TestObjects.device1 = await factory.createDevice({ name: 'device-1' }, TestObjects.ATeam, null, TestObjects.application1)
 
+        // Create an application for BTeam
+        TestObjects.application2 = await factory.createApplication({ name: 'application-2' }, TestObjects.BTeam)
+
+        // Create a project for BTeam
+        TestObjects.project2 = await factory.createInstance({ name: 'project-2' }, TestObjects.application2, TestObjects.stack1, TestObjects.template1, TestObjects.projectType1)
+
+        // Create a device for BTeam, application2
+        TestObjects.device2 = await factory.createDevice({ name: 'device-2' }, TestObjects.BTeam, null, TestObjects.application2)
+
         TestObjects.tokens = {}
         await login('alice', 'aaPassword')
         await login('bob', 'bbPassword')
         await login('chris', 'ccPassword')
         await login('verity', 'vvPassword')
+        await login('dave', 'ddPassword')
 
         // TestObjects.tokens.alice = (await app.db.controllers.AccessToken.createTokenForPasswordReset(TestObjects.alice)).token
         TestObjects.tokens.project1 = (await TestObjects.project1.refreshAuthTokens()).token
-        // TestObjects.tokens.project2 = (await TestObjects.project2.refreshAuthTokens()).token
+        TestObjects.tokens.project2 = (await TestObjects.project2.refreshAuthTokens()).token
 
         TestObjects.template1 = app.template
         TestObjects.stack1 = app.stack
@@ -186,6 +213,23 @@ describe('Snapshots API', function () {
         })
     }
 
+    async function importSnapshot (ownerId, ownerType, snapshot, credentialSecret, token) {
+        const payload = {
+            ownerId,
+            ownerType,
+            snapshot
+        }
+        if (credentialSecret) {
+            payload.credentialSecret = credentialSecret
+        }
+        return await app.inject({
+            method: 'POST',
+            url: '/api/v1/snapshots/import',
+            cookies: { sid: token },
+            payload
+        })
+    }
+
     async function deleteSnapshot (snapshotId, token) {
         return await app.inject({
             method: 'DELETE',
@@ -227,7 +271,7 @@ describe('Snapshots API', function () {
                 response.json().should.have.property('code', 'not_found')
             })
 
-            it('Snapshot contains only meta data', async function () {
+            it('Device Snapshot contains only meta data', async function () {
                 const snapshotResponse = await createSnapshot()
                 const result = snapshotResponse.json()
 
@@ -236,7 +280,12 @@ describe('Snapshots API', function () {
                 response.statusCode.should.equal(200)
                 const data = response.json()
                 should(data).be.an.Object()
-                data.should.only.have.keys('id', 'name', 'description')
+                if (kind === 'device') {
+                    data.should.only.have.keys('id', 'name', 'description', 'createdAt', 'updatedAt', 'user', 'ownerType', 'modules', 'deviceId', 'device')
+                } else {
+                    data.should.only.have.keys('id', 'name', 'description', 'createdAt', 'updatedAt', 'user', 'ownerType', 'modules', 'projectId', 'project')
+                }
+                data.should.not.have.keys('settings', 'flows', 'credentialSecret')
                 data.should.have.property('id', result.id)
                 data.should.have.property('name', result.name)
                 data.should.have.property('description', result.description)
@@ -497,6 +546,162 @@ describe('Snapshots API', function () {
                 const keyHash = crypto.createHash('sha256').update('test-secret').digest()
                 const decrypted = decryptCredentials(keyHash, exportResult.flows.credentials)
                 JSON.stringify(decrypted).should.equal(JSON.stringify({ testCreds: 'abc' }))
+            })
+        }
+        describe('instance', function () {
+            tests('instance')
+        })
+        describe('device', function () {
+            tests('device')
+        })
+    })
+
+    // Tests for POST /api/v1/snapshots/{snapshotId}/import
+    // * Imports a project or device snapshot into a project or device
+
+    describe('Import snapshot', function () {
+        const dummySnapshot = (name, flows = [], settings = {}, env = {}, modules = {}, credentials = null) => {
+            const _name = name === undefined ? nameGenerator('snapshot') : name
+            const _settings = (settings || env || modules) ? {} : undefined
+            if (settings !== null) {
+                _settings.settings = settings
+            }
+            if (env !== null) {
+                _settings.env = env
+            }
+            if (modules !== null) {
+                _settings.modules = modules
+            }
+            const snapshot = {
+                name: _name,
+                description: 'dummy description',
+                flows: {
+                    flows
+                },
+                settings: _settings
+            }
+            if (credentials) {
+                snapshot.flows.credentials = credentials
+            }
+            return snapshot
+        }
+
+        afterEach(async function () {
+            await app.db.models.ProjectSnapshot.destroy({ where: {} })
+        })
+
+        /**
+         * post import snapshot tests
+         * @param {'instance' | 'device'} kind - 'instance' or 'device'
+         */
+        function tests (kind) {
+            const modelType = kind === 'instance' ? 'project' : 'device'
+            const getOwnerId = () => kind === 'instance' ? TestObjects.project1.id : TestObjects.device1.hashid
+            const getTeamBOwnerId = () => kind === 'instance' ? TestObjects.project2.id : TestObjects.device2.hashid
+
+            it('Owner can import snapshot with credentials', async function () {
+                const ownerId = getOwnerId()
+                const ss = dummySnapshot('dummy', [], {}, {}, {}, encryptCredentials('test-secret', { testCreds: 'abc' }))
+                const response = await importSnapshot(ownerId, kind, ss, 'test-secret', TestObjects.tokens.alice)
+
+                response.statusCode.should.equal(200)
+
+                // check the result
+                const result = response.json()
+                result.should.have.property(modelType).and.be.an.Object() // should contain the project/device - for updating the snapshot table client-side without refreshing/reloading from the server
+                result[modelType].should.have.property('id', ownerId) // id of owner should be the hash string
+                result.should.have.property('user').and.be.an.Object() // should contain the user - for updating the snapshot table client-side without refreshing/reloading from the server
+                result.should.have.property('id').and.be.a.String()
+                result.should.have.property('name', 'dummy')
+            })
+
+            it('Owner can import snapshot without credentials', async function () {
+                const ownerId = getOwnerId()
+                const ss = dummySnapshot('dummy-no-creds', [], {}, {}, {}, null)
+                const response = await importSnapshot(ownerId, kind, ss, null, TestObjects.tokens.alice)
+
+                response.statusCode.should.equal(200)
+
+                const result = response.json()
+                result.should.have.property(modelType).and.be.an.Object() // should contain the project/device - for updating the snapshot table client-side without refreshing/reloading from the server
+                result[modelType].should.have.property('id', ownerId) // id of owner should be the hash string
+                result.should.have.property('user').and.be.an.Object() // should contain the user - for updating the snapshot table client-side without refreshing/reloading from the server
+                result.should.have.property('id').and.be.a.String()
+                result.should.have.property('name', 'dummy-no-creds')
+            })
+
+            it('Returns 400 for missing snapshot', async function () {
+                const response = await importSnapshot(getOwnerId(), kind, null, 'test-secret', TestObjects.tokens.alice)
+                response.statusCode.should.equal(400)
+                const result = response.json()
+                result.should.have.property('code', 'FST_ERR_VALIDATION')
+            })
+
+            it(`Returns 404 for non-existant ${kind}`, async function () {
+                const ss = dummySnapshot('dummy', [], {}, {}, {}, encryptCredentials('test-secret', { testCreds: 'abc' }))
+                const response = await importSnapshot('non_existant-owner', kind, ss, 'test-secret', TestObjects.tokens.alice)
+                response.statusCode.should.equal(404)
+            })
+
+            it('Returns 400 for missing credentialSecret', async function () {
+                const ss = dummySnapshot('dummy', [], {}, {}, {}, encryptCredentials('test-secret', { testCreds: 'abc' }))
+                const response = await importSnapshot(getOwnerId(), kind, ss, '', TestObjects.tokens.alice)
+                response.statusCode.should.equal(400)
+                const result = response.json()
+                result.should.have.property('code', 'bad_request')
+            })
+
+            it('Returns 400 for bad/invalid snapshot (missing flows)', async function () {
+                const ss = dummySnapshot('dummy', [], {}, {}, {}, encryptCredentials('test-secret', { testCreds: 'abc' }))
+                delete ss.flows
+                const response = await importSnapshot(getOwnerId(), kind, ss, '', TestObjects.tokens.alice)
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'FST_ERR_VALIDATION')
+            })
+
+            it('Returns 400 for bad/invalid snapshot (missing settings)', async function () {
+                const ss = dummySnapshot('dummy', [], {}, {}, {}, encryptCredentials('test-secret', { testCreds: 'abc' }))
+                delete ss.settings
+                const response = await importSnapshot(getOwnerId(), kind, ss, '', TestObjects.tokens.alice)
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'FST_ERR_VALIDATION')
+            })
+
+            it('Returns 400 for incorrect credentialSecret', async function () {
+                const ss = dummySnapshot('dummy', [], {}, {}, {}, encryptCredentials('test-secret', { testCreds: 'abc' }))
+                const response = await importSnapshot(getOwnerId(), kind, ss, 'wrong-secret', TestObjects.tokens.alice)
+                response.statusCode.should.equal(400)
+                response.json().should.have.property('code', 'bad_request')
+            })
+
+            it(`TeamB member cannot import snapshot for ${kind} belonging to TeamA - 404`, async function () {
+                const ss = dummySnapshot('dummy', [], {}, {}, {}, null)
+                // chris (TeamB member, non admin) will attempt to import a snapshot into a project/device belonging to TeamA
+                const response = await importSnapshot(getOwnerId(), kind, ss, null, TestObjects.tokens.chris) // chris is not a member of TeamA where the project/device is
+                // 404 as a non member should not know the resource exists
+                response.statusCode.should.equal(404)
+                response.json().should.have.property('code', 'not_found')
+            })
+
+            it(`TeamA Owner cannot import snapshot for ${kind} belonging to TeamB - 404`, async function () {
+                const ss = dummySnapshot('dummy', [], {}, {}, {}, encryptCredentials('test-secret', { testCreds: 'abc' }))
+                // dave (TeamA owner, non admin) will attempt to import a snapshot into a project/device belonging to TeamB
+                const response = await importSnapshot(getTeamBOwnerId(), kind, ss, 'test-secret', TestObjects.tokens.dave) // dave is the owner of Team B where the project/device is
+                response.statusCode.should.equal(404)
+            })
+
+            it('Member cannot import snapshot - 403', async function () {
+                const ss = dummySnapshot('dummy', [], {}, {}, {}, null)
+                const response = await importSnapshot(getOwnerId(), kind, ss, null, TestObjects.tokens.bob)
+                response.statusCode.should.equal(403)
+                response.json().should.have.property('code', 'unauthorized')
+            })
+
+            it('Viewer cannot import snapshot - 403', async function () {
+                const ss = dummySnapshot('dummy', [], {}, {}, {}, null)
+                const response = await importSnapshot(getOwnerId(), kind, ss, null, TestObjects.tokens.verity)
+                response.statusCode.should.equal(403)
+                response.json().should.have.property('code', 'unauthorized')
             })
         }
         describe('instance', function () {

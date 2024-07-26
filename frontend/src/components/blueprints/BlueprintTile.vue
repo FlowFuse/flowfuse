@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-blueprint-tile" :class="'ff-blueprint-group--' + categoryClass" data-el="blueprint-tile">
+    <div class="ff-blueprint-tile" :class="{['ff-blueprint-group--' + categoryClass]: true, active}" data-el="blueprint-tile">
         <div class="ff-blueprint-tile--header">
             <component :is="getIcon(blueprint.icon)" class="ff-icon" />
         </div>
@@ -12,6 +12,16 @@
                 <CheckCircleIcon class="ff-icon-lg" />
                 <label class="text-green-800">Default</label>
             </div>
+            <ff-button
+                v-if="displayPreviewButton"
+                data-action="show-blueprint"
+                class="ff-btn--secondary"
+                @click="$refs.flowRendererDialog.show(blueprint)"
+            >
+                <template #icon>
+                    <ProjectIcon />
+                </template>
+            </ff-button>
             <ff-button v-if="!editable" data-action="select-blueprint" @click="choose(blueprint)">
                 Select
             </ff-button>
@@ -19,6 +29,7 @@
                 Edit
             </ff-button>
         </div>
+        <AssetDetailDialog v-if="displayPreviewButton" ref="flowRendererDialog" :title="blueprint.name" />
     </div>
 </template>
 
@@ -27,12 +38,20 @@ import { CheckCircleIcon, QuestionMarkCircleIcon } from '@heroicons/vue/outline'
 import { defineAsyncComponent } from 'vue'
 import { mapState } from 'vuex'
 
+import ProjectIcon from '../../components/icons/Projects.js'
 import product from '../../services/product.js'
+import FfDialog from '../../ui-components/components/DialogBox.vue'
+import FormRow from '../FormRow.vue'
+import AssetDetailDialog from '../dialogs/AssetDetailDialog.vue'
 
 export default {
     name: 'BlueprintTile',
     components: {
-        CheckCircleIcon
+        FfDialog,
+        FormRow,
+        AssetDetailDialog,
+        CheckCircleIcon,
+        ProjectIcon
     },
     props: {
         blueprint: {
@@ -40,6 +59,14 @@ export default {
             type: Object
         },
         editable: {
+            type: Boolean,
+            default: false
+        },
+        displayPreviewButton: {
+            type: Boolean,
+            default: true
+        },
+        active: {
             type: Boolean,
             default: false
         }
@@ -90,3 +117,27 @@ export default {
     }
 }
 </script>
+
+<style lang="scss">
+.ff-blueprint-tile {
+  background-color: $ff-white;
+  width: 250px;
+
+  &.active {
+    border-color: $ff-blue-600;
+    transition: border-color .3s;
+  }
+
+  .ff-dialog-container {
+    .ff-dialog-box {
+      max-width: 75rem;
+      .ff-dialog-content {
+        padding: 0;
+      }
+      .ff-dialog-actions {
+        padding: 5px 15px;
+      }
+    }
+  }
+}
+</style>

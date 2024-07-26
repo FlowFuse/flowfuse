@@ -6,7 +6,7 @@ describe('Team model', function () {
     let app
 
     describe('model properties', async function () {
-        let pt1, pt2, pt3
+        let pt1, pt2, pt3, pt4
         let ATeam
         let smallerTeamType
         let biggerTeamType
@@ -17,6 +17,7 @@ describe('Team model', function () {
             pt1 = await app.db.models.ProjectType.create({ name: 'pt1', properties: {}, active: true })
             pt2 = await app.db.models.ProjectType.create({ name: 'pt2', properties: {}, active: true })
             pt3 = await app.db.models.ProjectType.create({ name: 'pt3', properties: {}, active: true })
+            pt4 = await app.db.models.ProjectType.create({ name: 'pt4', properties: {}, active: true })
 
             // Modify the default teamType to have some limits to test against
             const teamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
@@ -25,7 +26,8 @@ describe('Team model', function () {
             teamTypeProperties.instances = {
                 [pt1.hashid]: { active: true, limit: 2 },
                 [pt2.hashid]: { active: true, limit: 7 },
-                [pt3.hashid]: { active: false }
+                [pt3.hashid]: { active: false },
+                [pt4.hashid]: { active: true, creatable: false }
             }
             teamTypeProperties.devices.limit = 2
             teamType.properties = teamTypeProperties
@@ -62,7 +64,7 @@ describe('Team model', function () {
                 order: 1,
                 properties: {
                     instances: {
-                        [pt1.hashid]: { active: true },
+                        [pt1.hashid]: { active: true, creatable: false },
                         [pt2.hashid]: { active: true },
                         [pt3.hashid]: { active: true }
                     },
@@ -145,13 +147,21 @@ describe('Team model', function () {
             ;(await ATeam.isInstanceTypeAvailable(pt1)).should.be.true()
             ;(await ATeam.isInstanceTypeAvailable(pt1.hashid)).should.be.true()
             ;(await ATeam.isInstanceTypeAvailable(pt1.id)).should.be.true()
+
             ;(await ATeam.isInstanceTypeAvailable(pt2)).should.be.true()
-            ;(await ATeam.isInstanceTypeAvailable(pt2.hashid)).should.be.true()
-            ;(await ATeam.isInstanceTypeAvailable(pt2.id)).should.be.true()
             ;(await ATeam.isInstanceTypeAvailable(pt3)).should.be.false()
-            ;(await ATeam.isInstanceTypeAvailable(pt3.hashid)).should.be.false()
-            ;(await ATeam.isInstanceTypeAvailable(pt3.id)).should.be.false()
+            ;(await ATeam.isInstanceTypeAvailable(pt4)).should.be.true()
         })
+
+        it('isInstanceTypeCreatable', async function () {
+            ;(await ATeam.isInstanceTypeCreatable(pt1)).should.be.true()
+            ;(await ATeam.isInstanceTypeCreatable(pt1.hashid)).should.be.true()
+            ;(await ATeam.isInstanceTypeCreatable(pt1.id)).should.be.true()
+            ;(await ATeam.isInstanceTypeCreatable(pt2)).should.be.true()
+            ;(await ATeam.isInstanceTypeCreatable(pt3)).should.be.true()
+            ;(await ATeam.isInstanceTypeCreatable(pt4)).should.be.false()
+        })
+
         it('getInstanceTypeLimit', async function () {
             // Check the function handles all the ways an instance type
             // might be provided - object, id or hashid.
@@ -169,12 +179,14 @@ describe('Team model', function () {
             await ATeam.checkInstanceTypeCreateAllowed(pt1).should.be.rejected() // 2 vs 2
             await ATeam.checkInstanceTypeCreateAllowed(pt2).should.be.resolved() // 1 vs 7
             await ATeam.checkInstanceTypeCreateAllowed(pt3).should.be.rejected() // 0 vs 0
+            await ATeam.checkInstanceTypeCreateAllowed(pt4).should.be.rejected() // creatable === false
         })
 
         it('checkInstanceStartAllowed', async function () {
             await ATeam.checkInstanceStartAllowed(pt1).should.be.resolved()
             await ATeam.checkInstanceStartAllowed(pt2).should.be.resolved()
             await ATeam.checkInstanceStartAllowed(pt3).should.be.resolved()
+            await ATeam.checkInstanceStartAllowed(pt4).should.be.resolved()
         })
 
         it('checkTeamTypeUpdateAllowed rejects changing type to smaller type', async function () {

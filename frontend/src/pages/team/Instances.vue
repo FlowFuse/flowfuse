@@ -90,6 +90,7 @@ import teamApi from '../../api/team.js'
 import EmptyState from '../../components/EmptyState.vue'
 import permissionsMixin from '../../mixins/Permissions.js'
 import DeploymentName from '../application/components/cells/DeploymentName.vue'
+import SimpleTextCell from '../application/components/cells/SimpleTextCell.vue'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 
 export default {
@@ -99,16 +100,6 @@ export default {
         EmptyState
     },
     mixins: [permissionsMixin],
-    props: {
-        team: {
-            type: Object,
-            required: true
-        },
-        teamMembership: {
-            type: Object,
-            required: true
-        }
-    },
     data () {
         return {
             loading: false,
@@ -116,7 +107,7 @@ export default {
             columns: [
                 { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true, component: { is: markRaw(DeploymentName) } },
                 { label: 'Status', class: ['w-44'], key: 'status', sortable: true, component: { is: markRaw(InstanceStatusBadge) } },
-                { label: 'Last Updated', class: ['w-60'], key: 'flowLastUpdatedSince', sortable: true },
+                { label: 'Last Updated', class: ['w-60'], key: 'flowLastUpdatedAt', sortable: true, component: { is: markRaw(SimpleTextCell), map: { text: 'flowLastUpdatedSince' } } },
                 { label: 'Application', class: ['flex-grow-[0.25]'], key: 'application.name', sortable: true }
             ]
         }

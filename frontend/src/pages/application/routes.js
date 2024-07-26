@@ -67,17 +67,6 @@ export default [
                 }
             },
             {
-                path: 'instances/create',
-                name: 'ApplicationCreateInstance',
-                component: ApplicationCreateInstance,
-                props: route => ({
-                    sourceInstanceId: route.query.sourceInstanceId
-                }),
-                meta: {
-                    title: 'Application - Instances - Create'
-                }
-            },
-            {
                 path: 'pipelines',
                 name: 'ApplicationPipelines',
                 component: ApplicationPipelines,
@@ -150,6 +139,17 @@ export default [
         ]
     },
     {
+        path: '/application/:id/instances/create',
+        name: 'ApplicationCreateInstance',
+        component: ApplicationCreateInstance,
+        props: route => ({
+            sourceInstanceId: route.query.sourceInstanceId
+        }),
+        meta: {
+            title: 'Application - Instances - Create'
+        }
+    },
+    {
         path: '/application/:applicationId/device-group/:deviceGroupId',
         name: 'ApplicationDeviceGroupIndex',
         component: ApplicationDeviceGroupIndex,
@@ -178,5 +178,4 @@ export default [
             }
         ]
     }
-
 ]

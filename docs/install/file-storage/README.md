@@ -1,8 +1,48 @@
 ---
 navTitle: FlowFuse File Storage
+meta:
+   description: Explore FlowFuse v2.6.0's Persistent Storage for Kubernetes and Docker. Configure Node-RED's persistent volumes and manage File Storage and Persistent Context efficiently.
 ---
 
 # FlowFuse File Storage
+
+As part of the FlowFuse v2.6.0 release a new Persistent Storage approach 
+was implemented for Kubernetes (Docker to follow).
+
+This mounts a Persistent Volume into the container running the Node-RED
+Instance on `/data/storage`. Files written to this location will be persisted
+for the life of the Instance and across Suspend/Resume and Stack upgrades.
+
+### Configuring
+
+Create a Kubernetes StorageClass that allows dynamic provisioning of PhysicalVolumes from PhysicalVolumeClaims e.g. The [AWS EFS CSI driver](https://github.com/kubernetes-sigs/aws-efs-csi-driver)
+
+Then pass the following values to the FlowFuse Helm Chart when upgrading.
+
+```
+forge:
+  persistentStorage:
+    enabled: true
+    storageClass: '<name of StorageClass>'
+    size: '5Gi'
+```
+Where size is the default size for the volume.
+
+#### Azure
+
+If you are using the `azurefile-csi` Persistent Storage driver then we recommend adding the following to the `StorageClass mountOptions`:
+
+```
+mountOptions:
+  - dir_mode=0777
+  - file_mode=0777
+  - mfsymlinks
+  - nobrl
+```
+
+See [the Azure Kubernetes documentation](https://learn.microsoft.com/en-us/troubleshoot/azure/azure-kubernetes/storage/mountoptions-settings-azure-files) for more details.
+
+## Pre FlowFuse v2.6.0
 
 When running in container-based environments, such as Docker or Kubernetes,
 the Node-RED instances do not have access to a persistent filesystem.
@@ -22,7 +62,7 @@ persistent storage to Node-RED in two different ways:
 If you are running using the LocalFS platform driver, Node-RED will have direct
 access to the local filesystem already.
 
-## Configuring
+### Configuring
 
 The File Storage server has its own configuration file: `etc/flowforge-storage.yml`.
 

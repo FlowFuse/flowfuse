@@ -60,7 +60,7 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                     })
                 }).as('getApplicationsStatus')
 
-                cy.intercept('GET', '/api/*/teams/*/applications*', (req) => {
+                cy.intercept('GET', '/api/*/teams/*/applications?*', (req) => {
                     req.continue((res) => {
                         const instanceOne = res.body.applications[0].instancesSummary.instances.find((instance) => instance.id === instanceOneId)
                         instanceOne.flowLastUpdatedAt = new Date().toISOString()
@@ -97,46 +97,36 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                         const text = labels.toArray().join(', ')
 
                         // Test should pass for single test of full suite (objects persist between tests)
-                        expect(text).to.match(/2 x Instances, 2 x Devices, 2 x Device Groups, 9 x Snapshots, 4 x Pipelines|2 x Instances, 2 x Devices, 1 x Device Group, 4 x Snapshots/)
+                        expect(text).to.match(/2 x Instances, 3 x Devices, 2 x Device Groups, (9|[1-9]\d+) x Snapshots, 4 x Pipelines|2 x Instances, 3 x Devices, 1 x Device Group, (4|[1-9]\d+) x Snapshots/)
                     })
 
-                    cy.get('[data-el="application-instances"]').find('li').should('have.length', 2)
-                    cy.get('[data-el="application-instances"] li:contains("instance-2-with-devices")').within(() => {
-                        cy.contains('stopped')
-                        cy.contains('Instance Stopped')
-                        cy.contains('moments ago')
-
+                    cy.get('[data-el="application-instances"]').find('.item-wrapper').should('have.length', 2)
+                    cy.get('[data-el="application-instances"] .item-wrapper:contains("instance-2-with-devices")').within(() => {
+                        cy.get('[data-el="status-badge-stopped"]').should('exist')
                         cy.get('[data-action="open-editor"]').should('be.disabled')
-                        cy.get('[data-el="action-button"]').should('exist')
+                        cy.get('[data-el="kebab-menu"]').should('exist')
                     })
 
-                    cy.get('[data-el="application-instances"] li:contains("instance-2-1")').within(() => {
+                    cy.get('[data-el="application-instances"] .item-wrapper:contains("instance-2-1")').within(() => {
                         cy.contains('instance-2-1')
-                        cy.contains('running')
+                        cy.get('[data-el="status-badge-running"]').should('exist')
                         cy.contains('http://instance-2-1.example.com')
-                        cy.contains('Flows last deployed')
                         cy.get('[data-action="open-editor"]').should('be.enabled')
-                        cy.get('[data-el="action-button"]').should('exist')
+                        cy.get('[data-el="kebab-menu"]').should('exist')
                     })
 
-                    cy.get('[data-el="application-devices"]').find('li').should('have.length', 2)
-                    cy.get('[data-el="application-devices"] li:contains("application-device-a")').within(() => {
-                        cy.contains('running')
-                        cy.contains('Device Assigned to Application')
-                        cy.contains('moments ago')
-                        cy.contains('http://editor.example.com')
-                        cy.get('[data-action="open-editor"]').should('be.enabled')
-                        cy.get('[data-el="action-button"]').should('not.exist')
+                    cy.get('[data-el="application-devices"]').find('.item-wrapper').should('have.length', 3)
+                    cy.get('[data-el="application-devices"] .item-wrapper:contains("application-device-a")').within(() => {
+                        cy.get('[data-el="status-badge-running"]').should('exist')
+                        cy.get('[data-el="kebab-menu"]').should('exist')
                     })
 
-                    cy.get('[data-el="application-devices"] li:contains("application-device-b")').within(() => {
-                        cy.contains('stopped')
+                    cy.get('[data-el="application-devices"] .item-wrapper:contains("application-device-b")').within(() => {
+                        cy.get('[data-el="status-badge-stopped"]').should('exist')
 
-                        cy.contains('Device last seen')
-                        cy.contains('never')
+                        cy.contains('Last seen: never')
 
-                        cy.get('[data-action="open-editor"]').should('be.disabled')
-                        cy.get('[data-el="action-button"]').should('not.exist')
+                        cy.get('[data-el="kebab-menu"]').should('exist')
                     })
                 })
             })

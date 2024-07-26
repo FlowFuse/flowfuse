@@ -1,11 +1,12 @@
-const { readdir } = require('fs/promises')
+const { readdir, unlink, access } = require('fs/promises')
+const path = require('path')
+const downloadsFolder = 'test/e2e/frontend/cypress/downloads'
 
 module.exports = {
     viewportWidth: 1024,
     viewportHeight: 768,
     e2e: {
-        experimentalSessionAndOrigin: true,
-        downloadsFolder: 'test/e2e/frontend/cypress/downloads',
+        downloadsFolder,
         fixturesFolder: 'test/e2e/frontend/cypress/fixtures',
         screenshotsFolder: 'test/e2e/frontend/cypress/screenshots',
         supportFile: 'test/e2e/frontend/cypress/support/index.js',
@@ -36,6 +37,24 @@ module.exports = {
                         }
                         return true
                     })
+                },
+                // Clear all files in the downloads folder
+                async clearDownloads () {
+                    const dir = path.join(__dirname, '..', downloadsFolder)
+                    // first ensure the folder exists, then clear it
+                    try {
+                        await access(dir)
+                    } catch (error) {
+                        // not terribly interested if the dir has not yet been created
+                        // just return true!
+                        return true
+                    }
+                    const files = await readdir(dir)
+                    for (const file of files) {
+                        const filePath = path.join(dir, file)
+                        await unlink(filePath)
+                    }
+                    return true
                 }
             })
         }

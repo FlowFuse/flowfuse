@@ -14,6 +14,10 @@
             <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
                 <template #context-menu="{row}">
                     <ff-list-item :disabled="!canViewSnapshot(row)" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
+                    <ff-list-item :disabled="!canViewSnapshot(row)" label="Compare Snapshot..." @click="showCompareSnapshotDialog(row)" />
+                    <ff-list-item :disabled="!canDownload(row)" label="Download Snapshot" @click="showDownloadSnapshotDialog(row)" />
+                    <ff-list-item :disabled="!canDownloadPackage(row)" label="Download package.json" @click="downloadSnapshotPackage(row)" />
+                    <ff-list-item :disabled="!canDelete(row)" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />
                 </template>
             </ff-data-table>
         </template>
@@ -36,7 +40,9 @@
             </EmptyState>
         </template>
     </div>
-    <SnapshotViewerDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
+    <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" />
+    <AssetDetailDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
+    <AssetCompareDialog ref="snapshotCompareDialog" data-el="dialog-compare-snapshot" />
 </template>
 
 <script>
@@ -48,21 +54,28 @@ import SnapshotsApi from '../../api/snapshots.js'
 
 import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
-import SnapshotViewerDialog from '../../components/dialogs/SnapshotViewerDialog.vue'
+import AssetCompareDialog from '../../components/dialogs/AssetCompareDialog.vue'
+import AssetDetailDialog from '../../components/dialogs/AssetDetailDialog.vue'
 import UserCell from '../../components/tables/cells/UserCell.vue'
+import { downloadData } from '../../composables/Download.js'
 import permissionsMixin from '../../mixins/Permissions.js'
-import Alerts from '../instance/Settings/Alerts.vue'
+import Alerts from '../../services/alerts.js'
+import Dialog from '../../services/dialog.js'
+import { applySystemUserDetails } from '../../transformers/snapshots.transformer.js'
 
 // Table Cells
 import DaysSince from './Snapshots/components/cells/DaysSince.vue'
 import SnapshotName from './Snapshots/components/cells/SnapshotName.vue'
 import SnapshotSource from './Snapshots/components/cells/SnapshotSource.vue'
+import SnapshotExportDialog from './Snapshots/components/dialogs/SnapshotExportDialog.vue'
 
 export default {
     name: 'ApplicationSnapshots',
     components: {
         SectionTopMenu,
-        SnapshotViewerDialog,
+        SnapshotExportDialog,
+        AssetDetailDialog,
+        AssetCompareDialog,
         EmptyState
     },
     mixins: [permissionsMixin],
@@ -113,7 +126,16 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership'])
+        ...mapState('account', ['teamMembership']),
+        snapshotList () {
+            return this.snapshots.map(s => {
+                return {
+                    label: s.name,
+                    description: s.description || '',
+                    value: s.id
+                }
+            })
+        }
     },
     mounted () {
         this.loadSnapshots()
@@ -122,7 +144,7 @@ export default {
         loadSnapshots: async function () {
             this.loading = true
             const data = await ApplicationApi.getSnapshots(this.application.id, null, null, null)
-            this.snapshots = [...data.snapshots]
+            this.snapshots = applySystemUserDetails(data.snapshots)
             this.loading = false
         },
         canViewSnapshot: function (row) {
@@ -135,6 +157,63 @@ export default {
                 console.error(err)
                 Alerts.emit('Failed to get snapshot.', 'warning')
             })
+        },
+        showCompareSnapshotDialog (snapshot) {
+            SnapshotsApi.getFullSnapshot(snapshot.id)
+                .then((data) => this.$refs.snapshotCompareDialog.show(data, this.snapshotList))
+                .catch(err => {
+                    console.error(err)
+                    Alerts.emit('Failed to get snapshot.', 'warning')
+                })
+        },
+        showDownloadSnapshotDialog (snapshot) {
+            this.$refs.snapshotExportDialog.show(snapshot)
+        },
+        async downloadSnapshotPackage (snapshot) {
+            const ss = await SnapshotsApi.getSummary(snapshot.id)
+            const owner = ss.device || ss.project
+            const ownerType = ss.device ? 'device' : 'instance'
+            const packageJSON = {
+                name: `${owner.safeName || owner.name}`.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase(),
+                description: `${ownerType} snapshot, ${snapshot.name} - ${snapshot.description}`,
+                private: true,
+                version: '0.0.0-' + snapshot.id,
+                dependencies: ss.settings?.modules || {}
+            }
+            downloadData(packageJSON, 'package.json')
+        },
+        // snapshot actions - delete
+        showDeleteSnapshotDialog (snapshot) {
+            Dialog.show({
+                header: 'Delete Snapshot',
+                text: 'Are you sure you want to delete this snapshot?',
+                kind: 'danger',
+                confirmLabel: 'Delete'
+            }, async () => {
+                await SnapshotsApi.deleteSnapshot(snapshot.id)
+                const index = this.snapshots.indexOf(snapshot)
+                this.snapshots.splice(index, 1)
+                Alerts.emit('Successfully deleted snapshot.', 'confirmation')
+            })
+        },
+        isDevice: function (row) {
+            return row.ownerType === 'device' || !!row.device
+        },
+        // enable/disable snapshot actions
+        canDownload (_row) {
+            return this.hasPermission('snapshot:export')
+        },
+        canDownloadPackage (row) {
+            if (this.isDevice(row)) {
+                return this.hasPermission('device:snapshot:read')
+            }
+            return this.hasPermission('project:snapshot:read')
+        },
+        canDelete (row) {
+            if (this.isDevice(row)) {
+                return this.hasPermission('device:snapshot:delete')
+            }
+            return this.hasPermission('project:snapshot:delete')
         }
     }
 }

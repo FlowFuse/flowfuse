@@ -359,14 +359,15 @@ module.exports.init = async function (app) {
                     }
                 } else if (billableCount > 0) {
                     // Need to add the device item to the subscription
+                    app.log.info(`Updating team ${team.hashid} subscription device count to ${billableCount}`)
                     const update = {
+                        proration_behavior: prorationBehavior,
                         items: [{
                             price: deviceBillingIds.price,
                             quantity: billableCount
                         }]
                     }
                     try {
-                        app.log.info(update)
                         await stripe.subscriptions.update(subscription.subscription, update)
                     } catch (error) {
                         console.error(error)
@@ -558,6 +559,32 @@ module.exports.init = async function (app) {
                     // Could not find a matching stripe subscription - that's means
                     // we have nothing cancel
                 }
+            }
+        },
+        updateTrialSettings: async (team, settings) => {
+            // Team must already be in trial mode without a Stripe subscription
+            const subscription = await team.getSubscription()
+            const existingSubscription = subscription.subscription
+            if (existingSubscription) {
+                app.log.warn(`Cannot modify team ${team.hashid} trial settings as it already has a stripe subscription`)
+                throw new Error('Team already has a subscription')
+            }
+            if (subscription.status === app.db.models.Subscription.STATUS.UNMANAGED) {
+                app.log.warn(`Cannot modify team ${team.hashid} trial settings as it is unmanaged`)
+                throw new Error('Team billing set to unmanaged')
+            }
+            if (settings.trialEndsAt) {
+                if (typeof settings.trialEndsAt !== 'number') {
+                    throw new Error('Invalid trialEndsAt value')
+                }
+                const delta = Math.abs(Date.now() - settings.trialEndsAt)
+                if (delta > ONE_DAY * 366) {
+                    throw new Error('Invalid trialEndsAt value - maximum trial period is 1 year')
+                }
+                app.log.info(`Setting team ${team.hashid} trial expiry to ${settings.trialEndsAt}`)
+                subscription.trialEndsAt = settings.trialEndsAt
+                subscription.trialStatus = app.db.models.Subscription.TRIAL_STATUS.CREATED
+                await subscription.save()
             }
         }
     }

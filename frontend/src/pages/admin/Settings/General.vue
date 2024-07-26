@@ -18,21 +18,21 @@
                 <template #input><textarea v-model="input['branding:account:signUpLeftBanner']" data-el="splash" class="w-full" rows="6" /></template>
             </FormRow>
         </template>
-        <FormRow v-model="input['user:team:auto-create']" type="checkbox">
+        <FormRow v-model="input['user:team:auto-create']" type="checkbox" data-el="team-auto-create">
             Create a personal team for users when they register
             <template #description>
                 If a team is not automatically created, they will either have to manually create one, or be invited
                 to join an existing team.
             </template>
         </FormRow>
-        <FormRow v-if="input['user:team:auto-create']" v-model="input['user:team:auto-create:teamType']" :options="teamTypesOptions" containerClass="max-w-sm ml-9">
+        <FormRow v-if="input['user:team:auto-create']" v-model="input['user:team:auto-create:teamType']" :options="teamTypesOptions" containerClass="max-w-sm ml-9" data-el="team-auto-create-teamType">
             Personal Team Type
             <template #description>
                 The type of team to create for a user when they register.
                 <template v-if="features.billing">Trial mode is configured within the individual TeamTypes.</template>
             </template>
         </FormRow>
-        <FormRow v-if="input['user:team:auto-create']" v-model="input['user:team:auto-create:instanceType']" :options="instanceTypeOptionsForSelectedTeamType" :disabled="!input['user:team:auto-create:teamType']" :error="autoCreateInstanceError" containerClass="max-w-sm ml-9">
+        <FormRow v-if="input['user:team:auto-create']" v-model="input['user:team:auto-create:instanceType']" :options="instanceTypeOptionsForSelectedTeamType" :disabled="!input['user:team:auto-create:teamType']" :error="autoCreateInstanceError" containerClass="max-w-sm ml-9" data-el="team-auto-create-instanceType">
             Starter Instance Type
             <template #description>
                 To optionally create a starter instance when users first register, set the instance type.
@@ -423,7 +423,8 @@ export default {
             Dialog.show({
                 header: 'Update Terms and Conditions',
                 kind: 'danger',
-                html: '<p>This action will require all existing users to reaccept the Terms and Conditions the next time they access the platform.</p><p>Are you sure?</p>',
+                text: `This action will require all existing users to reaccept the Terms and Conditions the next time they access the platform.
+                       Are you sure?`,
                 confirmLabel: 'Continue'
             }, async () => {
                 this.loading = true

@@ -114,20 +114,23 @@ module.exports = async function (app) {
                 obj.modules['node-red'] = editor?.nodeRedVersion
             }
         }
-
+        const getDefaultNodeRedVersion = (dev) => {
+            let nodeRedVersion = '3.0.2' // default to older Node-RED
+            if (SemVer.satisfies(SemVer.coerce(dev.agentVersion), '>=1.11.2')) {
+                // 1.11.2 includes fix for ESM loading of GOT, so lets use 'latest' as before
+                nodeRedVersion = 'latest'
+            }
+            if (SemVer.satisfies(SemVer.coerce(dev.agentVersion), '>=1.11.2')) {
+                // 1.11.2 includes fix for ESM loading of GOT, so lets use 'latest' as before
+                nodeRedVersion = 'latest'
+            }
+            return nodeRedVersion
+        }
         if (!device.targetSnapshot) {
             // device does not have a target snapshot
             // if this is an application owned device, return a starter snapshot
             if (device.isApplicationOwned) {
-                let nodeRedVersion = '3.0.2' // default to older Node-RED
-                if (SemVer.satisfies(SemVer.coerce(device.agentVersion), '>=1.11.2')) {
-                    // 1.11.2 includes fix for ESM loading of GOT, so lets use 'latest' as before
-                    nodeRedVersion = 'latest'
-                }
-                if (SemVer.satisfies(SemVer.coerce(device.agentVersion), '>=1.11.2')) {
-                    // 1.11.2 includes fix for ESM loading of GOT, so lets use 'latest' as before
-                    nodeRedVersion = 'latest'
-                }
+                const nodeRedVersion = getDefaultNodeRedVersion(device)
                 if (!device.agentVersion || SemVer.lt(device.agentVersion, '1.11.0')) {
                     reply.code(400).send({ code: 'invalid_agent_version', error: 'invalid agent version' })
                     return
@@ -145,10 +148,11 @@ module.exports = async function (app) {
                         { id: 'FFDBG00000000001', type: 'debug', z: 'FFF0000000000001', name: 'Info', active: true, tosidebar: true, console: true, tostatus: true, complete: 'payload', targetType: 'msg', statusVal: 'payload', statusType: 'auto', x: 490, y: 160 }
                     ],
                     modules: {
-                        'node-red': nodeRedVersion, // TODO: get this from the "somewhere!?!?" - this is where TAGs might work well.
+                        'node-red': nodeRedVersion,
                         // as of FF v1.14.0, we permit project nodes to work on application owned devices
                         // the support for this is in @flowfuse/nr-project-nodes > v0.5.0
-                        '@flowfuse/nr-project-nodes': '>0.5.0' // TODO: get this from the "settings" (future)
+                        '@flowfuse/nr-project-nodes': '>0.5.0', // TODO: get this from the "settings" (future)
+                        '@flowfuse/nr-assistant': '>=0.1.0'
                     },
                     env: {
                         FF_SNAPSHOT_ID: '0',
@@ -187,6 +191,13 @@ module.exports = async function (app) {
                     // if the snapshot does not have the new module specified OR it is a version <= 0.5.0, update it
                     if (!settings.modules['@flowfuse/nr-project-nodes'] || SemVer.satisfies(SemVer.coerce(settings.modules['@flowfuse/nr-project-nodes']), '<=0.5.0')) {
                         settings.modules['@flowfuse/nr-project-nodes'] = '>0.5.0'
+                    }
+                    if (!settings.modules['@flowfuse/nr-assistant']) {
+                        settings.modules['@flowfuse/nr-assistant'] = '>=0.1.0'
+                    }
+                    if (!settings.modules['node-red']) {
+                        // if the snapshot does not have the node-red module specified, ensure it is set to a valid version
+                        settings.modules['node-red'] = getDefaultNodeRedVersion(device)
                     }
                     // Belt and braces, remove old module! We don't want to be instructing the device to install the old version.
                     // (the old module can be present due to a snapshot applied from an instance or instance owned device)
@@ -238,6 +249,10 @@ module.exports = async function (app) {
         response.features = {
             'shared-library': !!(app.config.features.enabled('shared-library') && teamType.getFeatureProperty('shared-library', true)),
             projectComms: !!(app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true))
+        }
+        response.assistant = {
+            enabled: app.config.assistant?.enabled || false,
+            requestTimeout: app.config.assistant?.requestTimeout || 60000
         }
         reply.send(response)
     })

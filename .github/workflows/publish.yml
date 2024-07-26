@@ -26,7 +26,7 @@ jobs:
     if: |
       ( github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main' ) ||
       ( github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' )
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.1.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.21.0'
     with:
       package_name: flowfuse
       build_package: true
@@ -45,7 +45,7 @@ jobs:
     steps:
       - name: Generate a token
         id: generate_token
-        uses: tibdex/github-app-token@v1
+        uses: tibdex/github-app-token@v2
         with:
           app_id: ${{ secrets.GH_BOT_APP_ID }}
           private_key: ${{ secrets.GH_BOT_APP_KEY }}

@@ -13,7 +13,7 @@
                 class="w-full max-w-5xl text-sm"
                 :show-search="true"
                 search-placeholder="Search environment variables..."
-                :columns="[,,,]"
+                :columns="editTemplate ? [,,,,] : [,,,]"
                 :noDataMessage="noDataMessage"
             >
                 <template #actions>
@@ -38,12 +38,12 @@
                     </ff-data-table-row>
                 </template>
                 <template #rows>
-                    <ff-data-table-row v-for="(item, itemIdx) in filteredRows" :key="item.index">
+                    <ff-data-table-row v-for="(item) in filteredRows" :key="item.index">
                         <td class="ff-data-table--cell !pl-1 !pr-0 !py-1 border min-w-max max-w-sm align-top">
                             <FormRow
                                 v-model="item.name"
                                 class="font-mono"
-                                containerClass="w-full"
+                                :containerClass="'w-full' + (!readOnly && (editTemplate || item.policy === undefined)) ? ' env-cell-uneditable':''"
                                 :inputClass="item.deprecated ? 'w-full text-yellow-700 italic' : 'w-full'"
                                 :error="item.error"
                                 :disabled="item.encrypted"
@@ -51,22 +51,28 @@
                                 :type="(!readOnly && (editTemplate || item.policy === undefined))?'text':'uneditable'"
                             />
                         </td>
-                        <td class="ff-data-table--cell !p-1 border w-3/5 align-top" :class="{'align-middle':item.encrypted}">
+                        <td class="ff-data-table--cell !p-1 border w-3/5 align-top max-w-xl" :class="{'align-middle':item.encrypted}">
                             <div v-if="!item.encrypted" class="w-full">
-                                <FormRow
-                                    v-model="item.value"
-                                    class="font-mono"
-                                    containerClass="w-full"
-                                    :inputClass="item.deprecated ? 'text-yellow-700 italic' : ''"
-                                    value-empty-text=""
-                                    :type="(!readOnly && (editTemplate || item.policy === undefined || item.policy))?'text':'uneditable'"
-                                />
+                                <template v-if="(!readOnly && (editTemplate || item.policy === undefined || item.policy))">
+                                    <!-- editable -->
+                                    <textarea v-model="item.value" :class="'w-full font-mono max-h-40' + ((item.value && item.value.split('\n').length > 1) ? ' h-20' : ' h-8') + (item.deprecated ? ' text-yellow-700 italic' : '')" />
+                                </template>
+                                <template v-else>
+                                    <FormRow
+                                        v-model="item.value"
+                                        class="font-mono"
+                                        containerClass="w-full env-cell-uneditable"
+                                        :inputClass="item.deprecated ? 'text-yellow-700 italic' : ''"
+                                        value-empty-text=""
+                                        :type="'uneditable'"
+                                    />
+                                </template>
                             </div>
                             <div v-else class="pt-1 text-gray-400"><LockClosedIcon class="inline w-4" /> encrypted</div>
                         </td>
                         <td class="ff-data-table--cell !p-1 border w-16 align-top">
                             <div v-if="(!readOnly && (editTemplate|| item.policy === undefined))" class="flex justify-center mt-1">
-                                <ff-button kind="tertiary" size="small" @click="removeEnv(itemIdx)">
+                                <ff-button kind="tertiary" size="small" @click="removeEnv(item.index)">
                                     <template #icon>
                                         <TrashIcon />
                                     </template>
@@ -149,11 +155,11 @@ export default {
         },
         filteredRows: function () {
             if (this.search === '') {
-                return this.editable.settings.env
+                return this.editable.settings.env.filter(row => !row.deprecated)
             }
             const search = this.search.toLowerCase()
             return this.editable.settings.env.filter(row => {
-                return row.name.toLowerCase().includes(search) || row.value.toLowerCase().includes(search)
+                return !row.deprecated && (row.name.toLowerCase().includes(search) || row.value.toLowerCase().includes(search))
             })
         },
         noDataMessage: function () {
@@ -312,3 +318,34 @@ export default {
     }
 }
 </script>
+
+<style scoped>
+.ff-data-table--cell textarea {
+    resize: vertical;
+    max-height: 10rem; /* 160px approx ~8 lines, after which user will need to scroll */
+    /* Below styles emulate the text control in a form row */
+    border: 1px solid #D1D5DB;
+    border-radius: 6px;
+    /* height: 32px; */
+    padding: 6px;
+    min-height: 32px; /* align with item in cell-1*/
+    width: 100%;
+    display: flex;
+    gap: 0px;
+    align-items: center;
+    background-color: white;
+    border-color: #D1D5DB;
+}
+.ff-data-table--cell .env-cell-uneditable {
+    max-height: 10rem; /* 160px approx ~8 lines, after which user will need to scroll */
+    overflow: auto;
+    white-space: pre;
+    cursor: default;
+}
+.ff-data-table--cell .env-cell-uneditable input {
+    cursor: default;
+}
+.ff-data-table--cell div.uneditable {
+    cursor: default;
+}
+</style>

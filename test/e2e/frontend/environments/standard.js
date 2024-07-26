@@ -1,10 +1,11 @@
 const TestModelFactory = require('../../../lib/TestModelFactory')
 const StripeMock = require('../../../lib/stripeMock.js')
 
+const multipleBlueprints = require('../cypress/fixtures/blueprints/multiple-blueprints.json')
+
 const FF_UTIL = require('flowforge-test-utils')
 const Forge = FF_UTIL.require('forge/forge.js')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
-const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localTransport.js')
 
 module.exports = async function (settings = {}, config = {}) {
     process.env.FF_TELEMETRY_DISABLED = true
@@ -18,12 +19,12 @@ module.exports = async function (settings = {}, config = {}) {
             type: 'sqlite',
             storage: ':memory:'
         },
-        email: {
-            enabled: true,
-            transport: new LocalTransport()
-        },
         driver: {
             type: 'stub'
+        },
+        // configure a broker so that device app.comms is loaded and can be stubbed
+        broker: {
+            url: ':test:'
         }
     }
 
@@ -72,13 +73,13 @@ module.exports = async function (settings = {}, config = {}) {
 
     // Platform Setup
     const template = await factory.createProjectTemplate({ name: 'template1' }, userAlice)
-    const stack = await factory.createStack({ name: 'stack1' }, projectType)
-    await factory.createStack({ name: 'stack2' }, projectType)
+    const stack = await factory.createStack({ name: 'stack1', label: 'stack 1' }, projectType)
+    await factory.createStack({ name: 'stack2', label: 'stack 2' }, projectType)
 
     // Unused templates and project types
     await factory.createProjectTemplate({ name: 'template2' }, userAlice)
     const spareProjectType = await factory.createProjectType({ name: 'type2' })
-    await factory.createStack({ name: 'stack1-for-type2' }, spareProjectType)
+    await factory.createStack({ name: 'stack1-for-type2', label: 'stack 1 for type2' }, spareProjectType)
 
     // Ensure projectTypes are allowed to be used by the default team type
     const teamType = await forge.db.models.TeamType.findOne({ where: { id: 1 } })
@@ -151,6 +152,7 @@ module.exports = async function (settings = {}, config = {}) {
 
     // Unassigned devices
     await factory.createDevice({ name: 'team2-unassigned-device', type: 'type2' }, team2)
+    await factory.createDevice({ name: 'team2-unassigned-device-bulk-test-1', type: 'type2' }, team2)
 
     // Application and Instances
     const application2 = await factory.createApplication({ name: 'application-2' }, team2, stack, template, projectType)
@@ -160,6 +162,7 @@ module.exports = async function (settings = {}, config = {}) {
     await factory.createDevice({ name: 'assigned-device-a', type: 'type2' }, team2, instanceWithDevices)
     await factory.createDevice({ name: 'assigned-device-b', type: 'type2' }, team2, instanceWithDevices)
     await factory.createDevice({ name: 'assigned-device-c', type: 'type2' }, team2, instanceWithDevices)
+    await factory.createDevice({ name: 'assigned-device-d-bulk-test-2', type: 'type2' }, team2, instanceWithDevices)
     await factory.createSnapshot({ name: 'snapshot 1' }, instanceWithDevices, userBob)
     await factory.createSnapshot({ name: 'snapshot 2' }, instanceWithDevices, userBob)
     await factory.createSnapshot({ name: 'snapshot 3' }, instanceWithDevices, userBob)
@@ -167,10 +170,17 @@ module.exports = async function (settings = {}, config = {}) {
     // create devices bound to application directly
     const deviceA = await factory.createDevice({ name: 'application-device-a', type: 'type2' }, team2, null, application2)
     const deviceB = await factory.createDevice({ name: 'application-device-b', type: 'type2' }, team2, null, application2)
+    await factory.createDevice({ name: 'application-device-c-bulk-test-3', type: 'type2' }, team2, null, application2)
 
     // create a device group and add deviceB to it
     const deviceGroupA = await factory.createApplicationDeviceGroup({ name: 'application-device-group-a' }, application2)
     await factory.addDeviceToGroup(deviceB, deviceGroupA)
+
+    if (forge.license.active()) {
+        for (const blueprint of multipleBlueprints.blueprints) {
+            await factory.createBlueprint(blueprint)
+        }
+    }
 
     forge.teams = [team1, team2]
     forge.projectTypes = [projectType, spareProjectType]

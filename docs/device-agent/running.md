@@ -1,6 +1,8 @@
 ---
 navTitle: Running the Agent
 navOrder: 5
+meta:
+   description: Explore how to run and configure the FlowFuse Device Agent, covering startup commands, port settings, HTTP proxy setup, and offline module caching.
 ---
 
 # Running the Device Agent
@@ -78,6 +80,39 @@ _Start the agent with a different working directory and the Web UI enabled_
 ```bash
 flowfuse-device-agent -d /path/to/working/directory -w --ui-user admin --ui-pass password --ui-port 8081
 ```
+
+## Running behind a HTTP Proxy
+
+If the device is behind a HTTP proxy, the agent can be configured to use the proxy by setting the `http_proxy`, `https_proxy` or `all_proxy` environment variables.
+
+If necessary, the `no_proxy` environment variable can be used to specify a list of hosts that should not be accessed via the proxy.
+
+For connecting to FlowFuse Cloud, the `https_proxy` variable should be set to your proxy URL. This environment variable will be used by the agent for both the HTTP
+and MQTT connections.
+
+### Example setting the proxy environment variables on Linux
+```bash
+# Set the https_proxy environment variable
+export https_proxy=http://my-proxy:3128
+# Set the no_proxy environment variable to exclude local addresses and all hosts in the .mydomain.com domain
+export no_proxy=localhost,127.0.0.1,.mydomain.com
+# Start the agent
+flowfuse-device-agent
+```
+
+_To make these settings permanent, see the documentation for your Linux distribution._
+
+### Example setting the proxy environment variables on Windows
+```bash
+# Set the https_proxy environment variable
+set https_proxy=http://my-proxy:3128
+# Set the no_proxy environment variable to exclude local addresses and all hosts in the .mydomain.com domain
+set no_proxy=localhost,127.0.0.1,.mydomain.com
+# Start the agent
+flowfuse-device-agent
+```
+
+_To make these settings permanent, see the documentation for your version of Windows._
 
 ## Running with no access to npmjs.org
 

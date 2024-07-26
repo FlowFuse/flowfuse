@@ -1,6 +1,8 @@
 ---
 navTitle: Installation
 navOrder: 3
+meta: 
+   description: Explore step-by-step instructions to install and configure the FlowFuse Device Agent on various platforms, ensuring seamless connectivity with FlowFuse Cloud and MQTT services.
 ---
 
 # Installing Device Agent
@@ -10,6 +12,12 @@ navOrder: 3
 NodeJS of version 20 or later is recommended, through the device agent supports NodeJS v14 or later.
 
 The Device Agent can be installed on most Linux distributions, Windows, and MacOS.
+
+The Device Agent connects back to the FlowFuse platform on port 443. You will need to ensure your network permits traffic on that port. For FlowFuse Cloud, the device agent will connect to:
+
+ - `app.flowfuse.com:443`
+ - `mqtt.flowfuse.cloud:443`
+
 
 ## Installing the Device Agent
 

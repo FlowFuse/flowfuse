@@ -24,7 +24,7 @@ If this continues to occur, contact your system administrator.
 <li>New email address: {{{ newEmail }}}</li>
 </ul>
 <p>Please click the following link to confirm this change:
-    <a href="{{{ confirmEmailLink }}}">{{{ confirmEmailLink }}}</a>
+    <a href="{{{ confirmEmailLink }}}">Confirm Email Address</a>
 </p>
 <p>NOTE: You will need to log in with your original User ID or Email Address and Password to validate the change.</p>
 <p>&nbsp;</p>

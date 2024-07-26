@@ -74,7 +74,7 @@ export default [
                     title: 'Team - Library'
                 },
                 redirect: to => {
-                    return { name: 'LibraryBlueprints' }
+                    return { name: 'LibraryTeamLibrary' }
                 },
                 children: [...LibraryRoutes]
             },
@@ -88,7 +88,7 @@ export default [
                     return `/team/${to.params.team_slug}/members/general`
                 },
                 children: [
-                    { path: 'general', component: TeamMembersMembers },
+                    { path: 'general', name: 'TeamMembers', component: TeamMembersMembers },
                     { path: 'invitations', component: TeamMembersInvitations }
                 ]
             },
@@ -153,6 +153,14 @@ export default [
         component: CreateInstance,
         meta: {
             title: 'Team - Create Instance'
+        }
+    },
+    {
+        path: '/deploy/blueprint',
+        component: CreateInstance,
+        name: 'DeployBlueprint',
+        meta: {
+            title: 'Deploy Blueprint'
         }
     }
 ]

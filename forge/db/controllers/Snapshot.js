@@ -106,5 +106,69 @@ module.exports = {
 
         await snapshot.destroy()
         return true
+    },
+
+    /**
+     * Upload a snapshot.
+     * @param {*} app - app instance
+     * @param {*} owner - project/device-originator of this snapshot
+     * @param {*} snapshot - snapshot data
+     * @param {String} credentialSecret - secret to encrypt credentials with. Can be null if the snapshot does not contain credentials.
+     * @param {*} user - user who uploaded the snapshot
+     */
+    async uploadSnapshot (app, owner, snapshot, credentialSecret, user) {
+        // 1. If the snapshot includes credentials but no credentialSecret, we should reject it
+        // 2. if the snapshot includes credentials and a credentialSecret, we should validate the secret
+        if (snapshot.flows.credentials?.$) {
+            if (!credentialSecret) {
+                throw new Error('Missing credentialSecret')
+            }
+            // validate the secret by trying to decrypt and re-encrypt the credentials using the provided secret
+            // if the secret is invalid, this will throw an error
+            app.db.controllers.Project.exportCredentials(snapshot.flows.credentials, credentialSecret, credentialSecret)
+        }
+
+        // use the project/device's credentialSecret if none is provided
+        if (!credentialSecret) {
+            credentialSecret = owner.credentialSecret || (owner.getCredentialSecret && await owner.getCredentialSecret())
+        }
+
+        let ownerType
+        if (owner.constructor.name === 'Project') {
+            ownerType = 'instance'
+        } else if (owner.constructor.name === 'Device') {
+            ownerType = 'device'
+        } else {
+            throw new Error('Invalid owner type')
+        }
+        const ProjectId = ownerType === 'instance' ? owner.id : null
+        const DeviceId = ownerType === 'device' ? owner.id : null
+
+        const snapshotOptions = {
+            name: snapshot.name,
+            description: snapshot.description || '',
+            credentialSecret,
+            settings: {
+                settings: snapshot.settings || {},
+                env: snapshot.env || {},
+                modules: snapshot.modules || {}
+            },
+            flows: {
+                flows: snapshot.flows.flows || [],
+                credentials: snapshot.flows.credentials || { }
+            },
+            ProjectId,
+            DeviceId,
+            UserId: user.id
+        }
+        // remove an env vars that start with FF_ from the snapshot
+        Object.keys(snapshotOptions.settings.env).forEach((key) => {
+            if (key.startsWith('FF_')) {
+                delete snapshotOptions.settings.env[key]
+            }
+        })
+        // store the snapshot
+        const newSnapshot = await app.db.models.ProjectSnapshot.create(snapshotOptions)
+        return newSnapshot
     }
 }

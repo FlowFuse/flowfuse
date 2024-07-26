@@ -6,9 +6,11 @@ export default {
             dialog: {
                 header: null,
                 text: null,
+                textLines: null,
                 html: null,
                 confirmLabel: null,
                 kind: null,
+                canBeCanceled: true,
                 onConfirm: null,
                 onCancel: null
             }
@@ -22,9 +24,11 @@ export default {
             this.dialog = {
                 header: null,
                 text: null,
+                textLines: null,
                 html: null,
                 confirmLabel: null,
                 kind: null,
+                canBeCanceled: true,
                 onConfirm: null,
                 onCancel: null
             }
@@ -36,10 +40,14 @@ export default {
                 // msg is an object, let's break it apart
                 this.dialog.header = msg.header
                 this.dialog.text = msg.text
+                this.dialog.textLines = msg.text?.split('\n')
                 this.dialog.html = msg.html
                 this.dialog.confirmLabel = msg.confirmLabel
                 this.dialog.kind = msg.kind
                 this.dialog.disablePrimary = msg.disablePrimary
+                if (Object.prototype.hasOwnProperty.call(msg, 'canBeCanceled')) {
+                    this.dialog.canBeCanceled = msg.canBeCanceled
+                }
             }
             this.dialog.onConfirm = onConfirm
             this.dialog.onCancel = onCancel

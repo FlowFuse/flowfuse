@@ -48,6 +48,7 @@ export default {
     setup () {
         return {
             show (instance) {
+                this.input.instanceName = ''
                 this.localInstance = instance
                 this.$refs.dialog.show()
             }

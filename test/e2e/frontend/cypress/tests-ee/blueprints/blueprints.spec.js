@@ -1,6 +1,26 @@
 import multipleBlueprints from '../../fixtures/blueprints/multiple-blueprints.json'
 import singleBlueprint from '../../fixtures/blueprints/single-blueprint.json'
 
+const canPreviewBlueprintByClickingTheBlueprintTile = () => {
+    cy.get('[data-el="flow-view-dialog"].preview-main-blueprint').should('not.be.visible')
+    cy.get('[data-action="click-small-blueprint-tile"]').should('exist')
+    cy.get('[data-action="click-small-blueprint-tile"]').click()
+    cy.get('[data-el="flow-view-dialog"].preview-main-blueprint').should('be.visible')
+    cy.get('[data-el="flow-view-dialog"].preview-main-blueprint').within(() => {
+        cy.get('[data-action="dialog-confirm"]').click()
+    })
+}
+
+const canPreviewBlueprintByClickingThePreviewBlueprintButton = () => {
+    cy.get('[data-el="flow-view-dialog"].preview-main-blueprint').should('not.be.visible')
+    cy.get('[data-action="blueprint-actions"]').should('exist')
+    cy.get('[data-action="blueprint-actions"]').contains('Preview Blueprint').click()
+    cy.get('[data-el="flow-view-dialog"].preview-main-blueprint').should('be.visible')
+    cy.get('[data-el="flow-view-dialog"].preview-main-blueprint').within(() => {
+        cy.get('[data-action="dialog-confirm"]').click()
+    })
+}
+
 describe('FlowForge - Blueprints', () => {
     // Blueprint Details
     const NAME = 'Test Blueprint'
@@ -34,8 +54,8 @@ describe('FlowForge - Blueprints', () => {
         cy.visit('/admin/flow-blueprints')
 
         cy.wait('@getFlowBlueprints').then(({ response }) => {
-            const blueprintCount = response.body.count
-            const name = NAME + ' ' + blueprintCount
+            const blueprintCount = response.body.blueprints.filter(bl => bl.active).length
+            const name = `${NAME} (NEW)`
             cy.get('[data-el="create-blueprint-dialog"]').should('not.be.visible')
             cy.get('[data-action="create-flow-blueprint"]').click()
             cy.get('[data-el="create-blueprint-dialog"]').should('be.visible')
@@ -49,8 +69,10 @@ describe('FlowForge - Blueprints', () => {
             cy.get('[data-el="create-blueprint-dialog"] [data-form="order"] input[type="number"]').type(ORDER)
             cy.get('[data-el="create-blueprint-dialog"] [data-form="description"] textarea').type(DESCRIPTION)
 
-            cy.get('[data-el="create-blueprint-dialog"] [data-form="flows"] textarea').type(FLOWS, { parseSpecialCharSequences: false })
-            cy.get('[data-el="create-blueprint-dialog"] [data-form="modules"] textarea').type(MODULES, { parseSpecialCharSequences: false })
+            cy.get('[data-el="create-blueprint-dialog"] [data-form="flows"] textarea')
+                .type(FLOWS, { parseSpecialCharSequences: false })
+            cy.get('[data-el="create-blueprint-dialog"] [data-form="modules"] textarea')
+                .type(MODULES, { parseSpecialCharSequences: false })
 
             cy.get('[data-el="create-blueprint-dialog"] [data-form="confirm-dialog"]').should('not.be.disabled')
             cy.get('[data-el="create-blueprint-dialog"] [data-form="confirm-dialog"]').click()
@@ -59,8 +81,8 @@ describe('FlowForge - Blueprints', () => {
 
             // check the blueprint was created
             cy.get('[data-el="blueprints"] [data-el="blueprint-tile"]').its('length').should('eq', blueprintCount + 1)
-            cy.get('[data-el="blueprints"] [data-el="blueprint-tile"]').last().should('contain', name)
-            cy.get('[data-el="blueprints"] [data-el="blueprint-tile"]').last().should('contain', DESCRIPTION)
+            cy.get('[data-el="blueprints"] [data-el="blueprint-tile"]').should('contain', name)
+            cy.get('[data-el="blueprints"] [data-el="blueprint-tile"]').should('contain', DESCRIPTION)
         })
     })
 
@@ -71,9 +93,10 @@ describe('FlowForge - Blueprints', () => {
         cy.get('[data-form="blueprint"]').should('exist')
         cy.get('[data-form="blueprint"]').contains(singleBlueprint.blueprints[0].name)
 
-        cy.get('[data-action="choose-blueprint"]').should('not.exist')
+        canPreviewBlueprintByClickingTheBlueprintTile()
 
-        cy.get('[data-form="blueprint-selection"]').should('not.exist')
+        cy.get('[data-action="blueprint-actions"]').should('not.exist')
+
         cy.get('[data-form="project-name"]').should('exist')
         cy.get('[data-form="project-type"]').should('exist')
     })
@@ -85,23 +108,41 @@ describe('FlowForge - Blueprints', () => {
         cy.get('[data-form="blueprint"]').should('exist')
         cy.get('[data-form="blueprint"]').contains(multipleBlueprints.blueprints[0].name)
 
-        cy.get('[data-action="choose-blueprint"]').should('exist')
-        cy.get('[data-action="choose-blueprint"] span').click()
+        canPreviewBlueprintByClickingTheBlueprintTile()
+        canPreviewBlueprintByClickingThePreviewBlueprintButton()
 
-        cy.get('[data-form="blueprint-selection"]').should('exist')
-        cy.get('[data-form="project-name"]').should('not.exist')
-        cy.get('[data-form="project-type"]').should('not.exist')
+        cy.get('[data-action="blueprint-actions"]').should('exist')
+        cy.get('[data-action="blueprint-actions"]').contains('Choose a different Blueprint').click()
 
         // check we have two blueprint groups
-        cy.get('[data-form="blueprint-group"]').its('length').should('eq', 2)
+        cy.get('[data-form="blueprint-group"]')
+            .its('length')
+            .should('eq', 2)
         // and one blueprint in the first group, and 2 in the second
-        cy.get('[data-form="blueprint-group"]').first().find('[data-el="blueprint-tile"]').its('length').should('eq', 1)
-        cy.get('[data-form="blueprint-group"]').eq(1).find('[data-el="blueprint-tile"]').its('length').should('eq', 2)
+        cy.get('[data-form="blueprint-group"]')
+            .first()
+            .find('[data-el="blueprint-tile"]')
+            .its('length')
+            .should('eq', 1)
+
+        cy.get('[data-form="blueprint-group"]')
+            .eq(1)
+            .find('[data-el="blueprint-tile"]')
+            .its('length')
+            .should('eq', 2)
 
         // select the second blueprint
-        cy.get('[data-form="blueprint-group"]').eq(1).find('[data-el="blueprint-tile"] [data-action="select-blueprint"]').first().click()
+        cy.get('[data-form="blueprint-group"]')
+            .eq(1)
+            .find('[data-el="blueprint-tile"] [data-action="select-blueprint"]')
+            .first()
+            .click()
 
-        // chck our newly selected blueprint is now in the blueprint preview with the CreateInstance form
+        cy.get('[data-el=blueprint-selector-dialog]').within(() => {
+            cy.get('[data-action="dialog-confirm"]').click()
+        })
+
+        // check our newly selected blueprint is now in the blueprint preview with the CreateInstance form
         cy.get('[data-form="blueprint"]').contains(multipleBlueprints.blueprints[1].name)
     })
 
@@ -121,6 +162,8 @@ describe('FlowForge - Blueprints', () => {
 
                 cy.get('[data-form="blueprint"]').should('exist')
                 cy.get('[data-form="blueprint"]').contains(defaultBlueprint.name)
+
+                canPreviewBlueprintByClickingTheBlueprintTile()
 
                 // fill out form
 
@@ -146,5 +189,131 @@ describe('FlowForge - Blueprints', () => {
                 const requestBody = interception.request.body
                 cy.wrap(requestBody).its('flowBlueprintId').should('eq', defaultBlueprint.id)
             })
+    })
+
+    it('can display blueprint flow previews', () => {
+        cy.intercept('GET', '/api/*/flow-blueprints*', {
+            meta: {},
+            ...multipleBlueprints
+        }).as('getFlowBlueprints')
+
+        cy.visit('/admin/flow-blueprints')
+
+        cy.wait('@getFlowBlueprints')
+
+        cy.get('[data-el="flow-view-dialog"]').should('not.be.visible')
+
+        cy.get('[data-el="blueprint-tile"]').each(($div) => cy.wrap($div).within(() => {
+            cy.get('[data-action="show-blueprint"]').click()
+            cy.get('[data-el="flow-view-dialog"]').should('be.visible')
+            cy.get('[data-action="dialog-confirm"]').click()
+            cy.get('[data-el="flow-view-dialog"]').should('not.be.visible')
+        }))
+    })
+
+    it('can export blueprints', () => {
+        cy.task('clearDownloads')
+        cy.visit('/admin/flow-blueprints')
+
+        cy.get('[data-action="export-flow-blueprints"]').click()
+
+        // wait for the file to be downloaded
+        cy.wait(250) // eslint-disable-line cypress/no-unnecessary-waiting
+
+        // generate the expected snapshot filename structure
+        cy.task('fileExists', {
+            dir: Cypress.config('downloadsFolder'),
+            fileRE: /blueprints_export_*/
+        })
+    })
+
+    it('can import blueprints from a file', () => {
+        cy.visit('/admin/flow-blueprints')
+
+        cy.get('[data-action="import-flow-blueprints"]').click()
+
+        cy.get('[data-action="dialog-confirm"]').should('be.disabled')
+
+        // uploading file containing invalid JSON
+        cy.get('[data-action="upload"]').click()
+        cy.get('[data-el="upload-input"]', { force: true }).selectFile({
+            contents: Cypress.Buffer.from('invalid-JSON'),
+            fileName: 'file.txt',
+            lastModified: Date.now()
+        }, { force: true })
+
+        cy.get('[data-el="input-textarea"]').should('be.disabled')
+        cy.get('[data-el="form-row-error"]').should('contain', 'Invalid JSON')
+        cy.get('[data-action="dialog-confirm"').should('be.disabled')
+
+        cy.get('[data-action="clear-file"]').click()
+
+        cy.get('[data-el="form-row-error"]').should('not.exist')
+        cy.get('[data-action="dialog-confirm"').should('be.disabled')
+        cy.get('[data-el="input-textarea"]').should('not.be.disabled')
+
+        // uploading file containing valid JSON, but not valid blueprint
+        cy.get('[data-action="upload"]').click()
+        cy.get('[data-el="upload-input"]', { force: true }).selectFile({
+            contents: Cypress.Buffer.from('{}'),
+            fileName: 'file.txt',
+            lastModified: Date.now()
+        }, { force: true })
+        cy.get('[data-el="form-row-error"]').should('not.exist')
+
+        cy.get('[data-el="input-textarea"]').should('be.disabled')
+        cy.get('[data-action="dialog-confirm"]').should('not.be.disabled')
+        cy.get('[data-action="dialog-confirm"').should('not.be.disabled')
+
+        // uploading file containing valid Blueprint JSON
+        cy.get('[data-action="clear-file"]').click()
+        cy.get('[data-el="upload-input"]', { force: true }).selectFile({
+            contents: Cypress.Buffer.from(JSON.stringify([{ ...singleBlueprint.blueprints, name: 'IMPORTED BLUEPRINT' }])),
+            fileName: 'file.txt',
+            lastModified: Date.now()
+        }, { force: true })
+        cy.get('[data-el="form-row-error"]').should('not.exist')
+        cy.get('[data-el="input-textarea"]').should('be.disabled')
+        cy.get('[data-dialog="import-flow-blueprints"]').within(() => {
+            cy.get('[data-action="dialog-confirm"]').click()
+        })
+
+        cy.contains('Blueprints successfully imported!')
+        cy.get('[data-el="blueprints"]').contains('IMPORTED BLUEPRINT')
+    })
+
+    it('can import copied blueprints', () => {
+        cy.visit('/admin/flow-blueprints')
+
+        cy.get('[data-action="import-flow-blueprints"]').click()
+
+        cy.get('[data-action="dialog-confirm"]').should('be.disabled')
+
+        cy.get('[data-el="input-textarea"]').type('invalid-json')
+        cy.get('[data-el="form-row-error"]').should('contain', 'Invalid JSON')
+        cy.get('[data-action="upload"]').should('be.disabled')
+        cy.get('[data-action="dialog-confirm"').should('be.disabled')
+
+        cy.get('[data-action="clear-input"]').click()
+        cy.get('[data-el="form-row-error"]').should('not.exist')
+        cy.get('[data-action="upload"]').should('not.be.disabled')
+        cy.get('[data-action="dialog-confirm"').should('be.disabled')
+
+        cy.get('[data-el="input-textarea"]').type('{}')
+        cy.get('[data-el="form-row-error"]').should('not.exist')
+        cy.get('[data-action="upload"]').should('be.disabled')
+        cy.get('[data-action="dialog-confirm"').should('not.be.disabled')
+
+        cy.get('[data-action="clear-input"]').click()
+        cy.get('[data-el="input-textarea"]')
+            .invoke('val', JSON.stringify([{ ...singleBlueprint.blueprints, name: 'ANOTHER IMPORTED BLUEPRINT' }]))
+            .trigger('input')
+
+        cy.get('[data-dialog="import-flow-blueprints"]').within(() => {
+            cy.get('[data-action="dialog-confirm"]').click()
+        })
+
+        cy.contains('Blueprints successfully imported!')
+        cy.get('[data-el="blueprints"]').contains('ANOTHER IMPORTED BLUEPRINT')
     })
 })

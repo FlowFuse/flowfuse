@@ -237,7 +237,7 @@ export default {
                 header: 'Delete Pipeline',
                 kind: 'danger',
                 confirmLabel: 'Delete',
-                html: `<p>Are you sure you want to delete the pipeline "${this.pipeline.name}"?</p>`
+                text: `Are you sure you want to delete the pipeline "${this.pipeline.name}"?`
             }
             Dialog.show(msg, async () => {
                 await ApplicationAPI.deletePipeline(

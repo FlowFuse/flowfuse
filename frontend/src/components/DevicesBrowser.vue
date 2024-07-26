@@ -7,7 +7,7 @@
             v-if="loadingStatuses || loadingDevices"
             message="Loading Devices..."
         />
-        <template v-else>
+        <template v-else-if="team">
             <FeatureUnavailableToTeam v-if="teamDeviceLimitReached" fullMessage="You have reached the device limit for this team." :class="{'mt-0': displayingTeam }" />
             <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the runtime limit for this team." :class="{'mt-0': displayingTeam }" />
             <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-lastseen" label="Last Seen" :devices="Array.from(allDeviceStatuses.values())" property="lastseen" :filter="filter" @filter-selected="applyFilter" />
@@ -20,11 +20,26 @@
                 :show-search="true"
                 search-placeholder="Search Devices"
                 :show-load-more="moreThanOnePage"
+                :check-key="row => row.id"
+                :show-row-checkboxes="true"
+                @rows-checked="checkedDevices = $event"
                 @load-more="loadMoreDevices"
                 @update:search="updateSearch"
                 @update:sort="updateSort"
             >
                 <template #actions>
+                    <ff-button
+                        v-if="hasPermission('team:device:bulk-delete')"
+                        v-ff-tooltip:top="'Delete selected devices'"
+                        :disabled="checkedDevices.length === 0"
+                        data-action="bulk-delete-devices"
+                        kind="tertiary-danger"
+                        @click="showTeamBulkDeviceDeleteDialog"
+                    >
+                        <template #icon>
+                            <TrashIcon />
+                        </template>
+                    </ff-button>
                     <ff-button
                         v-if="displayingInstance && hasPermission('project:snapshot:create')"
                         data-action="change-target-snapshot"
@@ -156,6 +171,60 @@
                                 </router-link>.
                             </p>
                         </template>
+                        <template #actions>
+                            <ff-button
+                                v-if="hasPermission('device:create')"
+                                class="font-normal"
+                                kind="primary"
+                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached"
+                                data-action="register-device"
+                                @click="showCreateDeviceDialog"
+                            >
+                                <template #icon-left>
+                                    <PlusSmIcon />
+                                </template>
+                                Add Device
+                            </ff-button>
+                        </template>
+                    </EmptyState>
+                </template>
+                <template v-else-if="displayingApplication">
+                    <EmptyState data-el="application-no-devices">
+                        <template #img>
+                            <img src="../images/empty-states/instance-devices.png">
+                        </template>
+                        <template #header>Connect your First Device</template>
+                        <template #message>
+                            <p>
+                                Here, you will see a list of Devices belonging to this Application.
+                            </p>
+                            <p>
+                                You can deploy <router-link class="ff-link" :to="{name: 'ApplicationSnapshots'}">Snapshots</router-link> of this Application to your connected Devices.
+                            </p>
+                            <p>
+                                A full list of your Team's Devices are available <router-link
+                                    class="ff-link"
+                                    :to="{name: 'TeamDevices', params: {team_slug: team.slug}}"
+                                >
+                                    here
+                                </router-link>.
+                            </p>
+                        </template>
+                        <template #actions>
+                            <ff-button
+                                v-if="hasPermission('device:create')"
+                                class="font-normal"
+                                kind="primary"
+                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached"
+                                data-action="register-device"
+                                @click="showCreateDeviceDialog"
+                            >
+                                <template #icon-left>
+                                    <PlusSmIcon />
+                                </template>
+                                Add Device
+                            </ff-button>
+                        </template>
                     </EmptyState>
                 </template>
                 <div v-else class="ff-no-data ff-no-data-large">
@@ -168,8 +237,10 @@
     </div>
 
     <TeamDeviceCreateDialog
+        v-if="team"
         ref="teamDeviceCreateDialog"
         :team="team"
+        :teamDeviceCount="teamDeviceCount"
         @device-created="deviceCreated"
         @device-updated="deviceUpdated"
     >
@@ -213,19 +284,40 @@
         ref="deviceAssignApplicationDialog"
         @assign-device="assignDeviceToApplication"
     />
+
+    <ff-dialog
+        ref="teamBulkDeviceDeleteDialog"
+        header="Confirm Bulk Device Delete"
+        class="ff-dialog-fixed-height"
+        confirm-label="Confirm"
+        data-el="team-bulk-device-delete-dialog"
+        kind="danger"
+        @confirm="confirmBulkDelete()"
+    >
+        <template #default>
+            <p>The following device{{ checkedDevices.length > 1 ? 's' : '' }} will be deleted:</p>
+            <div class="max-h-96 overflow-y-auto">
+                <ul class="list-disc list-inside">
+                    <li v-for="device in checkedDevices" :key="device.id">
+                        <span class="font-bold">{{ device.name }}</span> <span class="text-gray-500 text-sm"> ({{ device.id }})</span>
+                    </li>
+                </ul>
+            </div>
+            <p>This action cannot be undone.</p>
+        </template>
+    </ff-dialog>
 </template>
 
 <script>
-import { ClockIcon } from '@heroicons/vue/outline'
+import { ClockIcon, TrashIcon } from '@heroicons/vue/outline'
 import { PlusSmIcon } from '@heroicons/vue/solid'
 
 import { markRaw } from 'vue'
+import { mapState } from 'vuex'
 
-import ApplicationApi from '../api/application.js'
 import deviceApi from '../api/devices.js'
-import instanceApi from '../api/instances.js'
 import teamApi from '../api/team.js'
-
+import deviceActionsMixin from '../mixins/DeviceActions.js'
 import permissionsMixin from '../mixins/Permissions.js'
 
 import DeviceAssignedToLink from '../pages/application/components/cells/DeviceAssignedToLink.vue'
@@ -241,7 +333,6 @@ import DeviceCredentialsDialog from '../pages/team/Devices/dialogs/DeviceCredent
 import TeamDeviceCreateDialog from '../pages/team/Devices/dialogs/TeamDeviceCreateDialog.vue'
 
 import Alerts from '../services/alerts.js'
-import Dialog from '../services/dialog.js'
 
 import { debounce } from '../utils/eventHandling.js'
 import { createPollTimer } from '../utils/timers.js'
@@ -263,10 +354,11 @@ export default {
         PlusSmIcon,
         SnapshotAssignDialog,
         TeamDeviceCreateDialog,
+        TrashIcon,
         EmptyState,
         DevicesStatusBar
     },
-    mixins: [permissionsMixin],
+    mixins: [permissionsMixin, deviceActionsMixin],
     inheritAttrs: false,
     props: {
         // One of the two must be provided
@@ -279,15 +371,6 @@ export default {
             type: Object,
             required: false,
             default: null
-        },
-        team: {
-            type: Object,
-            required: true
-        },
-        // Used for hasPermission
-        teamMembership: {
-            type: Object,
-            required: true
         }
     },
     emits: ['instance-updated'],
@@ -300,13 +383,9 @@ export default {
             deletingDevice: false,
 
             // Devices lists
-            allDeviceStatuses: new Map(), // every device known
             devices: new Map(), // devices currently available to be displayed
-            deviceCountDeltaSincePageLoad: 0,
 
-            // Server side
-            filter: null,
-            nextCursor: null,
+            checkedDevices: [], // devices currently selected in the table
 
             unsearchedHasMoreThanOnePage: true,
             unfilteredHasMoreThanOnePage: true,
@@ -320,9 +399,10 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['team', 'teamMembership']),
         columns () {
             const columns = [
-                { label: 'Device', key: 'name', class: ['w-64'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
+                { label: 'Device', key: 'name', sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
                 { label: 'Type', key: 'type', class: ['w-48'], sortable: !this.moreThanOnePage },
                 { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLastSeenBadge) } },
                 { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge) } }
@@ -373,15 +453,6 @@ export default {
 
             return output
         },
-        displayingInstance () {
-            return this.instance !== null
-        },
-        displayingApplication () {
-            return this.application !== null && !this.displayingInstance
-        },
-        displayingTeam () {
-            return this.team !== null && !this.displayingInstance && !this.displayingApplication
-        },
         hasLoadedModel () {
             return (
                 (this.displayingInstance && !!this.instance?.id) ||
@@ -391,9 +462,6 @@ export default {
         },
         moreThanOnePage () {
             return !!this.nextCursor
-        },
-        teamDeviceCount () {
-            return this.team.deviceCount + this.deviceCountDeltaSincePageLoad
         },
         teamRuntimeLimitReached () {
             let teamTypeRuntimeLimit = this.team.type.properties?.runtimes?.limit
@@ -489,54 +557,24 @@ export default {
             this.$refs.teamDeviceCreateDialog.show(null, this.instance, this.application, showApplicationsList)
         },
 
-        showEditDeviceDialog (device) {
-            this.$refs.teamDeviceCreateDialog.show(device)
+        confirmBulkDelete () {
+            // do the delete
+            teamApi.bulkDeviceDelete(this.team?.id, this.checkedDevices.map(device => device.id))
+                .then(() => {
+                    Alerts.emit('Devices successfully deleted.', 'confirmation')
+                    this.fullReloadOfData()
+                })
+                .catch((error) => {
+                    Alerts.emit('Error deleting devices: ' + error.message, 'error')
+                })
+        },
+
+        showTeamBulkDeviceDeleteDialog () {
+            this.$refs.teamBulkDeviceDeleteDialog.show()
         },
 
         showSelectTargetSnapshotDialog () {
             this.$refs.snapshotAssignDialog.show()
-        },
-
-        deviceCreated (device) {
-            if (device) {
-                setTimeout(() => {
-                    this.$refs.deviceCredentialsDialog.show(device)
-                }, 500)
-
-                this.updateLocalCopyOfDevice(device)
-            }
-        },
-
-        deviceUpdated (device) {
-            this.updateLocalCopyOfDevice(device)
-        },
-
-        deleteLocalCopyOfDevice (device) {
-            if (this.allDeviceStatuses.get(device.id)) {
-                this.deviceCountDeltaSincePageLoad--
-            }
-            this.allDeviceStatuses.delete(device.id)
-            this.devices.delete(device.id)
-        },
-
-        updateLocalCopyOfDevice (device) {
-            if (!this.allDeviceStatuses.get(device.id)) {
-                this.deviceCountDeltaSincePageLoad++
-            }
-
-            // Only grab status props to avoid polluting allDeviceStatuses with extra info
-            const currentDeviceStatus = this.allDeviceStatuses.get(device.id)
-            if (currentDeviceStatus) {
-                const updatedDeviceStatusPropsOnly = Object.keys(currentDeviceStatus).reduce((acc, key) => {
-                    acc[key] = device[key]
-                    return acc
-                }, { ...currentDeviceStatus })
-                this.allDeviceStatuses.set(device.id, updatedDeviceStatusPropsOnly)
-            } else {
-                this.allDeviceStatuses.set(device.id, device)
-            }
-
-            this.devices.set(device.id, device)
         },
 
         async assignDevice (device, instanceId) {
@@ -557,6 +595,7 @@ export default {
 
         // Device loading
         fullReloadOfData () {
+            this.checkedDevices = []
             this.loadDevices(true)
             this.pollForDeviceStatuses(true)
         },
@@ -575,44 +614,6 @@ export default {
             if (this.hasLoadedModel) {
                 await this.fetchAllDeviceStatuses(reset)
             }
-        },
-
-        // Actual fetching methods
-        async fetchData (nextCursor = null, limit = null, extraParams = { statusOnly: false }) {
-            const query = null // handled via extraParams
-            if (this.displayingInstance) {
-                return await instanceApi.getInstanceDevices(this.instance.id, nextCursor, limit, query, extraParams)
-            }
-
-            if (this.displayingApplication) {
-                return await ApplicationApi.getApplicationDevices(this.application.id, nextCursor, limit, query, extraParams)
-            }
-
-            if (this.displayingTeam) {
-                return await teamApi.getTeamDevices(this.team.id, nextCursor, limit, query, extraParams)
-            }
-
-            console.warn('Trying to fetch data without a loaded model.')
-
-            return null
-        },
-
-        async fetchAllDeviceStatuses (reset = false) {
-            const data = await this.fetchData(null, null, { statusOnly: true })
-
-            if (reset) {
-                this.allDeviceStatuses = new Map()
-            }
-
-            if (data.meta?.next_cursor || data.devices.length < data.count) {
-                console.warn('Device Status API should not be paginating')
-            }
-
-            data.devices.forEach(device => {
-                this.allDeviceStatuses.set(device.id, device)
-            })
-
-            this.loadingStatuses = false
         },
 
         async fetchDevices (resetPage = false) {
@@ -663,68 +664,6 @@ export default {
             }
 
             this.loadingDevices = false
-        },
-
-        deviceAction (action, deviceId) {
-            const device = this.devices.get(deviceId)
-            if (action === 'edit') {
-                this.showEditDeviceDialog(device)
-            } else if (action === 'delete') {
-                Dialog.show({
-                    header: 'Delete Device',
-                    kind: 'danger',
-                    text: 'Are you sure you want to delete this device? Once deleted, there is no going back.',
-                    confirmLabel: 'Delete'
-                }, async () => {
-                    try {
-                        await deviceApi.deleteDevice(device.id)
-                        Alerts.emit('Successfully deleted the device', 'confirmation')
-                        this.deleteLocalCopyOfDevice(device)
-                    } catch (err) {
-                        Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
-                    }
-                })
-            } else if (action === 'updateCredentials') {
-                this.$refs.deviceCredentialsDialog.show(device)
-            } else if (action === 'removeFromProject') {
-                Dialog.show({
-                    header: 'Remove Device from Instance',
-                    kind: 'danger',
-                    text: 'Are you sure you want to remove this device from the instance? This will stop the flows running on the device.',
-                    confirmLabel: 'Remove'
-                }, async () => {
-                    await deviceApi.updateDevice(device.id, { instance: null })
-
-                    if (this.displayingInstance) {
-                        this.deleteLocalCopyOfDevice(device)
-                    } else {
-                        this.updateLocalCopyOfDevice({ ...device, instance: undefined, application: undefined, ownerType: '' })
-                    }
-
-                    Alerts.emit('Successfully removed the device from the instance.', 'confirmation')
-                })
-            } else if (action === 'removeFromApplication') {
-                Dialog.show({
-                    header: 'Remove Device from Application',
-                    kind: 'danger',
-                    text: 'Are you sure you want to remove this device from the application? This will stop the flows running on the device.',
-                    confirmLabel: 'Remove'
-                }, async () => {
-                    await deviceApi.updateDevice(device.id, { application: null })
-
-                    if (this.displayingApplication) {
-                        this.deleteLocalCopyOfDevice(device)
-                    } else {
-                        this.updateLocalCopyOfDevice({ ...device, instance: undefined, application: undefined, ownerType: '' })
-                    }
-
-                    Alerts.emit('Successfully removed the device from the application.', 'confirmation')
-                })
-            } else if (action === 'assignToProject') {
-                this.$refs.deviceAssignInstanceDialog.show(device)
-            } else if (action === 'assignToApplication') {
-                this.$refs.deviceAssignApplicationDialog.show(device, false)
-            }
         },
 
         getOwnerSortKeyForDevice (device) {

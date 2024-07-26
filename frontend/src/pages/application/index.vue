@@ -32,8 +32,6 @@
                 :devices="devicesArray"
                 :deviceGroups="deviceGroupsArray"
                 :is-visiting-admin="isVisitingAdmin"
-                :team="team"
-                :team-membership="teamMembership"
                 @application-updated="updateApplication"
                 @application-delete="showConfirmDeleteApplicationDialog"
                 @instance-start="instanceStart"
@@ -52,11 +50,6 @@ import { ChipIcon, ClockIcon, CogIcon, TerminalIcon, ViewListIcon } from '@heroi
 
 import { mapState } from 'vuex'
 
-import { Roles } from '../../../../forge/lib/roles.js'
-
-import ApplicationApi from '../../api/application.js'
-import InstanceApi from '../../api/instances.js'
-
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
@@ -64,12 +57,9 @@ import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import PipelinesIcon from '../../components/icons/Pipelines.js'
 import ProjectsIcon from '../../components/icons/Projects.js'
 
+import applicationMixin from '../../mixins/Application.js'
+import instanceActionsMixin from '../../mixins/InstanceActions.js'
 import permissionsMixin from '../../mixins/Permissions.js'
-
-import alerts from '../../services/alerts.js'
-import Dialog from '../../services/dialog.js'
-
-import { InstanceStateMutator } from '../../utils/InstanceStateMutator.js'
 
 import ConfirmInstanceDeleteDialog from '../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 
@@ -85,28 +75,14 @@ export default {
         SubscriptionExpiredBanner,
         TeamTrialBanner
     },
-    mixins: [permissionsMixin],
+    mixins: [permissionsMixin, applicationMixin, instanceActionsMixin],
     data: function () {
         return {
-            mounted: false,
-            application: {},
-            applicationDevices: [],
-            deviceGroups: [],
-            applicationInstances: new Map(),
-            loading: {
-                deleting: false,
-                suspend: false
-            }
+            mounted: false
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership', 'team', 'features']),
-        isVisitingAdmin () {
-            return this.teamMembership?.role === Roles.Admin
-        },
-        isLoading () {
-            return this.loading.deleting || this.loading.suspend
-        },
+        ...mapState('account', ['features']),
         navigation () {
             const routes = [
                 { label: 'Instances', to: `/application/${this.application.id}/instances`, tag: 'application-overview', icon: ProjectsIcon },
@@ -132,18 +108,6 @@ export default {
             ]
 
             return routes
-        },
-        instancesArray () {
-            if (this.applicationInstances.size === 0) {
-                return []
-            }
-            return Array.from(this.applicationInstances.values()).filter(el => el)
-        },
-        devicesArray () {
-            return this.applicationDevices
-        },
-        deviceGroupsArray () {
-            return this.deviceGroups || []
         }
     },
     async created () {
@@ -160,156 +124,6 @@ export default {
         this.mounted = true
     },
     methods: {
-        async updateApplication () {
-            const applicationId = this.$route.params.id
-
-            // See https://github.com/FlowFuse/flowfuse/issues/2929
-            if (!applicationId) {
-                return
-            }
-
-            try {
-                this.applicationInstances = []
-                this.application = await ApplicationApi.getApplication(applicationId)
-                // Check to see if we have the right team loaded
-                if (this.team?.slug !== this.application.team.slug) {
-                    // Load the team for this application
-                    await this.$store.dispatch('account/setTeam', this.application.team.slug)
-                }
-                const instancesPromise = ApplicationApi.getApplicationInstances(applicationId) // To-do needs to be enriched with instance state
-                const devicesPromise = ApplicationApi.getApplicationDevices(applicationId)
-                const deviceData = await devicesPromise
-                this.applicationDevices = deviceData?.devices
-                const applicationInstances = await instancesPromise
-                if (this.features?.deviceGroups && this.team.type.properties.features?.deviceGroups) {
-                    const deviceGroupsData = await ApplicationApi.getDeviceGroups(applicationId)
-                    this.deviceGroups = deviceGroupsData?.groups || []
-                } else {
-                    this.deviceGroups = []
-                }
-
-                this.applicationInstances = new Map()
-                applicationInstances.forEach(instance => {
-                    this.applicationInstances.set(instance.id, instance)
-                })
-
-                // Not waited for, as loading status is slightly slower
-                ApplicationApi
-                    .getApplicationInstancesStatuses(applicationId)
-                    .then((instanceStatuses) => {
-                        instanceStatuses.forEach((instanceStatus) => {
-                            this.applicationInstances.set(instanceStatus.id, {
-                                ...this.applicationInstances.get(instanceStatus.id),
-                                ...instanceStatus
-                            })
-                        })
-                    })
-                    .catch((err) => {
-                        console.error(err)
-                    })
-            } catch (err) {
-                this.$router.push({
-                    name: 'PageNotFound',
-                    params: { pathMatch: this.$router.currentRoute.value.path.substring(1).split('/') },
-                    // preserve existing query and hash if any
-                    query: this.$router.currentRoute.value.query,
-                    hash: this.$router.currentRoute.value.hash
-                })
-            }
-        },
-
-        instanceUpdated: function (newData) {
-            const mutator = new InstanceStateMutator(newData)
-            mutator.clearState()
-
-            this.applicationInstances.set(newData.id, {
-                ...this.applicationInstances.get(newData.id),
-                ...newData
-            })
-        },
-
-        showConfirmDeleteApplicationDialog () {
-            this.$refs.confirmApplicationDeleteDialog.show(this.application)
-        },
-
-        async deleteApplication () {
-            this.loading.deleting = true
-
-            try {
-                await ApplicationApi.deleteApplication(this.application.id, this.team.id)
-                await this.$store.dispatch('account/refreshTeam')
-                this.$router.push({ name: 'Home' })
-                alerts.emit('Application successfully deleted.', 'confirmation')
-            } catch (err) {
-                if (err.response.data.error) {
-                    alerts.emit(`Application failed to delete: ${err.response.data.error}`, 'warning', 10000)
-                } else {
-                    alerts.emit('Application failed to delete', 'warning')
-                }
-            }
-
-            this.loading.deleting = false
-        },
-
-        async instanceStart (instance) {
-            const mutator = new InstanceStateMutator(instance)
-            mutator.setStateOptimistically('starting')
-            try {
-                await InstanceApi.startInstance(instance)
-                mutator.setStateAsPendingFromServer()
-            } catch (err) {
-                console.warn('Instance start failed.', err)
-                alerts.emit('Instance start failed.', 'warning')
-
-                mutator.restoreState()
-            }
-        },
-
-        async instanceRestart (instance) {
-            const mutator = new InstanceStateMutator(instance)
-            mutator.setStateOptimistically('restarting')
-            try {
-                await InstanceApi.restartInstance(instance)
-                mutator.setStateAsPendingFromServer()
-            } catch (err) {
-                console.warn('Instance restart failed.', err)
-                alerts.emit('Instance restart failed.', 'warning')
-
-                mutator.restoreState()
-            }
-        },
-
-        instanceShowConfirmSuspend (instance) {
-            Dialog.show({
-                header: 'Suspend Instance',
-                text: `Are you sure you want to suspend ${instance.name}`,
-                confirmLabel: 'Suspend',
-                kind: 'danger'
-            }, () => {
-                const mutator = new InstanceStateMutator(instance)
-                mutator.setStateOptimistically('suspending')
-
-                InstanceApi.suspendInstance(instance).then(() => {
-                    mutator.setStateAsPendingFromServer()
-
-                    alerts.emit('Instance suspend request succeeded.', 'confirmation')
-                }).catch(err => {
-                    console.warn(err)
-                    alerts.emit('Instance failed to suspend.', 'warning')
-
-                    mutator.restoreState()
-                })
-            })
-        },
-
-        instanceShowConfirmDelete (instance) {
-            this.$refs.confirmInstanceDeleteDialog.show(instance)
-        },
-        onInstanceDeleted (instance) {
-            if (this.applicationInstances.has(instance.id)) {
-                this.applicationInstances.delete(instance.id)
-            }
-        }
     }
 }
 </script>

@@ -1,5 +1,7 @@
 ---
 navTitle: Team creation Flow
+meta:
+   description: Explore the detailed sequence for team creation in FlowFuse with step-by-step process diagrams, covering both billing-enabled and no-billing scenarios, ensuring a comprehensive understanding of the workflow.
 ---
 
 # Sequence For Team Creation

@@ -132,6 +132,11 @@ module.exports = async function (app) {
     })
 
     async function getTeamDetails (request, reply, team) {
+        if (!request.session.User?.admin && request.teamMembership.role < Roles.Viewer) {
+            // Return summary details for any role less than Viewer (eg dashboard)
+            reply.send(app.db.views.Team.teamSummary(team))
+            return
+        }
         const result = app.db.views.Team.team(team)
         result.instanceCountByType = await team.instanceCountByType()
         if (app.license.active() && app.billing) {
@@ -287,7 +292,7 @@ module.exports = async function (app) {
         const includeInstances = true
         const includeApplicationDevices = true
         const associationsLimit = request.query.associationsLimit
-        const includeApplicationSummary = !!associationsLimit
+        const includeApplicationSummary = !!associationsLimit || request.query.includeApplicationSummary
 
         const applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances, includeApplicationDevices, associationsLimit, includeApplicationSummary })
 

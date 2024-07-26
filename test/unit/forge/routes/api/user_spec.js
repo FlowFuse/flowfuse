@@ -379,6 +379,58 @@ describe('User API', async function () {
             // auditLogs.log[0].body.error.should.have.a.property('code', 'password_change_failed')
             // auditLogs.log[0].body.error.should.have.a.property('message')
         })
+        it('user can not change password to match username', async function () {
+            await login('elvis', 'eePassword')
+            TestObjects.elvis.username = 'elvisMoreComplicatedForWeaknessCheck'
+            await TestObjects.elvis.save()
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/change_password',
+                payload: {
+                    old_password: 'eePassword',
+                    password: 'elvisMoreComplicatedForWeaknessCheck'
+                },
+                cookies: { sid: TestObjects.tokens.elvis }
+            })
+            response.statusCode.should.equal(400)
+            const result = response.json()
+            result.should.have.property('code', 'password_change_failed')
+        })
+        it('user can not change password to match email', async function () {
+            await login('elvis', 'eePassword')
+            TestObjects.elvis.email = 'elvisMoreComplicatedForWeaknessCheck@example.com'
+            await TestObjects.elvis.save()
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/change_password',
+                payload: {
+                    old_password: 'eePassword',
+                    password: 'elvisMoreComplicatedForWeaknessCheck@example.com'
+                },
+                cookies: { sid: TestObjects.tokens.elvis }
+            })
+            response.statusCode.should.equal(400)
+            const result = response.json()
+            result.should.have.property('code', 'password_change_failed')
+        })
+        it('user can not change password to match old password', async function () {
+            await login('elvis', 'eePassword')
+            TestObjects.elvis.password = 'elvisMoreComplicatedForWeaknessCheck'
+            await TestObjects.elvis.save()
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/change_password',
+                payload: {
+                    old_password: 'elvisMoreComplicatedForWeaknessCheck',
+                    password: 'elvisMoreComplicatedForWeaknessCheck'
+                },
+                cookies: { sid: TestObjects.tokens.elvis }
+            })
+            response.statusCode.should.equal(400)
+            const result = response.json()
+            result.should.have.property('code', 'password_change_failed')
+        })
+
         describe('Unverified Email', async function () {
             it('return user info for unverified_email user', async function () {
                 await login('chris', 'ccPassword')
@@ -601,6 +653,22 @@ describe('User API', async function () {
                 response.statusCode.should.equal(400)
                 const result = response.json()
                 result.code.should.equal('password_change_failed_too_weak')
+            })
+
+            it('user can not set too long password', async function () {
+                await login('dave', 'ddPassword')
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/user/change_password',
+                    payload: {
+                        old_password: 'ddPassword',
+                        password: 'a'.padStart(129, 'iusegkfsafjsbegouasf')
+                    },
+                    cookies: { sid: TestObjects.tokens.dave }
+                })
+                response.statusCode.should.equal(400)
+                const result = response.json()
+                result.code.should.equal('password_change_failed')
             })
 
             it('cannot access other parts of api', async function () {
@@ -857,6 +925,29 @@ describe('User API', async function () {
                 cookies: { sid: TestObjects.tokens.bob }
             })
             deleteResponse.statusCode.should.equal(404)
+        })
+        it('Deleting a user removes any PATs from the db', async function () {
+            const userToDelete = await app.db.models.User.create({ username: 'wayne', name: 'Wayne Vane', email: 'wayne@example.com', email_verified: true, password: 'wwPassword' })
+            await login('wayne', 'wwPassword')
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.wayne },
+                payload: {
+                    name: 'Waynes Token',
+                    scope: ''
+                }
+            })
+            response.statusCode.should.equal(200)
+
+            const userId = userToDelete.id
+            const tokens = await app.db.models.AccessToken.getPersonalAccessTokens({ id: userId })
+            tokens.should.have.length(1)
+
+            await userToDelete.destroy()
+
+            const tokens2 = await app.db.models.AccessToken.getPersonalAccessTokens({ id: userId })
+            tokens2.should.have.length(0)
         })
     })
 

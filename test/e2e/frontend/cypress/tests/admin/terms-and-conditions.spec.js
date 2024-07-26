@@ -76,8 +76,8 @@ describe('FlowForge - Team Membership', () => {
         cy.get('[data-action="terms-and-condition-update"]').click()
 
         // confirm update
-        cy.get('.ff-dialog-box').should('be.visible')
-        cy.get('.ff-dialog-box button.ff-btn.ff-btn--danger').contains('Continue').click()
+        cy.get('[data-el="platform-dialog"]').should('be.visible')
+        cy.get('[data-el="platform-dialog"]').contains('Continue').click()
         cy.wait(['@putSettings', '@getSettings'])
 
         // at this point, user will be presented the T+Cs dialog

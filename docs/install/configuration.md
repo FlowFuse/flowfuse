@@ -96,6 +96,10 @@ Option        | Description
 `driver.options.projectSelector` | A YAML object containing node annotations to use to filter which nodes Node-RED instances run on. Default: `role: projects`
 `driver.options.logPassthrough` | Prints the Node-RED logs in JSON format to stdout of the instance pods. This should be set with the `forge.logPassthrough=true` Helm chart value. Default: `false`
 `driver.options.privateCA` | The name of a ConfigMap containing a file called `certs.pem` which holds locally trusted CA cert chain. Default: not set
+`driver.options.customHostname.enabled` | Enables the custom hostname feature. Default: `false`
+`driver.options.customHostname.cnameTarget` | The hostname users should configure their DNS entries to point at. This value is required to enable this feature. Default: not set
+`driver.options.customHostname.ingressClass` | The name of the Ingress Class that should be used for the custom hostname. Default: not set
+`driver.options.customHostname.certManagerIssuer` | The name of the CertManager ClusterIssuer to provision HTTPS certificates for custom hostnames. Default: not set
 
 ## MQTT Broker configuration
 
@@ -135,7 +139,9 @@ This assumes that the instance is running with a Service Account that has a AWS 
 
 Option        | Description
 --------------|------------
-`email.ses.region` | The AWS region to connect to
+`email.ses.region` | The AWS region to connect to. Default `unset`
+`email.ses.sourceArn` | The AWS ARN of a SES Identity to send email as. Default: `unset`
+`email.ses.fromArn` | The AWS ARN of a SES Identity to set as the from field. Default to value of `email.ses.sourceArn`
 
 
 ## Telemetry configuration
@@ -179,6 +185,14 @@ Option        | Description
 
 For additional options, see [fastify-rate-limit](https://github.com/fastify/fastify-rate-limit#options) documentation.
 
+## Session timeouts
+
+Allows control of the maximum user session life.
+
+Option        | Description
+--------------|------------
+`sessions.maxDuration` | The maximum number of seconds a user session can last. Default: `604800` (1 week)
+`sessions.maxIdleDuration` | The maximum number of seconds a session can be idle. Must be less than `sessions.maxDuration`. Default: `115200` (32 hours)
 
 ## Support configuration
 

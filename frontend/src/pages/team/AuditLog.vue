@@ -29,16 +29,6 @@ export default {
         AuditLogBrowser
     },
     mixins: [permissionsMixin],
-    props: {
-        team: {
-            type: Object,
-            required: true
-        },
-        teamMembership: {
-            type: Object,
-            required: true
-        }
-    },
     data () {
         return {
             logEntries: [],

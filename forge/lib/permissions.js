@@ -14,6 +14,7 @@ const Permissions = {
     'team:edit': { description: 'Edit Team', role: Roles.Owner },
     'team:delete': { description: 'Delete Team', role: Roles.Owner },
     'team:audit-log': { description: 'Access Team Audit Log', role: Roles.Owner },
+    'team:device:bulk-delete': { description: 'Delete Devices', role: Roles.Owner },
     // Team Auto Device Provisioning Tokens
     'team:device:provisioning-token:create': { description: 'Create a Team Auto Device Provisioning Token', role: Roles.Owner },
     'team:device:provisioning-token:edit': { description: 'Edit a Team Auto Device Provisioning Token', role: Roles.Owner },
@@ -84,6 +85,7 @@ const Permissions = {
     'snapshot:full': { description: 'View full snapshot details excluding credentials', role: Roles.Member },
     'snapshot:export': { description: 'Export a snapshot including credentials', role: Roles.Member },
     'snapshot:delete': { description: 'Delete a Snapshot', role: Roles.Owner },
+    'snapshot:import': { description: 'Import a Snapshot', role: Roles.Owner },
 
     // Project Types
     'project-type:create': { description: 'Create a ProjectType', role: Roles.Admin },

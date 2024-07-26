@@ -30,7 +30,7 @@ describe('FlowFuse EE - HTTP Auth tokens', () => {
         navigateToInstanceSettings('BTeam', 'instance-2-1')
 
         cy.get('[data-nav="security"').click()
-        cy.get('[data-el="http-auth"] div:nth-child(6)').click()
+        cy.get('[data-el="http-auth-option-ff"]').click()
 
         cy.get('[data-action="new-token"]').should('exist')
         cy.get('[data-action="new-token"] span:first').click()

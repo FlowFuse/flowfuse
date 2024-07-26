@@ -31,9 +31,18 @@ const setupManualBilling = async (teamId, teamTypeId) => {
     })
 }
 
+const setTrialExpiry = async (teamId, trialEndsAt) => {
+    return client.post('/ee/billing/teams/' + teamId + '/trial', {
+        trialEndsAt
+    }).then(res => {
+        return res.data
+    })
+}
+
 export default {
     toCustomerPortal,
     getSubscriptionInfo,
     createSubscription,
-    setupManualBilling
+    setupManualBilling,
+    setTrialExpiry
 }

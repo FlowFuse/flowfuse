@@ -5,8 +5,8 @@ const subscriptions = []
  * @typedef {Object} DialogOptions
  * @param {string} header The dialog title
  * @param {string} kind The dialog kind (optional)
- * @param {string} text The dialog text
- * @param {string} html The dialog html (instead of text)
+ * @param {string} text The dialog text - can include newlines (\n) and they will be formatted properly
+ * @param {string} html The dialog html (instead of text - use with caution to avoid XSS)
  * @param {string} confirmLabel The dialog confirm button label
  */
 
@@ -15,8 +15,12 @@ export default {
     // this is used in Platform.vue in order to control the showing/hiding
     // of the app's main dialog
     bind: function (el, fcn) {
-        dialog = el
-        subscriptions.push(fcn)
+        if (!el) {
+            throw new Error('No dialog element provided')
+        } else {
+            dialog = el
+            subscriptions.push(fcn)
+        }
     },
 
     /**

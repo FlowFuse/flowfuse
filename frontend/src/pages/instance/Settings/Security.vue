@@ -29,7 +29,7 @@
                 </ff-data-table>
             </div>
             <div v-else>
-                Upgrade your stack to enable this feature
+                Upgrade your Node-RED Version to enable this feature
             </div>
         </div>
         <div class="space-x-4 whitespace-nowrap">
@@ -210,7 +210,7 @@ export default {
             }
             await InstanceApi.updateInstance(this.project.id, { settings })
             this.$emit('instance-updated')
-            alerts.emit('Instance successfully updated.', 'confirmation')
+            alerts.emit('Instance settings successfully updated. Restart the instance to apply the changes.', 'confirmation', 6000)
         },
         async getTokens () {
             const response = await InstanceApi.getHTTPTokens(this.project.id)

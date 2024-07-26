@@ -2,6 +2,8 @@ const fp = require('fastify-plugin')
 const handlebars = require('handlebars')
 const nodemailer = require('nodemailer')
 
+const defaultLayout = require('./layouts/default.js')
+
 const templates = {}
 
 module.exports = fp(async function (app, _opts) {
@@ -79,6 +81,13 @@ module.exports = fp(async function (app, _opts) {
                     defaultProvider
                 })
 
+                if (sesConfig.sourceArn) {
+                    mailDefaults.ses = {
+                        SourceArn: sesConfig.sourceArn,
+                        FromArn: sesConfig.FromArn ? sesConfig.FromArn : sesConfig.sourceArn
+                    }
+                }
+
                 mailTransport = nodemailer.createTransport({
                     SES: { ses, aws }
                 }, mailDefaults)
@@ -144,11 +153,14 @@ module.exports = fp(async function (app, _opts) {
         const template = templates[templateName] || loadTemplate(templateName)
         const templateContext = { forgeURL, user, ...context }
         templateContext.safeName = sanitizeText(user.name || 'user')
+        if (templateContext.teamName) {
+            templateContext.teamName = sanitizeText(templateContext.teamName)
+        }
         const mail = {
             to: user.email,
             subject: template.subject(templateContext, { allowProtoPropertiesByDefault: true, allowProtoMethodsByDefault: true }),
             text: template.text(templateContext, { allowProtoPropertiesByDefault: true, allowProtoMethodsByDefault: true }),
-            html: template.html(templateContext, { allowProtoPropertiesByDefault: true, allowProtoMethodsByDefault: true })
+            html: defaultLayout(template.html(templateContext, { allowProtoPropertiesByDefault: true, allowProtoMethodsByDefault: true }))
         }
         if (EMAIL_ENABLED) {
             if (mailTransport) {

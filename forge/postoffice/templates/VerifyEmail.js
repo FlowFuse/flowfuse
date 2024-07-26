@@ -3,13 +3,19 @@ module.exports = {
     text:
 `Hello, {{{safeName.text}}},
 
-Use the link below to verify your email address.
+Please use this code to verify your email address:
 
-{{{ confirmEmailLink }}}
+{{{ token.token }}}
+
+Do not share this code with anyone else.
+
+This token will expire in 30 minutes.
 `,
     html:
 `<p>Hello, <b>{{{safeName.html}}}</b>,</p>
-<p>Use the link below to verify your email address.</p>
-<p><a href="{{{ confirmEmailLink }}}">{{{ confirmEmailLink }}}</a></p>
+<p>Please use this code to verify your email address:</p>
+<p><b>{{{ token.token }}}</b></p>
+<p>Do not share this code with anyone else.</p>
+<p>This token will expire in 30 minutes.</p>
 `
 }

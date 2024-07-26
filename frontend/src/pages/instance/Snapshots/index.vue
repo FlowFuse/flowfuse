@@ -13,15 +13,17 @@
         <template v-if="snapshots.length > 0">
             <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
                 <template v-if="hasPermission('project:snapshot:create')" #actions>
-                    <ff-button kind="primary" data-action="create-snapshot" @click="showCreateSnapshotDialog"><template #icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
+                    <ff-button v-if="hasPermission('snapshot:import')" kind="secondary" data-action="import-snapshot" :disabled="busy" @click="showImportSnapshotDialog"><template #icon-left><UploadIcon /></template>Upload Snapshot</ff-button>
+                    <ff-button kind="primary" data-action="create-snapshot" :disabled="busy" @click="showCreateSnapshotDialog"><template #icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
                 </template>
-                <template v-if="showContextMenu" #context-menu="{row}">
-                    <ff-list-item v-if="hasPermission('project:snapshot:rollback')" label="Rollback" @click="showRollbackDialog(row)" />
-                    <ff-list-item v-if="hasPermission('snapshot:full')" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
-                    <ff-list-item v-if="hasPermission('project:snapshot:export')" label="Download Snapshot" @click="showDownloadSnapshotDialog(row)" />
-                    <ff-list-item v-if="hasPermission('project:snapshot:read')" label="Download package.json" @click="downloadSnapshotPackage(row)" />
-                    <ff-list-item v-if="hasPermission('project:snapshot:set-target')" label="Set as Device Target" @click="showDeviceTargetDialog(row)" />
-                    <ff-list-item v-if="hasPermission('project:snapshot:delete')" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />
+                <template #context-menu="{row}">
+                    <ff-list-item :disabled="!hasPermission('project:snapshot:rollback')" label="Deploy Snapshot" @click="showRollbackDialog(row)" />
+                    <ff-list-item :disabled="!hasPermission('snapshot:full')" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
+                    <ff-list-item :disabled="!hasPermission('snapshot:full')" label="Compare Snapshot..." @click="showCompareSnapshotDialog(row)" />
+                    <ff-list-item :disabled="!hasPermission('project:snapshot:export')" label="Download Snapshot" @click="showDownloadSnapshotDialog(row)" />
+                    <ff-list-item :disabled="!hasPermission('project:snapshot:read')" label="Download package.json" @click="downloadSnapshotPackage(row)" />
+                    <ff-list-item :disabled="!hasPermission('project:snapshot:set-target')" label="Set as Device Target" @click="showDeviceTargetDialog(row)" />
+                    <ff-list-item :disabled="!hasPermission('project:snapshot:delete')" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />
                 </template>
             </ff-data-table>
         </template>
@@ -43,6 +45,9 @@
                     </p>
                 </template>
                 <template v-if="hasPermission('project:snapshot:create')" #actions>
+                    <ff-button v-if="hasPermission('snapshot:import')" kind="secondary" data-action="import-snapshot" @click="showImportSnapshotDialog">
+                        <template #icon-left><UploadIcon /></template>Upload Snapshot
+                    </ff-button>
                     <ff-button kind="primary" data-action="create-snapshot" @click="showCreateSnapshotDialog">
                         <template #icon-left><PlusSmIcon /></template>Create Snapshot
                     </ff-button>
@@ -51,12 +56,14 @@
         </template>
         <SnapshotCreateDialog ref="snapshotCreateDialog" data-el="dialog-create-snapshot" :project="instance" @snapshot-created="snapshotCreated" />
         <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" :project="instance" />
-        <SnapshotViewerDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
+        <SnapshotImportDialog ref="snapshotImportDialog" title="Upload Snapshot" data-el="dialog-import-snapshot" :owner="instance" owner-type="instance" @snapshot-import-success="onSnapshotImportSuccess" @snapshot-import-failed="onSnapshotImportFailed" @canceled="onSnapshotImportCancel" />
+        <AssetDetailDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
+        <AssetCompareDialog ref="snapshotCompareDialog" data-el="dialog-compare-snapshot" />
     </div>
 </template>
 
 <script>
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
@@ -66,17 +73,22 @@ import SnapshotsApi from '../../../api/snapshots.js'
 
 import EmptyState from '../../../components/EmptyState.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
-import SnapshotViewerDialog from '../../../components/dialogs/SnapshotViewerDialog.vue'
+import AssetCompareDialog from '../../../components/dialogs/AssetCompareDialog.vue'
+import AssetDetailDialog from '../../../components/dialogs/AssetDetailDialog.vue'
+import SnapshotImportDialog from '../../../components/dialogs/SnapshotImportDialog.vue'
 import UserCell from '../../../components/tables/cells/UserCell.vue'
+import { downloadData } from '../../../composables/Download.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
+import Product from '../../../services/product.js'
+import { applySystemUserDetails } from '../../../transformers/snapshots.transformer.js'
 import DaysSince from '../../application/Snapshots/components/cells/DaysSince.vue'
 import DeviceCount from '../../application/Snapshots/components/cells/DeviceCount.vue'
 import SnapshotName from '../../application/Snapshots/components/cells/SnapshotName.vue'
+import SnapshotExportDialog from '../../application/Snapshots/components/dialogs/SnapshotExportDialog.vue'
 
 import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog.vue'
-import SnapshotExportDialog from './dialogs/SnapshotExportDialog.vue'
 
 export default {
     name: 'InstanceSnapshots',
@@ -85,8 +97,11 @@ export default {
         EmptyState,
         SnapshotCreateDialog,
         SnapshotExportDialog,
-        SnapshotViewerDialog,
-        PlusSmIcon
+        SnapshotImportDialog,
+        PlusSmIcon,
+        UploadIcon,
+        AssetDetailDialog,
+        AssetCompareDialog
     },
     mixins: [permissionsMixin],
     inheritAttrs: false,
@@ -101,14 +116,13 @@ export default {
         return {
             loading: false,
             deviceCounts: {},
-            snapshots: []
+            snapshots: [],
+            busyMakingSnapshot: false,
+            busyImportingSnapshot: false
         }
     },
     computed: {
         ...mapState('account', ['teamMembership']),
-        showContextMenu: function () {
-            return this.hasPermission('project:snapshot:rollback') || this.hasPermission('project:snapshot:set-target') || this.hasPermission('project:snapshot:delete') || this.hasPermission('project:snapshot:export') || this.hasPermission('snapshot:full')
-        },
         columns () {
             const cols = [
                 {
@@ -144,6 +158,18 @@ export default {
                 { label: 'Date Created', class: ['w-56'], component: { is: markRaw(DaysSince), map: { date: 'createdAt' } } }
             ]
             return cols
+        },
+        busy () {
+            return this.busyMakingSnapshot || this.busyImportingSnapshot
+        },
+        snapshotList () {
+            return this.snapshots.map(s => {
+                return {
+                    label: s.name,
+                    description: s.description || '',
+                    value: s.id
+                }
+            })
         }
     },
     watch: {
@@ -159,22 +185,9 @@ export default {
                 this.loading = true
                 const deviceCounts = await this.countDevices()
                 const data = await SnapshotApi.getInstanceSnapshots(this.instance.id) // TODO Move to instances?
-                this.snapshots = data.snapshots.map((s) => {
+                this.snapshots = applySystemUserDetails(data.snapshots, this.instance).map((s) => {
                     s.deviceCount = deviceCounts[s.id]
                     return s
-                })
-                // For any snapshots that have no user and match the autoSnapshot name format
-                // we mimic a user so that the table can display the device name and a suitable image
-                // NOTE: Any changes to the below regex should be reflected in forge/db/controllers/ProjectSnapshot.js
-                const autoSnapshotRegex = /^Auto Snapshot - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/ // e.g "Auto Snapshot - 2023-02-01 12:34:56"
-                this.snapshots.forEach(snapshot => {
-                    if (!snapshot.user && autoSnapshotRegex.test(snapshot.name)) {
-                        snapshot.user = {
-                            name: this.instance.name,
-                            username: 'Auto Snapshot',
-                            avatar: '../../avatar/camera.svg'
-                        }
-                    }
                 })
                 this.loading = false
             }
@@ -202,7 +215,7 @@ export default {
                 kind: 'danger',
                 confirmLabel: 'Delete'
             }, async () => {
-                await SnapshotApi.deleteSnapshot(this.instance.id, snapshot.id)
+                await SnapshotsApi.deleteSnapshot(snapshot.id)
                 const index = this.snapshots.indexOf(snapshot)
                 this.snapshots.splice(index, 1)
                 Alerts.emit('Successfully deleted snapshot.', 'confirmation')
@@ -211,23 +224,23 @@ export default {
         // snapshot actions - rollback
         showRollbackDialog (snapshot) {
             Dialog.show({
-                header: 'Rollback Snapshot',
-                html: `<p>This rollback will overwrite the current instance.</p>
-            <p>All changes to the flows, settings and environment variables made since
-                the last snapshot will be lost.</p>
-            <p>Are you sure you want to rollback to this snapshot?</p>`,
-                confirmLabel: 'Confirm Rollback'
+                header: 'Deploy Snapshot',
+                kind: 'danger',
+                text: `This will overwrite the current instance.
+                       All changes to the flows, settings and environment variables made since the last snapshot will be lost.
+                       Are you sure you want to deploy to this snapshot?`,
+                confirmLabel: 'Confirm'
             }, async () => {
                 await SnapshotApi.rollbackSnapshot(this.instance.id, snapshot.id)
-                Alerts.emit('Successfully rollbacked snapshot.', 'confirmation')
+                Alerts.emit('Successfully deployed snapshot.', 'confirmation')
             })
         },
         // snapshot actions - set as device target
         showDeviceTargetDialog (snapshot) {
             Dialog.show({
                 header: 'Set Device Target Snapshot',
-                html: `<p>Are you sure you want to set this snapshot as the device target?</p>
-            <p>All devices assigned to this instance will be restarted on this snapshot.</p>`,
+                text: `Are you sure you want to set this snapshot as the device target?
+                       All devices assigned to this instance will be restarted on this snapshot.`,
                 confirmLabel: 'Set Target'
             }, async () => {
                 await InstanceApi.updateInstanceDeviceSettings(this.instance.id, {
@@ -246,32 +259,69 @@ export default {
             this.$emit('instance-updated')
         },
         async downloadSnapshotPackage (snapshot) {
-            const ss = await SnapshotApi.getSnapshot(this.instance.id, snapshot.id)
+            Product.capture('ff-snapshot-download', {
+                'snapshot-id': snapshot.id
+            }, {
+                instance: this.instance?.id
+            })
+            const ss = await SnapshotsApi.getSummary(snapshot.id)
+            const owner = ss.device || ss.project
+            const ownerType = ss.device ? 'device' : 'instance'
             const packageJSON = {
-                name: this.instance.safeName,
-                description: `${snapshot.name} - ${snapshot.description}`,
+                name: `${owner.safeName || owner.name}`.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase(),
+                description: `${ownerType} snapshot, ${snapshot.name} - ${snapshot.description}`,
                 private: true,
                 version: '0.0.0-' + snapshot.id,
-                dependencies: ss.modules
+                dependencies: ss.settings?.modules || {}
             }
-            const element = document.createElement('a')
-            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(packageJSON, null, 2)))
-            element.setAttribute('download', 'package.json')
-            element.style.display = 'none'
-            document.body.appendChild(element)
-            element.click()
-            document.body.removeChild(element)
+            downloadData(packageJSON, 'package.json')
         },
         showDownloadSnapshotDialog (snapshot) {
             this.$refs.snapshotExportDialog.show(snapshot)
         },
         showViewSnapshotDialog (snapshot) {
+            Product.capture('ff-snapshot-view', {
+                'snapshot-id': snapshot.id
+            }, {
+                instance: this.instance?.id
+            })
             SnapshotsApi.getFullSnapshot(snapshot.id).then((data) => {
                 this.$refs.snapshotViewerDialog.show(data)
             }).catch(err => {
                 console.error(err)
                 Alerts.emit('Failed to get snapshot.', 'warning')
             })
+        },
+        showCompareSnapshotDialog (snapshot) {
+            Product.capture('ff-snapshot-compare', {
+                'snapshot-id': snapshot.id
+            }, {
+                instance: this.instance?.id
+            })
+            SnapshotsApi.getFullSnapshot(snapshot.id)
+                .then((data) => this.$refs.snapshotCompareDialog.show(data, this.snapshotList))
+                .catch(err => {
+                    console.error(err)
+                    Alerts.emit('Failed to get snapshot.', 'warning')
+                })
+        },
+        // snapshot actions - import
+        showImportSnapshotDialog () {
+            this.busyImportingSnapshot = true
+            this.$refs.snapshotImportDialog.show()
+        },
+        onSnapshotImportSuccess (snapshot) {
+            this.snapshots.unshift(snapshot)
+            this.busyImportingSnapshot = false
+        },
+        onSnapshotImportFailed (err) {
+            console.error(err)
+            const message = err.response?.data?.error || 'Failed to import snapshot.'
+            Alerts.emit(message, 'warning')
+            this.busyImportingSnapshot = false
+        },
+        onSnapshotImportCancel () {
+            this.busyImportingSnapshot = false
         }
     }
 }

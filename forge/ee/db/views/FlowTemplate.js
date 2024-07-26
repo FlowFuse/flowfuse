@@ -11,6 +11,7 @@ module.exports = function (app) {
             icon: { type: 'string' },
             order: { type: 'number' },
             default: { type: 'boolean' },
+            flows: { type: 'object', additionalProperties: true },
             createdAt: { type: 'string' },
             updatedAt: { type: 'string' }
         }
@@ -25,6 +26,7 @@ module.exports = function (app) {
             icon: blueprint.icon,
             order: blueprint.order,
             default: blueprint.default,
+            flows: blueprint.flows,
             createdAt: blueprint.createdAt,
             updatedAt: blueprint.updatedAt
         }
@@ -65,8 +67,42 @@ module.exports = function (app) {
         }
     })
 
+    app.addSchema({
+        $id: 'FlowBlueprintExport',
+        type: 'object',
+        properties: {
+            blueprints: {
+                type: 'array',
+                items: {
+                    type: 'object',
+                    properties: {
+                        name: { type: 'string' },
+                        description: { type: 'string' },
+                        category: { type: 'string' },
+                        icon: { type: 'string' },
+                        flows: { type: 'object', additionalProperties: true },
+                        modules: { type: 'object', additionalProperties: true }
+                    }
+                }
+            },
+            count: { type: 'integer' }
+        }
+    })
+
+    function flowBlueprintExport (blueprint) {
+        return {
+            name: blueprint.name,
+            description: blueprint.description,
+            category: blueprint.category,
+            icon: blueprint.icon,
+            flows: blueprint.flows,
+            modules: blueprint.modules
+        }
+    }
+
     return {
         flowBlueprint,
+        flowBlueprintExport,
         flowBlueprintSummary
     }
 }

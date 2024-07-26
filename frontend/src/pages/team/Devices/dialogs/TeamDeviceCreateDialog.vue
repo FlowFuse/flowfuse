@@ -27,8 +27,13 @@
                     <template #description>Assign the device to an application (optional).</template>
                     Application
                 </FormRow>
-                <div v-if="billingDescription">
-                    <b>Price: {{ billingDescription }}</b>
+                <div v-if="deviceIsBillable">
+                    <InstanceChargesTable
+                        :project-type="deviceBillingInformation"
+                        :subscription="subscription"
+                        :trialMode="false"
+                        :prorationMode="team?.type?.properties?.billing?.proration"
+                    />
                 </div>
             </form>
         </template>
@@ -38,6 +43,7 @@
 <script>
 import { mapState } from 'vuex'
 
+import billingApi from '../../../../api/billing.js'
 import devicesApi from '../../../../api/devices.js'
 import teamApi from '../../../../api/team.js'
 
@@ -45,15 +51,18 @@ import FormRow from '../../../../components/FormRow.vue'
 import formatCurrency from '../../../../mixins/Currency.js'
 import alerts from '../../../../services/alerts.js'
 
+import InstanceChargesTable from '../../../instance/components/InstanceChargesTable.vue'
+
 export default {
     name: 'TeamDeviceCreateDialog',
     components: {
-        FormRow
+        FormRow,
+        InstanceChargesTable
     },
     mixins: [formatCurrency],
     props: {
-        team: {
-            type: Object,
+        teamDeviceCount: {
+            type: Number,
             required: true
         }
     },
@@ -84,7 +93,7 @@ export default {
             device: null,
             instance: null,
             application: null,
-            totalDeviceCount: 0,
+            subscription: null,
             input: {
                 name: '',
                 type: '',
@@ -100,17 +109,26 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features']),
+        ...mapState('account', ['features', 'team']),
         deviceIsBillable () {
             return this.features.billing && // billing enabled
-                this.team.type.properties.billing?.deviceCost > 0 && // >0 per device cost
-                (this.team.type.properties.deviceFreeAllocation || 0) <= this.totalDeviceCount // no remaining free allocation
+                !this.team.billing?.unmanaged &&
+                this.team.type.properties.devices?.description && // >0 per device cost
+                (this.team.type.properties.devices.free || 0) <= this.teamDeviceCount // no remaining free allocation
         },
-        billingDescription () {
-            if (this.deviceIsBillable && this.team.type.properties.billing?.deviceCost > 0) {
-                return `${this.formatCurrency(this.team.type.properties.billing?.deviceCost * 100)} /month`
+        deviceBillingInformation () {
+            if (this.deviceIsBillable && this.team.type.properties.devices?.description) {
+                const [price, priceInterval] = this.team.type.properties.devices?.description.split('/')
+                const currency = price.replace(/[\d.]+/, '')
+                const cost = (Number(price.replace(/[^\d.]+/, '')) || 0) * 100
+                return {
+                    name: 'Device',
+                    currency,
+                    cost,
+                    priceInterval
+                }
             }
-            return ''
+            return null
         },
         formValid () {
             return !!this.input.name
@@ -126,15 +144,13 @@ export default {
         }
     },
     async mounted () {
-        if (this.features.billing && // billing enabled
-                this.team.type.properties.billing?.deviceCost > 0) {
-            // Get the total device count for the team so that we can check allocation
-            // By passing 0 in as the limit, it will just return the `count`
-            // and not retrieve any actual devices
-            const teamData = await teamApi.getTeamDevices(this.team.id, null, 0)
-            this.totalDeviceCount = teamData.count
-        }
         this.loadApplications()
+        if (this.features.billing && !this.team.billing?.unmanaged) {
+            try {
+                this.subscription = await billingApi.getSubscriptionInfo(this.team.id)
+            } catch (err) {
+            }
+        }
     },
     methods: {
         loadApplications () {
@@ -179,7 +195,7 @@ export default {
                         //       in the project directly? Currently done as a two
                         //       step process
                         // eslint-disable-next-line promise/no-nesting
-                        return devicesApi.updateDevice(response.id, { project: this.instance.id }).then((response) => {
+                        return devicesApi.updateDevice(response.id, { instance: this.instance.id }).then((response) => {
                             // Reattach the credentials from the create request
                             // so they can be displayed to the user
                             response.credentials = creds

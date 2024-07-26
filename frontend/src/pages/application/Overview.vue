@@ -11,6 +11,7 @@
             </template>
             <template #tools>
                 <ff-button
+                    v-if="hasPermission('project:create')"
                     data-action="create-instance"
                     :to="{ name: 'ApplicationCreateInstance' }"
                 >
@@ -25,12 +26,16 @@
                 v-if="instances?.length > 0"
                 data-el="cloud-instances"
                 :columns="cloudColumns"
-                :rows="cloudRows"
+                :rows="filteredRows"
+                :show-search="true"
+                :search="searchTerm"
+                search-placeholder="Search Instances"
                 :rows-selectable="true"
+                @update:search="updateSearch"
                 @row-selected="selectedCloudRow"
             >
                 <template
-                    v-if="hasPermission('device:edit')"
+                    v-if="hasPermission('project:change-status')"
                     #context-menu="{row}"
                 >
                     <ff-list-item
@@ -72,6 +77,7 @@
                 </template>
                 <template #actions>
                     <ff-button
+                        v-if="hasPermission('project:create')"
                         :to="{ name: 'ApplicationCreateInstance' }"
                     >
                         <template #icon-left><PlusSmIcon /></template>
@@ -129,6 +135,11 @@ export default {
         }
     },
     emits: ['instance-delete', 'instance-suspend', 'instance-restart', 'instance-start'],
+    data () {
+        return {
+            searchTerm: ''
+        }
+    },
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
         cloudColumns () {
@@ -151,8 +162,22 @@ export default {
                 return instance
             })
         },
+        filteredRows () {
+            return this.cloudRows
+                .filter(
+                    row => [
+                        row.name.toLowerCase().includes(this.searchTerm),
+                        row.id.toLowerCase().includes(this.searchTerm)
+                    ].includes(true)
+                )
+        },
         isVisitingAdmin () {
             return this.teamMembership.role === Roles.Admin
+        }
+    },
+    mounted () {
+        if (this.$route?.query?.searchQuery) {
+            this.searchTerm = this.$route.query.searchQuery
         }
     },
     methods: {
@@ -163,6 +188,9 @@ export default {
                     id: cloudInstance.id
                 }
             })
+        },
+        updateSearch (searchTerm) {
+            this.searchTerm = searchTerm
         }
     }
 }
