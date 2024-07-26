@@ -107,6 +107,8 @@ describe('Snapshots API', function () {
         TestObjects.tokens.project1 = (await TestObjects.project1.refreshAuthTokens()).token
         TestObjects.tokens.project2 = (await TestObjects.project2.refreshAuthTokens()).token
 
+        await TestObjects.project1.updateSetting('credentialSecret', 'a-random-cred-secret')
+
         TestObjects.template1 = app.template
         TestObjects.stack1 = app.stack
     })
@@ -596,11 +598,14 @@ describe('Snapshots API', function () {
          */
         function tests (kind) {
             const modelType = kind === 'instance' ? 'project' : 'device'
+
+            const getOwner = () => kind === 'instance' ? TestObjects.project1 : TestObjects.device1
             const getOwnerId = () => kind === 'instance' ? TestObjects.project1.id : TestObjects.device1.hashid
             const getTeamBOwnerId = () => kind === 'instance' ? TestObjects.project2.id : TestObjects.device2.hashid
 
             it('Owner can import snapshot with credentials', async function () {
                 const ownerId = getOwnerId()
+                const owner = getOwner()
                 const ss = dummySnapshot('dummy', [{ id: '123' }], { testSetting: 123 }, { ONE: 'envOne' }, { module: '1.2.3' }, encryptCredentials('test-secret', { testCreds: 'abc' }))
                 const response = await importSnapshot(ownerId, kind, ss, 'test-secret', TestObjects.tokens.alice)
 
@@ -643,6 +648,14 @@ describe('Snapshots API', function () {
                 data.flows.should.be.an.Object()
                 data.flows.should.only.have.keys('flows', 'credentials')
                 data.flows.flows.should.be.an.Array()
+
+                // Validate the stored credentials have been re-encrypted with the owner credentialSecret
+                const importedSnapshot = await app.db.models.ProjectSnapshot.byId(result.id)
+
+                const targetCredSec = (owner.getCredentialSecret && await owner.getCredentialSecret()) || 'test-secret'
+                const keyHash2 = crypto.createHash('sha256').update(targetCredSec).digest()
+                const decryptedCreds2 = decryptCredentials(keyHash2, importedSnapshot.flows.credentials)
+                decryptedCreds2.should.have.property('testCreds', 'abc')
             })
 
             it('Owner can import snapshot without credentials', async function () {
