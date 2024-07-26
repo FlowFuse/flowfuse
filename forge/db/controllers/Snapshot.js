@@ -149,9 +149,10 @@ module.exports = {
             description: snapshot.description || '',
             credentialSecret,
             settings: {
-                settings: snapshot.settings || {},
-                env: snapshot.env || {},
-                modules: snapshot.modules || {}
+                settings: snapshot.settings?.settings || {},
+                env: snapshot.settings?.env || {},
+                modules: snapshot.settings?.modules || {}
+
             },
             flows: {
                 flows: snapshot.flows.flows || [],

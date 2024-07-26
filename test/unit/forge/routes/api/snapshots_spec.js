@@ -601,7 +601,7 @@ describe('Snapshots API', function () {
 
             it('Owner can import snapshot with credentials', async function () {
                 const ownerId = getOwnerId()
-                const ss = dummySnapshot('dummy', [], {}, {}, {}, encryptCredentials('test-secret', { testCreds: 'abc' }))
+                const ss = dummySnapshot('dummy', [{ id: '123' }], { testSetting: 123 }, { ONE: 'envOne' }, { module: '1.2.3' }, encryptCredentials('test-secret', { testCreds: 'abc' }))
                 const response = await importSnapshot(ownerId, kind, ss, 'test-secret', TestObjects.tokens.alice)
 
                 response.statusCode.should.equal(200)
@@ -613,6 +613,36 @@ describe('Snapshots API', function () {
                 result.should.have.property('user').and.be.an.Object() // should contain the user - for updating the snapshot table client-side without refreshing/reloading from the server
                 result.should.have.property('id').and.be.a.String()
                 result.should.have.property('name', 'dummy')
+
+                // Validate the exported snapshot looks correct
+                const exportResponse = await exportSnapshot(result.id, TestObjects.tokens.alice, 'new-secret')
+                exportResponse.statusCode.should.equal(200)
+                const data = exportResponse.json()
+                should(data).be.an.Object()
+                data.should.have.keys('id', 'name', 'description', 'createdAt', 'updatedAt', 'user', 'exportedBy', 'ownerType', 'flows', 'settings')
+                data.should.not.have.keys('credentialSecret', 'hashid', 'deviceId', 'projectId')
+                data.should.have.property('id', result.id)
+                data.should.have.property('name', result.name)
+                data.should.have.property('description', result.description)
+                data.flows.flows.should.have.length(1)
+                data.flows.flows[0].should.have.property('id')
+
+                const keyHash = crypto.createHash('sha256').update('new-secret').digest()
+                const decryptedCreds = decryptCredentials(keyHash, data.flows.credentials)
+                decryptedCreds.should.have.property('testCreds', 'abc')
+
+                data.settings.should.be.an.Object()
+                data.settings.should.only.have.keys('settings', 'env', 'modules')
+                data.settings.settings.should.be.an.Object()
+                data.settings.settings.should.have.property('testSetting', 123)
+                data.settings.env.should.be.an.Object()
+                data.settings.env.should.have.property('ONE', 'envOne')
+                data.settings.modules.should.be.an.Object()
+                data.settings.modules.should.have.property('module', '1.2.3')
+
+                data.flows.should.be.an.Object()
+                data.flows.should.only.have.keys('flows', 'credentials')
+                data.flows.flows.should.be.an.Array()
             })
 
             it('Owner can import snapshot without credentials', async function () {
