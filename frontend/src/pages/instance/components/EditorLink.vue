@@ -9,7 +9,7 @@
                 class="whitespace-nowrap"
                 @click.stop="openEditor()"
             >
-                <template v-if="showText" #icon-right>
+                <template v-if="showText" #icon-left>
                     <ProjectIcon />
                 </template>
                 <template v-else #icon>

@@ -6,7 +6,7 @@
         :disabled="buttonDisabled"
         @click.stop="openDashboard()"
     >
-        <template v-if="showText" #icon-right>
+        <template v-if="showText" #icon-left>
             <ChartPieIcon />
         </template>
         <template v-else #icon>
