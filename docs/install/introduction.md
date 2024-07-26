@@ -4,11 +4,15 @@ navOrder: 1
 ---
 # Installing FlowFuse
 
-FlowFuse can be installed on most Linux distributions, Windows, and MacOS.
+FlowFuse can be installed to run in Docker or Kubernetes based environments.
 
-It provides three models for how to run and manage the individual Node-RED instances
-it creates. Choosing the right model is important based on how you plan to use
-the platform.
+ - [Docker Install Guide](/docs/install/docker/README.md)
+ - [Kubernetes Install Guide](/docs/install/kubernetes/README.md)
+
+We also provide one-click installs of the Docker version:
+
+ - [Digital Ocean Docker Install Guide](/docs/install/docker/digital-ocean.md)
+ - [AWS Docker Install Guide](/docs/install/docker/aws-marketplace.md)
 
 ## Request a Trial Enterprise License
 
@@ -65,36 +69,6 @@ hbspt.forms.create({
     }
 });
 </script>
-
-## One-Click Docker Installer
-
-<a href="https://marketplace.digitalocean.com/apps/flowforge"><img src="https://upload.wikimedia.org/wikipedia/commons/f/ff/DigitalOcean_logo.svg"  width="150" height="75"></a>
-
-See also the [Digital Ocean Step by Step Manual](/docs/install/docker/digital-ocean.md)
-
-<br>
-<a href="https://aws.amazon.com/marketplace/pp/prodview-3ycrknfg67rug?sr=0-1&ref_=beagle&applicationId=AWSMPContessa"><img src="https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg"  width="150" height="75"></a>
-
-See also the [AWS Step by Step Manual](/docs/install/docker/aws-marketplace.md)
-
-## Deployment Models
-
-<a href="/docs/install/docker/README.md">
-  <img src="https://logos-world.net/wp-content/uploads/2021/02/Docker-Emblem.png" width="180" height="90" alt="Docker Logo">
-</a>
-
-<br>
-
-Explore the [Docker Deployment Guide](/docs/install/docker/README.md).
-
-<br>
-
-<a href="/docs/install/kubernetes/README.md">
-  <img src="https://kaitoy.github.io/hello-k8s/images/kubernetes.png" width="180" height="90" alt="Kubernetes Logo">
-</a>
-<br>
-
-Explore the [Kubernetes Deployment Guide](/docs/install/kubernetes/README.md).
 
 ## Upgrading FlowFuse
 
