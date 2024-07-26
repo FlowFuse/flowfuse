@@ -225,6 +225,7 @@ module.exports = {
    * @param {*} options options for the merge
    * @param {boolean} options.mergeEnvVars if true, merge the env vars (new keys added, existing keys untouched, removed keys untouched)
    * @param {boolean} options.mergeEditorSettings if false (default), will overwrite all settings. If true, it will merge the settings together - only overwriting certain ones.
+   * @param {object} options.targetTemplate - a template object containing its `policy`. When this parameter is provided, any items that are in the policy and are `locked`, will be skipped.
    */
     mergeSettings: function (app, existingSettings, settings, { mergeEnvVars = false, mergeEditorSettings = false, targetTemplate = undefined } = {}) {
         // Quick deep clone that is safe as we know settings are JSON-safe
