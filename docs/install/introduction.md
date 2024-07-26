@@ -76,17 +76,25 @@ See also the [Digital Ocean Step by Step Manual](/docs/install/docker/digital-oc
 <a href="https://aws.amazon.com/marketplace/pp/prodview-3ycrknfg67rug?sr=0-1&ref_=beagle&applicationId=AWSMPContessa"><img src="https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg"  width="150" height="75"></a>
 
 See also the [AWS Step by Step Manual](/docs/install/docker/aws-marketplace.md)
+
 ## Deployment Models
 
-Model      | Description        
------------|--------------------
-[Local](/docs/install/local/README.md)           | Runs the Node-RED instances on the same machine running the core FlowFuse application. The instances are exposed on different TCP ports. This is intended for smaller deployments, such as for evaluation, or personal use.
-[Docker](/docs/install/docker/README.md)         | Run the platform in a Docker Compose based environment.
-[Kubernetes](/docs/install/kubernetes/README.md) | Run the platform in a full Kubernetes based environment.
+<a href="/docs/install/docker/README.md">
+  <img src="https://logos-world.net/wp-content/uploads/2021/02/Docker-Emblem.png" width="180" height="90" alt="Docker Logo">
+</a>
 
+<br>
 
-If you are just getting started with FlowFuse and want to evaluate what it can do,
-we recommend starting with the [Local model](/docs/install/local/README.md).
+Explore the [Docker Deployment Guide](/docs/install/docker/README.md).
+
+<br>
+
+<a href="/docs/install/kubernetes/README.md">
+  <img src="https://kaitoy.github.io/hello-k8s/images/kubernetes.png" width="180" height="90" alt="Kubernetes Logo">
+</a>
+<br>
+
+Explore the [Kubernetes Deployment Guide](/docs/install/kubernetes/README.md).
 
 ## Upgrading FlowFuse
 

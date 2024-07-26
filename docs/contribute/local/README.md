@@ -4,10 +4,7 @@ navTitle: Local Install
 
 # Local Install
 
-This version of the FlowFuse platform is intended for running on a single machine
-for a smaller deployment (e.g. evaluation or home user).
-
-
+This guide is for setting up FlowFuse on a single machine, ideal for smaller deployments, evaluations, or for contributors who want to gain a basic understanding of the FlowFuse platform and its features.
 
 **Note: Local installation does not support HTTPS**
 
