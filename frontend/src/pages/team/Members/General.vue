@@ -85,6 +85,7 @@ export default {
 
         // do we auto-open the dialog?
         if (this.$route.query.action === 'invite') {
+            this.$router.replace({ query: null })
             this.inviteMember()
         }
     },
