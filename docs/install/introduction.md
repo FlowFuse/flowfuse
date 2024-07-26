@@ -1,6 +1,8 @@
 ---
 navTitle: Overview
 navOrder: 1
+meta:
+   description: Install and manage FlowFuse on Linux, Windows, and MacOS. Explore deployment models, request a trial license, and find Docker and Kubernetes setup guides. Start with FlowFuse today!
 ---
 # Installing FlowFuse
 

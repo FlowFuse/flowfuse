@@ -1,5 +1,7 @@
 ---
 navTitle: Configuring FlowFuse
+meta:
+   description: Customize FlowFuse platform settings for server, database, Node-RED deployment, MQTT, email, and more with detailed configuration options.
 ---
 
 # Configuring FlowFuse

@@ -1,5 +1,7 @@
 ---
 navTitle: AWS EKS Installation
+meta:
+   description: Learn how to install FlowFuse on AWS EKS with setup details for EKS, Nginx Ingress, AWS SES, and RDS PostgreSQL integration.
 ---
 
 # AWS EKS Specific details
