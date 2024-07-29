@@ -296,6 +296,11 @@
         <span v-if="!error && typeof entry.body?.info === 'object'">Type: '{{ entry.body.info.resource }}', Limit: {{ entry.body.info.limit }}, Count: {{ entry.body.info.count }}</span>
         <span v-else-if="!error">License data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'platform.license.expired'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.license">License has expired: {{entry.body.license }}</span>
+        <span v-else-if="!error">License data not found in audit entry.<span>
+    </template>
     <!-- Platform instance type Events -->
     <template v-else-if="entry.event === 'platform.project-type.created'">
         <label>{{ AuditEvents[entry.event] }}</label>
