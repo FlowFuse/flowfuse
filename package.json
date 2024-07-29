@@ -119,7 +119,7 @@
         "clean-webpack-plugin": "^4.0.0",
         "copy-webpack-plugin": "^12.0.2",
         "cross-env": "^7.0.3",
-        "css-loader": "^6.8.1",
+        "css-loader": "^7.1.2",
         "cypress": "^13.2.0",
         "cypress-mailpit": "^0.0.4",
         "dotenv-webpack": "^8.0.1",
