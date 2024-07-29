@@ -10,8 +10,6 @@
 const { ValidationError } = require('sequelize')
 
 const { UpdatesCollection } = require('../../../auditLog/formatters.js')
-const { registerPermissions } = require('../../../lib/permissions.js')
-const { Roles } = require('../../../lib/roles.js')
 const { DeviceGroupMembershipValidationError } = require('../../db/controllers/DeviceGroup.js')
 
 // Declare getLogger function to provide type hints / quick code nav / code completion
@@ -23,15 +21,6 @@ const getApplicationLogger = (app) => { return app.auditLog.Application }
  */
 module.exports = async function (app) {
     const deviceGroupLogger = getApplicationLogger(app).application.deviceGroup
-
-    registerPermissions({
-        'application:device-group:create': { description: 'Create a device group', role: Roles.Owner },
-        'application:device-group:list': { description: 'List device groups', role: Roles.Member },
-        'application:device-group:update': { description: 'Update a device group', role: Roles.Owner },
-        'application:device-group:delete': { description: 'Delete a device group', role: Roles.Owner },
-        'application:device-group:read': { description: 'View a device group', role: Roles.Member },
-        'application:device-group:membership:update': { description: 'Update a device group membership', role: Roles.Owner }
-    })
 
     // pre-handler for all routes in this file
     app.addHook('preHandler', async (request, reply) => {
