@@ -38,13 +38,14 @@ module.exports = {
         })
     },
 
-    updateDeviceGroup: async function (app, deviceGroup, { name = undefined, description = undefined } = {}) {
+    updateDeviceGroup: async function (app, deviceGroup, { name = undefined, description = undefined, targetSnapshotId = undefined } = {}) {
         // * deviceGroup is required.
         // * name, description, color are optional
         if (!deviceGroup) {
             throw new Error('DeviceGroup is required')
         }
         let changed = false
+        let saved = false
         if (typeof name !== 'undefined') {
             deviceGroup.name = name
             changed = true
@@ -53,10 +54,50 @@ module.exports = {
             deviceGroup.description = description
             changed = true
         }
-        if (changed) {
-            await deviceGroup.save()
-            await deviceGroup.reload()
+
+        if (typeof targetSnapshotId !== 'undefined') {
+            let snapshotId = targetSnapshotId
+            // ensure the snapshot exists (if targetSnapshotId is not null)
+            if (targetSnapshotId) {
+                const snapshot = await app.db.models.ProjectSnapshot.byId(targetSnapshotId)
+                if (!snapshot) {
+                    throw new Error('Snapshot does not exist')
+                }
+                snapshotId = snapshot.id
+            }
+
+            const devices = await deviceGroup.getDevices()
+
+            // update the target snapshot (use a transaction to ensure consistency between the group and devices)
+            const t = await app.db.sequelize.transaction()
+            try {
+                // update the group
+                deviceGroup.targetSnapshotId = snapshotId
+                await deviceGroup.save({ transaction: t })
+                // update the devices
+                if (devices?.length) {
+                    const deviceIds = devices.map(d => d.id)
+                    await app.db.models.Device.update({ targetSnapshotId }, { where: { id: deviceIds }, transaction: t })
+                }
+                // commit the transaction
+                await t.commit()
+                saved = true
+            } catch (err) {
+                // Rollback transaction if any errors were encountered
+                await t.rollback()
+                throw new Error(`Failed to update device group target snapshot: ${err.message}`)
+            }
+
+            // inform the devices an update is required
+            if (devices?.length) {
+                await this.sendUpdateCommand(app, deviceGroup)
+            }
         }
+
+        if (changed && !saved) {
+            await deviceGroup.save()
+        }
+        await deviceGroup.reload()
         return deviceGroup
     },
 
