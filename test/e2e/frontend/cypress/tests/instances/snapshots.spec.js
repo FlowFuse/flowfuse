@@ -2,13 +2,16 @@
 import instanceSnapshots from '../../fixtures/snapshots/instance-snapshots.json'
 import instanceFullSnapshot from '../../fixtures/snapshots/instance2-full-snapshot2.json'
 import instanceSnapshot from '../../fixtures/snapshots/instance2-snapshot2.json'
-const IDX_DEPLOY_SNAPSHOT = 0
-const IDX_VIEW_SNAPSHOT = 1
-const IDX_COMPARE_SNAPSHOT = 2
-const IDX_DOWNLOAD_SNAPSHOT = 3
-const IDX_DOWNLOAD_PACKAGE = 4
-const IDX_SET_TARGET = 5
-const IDX_DELETE_SNAPSHOT = 6
+let idx = 0
+const IDX_DEPLOY_SNAPSHOT = idx++
+const IDX_EDIT_SNAPSHOT = idx++
+const IDX_VIEW_SNAPSHOT = idx++
+const IDX_COMPARE_SNAPSHOT = idx++
+const IDX_DOWNLOAD_SNAPSHOT = idx++
+const IDX_DOWNLOAD_PACKAGE = idx++
+const IDX_SET_TARGET = idx++
+const IDX_DELETE_SNAPSHOT = idx++
+const MENU_ITEM_COUNT = idx
 
 describe('FlowForge - Instance Snapshots', () => {
     let projectId
@@ -49,10 +52,10 @@ describe('FlowForge - Instance Snapshots', () => {
         // disabled primary button by default
         cy.get('.ff-dialog-box button.ff-btn.ff-btn--primary').should('be.disabled')
 
-        cy.get('[data-form="snapshot-name"] input[type="text"]').type('snapshot1')
+        cy.get('[data-el="dialog-create-snapshot"] [data-form="snapshot-name"] input[type="text"]').type('snapshot1')
         // inserting snapshot name is enough to enable button
         cy.get('[data-el="dialog-create-snapshot"] button.ff-btn.ff-btn--primary').should('not.be.disabled')
-        cy.get('[data-form="snapshot-description"] textarea').type('snapshot1 description')
+        cy.get('[data-el="dialog-create-snapshot"] [data-form="snapshot-description"] textarea').type('snapshot1 description')
 
         // click "Create"
         cy.get('[data-el="dialog-create-snapshot"] button.ff-btn.ff-btn--primary').click()
@@ -69,8 +72,9 @@ describe('FlowForge - Instance Snapshots', () => {
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
 
         // check the options are present
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').should('have.length', 7)
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').should('have.length', MENU_ITEM_COUNT)
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DEPLOY_SNAPSHOT).contains('Deploy Snapshot')
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_EDIT_SNAPSHOT).contains('Edit Snapshot')
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_VIEW_SNAPSHOT).contains('View Snapshot')
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_COMPARE_SNAPSHOT).contains('Compare Snapshot...')
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_SNAPSHOT).contains('Download Snapshot')
@@ -95,6 +99,45 @@ describe('FlowForge - Instance Snapshots', () => {
 
         // check the flow renders an SVG in the content section
         cy.get('[data-el="dialog-view-snapshot"] .ff-dialog-content svg').should('exist')
+    })
+
+    it('provides functionality to edit a snapshot', () => {
+        cy.intercept('GET', '/api/*/snapshots/*/full', instanceFullSnapshot).as('fullSnapshot')
+        cy.intercept('PUT', '/api/*/snapshots/*', {}).as('updateSnapshot')
+
+        // click kebab menu in row 1
+        cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
+        // click the Edit Snapshot option
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_EDIT_SNAPSHOT).click()
+
+        // check the snapshot dialog is visible and contains the snapshot name
+        cy.get('[data-el="dialog-edit-snapshot"]').should('be.visible')
+        cy.get('[data-el="dialog-edit-snapshot"] .ff-dialog-header').contains('Edit Snapshot: snapshot1') // brittle! (depends on prior test / ordered execution)
+        // check the edit form is present
+        cy.get('[data-el="dialog-edit-snapshot"] [data-form="snapshot-edit"]').should('exist')
+        // check the buttons are present
+        cy.get('[data-el="dialog-edit-snapshot"] [data-action="dialog-confirm"]').should('exist').should('be.enabled')
+        cy.get('[data-el="dialog-edit-snapshot"] [data-action="dialog-cancel"]').should('exist').should('be.enabled')
+
+        // clear the snapshot name
+        cy.get('[data-el="dialog-edit-snapshot"] [data-form="snapshot-name"] input').clear()
+        // the confirm button should be disabled
+        cy.get('[data-el="dialog-edit-snapshot"] [data-action="dialog-confirm"]').should('be.disabled')
+
+        // enter a new snapshot name and description
+        cy.get('[data-el="dialog-edit-snapshot"] [data-form="snapshot-name"] input').type('Edited Snapshot Name!!!')
+        cy.get('[data-el="dialog-edit-snapshot"] [data-form="snapshot-description"] textarea').clear()
+        cy.get('[data-el="dialog-edit-snapshot"] [data-form="snapshot-description"] textarea').type('Edited Snapshot Description!!!')
+        // the confirm button should be enabled
+        cy.get('[data-el="dialog-edit-snapshot"] [data-action="dialog-confirm"]').should('be.enabled').click()
+
+        cy.wait('@updateSnapshot').then((interception) => {
+            expect(interception.request.body.name).to.equal('Edited Snapshot Name!!!')
+            expect(interception.request.body.description).to.equal('Edited Snapshot Description!!!')
+        })
+
+        // check the snapshot name is updated in the table
+        cy.get('[data-el="snapshots"] tbody').find('tr').contains('Edited Snapshot Name!!!')
     })
 
     it('provides functionality to compare snapshots', () => {
