@@ -1,6 +1,6 @@
 <template>
     <div class="space-y-6">
-        <ff-data-table data-el="table" :columns="inviteColumns" :rows="invitations">
+        <ff-data-table data-el="table" :columns="inviteColumns" :rows="invitations" noDataMessage="No Invitations">
             <template #row-actions="{row}">
                 <ff-button data-action="invite-reject" kind="secondary-danger" @click="rejectInvite(row)">Reject</ff-button>
                 <ff-button data-action="invite-accept" @click="acceptInvite(row)">Accept</ff-button>
@@ -43,12 +43,13 @@ export default {
         })
     },
     mounted () {
-        this.$store.dispatch('account/getNotifications')
+        this.$store.dispatch('account/getInvitations')
     },
     methods: {
         async acceptInvite (invite) {
             await userApi.acceptTeamInvitation(invite.id, invite.team.id)
             await this.$store.dispatch('account/getNotifications')
+            await this.$store.dispatch('account/getInvitations')
             await this.$store.dispatch('account/refreshTeams')
             Alerts.emit(`Invite to "${invite.team.name}" has been accepted.`, 'confirmation')
             // navigate to team dashboad once invite accepted
@@ -62,10 +63,8 @@ export default {
         async rejectInvite (invite) {
             await userApi.rejectTeamInvitation(invite.id, invite.team.id)
             await this.$store.dispatch('account/getNotifications')
+            await this.$store.dispatch('account/getInvitations')
             Alerts.emit(`Invite to "${invite.team.name}" has been rejected.`, 'confirmation')
-        },
-        async fetchData () {
-            await this.$store.dispatch('account/getNotifications')
         }
     }
 }
