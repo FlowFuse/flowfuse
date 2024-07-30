@@ -31,7 +31,7 @@ module.exports = {
             app.auditLog.Platform.platform.license.expired('system', null, app.license.get())
 
             // get list of running Instances
-            const projectList = await app.models.Project.findAll({
+            const projectList = await app.db.models.Project.findAll({
                 attributes: [
                     'id',
                     'state',
