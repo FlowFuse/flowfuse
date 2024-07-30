@@ -1,4 +1,4 @@
-const { Op } = require('sequelize')
+const { Op, ValidationError } = require('sequelize')
 
 const { ControllerError } = require('../../../lib/errors')
 class DeviceGroupMembershipValidationError extends ControllerError {
@@ -38,6 +38,18 @@ module.exports = {
         })
     },
 
+    /**
+     * Update a Device Group.
+     *
+     * NOTE: If the targetSnapshotId is updated, devices in the group will be informed of the change via `sendUpdateCommand`
+     *
+     * @param {*} app - The application object
+     * @param {*} deviceGroup - The Device Group to update
+     * @param {Object} [options] - The options to update the Device Group
+     * @param {string} [options.name] - The new name of the Device Group. Exclude to keep the current name.
+     * @param {string} [options.description] - The new description of the Device Group. Exclude to keep the current description.
+     * @param {number} [options.targetSnapshotId] - The new target snapshot id of the Device Group. Exclude to keep the current snapshot. Send null to clear the current target snapshot.
+     */
     updateDeviceGroup: async function (app, deviceGroup, { name = undefined, description = undefined, targetSnapshotId = undefined } = {}) {
         // * deviceGroup is required.
         // * name, description, color are optional
@@ -61,31 +73,26 @@ module.exports = {
             if (targetSnapshotId) {
                 const snapshot = await app.db.models.ProjectSnapshot.byId(targetSnapshotId)
                 if (!snapshot) {
-                    throw new Error('Snapshot does not exist')
+                    throw new ValidationError('Snapshot does not exist')
                 }
                 snapshotId = snapshot.id
             }
 
             const devices = await deviceGroup.getDevices()
+            const transaction = await app.db.sequelize.transaction()
 
-            // update the target snapshot (use a transaction to ensure consistency between the group and devices)
-            const t = await app.db.sequelize.transaction()
             try {
-                // update the group
                 deviceGroup.targetSnapshotId = snapshotId
-                await deviceGroup.save({ transaction: t })
-                // update the devices
+                await deviceGroup.save({ transaction })
                 if (devices?.length) {
                     const deviceIds = devices.map(d => d.id)
-                    await app.db.models.Device.update({ targetSnapshotId }, { where: { id: deviceIds }, transaction: t })
+                    await app.db.models.Device.update({ targetSnapshotId: snapshotId }, { where: { id: deviceIds }, transaction })
                 }
-                // commit the transaction
-                await t.commit()
+                await transaction.commit()
                 saved = true
             } catch (err) {
-                // Rollback transaction if any errors were encountered
-                await t.rollback()
-                throw new Error(`Failed to update device group target snapshot: ${err.message}`)
+                await transaction.rollback()
+                throw err
             }
 
             // inform the devices an update is required
