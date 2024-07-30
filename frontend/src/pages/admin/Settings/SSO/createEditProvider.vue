@@ -64,8 +64,8 @@
                                     by this SSO configuration.
                                 </template>
                             </FormRow>
-                            <!-- <FormRow v-model="input.options.groupAdmin" type="checkbox">Manage Admin roles using group assertions</FormRow>
-                            <FormRow v-if="input.options.groupAdmin" v-model="input.options.groupAdminName" :error="groupAdminNameError" class="pl-4">Admin Users SAML Group name</FormRow> -->
+                            <FormRow v-model="input.options.groupAdmin" type="checkbox">Manage Admin roles using group assertions</FormRow>
+                            <FormRow v-if="input.options.groupAdmin" v-model="input.options.groupAdminName" :error="groupAdminNameError" class="pl-4">Admin Users SAML Group name</FormRow>
                         </div>
                     </template>
                     <template v-else-if="input.type === 'ldap'">
@@ -166,12 +166,12 @@ export default {
         groupAssertionNameError () {
             return !this.isGroupAssertionNameValid ? 'Group Assertion name is required' : ''
         },
-        // isGroupAdminNameValid () {
-        //     return !this.input.options.groupAdmin || this.input.options.groupAdminName.length > 0
-        // },
-        // groupAdminNameError () {
-        //     return !this.isGroupAdminNameValid ? 'Admin Group name is required' : ''
-        // },
+        isGroupAdminNameValid () {
+            return !this.input.options.groupAdmin || this.input.options.groupAdminName.length > 0
+        },
+        groupAdminNameError () {
+            return !this.isGroupAdminNameValid ? 'Admin Group name is required' : ''
+        },
         formValid () {
             return this.isGroupOptionsValid && ((this.isCreate && !!this.input.domainFilter) || (!this.isCreate && JSON.stringify(this.input) !== this.originalValues))
         },
@@ -223,8 +223,8 @@ export default {
                     delete opts.options.groupAssertionName
                     delete opts.options.groupAllTeams
                     delete opts.options.groupTeams
-                    // delete opts.options.groupAdmin
-                    // delete opts.options.groupAdminName
+                    delete opts.options.groupAdmin
+                    delete opts.options.groupAdminName
                 } else {
                     if (opts.options.groupAllTeams) {
                         delete opts.options.groupTeams
@@ -233,9 +233,9 @@ export default {
                         // groupTeams is stored as an array of team ids.
                         opts.options.groupTeams = opts.options.groupTeams.split(/(?:\r|\n|\r\n)/).filter(n => n.trim().length > 0)
                     }
-                    // if (!opts.options.groupAdmin) {
-                    //     delete opts.options.groupAdminName
-                    // }
+                    if (!opts.options.groupAdmin) {
+                        delete opts.options.groupAdminName
+                    }
                 }
                 if (opts.type === 'ldap') {
                     if (!opts.options.tls) {
@@ -266,8 +266,8 @@ export default {
                     groupMapping: false,
                     groupAllTeams: true,
                     groupOtherTeams: false,
-                    // groupAdmin: false,
-                    // groupAdminName: 'ff-admins',
+                    groupAdmin: false,
+                    groupAdminName: 'ff-admins',
                     groupAssertionName: 'ff-roles'
                 }
             } else {
@@ -295,8 +295,8 @@ export default {
                 this.input.options.groupMapping = this.input.options.groupMapping ?? false
                 this.input.options.groupAllTeams = this.input.options.groupAllTeams ?? false
                 this.input.options.groupOtherTeams = this.input.options.groupOtherTeams ?? false
-                // this.input.options.groupAdmin = this.input.options.groupAdmin ?? false
-                // this.input.options.groupAdminName = this.input.options.groupAdminName || 'ff-admins'
+                this.input.options.groupAdmin = this.input.options.groupAdmin ?? false
+                this.input.options.groupAdminName = this.input.options.groupAdminName || 'ff-admins'
                 this.input.options.groupAssertionName = this.input.options.groupAssertionName || 'ff-roles'
                 // groupTeams is stored as an array - convert to multi-line string for the edit form
                 this.input.options.groupTeams = (this.input.options.groupTeams || []).join('\n')

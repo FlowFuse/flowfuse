@@ -1148,5 +1148,106 @@ describe('FlowForge - Applications', () => {
                     })
             })
         })
+
+        describe('device kebab menu', () => {
+            const MENU_ITEMS = [
+                {
+                    index: 0,
+                    label: 'Edit Details',
+                    dialogTitle: 'Update Device',
+                    dialogDataEl: 'team-device-create-dialog'
+                },
+                // This item will be enabled once #4249 is resolved
+                // {
+                //     index: 1,
+                //     label: 'Remove From Application',
+                //     dialogTitle: 'Remove Device from Application',
+                //     dialogDataEl: 'platform-dialog'
+                // },
+                {
+                    // index: 2, // This item will be `2` once #4249 is resolved
+                    index: 1,
+                    label: 'Regenerate Configuration',
+                    dialogTitle: 'Device Configuration',
+                    dialogDataEl: 'team-device-config-dialog',
+                    dialogCancelButtonSelector: '.ff-dialog-actions > button.ff-btn--secondary'
+                },
+                {
+                    // index: 3, // This item will be `3` once #4249 is resolved
+                    index: 2,
+                    label: 'Delete Device',
+                    dialogTitle: 'Delete Device',
+                    dialogDataEl: 'platform-dialog'
+                }
+            ]
+            it('Correct dialog is shown for kebab menu items', () => {
+                const devices = [
+                    {
+                        id: '1',
+                        name: 'a device',
+                        lastSeenAt: null,
+                        lastSeenMs: null,
+                        status: 'offline',
+                        mode: 'autonomous',
+                        isDeploying: false
+                    }
+                ]
+                cy.intercept('get', '/api/*/applications/*/devices*', {
+                    meta: {},
+                    count: devices.length,
+                    devices
+                }).as('getDevices')
+
+                cy.intercept(
+                    'GET',
+                    '/api/*/teams/*/applications*',
+                    {
+                        count: 1,
+                        applications: [
+                            {
+                                id: 'some-id',
+                                name: 'My App',
+                                description: 'My app description',
+                                instancesSummary: {
+                                    count: 0,
+                                    instances: []
+                                },
+                                devicesSummary: {
+                                    count: 5,
+                                    devices
+                                }
+                            }
+                        ]
+                    }
+                ).as('getApplications')
+                cy.intercept(
+                    'GET',
+                    '/api/*/teams/*/applications/status*',
+                    {
+                        count: 1,
+                        applications: [{ id: 'some-id', instances: [], devices: [] }]
+                    }
+                ).as('getAppStatuses')
+
+                cy.visit('/')
+
+                cy.wait('@getApplications')
+                cy.wait('@getAppStatuses')
+                cy.wait('@getDevices')
+
+                // open the kebab menu for the first device & verify that the correct dialog is opened for each item
+                MENU_ITEMS.forEach((item) => {
+                    cy.get('[data-el="device-tile"]').first().find('[data-el="kebab-menu"]').click()
+                    cy.get('[data-el="device-tile"] .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(item.index)
+                        .contains(item.label)
+                        .click()
+                    cy.get(`[data-el="${item.dialogDataEl}"]`).should('exist')
+                    // cy.get(`[data-el="${item.dialogDataEl}"]`) should have the text `item.dialogTitle`
+                    cy.get(`[data-el="${item.dialogDataEl}"] .ff-dialog-header`).contains(item.dialogTitle)
+                    // cancel the dialog
+                    cy.get(`[data-el="${item.dialogDataEl}"] ${item.dialogCancelButtonSelector || '[data-action="dialog-cancel"]'}`).click()
+                })
+            })
+        })
     })
 })

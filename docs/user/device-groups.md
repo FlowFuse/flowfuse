@@ -67,3 +67,7 @@ When a pipeline stage is operated and it deploys to a device group, that device 
 
 Subsequently, if you remove a device from a group and the device is running the active pipeline snapshot,
 the device snapshot will be cleared, effectively resetting the device to a blank state.
+
+### Removing the snapshot from a device group
+
+Under the settings of a device group, you can remove the target snapshot. This will also clear the snapshot of all devices in the group.
