@@ -75,6 +75,21 @@ const deleteUser = async () => {
         return res.data
     })
 }
+const getNotifications = async () => {
+    return client.get('/api/v1/user/notifications').then(res => {
+        res.data.invitations = res.data.notifications.map(r => {
+            r.createdSince = daysSince(r.createdAt)
+            return r
+        })
+        return res.data
+    })
+}
+const markNotificationRead = async (id) => {
+    return client.put('/api/v1/user/notifications/' + id, {
+        read: true
+    })
+}
+
 const getTeamInvitations = async () => {
     return client.get('/api/v1/user/invitations').then(res => {
         res.data.invitations = res.data.invitations.map(r => {
@@ -224,6 +239,8 @@ export default {
     changePassword,
     updateUser,
     deleteUser,
+    getNotifications,
+    markNotificationRead,
     getTeamInvitations,
     acceptTeamInvitation,
     rejectTeamInvitation,
