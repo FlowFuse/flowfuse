@@ -110,7 +110,17 @@ const Permissions = {
     'platform:debug': { description: 'View platform debug information', role: Roles.Admin },
     'platform:stats': { description: 'View platform stats information', role: Roles.Admin },
     'platform:stats:token': { description: 'Create/Delete platform stats token', role: Roles.Admin },
-    'platform:audit-log': { description: 'View platform audit log', role: Roles.Admin }
+    'platform:audit-log': { description: 'View platform audit log', role: Roles.Admin },
+
+    // *** EE Permissions ***
+
+    // Device Groups
+    'application:device-group:create': { description: 'Create a device group', role: Roles.Owner },
+    'application:device-group:list': { description: 'List device groups', role: Roles.Member },
+    'application:device-group:update': { description: 'Update a device group', role: Roles.Owner },
+    'application:device-group:delete': { description: 'Delete a device group', role: Roles.Owner },
+    'application:device-group:read': { description: 'View a device group', role: Roles.Member },
+    'application:device-group:membership:update': { description: 'Update a device group membership', role: Roles.Owner }
 }
 
 module.exports = {

@@ -515,7 +515,7 @@ describe('Team API', function () {
             await startResult.started
 
             // Starting
-            await app.containers.start(thirdInstance)
+            const startThirdResult = await app.containers.start(thirdInstance)
 
             const response = await app.inject({
                 method: 'GET',
@@ -538,6 +538,7 @@ describe('Team API', function () {
 
             const thirdInstanceStatus = application.instances.find((instance) => instance.id === thirdInstance.id)
             thirdInstanceStatus.meta.should.have.property('state', 'starting')
+            await startThirdResult.started
         })
 
         it('with all devices and their status', async function () {

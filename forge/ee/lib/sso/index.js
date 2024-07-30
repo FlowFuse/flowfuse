@@ -302,6 +302,7 @@ module.exports.init = async function (app) {
             if (!Array.isArray(groupAssertions)) {
                 groupAssertions = [groupAssertions]
             }
+            let adminGroup = false
             const desiredTeamMemberships = {}
             groupAssertions.forEach(ga => {
                 // Parse the group name - format: 'ff-SLUG-ROLE'
@@ -323,7 +324,27 @@ module.exports.init = async function (app) {
                         }
                     }
                 }
+                if (providerOpts.groupAdmin && providerOpts.groupAdminName === ga) {
+                    adminGroup = true
+                }
             })
+
+            if (providerOpts.groupAdmin) {
+                if (user.admin && !adminGroup) {
+                    app.auditLog.User.user.updatedUser(0, null, [{ key: 'admin', old: true, new: false }], user)
+                    user.admin = false
+                    try {
+                        await user.save()
+                    } catch (err) {
+                        // did we just fail remove the last admin?
+                        app.log.info(`Failed to remove admin from ${user.username}, as this would have been the last admin`)
+                    }
+                } else if (adminGroup && !user.admin) {
+                    app.auditLog.User.user.updatedUser(0, null, [{ key: 'admin', old: false, new: true }], user)
+                    user.admin = true
+                    await user.save()
+                }
+            }
 
             // Get the existing memberships and generate a slug->membership object (existingMemberships)
             const existingMemberships = {}
@@ -355,8 +376,6 @@ module.exports.init = async function (app) {
                     // This team is in the desired list
                     if (desiredTeamMemberships[teamSlug] !== membership.role) {
                         // Role has changed - update membership
-                        // console.log(`changing role in team ${teamSlug} from ${membership.role} to ${desiredTeamMemberships[teamSlug]}`)
-
                         const updates = new app.auditLog.formatters.UpdatesCollection()
                         const oldRole = app.auditLog.formatters.roleObject(membership.role)
                         const role = app.auditLog.formatters.roleObject(desiredTeamMemberships[teamSlug])

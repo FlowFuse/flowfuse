@@ -59,3 +59,14 @@ the standard LDAP query notation. The default search filter is `(uid=${username}
 The platform will replace `${username}` and `${email}` with the user's details when
 they attempt to login.
 
+## Creating new users
+
+With FlowFuse 2.7, the SSO Configuration now includes an option to automatically
+register users who sign in via the configuration.
+
+This option is not enabled by default, but can be enabled but selecting the `Allow Provisioning of New Users on first login`
+option in the SOO configuration.
+
+When creating the user, the platform will use information provided by the LDAP provider
+to create the username. The user will be directed to their settings page where they
+can modify their user details to their preferred values.
