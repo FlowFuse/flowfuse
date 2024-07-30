@@ -2754,4 +2754,98 @@ describe('Pipelines API', function () {
             response.statusCode.should.equal(200)
         })
     })
+
+    describe('Locked template fields', function () {
+        async function isDeployComplete (instance) {
+            const instanceStatusResponse = (await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${instance.id}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })).json()
+
+            return instanceStatusResponse?.meta?.isDeploying === false
+        }
+        function waitForDeployToComplete (instance) {
+            return new Promise((resolve, reject) => {
+                const refreshIntervalId = setInterval(async () => {
+                    if (await isDeployComplete(instance)) {
+                        clearInterval(refreshIntervalId)
+                        resolve()
+                    }
+                }, 250)
+            })
+        }
+        it('locked fields should not be overridden', async function () {
+            const startTemplate = await app.factory.createProjectTemplate(
+                { 
+                    name: 'startTemplate',
+                    settings: {
+                        palette: {
+                            catalogue: ['https://www.first.com'],
+                            npmrc: 'from start'
+                        }
+                    },
+                    policy: {
+                        palette: {
+                            catalogue: true
+                        }
+                    }
+                },
+                app.user
+            )
+
+            const endTemplate = await app.factory.createProjectTemplate(
+                { 
+                    name: 'endTemplate',
+                    settings: {
+                        palette: {
+                            catalogue: ['https://www.second.com', 'https://third.com'],
+                            npmrc: 'from end'
+                        }
+                    },
+                    policy: {
+                        palette: {
+                            catalogue: false
+                        }
+                    }
+                },
+                app.user
+            )
+
+            const instanceStart = await app.factory.createInstance(
+                { name: 'startProject' },
+                TestObjects.application,
+                TestObjects.stack,
+                startTemplate,
+                TestObjects.projectType,
+                { start: false }
+            )
+            const instanceEnd = await app.factory.createInstance(
+                { name: 'endProject' },
+                TestObjects.application,
+                TestObjects.stack,
+                endTemplate,
+                TestObjects.projectType,
+                { start: false }
+            )
+
+            const pipeline = await app.factory.createPipeline({ name: 'locked-fields-pipeine' }, app.application)
+            const startStage = await app.factory.createPipelineStage({ name: 'start', instanceId: instanceStart.id }, pipeline)
+            const endStage = await app.factory.createPipelineStage({ name: 'end', source: startStage.hashid, instanceId: instanceEnd.id }, pipeline)
+
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/pipelines/${pipeline.hashid}/stages/${startStage.hashid}/deploy`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            response.statusCode.should.equal(200)
+            await waitForDeployToComplete(instanceEnd)
+            await instanceEnd.reload()
+            const endSettings = await app.db.controllers.Project.getRuntimeSettings(instanceEnd)
+            endSettings.palette.catalogue.should.have.lengthOf(2)
+            endSettings.palette.catalogue.should.containEql('https://www.second.com')
+            endSettings.palette.npmrc.should.equal('from start')
+        })
+    })
 })
