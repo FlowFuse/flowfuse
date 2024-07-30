@@ -1,4 +1,5 @@
 const { ValidationError } = require('sequelize')
+const hasProperty = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key)
 
 module.exports = {
     /**
@@ -120,7 +121,7 @@ module.exports = {
      */
     async updateSnapshot (app, snapshot, options) {
         const updates = {}
-        if (!options || !options.name || typeof options.name !== 'string' || options.name.trim() === '') {
+        if (hasProperty(options, 'name') && (typeof options.name !== 'string' || options.name.trim() === '')) {
             throw new ValidationError('Snapshot name is required')
         }
         if (options.name) {
