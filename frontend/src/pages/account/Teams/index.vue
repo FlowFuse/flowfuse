@@ -29,12 +29,12 @@ export default {
     },
     computed: {
         ...mapState('account', ['user', 'teams']),
-        ...mapGetters('account', ['notifications'])
+        ...mapGetters('account', ['teamInvitationsCount'])
     },
     watch: {
-        notifications: {
+        teamInvitationsCount: {
             handler: function () {
-                this.updateNotifications()
+                this.updateInvitations()
             },
             deep: true
         }
@@ -44,12 +44,12 @@ export default {
             { name: 'Teams', path: '/account/teams' }
         ]
         this.sideNavigation.push({ name: 'Invitations', path: '/account/teams/invitations' })
-        this.updateNotifications()
+        this.updateInvitations()
     },
     methods: {
-        updateNotifications () {
-            if (this.notifications.invitations > 0) {
-                this.sideNavigation[1].name = `Invitations (${this.notifications.invitations})`
+        updateInvitations () {
+            if (this.teamInvitationsCount > 0) {
+                this.sideNavigation[1].name = `Invitations (${this.teamInvitationsCount})`
             } else {
                 this.sideNavigation[1].name = 'Invitations'
             }

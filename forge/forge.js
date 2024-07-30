@@ -14,6 +14,7 @@ const db = require('./db')
 const ee = require('./ee')
 const housekeeper = require('./housekeeper')
 const license = require('./licensing')
+const notifications = require('./notifications')
 const postoffice = require('./postoffice')
 const routes = require('./routes')
 const settings = require('./settings')
@@ -460,6 +461,7 @@ module.exports = async (options = {}) => {
         await server.register(routes, { logLevel: server.config.logging.http })
         // Post Office : handles email
         await server.register(postoffice)
+        await server.register(notifications)
         // Comms : real-time communication broker
         await server.register(comms)
         // Containers:

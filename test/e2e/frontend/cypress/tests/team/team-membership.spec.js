@@ -1,23 +1,32 @@
 describe('FlowForge - Team Membership', () => {
-    // let team // , project
+    let startingInviteCount
 
     beforeEach(() => {
+        cy.intercept('/api/*/teams/*/invitations').as('getTeamsInvitations')
         cy.login('alice', 'aaPassword')
         cy.home()
     })
 
     it('loads team members into the data table', () => {
         cy.visit('team/ateam/members/general')
-        cy.wait(['@getInvitations'])
-
+        cy.wait('@getTeamsInvitations')
         // starts off with alice and bob as members
         cy.get('[data-el="members-table"] tbody').find('tr').should('have.length', 2) // should be 2 members
+
+        cy.visit('team/ateam/members/invitations')
+        // starts off with one invitation already
+        cy.get('[data-el="invites-table"] tbody').find('tr').then(el => {
+            // This is tiresome. We might have a 'No Data Found' row. But I simply
+            // cannot find a way to filter them out. Cypress docs claim .filter is
+            // the opposite of .not - yet .filter supports :contains, but .not does not.
+            startingInviteCount = el.length - el.filter(':contains("No Data Found")').length
+            cy.log('STARTING WITH', startingInviteCount)
+        })
     })
 
     it('owner/admin can invite user', () => {
-        cy.intercept('/api/*/teams/*/invitations').as('getTeamsInvitations')
         cy.visit('team/ateam/members/general')
-        cy.wait(['@getInvitations'])
+        cy.wait(['@getTeamsInvitations'])
 
         // click invite button
         cy.get('[data-action="member-invite-button"]').click()
@@ -32,9 +41,11 @@ describe('FlowForge - Team Membership', () => {
     })
 
     it('loads invitations into the data table', () => {
+        cy.log('HERE WITH', startingInviteCount)
+        cy.intercept('/api/*/teams/*/invitations').as('getTeamsInvitations')
         cy.visit('team/ateam/members/invitations')
-        cy.wait('@getInvitations')
-        cy.get('[data-el="invites-table"] tbody').find('tr').should('have.length', 1)
+        cy.wait('@getTeamsInvitations')
+        cy.get('[data-el="invites-table"] tbody').find('tr').should('have.length', startingInviteCount + 1)
     })
 
     it('user can accept a team invite', () => {
@@ -57,8 +68,8 @@ describe('FlowForge - Team Membership', () => {
         cy.wait(['@getTeams', '@getInvitations'])
 
         // check it has been removed (note: tr will have 1 td with "No Data Found" and a class of .status-message when empty)
-        cy.get('[data-el="table"] tbody tr').should('have.length', 1) // 1 row stating "No Data Found"
-        cy.get('[data-el="table"] tbody tr td').contains('No Data Found')
+        cy.get('[data-el="table"] tbody tr').should('have.length', 1) // 1 row stating "No Invitations"
+        cy.get('[data-el="table"] tbody tr td').contains('No Invitations')
     })
 
     it('member cannot can invite or remove a user', () => {

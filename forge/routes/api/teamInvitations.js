@@ -231,6 +231,10 @@ module.exports = async function (app) {
         if (invitation && invitation.teamId === request.team.id) {
             const role = invitation.role || Roles.Member
             const invitedUser = app.auditLog.formatters.userObject(invitation.external ? invitation : invitation.invitee)
+            if (!invitation.external) {
+                const notificationReference = `team-invite:${invitation.hashid}`
+                await app.notifications.remove(invitation.invitee, notificationReference)
+            }
             await invitation.destroy()
             await app.auditLog.Team.team.user.uninvited(request.session.User, null, request.team, invitedUser, role)
             reply.send({ status: 'okay' })

@@ -32,6 +32,7 @@ const state = () => ({
     notifications: {
         payload: []
     },
+    invitations: [],
     // An error during login
     loginError: null,
     //
@@ -60,26 +61,6 @@ const getters = {
     teamMembership (state) {
         return state.teamMembership
     },
-    notifications (state) {
-        const n = { ...state.notifications }
-
-        let sum = 0
-        for (const type of Object.keys(n)) {
-            if (!['total', 'payload'].includes(type)) {
-                sum += n[type]
-            }
-        }
-
-        n.total = sum
-
-        return n
-    },
-    notificationMessages (state, getters) {
-        const notifications = getters.notifications.payload ?? []
-
-        return notifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    },
-    totalNotificationsCount: (state, getters) => getters.notifications.total,
     redirectUrlAfterLogin (state) {
         return state.redirectUrlAfterLogin
     },
@@ -99,8 +80,14 @@ const getters = {
     },
     blueprints: state => state.teamBlueprints[state.team?.id] || [],
     defaultBlueprint: (state, getters) => getters.blueprints?.find(blueprint => blueprint.default),
-    hasNotifications: (state, getters) => getters.notifications.total > 0,
-    teamInvitations: state => state.notifications.payload // filter out team invites by notification.type = invite
+
+    notifications: state => state.notifications,
+    notificationsCount: state => state.notifications?.length || 0,
+    unreadNotificationsCount: state => state.notifications?.filter(n => !n.read).length || 0,
+    hasNotifications: (state, getters) => getters.notificationsCount > 0,
+
+    teamInvitations: state => state.invitations,
+    teamInvitationsCount: state => state.invitations?.length || 0
 }
 
 const mutations = {
@@ -140,11 +127,8 @@ const mutations = {
     setTeams (state, teams) {
         state.teams = teams
     },
-    setNotificationsCount (state, payload) {
-        state.notifications[payload.type] = payload.count
-    },
-    setNotificationsPayload (state, notifications) {
-        state.notifications.payload = notifications
+    setNotifications (state, notifications) {
+        state.notifications = notifications
     },
     sessionExpired (state) {
         state.user = null
@@ -167,6 +151,9 @@ const mutations = {
     },
     setTeamBlueprints (state, { teamId, blueprints }) {
         state.teamBlueprints[teamId] = blueprints
+    },
+    setTeamInvitations (state, invitations) {
+        state.invitations = invitations
     }
 }
 
@@ -195,6 +182,8 @@ const actions = {
 
             // check notifications count
             await dispatch('getNotifications')
+            // check notifications count
+            await dispatch('getInvitations')
 
             const teams = await teamApi.getTeams()
             commit('setTeams', teams.teams)
@@ -358,13 +347,16 @@ const actions = {
         state.commit('setRedirectUrl', url)
     },
     async getNotifications (state) {
+        await userApi.getNotifications()
+            .then((notifications) => {
+                state.commit('setNotifications', notifications.notifications)
+            })
+            .catch(_ => {})
+    },
+    async getInvitations (state) {
         await userApi.getTeamInvitations()
             .then((invitations) => {
-                state.commit('setNotificationsCount', {
-                    type: 'invitations',
-                    count: invitations.count
-                })
-                state.commit('setNotificationsPayload', invitations.invitations)
+                state.commit('setTeamInvitations', invitations.invitations)
             })
             .catch(_ => {})
     }
