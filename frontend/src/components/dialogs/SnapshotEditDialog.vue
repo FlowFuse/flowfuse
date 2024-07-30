@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" :header="'Edit Snapshot:' + originalName" data-el="snapshot-edit-dialog" @confirm="confirm()">
+    <ff-dialog ref="dialog" :header="'Edit Snapshot: ' + originalName" data-el="snapshot-edit-dialog" @confirm="confirm()">
         <template #default>
             <form class="space-y-6 mt-2" data-form="snapshot-export" @submit.prevent>
                 <FormRow ref="name" v-model="input.name" :error="errors.name" data-form="snapshot-name">Name</FormRow>
