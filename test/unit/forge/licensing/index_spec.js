@@ -403,4 +403,7 @@ describe('License API', async function () {
             app.license.get('tier').should.equal('enterprise')
         })
     })
+    describe('licensed - expired', async function () {
+        // how to stub the license expirary
+    })
 })
