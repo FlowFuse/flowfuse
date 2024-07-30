@@ -1,4 +1,4 @@
-const { Op } = require('sequelize')
+const { Op, ValidationError } = require('sequelize')
 
 const { ControllerError } = require('../../../lib/errors')
 class DeviceGroupMembershipValidationError extends ControllerError {
@@ -38,13 +38,26 @@ module.exports = {
         })
     },
 
-    updateDeviceGroup: async function (app, deviceGroup, { name = undefined, description = undefined } = {}) {
+    /**
+     * Update a Device Group.
+     *
+     * NOTE: If the targetSnapshotId is updated, devices in the group will be informed of the change via `sendUpdateCommand`
+     *
+     * @param {*} app - The application object
+     * @param {*} deviceGroup - The Device Group to update
+     * @param {Object} [options] - The options to update the Device Group
+     * @param {string} [options.name] - The new name of the Device Group. Exclude to keep the current name.
+     * @param {string} [options.description] - The new description of the Device Group. Exclude to keep the current description.
+     * @param {number} [options.targetSnapshotId] - The new target snapshot id of the Device Group. Exclude to keep the current snapshot. Send null to clear the current target snapshot.
+     */
+    updateDeviceGroup: async function (app, deviceGroup, { name = undefined, description = undefined, targetSnapshotId = undefined } = {}) {
         // * deviceGroup is required.
         // * name, description, color are optional
         if (!deviceGroup) {
             throw new Error('DeviceGroup is required')
         }
         let changed = false
+        let saved = false
         if (typeof name !== 'undefined') {
             deviceGroup.name = name
             changed = true
@@ -53,10 +66,45 @@ module.exports = {
             deviceGroup.description = description
             changed = true
         }
-        if (changed) {
-            await deviceGroup.save()
-            await deviceGroup.reload()
+
+        if (typeof targetSnapshotId !== 'undefined') {
+            let snapshotId = targetSnapshotId
+            // ensure the snapshot exists (if targetSnapshotId is not null)
+            if (targetSnapshotId) {
+                const snapshot = await app.db.models.ProjectSnapshot.byId(targetSnapshotId)
+                if (!snapshot) {
+                    throw new ValidationError('Snapshot does not exist')
+                }
+                snapshotId = snapshot.id
+            }
+
+            const devices = await deviceGroup.getDevices()
+            const transaction = await app.db.sequelize.transaction()
+
+            try {
+                deviceGroup.targetSnapshotId = snapshotId
+                await deviceGroup.save({ transaction })
+                if (devices?.length) {
+                    const deviceIds = devices.map(d => d.id)
+                    await app.db.models.Device.update({ targetSnapshotId: snapshotId }, { where: { id: deviceIds }, transaction })
+                }
+                await transaction.commit()
+                saved = true
+            } catch (err) {
+                await transaction.rollback()
+                throw err
+            }
+
+            // inform the devices an update is required
+            if (devices?.length) {
+                await this.sendUpdateCommand(app, deviceGroup)
+            }
         }
+
+        if (changed && !saved) {
+            await deviceGroup.save()
+        }
+        await deviceGroup.reload()
         return deviceGroup
     },
 

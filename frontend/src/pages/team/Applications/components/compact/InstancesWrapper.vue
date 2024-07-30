@@ -25,7 +25,7 @@
                 data-el="application-instance-item"
                 class="item-wrapper"
             >
-                <InstanceTile :instance="instance" @delete-instance="$emit('delete-instance', $event)" />
+                <InstanceTile :instance="instance" :showButtonLabels="hasOnlyOneInstance" @delete-instance="$emit('delete-instance', $event)" />
             </div>
             <HasMoreTile
                 v-if="hasMoreInstances"
@@ -67,6 +67,9 @@ export default {
         },
         hasMoreInstances () {
             return this.application.instanceCount > this.instances.length
+        },
+        hasOnlyOneInstance () {
+            return this.application.instanceCount === 1
         },
         hasNoInstances () {
             return this.instances.length === 0

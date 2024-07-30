@@ -117,22 +117,7 @@ module.exports = {
      * @param {*} user - user who uploaded the snapshot
      */
     async uploadSnapshot (app, owner, snapshot, credentialSecret, user) {
-        // 1. If the snapshot includes credentials but no credentialSecret, we should reject it
-        // 2. if the snapshot includes credentials and a credentialSecret, we should validate the secret
-        if (snapshot.flows.credentials?.$) {
-            if (!credentialSecret) {
-                throw new Error('Missing credentialSecret')
-            }
-            // validate the secret by trying to decrypt and re-encrypt the credentials using the provided secret
-            // if the secret is invalid, this will throw an error
-            app.db.controllers.Project.exportCredentials(snapshot.flows.credentials, credentialSecret, credentialSecret)
-        }
-
-        // use the project/device's credentialSecret if none is provided
-        if (!credentialSecret) {
-            credentialSecret = owner.credentialSecret || (owner.getCredentialSecret && await owner.getCredentialSecret())
-        }
-
+        // Validate the owner
         let ownerType
         if (owner.constructor.name === 'Project') {
             ownerType = 'instance'
@@ -141,17 +126,30 @@ module.exports = {
         } else {
             throw new Error('Invalid owner type')
         }
+
+        const targetCredentialSecret = owner.credentialSecret || (owner.getCredentialSecret && await owner.getCredentialSecret()) || credentialSecret
+        // 1. If the snapshot includes credentials but no credentialSecret, we should reject it
+        // 2. if the snapshot includes credentials and a credentialSecret, we should reencrypt for the owner
+        if (snapshot.flows.credentials?.$) {
+            if (!credentialSecret) {
+                throw new Error('Missing credentialSecret')
+            }
+            // Need to re-encrypt the credentials for the target
+            snapshot.flows.credentials = app.db.controllers.Project.exportCredentials(snapshot.flows.credentials, credentialSecret, targetCredentialSecret)
+        }
+
         const ProjectId = ownerType === 'instance' ? owner.id : null
         const DeviceId = ownerType === 'device' ? owner.id : null
 
         const snapshotOptions = {
             name: snapshot.name,
             description: snapshot.description || '',
-            credentialSecret,
+            credentialSecret: targetCredentialSecret,
             settings: {
-                settings: snapshot.settings || {},
-                env: snapshot.env || {},
-                modules: snapshot.modules || {}
+                settings: snapshot.settings?.settings || {},
+                env: snapshot.settings?.env || {},
+                modules: snapshot.settings?.modules || {}
+
             },
             flows: {
                 flows: snapshot.flows.flows || [],

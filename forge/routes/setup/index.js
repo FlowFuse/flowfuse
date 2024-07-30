@@ -80,7 +80,7 @@ module.exports = async function (app) {
             reply.code(404).send()
             return
         }
-        if (/^(admin|root)$/.test(request.body.username) || !/^[a-z0-9-_]+$/.test(request.body.username)) {
+        if (/^(admin|root)$/.test(request.body.username) || !/^[a-z0-9-_]+$/i.test(request.body.username)) {
             reply.code(400).send({ error: 'invalid username' })
             return
         }
