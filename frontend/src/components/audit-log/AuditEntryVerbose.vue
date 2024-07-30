@@ -298,7 +298,7 @@
     </template>
     <template v-else-if="entry.event === 'platform.license.expired'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.license">License has expired: {{entry.body.license }}</span>
+        <span v-if="!error && entry.body?.license">License has expired: {{ entry.body.license }}</span>
         <span v-else-if="!error">License data not found in audit entry.</span>
     </template>
     <!-- Platform instance type Events -->

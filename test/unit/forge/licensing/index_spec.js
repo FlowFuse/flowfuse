@@ -1,6 +1,7 @@
 const should = require('should') // eslint-disable-line
-const FF_UTIL = require('flowforge-test-utils')
 const TestModelFactory = require('../../../lib/TestModelFactory')
+
+const FF_UTIL = require('flowforge-test-utils')
 
 describe('License API', async function () {
     let app
@@ -106,7 +107,6 @@ describe('License API', async function () {
     * ```
     */
     const TEST_LICENSE_ENTERPRISE = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjJmZjAwMjJiLTAwOGMtNDI3OS1hNWU5LTEwOTI2YTNhNWNjMCIsImlzcyI6IkZsb3dGb3JnZSBJbmMuIiwic3ViIjoiRmxvd0ZvcmdlIEluYy4iLCJuYmYiOjE2OTQ2NDk2MDAsImV4cCI6MzI1MDM2ODAwMDAsIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjo1MCwidGllciI6ImVudGVycHJpc2UiLCJkZXYiOnRydWUsImlhdCI6MTY5NDcwMTM3Nn0.3Gtyr0axCR2LcBUFAJgDwfIjhLEBbd91rHiGpePHl_oBab9Y6f3osPK6xBtR5ZnRwuSg6XuTp6xc7bQtdONKmA' // eslint-disable-line camelcase
-
 
     /**
      * Test license: expired
@@ -430,7 +430,7 @@ describe('License API', async function () {
     describe('licensed - expired', async function () {
         let instance
         before(async function () {
-            app = await FF_UTIL.setupApp({ housekeeper: true, license: TEST_LICENSE_ENTERPRISE, telemetry: { elabled: false }})
+            app = await FF_UTIL.setupApp({ housekeeper: true, license: TEST_LICENSE_ENTERPRISE, telemetry: { elabled: false } })
             const factory = new TestModelFactory(app)
             const userAlice = await factory.createUser({
                 admin: true,
@@ -461,17 +461,16 @@ describe('License API', async function () {
                     codeEditor: true
                 }
             }, userAlice)
-        
+
             const projectType = await factory.createProjectType({
                 name: 'projectType1',
                 description: 'default project type',
                 properties: { foo: 'bar' }
             })
-        
+
             const stack = await factory.createStack({ name: 'stack1' }, projectType)
-        
             const application = await factory.createApplication({ name: 'application-1' }, team1)
-        
+
             instance = await factory.createInstance(
                 { name: 'project1' },
                 application,
@@ -480,7 +479,6 @@ describe('License API', async function () {
                 projectType,
                 { start: true }
             )
-
         })
         after(async function () {
             await app.close()
@@ -498,13 +496,11 @@ describe('License API', async function () {
 
             // check logs
             const log = await getLog()
-            console.log(log)
             log.event.should.equal('platform.license.expired')
 
             // check instance suspended
             await instance.reload()
             instance.state.should.equal('suspended')
-            console.log(instance.state)
         })
     })
 })
