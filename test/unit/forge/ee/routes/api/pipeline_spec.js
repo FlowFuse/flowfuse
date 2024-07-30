@@ -2777,7 +2777,7 @@ describe('Pipelines API', function () {
         }
         it('locked fields should not be overridden', async function () {
             const startTemplate = await app.factory.createProjectTemplate(
-                { 
+                {
                     name: 'startTemplate',
                     settings: {
                         palette: {
@@ -2795,7 +2795,7 @@ describe('Pipelines API', function () {
             )
 
             const endTemplate = await app.factory.createProjectTemplate(
-                { 
+                {
                     name: 'endTemplate',
                     settings: {
                         palette: {
@@ -2831,7 +2831,7 @@ describe('Pipelines API', function () {
 
             const pipeline = await app.factory.createPipeline({ name: 'locked-fields-pipeine' }, app.application)
             const startStage = await app.factory.createPipelineStage({ name: 'start', instanceId: instanceStart.id }, pipeline)
-            const endStage = await app.factory.createPipelineStage({ name: 'end', source: startStage.hashid, instanceId: instanceEnd.id }, pipeline)
+            await app.factory.createPipelineStage({ name: 'end', source: startStage.hashid, instanceId: instanceEnd.id }, pipeline)
 
             const response = await app.inject({
                 method: 'PUT',
