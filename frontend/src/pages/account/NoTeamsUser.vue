@@ -29,7 +29,7 @@ export default {
     computed: {
         ...mapState('account', ['settings', 'user']),
         ...mapGetters('account', {
-            invitationCount: 'totalNotificationsCount'
+            invitationCount: 'teamInvitationsCount'
         })
     },
     mounted () {
@@ -37,7 +37,7 @@ export default {
     },
     methods: {
         async fetchData () {
-            await this.$store.dispatch('account/getNotifications')
+            await this.$store.dispatch('account/getInvitations')
         }
     }
 }
