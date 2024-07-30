@@ -161,6 +161,52 @@ module.exports = async function (app) {
     })
 
     /**
+     * Update a snapshot
+     */
+    app.put('/:id', {
+        preHandler: app.needsPermission('snapshot:edit'),
+        schema: {
+            summary: 'Update a snapshot',
+            tags: ['Snapshots'],
+            params: {
+                type: 'object',
+                properties: {
+                    id: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    description: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'Snapshot'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const snapshot = await snapshotController.updateSnapshot(request.snapshot, request.body)
+        if (snapshot) {
+            // TODO: audit log
+            // if (request.ownerType === 'device') {
+            //     const application = await request.owner.getApplication()
+            //     await applicationLogger.application.device.snapshot.updated(request.session.User, null, application, request.owner, request.snapshot, snapshot)
+            // } else if (request.ownerType === 'instance') {
+            //     await projectLogger.project.snapshot.updated(request.session.User, null, request.owner, request.snapshot, snapshot)
+            // }
+            reply.send(projectSnapshotView.snapshot(snapshot))
+        } else {
+            reply.send({})
+        }
+    })
+
+    /**
      * Export a snapshot for later import in another project or platform
      */
     app.post('/:id/export', {
