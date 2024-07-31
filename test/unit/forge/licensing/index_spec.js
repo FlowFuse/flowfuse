@@ -429,9 +429,14 @@ describe('License API', async function () {
     })
     describe('licensed - expired', async function () {
         let instance
-        before(async function () {
+        let factory
+        let application
+        let stack
+        let template
+        let projectType
+        beforeEach(async function () {
             app = await FF_UTIL.setupApp({ housekeeper: true, license: TEST_LICENSE_ENTERPRISE, telemetry: { elabled: false } })
-            const factory = new TestModelFactory(app)
+            factory = new TestModelFactory(app)
             const userAlice = await factory.createUser({
                 admin: true,
                 username: 'alice',
@@ -441,7 +446,7 @@ describe('License API', async function () {
             })
             const team1 = await factory.createTeam({ name: 'ATeam' })
             await team1.addUser(userAlice, { through: { role: factory.Roles.Roles.Owner } })
-            const template = await factory.createProjectTemplate({
+            template = await factory.createProjectTemplate({
                 name: 'template1',
                 settings: {
                     httpAdminRoot: '',
@@ -462,14 +467,14 @@ describe('License API', async function () {
                 }
             }, userAlice)
 
-            const projectType = await factory.createProjectType({
+            projectType = await factory.createProjectType({
                 name: 'projectType1',
                 description: 'default project type',
                 properties: { foo: 'bar' }
             })
 
-            const stack = await factory.createStack({ name: 'stack1' }, projectType)
-            const application = await factory.createApplication({ name: 'application-1' }, team1)
+            stack = await factory.createStack({ name: 'stack1' }, projectType)
+            application = await factory.createApplication({ name: 'application-1' }, team1)
 
             instance = await factory.createInstance(
                 { name: 'project1' },
@@ -480,7 +485,7 @@ describe('License API', async function () {
                 { start: true }
             )
         })
-        after(async function () {
+        afterEach(async function () {
             await app.close()
         })
         async function getLog () {
@@ -501,6 +506,22 @@ describe('License API', async function () {
             // check instance suspended
             await instance.reload()
             instance.state.should.equal('suspended')
+        })
+        it('should not allow new instances to be started', async function () {
+            await app.license.apply(TEST_LICENSE_EXPIRED)
+            try {
+                await factory.createInstance(
+                    { name: 'project2' },
+                    application,
+                    stack,
+                    template,
+                    projectType,
+                    { start: true }
+                )
+            } catch (err) {
+                return
+            }
+            should.fail()
         })
     })
 })
