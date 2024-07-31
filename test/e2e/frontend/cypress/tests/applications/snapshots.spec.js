@@ -158,4 +158,33 @@ describe('FlowForge - Application - Snapshots', () => {
         // check an SVG in present the content section
         cy.get('[data-el="dialog-compare-snapshot"] .ff-dialog-content svg').should('exist')
     })
+    it('download snapshot package.json', () => {
+        cy.intercept('GET', '/api/*/projects/*/snapshots', deviceSnapshots).as('snapshotData')
+        cy.intercept('GET', '/api/*/snapshots/*').as('snapshot')
+
+        // ensure package.json does not exist in the downloads folder before the test
+        cy.task('clearDownloads')
+        // click kebab menu in row 1
+        cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
+        // click the Download Package.json option
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_PACKAGE).click()
+
+        cy.wait('@snapshot').then(async interception => {
+            // At this point, the endpoint has returned but occasionally, the test fails as the file is not yet written to the filesystem.
+            // To counter this, there is a short 250ms wait to allow time for the file to be written to the filesystem.
+            // A better solution would be to use a cy.command (named waitForFileDownload) that polls the downloads folder
+            // and calls `cy.wait` with timeout and retry. This would allow the test to wait for the file in a more reliable way.
+            // For now, a small delay here gets the job done.
+            cy.wait(250) // eslint-disable-line cypress/no-unnecessary-waiting
+            const downloadsFolder = Cypress.config('downloadsFolder')
+            return cy.readFile(`${downloadsFolder}/package.json`)
+        }).then((packageObject) => {
+            expect(packageObject).to.have.property('name', 'instance-2')
+            expect(packageObject).to.have.property('description')
+            expect(packageObject).to.have.property('dependencies')
+            expect(packageObject.dependencies).to.have.property('node-red', '4.0.0')
+            expect(packageObject.dependencies).to.have.property('@flowfuse/nr-project-nodes', '0.6.4')
+            expect(packageObject.dependencies).to.have.property('@flowfuse/node-red-dashboard', '*')
+        })
+    })
 })

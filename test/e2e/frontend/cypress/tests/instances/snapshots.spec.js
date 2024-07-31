@@ -216,6 +216,14 @@ describe('FlowForge - Instance Snapshots', () => {
             cy.wait(250) // eslint-disable-line cypress/no-unnecessary-waiting
             const downloadsFolder = Cypress.config('downloadsFolder')
             cy.task('fileExists', { dir: downloadsFolder, file: 'package.json' })
+            return cy.readFile(`${downloadsFolder}/package.json`)
+        }).then((packageObject) => {
+            expect(packageObject).to.have.property('name', 'instance-2')
+            expect(packageObject).to.have.property('description')
+            expect(packageObject).to.have.property('dependencies')
+            expect(packageObject.dependencies).to.have.property('node-red')
+            expect(packageObject.dependencies).to.have.property('@flowfuse/nr-project-nodes')
+            expect(packageObject.dependencies).to.have.property('@flowfuse/node-red-dashboard')
         })
     })
 
