@@ -323,6 +323,9 @@ describe('FlowForge - Devices - With Billing', () => {
         cy.intercept('GET', '/api/*/projects/*/snapshots', deviceSnapshots).as('snapshotData')
         cy.intercept('GET', '/api/*/snapshots/*').as('snapshot')
 
+        cy.contains('span', 'application-device-a').click()
+        cy.get('[data-nav="device-snapshots"]').click()
+
         // ensure package.json does not exist in the downloads folder before the test
         cy.task('clearDownloads')
         // click kebab menu in row 1
@@ -340,12 +343,11 @@ describe('FlowForge - Devices - With Billing', () => {
             const downloadsFolder = Cypress.config('downloadsFolder')
             return cy.readFile(`${downloadsFolder}/package.json`)
         }).then((packageObject) => {
-            expect(packageObject).to.have.property('name', 'instance-2')
+            expect(packageObject).to.have.property('name', 'application-device-a')
             expect(packageObject).to.have.property('description')
             expect(packageObject).to.have.property('dependencies')
             expect(packageObject.dependencies).to.have.property('node-red')
             expect(packageObject.dependencies).to.have.property('@flowfuse/nr-project-nodes')
-            expect(packageObject.dependencies).to.have.property('@flowfuse/node-red-dashboard')
         })
     })
 })
