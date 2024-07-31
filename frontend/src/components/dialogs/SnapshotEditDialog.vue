@@ -10,6 +10,11 @@
                     </template>
                 </FormRow>
             </form>
+            <p class="text-gray-600 italic">
+                <span>
+                    Note: Changes made to a snapshot will not be immediately reflected on devices that are already running this snapshot.
+                </span>
+            </p>
         </template>
         <template #actions>
             <ff-button kind="secondary" data-action="dialog-cancel" :disabled="submitted" @click="cancel()">Cancel</ff-button>
