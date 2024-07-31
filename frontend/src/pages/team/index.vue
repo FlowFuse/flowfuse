@@ -34,7 +34,7 @@
 
 <script>
 import { useRoute } from 'vue-router'
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import { Roles } from '../../../../forge/lib/roles.js'
 
@@ -67,6 +67,7 @@ export default {
     },
     computed: {
         ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange', 'features']),
+        ...mapGetters('account', ['noBilling']),
         isVisitingAdmin: function () {
             return (this.teamMembership.role === Roles.Admin)
         },
@@ -104,12 +105,7 @@ export default {
         },
         checkBilling: async function () {
             // Team Billing
-            if (!this.user.admin &&
-                this.features.billing &&
-                (!this.team.billing?.unmanaged) &&
-                (!this.team.billing?.trial || this.team.billing?.trialEnded) &&
-                !this.team.billing?.active
-            ) {
+            if (this.noBilling) {
                 this.$router.push({
                     path: `/team/${this.team.slug}/billing`
                 })
