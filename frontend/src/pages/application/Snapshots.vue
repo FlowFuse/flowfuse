@@ -178,7 +178,7 @@ export default {
                 description: `${ownerType} snapshot, ${snapshot.name} - ${snapshot.description}`,
                 private: true,
                 version: '0.0.0-' + snapshot.id,
-                dependencies: ss.settings?.modules || {}
+                dependencies: ss.modules || {}
             }
             downloadData(packageJSON, 'package.json')
         },
