@@ -32,6 +32,10 @@ describe('FlowForge - Devices', () => {
             cy.wait(['@getDevices']).then(({ response }) => {
                 const devices = response.body.devices
 
+                // initial checks to help better understand test fail output
+                expect(devices).to.be.an('array')
+                expect(devices.length).to.be.greaterThan(3)
+
                 // select a single device
                 cy.get('[data-el="devices-browser"] tbody tr').eq(0).find('.checkbox').click()
                 // click the "Delete" button
@@ -79,6 +83,10 @@ describe('FlowForge - Devices', () => {
             // wait for the devices API call to complete
             cy.wait(['@getDevices']).then(({ response }) => {
                 const devices = response.body.devices
+
+                // initial checks to help better understand test fail output
+                expect(devices).to.be.an('array')
+                expect(devices.length).to.be.greaterThan(3)
 
                 // wait for device browser to load table
                 cy.get('[data-el="devices-browser"] tbody tr').should('have.length', devices.length)
