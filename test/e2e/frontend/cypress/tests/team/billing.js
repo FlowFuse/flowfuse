@@ -53,7 +53,7 @@ describe('FlowForge - Team Billing', () => {
     })
 
     describe('Cancelled subscriptions', () => {
-        it('redirects regular users to the billing page', () => {
+        beforeEach(() => {
             cy.login('bob', 'bbPassword')
 
             cy.intercept('GET', '/api/v1/teams/*', (req) => req.reply(res => {
@@ -76,26 +76,16 @@ describe('FlowForge - Team Billing', () => {
             cy.visit('/')
 
             cy.wait('@getTeams')
-
-            cy.url().should('include', '/team/ateam/billing')
-
-            cy.get('[data-nav="team-applications"').click()
-            cy.url().should('include', '/team/ateam/billing')
-            cy.get('[data-nav="team-instances"').click()
-            cy.url().should('include', '/team/ateam/billing')
-            cy.get('[data-nav="team-devices"').click()
-            cy.url().should('include', '/team/ateam/billing')
-            cy.get('[data-nav="shared-library"').click()
-            cy.url().should('include', '/team/ateam/billing')
-            cy.get('[data-nav="team-members"').click()
-            cy.url().should('include', '/team/ateam/billing')
-            cy.get('[data-nav="team-audit"').click()
-            cy.url().should('include', '/team/ateam/billing')
-            cy.get('[data-nav="team-billing"').click()
-            cy.url().should('include', '/team/ateam/billing')
-
-            cy.get('[data-nav="team-settings"').click()
-            cy.url().should('include', '/team/ateam/settings/general')
+        })
+        it('cannot interact with navigation options other than Team Settings & Billing', () => {
+            cy.get('[data-nav="team-applications"').should('have.class', 'disabled')
+            cy.get('[data-nav="team-instances"').should('have.class', 'disabled')
+            cy.get('[data-nav="team-devices"').should('have.class', 'disabled')
+            cy.get('[data-nav="shared-library"').should('have.class', 'disabled')
+            cy.get('[data-nav="team-members"').should('have.class', 'disabled')
+            cy.get('[data-nav="team-audit"').should('have.class', 'disabled')
+            cy.get('[data-nav="team-billing"').should('not.have.class', 'disabled')
+            cy.get('[data-nav="team-settings"').should('not.have.class', 'disabled')
         })
 
         it('allows admins to navigate the team', () => {
@@ -131,7 +121,7 @@ describe('FlowForge - Team Billing', () => {
             cy.get('[data-nav="team-audit"').click()
             cy.url().should('include', '/team/ateam/audit-log')
             cy.get('[data-nav="team-billing"').click()
-            cy.url().should('include', '/team/ateam/billing')
+            cy.url().should('include', `/team/${TEAM}/billing`)
             cy.get('[data-nav="team-settings"').click()
             cy.url().should('include', '/team/ateam/settings/general')
         })
