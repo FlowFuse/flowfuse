@@ -361,6 +361,21 @@ describe('Billing', function () {
             stripe.subscriptions.del.called.should.be.true()
             stripe.subscriptions.del.lastCall.args[0].should.equal('sub_1234')
         })
+        it('puts team without existing subscription into unmanaged mode', async function () {
+            const team1 = await app.factory.createTeam({ name: 'UnmanagedTeam2' })
+            await team1.addUser(app.user, { through: { role: Roles.Owner } })
+
+            await app.billing.enableManualBilling(team1)
+
+            const sub = await team1.getSubscription()
+            // Check the updated states for an unmanaged subscription are correct
+            sub.isActive().should.be.false()
+            sub.isUnmanaged().should.be.true()
+            sub.isTrial().should.be.false()
+            sub.isTrialEnded().should.be.true()
+            sub.subscription.should.equal('')
+            sub.customer.should.equal('')
+        })
     })
 
     describe('addProject', function () {
