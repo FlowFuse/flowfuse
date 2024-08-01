@@ -121,7 +121,7 @@ describe('FlowForge - Team Billing', () => {
             cy.get('[data-nav="team-audit"').click()
             cy.url().should('include', '/team/ateam/audit-log')
             cy.get('[data-nav="team-billing"').click()
-            cy.url().should('include', `/team/${TEAM}/billing`)
+            cy.url().should('include', '/team/ateam/billing')
             cy.get('[data-nav="team-settings"').click()
             cy.url().should('include', '/team/ateam/settings/general')
         })
