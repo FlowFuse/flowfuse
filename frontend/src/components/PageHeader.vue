@@ -118,7 +118,7 @@ export default {
             ].filter(option => option !== undefined)
         },
         showInviteButton () {
-            return this.team && this.teamMembership >= 30 && this.$route.name !== 'TeamMembers'
+            return this.team && this.hasPermission('team:user:invite') && this.$route.name !== 'TeamMembers'
         }
     },
     watch: {
