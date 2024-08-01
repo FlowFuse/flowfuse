@@ -7,6 +7,8 @@
  * @memberof forge.routes.api
  */
 
+const { UpdatesCollection } = require('../../auditLog/formatters.js')
+
 module.exports = async function (app) {
     /** @type {typeof import('../../db/controllers/Snapshot.js')} */
     const snapshotController = app.db.controllers.Snapshot
@@ -191,14 +193,20 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
+        // capture the original name/description for the audit log
+        const snapshotBefore = { name: request.snapshot.name, description: request.snapshot.description }
+        // perform the update
         const snapshot = await snapshotController.updateSnapshot(request.snapshot, request.body)
-        // TODO: audit log
-        // if (request.ownerType === 'device') {
-        //     const application = await request.owner.getApplication()
-        //     await applicationLogger.application.device.snapshot.updated(request.session.User, null, application, request.owner, request.snapshot, snapshot)
-        // } else if (request.ownerType === 'instance') {
-        //     await projectLogger.project.snapshot.updated(request.session.User, null, request.owner, request.snapshot, snapshot)
-        // }
+        // log the update
+        const snapshotAfter = { name: snapshot.name, description: snapshot.description }
+        const updates = new UpdatesCollection()
+        updates.pushDifferences(snapshotBefore, snapshotAfter)
+        if (request.ownerType === 'device') {
+            const application = await request.owner.getApplication()
+            await applicationLogger.application.device.snapshot.updated(request.session.User, null, application, request.owner, request.snapshot, updates)
+        } else if (request.ownerType === 'instance') {
+            await projectLogger.project.snapshot.updated(request.session.User, null, request.owner, request.snapshot, updates)
+        }
         reply.send(projectSnapshotView.snapshot(snapshot))
     })
 

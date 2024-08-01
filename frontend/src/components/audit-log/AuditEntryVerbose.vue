@@ -392,6 +392,11 @@
         <span v-if="!error && entry.body?.device && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been been created from Application owned Device '{{ entry.body.device?.name }}'.</span>
         <span v-else-if="!error">Device or Snapshot data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'application.device.snapshot.updated'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body && entry.body.updates">Snapshot '{{ entry.body.snapshot?.name }}' of Application owned Device '{{ entry.body.device?.name }}' has been been updated has with following changes: <AuditEntryUpdates :updates="entry.body.updates" /></span>
+        <span v-else-if="!error">Change data not found in audit entry.</span>
+    </template>
     <template v-else-if="entry.event === 'application.device.snapshot.deleted'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.device && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been been deleted for Application owned Device '{{ entry.body.device?.name }}'.</span>
@@ -540,6 +545,11 @@
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.project && entry.body.snapshot">A new Snapshot '{{ entry.body.snapshot?.name }}' has been created for Instance '{{ entry.body.project?.name }}'.</span>
         <span v-else-if="!error">Instance data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'project.snapshot.updated'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body && entry.body.updates">Snapshot '{{ entry.body.snapshot?.name }}' of Instance '{{ entry.body.project?.name }}' has been been updated has with following changes: <AuditEntryUpdates :updates="entry.body.updates" /></span>
+        <span v-else-if="!error">Change data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.device.snapshot.created'">
         <label>{{ AuditEvents[entry.event] }}</label>
