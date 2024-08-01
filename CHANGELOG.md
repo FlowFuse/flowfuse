@@ -1,3 +1,84 @@
+#### 2.7.0: Release
+
+ - ci: Add logs link to pre-staging slack message (#4215)
+ - ci: Update `publish_node_package` workflow to `v0.21.0` (#4146)
+ - Edit snapshot (#4282) @Steve-Mcl
+ - Clearer communication of navigation restriction when billing is required (#4298) @joepavitt
+ - Fix snapshot package.json download dependencies (#4289) @hardillb
+ - Add locked field test (#4280) @hardillb
+ - remove the request trial license hs form (#4279) @sumitshinde-84
+ - Initial user notification backend (#4164) @knolleary
+ - Clear device group target snapshot (#4276) @Steve-Mcl
+ - Allow Uppercase letters in initial admin username (#4267) @hardillb
+ - Fix link in device deploy docs (#4269) @hardillb
+ - move local installation under contribute section (#4259) @sumitshinde-84
+ - Remove vue-template-compiler (#4265) @hardillb
+ - Bump fastify-metrics from 10.4.1 to 11.0.0 (#3848) @app/dependabot
+ - Clear query action on invite page (#4263) @knolleary
+ - Fix import of snapshot credentials for instances (#4262) @knolleary
+ - Found race condition in tests (#4260) @hardillb
+ - show full buttons when instance count is 1 (#4247) @Steve-Mcl
+ - Update so locked template fields are not overwritten (#4244) @hardillb
+ - Bump postcss-loader from 7.3.3 to 8.1.1 (#3796) @app/dependabot
+ - Fix import of snapshots and improve test coverage (#4258) @knolleary
+ - Bump vue from 3.4.21 to 3.4.34 (#4256) @app/dependabot
+ - Bump cypress from 13.7.3 to 13.13.1 (#4235) @app/dependabot
+ - Add Keycloak group mapping info (#4233) @hardillb
+ - update examples links (#4144) @sumitshinde-84
+ - Bump @babel/core from 7.24.3 to 7.24.9 (#4179) @app/dependabot
+ - Allow admin to be set from SSO group (#4237) @hardillb
+ - Improve 2FA handling (#4255) @hardillb
+ - Fix device tile kebab menu actions (#4253) @Steve-Mcl
+ - Fix: Remove dialog mixin from the DevicesBrowser (#4252) @joepavitt
+ - Add AZURE specific suggestion (#4251) @hardillb
+ - Allow Session expiry to be configured (#4243) @hardillb
+ - Add bulk delete for devices browser (#4219) @Steve-Mcl
+ - Sso create new user (#4207) @hardillb
+ - Bulk device delete api (#4209) @Steve-Mcl
+ - Move notification tray out of ff-view (#4240) @knolleary
+ - Do not store modified email when deduping email list (#4232) @knolleary
+ - Ability to add device from empty state (#4228) @Steve-Mcl
+ - Fix limbo state after leaving last team (#4226) @Steve-Mcl
+ - Add notifications drawer (#4210) @cstns
+ - Clear redirect url on logout (#4223) @cstns
+ - Better sanitization of team names in invite email (#4221) @knolleary
+ - Mask both quoted and unquoted registry tokens (#4220) @hardillb
+ - Fix accessing team as dashboard user (#4216) @knolleary
+ - ci: Skip pre-staging workflow on dependabot pull requests (#4205) @ppawlowski
+ - Ensure team slug is passed for nested views (#4202) @joepavitt
+ - Move to email verification codes rather than links on signup (#4195) @knolleary
+ - Add blueprint count to telemetry ping (#4196) @knolleary
+ - auto genrate license and display (#4105) @sumitshinde-84
+ - Surface the "Invite Members" button to the main navigation (#4186) @joepavitt
+ - Allow AWS SES sourceArn to be set (#4177) @hardillb
+ - Differentiate between the instance/device name and tile link/details (#4112) @cstns
+ - Add CTA on resource Audit entries (#4192) @hardillb
+ - Adds rate limits to assistant route (#4182) @Steve-Mcl
+ - carry on application search params to followup pages (#4170) @cstns
+ - cI: Notify on `Install test` workflow failure (#4178) @ppawlowski
+ - extend applications search to include app/instance/device id's (#4171) @cstns
+ - Add search functionality to the applications instances page (#4172) @cstns
+ - Update Security headers (#4154) @hardillb
+ - Search applications by instances and devices (#4159) @cstns
+ - add meta information to docs (#4162) @sumitshinde-84
+ - Only permit instance/device token to call upon assistant endpoint (#4163) @Steve-Mcl
+ - Add session ownerId/type to log output if set (#4155) @knolleary
+ - Add support for JSON in FlowFuse Assistant (#4128) @Steve-Mcl
+ - Add option to show mfa code instead of qrcode (#4156) @knolleary
+ - Swap maps with arrays on the applications page (#4148) @cstns
+ - e2e tests for instance and device rollback feature (#4149) @Steve-Mcl
+ - Add search bar and allow searching through applications (#4141) @cstns
+ - Fix install test. (#4143) @hardillb
+ - Use absolute path for camera icon (#4138) @Steve-Mcl
+ - Install NodeJS (#4140) @hardillb
+ - fix path to install.sh (#4135) @hardillb
+ - ci: Change the way how `Create pre-staging environment` workflow is triggered (#4130) @ppawlowski
+ - Bump ws from 8.16.0 to 8.18.0 (#4136) @app/dependabot
+ - Install test (#4134) @hardillb
+ - include nr-assistant in snapshot and map through settings (#4127) @Steve-Mcl
+ - Reset publish build to NodeJS 18 (#4133) @hardillb
+ - fix broken link (#4132) @sumitshinde-84
+
 #### 2.6.1: Release
 
  - Set nodejs version back to 16 for package build (#4121) @hardillb

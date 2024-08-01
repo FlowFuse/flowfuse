@@ -1,3 +1,6 @@
+const { ValidationError } = require('sequelize')
+const hasProperty = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key)
+
 module.exports = {
     /**
      * Get a snapshot by ID
@@ -106,6 +109,31 @@ module.exports = {
 
         await snapshot.destroy()
         return true
+    },
+
+    /**
+     * Update a snapshot
+     * @param {*} app - app instance
+     * @param {*} snapshot - snapshot object
+     * @param {*} options - options to update
+     * @param {String} [options.name] - name of the snapshot
+     * @param {String} [options.description] - description of the snapshot
+     */
+    async updateSnapshot (app, snapshot, options) {
+        const updates = {}
+        if (hasProperty(options, 'name') && (typeof options.name !== 'string' || options.name.trim() === '')) {
+            throw new ValidationError('Snapshot name is required')
+        }
+        if (options.name) {
+            updates.name = options.name
+        }
+        if (typeof options.description !== 'undefined') {
+            updates.description = options.description
+        }
+        if (Object.keys(updates).length > 0) {
+            await snapshot.update(updates)
+        }
+        return snapshot
     },
 
     /**

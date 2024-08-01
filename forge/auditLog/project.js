@@ -78,6 +78,9 @@ module.exports = {
                 async created (actionedBy, error, project, snapshot) {
                     await log('project.snapshot.created', actionedBy, project?.id, generateBody({ error, project, snapshot }))
                 },
+                async updated (actionedBy, error, project, snapshot, updates) {
+                    await log('project.snapshot.updated', actionedBy, project?.id, generateBody({ error, project, snapshot, updates }))
+                },
                 async rolledBack (actionedBy, error, project, snapshot) {
                     await log('project.snapshot.rolled-back', actionedBy, project?.id, generateBody({ error, project, snapshot }))
                 },

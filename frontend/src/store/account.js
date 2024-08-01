@@ -73,6 +73,13 @@ const getters = {
     offline (state) {
         return state.offline
     },
+    noBilling (state) {
+        return !state.user.admin &&
+        state.features.billing &&
+        (!state.team.billing?.unmanaged) &&
+        (!state.team.billing?.trial || state.team.billing?.trialEnded) &&
+        !state.team.billing?.active
+    },
     isAdminUser: (state) => !!state.user.admin,
     defaultUserTeam: (state, getters) => {
         const defaultTeamId = state.user.defaultTeam || getters.teams[0]?.id
