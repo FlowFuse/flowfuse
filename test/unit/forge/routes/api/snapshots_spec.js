@@ -827,4 +827,127 @@ describe('Snapshots API', function () {
             tests('device')
         })
     })
+
+    // Tests for PUT /api/v1/snapshots/{snapshotId}
+    // * Updates a snapshot
+
+    describe('Update snapshot', function () {
+        afterEach(async function () {
+            await app.db.models.ProjectSnapshot.destroy({ where: {} })
+        })
+
+        /**
+         * put snapshot tests
+         * @param {'instance' | 'device'} kind - 'instance' or 'device'
+         */
+        function tests (kind) {
+            const createSnapshot = kind === 'instance' ? createInstanceSnapshot : createAppDeviceSnapshot
+
+            it('Returns 404 for non-existent snapshot', async function () {
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/snapshots/non-existent-snapshot-id',
+                    payload: { name: 'new-name' },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(404)
+                response.json().should.have.property('code', 'not_found')
+            })
+
+            it('Non-member cannot update snapshot', async function () {
+                const snapshotResponse = await createSnapshot()
+                const result = snapshotResponse.json()
+
+                // ensure it really exists before assuming the non-member cannot access it
+                const ownerResponse = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/snapshots/${result.id}`,
+                    payload: { name: 'new-name' },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                ownerResponse.statusCode.should.equal(200)
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/snapshots/${result.id}`,
+                    payload: { name: 'new-name' },
+                    cookies: { sid: TestObjects.tokens.chris }
+                })
+
+                // 404 as a non member should not know the resource exists
+                response.statusCode.should.equal(404)
+                response.json().should.have.property('code', 'not_found')
+            })
+
+            it('Owner can update snapshot', async function () {
+                const snapshotResponse = await createSnapshot()
+                const result = snapshotResponse.json()
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/snapshots/${result.id}`,
+                    payload: { name: 'new-name', description: 'new-description' },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(200)
+                response.json().should.have.property('name', 'new-name')
+                response.json().should.have.property('description', 'new-description')
+            })
+
+            it('Can update name only', async function () {
+                const snapshotResponse = await createSnapshot()
+                const result = snapshotResponse.json()
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/snapshots/${result.id}`,
+                    payload: { name: 'new-name' },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(200)
+                response.json().should.have.property('name', 'new-name')
+                response.json().should.have.property('description', result.description) // description should not change
+            })
+
+            it('Can update description only', async function () {
+                const snapshotResponse = await createSnapshot()
+                const result = snapshotResponse.json()
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/snapshots/${result.id}`,
+                    payload: { description: 'new-description' },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(200)
+                response.json().should.have.property('name', result.name) // name should not change
+                response.json().should.have.property('description', 'new-description')
+            })
+
+            it('Member cannot update snapshot', async function () {
+                const snapshotResponse = await createSnapshot()
+                const result = snapshotResponse.json()
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/snapshots/${result.id}`,
+                    payload: { name: 'new-name' },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+
+                response.statusCode.should.equal(403)
+                response.json().should.have.property('code', 'unauthorized')
+            })
+        }
+        describe('instance', function () {
+            tests('instance')
+        })
+
+        describe('device', function () {
+            tests('device')
+        })
+    })
 })
