@@ -1,7 +1,7 @@
 <template>
     <div class="ff-layout--platform">
         <PageHeader :mobileMenuOpen="mobileMenuOpen" @menu-toggle="toggleMenu" />
-        <div class="ff-layout--platform--wrapper">
+        <div class="ff-layout--platform--wrapper" :class="{closed: !hasAvailableTeams}">
             <div id="platform-sidenav" class="ff-navigation" :class="{'open': mobileMenuOpen}" data-sentry-unmask>
                 <!-- Each view uses a <Teleport> to fill this -->
             </div>
@@ -33,7 +33,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import InterviewPopup from '../components/InterviewPopup.vue'
 import PageHeader from '../components/PageHeader.vue'
@@ -55,7 +55,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('product', ['interview'])
+        ...mapState('product', ['interview']),
+        ...mapGetters('account', ['hasAvailableTeams'])
     },
     watch: {
         $route: function () {
