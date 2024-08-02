@@ -406,7 +406,6 @@ $nav_height: 60px;
         }
     }
     .ff-dropdown {
-        //display: none;
         height: calc(#{$nav_height} - 2px);
         color: white;
         min-width: $sidenav_width;
@@ -420,9 +419,6 @@ $nav_height: 60px;
             justify-content: space-between;
             align-items: center;
             border: none;
-            //border-width: 0 0 0 1px;
-            //border-color: $ff-grey-500;
-            //border-radius: 0;
             background-color: $ff-grey-800;
             &:hover {
                 background-color: $ff-grey-700;
