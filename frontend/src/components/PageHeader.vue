@@ -66,6 +66,7 @@ import { ref } from 'vue'
 import { mapGetters, mapState } from 'vuex'
 
 import navigationMixin from '../mixins/Navigation.js'
+import permissionsMixin from '../mixins/Permissions.js'
 
 import NavItem from './NavItem.vue'
 import NotificationsButton from './NotificationsButton.vue'
@@ -80,7 +81,7 @@ export default {
         }
     },
     emits: ['menu-toggle'],
-    mixins: [navigationMixin],
+    mixins: [navigationMixin, permissionsMixin],
     computed: {
         ...mapState('account', ['user', 'team', 'teams']),
         ...mapGetters('account', ['notifications']),
@@ -117,7 +118,7 @@ export default {
             ].filter(option => option !== undefined)
         },
         showInviteButton () {
-            return this.$route.name !== 'TeamMembers'
+            return this.team && this.hasPermission('team:user:invite') && this.$route.name !== 'TeamMembers'
         }
     },
     watch: {
