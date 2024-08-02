@@ -1,14 +1,15 @@
 <template>
     <div class="ff-header" data-sentry-unmask>
         <!-- Mobile: Toggle(Team & Team Admin Options) -->
-        <i class="ff-header--mobile-toggle" :class="{'active': mobileMenuOpen}">
+        <i v-if="team" class="ff-header--mobile-toggle" :class="{'active': mobileMenuOpen}">
             <MenuIcon class="ff-avatar" @click="$emit('menu-toggle')" />
         </i>
         <!-- FlowFuse Logo -->
         <img class="ff-logo" src="/ff-logo--wordmark-caps--dark.png" @click="home()">
         <!-- Mobile: Toggle(User Options) -->
-        <div v-if="team" class="flex">
-            <i class="ff-header--mobile-usertoggle" :class="{'active': mobileTeamSelectionOpen}">
+        <div class="flex ff-mobile-navigation-right">
+            <NotificationsButton class="ff-header--mobile-notificationstoggle" :class="{'active': mobileTeamSelectionOpen}" />
+            <i v-if="teams.length > 0" class="ff-header--mobile-usertoggle" :class="{'active': mobileTeamSelectionOpen}">
                 <img :src="team.avatar" class="ff-avatar" @click="mobileTeamSelectionOpen = !mobileTeamSelectionOpen">
             </i>
             <i class="ff-header--mobile-usertoggle" :class="{'active': mobileUserOptionsOpen}">
@@ -35,9 +36,9 @@
                 @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"
             />
         </div>
-        <div class="hidden lg:flex">
+        <div class="hidden lg:flex ff-desktop-navigation-right">
             <ff-team-selection data-action="team-selection" />
-            <div class="px-4 flex flex-col justify-center ff-border-left" v-if="showInviteButton">
+            <div class="px-4 flex flex-col justify-center" v-if="showInviteButton">
                 <ff-button kind="secondary" @click="inviteTeamMembers">
                     <template #icon-left><UserAddIcon /></template>
                     Invite Members
@@ -45,7 +46,13 @@
             </div>
             <!-- Desktop: User Options -->
             <NotificationsButton />
-            <ff-dropdown v-if="user" class="ff-navigation ff-user-options" options-align="right" data-action="user-options" data-cy="user-options">
+            <ff-dropdown
+                v-if="user"
+                class="ff-navigation ff-user-options hidden lg:flex xl:flex md:flex sm:flex"
+                options-align="right"
+                data-action="user-options"
+                data-cy="user-options"
+            >
                 <template #placeholder>
                     <div class="ff-user">
                         <img :src="user.avatar" class="ff-avatar">
