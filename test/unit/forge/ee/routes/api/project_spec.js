@@ -128,8 +128,7 @@ describe('Projects API - with billing enabled', function () {
         })
     })
 })
-describe.only('npmrc values should be hidden from none owners', function () {
-
+describe('npmrc values should be hidden from none owners', function () {
     const TestObjects = {}
 
     let app
@@ -146,8 +145,7 @@ describe.only('npmrc values should be hidden from none owners', function () {
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
-    before( async function () {
-
+    before(async function () {
         app = await setup()
         sandbox.stub(app.billing, 'addProject')
         sandbox.stub(app.billing, 'removeProject')
@@ -233,7 +231,7 @@ describe.only('npmrc values should be hidden from none owners', function () {
         TestObjects.lockedInstance = lockedInstance
     })
 
-    after( async function () {
+    after(async function () {
         await app.close()
     })
 
