@@ -7,7 +7,7 @@
         <!-- FlowFuse Logo -->
         <img class="ff-logo" src="/ff-logo--wordmark-caps--dark.png" @click="home()">
         <!-- Mobile: Toggle(User Options) -->
-        <div class="flex ff-mobile-navigation-right">
+        <div class="flex ff-mobile-navigation-right" data-el="mobile-nav-right">
             <NotificationsButton class="ff-header--mobile-notificationstoggle" :class="{'active': mobileTeamSelectionOpen}" />
             <i v-if="hasAvailableTeams" class="ff-header--mobile-usertoggle" :class="{'active': mobileTeamSelectionOpen}">
                 <img :src="team.avatar" class="ff-avatar" @click="mobileTeamSelectionOpen = !mobileTeamSelectionOpen">
@@ -36,7 +36,7 @@
                 @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"
             />
         </div>
-        <div class="hidden lg:flex ff-desktop-navigation-right">
+        <div class="hidden lg:flex ff-desktop-navigation-right" data-el="desktop-nav-right">
             <ff-team-selection data-action="team-selection" />
             <div class="px-4 flex flex-col justify-center" v-if="showInviteButton">
                 <ff-button kind="secondary" @click="inviteTeamMembers">
