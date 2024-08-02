@@ -66,11 +66,13 @@ describe('FlowForge - Notifications', () => {
 
                 cy.get('[data-el="right-drawer"').should('not.be.visible')
 
-                cy.get('[data-el="notifications-button"')
-                    .should('exist')
-                    .contains(2)
+                cy.get('[data-el="desktop-nav-right"]').within(() => {
+                    cy.get('[data-el="notifications-button"')
+                        .should('exist')
+                        .contains(2)
 
-                cy.get('[data-el="notifications-button"').click()
+                    cy.get('[data-el="notifications-button"').click()
+                })
 
                 cy.get('[data-el="right-drawer"').should('be.visible')
 
@@ -135,11 +137,13 @@ describe('FlowForge - Notifications', () => {
 
                 cy.get('[data-el="right-drawer"').should('not.be.visible')
 
-                cy.get('[data-el="notifications-button"')
-                    .should('exist')
-                    .contains(1)
+                cy.get('[data-el="desktop-nav-right"]').within(() => {
+                    cy.get('[data-el="notifications-button"')
+                        .should('exist')
+                        .contains(1)
 
-                cy.get('[data-el="notifications-button"').click()
+                    cy.get('[data-el="notifications-button"').click()
+                })
 
                 cy.get('[data-el="right-drawer"').should('be.visible')
 
