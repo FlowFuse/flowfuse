@@ -96,6 +96,24 @@ module.exports = async function (app) {
         const project = await projectPromise
         const projectState = await projectStatePromise
 
+        const teamType = await request.project.Team.getTeamType()
+        const customCatalogsEnabledForTeam = app.config.features.enabled('customCatalogs') && teamType.getFeatureProperty('customCatalogs', false)
+        if (!customCatalogsEnabledForTeam) {
+            delete project.settings?.palette?.npmrc
+            delete project.settings?.palette?.catalogue
+        } else {
+            if (request.teamMembership.role < Roles.Owner || request.project.ProjectTemplate.policy.palette.npmrc === false) {
+                if (project.settings?.palette?.npmrc) {
+                    let temp = project.settings.palette.npmrc
+                    temp = temp.replace(/_authToken="?(.*)"?/g, '_authToken="xxxxxxx"')
+                    temp = temp.replace(/_auth="?(.*)"?/g, '_auth="xxxxxxx"')
+                    temp = temp.replace(/_password="?(.*)"?/, '_password="xxxxxxx"')
+                    project.settings.palette.npmrc = temp
+                    // don't save so as not to update the database.
+                }
+            }
+        }
+
         reply.send({ ...project, ...projectState })
     })
 
