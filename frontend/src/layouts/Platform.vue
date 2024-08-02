@@ -1,7 +1,7 @@
 <template>
     <div class="ff-layout--platform">
         <PageHeader :mobileMenuOpen="mobileMenuOpen" @menu-toggle="toggleMenu" />
-        <div class="ff-layout--platform--wrapper" :class="{closed: !shouldShowMenu}">
+        <div class="ff-layout--platform--wrapper" :class="{closed: !isMenuVisible}">
             <div id="platform-sidenav" class="ff-navigation" :class="{'open': mobileMenuOpen}" data-sentry-unmask>
                 <!-- Each view uses a <Teleport> to fill this -->
             </div>
@@ -57,8 +57,9 @@ export default {
     computed: {
         ...mapState('product', ['interview']),
         ...mapGetters('account', ['hasAvailableTeams']),
-        shouldShowMenu () {
-            return this.hasAvailableTeams || this.$route.path.includes('/account/')
+        ...mapGetters('ux', ['shouldShowLeftMenu']),
+        isMenuVisible () {
+            return this.shouldShowLeftMenu(this.$route)
         }
     },
     watch: {
