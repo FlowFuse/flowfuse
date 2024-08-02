@@ -14,7 +14,7 @@
                         Old value: '{{ update.old }}'
                     </template>
                 </template>
-                <template v-if="!update.old && update.new">
+                <template v-else-if="!update.old && update.new">
                     Set: '{{ update.key }}'.
                     <template v-if="includeValues(update)">
                         Value: '{{ update.new }}'
@@ -60,6 +60,11 @@ export default {
         includeValues (updateItem) {
             if (!updateItem) {
                 return false
+            }
+            const oldType = typeof updateItem.old
+            const newType = typeof updateItem.new
+            if (oldType === 'boolean' && newType === 'boolean') {
+                return true // allow boolean value changes to be shown by default
             }
             if (ALLOW_DETAILS.includes(updateItem.key)) {
                 return true
