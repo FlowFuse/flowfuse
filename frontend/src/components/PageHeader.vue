@@ -9,7 +9,7 @@
         <!-- Mobile: Toggle(User Options) -->
         <div class="flex ff-mobile-navigation-right">
             <NotificationsButton class="ff-header--mobile-notificationstoggle" :class="{'active': mobileTeamSelectionOpen}" />
-            <i v-if="!hasAvailableTeams" class="ff-header--mobile-usertoggle" :class="{'active': mobileTeamSelectionOpen}">
+            <i v-if="teams.length > 0" class="ff-header--mobile-usertoggle" :class="{'active': mobileTeamSelectionOpen}">
                 <img :src="team.avatar" class="ff-avatar" @click="mobileTeamSelectionOpen = !mobileTeamSelectionOpen">
             </i>
             <i class="ff-header--mobile-usertoggle" :class="{'active': mobileUserOptionsOpen}">
@@ -91,7 +91,7 @@ export default {
     mixins: [navigationMixin, permissionsMixin],
     computed: {
         ...mapState('account', ['user', 'team', 'teams']),
-        ...mapGetters('account', ['notifications', 'hasAvailableTeams']),
+        ...mapGetters('account', ['notifications']),
         navigationOptions () {
             return [
                 {
