@@ -94,8 +94,7 @@ const getters = {
     hasNotifications: (state, getters) => getters.notificationsCount > 0,
 
     teamInvitations: state => state.invitations,
-    teamInvitationsCount: state => state.invitations?.length || 0,
-    hasAvailableTeams: state => state.teams.length > 0
+    teamInvitationsCount: state => state.invitations?.length || 0
 }
 
 const mutations = {

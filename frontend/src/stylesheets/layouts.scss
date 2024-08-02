@@ -251,7 +251,7 @@ $nav_height: 60px;
     .ff-dropdown-options {
         position: absolute;
         min-width: $sidenav_width;
-        display: block;
+        display: none;
         z-index: 10;
         border-bottom: 0;
         max-height: initial;
@@ -344,7 +344,6 @@ $nav_height: 60px;
         padding: 16px;
         svg {
             fill: white;
-            min-width: 24px;
         }
         &.active {
             cursor: pointer;
@@ -355,7 +354,6 @@ $nav_height: 60px;
         padding: 16px;
         img {
             padding: 0;
-            min-width: 24px;
         }
         &.active {
             cursor: pointer;
@@ -394,19 +392,8 @@ $nav_height: 60px;
     .ff-navigation-right {
         height: 100%;
     }
-    .ff-desktop-navigation-right {
-        & > * {
-            border-left: 1px solid $ff-grey-500;
-        }
-    }
-    .ff-mobile-navigation-right {
-        img, 
-        button {
-            cursor: pointer;
-        }
-    }
     .ff-dropdown {
-        //display: none;
+        display: none;
         height: calc(#{$nav_height} - 2px);
         color: white;
         min-width: $sidenav_width;
@@ -419,10 +406,9 @@ $nav_height: 60px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: none;
-            //border-width: 0 0 0 1px;
-            //border-color: $ff-grey-500;
-            //border-radius: 0;
+            border-width: 0 0 0 1px;
+            border-color: $ff-grey-500;
+            border-radius: 0;
             background-color: $ff-grey-800;
             &:hover {
                 background-color: $ff-grey-700;
@@ -459,10 +445,6 @@ $nav_height: 60px;
     .ff-user-options {
         width: auto;
         min-width: $nav_height;
-        
-        &.ff-navigation {
-            left: auto;
-        }
         .ff-dropdown-options {
             width: $sidenav_width;
         }
@@ -668,9 +650,6 @@ $nav_height: 60px;
     &.open {
         left: 0;
     }
-    &.closed {
-        left: -$sidenav_width;
-    }
     &.ff-navigation-right.open {
         left: initial;
         right: 0;
@@ -722,13 +701,6 @@ $nav_height: 60px;
     /* Platform */
     .ff-layout--platform--wrapper {
         grid-template-columns: $sidenav_width 1fr;
-        
-        &.closed {
-            grid-template-columns: 1fr;
-            #platform-sidenav {
-                display: none;
-            }
-        }
     }
     .ff-navigation {
         left: 0;
@@ -738,12 +710,14 @@ $nav_height: 60px;
         .ff-header--mobile-toggle {
             display: none;
         }
-        .ff-header--mobile-usertoggle,
-        .ff-header--mobile-notificationstoggle {
+        .ff-header--mobile-usertoggle {
             display: none;
         }
         img.ff-logo {
             padding: 16px;
+        }
+        .ff-dropdown {
+            display: block;
         }
     }
 }
