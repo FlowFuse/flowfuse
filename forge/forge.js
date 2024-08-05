@@ -265,6 +265,7 @@ module.exports = async (options = {}) => {
                         'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
                         'worker-src': ["'self'", 'blob:'],
                         'connect-src': ["'self'"],
+                        'img-src': ["'self'", '*'],
                         'font-src': ["'self'", 'data'],
                         'style-src': ["'self'", 'https:', "'unsafe-inline'"],
                         'upgrade-insecure-requests': null,
