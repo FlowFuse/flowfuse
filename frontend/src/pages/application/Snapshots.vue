@@ -13,6 +13,7 @@
         <template v-if="snapshots.length > 0">
             <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
                 <template #context-menu="{row}">
+                    <ff-list-item :disabled="!hasPermission('snapshot:edit')" label="Edit Snapshot" @click="showEditSnapshotDialog(row)" />
                     <ff-list-item :disabled="!canViewSnapshot(row)" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
                     <ff-list-item :disabled="!canViewSnapshot(row)" label="Compare Snapshot..." @click="showCompareSnapshotDialog(row)" />
                     <ff-list-item :disabled="!canDownload(row)" label="Download Snapshot" @click="showDownloadSnapshotDialog(row)" />
@@ -40,6 +41,7 @@
             </EmptyState>
         </template>
     </div>
+    <SnapshotEditDialog ref="snapshotEditDialog" data-el="dialog-edit-snapshot" @snapshot-updated="onSnapshotEdit" />
     <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" />
     <AssetDetailDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
     <AssetCompareDialog ref="snapshotCompareDialog" data-el="dialog-compare-snapshot" />
@@ -56,6 +58,7 @@ import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import AssetCompareDialog from '../../components/dialogs/AssetCompareDialog.vue'
 import AssetDetailDialog from '../../components/dialogs/AssetDetailDialog.vue'
+import SnapshotEditDialog from '../../components/dialogs/SnapshotEditDialog.vue'
 import UserCell from '../../components/tables/cells/UserCell.vue'
 import { downloadData } from '../../composables/Download.js'
 import permissionsMixin from '../../mixins/Permissions.js'
@@ -73,6 +76,7 @@ export default {
     name: 'ApplicationSnapshots',
     components: {
         SectionTopMenu,
+        SnapshotEditDialog,
         SnapshotExportDialog,
         AssetDetailDialog,
         AssetCompareDialog,
@@ -169,6 +173,16 @@ export default {
         showDownloadSnapshotDialog (snapshot) {
             this.$refs.snapshotExportDialog.show(snapshot)
         },
+        showEditSnapshotDialog (snapshot) {
+            this.$refs.snapshotEditDialog.show(snapshot)
+        },
+        onSnapshotEdit (snapshot) {
+            const index = this.snapshots.findIndex(s => s.id === snapshot.id)
+            if (index >= 0) {
+                this.snapshots[index].name = snapshot.name
+                this.snapshots[index].description = snapshot.description
+            }
+        },
         async downloadSnapshotPackage (snapshot) {
             const ss = await SnapshotsApi.getSummary(snapshot.id)
             const owner = ss.device || ss.project
@@ -178,7 +192,7 @@ export default {
                 description: `${ownerType} snapshot, ${snapshot.name} - ${snapshot.description}`,
                 private: true,
                 version: '0.0.0-' + snapshot.id,
-                dependencies: ss.settings?.modules || {}
+                dependencies: ss.modules || {}
             }
             downloadData(packageJSON, 'package.json')
         },

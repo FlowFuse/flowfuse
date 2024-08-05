@@ -62,7 +62,7 @@
                             You have <span class="font-bold" v-text="trialEndsIn" /> left of your trial.
                         </p>
                         <p>
-                            During the trial you can make full use of the features available to your team. To keep things running you will need to setup your billing details.
+                            You must add billing details in order to continue using FlowFuse.
                         </p>
                     </template>
                     <template v-else>

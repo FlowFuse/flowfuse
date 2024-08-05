@@ -26,6 +26,9 @@ module.exports = {
                     async created (actionedBy, error, application, device, snapshot) {
                         await log('application.device.snapshot.created', actionedBy, application?.id, generateBody({ error, device, snapshot }))
                     },
+                    async updated (actionedBy, error, application, device, snapshot, updates) {
+                        await log('application.device.snapshot.updated', actionedBy, application?.id, generateBody({ error, device, snapshot, updates }))
+                    },
                     async deleted (actionedBy, error, application, device, snapshot) {
                         await log('application.device.snapshot.deleted', actionedBy, application?.id, generateBody({ error, device, snapshot }))
                     },

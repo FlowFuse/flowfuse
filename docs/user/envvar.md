@@ -62,3 +62,7 @@ In addition, the following variables are set when running on a device:
 
 When deploying the same set of flows out to multiple devices, these variables can
 be used by the flows to identify the specific device being run on.
+
+NOTE: `FF_SNAPSHOT_NAME` will not be immediately updated when the current snapshot is edited.
+It will only be updated when the snapshot is changed or a setting that causes the device to
+be restarted is changed.
