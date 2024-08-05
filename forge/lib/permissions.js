@@ -162,10 +162,5 @@ const Permissions = {
 }
 
 module.exports = {
-    Permissions,
-    registerPermissions: function (newPermisssions) {
-        Object.keys(newPermisssions).forEach(key => {
-            Permissions[key] = newPermisssions[key]
-        })
-    }
+    Permissions
 }
