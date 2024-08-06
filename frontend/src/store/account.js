@@ -255,7 +255,10 @@ const actions = {
         } catch (err) {
             // Not logged in
             commit('clearPending')
-            window.posthog?.reset()
+            // do we have a user session to clear?
+            if (state.user) {
+                window.posthog?.reset()
+            }
 
             if (router.currentRoute.value.meta.requiresLogin !== false) {
                 if (router.currentRoute.value.path !== '/') {
