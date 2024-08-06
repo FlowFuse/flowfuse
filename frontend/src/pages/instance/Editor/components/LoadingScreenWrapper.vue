@@ -1,12 +1,14 @@
 <template>
     <div class="status-wrapper">
         <transition name="fade" mode="out-in">
-            <lottie-animation
-                v-if="hasAnimationData"
-                :key="computedState"
-                :animationData="animationData"
-                :loop="shouldLoop"
-            />
+            <div v-if="hasAnimationData">
+                <lottie-animation
+                    :key="computedState"
+                    :animationData="animationData"
+                    :loop="shouldLoop"
+                />
+                <label class="status-text">{{ state }} Instance...</label>
+            </div>
             <InstanceStatusBadge
                 v-else
                 :status="state"
@@ -80,5 +82,13 @@ export default {
 .status-wrapper {
   display: flex;
   justify-content: center;
+}
+.status-wrapper .status-text {
+    font-size: 1.5rem;
+    font-weight: bold;
+    display: block;
+    text-align: center;
+    padding: 24px;
+    text-transform: capitalize;
 }
 </style>

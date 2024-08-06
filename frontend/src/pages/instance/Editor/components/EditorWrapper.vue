@@ -100,4 +100,7 @@ export default {
   align-content: center;
   justify-content: center;
 }
+.editor-wrapper .status-wrapper {
+    margin-top: -64px;
+}
 </style>
