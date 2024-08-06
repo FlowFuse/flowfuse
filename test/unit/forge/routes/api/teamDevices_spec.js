@@ -66,7 +66,6 @@ describe('Team Devices API', function () {
         await login('bob', 'bbPassword')
         await login('chris', 'ccPassword')
         await login('dave', 'ddPassword')
-
     })
 
     async function login (username, password) {
