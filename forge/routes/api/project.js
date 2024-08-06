@@ -1012,6 +1012,7 @@ module.exports = async function (app) {
 
       /**
      * TODO: Add support for filtering by instance param when this is migrated to application API
+     * Export logs as CSV
      * @name /api/v1/projects/:id/audit-log/export
      * @memberof forge.routes.api.project
      */
@@ -1034,7 +1035,13 @@ module.exports = async function (app) {
             },
             response: {
                 200: {
-                    type: 'string'
+                    content: {
+                        'text/csv': {
+                            schema: {
+                                type: 'string'
+                            }
+                        }
+                    }
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -1045,7 +1052,7 @@ module.exports = async function (app) {
         const paginationOptions = app.getPaginationOptions(request)
         const logEntries = await app.db.models.AuditLog.forProject(request.project.id, paginationOptions)
         const result = app.db.views.AuditLog.auditLog(logEntries)
-        reply.send([
+        reply.type('text/csv').send([
             ['id', 'event', 'body', 'scope', 'trigger', 'createdAt'],
             ...result.log.map(row => [
                 row.id,

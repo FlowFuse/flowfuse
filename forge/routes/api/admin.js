@@ -305,7 +305,7 @@ module.exports = async function (app) {
 
     /**
      * Get platform audit logs as CSV
-     * @name /api/v1/admin/audit-log
+     * @name /api/v1/admin/audit-log/export
      * @memberof forge.routes.api.admin
      */
     app.get('/audit-log/export', {
@@ -321,7 +321,13 @@ module.exports = async function (app) {
             },
             response: {
                 200: {
-                    type: 'string'
+                    content: {
+                        'text/csv': {
+                            schema: {
+                                type: 'string'
+                            }
+                        }
+                    }
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -332,7 +338,7 @@ module.exports = async function (app) {
         const paginationOptions = app.getPaginationOptions(request)
         const logEntries = await app.db.models.AuditLog.forPlatform(paginationOptions)
         const result = app.db.views.AuditLog.auditLog(logEntries)
-        reply.send([
+        reply.type('text/csv').send([
             ['id', 'event', 'body', 'scope', 'trigger', 'createdAt'],
             ...result.log.map(row => [
                 row.id,
