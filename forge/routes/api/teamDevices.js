@@ -1,4 +1,7 @@
 // const { Roles } = require('../../lib/roles.js')
+const { ValidationError } = require('sequelize')
+
+const { DeviceGroupMembershipValidationError } = require('../../ee/db/controllers/DeviceGroup.js')
 const { ControllerError } = require('../../lib/errors.js')
 
 /**
@@ -393,4 +396,96 @@ module.exports = async function (app) {
             })
         }
     })
+
+    /**
+    * Bulk update devices
+    * @name /api/v1/teams/:teamId/devices/bulk
+    * @method PUT
+    * @static
+    * @memberof forge.routes.api.devices
+    */
+    app.put('/bulk', {
+        preHandler: app.needsPermission('team:device:bulk-edit'),
+        schema: {
+            summary: 'Update devices',
+            tags: ['Team Devices'],
+            body: {
+                type: 'object',
+                required: ['devices'],
+                properties: {
+                    devices: {
+                        type: 'array',
+                        items: {
+                            type: 'string'
+                        },
+                        minItems: 1
+                    },
+                    instance: { type: 'string', nullable: true },
+                    application: { type: 'string', nullable: true }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        devices: { type: 'array', items: { $ref: 'Device' } }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        try {
+            /** @type {typeof import('../../db/controllers/Device')} */
+            const deviceController = app.db.controllers.Device
+            if (request.body.devices.some(d => !d.trim())) {
+                throw new ControllerError('invalid_input', 'Invalid device id', 400)
+            }
+            if (request.body.instance !== undefined || request.body.application !== undefined) {
+                const updatedDevices = await deviceController.moveDevices(request.body.devices, request.body.application, request.body.instance, request.session?.User)
+                updatedDevices.devices = updatedDevices.devices.map(d => app.db.views.Device.device(d))
+                reply.send(updatedDevices)
+            } else {
+                throw new ControllerError('invalid_input', 'No valid fields to update', 400)
+            }
+        } catch (err) {
+            return handleError(err, reply)
+        }
+    })
+
+    function handleError (err, reply) {
+        let statusCode = 500
+        let code = 'unexpected_error'
+        let error = err.error || err.message || 'Unexpected error'
+
+        if (err instanceof ControllerError) {
+            statusCode = err.statusCode || 400
+            code = err.code || 'unexpected_error'
+            error = err.error || err.message
+        } else if (err instanceof ValidationError) {
+            statusCode = 400
+            if (err.errors[0]) {
+                code = err.errors[0].path ? `invalid_${err.errors[0].path}` : 'invalid_input'
+                error = err.errors[0].message || error
+            } else {
+                code = 'invalid_input'
+                error = err.message || error
+            }
+        } else if (err instanceof DeviceGroupMembershipValidationError) {
+            statusCode = err.statusCode || 400
+            code = err.code || 'invalid_device_group_membership'
+            error = err.message || error
+        } else {
+            app.log.error('API error in team devices')
+            app.log.error(err)
+        }
+        return reply.code(statusCode || 500).send({
+            code: code || err.code || 'unexpected_error',
+            error: error || err.error || err.message
+        })
+    }
 }
