@@ -1,12 +1,11 @@
 <template>
     <section class="editor-wrapper">
-        <div v-if="shouldDisplayLoadingScreen" class="status-wrapper">
-            <InstanceStatusBadge
-                :status="instance.meta?.state"
-                :optimisticStateChange="instance.optimisticStateChange"
-                :pendingStateChange="instance.pendingStateChange"
-            />
-        </div>
+        <LoadingScreenWrapper
+            v-if="shouldDisplayLoadingScreen"
+            :state="instance.meta?.state"
+            :optimisticStateChange="instance.optimisticStateChange"
+            :pendingStateChange="instance.pendingStateChange"
+        />
 
         <iframe
             v-else
@@ -23,7 +22,7 @@
 </template>
 
 <script>
-import InstanceStatusBadge from '../../components/InstanceStatusBadge.vue'
+import LoadingScreenWrapper from './LoadingScreenWrapper.vue'
 const States = {
     STOPPED: 'stopped',
     LOADING: 'loading',
@@ -36,7 +35,7 @@ const States = {
 }
 export default {
     name: 'EditorWrapper',
-    components: { InstanceStatusBadge },
+    components: { LoadingScreenWrapper },
     props: {
         instance: {
             type: Object,
@@ -100,10 +99,8 @@ export default {
   flex-direction: column;
   align-content: center;
   justify-content: center;
-
-  .status-wrapper {
-    display: flex;
-    justify-content: center;
-  }
+}
+.editor-wrapper .status-wrapper {
+    margin-top: -64px;
 }
 </style>
