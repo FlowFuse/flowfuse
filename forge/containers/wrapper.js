@@ -67,6 +67,16 @@ module.exports = {
      * @returns {Promise} Resolves when the start request has been *accepted*.
      */
     start: async (project) => {
+        if (this._app.license.active() && this._app.license.status().expired) {
+            this._app.log.error({
+                code: 'license_expired',
+                error: `Failed to start project ${project.id}: License expired`
+            })
+            project.state = 'suspended'
+            await project.save()
+            throw new Error('License Expired')
+        }
+
         if (this._isBillingEnabled()) {
             await this._subscriptionHandler.addProject(project)
         }
