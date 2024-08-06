@@ -382,18 +382,7 @@ module.exports = async function (app) {
             await deviceController.bulkDelete(request.team, request.body?.devices, request.session?.User)
             reply.send({ status: 'okay' })
         } catch (err) {
-            if (err instanceof ControllerError) {
-                return reply
-                    .code(err.statusCode || 400)
-                    .send({
-                        code: err.code || 'unexpected_error',
-                        error: err.error || err.message
-                    })
-            }
-            return reply.code(err.statusCode || 500).send({
-                code: err.code || 'unexpected_error',
-                error: err.error || err.message
-            })
+            return handleError(err, reply)
         }
     })
 
