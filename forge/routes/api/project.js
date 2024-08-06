@@ -1010,6 +1010,55 @@ module.exports = async function (app) {
         reply.send(result)
     })
 
+      /**
+     * TODO: Add support for filtering by instance param when this is migrated to application API
+     * @name /api/v1/projects/:id/audit-log/export
+     * @memberof forge.routes.api.project
+     */
+      app.get('/:instanceId/audit-log/export', {
+        preHandler: app.needsPermission('project:audit-log'),
+        schema: {
+            summary: 'Get instance audit event entries',
+            tags: ['Instances'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            query: {
+                allOf: [
+                    { $ref: 'PaginationParams' },
+                    { $ref: 'AuditLogQueryParams' }
+                ]
+            },
+            response: {
+                200: {
+                    type: 'string'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const paginationOptions = app.getPaginationOptions(request)
+        const logEntries = await app.db.models.AuditLog.forProject(request.project.id, paginationOptions)
+        const result = app.db.views.AuditLog.auditLog(logEntries)
+        reply.send([
+            ['id', 'event', 'body', 'scope', 'trigger', 'createdAt'],
+            ...result.log.map(row => [
+                row.id,
+                row.event,
+                JSON.stringify(JSON.stringify(row.body)),
+                JSON.stringify(JSON.stringify(row.scope)),
+                JSON.stringify(JSON.stringify(row.trigger)),
+                `"${row.createdAt}"`
+            ])
+        ]
+        .map(row => row.join(','))
+        .join('\n'))
+    })
     /**
      *
      * @name /api/v1/projects/:id/import

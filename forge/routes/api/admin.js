@@ -303,6 +303,50 @@ module.exports = async function (app) {
         reply.send(result)
     })
 
+    /**
+     * Get platform audit logs as CSV
+     * @name /api/v1/admin/audit-log
+     * @memberof forge.routes.api.admin
+     */
+    app.get('/audit-log/export', {
+        preHandler: app.needsPermission('platform:audit-log'),
+        schema: {
+            summary: 'Gets platform audit events as CSV - admin-only',
+            tags: ['Platform'],
+            query: {
+                allOf: [
+                    { $ref: 'PaginationParams' },
+                    { $ref: 'AuditLogQueryParams' }
+                ]
+            },
+            response: {
+                200: {
+                    type: 'string'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const paginationOptions = app.getPaginationOptions(request)
+        const logEntries = await app.db.models.AuditLog.forPlatform(paginationOptions)
+        const result = app.db.views.AuditLog.auditLog(logEntries)
+        reply.send([
+            ['id', 'event', 'body', 'scope', 'trigger', 'createdAt'],
+            ...result.log.map(row => [
+                row.id,
+                row.event,
+                JSON.stringify(JSON.stringify(row.body)),
+                JSON.stringify(JSON.stringify(row.scope)),
+                JSON.stringify(JSON.stringify(row.trigger)),
+                `"${row.createdAt}"`
+            ])
+        ]
+        .map(row => row.join(','))
+        .join('\n'))
+    })
+
     app.post('/stats-token', {
         preHandler: app.needsPermission('platform:stats:token'),
         schema: {
