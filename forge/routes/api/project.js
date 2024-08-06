@@ -1010,13 +1010,13 @@ module.exports = async function (app) {
         reply.send(result)
     })
 
-      /**
+    /**
      * TODO: Add support for filtering by instance param when this is migrated to application API
      * Export logs as CSV
      * @name /api/v1/projects/:id/audit-log/export
      * @memberof forge.routes.api.project
      */
-      app.get('/:instanceId/audit-log/export', {
+    app.get('/:instanceId/audit-log/export', {
         preHandler: app.needsPermission('project:audit-log'),
         schema: {
             summary: 'Get instance audit event entries',
@@ -1063,8 +1063,8 @@ module.exports = async function (app) {
                 `"${row.createdAt}"`
             ])
         ]
-        .map(row => row.join(','))
-        .join('\n'))
+            .map(row => row.join(','))
+            .join('\n'))
     })
     /**
      *

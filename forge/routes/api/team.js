@@ -790,7 +790,7 @@ module.exports = async function (app) {
                 `"${row.createdAt}"`
             ])
         ]
-        .map(row => row.join(','))
-        .join('\n'))
+            .map(row => row.join(','))
+            .join('\n'))
     })
 }
