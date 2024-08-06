@@ -24,7 +24,7 @@
                 <div v-else class="flex flex-col sm:flex-row">
                     <div class="space-y-4 w-full sm:mr-8">
                         <FormRow containerClass="none">
-                            <template #input><textarea v-model="obfuscated" :disabled="readOnly" class="font-mono w-full" placeholder=".npmrc" rows="8" /></template>
+                            <template #input><textarea v-model="editable.settings.palette_npmrc" :disabled="readOnly" class="font-mono w-full" placeholder=".npmrc" rows="8" /></template>
                         </FormRow>
                     </div>
                     <LockSetting v-model="editable.policy.palette_npmrc" :editTemplate="editTemplate" :changed="editable.changed.policy.palette_npmrc" />
@@ -97,14 +97,6 @@ export default {
                 return true
             }
             return SemVer.satisfies(SemVer.coerce(launcherVersion), '>=1.11.3')
-        },
-        obfuscated () {
-            if (this.editable.settings.palette_npmrc) {
-                const text = this.editable.settings.palette_npmrc.replace(/_authToken="?(.*)"?/g, '_authToken="xxxxxxx"')
-                return text
-            } else {
-                return ''
-            }
         }
     },
     watch: {
