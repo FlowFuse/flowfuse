@@ -50,7 +50,7 @@ export default {
     methods: {
         onInstanceDeleted (instance) {
             if (this.localApplication.instances.find((el) => el.id === instance.id)) {
-                this.localApplication.instances.delete(instance.id)
+                this.localApplication.instances = this.localApplication.instances.filter((el) => el.id !== instance.id)
                 this.localApplication.instanceCount--
                 this.$emit('instance-deleted')
             }
