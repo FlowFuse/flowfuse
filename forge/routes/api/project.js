@@ -102,7 +102,7 @@ module.exports = async function (app) {
             delete project.settings?.palette?.npmrc
             delete project.settings?.palette?.catalogue
         } else {
-            if (request.teamMembership.role < Roles.Owner || request.project.ProjectTemplate.policy.palette.npmrc === false) {
+            if ((!request.teamMembership && request.session.User.admin) || request.teamMembership.role < Roles.Owner || request.project.ProjectTemplate.policy.palette.npmrc === false) {
                 if (project.settings?.palette?.npmrc !== undefined) {
                     let temp = project.settings.palette.npmrc
                     temp = temp.replace(/_authToken="?(.*)"?/g, '_authToken="xxxxxxx"')
