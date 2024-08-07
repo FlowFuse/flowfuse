@@ -28,7 +28,7 @@
                 @update:sort="updateSort"
             >
                 <template #actions>
-                    <DropdownMenu v-if="hasPermission('team:device:bulk-delete') || hasPermission('team:device:bulk-edit')" :disabled="!checkedDevices?.length" data-el="device-actions-dropdown" buttonClass="ff-btn ff-btn--secondary" :options="bulkActionsDropdownOptions">Actions</DropdownMenu>
+                    <DropdownMenu v-if="hasPermission('team:device:bulk-delete') || hasPermission('team:device:bulk-edit')" :disabled="!checkedDevices?.length" data-el="bulk-actions-dropdown" buttonClass="ff-btn ff-btn--secondary" :options="bulkActionsDropdownOptions">Actions</DropdownMenu>
                     <ff-button
                         v-if="displayingInstance && hasPermission('project:snapshot:create')"
                         data-action="change-target-snapshot"
