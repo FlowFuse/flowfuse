@@ -94,7 +94,8 @@ const getters = {
     hasNotifications: (state, getters) => getters.notificationsCount > 0,
 
     teamInvitations: state => state.invitations,
-    teamInvitationsCount: state => state.invitations?.length || 0
+    teamInvitationsCount: state => state.invitations?.length || 0,
+    hasAvailableTeams: state => state.teams.length > 0
 }
 
 const mutations = {
@@ -254,7 +255,10 @@ const actions = {
         } catch (err) {
             // Not logged in
             commit('clearPending')
-            window.posthog?.reset()
+            // do we have a user session to clear?
+            if (state.user) {
+                window.posthog?.reset()
+            }
 
             if (router.currentRoute.value.meta.requiresLogin !== false) {
                 if (router.currentRoute.value.path !== '/') {

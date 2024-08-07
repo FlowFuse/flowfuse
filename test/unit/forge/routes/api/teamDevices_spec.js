@@ -1,6 +1,7 @@
 const { Op } = require('sequelize')
 const should = require('should') // eslint-disable-line
 const sinon = require('sinon')
+const { v4: uuidv4 } = require('uuid')
 
 const { Roles } = require('../../../../../forge/lib/roles')
 
@@ -539,7 +540,7 @@ describe('Team Devices API', function () {
                     it('Rejects invalid instance (404)', async function () {
                         const response = await bulkUpdate(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
                             devices: [aTeamDevices.device1.hashid],
-                            instance: 'invalid'
+                            instance: uuidv4()
                         })
                         response.statusCode.should.equal(404)
                         const result = response.json()
