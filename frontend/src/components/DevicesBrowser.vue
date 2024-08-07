@@ -298,9 +298,9 @@
 
     <ff-dialog
         ref="devicesMoveNoOwnerDialog"
-        :header="`Remove Device${checkedDevices.length > 1 ? 's' : ''} from ${displayingInstance ? 'Instance' : displayingApplication ? 'Application' : 'Assignment'}`"
+        :header="displayingTeam ? `Unassign Device${checkedDevices.length > 1 ? 's' : ''}` : `Remove Device${checkedDevices.length > 1 ? 's' : ''} from ${displayingInstance ? 'Instance' : displayingApplication ? 'Application' : 'Assignment'}`"
         class="ff-dialog-fixed-height"
-        confirm-label="Remove"
+        :confirm-label="displayingTeam ?'Unassign' : 'Remove'"
         data-el="team-bulk-device-unassign-dialog"
         kind="danger"
         @confirm="moveDevicesToUnassigned(checkedDevices)"
@@ -316,7 +316,7 @@
                     </li>
                 </ul>
             </div>
-            <p><b>NOTE:</b> Updated device{{ checkedDevices.length > 1 ? 's' : '' }} will be reset.</p>
+            <p>This will stop the flows running on the device{{ checkedDevices.length > 1 ? 's' : '' }}.</p>
         </template>
     </ff-dialog>
 </template>
