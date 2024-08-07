@@ -18,7 +18,7 @@
                     </ul>
                 </div>
                 <hr>
-                <p>Select the Node-RED instance you want to bind the device{{ devices.length > 1 ? 's' : '' }} to.</p>
+                <p>Select the Node-RED instance you want to {{ bulkOp ? 'move' : 'bind' }} the device{{ devices.length > 1 ? 's' : '' }} to.</p>
                 <SelectInstance v-model="input.instance" :team="team" />
             </form>
         </template>

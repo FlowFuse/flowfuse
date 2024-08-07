@@ -18,7 +18,7 @@
                     </ul>
                 </div>
                 <hr>
-                <p>Select the Node-RED application you want to bind the device{{ selection.length > 1 ? 's' : '' }} to.</p>
+                <p>Select the Node-RED application you want to {{ bulkOp ? 'move' : 'add' }} the device{{ selection.length > 1 ? 's' : '' }} to.</p>
 
                 <FormRow
                     v-model="input.application"
