@@ -1,6 +1,4 @@
 const { generateToken } = require('../../../db/utils')
-const { registerPermissions } = require('../../../lib/permissions')
-const { Roles } = require('../../../lib/roles.js')
 
 /**
  * Routes releated to the EE forge api
@@ -12,9 +10,6 @@ module.exports = async function (app) {
     if (!app.comms) {
         return
     }
-    registerPermissions({
-        'device:editor': { description: 'Access the Device Editor', role: Roles.Member }
-    })
 
     /**
      * Add wildcard content parser for these routes
