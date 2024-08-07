@@ -14,7 +14,7 @@
             </div>
         </li>
     </ul>
-    <EmptyState v-else>
+    <EmptyState v-else :featureUnavailable="!isBlueprintsFeatureEnabled" :featureUnavailableToTeam="!isBlueprintsFeatureEnabledForTeam">
         <template #img>
             <img src="../../../images/empty-states/team-library.png" alt="team-logo">
         </template>
@@ -81,9 +81,11 @@ export default {
     },
     methods: {
         async loadBlueprints () {
-            const res = await flowBlueprintsApi.getFlowBlueprintsForTeam(this.team.id)
-            if (Object.hasOwnProperty.call(res, 'blueprints')) {
-                this.blueprints = res.blueprints
+            if (this.isBlueprintsFeatureEnabled && this.isBlueprintsFeatureEnabledForTeam) {
+                const res = await flowBlueprintsApi.getFlowBlueprintsForTeam(this.team.id)
+                if (Object.hasOwnProperty.call(res, 'blueprints')) {
+                    this.blueprints = res.blueprints
+                }
             }
         },
         onBlueprintSelect (blueprint) {
