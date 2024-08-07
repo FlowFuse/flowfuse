@@ -37,7 +37,7 @@ FlowFuse requires docker-compose v2
 
 The orchestration uses an instance of Nginx to route requests to each Node-RED instance. To do this it needs each instance to have a unique hostname, to generate this the instance name is prepended to a supplied domain.
 
-To make this work you will need to configure a DNS server to map a wildcard domain entry to the IP address of the host running Docker. e.g `*.example.com`.
+To make this work you will need to configure a DNS server to map a [wildcard domain entry](https://en.wikipedia.org/wiki/Wildcard_DNS_record) to the IP address of the host running Docker. e.g `*.example.com`.
 
 The FlowFuse Application will be hosted on `http://forge.example.com`
 

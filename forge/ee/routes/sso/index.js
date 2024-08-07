@@ -1,17 +1,6 @@
 const fp = require('fastify-plugin')
 
-const { registerPermissions } = require('../../../lib/permissions')
-const { Roles } = require('../../../lib/roles.js')
-
 module.exports = fp(async function (app, opts) {
-    registerPermissions({
-        'saml-provider:create': { description: 'Create a SAML Provider', role: Roles.Admin },
-        'saml-provider:list': { description: 'List all SAML Providers', role: Roles.Admin },
-        'saml-provider:read': { description: 'View a SAML Provider', role: Roles.Admin },
-        'saml-provider:delete': { description: 'Delete a SAML Provider', role: Roles.Admin },
-        'saml-provider:edit': { description: 'Edit a SAML Provider', role: Roles.Admin }
-    })
-
     // Get all
     app.get('/ee/sso/providers', {
         preHandler: app.needsPermission('saml-provider:list')
