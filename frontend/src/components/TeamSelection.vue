@@ -14,7 +14,7 @@
                 <ff-dropdown-option>
                     <nav-item v-for="t in teams" :key="t.id" :label="t.name" :avatar="t?.avatar" @click="selectTeam(t)" data-action="switch-team" />
                 </ff-dropdown-option>
-                <ff-dropdown-option>
+                <ff-dropdown-option v-if="canCreateTeam">
                     <nav-item label="Create New Team" :icon="plusIcon" @click="createTeam(t);" data-action="create-team" />
                 </ff-dropdown-option>
             </ul>
@@ -24,7 +24,7 @@
 
 <script>
 import { PlusIcon } from '@heroicons/vue/solid'
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import NavItem from './NavItem.vue'
 
@@ -35,7 +35,15 @@ export default {
         NavItem
     },
     computed: {
-        ...mapState('account', ['team', 'teams'])
+        ...mapState('account', ['team', 'teams', 'settings']),
+        ...mapGetters('account', ['isAdminUser']),
+        canCreateTeam () {
+            if (this.isAdminUser) {
+                return true
+            }
+
+            return Object.prototype.hasOwnProperty.call(this.settings, 'team:create') && this.settings['team:create']
+        }
     },
     data () {
         return {
