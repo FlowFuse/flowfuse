@@ -512,7 +512,7 @@ export default {
             } else if (this.displayingTeam && (showRemoveFromInstance || showRemoveFromApplication)) {
                 menu.push({ name: 'Remove from Assignment', action: this.showTeamBulkDeviceUnassignDialog, disabled: !enableUnassign })
             }
-            menu.push({ name: 'Delete', class: ['text-red-700'], action: this.showTeamBulkDeviceDeleteDialog, disabled: !enableDelete })
+            menu.push({ name: 'Delete', class: ['!text-red-600'], action: this.showTeamBulkDeviceDeleteDialog, disabled: !enableDelete })
             return menu
         }
     },
