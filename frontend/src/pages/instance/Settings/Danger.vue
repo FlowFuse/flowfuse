@@ -21,6 +21,7 @@
                 <div class="min-w-fit flex-shrink-0 flex-col gap-5">
                     <ff-button
                         v-if="instance.stack && instance.stack.replacedBy"
+                        ref="updateStackButton"
                         class="mb-5"
                         data-action="update-stack"
                         :disabled="!instance.projectType"
@@ -129,7 +130,7 @@ import { mapState } from 'vuex'
 import InstanceApi from '../../../api/instances.js'
 
 import FormHeading from '../../../components/FormHeading.vue'
-import { highlightElement } from '../../../composables/Ux.js'
+import { scrollToAndJiggleHighlight } from '../../../composables/Ux.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import alerts from '../../../services/alerts.js'
 
@@ -172,9 +173,7 @@ export default {
     },
     mounted () {
         this.checkAccess()
-        if (this.$route.query.highlight && Object.keys(this.$refs).includes(this.$route.query.highlight)) {
-            highlightElement(this.$refs[this.$route.query.highlight])
-        }
+        this.highlightElements()
     },
     methods: {
         async checkAccess () {
@@ -240,6 +239,19 @@ export default {
                 }).finally(() => {
                     this.loading.changingStack = false
                 })
+            }
+        },
+        highlightElements () {
+            if (
+                this.$route.query.highlight &&
+                Object.keys(this.$refs).includes(this.$route.query.highlight) &&
+                this.$route.query.highlight === 'updateStack'
+            ) {
+                scrollToAndJiggleHighlight(
+                    this.$refs.updateStack,
+                    this.$refs.updateStackButton.$el,
+                    { count: 2 }
+                )
             }
         }
     }
