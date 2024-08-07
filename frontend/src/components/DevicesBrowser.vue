@@ -501,16 +501,15 @@ export default {
             const enableMove = actionsEnabled && this.hasPermission('team:device:bulk-edit')
             const showRemoveFromInstance = this.displayingInstance || this.displayingTeam
             const showRemoveFromApplication = this.displayingApplication || this.displayingTeam
-            const enableUnassign = enableMove && this.checkedDevices.every(device => device.ownerType)
             const menu = []
             menu.push({ name: 'Move to Instance', action: this.showTeamBulkDeviceMoveToInstanceDialog, disabled: !enableMove })
             menu.push({ name: 'Move to Application', action: this.showTeamBulkDeviceMoveToApplicationDialog, disabled: !enableMove })
             if (this.displayingInstance && showRemoveFromInstance) {
-                menu.push({ name: 'Remove from Instance', action: this.showTeamBulkDeviceUnassignDialog, disabled: !enableUnassign })
+                menu.push({ name: 'Remove from Instance', action: this.showTeamBulkDeviceUnassignDialog, disabled: !enableMove })
             } else if (this.displayingApplication && showRemoveFromApplication) {
-                menu.push({ name: 'Remove from Application', action: this.showTeamBulkDeviceUnassignDialog, disabled: !enableUnassign })
+                menu.push({ name: 'Remove from Application', action: this.showTeamBulkDeviceUnassignDialog, disabled: !enableMove })
             } else if (this.displayingTeam && (showRemoveFromInstance || showRemoveFromApplication)) {
-                menu.push({ name: 'Remove from Assignment', action: this.showTeamBulkDeviceUnassignDialog, disabled: !enableUnassign })
+                menu.push({ name: 'Unassign', action: this.showTeamBulkDeviceUnassignDialog, disabled: !enableMove })
             }
             menu.push({ name: 'Delete', class: ['!text-red-600'], action: this.showTeamBulkDeviceDeleteDialog, disabled: !enableDelete })
             return menu
