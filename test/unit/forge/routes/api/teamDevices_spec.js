@@ -64,6 +64,8 @@ describe('Team Devices API', function () {
         TestObjects.tokens = {}
         await login('alice', 'aaPassword')
         await login('bob', 'bbPassword')
+        await login('chris', 'ccPassword')
+        await login('dave', 'ddPassword')
     })
 
     async function login (username, password) {
@@ -351,7 +353,7 @@ describe('Team Devices API', function () {
                             devices: [aTeamDevices.device1.hashid]
                         }
                     })
-                    response.statusCode.should.equal(401)
+                    response.statusCode.should.equal(403)
                     const result = response.json()
                     result.should.have.property('code', 'unauthorized')
                     result.should.have.property('error', 'unauthorized')
@@ -460,7 +462,7 @@ describe('Team Devices API', function () {
                 url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices/provisioning`,
                 cookies: { sid: TestObjects.tokens.chris }
             })
-            response.statusCode.should.equal(401)
+            response.statusCode.should.equal(403)
             const result = response.json()
             result.should.have.property('code', 'unauthorized')
             result.should.have.property('error', 'unauthorized')
@@ -531,7 +533,7 @@ describe('Team Devices API', function () {
                     instance: TestObjects.Project1.id
                 }
             })
-            response.statusCode.should.equal(401)
+            response.statusCode.should.equal(403)
             const result = response.json()
             result.should.have.property('code', 'unauthorized')
             result.should.have.property('error', 'unauthorized')
@@ -599,7 +601,7 @@ describe('Team Devices API', function () {
                     instance: null
                 }
             })
-            response.statusCode.should.equal(401)
+            response.statusCode.should.equal(403)
             const result = response.json()
             result.should.have.property('code', 'unauthorized')
             result.should.have.property('error', 'unauthorized')
@@ -671,7 +673,7 @@ describe('Team Devices API', function () {
                 url: `/api/v1/teams/${TestObjects.ATeam.hashid}/devices/provisioning/${TestObjects.provisioningTokens.token1.id}`,
                 cookies: { sid: TestObjects.tokens.chris }
             })
-            response.statusCode.should.equal(401)
+            response.statusCode.should.equal(403)
             const result = response.json()
             result.should.have.property('code', 'unauthorized')
             result.should.have.property('error', 'unauthorized')
