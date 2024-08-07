@@ -1149,7 +1149,7 @@ describe('FlowForge - Applications', () => {
             })
         })
 
-        describe.only('device kebab menu', () => {
+        describe('device kebab menu', () => {
             const MENU_ITEMS = [
                 {
                     index: 0,
