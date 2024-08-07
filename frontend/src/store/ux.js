@@ -5,7 +5,11 @@ const state = () => ({
     }
 })
 
-const getters = {}
+const getters = {
+    shouldShowLeftMenu: (state, getters, rootState, rootGetters) => (route) => {
+        return rootGetters['account/hasAvailableTeams'] || route.path.includes('/account/')
+    }
+}
 
 const mutations = {
     openRightDrawer (state, { component }) {
