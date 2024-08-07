@@ -81,7 +81,7 @@ export default {
     },
     methods: {
         async loadBlueprints () {
-            if (isBlueprintsFeatureEnabled && isBlueprintsFeatureEnabledForTeam) {
+            if (this.isBlueprintsFeatureEnabled && this.isBlueprintsFeatureEnabledForTeam) {
                 const res = await flowBlueprintsApi.getFlowBlueprintsForTeam(this.team.id)
                 if (Object.hasOwnProperty.call(res, 'blueprints')) {
                     this.blueprints = res.blueprints
