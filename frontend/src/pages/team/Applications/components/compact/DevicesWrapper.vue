@@ -126,6 +126,11 @@ export default {
             return this.searchQuery.length > 0
         }
     },
+    watch: {
+        'application.devices' (devices) {
+            this.devices = devices
+        }
+    },
     mounted () {
         this.fetchAllDeviceStatuses()
     },
