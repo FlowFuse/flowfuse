@@ -1149,7 +1149,7 @@ describe('FlowForge - Applications', () => {
             })
         })
 
-        describe('device kebab menu', () => {
+        describe.only('device kebab menu', () => {
             const MENU_ITEMS = [
                 {
                     index: 0,
@@ -1157,24 +1157,21 @@ describe('FlowForge - Applications', () => {
                     dialogTitle: 'Update Device',
                     dialogDataEl: 'team-device-create-dialog'
                 },
-                // This item will be enabled once #4249 is resolved
-                // {
-                //     index: 1,
-                //     label: 'Remove From Application',
-                //     dialogTitle: 'Remove Device from Application',
-                //     dialogDataEl: 'platform-dialog'
-                // },
                 {
-                    // index: 2, // This item will be `2` once #4249 is resolved
                     index: 1,
+                    label: 'Remove from Application',
+                    dialogTitle: 'Remove Device from Application',
+                    dialogDataEl: 'platform-dialog'
+                },
+                {
+                    index: 2,
                     label: 'Regenerate Configuration',
                     dialogTitle: 'Device Configuration',
                     dialogDataEl: 'team-device-config-dialog',
                     dialogCancelButtonSelector: '.ff-dialog-actions > button.ff-btn--secondary'
                 },
                 {
-                    // index: 3, // This item will be `3` once #4249 is resolved
-                    index: 2,
+                    index: 3,
                     label: 'Delete Device',
                     dialogTitle: 'Delete Device',
                     dialogDataEl: 'platform-dialog'
