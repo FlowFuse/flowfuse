@@ -19,6 +19,7 @@ const verifyMFAToken = (token) => {
     return client.post('/account/login/token', {
         token
     }).then((res) => {
+        product.capture('$ff-user-verified')
         return res.data
     })
 }
