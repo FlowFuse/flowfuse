@@ -41,7 +41,7 @@
                             <template #input>
                                 <textarea
                                     v-model="editable.settings.palette_npmrc"
-                                    :disabled="readOnly && !isCustomCatalogsFeatureEnabled"
+                                    :disabled="!isCustomCatalogsFeatureEnabled ? true : readOnly"
                                     class="font-mono w-full"
                                     placeholder=".npmrc"
                                     rows="8"
