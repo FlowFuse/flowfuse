@@ -101,11 +101,31 @@ module.exports = {
                 const teams = await app.db.models.Team.forUser(user)
                 for (const team of teams) {
                     const owners = await team.Team.getOwners()
+                    // const teamMemberCount = await team.Team.memberCount()
+
                     const isOwner = owners.find((owner) => owner.id === user.id)
 
-                    // if this user is the only owner of this team, throw an error
                     if (isOwner && owners.length <= 1) {
-                        throw new Error('Cannot delete the last owner of a team')
+                        const instanceCount = await team.Team.instanceCount()
+                        const deviceCount = await team.Team.deviceCount()
+                        const members = await team.Team.memberCount()
+
+                        // throw error if the team has other members assigned to it
+                        if (members > 1) {
+                            throw new Error(`Team ${team.Team.name} which is being deleted alongside your account still has users in it.`)
+                        }
+
+                        // throw error if the team has remaining instances assigned to it
+                        if (instanceCount > 0) {
+                            throw new Error(`Team ${team.Team.name} which is being deleted alongside your account still has instances assigned to it.`)
+                        }
+
+                        // throw error if the team has remaining devices assigned to it
+                        if (deviceCount > 0) {
+                            throw new Error(`Team ${team.Team.name} which is being deleted alongside your account still has devices assigned to it.`)
+                        }
+
+                        await team.Team.destroy()
                     }
                 }
 
