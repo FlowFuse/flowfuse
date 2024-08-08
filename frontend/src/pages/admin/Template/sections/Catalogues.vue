@@ -4,6 +4,9 @@
             Node Catalogues
             <ChangeIndicator class="!inline-block ml-4 mt-0" :value="editable.changed.settings.palette_catalogue" />
         </FormHeading>
+
+        <FeatureUnavailable v-if="!isCustomCatalogsFeatureEnabled" :minimal="true" class="!my-5 !mx-0 !p-0 !justify-start" />
+
         <form class="space-y-4 max-w-2xl" @submit.prevent>
             <div v-if="!projectLauncherCompatible" class="text-red-400 space-y-1">
                 <p>You will need to update your Project Stack to use this feature.</p>
@@ -19,23 +22,51 @@
                         <div class="w-full flex items-center">
                             <div class="flex-grow" :class="{'opacity-20': !defaultEnabled}">{{ defaultCatalogue }}</div>
                             <!-- Default is enabled, allow for removal -->
-                            <ff-button v-if="!defaultEnabled" v-ff-tooltip:left="'Restore Default Catalogue'" kind="tertiary" size="small" :disabled="readOnly" @click="addDefault()">
+                            <ff-button
+                                v-if="!defaultEnabled"
+                                v-ff-tooltip:left="'Restore Default Catalogue'"
+                                kind="tertiary" size="small"
+                                :disabled="isDisabled"
+                                @click="addDefault()"
+                            >
                                 <template #icon><UndoIcon /></template>
                             </ff-button>
                             <!-- Default is disabled, allow for restoration -->
-                            <ff-button v-else kind="tertiary" size="small" :disabled="readOnly" @click="removeURL(defaultCatalogue)">
+                            <ff-button
+                                v-else
+                                kind="tertiary"
+                                size="small"
+                                :disabled="isDisabled"
+                                @click="removeURL(defaultCatalogue)"
+                            >
                                 <template #icon><XIcon /></template>
                             </ff-button>
                         </div>
                         <div v-for="(url, index) in thirdPartyUrls" :key="index" class="w-full flex items-center">
                             <div class="flex-grow">{{ url }}</div>
-                            <ff-button kind="tertiary" size="small" :disabled="readOnly" @click="removeURL(url)">
+                            <ff-button
+                                kind="tertiary"
+                                size="small"
+                                :disabled="isDisabled"
+                                @click="removeURL(url)"
+                            >
                                 <template #icon><XIcon /></template>
                             </ff-button>
                         </div>
-                        <FormRow v-model="input.url" class="w-full sm:mr-8" :error="input.error" :disabled="readOnly" containerClass="none" appendClass="ml-2 relative">
+                        <FormRow
+                            v-model="input.url"
+                            class="w-full sm:mr-8"
+                            :error="input.error"
+                            :disabled="isDisabled"
+                            containerClass="none"
+                            appendClass="ml-2 relative"
+                        >
                             <template #append>
-                                <ff-button kind="secondary" size="small" :disabled="readOnly" @click="addURL()">
+                                <ff-button
+                                    kind="secondary"
+                                    size="small"
+                                    :disabled="isDisabled" @click="addURL()"
+                                >
                                     <template #icon>
                                         <PlusSmIcon />
                                     </template>
@@ -44,7 +75,11 @@
                         </FormRow>
                     </div>
                     <div class="max-w-sm w-24">
-                        <LockSetting v-model="editable.policy.palette_catalogue" :editTemplate="editTemplate" :changed="editable.changed.policy.palette_catalogue" />
+                        <LockSetting
+                            v-model="editable.policy.palette_catalogue"
+                            :editTemplate="editTemplate"
+                            :changed="editable.changed.policy.palette_catalogue"
+                        />
                     </div>
                 </div>
             </div>
@@ -59,13 +94,16 @@ import SemVer from 'semver'
 
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
+import FeatureUnavailable from '../../../../components/banners/FeatureUnavailable.vue'
 import UndoIcon from '../../../../components/icons/Undo.js'
+import featuresMixin from '../../../../mixins/Features.js'
 import ChangeIndicator from '../components/ChangeIndicator.vue'
 import LockSetting from '../components/LockSetting.vue'
 
 export default {
     name: 'TemplateCatalogueEditor',
     components: {
+        FeatureUnavailable,
         FormRow,
         FormHeading,
         ChangeIndicator,
@@ -74,6 +112,7 @@ export default {
         XIcon,
         UndoIcon
     },
+    mixins: [featuresMixin],
     props: {
         editTemplate: {
             type: Boolean,
@@ -144,6 +183,11 @@ export default {
         thirdPartyUrls () {
             // whether or not this Template has any third party catalogues enabled
             return this.urls.filter(url => url !== this.defaultCatalogue)
+        },
+        isDisabled () {
+            if (!this.isCustomCatalogsFeatureEnabled) {
+                return true
+            } else return this.readOnly
         }
     },
     methods: {
@@ -179,3 +223,13 @@ export default {
     }
 }
 </script>
+
+<style lang="scss">
+input:disabled {
+  background-color: $ff-white !important;
+  opacity: .9;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+</style>
