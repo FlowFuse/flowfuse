@@ -108,7 +108,7 @@
 
         <template v-if="hasPermission('project:delete')">
             <FormHeading class="text-red-700">Delete Instance</FormHeading>
-            <div ref="qwe" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+            <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="flex-grow">
                     <div class="max-w-sm">
                         Once deleted, your instance is gone. This cannot be undone.
@@ -253,6 +253,7 @@ export default {
                     { count: 2 }
                 )
             }
+            this.$router.replace({ query: null })
         }
     }
 }
