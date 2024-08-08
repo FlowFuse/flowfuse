@@ -1,17 +1,25 @@
 <template>
     <ff-dialog
         ref="dialog"
-        header="Add Device to Application"
+        :header="bulkOp ? 'Move Selected Devices to Application' : 'Add Device to Application'"
         class="ff-dialog-fixed-height"
-        confirm-label="Add"
+        :confirm-label="bulkOp ? 'Move' : 'Add'"
         data-el="assign-device-to-application-dialog"
         @confirm="assignDeviceToApplication()"
     >
         <template #default>
             <form class="space-y-6 mt-2 mb-2">
-                <p class="text-sm text-gray-500">
-                    Select the Node-RED application you want to bind the device to.
-                </p>
+                <p>The following device{{ devices.length > 1 ? 's' : '' }} will be affected by this operation:</p>
+                <div class="max-h-48 overflow-y-auto">
+                    <ul class="ff-devices-ul">
+                        <li v-for="device in devices" :key="device.id">
+                            <span class="font-bold">{{ device.name }}</span> <span class="text-gray-500 text-sm"> ({{ device.id }})</span>
+                        </li>
+                    </ul>
+                </div>
+                <hr>
+                <p>Select the Node-RED application you want to {{ bulkOp ? 'move' : 'add' }} the device{{ selection.length > 1 ? 's' : '' }} to.</p>
+
                 <FormRow
                     v-model="input.application"
                     :options="options.applications"
@@ -37,18 +45,18 @@ export default {
     components: {
         FormRow
     },
-    emits: ['assignDevice'],
+    emits: ['assignDevice', 'moveDevices'],
     setup () {
         return {
-            async show (device) {
+            async show (selection) {
                 this.$refs.dialog.show()
-                this.device = device
+                this.selection = selection
             }
         }
     },
     data () {
         return {
-            device: null,
+            selection: null,
             input: {
                 application: null
             },
@@ -67,6 +75,12 @@ export default {
         },
         noApplications () {
             return !this.options.applications || this.options.applications?.length === 0
+        },
+        bulkOp () {
+            return Array.isArray(this.selection)
+        },
+        devices () {
+            return this.bulkOp ? this.selection : [this.selection]
         }
     },
     mounted () {
@@ -83,7 +97,11 @@ export default {
             })
         },
         assignDeviceToApplication () {
-            this.$emit('assignDevice', this.device, this.input.application.id)
+            if (this.bulkOp) {
+                this.$emit('moveDevices', this.selection, this.input.application.id)
+            } else {
+                this.$emit('assignDevice', this.selection, this.input.application.id)
+            }
         }
     }
 }

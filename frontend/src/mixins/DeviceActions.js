@@ -115,6 +115,20 @@ export default {
         },
 
         updateLocalCopyOfDevice (device) {
+            if (this.displayingInstance) {
+                // determine if the device is still owned by the instance, if not, remove it instead
+                if (!device.instance || device.instance.id !== this.instance.id) {
+                    this.deleteLocalCopyOfDevice(device)
+                    return
+                }
+            } else if (this.displayingApplication) {
+                // determine if the device is still owned by the application, if not, remove it instead
+                if (device.instance || !device.application || device.application.id !== this.application.id) {
+                    this.deleteLocalCopyOfDevice(device)
+                    return
+                }
+            }
+
             if (!this.allDeviceStatuses.get(device.id)) {
                 this.deviceCountDeltaSincePageLoad++
             }

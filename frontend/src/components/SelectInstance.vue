@@ -89,9 +89,10 @@ export default {
             this.loading.applications = true
             TeamAPI.getTeamApplications(this.team.id).then((data) => {
                 this.options.applications = data.applications.map(application => { return { value: application, label: application.name } })
-                this.loading.applications = false
             }).catch((error) => {
                 console.error(error)
+            }).finally(() => {
+                this.loading.applications = false
             })
         },
         loadInstances (applicationId) {
@@ -99,13 +100,13 @@ export default {
             ApplicationAPI.getApplicationInstances(applicationId).then((instances) => {
                 this.options.instances = instances?.filter((instance) => !this.excludeInstanceIds.includes(instance.id))
                     .map(instance => { return { value: instance, label: instance.name } }) ?? []
-                this.loading.instances = false
-
                 if (this.options.instances.length === 1) {
                     this.localValue = this.options.instances[0].value
                 }
             }).catch((error) => {
                 console.error(error)
+            }).finally(() => {
+                this.loading.instances = false
             })
         }
     }
