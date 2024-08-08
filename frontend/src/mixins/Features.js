@@ -22,6 +22,16 @@ export default {
         },
         isBlueprintsFeatureEnabled () {
             return this.isBlueprintsFeatureEnabledForTeam && this.isBlueprintsFeatureEnabledForPlatform
+        },
+        isCustomCatalogsFeatureEnabledForPlatform () {
+            return !!this.features.customCatalogs
+        },
+        isCustomCatalogsFeatureEnabledForTeam () {
+            const flag = this.team.type.properties.features?.customCatalogs
+            return flag === undefined || flag
+        },
+        isCustomCatalogsFeatureEnabled () {
+            return this.isCustomCatalogsFeatureEnabledForPlatform && this.isCustomCatalogsFeatureEnabledForTeam
         }
     }
 }
