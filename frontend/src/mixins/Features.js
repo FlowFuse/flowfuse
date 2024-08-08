@@ -12,6 +12,16 @@ export default {
         },
         isSharedLibraryFeatureEnabled () {
             return this.isSharedLibraryFeatureEnabledForTeam && this.isSharedLibraryFeatureEnabledForPlatform
+        },
+        isBlueprintsFeatureEnabledForTeam () {
+            const flag = this.team.type.properties.features?.flowBlueprints
+            return flag === undefined || flag
+        },
+        isBlueprintsFeatureEnabledForPlatform () {
+            return this.features.flowBlueprints
+        },
+        isBlueprintsFeatureEnabled () {
+            return this.isBlueprintsFeatureEnabledForTeam && this.isBlueprintsFeatureEnabledForPlatform
         }
     }
 }
