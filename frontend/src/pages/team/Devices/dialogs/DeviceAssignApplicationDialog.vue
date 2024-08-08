@@ -11,7 +11,7 @@
             <form class="space-y-6 mt-2 mb-2">
                 <p>The following device{{ devices.length > 1 ? 's' : '' }} will be affected by this operation:</p>
                 <div class="max-h-48 overflow-y-auto">
-                    <ul class="list-disc list-inside">
+                    <ul class="ff-devices-ul">
                         <li v-for="device in devices" :key="device.id">
                             <span class="font-bold">{{ device.name }}</span> <span class="text-gray-500 text-sm"> ({{ device.id }})</span>
                         </li>

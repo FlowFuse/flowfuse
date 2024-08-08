@@ -286,7 +286,7 @@
         <template #default>
             <p>The following device{{ checkedDevices.length > 1 ? 's' : '' }} will be deleted:</p>
             <div class="max-h-96 overflow-y-auto">
-                <ul class="list-disc list-inside">
+                <ul class="ff-devices-ul">
                     <li v-for="device in checkedDevices" :key="device.id">
                         <span class="font-bold">{{ device.name }}</span> <span class="text-gray-500 text-sm"> ({{ device.id }})</span>
                     </li>
@@ -310,7 +310,7 @@
             <p v-else-if="displayingApplication">The following devices will be removed from this Application:</p>
             <p v-else>The following devices will be removed from their current assignment:</p>
             <div class="max-h-96 overflow-y-auto">
-                <ul class="list-disc list-inside">
+                <ul class="ff-devices-ul">
                     <li v-for="device in checkedDevices" :key="device.id">
                         <span class="font-bold">{{ device.name }}</span> <span class="text-gray-500 text-sm"> ({{ device.id }})</span>
                     </li>
@@ -782,3 +782,11 @@ export default {
     }
 }
 </script>
+
+<style>
+.ff-dialog-content .ff-devices-ul {
+    list-style-type: disc;
+    list-style-position: inside;
+    columns: 2;
+}
+</style>
