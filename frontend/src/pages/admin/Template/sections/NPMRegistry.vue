@@ -9,9 +9,9 @@
 
         <form class="space-y-4 max-w-2xl" @submit.prevent>
             <div v-if="!projectLauncherCompatible" class="text-red-400 space-y-1">
-                <p>You will need to update your Project Stack to use this feature.</p>
+                <p>You will need to update your Instance Node-RED Version to use this feature.</p>
                 <div v-if="project.stack.replacedBy">
-                    <ff-button size="small" to="./settings/danger">Update</ff-button>
+                    <ff-button size="small" to="./settings/danger?highlight=updateStack">Update</ff-button>
                 </div>
             </div>
             <div v-else>
