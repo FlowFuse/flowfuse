@@ -4,6 +4,7 @@
             NPM configuration file
             <ChangeIndicator class="!inline-block ml-4 mt-0" :value="editable.changed.settings.palette_npmrc" />
         </FormHeading>
+        <FeatureUnavailable v-if="isCustomCatalogsFeatureEnabled" :minimal="true" class="!my-5 !mx-0 !p-0 !justify-start" />
         <form class="space-y-4 max-w-2xl" @submit.prevent>
             <div v-if="!projectLauncherCompatible" class="text-red-400 space-y-1">
                 <p>You will need to update your Project Stack to use this feature.</p>
@@ -16,18 +17,41 @@
                     <div class="space-y-4 w-full sm:mr-8">
                         <FormRow containerClass="none">
                             <template #input>
-                                <textarea v-model="editable.settings.palette_npmrc" :disabled="readOnly" class="font-mono w-full" placeholder=".npmrc" rows="8" />
+                                <textarea
+                                    v-model="editable.settings.palette_npmrc"
+                                    :disabled="!isCustomCatalogsFeatureEnabled"
+                                    class="font-mono w-full"
+                                    placeholder=".npmrc"
+                                    rows="8"
+                                />
                             </template>
                         </FormRow>
-                    </div><LockSetting v-model="editable.policy.palette_npmrc" :editTemplate="editTemplate" :changed="editable.changed.policy.palette_npmrc" />
+                    </div>
+                    <LockSetting
+                        v-model="editable.policy.palette_npmrc"
+                        :editTemplate="editTemplate"
+                        :changed="editable.changed.policy.palette_npmrc"
+                    />
                 </div>
                 <div v-else class="flex flex-col sm:flex-row">
                     <div class="space-y-4 w-full sm:mr-8">
                         <FormRow containerClass="none">
-                            <template #input><textarea v-model="editable.settings.palette_npmrc" :disabled="readOnly" class="font-mono w-full" placeholder=".npmrc" rows="8" /></template>
+                            <template #input>
+                                <textarea
+                                    v-model="editable.settings.palette_npmrc"
+                                    :disabled="readOnly && !isCustomCatalogsFeatureEnabled"
+                                    class="font-mono w-full"
+                                    placeholder=".npmrc"
+                                    rows="8"
+                                />
+                            </template>
                         </FormRow>
                     </div>
-                    <LockSetting v-model="editable.policy.palette_npmrc" :editTemplate="editTemplate" :changed="editable.changed.policy.palette_npmrc" />
+                    <LockSetting
+                        v-model="editable.policy.palette_npmrc"
+                        :editTemplate="editTemplate"
+                        :changed="editable.changed.policy.palette_npmrc"
+                    />
                 </div>
             </div>
         </form>
@@ -39,17 +63,21 @@ import SemVer from 'semver'
 
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
+import FeatureUnavailable from '../../../../components/banners/FeatureUnavailable.vue'
+import featuresMixin from '../../../../mixins/Features.js'
 import ChangeIndicator from '../components/ChangeIndicator.vue'
 import LockSetting from '../components/LockSetting.vue'
 
 export default {
     name: 'TemplateNPMEditor',
     components: {
+        FeatureUnavailable,
         FormRow,
         FormHeading,
         ChangeIndicator,
         LockSetting
     },
+    mixins: [featuresMixin],
     props: {
         editTemplate: {
             type: Boolean,
@@ -109,3 +137,13 @@ export default {
     }
 }
 </script>
+
+<style lang="scss" scoped>
+textarea:disabled {
+  background-color: $ff-white;
+  opacity: .9;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+</style>
