@@ -79,7 +79,7 @@
                             <td class="flex items-center">
                                 <div class="py-2 flex-grow">{{ instance.projectType?.name || 'none' }} / {{ instance.stack?.label || instance.stack?.name || 'none' }}</div>
                                 <div v-if="instance.stack?.replacedBy">
-                                    <ff-button size="small" to="./settings/general">Update</ff-button>
+                                    <ff-button size="small" to="./settings/general?highlight=updateStack">Update</ff-button>
                                 </div>
                             </td>
                         </tr>
