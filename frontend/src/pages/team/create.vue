@@ -14,7 +14,7 @@
         <div v-else class="m-auto">
             <form class="space-y-6">
                 <FormHeading>Create a new team</FormHeading>
-                <div class="mb-8 text-sm text-gray-500">Teams are how you organize who collaborates on your projects.</div>
+                <div class="mb-8 text-sm text-gray-500">Teams are how you organize who collaborates on your applications.</div>
                 <!-- TeamType Type -->
                 <div class="grid">
                     <ff-tile-selection v-model="input.teamTypeId">
@@ -27,33 +27,43 @@
                         />
                     </ff-tile-selection>
                 </div>
-                <FormRow id="team" v-model="input.name" :error="errors.name">
-                    Team Name
-                    <template #description>
-                        eg. 'Development'
-                    </template>
-                </FormRow>
+                <template v-if="!isContactRequired">
+                    <FormRow id="team" v-model="input.name" :error="errors.name">
+                        Team Name
+                        <template #description>
+                            eg. 'Development'
+                        </template>
+                    </FormRow>
 
-                <FormRow id="team" v-model="input.slug" :error="input.slugError" :placeholder="input.defaultSlug">
-                    URL Slug
-                    <template #description>
-                        Use the default slug based on the team name or set your own.<br>
-                        <pre>/team/&lt;slug&gt;</pre>
-                    </template>
-                </FormRow>
+                    <FormRow id="team" v-model="input.slug" :error="input.slugError" :placeholder="input.defaultSlug">
+                        URL Slug
+                        <template #description>
+                            Use the default slug based on the team name or set your own.<br>
+                            <pre>/team/&lt;slug&gt;</pre>
+                        </template>
+                    </FormRow>
 
-                <template v-if="billingEnabled">
-                    <div class="mb-8 text-sm text-gray-500 space-y-2">
-                        <p>To create the team we need to setup payment details via Stripe, our secure payment provider.</p>
-                    </div>
-                    <ff-button :disabled="!formValid" @click="createTeam()">
-                        <template #icon-right><ExternalLinkIcon /></template>
-                        Create team and setup payment details
+                    <template v-if="billingEnabled">
+                        <div class="mb-8 text-sm text-gray-500 space-y-2">
+                            <p>To create the team we need to setup payment details via Stripe, our secure payment provider.</p>
+                        </div>
+                        <ff-button :disabled="!formValid" @click="createTeam()">
+                            <template #icon-right><ExternalLinkIcon /></template>
+                            Create team and setup payment details
+                        </ff-button>
+                    </template>
+                    <ff-button v-else :disabled="!formValid" @click="createTeam()">
+                        Create team
                     </ff-button>
                 </template>
-                <ff-button v-else :disabled="!formValid" @click="createTeam()">
-                    Create team
-                </ff-button>
+                <template v-else>
+                    <div class="mb-8 text-sm text-gray-500 space-y-2">
+                        <p>To learn more about our {{ input.teamType?.name }} plan, click below to contact our sales team.</p>
+                    </div>
+                    <ff-button @click="sendContact()">
+                        Contact Sales
+                    </ff-button>
+                </template>
             </form>
         </div>
     </ff-page>
@@ -63,6 +73,7 @@
 import { ChevronLeftIcon, ExternalLinkIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
+import billingApi from '../../api/billing.js'
 import teamApi from '../../api/team.js'
 import teamTypesApi from '../../api/teamTypes.js'
 import teamsApi from '../../api/teams.js'
@@ -71,6 +82,7 @@ import FormRow from '../../components/FormRow.vue'
 
 import NavItem from '../../components/NavItem.vue'
 import SideNavigation from '../../components/SideNavigation.vue'
+import Alerts from '../../services/alerts.js'
 import slugify from '../../utils/slugify.js'
 
 export default {
@@ -135,6 +147,11 @@ export default {
         },
         slugValid () {
             return /^[a-z0-9-_]+$/i.test(this.input.slug)
+        },
+        isContactRequired () {
+            return this.billingEnabled &&
+                   !this.user.admin &&
+                   this.input.teamType && this.input.teamType.properties?.billing?.requireContact
         }
     },
     async created () {
@@ -194,6 +211,17 @@ export default {
                     })
                 }
             }, 200)
+        },
+        sendContact: async function () {
+            if (this.input.teamType) {
+                billingApi.sendTeamTypeContact(this.user, this.input.teamType, 'Create Team').then(() => {
+                    this.$router.go(-1)
+                    Alerts.emit('Thanks for getting in touch. We will contact you soon regarding your request.', 'info', 15000)
+                }).catch(err => {
+                    Alerts.emit('Something went wrong with the request. Please try again or contact support for help.', 'info', 15000)
+                    console.error('Failed to submit hubspot form: ', err)
+                })
+            }
         }
     },
     components: {
