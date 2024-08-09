@@ -50,6 +50,7 @@ export default {
             try {
                 await userApi.verifyEmailToken(this.token)
                 clearTimeout(this.resendTimeout)
+                // TODO: Use Vue Router here and set flag for welcome tour
                 window.location = '/'
             } catch (err) {
                 // Verification failed.

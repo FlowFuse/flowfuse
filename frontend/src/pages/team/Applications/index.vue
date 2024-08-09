@@ -104,6 +104,7 @@ import teamApi from '../../../api/team.js'
 import EmptyState from '../../../components/EmptyState.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
+import Tour from '../../../tours/tour-welcome.js'
 
 import ApplicationListItem from './components/Application.vue'
 
@@ -115,7 +116,7 @@ export default {
         EmptyState,
         PlusSmIcon
     },
-    mixins: [permissionsMixin],
+    mixins: [permissionsMixin, Tour],
     data () {
         return {
             loading: false,

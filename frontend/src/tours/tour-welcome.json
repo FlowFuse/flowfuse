@@ -1,0 +1,26 @@
+[{
+    "title": "Welcome to FlowFuse!",
+    "text": "<p>Welcome to FlowFuse, the complete platform for building, managing and deploying your Node-RED applications.</p><p><b>Let's take a quick tour to get you started.</b></p>"
+}, {
+    "title": "Concept: Applicatons",
+    "text": "<p><b>This is your first Application in FlowFuse.</b></p><p>Applications are the top level container for your Node-RED Instances, Edge Devices and other resources.</p>",
+    "attachTo": {
+        "element": "li[data-el=\"application-item\"]",
+        "on": "bottom"
+    },
+    "modalOverlayOpeningXOffset": 12
+}, {
+    "title": "Concept: Instances",
+    "text": "<p><b>Your first Node-RED Instance.</b></p><p>We've already spun up the first Node-RED Instance for you. It will be ready shortly.</p>",
+    "attachTo": {
+        "element": "div[data-el=\"application-instance-item\"]",
+        "on": "bottom"
+    }
+}, {
+    "title": "Concept: Devices",
+    "text": "<p>Devices are Node-RED instances that are managed and deployed remotely.</p><p>Generally, this refers to Node-RED running on hardware in factories or it could even be running on a Raspberry Pi on your desk.</p>",
+    "attachTo": {
+        "element": "div[data-el=\"application-instance-item\"]",
+        "on": "bottom"
+    }
+}]
