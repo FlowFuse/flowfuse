@@ -5,7 +5,9 @@
             <ChangeIndicator class="!inline-block ml-4 mt-0" :value="editable.changed.settings.palette_catalogue" />
         </FormHeading>
 
-        <FeatureUnavailable v-if="!isCustomCatalogsFeatureEnabled" :minimal="true" class="!my-5 !mx-0 !p-0 !justify-start" />
+        <FeatureUnavailable v-if="!isCustomCatalogsFeatureEnabledForPlatform" :minimal="true" class="!my-5 !mx-0 !p-0 !justify-start" />
+
+        <FeatureUnavailableToTeam v-if="!isCustomCatalogsFeatureEnabledForTeam" :minimal="true" class="!my-5 !mx-0 !p-0 !justify-start" />
 
         <form class="space-y-4 max-w-2xl" @submit.prevent>
             <div v-if="!projectLauncherCompatible" class="text-red-400 space-y-1">
@@ -95,6 +97,7 @@ import SemVer from 'semver'
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
 import FeatureUnavailable from '../../../../components/banners/FeatureUnavailable.vue'
+import FeatureUnavailableToTeam from '../../../../components/banners/FeatureUnavailableToTeam.vue'
 import UndoIcon from '../../../../components/icons/Undo.js'
 import featuresMixin from '../../../../mixins/Features.js'
 import ChangeIndicator from '../components/ChangeIndicator.vue'
@@ -103,6 +106,7 @@ import LockSetting from '../components/LockSetting.vue'
 export default {
     name: 'TemplateCatalogueEditor',
     components: {
+        FeatureUnavailableToTeam,
         FeatureUnavailable,
         FormRow,
         FormHeading,
