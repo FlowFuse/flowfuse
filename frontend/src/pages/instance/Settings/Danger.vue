@@ -8,26 +8,36 @@
     <form v-if="!isLoading" class="space-y-6">
         <template v-if="hasPermission('project:edit')">
             <FormHeading>Change Instance Node-RED Version</FormHeading>
-            <div v-if="instance.stack && instance.stack.replacedBy" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+            <div ref="updateStack" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="flex-grow">
-                    <div class="max-w-sm">
+                    <p v-if="instance.stack && instance.stack.replacedBy" class="max-w-sm mb-5">
                         There is a new version of Node-RED available.
-                        Updating the Node-RED Version will restart the instance.
-                    </div>
-                </div>
-                <div class="min-w-fit flex-shrink-0">
-                    <ff-button data-action="update-stack" :disabled="!instance.projectType" kind="secondary" @click="upgradeStack()">Update Node-RED Version</ff-button>
-                </div>
-            </div>
-            <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-                <div class="flex-grow">
-                    <div class="max-w-sm">
+                    </p>
+                    <p class="max-w-sm">
                         Changing the Instances Node-RED Version requires the instance to be restarted.
                         The flows will not be running while this happens.
-                    </div>
+                    </p>
                 </div>
-                <div class="min-w-fit flex-shrink-0">
-                    <ff-button data-action="change-stack" :disabled="!instance.projectType" kind="secondary" @click="showChangeStackDialog()">Change Node-RED Version</ff-button>
+                <div class="min-w-fit flex-shrink-0 flex-col gap-5">
+                    <ff-button
+                        v-if="instance.stack && instance.stack.replacedBy"
+                        ref="updateStackButton"
+                        class="mb-5"
+                        data-action="update-stack"
+                        :disabled="!instance.projectType"
+                        kind="primary"
+                        @click="upgradeStack()"
+                    >
+                        Update Node-RED Version
+                    </ff-button>
+                    <ff-button
+                        data-action="change-stack"
+                        :disabled="!instance.projectType"
+                        kind="secondary"
+                        @click="showChangeStackDialog()"
+                    >
+                        Change Node-RED Version
+                    </ff-button>
                     <ChangeStackDialog ref="changeStackDialog" @confirm="changeStack" />
                 </div>
             </div>
@@ -120,6 +130,7 @@ import { mapState } from 'vuex'
 import InstanceApi from '../../../api/instances.js'
 
 import FormHeading from '../../../components/FormHeading.vue'
+import { scrollToAndJiggleHighlight } from '../../../composables/Ux.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import alerts from '../../../services/alerts.js'
 
@@ -162,6 +173,7 @@ export default {
     },
     mounted () {
         this.checkAccess()
+        this.highlightElements()
     },
     methods: {
         async checkAccess () {
@@ -228,6 +240,20 @@ export default {
                     this.loading.changingStack = false
                 })
             }
+        },
+        highlightElements () {
+            if (
+                this.$route.query.highlight &&
+                Object.keys(this.$refs).includes(this.$route.query.highlight) &&
+                this.$route.query.highlight === 'updateStack'
+            ) {
+                scrollToAndJiggleHighlight(
+                    this.$refs.updateStack,
+                    this.$refs.updateStackButton.$el,
+                    { count: 2 }
+                )
+            }
+            this.$router.replace({ query: null })
         }
     }
 }
