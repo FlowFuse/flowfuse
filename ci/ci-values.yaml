@@ -9,6 +9,10 @@ postgresql:
   persistence:
     enabled: false
   primary:
+    resources:
+      requests:
+        cpu: 1m
+        memory: 1Mi
     nodeAffinityPreset:
       type: "hard"
       key: "role"
