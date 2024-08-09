@@ -790,7 +790,7 @@ describe('User API', async function () {
         })
         it('Last owner of a team cannot delete own account when the team has devices present', async function () {
             const amidala = await app.db.models.User.create({ username: 'amidala', name: 'Padme Amidala', email: 'amidala@example.com', email_verified: true, password: 'paPassword', admin: false, sso_enabled: false })
-            const nabooTeam = await app.db.models.Team.create({ name: 'nabooTeam', TeamTypeId: app.defaultTeamType.id })
+            const nabooTeam = await app.db.models.Team.create({ name: 'nabooTeam2', TeamTypeId: app.defaultTeamType.id })
 
             await nabooTeam.addUser(amidala, { through: { role: Roles.Owner } })
 
@@ -801,10 +801,7 @@ describe('User API', async function () {
             // we create a device so Padme won't be able to delete her account
             await app.factory.createDevice(
                 {
-                    name: 'unnamed-devisasdce',
-                    type: 'unnasdamed-type',
-                    credentialSecret: 'zxc',
-                    agentVersion: '1.11.0asd'
+                    name: 'some-device'
                 },
                 nabooTeam,
                 null,
@@ -819,7 +816,7 @@ describe('User API', async function () {
             })
             response.statusCode.should.equal(400)
             const json = response.json()
-            json.should.have.property('error', 'Error: Team nabooTeam which is being deleted alongside your account still has devices assigned to it.')
+            json.should.have.property('error', 'Error: Team nabooTeam2 which is being deleted alongside your account still has devices assigned to it.')
         })
         it('Non admin user who is a team member can delete own account', async function () {
             await login('grace', 'ggPassword')
@@ -841,13 +838,13 @@ describe('User API', async function () {
         })
         it('Team owner can delete own account if no other members, instances or devices exist', async function () {
             const amidala = await app.db.models.User.create({ username: 'amidala', name: 'Padme Amidala', email: 'amidala@example.com', email_verified: true, password: 'paPassword', admin: false, sso_enabled: false })
-            const nabooTeam = await app.db.models.Team.create({ name: 'nabooTeam', TeamTypeId: app.defaultTeamType.id })
+            const nabooTeam = await app.db.models.Team.create({ name: 'nabooTeam3', TeamTypeId: app.defaultTeamType.id })
 
             await nabooTeam.addUser(amidala, { through: { role: Roles.Owner } })
 
             await login('amidala', 'paPassword')
 
-            await app.factory.createApplication({ name: 'senate-app' }, nabooTeam)
+            await app.factory.createApplication({ name: 'senate-app-2' }, nabooTeam)
 
             // Padme now attempts to delete own account: should fail as she still has instances attached to her team
             const response = await app.inject({
