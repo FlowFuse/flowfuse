@@ -134,7 +134,9 @@ module.exports = {
                 }
 
                 // delete remaining owned teams
-                teamOwnerships.forEach(team => team.Team.destroy())
+                for (const ownedTeam of teamOwnerships) {
+                    await ownedTeam.destroy()
+                }
 
                 // Need to do this in beforeDestroy as the Session.UserId field
                 // is set to NULL when user is deleted.
