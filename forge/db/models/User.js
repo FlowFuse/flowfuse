@@ -100,7 +100,7 @@ module.exports = {
                 // throw an error if we would orphan any teams
                 const teams = await app.db.models.Team.forUser(user)
                 const teamBlockers = []
-                const teamOwnerships = []
+                const ownedTeams = []
                 for (const team of teams) {
                     const owners = await team.Team.getOwners()
                     const isOwner = owners.find((owner) => owner.id === user.id)
@@ -110,7 +110,7 @@ module.exports = {
                         const deviceCount = await team.Team.deviceCount()
                         const members = await team.Team.memberCount()
 
-                        teamOwnerships.push(team)
+                        ownedTeams.push(team)
 
                         // throw error if the team has other members assigned to it
                         if (members > 1) {
@@ -134,7 +134,7 @@ module.exports = {
                 }
 
                 // delete remaining owned teams
-                for (const ownedTeam of teamOwnerships) {
+                for (const ownedTeam of ownedTeams) {
                     await ownedTeam.destroy()
                 }
 
