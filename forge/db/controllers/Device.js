@@ -367,7 +367,7 @@ module.exports = {
                     continue
                 } else {
                     device.ProjectId = assignToProject.id
-                    device.ApplicationId = null
+                    device.ApplicationId = assignToProject.ApplicationId
                     device.targetSnapshotId = projectTargetSnapshotId // inherit the target snapshot of the project
                     device.DeviceGroupId = null // not relevant to instance devices
                     devicesToUpdate.push(device)
