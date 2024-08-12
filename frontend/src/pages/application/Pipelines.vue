@@ -83,6 +83,7 @@
                     params: { applicationId: application.id },
                 }"
                 :disabled="!featureEnabled"
+                data-action="pipeline-add"
             >
                 <template #icon-left><PlusSmIcon /></template>
                 Add Pipeline
