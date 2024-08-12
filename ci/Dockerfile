@@ -1,4 +1,4 @@
-FROM node:18-alpine as builder
+FROM node:18-alpine AS builder
 
 RUN apk add --no-cache --virtual build-base g++ make py3-pip sqlite-dev python3
 

@@ -1,6 +1,7 @@
 <template>
     <div
         class="ff-page-banner my-4"
+        :class="{minimal: minimal}"
         data-el="page-banner-feature-unavailable-to-team"
     >
         <SparklesIcon class="ff-icon mr-2" style="stroke-width: 1px;" />
@@ -36,6 +37,11 @@ export default {
         fullMessage: {
             type: String,
             default: ''
+        },
+        minimal: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
     computed: {
