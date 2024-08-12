@@ -808,7 +808,7 @@ describe('User API', async function () {
                 nabooTeamApplication
             )
 
-            // frank now attempts to delete own account: should fail as frank is the last owner of team B
+            // Padme now attempts to delete own account: should fail as owned team has devices attached
             const response = await app.inject({
                 method: 'DELETE',
                 url: '/api/v1/user',
