@@ -22,16 +22,10 @@
                     @click.stop="$emit('device-action',{action: 'edit', id: device.id})"
                 />
                 <ff-list-item
-                    v-if="device.ownerType === 'application' && (displayingTeam || displayingApplication)"
+                    v-if="(displayingTeam || displayingApplication)"
                     label="Remove from Application"
                     data-action="device-remove-from-application"
                     @click.stop="$emit('device-action',{action: 'removeFromApplication', id: device.id})"
-                />
-                <ff-list-item
-                    v-else-if="device.ownerType === 'instance' && (displayingTeam || displayingInstance)"
-                    label="Remove from Instance"
-                    data-action="device-remove-from-instance"
-                    @click.stop="$emit('device-action',{action: 'removeFromProject', id: device.id})"
                 />
                 <ff-list-item
                     kind="danger"

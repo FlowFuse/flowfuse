@@ -1,6 +1,7 @@
 <template>
     <div
         class="ff-page-banner my-4"
+        :class="{minimal: minimal}"
         data-el="page-banner-feature-unavailable"
     >
         <SparklesIcon class="ff-icon mr-2" style="stroke-width: 1px;" />
@@ -23,6 +24,11 @@ export default {
         message: {
             type: String,
             default: 'This is a FlowFuse Enterprise feature'
+        },
+        minimal: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     }
 }
