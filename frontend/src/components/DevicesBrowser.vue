@@ -789,4 +789,9 @@ export default {
     list-style-position: inside;
     columns: 2;
 }
+.ff-dialog-content .ff-devices-ul li {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 </style>
