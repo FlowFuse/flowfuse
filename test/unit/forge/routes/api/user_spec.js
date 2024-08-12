@@ -846,7 +846,7 @@ describe('User API', async function () {
 
             await app.factory.createApplication({ name: 'senate-app-2' }, nabooTeam)
 
-            // Padme now attempts to delete own account: should fail as she still has instances attached to her team
+            // Padme now attempts to delete own account: should succeed even though it has instances attached to the team
             const response = await app.inject({
                 method: 'DELETE',
                 url: '/api/v1/user',
