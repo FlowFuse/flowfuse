@@ -7,7 +7,7 @@ const { DataTypes, QueryInterface } = require('sequelize')
 
 module.exports = {
     /**
-     * @param {QueryInterface} context Sequelize.QueryInterface
+     * @param {QueryInterface} queryInterface Sequelize.QueryInterface
      */
     up: async (queryInterface) => {
         if (queryInterface.sequelize.options.dialect === 'postgres') {
