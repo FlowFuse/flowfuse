@@ -62,7 +62,7 @@ import { mapState } from 'vuex'
 import { Roles } from '../../../../forge/lib/roles.js'
 
 import ApplicationAPI from '../../api/application.js'
-import { StageType } from '../../api/pipeline.js'
+import { StageAction, StageType } from '../../api/pipeline.js'
 
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
@@ -216,7 +216,7 @@ export default {
         },
         nextStageAvailable (stage, $index) {
             const endofPipeline = ($index >= this.pipeline.stages.length - 1)
-            if (!endofPipeline) {
+            if (stage.action !== StageAction.NONE && !endofPipeline) {
                 // we are mid-pipeline
                 const nextStage = this.pipeline.stages[$index + 1]
                 if (nextStage.instance?.protected?.enabled && this.teamMembership.role !== Roles.Owner) {
@@ -228,7 +228,7 @@ export default {
                 }
                 return true
             } else {
-                // end of pipeline - nothing to deploy to
+                // 'none' action or end of pipeline - nothing to deploy to
                 return false
             }
         },

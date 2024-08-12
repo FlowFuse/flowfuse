@@ -496,6 +496,12 @@ module.exports = async function (app) {
                 request.params.stageId
             )
 
+            if (sourceStage?.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.NONE) {
+                // Nothing to do
+                reply.code(200).send({ status: 'okay' })
+                return
+            }
+
             const {
                 sourceInstance,
                 targetInstance,

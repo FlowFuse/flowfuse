@@ -448,6 +448,7 @@ export default {
             } else if (this.input.stageType === StageType.DEVICE) {
                 options.unshift({ value: StageAction.USE_ACTIVE_SNAPSHOT, label: 'Use active snapshot' })
             }
+            options.unshift({ value: StageAction.NONE, label: 'Do nothing' })
 
             return options
         }
