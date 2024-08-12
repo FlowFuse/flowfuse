@@ -2,7 +2,7 @@ import { mapState } from 'vuex'
 
 export default {
     computed: {
-        ...mapState('account', ['features']),
+        ...mapState('account', ['features', 'team']),
         isSharedLibraryFeatureEnabledForTeam () {
             const flag = this.team.type.properties.features?.['shared-library']
             return flag === undefined || flag
@@ -22,6 +22,16 @@ export default {
         },
         isBlueprintsFeatureEnabled () {
             return this.isBlueprintsFeatureEnabledForTeam && this.isBlueprintsFeatureEnabledForPlatform
+        },
+        isCustomCatalogsFeatureEnabledForPlatform () {
+            return !!this.features.customCatalogs
+        },
+        isCustomCatalogsFeatureEnabledForTeam () {
+            const flag = this.team.type.properties.features?.customCatalogs
+            return flag === undefined || flag
+        },
+        isCustomCatalogsFeatureEnabled () {
+            return this.isCustomCatalogsFeatureEnabledForPlatform && this.isCustomCatalogsFeatureEnabledForTeam
         }
     }
 }
