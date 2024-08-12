@@ -63,7 +63,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-action"] .ff-dropdown').click()
         cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
-        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:contains("Create new instance snapshot")').click()
 
         cy.get('[data-action="add-stage"]').click()
 
@@ -200,7 +200,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         // Select "Create new Snapshot"
         cy.get('[data-form="stage-action"] .ff-dropdown').click()
         cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
-        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:first').click() // prompt
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:contains("Create new instance snapshot")').click() // prompt
 
         cy.get('[data-action="add-stage"]').click()
 
@@ -287,7 +287,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-action"] .ff-dropdown').click()
         cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
-        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:last').click() // prompt
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:contains("Prompt")').click() // prompt
 
         cy.get('[data-action="add-stage"]').click()
 
@@ -503,7 +503,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-action"] .ff-dropdown').click()
         cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
-        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:contains("Create new instance snapshot")').click()
 
         cy.get('[data-action="add-stage"]').click()
 
@@ -618,7 +618,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-action"] .ff-dropdown').click()
         cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
-        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:contains("Create new instance snapshot")').click()
 
         cy.get('[data-action="add-stage"]').click()
 
@@ -679,7 +679,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-action"] .ff-dropdown').click()
         cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
-        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:contains("Create new instance snapshot")').click()
 
         cy.get('[data-action="add-stage"]').click()
 
@@ -766,7 +766,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-action"] .ff-dropdown').click()
         cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
-        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:contains("Create new instance snapshot")').click()
 
         cy.get('[data-action="add-stage"]').click()
 
