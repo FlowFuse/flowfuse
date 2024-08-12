@@ -18,6 +18,7 @@ const Permissions = {
     'team:delete': { description: 'Delete Team', role: Roles.Owner },
     'team:audit-log': { description: 'Access Team Audit Log', role: Roles.Owner },
     'team:device:bulk-delete': { description: 'Delete Devices', role: Roles.Owner },
+    'team:device:bulk-edit': { description: 'Edit Devices', role: Roles.Owner },
     // Team Auto Device Provisioning Tokens
     'team:device:provisioning-token:create': { description: 'Create a Team Auto Device Provisioning Token', role: Roles.Owner },
     'team:device:provisioning-token:edit': { description: 'Edit a Team Auto Device Provisioning Token', role: Roles.Owner },
