@@ -40,7 +40,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         const PIPELINE_NAME = `My New Pipeline - ${Math.random().toString(36).substring(2, 7)}`
 
         // Add pipeline
-        cy.get('[data-action="pipeline-add"]').click()
+        cy.get('[data-el="empty-state"] [data-action="pipeline-add"]').click()
         cy.get('[data-form="pipeline-form"]').should('be.visible')
 
         cy.get('[data-form="pipeline-name"] input').type(PIPELINE_NAME)
@@ -113,7 +113,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         const PIPELINE_NAME = `My New Pipeline - ${Math.random().toString(36).substring(2, 7)}`
 
         // Add pipeline
-        cy.get('[data-action="pipeline-add"]').click()
+        cy.get('[data-el="empty-state"] [data-action="pipeline-add"]').click()
         cy.get('[data-form="pipeline-name"] input').type(PIPELINE_NAME)
         cy.get('[data-action="create-pipeline"]').click()
 

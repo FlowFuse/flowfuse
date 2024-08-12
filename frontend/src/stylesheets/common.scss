@@ -2,6 +2,7 @@
 
 @import "./layouts.scss";
 @import "./transitions.scss";
+@import "./animations.scss";
 @import "./components/charts.scss";
 
 #ff-app {
@@ -176,4 +177,10 @@ label {
     align-items: center;
     justify-content: center;
     padding: 8px 16px;
+    
+    &.minimal {
+        background: none;
+        border: none;
+        border-radius: 0;
+    }
 }
