@@ -10,7 +10,7 @@ module.exports = {
      * @param {QueryInterface} context Sequelize.QueryInterface
      */
     up: async (queryInterface) => {
-        if (queryInterface.sequelize.options.dialog === 'postgres') {
+        if (queryInterface.sequelize.options.dialect === 'postgres') {
             // Postgres enums need to be explicitly updated
             queryInterface.sequelize.query("ALTER TYPE \"enum_PipelineStages_action\" ADD VALUE 'none';")
         }
