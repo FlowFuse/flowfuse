@@ -63,6 +63,8 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-action"] .ff-dropdown').click()
         cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
+        // First stage should not have 'do nothing' as an option
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:contains("Do nothing")').should('not.exist')
         cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:contains("Create new instance snapshot")').click()
 
         cy.get('[data-action="add-stage"]').click()
@@ -76,6 +78,8 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-instance"] .ff-dropdown').click()
         cy.get('[data-form="stage-instance"] .ff-dropdown-options').should('be.visible')
+        // Last stage should have 'do nothing' as an option
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:contains("Do nothing")').should('exist')
         cy.get('[data-form="stage-instance"] .ff-dropdown-options > .ff-dropdown-option:first').click()
 
         cy.get('[data-form="stage-action"] .ff-dropdown').click()
@@ -157,6 +161,8 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-instance"] .ff-dropdown-selected').should('contain', 'instance-2-with-devices')
 
+        // First stage should not have 'do nothing' as an option
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:contains("Do nothing")').should('not.exist')
         cy.get('[data-form="stage-action"] .ff-dropdown-selected').should('contain', 'Prompt to select instance snapshot')
 
         cy.get('[data-action="add-stage"]').click()
