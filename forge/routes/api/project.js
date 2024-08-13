@@ -1081,7 +1081,7 @@ module.exports = async function (app) {
             ...result.log.map(row => [
                 row.id,
                 row.event,
-                `"${row.body ? JSON.stringify(row.body).replace(/"/g,'""'): ''}"`,
+                `"${row.body ? JSON.stringify(row.body).replace(/"/g, '""') : ''}"`,
                 `"${JSON.stringify(row.scope).replace(/"/g, '""')}"`,
                 `"${JSON.stringify(row.trigger).replace(/"/g, '""')}"`,
                 row.createdAt
