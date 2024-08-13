@@ -524,13 +524,13 @@ module.exports = async function (app) {
             ...result.log.map(row => [
                 row.id,
                 row.event,
-                JSON.stringify(JSON.stringify(row.body)),
-                JSON.stringify(JSON.stringify(row.scope)),
-                JSON.stringify(JSON.stringify(row.trigger)),
-                `"${row.createdAt}"`
+                `"${row.body ? JSON.stringify(row.body).replace(/"/g,'""'): ''}"`,
+                `"${JSON.stringify(row.scope).replace(/"/g, '""')}"`,
+                `"${JSON.stringify(row.trigger).replace(/"/g, '""')}"`,
+                row.createdAt
             ])
         ]
             .map(row => row.join(','))
-            .join('\n'))
+            .join('\r\n'))
     })
 }
