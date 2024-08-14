@@ -514,18 +514,13 @@ module.exports = {
                     const runtimeLimit = await this.getRuntimeLimit()
                     if (runtimeLimit > -1) {
                         const currentRuntimeCount = currentDeviceCount + totalInstanceCount
-                        if (currentRuntimeCount >= runtimeLimit) {
+                        if (currentRuntimeCount > runtimeLimit) {
                             errors.push({
                                 code: 'instance_limit_reached',
                                 error: 'Instance limit reached',
                                 limit: runtimeLimit,
                                 count: currentRuntimeCount
                             })
-
-                            const err = new Error()
-                            err.code = 'instance_limit_reached'
-                            err.error = 'Team instance limit reached'
-                            throw err
                         }
                     }
 
