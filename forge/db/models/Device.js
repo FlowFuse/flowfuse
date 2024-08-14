@@ -4,6 +4,8 @@
  */
 const crypto = require('crypto')
 
+const SemVer = require('semver')
+
 const { DataTypes, Op } = require('sequelize')
 
 const Controllers = require('../controllers')
@@ -201,6 +203,21 @@ module.exports = {
                         limit: 1
                     })
                     return snapshots[0]
+                },
+                getDefaultNodeRedVersion () {
+                    let nodeRedVersion = '3.0.2' // default to older Node-RED
+                    if (SemVer.satisfies(SemVer.coerce(this.agentVersion), '>=1.11.2')) {
+                        // 1.11.2 includes fix for ESM loading of GOT, so lets use 'latest' as before
+                        nodeRedVersion = 'latest'
+                    }
+                    return nodeRedVersion
+                },
+                getDefaultModules () {
+                    return {
+                        'node-red': this.getDefaultNodeRedVersion(),
+                        '@flowfuse/nr-project-nodes': '>0.5.0', // TODO: get this from the "settings" (future)
+                        '@flowfuse/nr-assistant': '>=0.1.0'
+                    }
                 }
             },
             static: {
