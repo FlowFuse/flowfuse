@@ -477,4 +477,41 @@ module.exports = async function (app) {
         const result = app.db.views.AuditLog.auditLog(logEntries)
         reply.send(result)
     })
+
+    /**
+     * Get the application BOM
+     * @name /api/v1/application/:applicationId/bom
+     * @memberof forge.routes.api.application
+     */
+    app.get('/:applicationId/bom', {
+        preHandler: app.needsPermission('application:bom'),
+        schema: {
+            summary: 'Get application BOM',
+            tags: ['Applications'],
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    $ref: 'ApplicationBom'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const dependants = await request.application.getChildren({ includeDependencies: true })
+        const childrenView = dependants.map(child => app.db.views.BOM.dependant(child.model, child.dependencies))
+        const result = {
+            id: request.application.hashid,
+            name: request.application.name,
+            children: childrenView
+        }
+        reply.send(result)
+    })
 }
