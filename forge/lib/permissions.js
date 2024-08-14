@@ -120,6 +120,9 @@ const Permissions = {
     /**
      * EE Permissions
      */
+    // Application
+    'application:bom': { description: 'Get the Bill of Materials', role: Roles.Owner },
+
     // Device Groups
     'application:device-group:create': { description: 'Create a device group', role: Roles.Owner },
     'application:device-group:list': { description: 'List device groups', role: Roles.Member },
