@@ -155,68 +155,73 @@ export default {
                    this.input.teamType && this.input.teamType.properties?.billing?.requireContact
         },
         upgradeErrors () {
-            // Check the following limits:
-            // - User count
-            // - Device count
-            // - Instance Type counts
-            const errors = []
-            const currentMemberCount = this.team.memberCount
-            const targetMemberLimit = this.input.teamType.properties?.users?.limit ?? -1
-            if (targetMemberLimit !== -1 && targetMemberLimit < currentMemberCount) {
-                errors.push({
-                    code: 'member_limit_reached',
-                    error: 'Team Member limit reached',
-                    limit: targetMemberLimit,
-                    count: currentMemberCount
-                })
-            }
-
-            const currentInstanceCountsByType = this.team.instanceCountByType
-            const targetInstanceLimits = {}
-            let totalInstanceCount = 0
-            for (const instanceType of Object.keys(currentInstanceCountsByType)) {
-                if (!this.input.teamType.properties?.instances?.[instanceType]?.active ?? false) {
-                    targetInstanceLimits[instanceType] = 0
-                } else {
-                    targetInstanceLimits[instanceType] = this.input.teamType.properties?.instances?.[instanceType]?.limit ?? -1
-                }
-                totalInstanceCount += currentInstanceCountsByType[instanceType]
-                if (targetInstanceLimits[instanceType] !== -1 && targetInstanceLimits[instanceType] < currentInstanceCountsByType[instanceType]) {
+            try {
+                // Check the following limits:
+                // - User count
+                // - Device count
+                // - Instance Type counts
+                const errors = []
+                const currentMemberCount = this.team.memberCount
+                const targetMemberLimit = this.input.teamType.properties?.users?.limit ?? -1
+                if (targetMemberLimit !== -1 && targetMemberLimit < currentMemberCount) {
                     errors.push({
-                        code: 'instance_limit_reached',
-                        error: `${this.instanceTypes[instanceType].name} instance type limit reached`,
-                        type: this.instanceTypes[instanceType].name,
-                        limit: targetInstanceLimits[instanceType],
-                        count: currentInstanceCountsByType[instanceType]
+                        code: 'member_limit_reached',
+                        error: 'Team Member limit reached',
+                        limit: targetMemberLimit,
+                        count: currentMemberCount
                     })
                 }
-            }
 
-            const currentDeviceCount = this.team.deviceCount
-            const targetDeviceLimit = this.input.teamType.properties?.devices?.limit ?? -1
-            if (targetDeviceLimit !== -1 && targetDeviceLimit < currentDeviceCount) {
-                errors.push({
-                    code: 'device_limit_reached',
-                    error: 'Device limit reached',
-                    limit: targetDeviceLimit,
-                    count: currentDeviceCount
-                })
-            }
+                const currentInstanceCountsByType = this.team.instanceCountByType
+                const targetInstanceLimits = {}
+                let totalInstanceCount = 0
+                for (const instanceType of Object.keys(currentInstanceCountsByType)) {
+                    if (!this.input.teamType.properties?.instances?.[instanceType]?.active ?? false) {
+                        targetInstanceLimits[instanceType] = 0
+                    } else {
+                        targetInstanceLimits[instanceType] = this.input.teamType.properties?.instances?.[instanceType]?.limit ?? -1
+                    }
+                    totalInstanceCount += currentInstanceCountsByType[instanceType]
+                    if (targetInstanceLimits[instanceType] !== -1 && targetInstanceLimits[instanceType] < currentInstanceCountsByType[instanceType]) {
+                        errors.push({
+                            code: 'instance_limit_reached',
+                            error: `${this.instanceTypes[instanceType].name} instance type limit reached`,
+                            type: this.instanceTypes[instanceType].name,
+                            limit: targetInstanceLimits[instanceType],
+                            count: currentInstanceCountsByType[instanceType]
+                        })
+                    }
+                }
 
-            // Check for a combined instance+device limit
-            const runtimeLimit = this.input.teamType.properties?.runtimes.limit ?? -1
-            if (runtimeLimit > -1) {
-                const currentRuntimeCount = currentDeviceCount + totalInstanceCount
-                if (currentRuntimeCount > runtimeLimit) {
+                const currentDeviceCount = this.team.deviceCount
+                const targetDeviceLimit = this.input.teamType.properties?.devices?.limit ?? -1
+                if (targetDeviceLimit !== -1 && targetDeviceLimit < currentDeviceCount) {
                     errors.push({
-                        code: 'runtime_limit_reached',
-                        error: 'Runtime limit reached',
-                        limit: runtimeLimit,
-                        count: currentRuntimeCount
+                        code: 'device_limit_reached',
+                        error: 'Device limit reached',
+                        limit: targetDeviceLimit,
+                        count: currentDeviceCount
                     })
                 }
+
+                // Check for a combined instance+device limit
+                const runtimeLimit = this.input.teamType.properties?.runtimes?.limit ?? -1
+                if (runtimeLimit > -1) {
+                    const currentRuntimeCount = currentDeviceCount + totalInstanceCount
+                    if (currentRuntimeCount > runtimeLimit) {
+                        errors.push({
+                            code: 'runtime_limit_reached',
+                            error: 'Runtime limit reached',
+                            limit: runtimeLimit,
+                            count: currentRuntimeCount
+                        })
+                    }
+                }
+                return errors
+            } catch (err) {
+                console.warn(err)
+                return []
             }
-            return errors
         }
     },
     watch: {
