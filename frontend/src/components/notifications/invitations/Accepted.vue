@@ -22,7 +22,7 @@
 <script>
 import { UserAddIcon } from '@heroicons/vue/solid'
 
-import { RoleNames, Roles } from '../../../../../forge/lib/roles.js'
+import { RoleNames } from '../../../../../forge/lib/roles.js'
 
 import NotificationMessageMixin from '../../../mixins/NotificationMessage.js'
 
