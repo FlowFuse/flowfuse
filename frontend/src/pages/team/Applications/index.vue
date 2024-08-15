@@ -100,6 +100,8 @@
 <script>
 import { PlusSmIcon, SearchIcon } from '@heroicons/vue/outline'
 
+import { mapState } from 'vuex'
+
 import teamApi from '../../../api/team.js'
 import EmptyState from '../../../components/EmptyState.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
@@ -130,6 +132,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('ux', ['tours']),
         applicationsList () {
             return Array.from(this.applications.values()).map(app => {
                 return {
@@ -210,9 +213,8 @@ export default {
             })
         }
         // first time arriving here
-        if (true) {
-            const tour = Tours.create('tour-welcome', TourWelcome)
-            console.log(tour)
+        if (this.tours.welcome) {
+            const tour = Tours.create('welcome', TourWelcome)
             tour.start()
         }
     },

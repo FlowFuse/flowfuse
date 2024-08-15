@@ -44,15 +44,18 @@ export default {
             resendTimeout: null
         }
     },
-    computed: mapState('account', ['user']),
+    computed: {
+        ...mapState('account', ['user'])
+    },
     methods: {
         async submitVerificationToken () {
             try {
                 await userApi.verifyEmailToken(this.token)
                 clearTimeout(this.resendTimeout)
-                // TODO: Use Vue Router here and set flag for welcome tour
-                window.location = '/'
+                this.$store.dispatch('ux/activateTour', 'welcome')
+                this.$router.go()
             } catch (err) {
+                console.error(err)
                 // Verification failed.
                 this.token = ''
                 this.error = 'Verification failed. Click resend to receive a new code to try again'

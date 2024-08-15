@@ -2,6 +2,8 @@
 import { offset } from '@floating-ui/dom'
 import { useShepherd } from 'vue-shepherd'
 
+import { useStore } from 'vuex'
+
 import Product from '../services/product.js'
 
 // eslint-disable-next-line n/no-extraneous-import
@@ -9,6 +11,7 @@ import 'shepherd.js/dist/css/shepherd.css'
 import './tour-theme.scss'
 
 function create (id, tourJson) {
+    const store = useStore()
     Product.capture('ff-tour-start', {
         tour_id: id
     })
@@ -29,6 +32,7 @@ function create (id, tourJson) {
 
     function onCancel () {
         const index = tour.steps.indexOf(tour.currentStep)
+        store.dispatch('ux/deactivateTour', id)
         Product.capture('ff-tour-cancel', {
             tour_id: id,
             tour_step: index
@@ -36,6 +40,7 @@ function create (id, tourJson) {
     }
 
     function onComplete () {
+        store.dispatch('ux/deactivateTour', id)
         Product.capture('ff-tour-complete', {
             tour_id: id
         })
