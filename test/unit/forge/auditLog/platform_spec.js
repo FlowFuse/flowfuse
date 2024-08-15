@@ -4,7 +4,7 @@ const FF_UTIL = require('flowforge-test-utils')
 /** @type {import('../../../../forge/auditLog/platform').getLoggers} */
 const getLoggers = (app) => { return {} }
 
-describe.only('Audit Log > Platform', async function () {
+describe('Audit Log > Platform', async function () {
     let app
     let ACTIONED_BY
     let STACK, PROJECTTYPE
@@ -240,8 +240,8 @@ describe.only('Audit Log > Platform', async function () {
         logEntry.body.team.should.have.property('id', TEAM.hashid)
         logEntry.body.team.should.have.property('name', TEAM.name)
     })
-    describe('audit-log/export', async function() {
 
+    describe('audit-log/export', async function () {
         const TestObjects = {
             tokens: {}
         }
@@ -303,7 +303,6 @@ describe.only('Audit Log > Platform', async function () {
             const rows = body.split('\r\n')
             rows.should.have.length(2)
             rows[0].should.equal('id,event,body,scope,trigger,createdAt')
-            
         })
     })
 })
