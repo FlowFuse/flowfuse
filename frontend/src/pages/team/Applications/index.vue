@@ -104,7 +104,9 @@ import teamApi from '../../../api/team.js'
 import EmptyState from '../../../components/EmptyState.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
-import Tour from '../../../tours/tour-welcome.js'
+import Tours from '../../../tours/Tours.js'
+
+import TourWelcome from '../../../tours/tour-welcome.json'
 
 import ApplicationListItem from './components/Application.vue'
 
@@ -116,7 +118,7 @@ export default {
         EmptyState,
         PlusSmIcon
     },
-    mixins: [permissionsMixin, Tour],
+    mixins: [permissionsMixin],
     data () {
         return {
             loading: false,
@@ -206,6 +208,12 @@ export default {
                 // allow the Alerts servcie to have subscription by wrapping in nextTick
                 Alerts.emit('Thanks for signing up to FlowFuse!', 'confirmation')
             })
+        }
+        // first time arriving here
+        if (true) {
+            const tour = Tours.create('tour-welcome', TourWelcome)
+            console.log(tour)
+            tour.start()
         }
     },
     methods: {
