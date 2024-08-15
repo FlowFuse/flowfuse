@@ -267,5 +267,40 @@ module.exports = {
             ...this._app.config.driver.options?.default_stack
         }
     },
-    revokeUserToken: async (project, token) => { }
+    revokeUserToken: async (project, token) => { },
+
+    // File API
+    // Static Assets API
+    listFiles: async (instance, filePath) => {
+        if (!list[instance.id] || list[instance.id].state === 'suspended') {
+            throw new Error('Cannot access instance files')
+        }
+        return {
+            meta: {},
+            files: [],
+            count: 0
+        }
+    },
+
+    updateFile: async (instance, filePath, update) => {
+        if (!list[instance.id] || list[instance.id].state === 'suspended') {
+            throw new Error('Cannot access instance files')
+        }
+    },
+
+    deleteFile: async (instance, filePath) => {
+        if (!list[instance.id] || list[instance.id].state === 'suspended') {
+            throw new Error('Cannot access instance files')
+        }
+    },
+    createDirectory: async (instance, filePath, directoryName) => {
+        if (!list[instance.id] || list[instance.id].state === 'suspended') {
+            throw new Error('Cannot access instance files')
+        }
+    },
+    uploadFile: async (instance, filePath, readableStream) => {
+        if (!list[instance.id] || list[instance.id].state === 'suspended') {
+            throw new Error('Cannot access instance files')
+        }
+    }
 }

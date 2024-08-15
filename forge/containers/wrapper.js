@@ -228,5 +228,42 @@ module.exports = {
         }
         return value
     },
-    properties: () => this.properties
+    properties: () => this.properties,
+
+    // Static Files API
+    listFiles: async (instance, filePath) => {
+        if (this._driver.listFiles) {
+            return this._driver.listFiles(instance, filePath)
+        } else {
+            throw new Error('Driver does not implement file API ')
+        }
+    },
+    updateFile: async (instance, filePath, update) => {
+        if (this._driver.updateFile) {
+            return this._driver.updateFile(instance, filePath, update)
+        } else {
+            throw new Error('Driver does not implement file API ')
+        }
+    },
+    deleteFile: async (instance, filePath) => {
+        if (this._driver.deleteFile) {
+            return this._driver.deleteFile(instance, filePath)
+        } else {
+            throw new Error('Driver does not implement file API ')
+        }
+    },
+    createDirectory: async (instance, filePath, directoryName) => {
+        if (this._driver.createDirectory) {
+            return this._driver.createDirectory(instance, filePath, directoryName)
+        } else {
+            throw new Error('Driver does not implement file API ')
+        }
+    },
+    uploadFile: async (instance, filePath, fileBuffer) => {
+        if (this._driver.uploadFile) {
+            return this._driver.uploadFile(instance, filePath, fileBuffer)
+        } else {
+            throw new Error('Driver does not implement file API ')
+        }
+    }
 }

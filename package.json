@@ -59,6 +59,7 @@
         "@fastify/csrf-protection": "^6.3.0",
         "@fastify/formbody": "^7.4.0",
         "@fastify/helmet": "^11.1.1",
+        "@fastify/multipart": "^8.3.0",
         "@fastify/passport": "^2.3.0",
         "@fastify/rate-limit": "^9.1.0",
         "@fastify/routes": "^5.1.0",
