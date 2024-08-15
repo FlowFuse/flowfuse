@@ -4,7 +4,7 @@ const FF_UTIL = require('flowforge-test-utils')
 /** @type {import('../../../../forge/auditLog/platform').getLoggers} */
 const getLoggers = (app) => { return {} }
 
-describe('Audit Log > Platform', async function () {
+describe.only('Audit Log > Platform', async function () {
     let app
     let ACTIONED_BY
     let STACK, PROJECTTYPE
@@ -239,5 +239,71 @@ describe('Audit Log > Platform', async function () {
         logEntry.body.should.have.property('team')
         logEntry.body.team.should.have.property('id', TEAM.hashid)
         logEntry.body.team.should.have.property('name', TEAM.name)
+    })
+    describe('audit-log/export', async function() {
+
+        const TestObjects = {
+            tokens: {}
+        }
+
+        async function login (username, password) {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/account/login',
+                payload: { username, password, remember: false }
+            })
+            response.cookies.should.have.length(1)
+            response.cookies[0].should.have.property('name', 'sid')
+            TestObjects.tokens[username] = response.cookies[0].value
+        }
+
+        before(async function () {
+            TestObjects.alice = await app.db.models.User.byUsername('alice')
+            TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
+            await login('alice', 'aaPassword')
+            await login('bob', 'bbPassword')
+        })
+
+        it('Audit log should be accessible to admin', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/admin/audit-log/export',
+                query: {
+                    limit: 5
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+        })
+
+        it('Audit log should not be accessible to non admin', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/admin/audit-log/export',
+                query: {
+                    limit: 5
+                },
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(403)
+        })
+
+        it('Audit log should have header', async function () {
+            await platformLogger.platform.stack.created(0, null, STACK)
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/admin/audit-log/export',
+                query: {
+                    limit: 5
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const body = response.body
+            const rows = body.split('\r\n')
+            rows.should.have.length(2)
+            rows[0].should.equal('id,event,body,scope,trigger,createdAt')
+            
+        })
     })
 })
