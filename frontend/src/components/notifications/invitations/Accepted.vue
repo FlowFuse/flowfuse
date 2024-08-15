@@ -2,16 +2,16 @@
     <NotificationMessage
         :notification="notification"
         :selections="selections"
-        data-el="invitation-message" :to="{name: 'User Invitations'}"
+        data-el="invitation-message" :to="{name: 'Team Members'}"
     >
         <template #icon>
             <UserAddIcon />
         </template>
         <template #title>
-            Team Invitation
+            Team Invitation: Accepted
         </template>
         <template #message>
-            You have been invited by <i>"{{ invitorName }}"</i> to join <i>"{{ teamName }}"</i>.
+            <i>"{{ inviteeName }}"</i> has accepted your invitation to join <i>"{{ teamName }}"</i> as a <i>"{{ role }}".</i>
         </template>
         <template #timestamp>
             {{ notification.createdSince }}
@@ -22,20 +22,25 @@
 <script>
 import { UserAddIcon } from '@heroicons/vue/solid'
 
-import NotificationMessageMixin from '../../mixins/NotificationMessage.js'
+import { RoleNames, Roles } from '../../../../../forge/lib/roles.js'
 
-import NotificationMessage from './Notification.vue'
+import NotificationMessageMixin from '../../../mixins/NotificationMessage.js'
+
+import NotificationMessage from '../Notification.vue'
 
 export default {
-    name: 'TeamInvitationNotification',
+    name: 'TeamInvitationAcceptedNotification',
     components: { NotificationMessage, UserAddIcon },
     mixins: [NotificationMessageMixin],
     computed: {
-        invitorName () {
-            return this.notification.data.invitor.username
+        inviteeName () {
+            return this.notification.data.invitee.username
         },
         teamName () {
             return this.notification.data.team.name
+        },
+        role () {
+            return RoleNames[this.notification.data.role]
         }
     }
 }

@@ -105,7 +105,15 @@ module.exports = {
         await invitation.destroy()
         await app.notifications.remove(invitedUser, notificationReference)
 
+        // detail in audit log
         app.auditLog.Team.team.user.invite.accepted(user, null, invitation.team, invitedUser, role)
+        // send invitor a notification
+        app.notifications.send(invitation.invitor, 'team-invite-accepted-invitor', {
+            team: invitation.team,
+            invitee: invitedUser,
+            invitor: invitation.invitor,
+            role
+        })
     },
 
     rejectInvitation: async (app, invitation, user) => {
