@@ -4,6 +4,10 @@ import { AxiosError } from 'axios'
 import { createApp } from 'vue'
 
 import './ui-components/index.scss'
+// import '~shepherd.js/dist/css/shepherd.css'
+
+// Product Tours
+import VueShepherdPlugin from 'vue-shepherd'
 
 import App from './App.vue'
 import Loading from './components/Loading.vue'
@@ -24,6 +28,7 @@ const app = createApp(App)
     .use(ForgeUIComponents)
     .use(store)
     .use(router)
+    .use(VueShepherdPlugin)
 
 // Error tracking
 setupSentry(app, router)
