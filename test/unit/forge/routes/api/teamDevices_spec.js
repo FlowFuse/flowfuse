@@ -1,10 +1,17 @@
 const { Op } = require('sequelize')
 const should = require('should') // eslint-disable-line
+const sinon = require('sinon')
+const { v4: uuidv4 } = require('uuid')
+
 const { Roles } = require('../../../../../forge/lib/roles')
+
+// eslint-disable-next-line no-unused-vars
+const TestModelFactory = require('../../../../lib/TestModelFactory.js')
 const setup = require('../setup')
 
 describe('Team Devices API', function () {
     let app
+    /** @type {TestModelFactory} */ let factory
     /** @type {import('../../../../../forge/db/controllers/AccessToken') */
     let AccessTokenController
     const TestObjects = {}
@@ -28,6 +35,7 @@ describe('Team Devices API', function () {
     before(async function () {
         const opts = { limits: { instances: 50 } }
         app = await setup(opts)
+        factory = app.factory
         AccessTokenController = app.db.controllers.AccessToken
 
         // Alice (created in setup()) is an admin of the platform
@@ -38,7 +46,16 @@ describe('Team Devices API', function () {
         TestObjects.dave = await app.db.models.User.create({ username: 'dave', name: 'Dave Vader', email: 'dave@example.com', password: 'ddPassword', email_verified: true, password_expired: false })
 
         TestObjects.ATeam = app.team
+        TestObjects.application = app.application
         TestObjects.Project1 = app.project
+        TestObjects.Project2 = await factory.createInstance(
+            { name: 'ateam-project2' },
+            TestObjects.application,
+            app.stack,
+            app.template,
+            app.projectType,
+            { start: false }
+        )
 
         // set bob as an owner of ATeam
         await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
@@ -86,6 +103,7 @@ describe('Team Devices API', function () {
         }
     })
     afterEach(async function () {
+        sinon.restore()
         await app.db.models.AccessToken.destroy({
             where: {
                 ownerType: 'team',
@@ -435,6 +453,449 @@ describe('Team Devices API', function () {
                     devices.filter((device) => device.name === 'lamb device 1').should.have.length(1) // still there
                     devices.filter((device) => device.name === 'lamb device 2').should.have.length(1) // still there
                     devices.filter((device) => device.name === 'goat device 1').should.have.length(1) // still there
+                })
+            })
+            describe('update', function () {
+                const aTeamDevices = {
+                    device1: null,
+                    device2: null,
+                    device3: null
+                }
+                let snapshot1
+                let snapshot2
+                let group1
+                let oldHandler
+
+                const bTeamDevices = {
+                    device1: null
+                }
+
+                beforeEach(async function () {
+                    oldHandler = app.comms.devices
+                    app.comms.devices = sinon.stub({
+                        sendCommand: () => {}
+                    })
+                    // create application 2
+                    TestObjects.application2 = await factory.createApplication({ name: 'application-2' }, TestObjects.ATeam)
+                    // Add 3 devices to A team
+                    aTeamDevices.device1 = await factory.createDevice({ name: 'move-test-device-a1' }, TestObjects.ATeam, TestObjects.Project1)
+                    aTeamDevices.device2 = await factory.createDevice({ name: 'move-test-device-a2' }, TestObjects.ATeam, null, TestObjects.application)
+                    aTeamDevices.device3 = await factory.createDevice({ name: 'move-test-device-a3' }, TestObjects.ATeam, null, null)
+                    // Add 1 device to another team
+                    bTeamDevices.device1 = await factory.createDevice({ name: 'move-test-device-b1' }, TestObjects.BTeam, TestObjects.BTeamInstance)
+
+                    // create a snapshot for project 1 and set it as the target snapshot for devices
+                    snapshot1 = await factory.createSnapshot({ name: 'snapshot 1' }, TestObjects.Project1, TestObjects.alice)
+                    await aTeamDevices.device1.update({ targetSnapshotId: snapshot1.id })
+                    TestObjects.Project1.updateSettings({ targetSnapshotId: snapshot1.id })
+                    await TestObjects.Project1.updateSetting('deviceSettings', {
+                        targetSnapshot: snapshot1.id
+                    })
+                    snapshot2 = await factory.createSnapshot({ name: 'snapshot 2' }, TestObjects.Project1, TestObjects.alice)
+
+                    // Create a device group and add device 2 to it
+                    group1 = await factory.createApplicationDeviceGroup({ name: 'group 1' }, TestObjects.application)
+                    await aTeamDevices.device2.update({ DeviceGroupId: group1.id, targetSnapshotId: snapshot2.id })
+                })
+
+                afterEach(async function () {
+                    app.comms.devices = oldHandler
+                    await app.db.models.Device.destroy({
+                        where: {
+                            name: ['move-test-device-a1', 'move-test-device-a2', 'move-test-device-a3', 'move-test-device-b1']
+                        }
+                    })
+                    await app.db.models.DeviceGroup.destroy({ where: { id: group1.id } })
+                    await app.db.models.ProjectSnapshot.destroy({ where: { id: [snapshot1.id, snapshot2.id] } })
+                    await app.db.models.Application.destroy({ where: { id: TestObjects.application2.id } })
+                    delete TestObjects.application2
+                })
+
+                async function bulkUpdate (teamId, userToken, data) {
+                    const payload = {}
+                    const hasProperty = (obj, prop) => Object.prototype.hasOwnProperty.call(obj, prop)
+                    if (hasProperty(data, 'devices')) { payload.devices = data.devices }
+                    if (hasProperty(data, 'application')) { payload.application = data.application }
+                    if (hasProperty(data, 'instance')) { payload.instance = data.instance }
+                    return await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/teams/${teamId}/devices/bulk`,
+                        cookies: { sid: userToken },
+                        payload
+                    })
+                }
+
+                describe('move devices', function () {
+                    it('Rejects invalid application (404)', async function () {
+                        const response = await bulkUpdate(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
+                            devices: [aTeamDevices.device1.hashid],
+                            application: 'invalid'
+                        })
+                        response.statusCode.should.equal(404)
+                        const result = response.json()
+                        result.should.have.property('code', 'not_found')
+                        result.should.have.property('error')
+                    })
+
+                    it('Rejects invalid instance (404)', async function () {
+                        const response = await bulkUpdate(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
+                            devices: [aTeamDevices.device1.hashid],
+                            instance: uuidv4()
+                        })
+                        response.statusCode.should.equal(404)
+                        const result = response.json()
+                        result.should.have.property('code', 'not_found')
+                        result.should.have.property('error')
+                    })
+
+                    it('Rejects moving a device to another team application (400)', async function () {
+                        const response = await bulkUpdate(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
+                            devices: [bTeamDevices.device1.hashid],
+                            application: TestObjects.application.hashid
+                        })
+                        response.statusCode.should.equal(400)
+                        const result = response.json()
+                        result.should.have.property('code', 'invalid_application')
+                        result.should.have.property('error').and.match(/same team/)
+                    })
+
+                    it('Rejects moving a device to another team instance (400)', async function () {
+                        const response = await bulkUpdate(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
+                            devices: [bTeamDevices.device1.hashid],
+                            instance: TestObjects.Project1.id
+                        })
+                        response.statusCode.should.equal(400)
+                        const result = response.json()
+                        result.should.have.property('code', 'invalid_instance')
+                        result.should.have.property('error').and.match(/same team/)
+                    })
+
+                    it('Rejects invalid input', async function () {
+                        const response1 = await bulkUpdate(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {})
+                        response1.statusCode.should.equal(400)
+
+                        const response2 = await bulkUpdate(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
+                            devices: [aTeamDevices.device1.hashid],
+                            application: TestObjects.application.hashid,
+                            instance: TestObjects.Project1.id
+                        })
+                        response2.statusCode.should.equal(400)
+
+                        const response3 = await bulkUpdate(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
+                            devices: { invalid: 'invalid' },
+                            application: TestObjects.application.hashid
+                        })
+                        response3.statusCode.should.equal(400)
+
+                        const response4 = await bulkUpdate(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
+                            devices: null,
+                            application: TestObjects.application.hashid
+                        })
+
+                        response4.statusCode.should.equal(400)
+                    })
+
+                    it('Member cannot move devices (403)', async function () {
+                        const response = await bulkUpdate(TestObjects.ATeam.hashid, TestObjects.tokens.chris, {
+                            devices: [aTeamDevices.device1.hashid],
+                            application: TestObjects.application2.hashid
+                        })
+                        response.statusCode.should.equal(403)
+                        const result = response.json()
+                        result.should.have.property('code', 'unauthorized')
+                        result.should.have.property('error', 'unauthorized')
+                    })
+
+                    it('Non team member cannot move devices (404)', async function () {
+                        const response = await bulkUpdate(TestObjects.ATeam.hashid, TestObjects.tokens.dave, {
+                            devices: [aTeamDevices.device1.hashid],
+                            application: TestObjects.application2.hashid
+                        })
+                        response.statusCode.should.equal(404)
+                        const result = response.json()
+                        result.should.have.property('code', 'not_found')
+                        result.should.have.property('error')
+                    })
+
+                    it('Move all to Application 2', async function () {
+                        const response = await bulkUpdate(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
+                            devices: [aTeamDevices.device1.hashid, aTeamDevices.device2.hashid, aTeamDevices.device3.hashid],
+                            application: TestObjects.application2.hashid
+                        })
+                        response.statusCode.should.equal(200)
+                        const result = response.json()
+                        result.should.have.property('count', 3)
+                        result.should.have.property('devices').and.be.an.Array()
+
+                        // ensure API devices are updated
+                        result.devices.forEach((device) => {
+                            device.should.have.property('application').and.be.an.Object()
+                            device.application.should.have.property('id', TestObjects.application2.hashid)
+                            device.should.have.property('targetSnapshot').and.be.null()
+                        })
+
+                        // ensure DB devices are updated
+                        const aTeamDeviceIds = [
+                            aTeamDevices.device1.id,
+                            aTeamDevices.device2.id,
+                            aTeamDevices.device3.id
+                        ]
+                        const devicesData = await app.db.models.Device.getAll({}, { id: aTeamDeviceIds }, { includeInstanceApplication: true })
+                        devicesData.devices.should.have.length(3)
+                        devicesData.devices.forEach((device) => {
+                            device.should.have.property('ApplicationId', TestObjects.application2.id)
+                            device.should.have.property('ProjectId', null)
+                            device.should.have.property('targetSnapshotId', null)
+                            device.should.have.property('DeviceGroupId', null)
+                        })
+
+                        // ensure sendCommand was called 3 times
+                        should(app.comms.devices.sendCommand.callCount).equal(3)
+                        const calls = app.comms.devices.sendCommand.getCalls()
+                        for (const call of calls) {
+                            call.args.should.have.length(4)
+                            call.args[0].should.equal(TestObjects.ATeam.hashid) // arg 0 is the teamId
+                            devicesData.devices.find((d) => d.hashid === call.args[1]).should.be.an.Object() // arg 1 is the device hashid
+                            call.args[2].should.equal('update') // arg 2 is the command
+                            const payload = call.args[3] // arg 3 is the payload
+                            payload.should.have.property('application', TestObjects.application2.hashid)
+                            payload.should.have.property('ownerType', 'application')
+                            payload.should.not.have.property('project')
+                            payload.should.have.property('snapshot', '0') // '0' is the default starter snapshot an app device gets
+                        }
+                    })
+                    it('Move all to Project 2', async function () {
+                        const response = await bulkUpdate(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
+                            devices: [aTeamDevices.device1.hashid, aTeamDevices.device2.hashid, aTeamDevices.device3.hashid],
+                            instance: TestObjects.Project2.id
+                        })
+                        response.statusCode.should.equal(200)
+                        const result = response.json()
+                        result.should.have.property('count', 3)
+                        result.should.have.property('devices').and.be.an.Array()
+
+                        // ensure API devices are updated
+                        result.devices.forEach((device) => {
+                            device.should.have.property('instance').and.be.an.Object()
+                            device.instance.should.have.property('id', TestObjects.Project2.id)
+                            device.should.have.property('targetSnapshot').and.be.null()
+                        })
+
+                        // ensure DB devices are updated
+                        const aTeamDeviceIds = [
+                            aTeamDevices.device1.id,
+                            aTeamDevices.device2.id,
+                            aTeamDevices.device3.id
+                        ]
+                        const devicesData = await app.db.models.Device.getAll({}, { id: aTeamDeviceIds }, { includeInstanceApplication: true })
+                        devicesData.devices.should.have.length(3)
+                        devicesData.devices.forEach((device) => {
+                            device.should.have.property('ProjectId', TestObjects.Project2.id)
+                            device.should.have.property('targetSnapshotId', null)
+                            device.should.have.property('DeviceGroupId', null)
+                        })
+
+                        // ensure sendCommand was called 3 times
+                        should(app.comms.devices.sendCommand.callCount).equal(3)
+                        const calls = app.comms.devices.sendCommand.getCalls()
+                        for (const call of calls) {
+                            call.args.should.have.length(4)
+                            call.args[0].should.equal(TestObjects.ATeam.hashid) // arg 0 is the teamId
+                            devicesData.devices.find((d) => d.hashid === call.args[1]).should.be.an.Object() // arg 1 is the device hashid
+                            call.args[2].should.equal('update') // arg 2 is the command
+                            const payload = call.args[3] // arg 3 is the payload
+                            payload.should.have.property('project', TestObjects.Project2.id)
+                            payload.should.have.property('ownerType', 'instance')
+                            payload.should.not.have.property('application')
+                            payload.should.have.property('snapshot', null)
+                        }
+                    })
+                    it('Only updates devices not already assigned to the target application', async function () {
+                        const response = await bulkUpdate(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
+                            devices: [aTeamDevices.device1.hashid, aTeamDevices.device2.hashid, aTeamDevices.device3.hashid],
+                            application: TestObjects.application.hashid
+                        })
+                        response.statusCode.should.equal(200)
+                        const result = response.json()
+                        result.should.have.property('count', 2)
+                        result.should.have.property('devices').and.be.an.Array()
+
+                        // ensure API devices are updated
+                        result.devices.forEach((device) => {
+                            device.should.have.property('application').and.be.an.Object()
+                            device.application.should.have.property('id', TestObjects.application.hashid)
+                            device.should.have.property('targetSnapshot').and.be.null()
+                        })
+
+                        // ensure DB devices are updated
+                        const affectedDeviceIds = [
+                            aTeamDevices.device2.id // this one should be assigned to application 1
+                        ]
+                        const allDeviceIds = [
+                            ...affectedDeviceIds,
+                            aTeamDevices.device1.id, // this was assigned to project 1
+                            aTeamDevices.device3.id // this was unassigned
+                        ]
+
+                        const devicesData = await app.db.models.Device.getAll({}, { id: allDeviceIds }, { includeInstanceApplication: true })
+                        const dbd1 = devicesData.devices.find((d) => d.id === aTeamDevices.device1.id)
+                        const dbd2 = devicesData.devices.find((d) => d.id === aTeamDevices.device2.id)
+                        const dbd3 = devicesData.devices.find((d) => d.id === aTeamDevices.device3.id)
+
+                        // device 1 should be assigned to application 1 and its target snapshot should be cleared
+                        dbd1.should.have.property('ApplicationId', TestObjects.application.id)
+                        dbd1.should.have.property('ProjectId', null)
+                        dbd1.should.have.property('targetSnapshotId', null)
+                        dbd1.should.have.property('DeviceGroupId', null)
+
+                        // device 2 was already assigned to application 1 and its target snapshot should be unchanged
+                        dbd2.should.have.property('ApplicationId', TestObjects.application.id)
+                        dbd2.should.have.property('ProjectId', null)
+                        dbd2.should.have.property('targetSnapshotId', snapshot2.id) // unchanged as this device was already in assigned to the application
+                        dbd2.should.have.property('DeviceGroupId', group1.id) // unchanged as this device was already in assigned to the application
+
+                        // device 3 should be assigned to application 1 and its target snapshot should be cleared
+                        dbd3.should.have.property('ApplicationId', TestObjects.application.id)
+                        dbd3.should.have.property('ProjectId', null)
+                        dbd3.should.have.property('targetSnapshotId', null)
+                        dbd3.should.have.property('DeviceGroupId', null)
+
+                        // ensure sendCommand was called 2 times for the affected devices
+                        should(app.comms.devices.sendCommand.callCount).equal(2)
+                        const affectedDevices = [dbd1, dbd3]
+                        const calls = app.comms.devices.sendCommand.getCalls()
+                        for (const call of calls) {
+                            call.args.should.have.length(4)
+                            call.args[0].should.equal(TestObjects.ATeam.hashid) // arg 0 is the teamId
+                            affectedDevices.find((d) => d.hashid === call.args[1]).should.be.an.Object() // arg 1 is the device hashid
+                            call.args[2].should.equal('update') // arg 2 is the command
+                            const payload = call.args[3] // arg 3 is the payload
+                            payload.should.have.property('application', TestObjects.application.hashid)
+                            payload.should.have.property('ownerType', 'application')
+                            payload.should.not.have.property('project')
+                            payload.should.have.property('snapshot', '0') // '0' is the default starter snapshot an app device gets
+                        }
+                    })
+
+                    it('Only updates devices not already assigned to the target project', async function () {
+                        const response = await bulkUpdate(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
+                            devices: [aTeamDevices.device1.hashid, aTeamDevices.device2.hashid, aTeamDevices.device3.hashid],
+                            instance: TestObjects.Project1.id
+                        })
+                        response.statusCode.should.equal(200)
+                        const result = response.json()
+                        result.should.have.property('count', 2)
+                        result.should.have.property('devices').and.be.an.Array()
+
+                        // ensure API devices are updated
+                        result.devices.forEach((device) => {
+                            device.should.have.property('instance').and.be.an.Object()
+                            device.instance.should.have.property('id', TestObjects.Project1.id)
+                            device.should.have.property('targetSnapshot').and.be.an.Object()
+                            device.targetSnapshot.should.have.property('id', snapshot1.hashid)
+                        })
+
+                        // ensure DB devices are updated
+                        const affectedDeviceIds = [
+                            aTeamDevices.device2.id, // this one should now be assigned to project 1
+                            aTeamDevices.device3.id // this one should now be assigned to project 1
+                        ]
+                        const allDeviceIds = [
+                            ...affectedDeviceIds,
+                            aTeamDevices.device1.id // this one should be untouched
+                        ]
+
+                        const devicesData = await app.db.models.Device.getAll({}, { id: allDeviceIds }, { includeInstanceApplication: true })
+                        const dbd1 = devicesData.devices.find((d) => d.id === aTeamDevices.device1.id)
+                        const dbd2 = devicesData.devices.find((d) => d.id === aTeamDevices.device2.id)
+                        const dbd3 = devicesData.devices.find((d) => d.id === aTeamDevices.device3.id)
+
+                        // device 1 should be untouched
+                        dbd1.should.have.property('ownerType', 'instance')
+                        dbd1.should.have.property('ProjectId', TestObjects.Project1.id)
+                        dbd1.should.have.property('targetSnapshotId', snapshot1.id)
+                        dbd1.should.have.property('DeviceGroupId', null)
+
+                        // device 2 should be assigned to project 1 and its target snapshot should be set to the project's target snapshot
+                        dbd2.should.have.property('ownerType', 'instance')
+                        dbd2.should.have.property('ProjectId', TestObjects.Project1.id)
+                        dbd2.should.have.property('targetSnapshotId', snapshot1.id)
+                        dbd2.should.have.property('DeviceGroupId', null)
+
+                        // device 3 should be assigned to project 1 and its target snapshot should be set to the project's target snapshot
+                        dbd3.should.have.property('ownerType', 'instance')
+                        dbd3.should.have.property('ProjectId', TestObjects.Project1.id)
+                        dbd3.should.have.property('targetSnapshotId', snapshot1.id)
+                        dbd3.should.have.property('DeviceGroupId', null)
+
+                        // ensure sendCommand was called 2 times for the affected devices
+                        should(app.comms.devices.sendCommand.callCount).equal(2)
+                        const affectedDevices = [dbd2, dbd3]
+                        const calls = app.comms.devices.sendCommand.getCalls()
+                        for (const call of calls) {
+                            call.args.should.have.length(4)
+                            call.args[0].should.equal(TestObjects.ATeam.hashid) // arg 0 is the teamId
+                            affectedDevices.find((d) => d.hashid === call.args[1]).should.be.an.Object() // arg 1 is the device hashid
+                            call.args[2].should.equal('update') // arg 2 is the command
+                            const payload = call.args[3] // arg 3 is the payload
+                            payload.should.have.property('project', TestObjects.Project1.id)
+                            payload.should.have.property('ownerType', 'instance')
+                            payload.should.not.have.property('application')
+                            payload.should.have.property('snapshot', snapshot1.hashid) // should be set to the project's target snapshot
+                        }
+                    })
+
+                    it('Only unassigns devices not already unassigned', async function () {
+                        // Premise: device 3 is already unassigned so only device 1 and 2 should be changed and updated
+                        const response = await bulkUpdate(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
+                            devices: [aTeamDevices.device1.hashid, aTeamDevices.device2.hashid, aTeamDevices.device3.hashid],
+                            instance: null,
+                            application: null
+                        })
+                        response.statusCode.should.equal(200)
+                        const result = response.json()
+                        result.should.have.property('count', 2)
+                        result.should.have.property('devices').and.be.an.Array()
+
+                        // ensure API devices are updated
+                        result.devices.forEach((device) => {
+                            device.should.not.have.property('application')
+                            device.should.not.have.property('instance')
+                            device.should.have.property('targetSnapshot').and.be.null()
+                        })
+
+                        // ensure DB devices are updated
+                        const affectedDeviceIds = [
+                            aTeamDevices.device1.id, // this one should be unassigned (originally assigned to project 1)
+                            aTeamDevices.device2.id // this one should be unassigned (originally assigned to application 1)
+                        ]
+                        const allDeviceIds = [
+                            ...affectedDeviceIds,
+                            aTeamDevices.device3.id // this one should be untouched
+                        ]
+                        const devicesData = await app.db.models.Device.getAll({}, { id: allDeviceIds }, { includeInstanceApplication: true })
+                        devicesData.devices.forEach((device) => {
+                            device.should.have.property('ApplicationId', null)
+                            device.should.have.property('ProjectId', null)
+                            device.should.have.property('targetSnapshotId', null)
+                            device.should.have.property('DeviceGroupId', null)
+                        })
+
+                        // ensure sendCommand was called 2 times
+                        should(app.comms.devices.sendCommand.callCount).equal(2)
+                        const affectedDevices = devicesData.devices.filter((device) => affectedDeviceIds.includes(device.id))
+                        const calls = app.comms.devices.sendCommand.getCalls()
+                        for (const call of calls) {
+                            call.args.should.have.length(4)
+                            call.args[0].should.equal(TestObjects.ATeam.hashid) // arg 0 is the teamId
+                            affectedDevices.find((d) => d.hashid === call.args[1]).should.be.an.Object() // arg 1 is the device hashid
+                            call.args[2].should.equal('update') // arg 2 is the command
+                            const payload = call.args[3] // arg 3 is the payload
+                            payload.should.have.property('project', null)
+                            payload.should.have.property('ownerType').and.be.null()
+                            payload.should.have.property('snapshot', null)
+                        }
+                    })
                 })
             })
         })

@@ -1605,6 +1605,54 @@ describe('Pipelines API', function () {
             TestObjects.tokens.instanceOne = (await TestObjects.instanceOne.refreshAuthTokens()).token
         })
 
+        describe('With action=none', function () {
+            it('Takes no action', async function () {
+                // Setup an initial configuration
+                const setupResult = await addFlowsToProject(app,
+                    TestObjects.instanceOne.id,
+                    TestObjects.tokens.instanceOne,
+                    TestObjects.tokens.alice,
+                    [{ id: 'node1' }], // flows
+                    { testCreds: 'abc' }, // credentials
+                    'key1', // key
+                    // settings
+                    {
+                        httpAdminRoot: '/test-red',
+                        dashboardUI: '/test-dash',
+                        palette: {
+                            modules: [
+                                { name: 'module1', version: '1.0.0' }
+                            ]
+                        },
+                        env: [
+                            { name: 'one', value: 'a' },
+                            { name: 'two', value: 'b' }
+                        ]
+                    }
+                )
+
+                // Ensure setup was successful
+                setupResult.flowsAddResponse.statusCode.should.equal(200)
+                setupResult.credentialsCreateResponse.statusCode.should.equal(200)
+                setupResult.storageSettingsResponse.statusCode.should.equal(200)
+                setupResult.updateProjectSettingsResponse.statusCode.should.equal(200)
+
+                await TestObjects.stageOne.update({ action: 'none' })
+
+                // 1 -> 2
+                TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: TestObjects.stageOne.hashid }, TestObjects.pipeline)
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages/${TestObjects.stageOne.hashid}/deploy`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const body = await response.json()
+                body.should.have.property('status', 'okay')
+            })
+        })
+
         describe('With action=create_snapshot', function () {
             beforeEach(async function () {
                 await TestObjects.stageOne.update({ action: 'create_snapshot' })
@@ -1775,6 +1823,7 @@ describe('Pipelines API', function () {
                 it('Should fail gracefully when not set', async function () {
                     const response = await app.inject({
                         method: 'PUT',
+                        // Note: this url contains `//` intentionally - so the stage id is blank
                         url: `/api/v1/pipelines/${TestObjects.pipeline.hashid}/stages//deploy`,
                         cookies: { sid: TestObjects.tokens.alice }
                     })

@@ -1,7 +1,7 @@
 <template>
     <HeadlessUIMenu as="div" class="relative inline-block text-left" @click="$event.stopPropagation()">
         <div>
-            <MenuButton :class="[buttonClass ? buttonClass : 'forge-button', !hasLabel?'px-1':'']">
+            <MenuButton :class="[buttonClass ? buttonClass : 'forge-button', !hasLabel?'px-1':'']" :disabled="disabled">
                 <slot />
                 <span class="sr-only">{{ alt }}</span>
                 <ChevronDownIcon class="ff-btn--icon ff-btn--icon-right" aria-hidden="true" />
@@ -49,7 +49,7 @@ import { ref } from 'vue'
 
 export default {
     name: 'DropdownMenu',
-    props: ['alt', 'options', 'buttonClass', 'edge'],
+    props: ['alt', 'options', 'buttonClass', 'edge', 'disabled'],
     components: {
         HeadlessUIMenu: Menu,
         MenuButton,
