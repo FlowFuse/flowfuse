@@ -18,7 +18,7 @@
     }
 }, {
     "title": "Concept: Devices",
-    "text": "<p><b>Devices</b> are Node-RED instances that are managed and deployed <i>remotely</i>.</p><p>Whether hardware in factories or a Raspberry Pi on your desk. FlowFuse helps you manage hundreds of remote deployments.</p>",
+    "text": "<p><b>Devices</b> are Node-RED instances that are managed and deployed <i>remotely</i>.</p><p>Whether hardware in factories or a Raspberry Pi on your desk, FlowFuse helps you manage hundreds of remote deployments.</p>",
     "attachTo": {
         "element": "section[data-el=\"application-devices-none\"]",
         "on": "bottom"
