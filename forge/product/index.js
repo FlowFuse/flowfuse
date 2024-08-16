@@ -3,7 +3,7 @@ const { PostHog } = require('posthog-node')
 
 module.exports = fp(async function (app, _opts) {
     let client
-    if (_opts) {
+    if (_opts && _opts.apikey) {
         const apiHost = _opts?.apiurl || 'https://app.posthog.com'
         const apiKey = _opts?.apikey
         const options = {
