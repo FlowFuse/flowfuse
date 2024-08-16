@@ -107,11 +107,25 @@ module.exports = {
 
         // detail in audit log
         app.auditLog.Team.team.user.invite.accepted(user, null, invitation.team, invitedUser, role)
+
+        const team = {
+            id: invitation.team.hashid,
+            name: invitation.team.name,
+            slug: invitation.team.slug
+        }
+        const invitee = {
+            id: invitedUser.hashid,
+            username: invitedUser.username
+        }
+        const invitor = {
+            id: invitation.invitor.hashid,
+            username: invitation.invitor.username
+        }
         // send invitor a notification
         app.notifications.send(invitation.invitor, 'team-invite-accepted-invitor', {
-            team: invitation.team,
-            invitee: invitedUser,
-            invitor: invitation.invitor,
+            team,
+            invitee,
+            invitor,
             role
         })
     },

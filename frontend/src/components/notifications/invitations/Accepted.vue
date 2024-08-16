@@ -2,7 +2,7 @@
     <NotificationMessage
         :notification="notification"
         :selections="selections"
-        data-el="invitation-message" :to="{name: 'Team Members'}"
+        data-el="invitation-message" :to="to"
     >
         <template #icon>
             <UserAddIcon />
@@ -41,6 +41,12 @@ export default {
         },
         role () {
             return RoleNames[this.notification.data.role]
+        },
+        to () {
+            return {
+                name: 'TeamMembers',
+                params: { team_slug: this.notification.data.team.slug }
+            }
         }
     }
 }
