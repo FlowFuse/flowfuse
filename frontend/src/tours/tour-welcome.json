@@ -53,7 +53,7 @@
     }
 }, {
     "title": "Open Node-RED Editor",
-    "text": "<p><b>That's our quick introduction to FlowFuse</b></p><p>When you're ready, we recommend you open a Node-RED editor and start building your first flow.</p>",
+    "text": "<p><b>That's our quick introduction to FlowFuse.</b></p><p>When you're ready, we recommend that you open a Node-RED editor and start building your first flow.</p>",
     "attachTo": {
         "element": "div[data-el=\"application-instance-item\"]",
         "on": "bottom"
