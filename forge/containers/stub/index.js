@@ -11,6 +11,10 @@
  */
 const list = {}
 const forgeUtils = require('../../db/utils')
+const { util }  = require('@node-red/util')
+const { text } = require('node:stream/consumers')
+
+const files = {}
 
 module.exports = {
     START_DELAY: 500,
@@ -275,10 +279,48 @@ module.exports = {
         if (!list[instance.id] || list[instance.id].state === 'suspended') {
             throw new Error('Cannot access instance files')
         }
-        return {
-            meta: {},
-            files: [],
-            count: 0
+        if (files[instance.id]) {
+            const pathDots = filePath.replace('/','.')
+            const response = {
+                meta: {},
+                files: [],
+                count : 0
+            }
+            try {
+                const dir = pathDots ? util.getObjectProperty(files[instance.id],pathDots) : files[instance.id]
+                Object.keys(dir).forEach(entry => {
+                    if (typeof dir[entry] === 'object') {
+                        response.files.push({
+                            name: entry,
+                            type: 'directory',
+                            lastModified: new Date().toISOString()
+                        })
+                    } else {
+                        response.files.push({
+                            name: entry,
+                            type: 'file',
+                            size: dir[entry].length,
+                            lastModified: new Date().toISOString()
+                        })
+                    }
+                    response.count++
+                })
+                return response
+            } catch (err) {
+                if (err.message === 'Cannot convert undefined or null to object') {
+                    const newErr = new Error('not found')
+                    newErr.statusCode = 404
+                    throw newErr
+                } else {
+                    throw err
+                }
+            }
+        } else {
+            return {
+                meta: {},
+                files: [],
+                count: 0
+            }
         }
     },
 
@@ -286,21 +328,77 @@ module.exports = {
         if (!list[instance.id] || list[instance.id].state === 'suspended') {
             throw new Error('Cannot access instance files')
         }
+        if (!files[instance.id]) {
+            files[instance.id] = {}
+        }
+        const pathDots = filePath.replace('/','.')
+        const dir = pathDots ? util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
     },
 
     deleteFile: async (instance, filePath) => {
         if (!list[instance.id] || list[instance.id].state === 'suspended') {
             throw new Error('Cannot access instance files')
         }
+        const parts = filePath.split('/')
+        const filename = parts.pop()
+        const pathDots = parts.join('.')
+        try {
+            const dir = pathDots ? util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
+            delete dir[filename]
+        } catch (err) {
+            if (err.message === 'Cannot convert undefined or null to object') {
+                const newErr = new Error('not found')
+                newErr.statusCode = 404
+                throw newErr
+            } else {
+                throw err
+            }
+        }
     },
     createDirectory: async (instance, filePath, directoryName) => {
         if (!list[instance.id] || list[instance.id].state === 'suspended') {
             throw new Error('Cannot access instance files')
         }
+        if (!files[instance.id]) {
+            files[instance.id] = {}
+        }
+        const pathDots = filePath.replace('/','.')
+        const nameDots = directoryName.replace('/','.')
+        try {
+            const dir = pathDots ? util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
+            util.setObjectProperty(dir, nameDots, {}, true)
+        } catch (err) {
+            if (err.message === 'Cannot convert undefined or null to object') {
+                const newErr = new Error('not found')
+                newErr.statusCode = 404
+                throw newErr
+            } else {
+                throw err
+            }
+        }
+        
     },
     uploadFile: async (instance, filePath, readableStream) => {
         if (!list[instance.id] || list[instance.id].state === 'suspended') {
             throw new Error('Cannot access instance files')
+        }
+        if (!files[instance.id]) {
+            files[instance.id] = {}
+        }
+        const parts = filePath.split('/')
+        const filename = parts.pop()
+        const pathDots = parts.join('.')
+        try {
+            const dir = pathDots ? util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
+            dir[filename] = readableStream.toString('utf-8')
+        } catch (err) {
+            if (err.message === 'Cannot convert undefined or null to object') {
+                const newErr = new Error('not found')
+                newErr.statusCode = 404
+                throw newErr
+            } else {
+                throw err
+            }
         }
     }
 }
