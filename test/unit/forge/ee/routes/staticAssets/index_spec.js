@@ -1,10 +1,8 @@
+const FormData = require('form-data') // eslint-disable-line
 const should = require('should') // eslint-disable-line
 const setup = require('../../setup')
 
-const FormData = require('form-data')
-
-const FF_UTIL = require('flowforge-test-utils')
-
+// const FF_UTIL = require('flowforge-test-utils')
 
 describe('Static Files APIs', function () {
     let app
@@ -79,7 +77,7 @@ describe('Static Files APIs', function () {
         const response = await app.inject({
             method: 'POST',
             url: `/api/v1/projects/${TestObjects.instance.id}/files/_/`,
-            body: { path: 'foo/bar'},
+            body: { path: 'foo/bar' },
             cookies: {
                 sid: TestObjects.tokens.alice
             }
@@ -101,7 +99,7 @@ describe('Static Files APIs', function () {
     })
     it('create file', async function () {
         const form = new FormData()
-        form.append('file', 'helloWorld', {filename: 'helloWorld.txt' , contentType: 'text/plain'})
+        form.append('file', 'helloWorld', { filename: 'helloWorld.txt', contentType: 'text/plain' })
         const response = await app.inject({
             method: 'POST',
             url: `/api/v1/projects/${TestObjects.instance.id}/files/_/foo/helloWorld.txt`,
@@ -131,7 +129,7 @@ describe('Static Files APIs', function () {
         const response = await app.inject({
             method: 'PUT',
             url: `/api/v1/projects/${TestObjects.instance.id}/files/_/foo/bar`,
-            body: { share: { root: '/bar'}},
+            body: { share: { root: '/bar' } },
             cookies: {
                 sid: TestObjects.tokens.alice
             }
@@ -151,7 +149,6 @@ describe('Static Files APIs', function () {
         fileList.files[0].should.have.property('type', 'directory')
         fileList.files[0].should.have.property('share')
         fileList.files[0].share.should.have.property('root', '/bar')
-
     })
     it('delete file', async function () {
         const response = await app.inject({

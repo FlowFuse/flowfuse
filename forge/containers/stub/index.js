@@ -9,11 +9,11 @@
  * @memberof forge.containers.drivers
  *
  */
-const list = {}
-const forgeUtils = require('../../db/utils')
-const { util }  = require('@node-red/util')
-const { text } = require('node:stream/consumers')
+const nrUtil = require('@node-red/util') // eslint-disable-line
 
+const forgeUtils = require('../../db/utils')
+
+const list = {}
 const files = {}
 
 module.exports = {
@@ -280,14 +280,14 @@ module.exports = {
             throw new Error('Cannot access instance files')
         }
         if (files[instance.id]) {
-            const pathDots = filePath.replace('/','.')
+            const pathDots = filePath.replace('/', '.')
             const response = {
                 meta: {},
                 files: [],
-                count : 0
+                count: 0
             }
             try {
-                const dir = pathDots ? util.getObjectProperty(files[instance.id],pathDots) : files[instance.id]
+                const dir = pathDots ? nrUtil.util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
                 Object.keys(dir).forEach(entry => {
                     if (typeof dir[entry] === 'object') {
                         response.files.push({
@@ -331,8 +331,8 @@ module.exports = {
         if (!files[instance.id]) {
             files[instance.id] = {}
         }
-        const pathDots = filePath.replace('/','.')
-        const dir = pathDots ? util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
+        // const pathDots = filePath.replace('/','.')
+        // const dir = pathDots ? nrUtil.util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
     },
 
     deleteFile: async (instance, filePath) => {
@@ -343,7 +343,7 @@ module.exports = {
         const filename = parts.pop()
         const pathDots = parts.join('.')
         try {
-            const dir = pathDots ? util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
+            const dir = pathDots ? nrUtil.util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
             delete dir[filename]
         } catch (err) {
             if (err.message === 'Cannot convert undefined or null to object') {
@@ -362,11 +362,11 @@ module.exports = {
         if (!files[instance.id]) {
             files[instance.id] = {}
         }
-        const pathDots = filePath.replace('/','.')
-        const nameDots = directoryName.replace('/','.')
+        const pathDots = filePath.replace('/', '.')
+        const nameDots = directoryName.replace('/', '.')
         try {
-            const dir = pathDots ? util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
-            util.setObjectProperty(dir, nameDots, {}, true)
+            const dir = pathDots ? nrUtil.util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
+            nrUtil.util.setObjectProperty(dir, nameDots, {}, true)
         } catch (err) {
             if (err.message === 'Cannot convert undefined or null to object') {
                 const newErr = new Error('not found')
@@ -376,7 +376,6 @@ module.exports = {
                 throw err
             }
         }
-        
     },
     uploadFile: async (instance, filePath, readableStream) => {
         if (!list[instance.id] || list[instance.id].state === 'suspended') {
@@ -389,7 +388,7 @@ module.exports = {
         const filename = parts.pop()
         const pathDots = parts.join('.')
         try {
-            const dir = pathDots ? util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
+            const dir = pathDots ? nrUtil.util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
             dir[filename] = readableStream.toString('utf-8')
         } catch (err) {
             if (err.message === 'Cannot convert undefined or null to object') {
