@@ -46,6 +46,17 @@ describe('Static Files APIs', function () {
         app.defaultTeamType.properties = defaultTeamTypeProperties
         await app.defaultTeamType.save()
 
+        const instance2 = await app.factory.createInstance(
+            { name: 'project2' },
+            app.application,
+            app.stack,
+            app.template,
+            app.projectType,
+            { start: false }
+        )
+
+        TestObjects.instance2 = instance2
+
         await app.containers.start(TestObjects.instance)
     })
 
@@ -177,6 +188,38 @@ describe('Static Files APIs', function () {
         const response = await app.inject({
             method: 'GET',
             url: `/api/v1/projects/${TestObjects.instance.id}/files/_/baz`,
+            cookies: {
+                sid: TestObjects.tokens.alice
+            }
+        })
+        response.statusCode.should.equal(404)
+    })
+    it('list files on suspended Instance', async function () {
+        const response = await app.inject({
+            method: 'GET',
+            url: `/api/v1/projects/${TestObjects.instance2.id}/files/_/`,
+            cookies: {
+                sid: TestObjects.tokens.alice
+            }
+        })
+        response.statusCode.should.equal(400)
+    })
+    it('create directory on suspended Instance', async function () {
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/projects/${TestObjects.instance2.id}/files/_/`,
+            body: { path: 'foo/bar' },
+            cookies: {
+                sid: TestObjects.tokens.alice
+            }
+        })
+        response.statusCode.should.equal(400)
+    })
+    it('share directory on suspended Instance', async function () {
+        const response = await app.inject({
+            method: 'PUT',
+            url: `/api/v1/projects/${TestObjects.instance2.id}/files/_/foo/bar`,
+            body: { share: { root: '/bar' } },
             cookies: {
                 sid: TestObjects.tokens.alice
             }
