@@ -42,12 +42,29 @@
                 <FormRow v-model="editable.settings.dashboardUI" :error="editable.errors.dashboardUI" :disabled="!editTemplate && !editable.policy.dashboardUI" type="text">
                     Dashboard URL Path
                     <template #description>
-                        The path used to serve the node-red-dashboard UI
+                        <div>The path used to serve the legacy node-red-dashboard UI</div>
+                        <div>
+                            NOTE: node-red-dashboard <a href="https://flowfuse.com/blog/2024/06/dashboard-1-deprecated/" class="ff-link" target="_blank" rel="noopener noreferrer">is deprecated</a>
+                        </div>
                     </template>
                     <template #append><ChangeIndicator :value="editable.changed.settings.dashboardUI" /></template>
                 </FormRow>
             </div>
             <LockSetting v-model="editable.policy.dashboardUI" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.dashboardUI" />
+        </div>
+        <div class="flex flex-col sm:flex-row">
+            <div class="w-full max-w-md sm:mr-8">
+                <FormRow type="text">
+                    FlowFuse Dashboard URL Path
+                    <template #description>
+                        The path used to serve the <a href="https://dashboard.flowfuse.com/" class="ff-link" target="_blank" rel="noopener noreferrer">FlowFuse Dashboard</a>
+                    </template>
+                    <template #input>
+                        <div data-el="form-row-uneditable" class="w-full uneditable undefined text-gray-300">/dashboard</div>
+                    </template>
+                </FormRow>
+            </div>
+            <LockSetting class="flex justify-end flex-col" tooltip="This setting is fixed and cannot be changed." />
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
