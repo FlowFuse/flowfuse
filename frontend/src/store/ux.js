@@ -2,6 +2,9 @@ const state = () => ({
     rightDrawer: {
         state: false,
         component: null
+    },
+    tours: {
+        welcome: false
     }
 })
 
@@ -19,6 +22,12 @@ const mutations = {
     closeRightDrawer (state) {
         state.rightDrawer.state = false
         state.rightDrawer.component = null
+    },
+    activateTour (state, tour) {
+        state.tours[tour] = true
+    },
+    deactivateTour (state, tour) {
+        state.tours[tour] = false
     }
 }
 
@@ -28,6 +37,12 @@ const actions = {
     },
     closeRightDrawer ({ commit }) {
         commit('closeRightDrawer')
+    },
+    activateTour ({ commit }, tour) {
+        commit('activateTour', tour)
+    },
+    deactivateTour ({ commit }, tour) {
+        commit('deactivateTour', tour)
     }
 }
 
@@ -36,5 +51,12 @@ export default {
     state,
     getters,
     mutations,
-    actions
+    actions,
+    meta: {
+        persistence: {
+            tours: {
+                storage: 'localStorage'
+            }
+        }
+    }
 }

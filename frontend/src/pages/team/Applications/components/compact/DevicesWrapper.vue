@@ -1,5 +1,5 @@
 <template>
-    <section v-if="hasNoDevices" class="ff-no-data--boxed">
+    <section v-if="hasNoDevices" class="ff-no-data--boxed" data-el="application-devices-none">
         <label class="delimiter">
             <IconDeviceSolid class="ff-icon ff-icon-sm text-teal-700" />
             Devices
