@@ -40,7 +40,7 @@
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.dashboardUI" :error="editable.errors.dashboardUI" :disabled="!editTemplate && !editable.policy.dashboardUI" type="text">
-                    Dashboard URL Path
+                    Legacy Dashboard URL Path
                     <template #description>
                         <div>The path used to serve the legacy node-red-dashboard UI</div>
                         <div>
