@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="ff-team-library">
         <div class="breadcrumbs-wrapper">
             <div :class="{'ff-breadcrumbs': true, 'disable-last': !viewingFile}">
                 <span v-for="(crumb, $index) in breadcrumbs" :key="$index" class="flex items-center">
@@ -208,6 +208,10 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.ff-team-library .ff-breadcrumbs {
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
 .breadcrumbs-wrapper {
   display: flex;
   justify-content: space-between;

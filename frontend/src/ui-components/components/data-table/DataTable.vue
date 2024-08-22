@@ -146,7 +146,7 @@ export default {
             default: () => []
         },
         rowsSelectable: {
-            type: Boolean,
+            type: [Boolean, Function],
             default: false
         },
         showRowCheckboxes: {
