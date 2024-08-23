@@ -66,8 +66,8 @@ describe('FlowForge - Team - Devices - Create', () => {
 
         // check the device is in the list
         cy.wait('@getDevices').then(() => {
-            // check the table (last row) has the device name (1st td)
-            cy.get('[data-el="devices-browser"] tbody tr:last-child td:nth-child(1)').contains(deviceName)
+            // check the table (last row) has the device name (2nd td)
+            cy.get('[data-el="devices-browser"] tbody tr:last-child td:nth-child(2)').contains(deviceName)
             // 2nd last column is the application name - should be unassigned
             cy.get('[data-el="devices-browser"] tbody tr:last-child td:nth-last-child(2)').contains('Unassigned')
         })
@@ -110,8 +110,8 @@ describe('FlowForge - Team - Devices - Create', () => {
 
         // check the device is in the list and is assigned to the application
         cy.wait('@getDevices').then(() => {
-            // check the table (last row) has the device name (1st td)
-            cy.get('[data-el="devices-browser"] tbody tr:last-child td:nth-child(1)').contains(deviceName)
+            // check the table (last row) has the device name (2nd td)
+            cy.get('[data-el="devices-browser"] tbody tr:last-child td:nth-child(2)').contains(deviceName)
             // 2nd last column is the application name
             cy.get('[data-el="devices-browser"] tbody tr:last-child td:nth-last-child(2)').contains('application-2')
         })

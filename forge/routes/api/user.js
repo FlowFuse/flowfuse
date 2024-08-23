@@ -1,5 +1,6 @@
 const sharedUser = require('./shared/users')
 const UserInvitations = require('./userInvitations')
+const UserNotifications = require('./userNotifications')
 
 /**
  * User api routes
@@ -12,6 +13,7 @@ const UserInvitations = require('./userInvitations')
  */
 module.exports = async function (app) {
     app.register(UserInvitations, { prefix: '/invitations' })
+    app.register(UserNotifications, { prefix: '/notifications' })
 
     /**
      * Get the profile of the current logged in user

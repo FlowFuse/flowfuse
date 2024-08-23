@@ -179,6 +179,52 @@ To remove the device from an application:
 The device will stop running the current Node-RED flows. It will then wait
 until it is assigned to another application or instance.
 
+### Bulk Assigning Devices to an Application
+
+If you have a number of devices to assign to an application, you can use do them all at once.
+1. Select the devices you want to assign and open the **Actions** dropdown menu adjacent to the **Add Device** button.
+2. Select the **Move to Application** option and then select the application or instance you want to assign the devices to.
+3. Click **Move** to continue.
+
+#### Details:
+* Devices that are already assigned to the chosen application will not be changed or updated.
+* For any device that is moved by the operation:
+   * Devices moved by the operation will have their target snapshot cleared, device group membership cleared and will be sent an update command.
+   * Devices in fleet mode will automatically apply the changes resulting in devices restarting with the basic starter snapshot flows.
+   * Devices in developer mode will continue to run their current flows until they are switched to fleet mode at which point they will update accordingly.
+
+NOTE: If you wish to keep the flows currently running on the device, it must be in developer mode at the time of operation. Once the device is moved, create a new snapshot with the "set as Target" option checked.
+
+### Bulk Assigning Devices to an Instance
+
+If you have a number of devices to assign to an instance, you can do them all at once.
+1. Select the devices you want to assign and open the **Actions** dropdown menu adjacent to the **Add Device** button.
+2. Select the **Move to Instance** option and then select the instance you want to assign the devices to.
+3. Click **Move** to continue.
+
+#### Details:
+* Devices that are already assigned to the chosen instance will not be changed or updated.
+* For any device that is moved by the operation:
+   * If the chosen instance has a target snapshot set, the newly assigned devices will inherit this.
+   * If the chosen instance does not have a target snapshot set, newly assigned devices will have their target snapshot cleared.
+   * Devices in fleet mode will automatically apply the changes.
+   * Devices in developer mode will continue to run their current flows until they are switched to fleet mode at which point they will update accordingly.
+
+### Bulk Removing Devices from an Application or Instance
+
+If you have a number of devices to remove from an application or instance, you can do them all at once.
+1. Select the devices you want to remove and open the **Actions** dropdown menu adjacent to the **Add Device** button.
+2. Select the **Unassign** option.
+   1. Depending on where you are viewing devices, this may say "Remove from Application" or "Remove from Instance".
+3. Confirm the action by clicking **Unassign**.
+
+#### Details:
+* Devices that are already unassigned will not be changed or updated.
+* For any device that was previously assigned to an application or instance:
+   * Devices in developer mode will be switched to fleet mode.
+   * Devices will have their target snapshot and device group membership cleared.
+   * Devices will be informed of the changes resulting in their flows being cleared and the device entering a stopped state waiting for a new assignment.
+
 ## Regenerating Configurations
 
 To regenerate device configurations:

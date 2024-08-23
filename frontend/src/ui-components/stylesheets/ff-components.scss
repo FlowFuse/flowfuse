@@ -146,6 +146,13 @@
       color: $ff-white;
     }
   }
+  &--tertiary-danger {
+    color: $ff-color--danger;
+    &:hover {
+      background-color: $ff-color--danger--dark;
+      color: $ff-white;
+    }
+  }
 
   &.ff-btn-small {
     .ff-btn--icon,
@@ -398,6 +405,7 @@ li.ff-list-item {
     left: 0;
     height: 16px;
     width: 16px;
+    margin-left: 4px;
     border-radius: 4px;
     background-color: transparent;
     border: 1px solid;
@@ -797,6 +805,12 @@ li.ff-list-item {
       justify-content: flex-end;
     }
   }
+}
+
+.ff-data-table thead .ff-checkbox,
+.ff-data-table tbody .ff-checkbox,
+.ff-data-table tbody .ff-radio-btn {
+    display: inline;
 }
 
 .ff-loadmore {

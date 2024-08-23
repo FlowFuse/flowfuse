@@ -39,6 +39,20 @@ forge:
 ```
 Where size is the default size for the volume.
 
+#### Azure
+
+If you are using the `azurefile-csi` Persistent Storage driver then we recommend adding the following to the `StorageClass mountOptions`:
+
+```
+mountOptions:
+  - dir_mode=0777
+  - file_mode=0777
+  - mfsymlinks
+  - nobrl
+```
+
+See [the Azure Kubernetes documentation](https://learn.microsoft.com/en-us/troubleshoot/azure/azure-kubernetes/storage/mountoptions-settings-azure-files) for more details.
+
 ## Pre FlowFuse v2.6.0
 
 When running in container-based environments, such as Docker or Kubernetes,

@@ -167,6 +167,7 @@ const iconMap = {
     ],
     clock: [
         'project.snapshot.created',
+        'project.snapshot.updated',
         'project.device.snapshot.created',
         'project.snapshot.deleted',
         'project.snapshot.rollback',
@@ -176,6 +177,7 @@ const iconMap = {
         'project.snapshot.device-target-set',
         'project.snapshot.deviceTarget', // legacy event
         'application.device.snapshot.created',
+        'application.device.snapshot.updated',
         'application.device.snapshot.deleted',
         'application.device.snapshot.exported',
         'application.device.snapshot.imported',
@@ -188,6 +190,7 @@ const iconMap = {
         'application.device.assigned',
         'team.device.created',
         'team.device.deleted',
+        'team.device.bulk-deleted',
         'team.device.updated',
         'team.device.unassigned',
         'team.device.assigned',

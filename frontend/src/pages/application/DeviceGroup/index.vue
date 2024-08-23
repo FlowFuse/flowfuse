@@ -23,7 +23,6 @@
                     <InfoCard header="">
                         <template #content>
                             <InfoCardRow property="Target Snapshot:">
-                                hello
                                 <template #value>
                                     <span class="flex gap-2 pr-2" data-el="device-group-target-snapshot">
                                         <span class="flex items-center space-x-2 pt-1 text-gray-500 italic">

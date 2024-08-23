@@ -72,6 +72,18 @@ The general points are:
 Once you have setup both sides of the configuration you can enable it for use
 by ticking the `active` checkbox and clicking `Update configuration`.
 
+## Creating new users
+
+With FlowFuse 2.7, the SSO Configuration now includes an option to automatically
+register users who sign in via the configuration.
+
+This option is not enabled by default, but can be enabled but selecting the `Allow Provisioning of New Users on first login`
+option in the SOO configuration.
+
+When creating the user, the platform will use information provided by the SAML provider
+to create the username. The user will be directed to their settings page where they
+can modify their user details to their preferred values.
+
 ## Managing Team Membership with SAML Groups
 
 Some SAML providers allow user group information to be shared as part of the sign-in process.
@@ -116,6 +128,16 @@ the groups in the SAML Provider - rather than using the team's id. However, a te
 by a team owner. Doing so will break the link between the group and the team membership - so should only
 be done with care.
 
+## Managing Admin users
+
+The SSO Configuration can be configured to managed the admin users of the platform by enabling the
+`Manage Admin roles using group assertions` option. Once enabled, the name of a group can be provided
+that will be used to identify whether a user is an admin or not.
+
+**Note:* the platform will refuse to remove the admin flag from a user if they are the only admin
+on the platform. It is *strongly* recommended to have an admin user on the system that is not
+managed via SSO to ensure continued access in case of any issues with the SSO provider.
+
 ## Providers
 
 The following is a non-exhaustive list of the providers that are known to work
@@ -125,6 +147,7 @@ with FlowFuse SAML SSO.
  - [Google Workspace](#google-workspace)
  - [OneLogin](#onelogin)
  - [Okta](#okta)
+ - [Keycloak](#keycloak)
 
 ### Microsoft Entra
 
@@ -255,3 +278,16 @@ The final task is to copy some of the contents of the XML file into the FlowFuse
  - Find one of the `md:SingleSignOnService` tags and copy the value of its `Location` attribute into the `Identity Provider Single Sign-On URL` property
  - Copy the contents of the `ds:X509Certificate` tag into the `X.509 Certificate Public Key` property
 
+#### Group Membership Configuration
+
+In Keycloak and the Realm setup with FlowFuse as a client:
+
+ - Create a new "Client Scope"
+ - Give it a name and ensure the "Protocol" is `SAML`
+ - After saving the scope, select the "Mappers" tab
+ - "Add mapper" and pick "By configuration"
+ - Select "Group list" from the options
+ - Give it a name and set "Group attribute name" to `ff-roles` (this must match the value configured in FlowFuse, default 'ff-roles')
+ - Ensure that "Full group path" is unchecked
+ - Save and return to the "Clients" list and select your FlowFuse Client created earlier
+ - Under "Client scopes", use the "Add client scope" button to add the new scope

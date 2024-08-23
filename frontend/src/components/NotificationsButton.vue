@@ -2,7 +2,7 @@
     <div class="notifications-button-wrapper">
         <button class="notifications-button" data-el="notifications-button" data-click-exclude="right-drawer" @click="onClick">
             <MailIcon />
-            <ff-notification-pill v-if="hasNotifications" data-el="notification-pill" class="ml-3" :count="notifications.total" />
+            <ff-notification-pill v-if="hasNotifications" data-el="notification-pill" class="ml-3" :count="notificationsCount" />
         </button>
     </div>
 </template>
@@ -20,7 +20,14 @@ export default {
     computed: {
         ...mapState('ux', ['rightDrawer']),
         ...mapGetters('account', ['hasNotifications']),
-        ...mapGetters('account', ['notifications'])
+        ...mapGetters('account', ['unreadNotificationsCount']),
+        notificationsCount: function () {
+            // Return null if count = 0 so we don't show a 0 in the pill
+            if (!this.unreadNotificationsCount) {
+                return null
+            }
+            return this.unreadNotificationsCount
+        }
     },
     methods: {
         ...mapActions('ux', ['openRightDrawer', 'closeRightDrawer']),
@@ -37,7 +44,6 @@ export default {
 .notifications-button-wrapper {
 
   .notifications-button {
-    border-left: 1px solid $ff-grey-500;
     color: white;
     display: flex;
     align-items: center;

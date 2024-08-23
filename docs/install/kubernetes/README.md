@@ -66,8 +66,9 @@ with the following values:
 
 ### DNS
 
-A wildcard DNS entry will be needed to point to the domain that is used for the 
-project instances. This will need to point to the K8s Ingress controller.
+A [wildcard DNS entry](https://en.wikipedia.org/wiki/Wildcard_DNS_record) will be needed 
+to point to the domain that is used for the project instances. This will need to point 
+to the K8s Ingress controller.
 
 For example if you want projects to be access able as `[project-name].example.com`
 you will need to ensure that `*.example.com` is mapped to the IP address used by 

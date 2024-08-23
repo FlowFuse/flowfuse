@@ -1,5 +1,5 @@
 <template>
-    <div class="message" @click="go(to)">
+    <div class="message" :class="{ unread: !notification.read }" @click="go(to)">
         <div class="body">
             <div class="icon ff-icon ff-icon-lg">
                 <slot name="icon" />
@@ -23,6 +23,8 @@
 <script>
 import { mapActions } from 'vuex'
 
+import userApi from '../../api/user.js'
+
 import NotificationMessageMixin from '../../mixins/NotificationMessage.js'
 
 export default {
@@ -34,24 +36,26 @@ export default {
             required: true
         }
     },
-    computed: {
-        invitorName () {
-            return this.notification.invitor.name
-        },
-        teamName () {
-            return this.notification.team.name
-        }
-    },
     methods: {
         ...mapActions('ux', ['closeRightDrawer']),
         go (to) {
             this.closeRightDrawer()
-            this.$router.push(to)
+            this.notification.read = true
+            userApi.markNotificationRead(this.notification.id)
+            if (to.url) {
+            // Handle external links
+                window.open(to.url, '_blank').focus()
+            } else {
+                this.$router.push(to)
+            }
         }
     }
 }
 </script>
 
 <style scoped lang="scss">
+.body.unread {
+    border-left: 3px solid blue;
+}
 
 </style>

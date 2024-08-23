@@ -10,9 +10,9 @@
             <!--            </div>-->
         </div>
         <ul v-if="hasNotificationMessages" class="messages-wrapper" data-el="messages-wrapper">
-            <li v-for="notification in notificationMessages" :key="notification.id" data-el="message">
+            <li v-for="notification in notifications" :key="notification.id" data-el="message">
                 <component
-                    :is="notificationsComponentMap['team-invitation']"
+                    :is="notificationsComponentMap[notification.type]"
                     :notification="notification"
                     :selections="selections"
                     @selected="onSelected"
@@ -30,7 +30,8 @@
 import { markRaw } from 'vue'
 import { mapGetters } from 'vuex'
 
-import TeamInvitationNotification from '../../notifications/TeamInvitationNotification.vue'
+import TeamInvitationAcceptedNotification from '../../notifications/invitations/Accepted.vue'
+import TeamInvitationReceivedNotification from '../../notifications/invitations/Received.vue'
 
 export default {
     name: 'NotificationsDrawer',
@@ -38,21 +39,22 @@ export default {
         return {
             notificationsComponentMap: {
                 // todo replace hardcoded value with actual notification type
-                'team-invitation': markRaw(TeamInvitationNotification)
+                'team-invite': markRaw(TeamInvitationReceivedNotification),
+                'team-invite-accepted-invitor': markRaw(TeamInvitationAcceptedNotification)
             },
             selections: []
         }
     },
     computed: {
-        ...mapGetters('account', ['notificationMessages']),
+        ...mapGetters('account', ['notifications']),
         canSelectAll () {
-            return this.notificationMessages.length !== this.selections.length
+            return this.notifications.length !== this.selections.length
         },
         canDeselectAll () {
             return this.selections.length > 0
         },
         hasNotificationMessages () {
-            return this.notificationMessages.length > 0
+            return this.notifications.length > 0
         }
     },
     methods: {
@@ -66,7 +68,7 @@ export default {
             }
         },
         selectAll () {
-            this.selections = [...this.notificationMessages]
+            this.selections = [...this.notifications]
         },
         deselectAll () {
             this.selections = []

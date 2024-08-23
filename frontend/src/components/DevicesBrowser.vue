@@ -20,11 +20,15 @@
                 :show-search="true"
                 search-placeholder="Search Devices"
                 :show-load-more="moreThanOnePage"
+                :check-key="row => row.id"
+                :show-row-checkboxes="true"
+                @rows-checked="checkedDevices = $event"
                 @load-more="loadMoreDevices"
                 @update:search="updateSearch"
                 @update:sort="updateSort"
             >
                 <template #actions>
+                    <DropdownMenu v-if="hasPermission('team:device:bulk-delete') || hasPermission('team:device:bulk-edit')" :disabled="!checkedDevices?.length" data-el="bulk-actions-dropdown" buttonClass="ff-btn ff-btn--secondary" :options="bulkActionsDropdownOptions">Actions</DropdownMenu>
                     <ff-button
                         v-if="displayingInstance && hasPermission('project:snapshot:create')"
                         data-action="change-target-snapshot"
@@ -156,6 +160,60 @@
                                 </router-link>.
                             </p>
                         </template>
+                        <template #actions>
+                            <ff-button
+                                v-if="hasPermission('device:create')"
+                                class="font-normal"
+                                kind="primary"
+                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached"
+                                data-action="register-device"
+                                @click="showCreateDeviceDialog"
+                            >
+                                <template #icon-left>
+                                    <PlusSmIcon />
+                                </template>
+                                Add Device
+                            </ff-button>
+                        </template>
+                    </EmptyState>
+                </template>
+                <template v-else-if="displayingApplication">
+                    <EmptyState data-el="application-no-devices">
+                        <template #img>
+                            <img src="../images/empty-states/instance-devices.png">
+                        </template>
+                        <template #header>Connect your First Device</template>
+                        <template #message>
+                            <p>
+                                Here, you will see a list of Devices belonging to this Application.
+                            </p>
+                            <p>
+                                You can deploy <router-link class="ff-link" :to="{name: 'ApplicationSnapshots'}">Snapshots</router-link> of this Application to your connected Devices.
+                            </p>
+                            <p>
+                                A full list of your Team's Devices are available <router-link
+                                    class="ff-link"
+                                    :to="{name: 'TeamDevices', params: {team_slug: team.slug}}"
+                                >
+                                    here
+                                </router-link>.
+                            </p>
+                        </template>
+                        <template #actions>
+                            <ff-button
+                                v-if="hasPermission('device:create')"
+                                class="font-normal"
+                                kind="primary"
+                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached"
+                                data-action="register-device"
+                                @click="showCreateDeviceDialog"
+                            >
+                                <template #icon-left>
+                                    <PlusSmIcon />
+                                </template>
+                                Add Device
+                            </ff-button>
+                        </template>
                     </EmptyState>
                 </template>
                 <div v-else class="ff-no-data ff-no-data-large">
@@ -205,16 +263,62 @@
     />
 
     <DeviceAssignInstanceDialog
-        v-if="displayingTeam"
         ref="deviceAssignInstanceDialog"
         @assign-device="assignDevice"
+        @move-devices="moveDevicesToInstance"
     />
 
     <DeviceAssignApplicationDialog
-        v-if="displayingTeam"
         ref="deviceAssignApplicationDialog"
         @assign-device="assignDeviceToApplication"
+        @move-devices="moveDevicesToApplication"
     />
+
+    <ff-dialog
+        ref="teamBulkDeviceDeleteDialog"
+        header="Confirm Device Delete"
+        class="ff-dialog-fixed-height"
+        confirm-label="Confirm"
+        data-el="team-bulk-device-delete-dialog"
+        kind="danger"
+        @confirm="confirmBulkDelete()"
+    >
+        <template #default>
+            <p>The following device{{ checkedDevices.length > 1 ? 's' : '' }} will be deleted:</p>
+            <div class="max-h-96 overflow-y-auto">
+                <ul class="ff-devices-ul">
+                    <li v-for="device in checkedDevices" :key="device.id">
+                        <span class="font-bold">{{ device.name }}</span> <span class="text-gray-500 text-sm"> ({{ device.id }})</span>
+                    </li>
+                </ul>
+            </div>
+            <p>This action cannot be undone.</p>
+        </template>
+    </ff-dialog>
+
+    <ff-dialog
+        ref="devicesMoveNoOwnerDialog"
+        :header="displayingTeam ? `Unassign Device${checkedDevices.length > 1 ? 's' : ''}` : `Remove Device${checkedDevices.length > 1 ? 's' : ''} from ${displayingInstance ? 'Instance' : displayingApplication ? 'Application' : 'Assignment'}`"
+        class="ff-dialog-fixed-height"
+        :confirm-label="displayingTeam ?'Unassign' : 'Remove'"
+        data-el="team-bulk-device-unassign-dialog"
+        kind="danger"
+        @confirm="moveDevicesToUnassigned(checkedDevices)"
+    >
+        <template #default>
+            <p v-if="displayingInstance">The following devices will be removed from this Instance:</p>
+            <p v-else-if="displayingApplication">The following devices will be removed from this Application:</p>
+            <p v-else>The following devices will be removed from their current assignment:</p>
+            <div class="max-h-96 overflow-y-auto">
+                <ul class="ff-devices-ul">
+                    <li v-for="device in checkedDevices" :key="device.id">
+                        <span class="font-bold">{{ device.name }}</span> <span class="text-gray-500 text-sm"> ({{ device.id }})</span>
+                    </li>
+                </ul>
+            </div>
+            <p>This will stop the flows running on the device{{ checkedDevices.length > 1 ? 's' : '' }}.</p>
+        </template>
+    </ff-dialog>
 </template>
 
 <script>
@@ -225,8 +329,9 @@ import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
 import deviceApi from '../api/devices.js'
+import teamApi from '../api/team.js'
+import DropdownMenu from '../components/DropdownMenu.vue'
 import deviceActionsMixin from '../mixins/DeviceActions.js'
-
 import permissionsMixin from '../mixins/Permissions.js'
 
 import DeviceAssignedToLink from '../pages/application/components/cells/DeviceAssignedToLink.vue'
@@ -259,6 +364,7 @@ export default {
         DeviceAssignApplicationDialog,
         DeviceAssignInstanceDialog,
         DeviceCredentialsDialog,
+        DropdownMenu,
         FeatureUnavailableToTeam,
         PlusSmIcon,
         SnapshotAssignDialog,
@@ -293,6 +399,8 @@ export default {
             // Devices lists
             devices: new Map(), // devices currently available to be displayed
 
+            checkedDevices: [], // devices currently selected in the table
+
             unsearchedHasMoreThanOnePage: true,
             unfilteredHasMoreThanOnePage: true,
 
@@ -308,7 +416,7 @@ export default {
         ...mapState('account', ['team', 'teamMembership']),
         columns () {
             const columns = [
-                { label: 'Device', key: 'name', class: ['w-64'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
+                { label: 'Device', key: 'name', sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
                 { label: 'Type', key: 'type', class: ['w-48'], sortable: !this.moreThanOnePage },
                 { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLastSeenBadge) } },
                 { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge) } }
@@ -386,6 +494,25 @@ export default {
                 return true
             }
             return false
+        },
+        bulkActionsDropdownOptions () {
+            const actionsEnabled = this.checkedDevices?.length > 0
+            const enableDelete = actionsEnabled && this.hasPermission('team:device:bulk-delete')
+            const enableMove = actionsEnabled && this.hasPermission('team:device:bulk-edit')
+            const showRemoveFromInstance = this.displayingInstance || this.displayingTeam
+            const showRemoveFromApplication = this.displayingApplication || this.displayingTeam
+            const menu = []
+            menu.push({ name: 'Move to Instance', action: this.showTeamBulkDeviceMoveToInstanceDialog, disabled: !enableMove })
+            menu.push({ name: 'Move to Application', action: this.showTeamBulkDeviceMoveToApplicationDialog, disabled: !enableMove })
+            if (this.displayingInstance && showRemoveFromInstance) {
+                menu.push({ name: 'Remove from Instance', action: this.showTeamBulkDeviceUnassignDialog, disabled: !enableMove })
+            } else if (this.displayingApplication && showRemoveFromApplication) {
+                menu.push({ name: 'Remove from Application', action: this.showTeamBulkDeviceUnassignDialog, disabled: !enableMove })
+            } else if (this.displayingTeam && (showRemoveFromInstance || showRemoveFromApplication)) {
+                menu.push({ name: 'Unassign', action: this.showTeamBulkDeviceUnassignDialog, disabled: !enableMove })
+            }
+            menu.push({ name: 'Delete', class: ['!text-red-600'], action: this.showTeamBulkDeviceDeleteDialog, disabled: !enableDelete })
+            return menu
         }
     },
     watch: {
@@ -463,6 +590,34 @@ export default {
             this.$refs.teamDeviceCreateDialog.show(null, this.instance, this.application, showApplicationsList)
         },
 
+        confirmBulkDelete () {
+            // do the delete
+            teamApi.bulkDeviceDelete(this.team?.id, this.checkedDevices.map(device => device.id))
+                .then(() => {
+                    Alerts.emit('Devices successfully deleted.', 'confirmation')
+                    this.fullReloadOfData()
+                })
+                .catch((error) => {
+                    Alerts.emit('Error deleting devices: ' + error.message, 'error')
+                })
+        },
+
+        showTeamBulkDeviceDeleteDialog () {
+            this.$refs.teamBulkDeviceDeleteDialog.show()
+        },
+
+        showTeamBulkDeviceUnassignDialog () {
+            this.$refs.devicesMoveNoOwnerDialog.show()
+        },
+
+        showTeamBulkDeviceMoveToInstanceDialog () {
+            this.$refs.deviceAssignInstanceDialog.show(this.checkedDevices)
+        },
+
+        showTeamBulkDeviceMoveToApplicationDialog () {
+            this.$refs.deviceAssignApplicationDialog.show(this.checkedDevices)
+        },
+
         showSelectTargetSnapshotDialog () {
             this.$refs.snapshotAssignDialog.show()
         },
@@ -483,8 +638,62 @@ export default {
             this.updateLocalCopyOfDevice({ ...device, ...updatedDevice })
         },
 
+        /**
+         * @param {Array<object>} devices - Array of devices to move
+         * @param {string} instance - ID of the instance to move the devices to
+         */
+        async moveDevicesToInstance (devices, instance) {
+            const deviceIds = devices.map(device => device.id)
+            const data = await teamApi.bulkDeviceMove(this.team.id, deviceIds, 'instance', instance)
+            if (data?.devices.length) {
+                Alerts.emit('Devices successfully moved.', 'confirmation')
+                data.devices.forEach(updatedDevice => {
+                    const device = this.devices.get(updatedDevice.id)
+                    // ensure the updated device has `instance` and `application` set so that the local copy is updated correctly
+                    const ensureProps = { instance: updatedDevice.instance || null, application: updatedDevice.application || null }
+                    this.updateLocalCopyOfDevice({ ...device, ...updatedDevice, ...ensureProps })
+                })
+            }
+        },
+
+        /**
+         * @param {Array<object>} devices - Array of devices to move
+         * @param {string} application - ID of the application to move the devices to
+         */
+        async moveDevicesToApplication (devices, application) {
+            const deviceIds = devices.map(device => device.id)
+            const data = await teamApi.bulkDeviceMove(this.team.id, deviceIds, 'application', application)
+            if (data?.devices.length) {
+                Alerts.emit('Devices successfully moved.', 'confirmation')
+                data.devices.forEach(updatedDevice => {
+                    const device = this.devices.get(updatedDevice.id)
+                    // ensure the updated device has `instance` and `application` set so that the local copy is updated correctly
+                    const ensureProps = { instance: updatedDevice.instance || null, application: updatedDevice.application || null }
+                    this.updateLocalCopyOfDevice({ ...device, ...updatedDevice, ...ensureProps })
+                })
+            }
+        },
+
+        /**
+         * @param {Array<object>} devices - Array of devices to move
+         */
+        async moveDevicesToUnassigned (devices) {
+            const deviceIds = devices.map(device => device.id)
+            const data = await teamApi.bulkDeviceMove(this.team.id, deviceIds, 'unassigned')
+            if (data?.devices.length) {
+                Alerts.emit('Devices successfully unassigned.', 'confirmation')
+                data.devices.forEach(updatedDevice => {
+                    const device = this.devices.get(updatedDevice.id)
+                    // ensure the updated device has `instance` and `application` set so that the local copy is updated correctly
+                    const ensureProps = { instance: updatedDevice.instance || null, application: updatedDevice.application || null }
+                    this.updateLocalCopyOfDevice({ ...device, ...updatedDevice, ...ensureProps })
+                })
+            }
+        },
+
         // Device loading
         fullReloadOfData () {
+            this.checkedDevices = []
             this.loadDevices(true)
             this.pollForDeviceStatuses(true)
         },
@@ -573,3 +782,16 @@ export default {
     }
 }
 </script>
+
+<style>
+.ff-dialog-content .ff-devices-ul {
+    list-style-type: disc;
+    list-style-position: inside;
+    columns: 2;
+}
+.ff-dialog-content .ff-devices-ul li {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+</style>

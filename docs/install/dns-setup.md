@@ -27,12 +27,12 @@ If you are running Docker/Kubernetes on the same machine as the DNS server and W
 
 For a production deployment you will need to have access to modify DNS, if you are not sure how to set up DNS records talk to whoever manages your DNS.
 
-As mentioned earlier you will need them to create a wild card entry that points to either the Docker host machine or the Kubernetes Nodes which are running the Ingress Controller.
+As mentioned earlier you will need them to create a [wildcard DNS](https://en.wikipedia.org/wiki/Wildcard_DNS_record) entry that points to either the Docker host machine or the Kubernetes Nodes which are running the Ingress Controller.
 
 This can be either:
 
-- a `A` (and `AAAA` for IPv6) record pointing to an IP address
-- a `CNAME` record pointing to the hostname of the entry point.
+- a `A` (and `AAAA` for IPv6) record pointing to an IP address e.g. `*.example.com 8600 A 192.0.2.1`
+- a `CNAME` record pointing to the hostname of the entry point e.g. `*.ff.example.com 8600 CNAME forge.example.com`
 
 ### AWS ALB Ingress
 

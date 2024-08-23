@@ -197,6 +197,14 @@ Option        | Description
 
 For additional options, see [fastify-rate-limit](https://github.com/fastify/fastify-rate-limit#options) documentation.
 
+## Session timeouts
+
+Allows control of the maximum user session life.
+
+Option        | Description
+--------------|------------
+`sessions.maxDuration` | The maximum number of seconds a user session can last. Default: `604800` (1 week)
+`sessions.maxIdleDuration` | The maximum number of seconds a session can be idle. Must be less than `sessions.maxDuration`. Default: `115200` (32 hours)
 
 ## Support configuration
 

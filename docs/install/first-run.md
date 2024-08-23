@@ -18,10 +18,10 @@ through the initial setup.
 ## 1. Start setup
 
 ### - LocalFS
-Open FlowFuse in your browser [http://localhost:3000](http://localhost:3000){rel="nofollow"}.  
+Open FlowFuse in your browser `http://localhost:3000` 
 
 ### - Docker or Kubernetes
-Open FlowFuse in your browser [http://forge.example.com](http://forge.example.com){rel="nofollow"} (Change `.example.com` to match the domain you set up in DNS)
+Open FlowFuse in your browser `http://forge.example.com` (Change `.example.com` to match the domain you set up in DNS)
 
 
 Click the **START SETUP** button
