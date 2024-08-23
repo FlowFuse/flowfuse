@@ -271,4 +271,25 @@ describe('Static Files APIs', function () {
         })
         response.statusCode.should.equal(400)
     })
+    it('create directory on non existent path', async function () {
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/projects/${TestObjects.instance2.id}/files/_/empty/`,
+            body: { path: 'foo/bar' },
+            cookies: {
+                sid: TestObjects.tokens.alice
+            }
+        })
+        response.statusCode.should.equal(400)
+    })
+    it('list files for none existent instance', async function () {
+        const response = await app.inject({
+            method: 'GET',
+            url: '/api/v1/projects/foobar/files/_/',
+            cookies: {
+                sid: TestObjects.tokens.alice
+            }
+        })
+        response.statusCode.should.equal(404)
+    })
 })
