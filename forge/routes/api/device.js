@@ -990,7 +990,7 @@ module.exports = async function (app) {
                 `"${row.body ? JSON.stringify(row.body).replace(/"/g, '""') : ''}"`,
                 `"${JSON.stringify(row.scope).replace(/"/g, '""')}"`,
                 `"${JSON.stringify(row.trigger).replace(/"/g, '""')}"`,
-                row.createdAt
+                row.createdAt?.toISOString()
             ])
         ]
             .map(row => row.join(','))
