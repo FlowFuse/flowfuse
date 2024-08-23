@@ -2,7 +2,7 @@ const FormData = require('form-data') // eslint-disable-line
 const should = require('should') // eslint-disable-line
 const setup = require('../../setup')
 
-describe.only('Static Files APIs', function () {
+describe('Static Files APIs', function () {
     let app
     const TestObjects = { tokens: {} }
 
@@ -230,7 +230,7 @@ describe.only('Static Files APIs', function () {
     it('share directory on suspended Instance', async function () {
         const response = await app.inject({
             method: 'PUT',
-            url: `/api/v1/projects/${TestObjects.instance2.id}/files/_/foo/bar`,
+            url: `/api/v1/projects/${TestObjects.instance2.id}/files/_/foo/bar/`,
             body: { share: { root: '/bar' } },
             cookies: {
                 sid: TestObjects.tokens.alice
