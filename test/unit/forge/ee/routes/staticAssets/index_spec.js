@@ -106,12 +106,23 @@ describe('Static Files APIs', function () {
         fileList.files[0].should.have.property('name', 'bar')
         fileList.files[0].should.have.property('type', 'directory')
     })
+    it('create directory with no path', async function () {
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/`,
+            body: { },
+            cookies: {
+                sid: TestObjects.tokens.alice
+            }
+        })
+        response.statusCode.should.equal(400)
+    })
     it('create file', async function () {
         const form = new FormData()
         form.append('file', 'helloWorld', { filename: 'helloWorld.txt', contentType: 'text/plain' })
         const response = await app.inject({
             method: 'POST',
-            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/foo/helloWorld.txt`,
+            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/foo/helloWorld.txt/`,
             body: form,
             headers: form.getHeaders(),
             cookies: {
@@ -237,5 +248,27 @@ describe('Static Files APIs', function () {
             }
         })
         response.statusCode.should.equal(404)
+    })
+    it('share and rename directory', async function () {
+        const response = await app.inject({
+            method: 'PUT',
+            url: `/api/v1/projects/${TestObjects.instance2.id}/files/_/foo/bar/`,
+            body: { share: { root: '/bar' }, path: '/foo/baz' },
+            cookies: {
+                sid: TestObjects.tokens.alice
+            }
+        })
+        response.statusCode.should.equal(400)
+    })
+    it('rename directory', async function () {
+        const response = await app.inject({
+            method: 'PUT',
+            url: `/api/v1/projects/${TestObjects.instance2.id}/files/_/foo/bar/`,
+            body: { path: '/foo/baz' },
+            cookies: {
+                sid: TestObjects.tokens.alice
+            }
+        })
+        response.statusCode.should.equal(400)
     })
 })
