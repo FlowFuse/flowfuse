@@ -184,6 +184,21 @@ describe('Static Files APIs', function () {
         fileList.files[0].should.have.property('share')
         fileList.files[0].share.should.have.property('root', '/bar')
     })
+    it('check directory shared', async function () {
+        const token = await TestObjects.instance.refreshAuthTokens()
+        const response = await app.inject({
+            method: 'GET',
+            url: `/api/v1/projects/${TestObjects.instance.id}/settings`,
+            headers: {
+                authorization: `Bearer ${token.token}`
+            }
+        })
+        response.statusCode.should.equal(200)
+        const body = response.json()
+        body.settings.should.have.property('httpStatic')
+        body.settings.httpStatic[0].should.have.property('path', 'foo/bar')
+        body.settings.httpStatic[0].should.have.property('root', '/bar')
+    })
     it('delete file', async function () {
         const response = await app.inject({
             method: 'DELETE',
