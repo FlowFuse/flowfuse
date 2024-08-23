@@ -2,7 +2,7 @@ const FormData = require('form-data') // eslint-disable-line
 const should = require('should') // eslint-disable-line
 const setup = require('../../setup')
 
-describe('Static Files APIs', function () {
+describe.only('Static Files APIs', function () {
     let app
     const TestObjects = { tokens: {} }
 
@@ -151,7 +151,7 @@ describe('Static Files APIs', function () {
     it('share directory', async function () {
         const response = await app.inject({
             method: 'PUT',
-            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/foo/bar`,
+            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/foo/bar/`,
             body: { share: { root: '/bar' } },
             cookies: {
                 sid: TestObjects.tokens.alice
@@ -176,7 +176,7 @@ describe('Static Files APIs', function () {
     it('delete file', async function () {
         const response = await app.inject({
             method: 'DELETE',
-            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/foo/helloWorld.txt`,
+            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/foo/helloWorld.txt/`,
             cookies: {
                 sid: TestObjects.tokens.alice
             }
