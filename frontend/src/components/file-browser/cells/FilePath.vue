@@ -25,14 +25,20 @@ export default {
             required: true,
             type: String
         },
-        pwd: {
+        folder: {
             required: true,
             type: String
+        },
+        breadcrumbs: {
+            default: null,
+            type: Array
         }
     },
     computed: {
         path () {
-            const path = this.pwd + this.name
+            console.log(this.breadcrumbs, this.folder, this.name)
+            const path = [...this.breadcrumbs, this.folder, this.name].join('/')
+            console.log('file path', path)
             // clear leading slash
             return path.replace(/^\//, '')
         }

@@ -15,7 +15,7 @@
         </div>
         <FileBrowser
             :breadcrumbs="breadcrumbs"
-            :pwd="currentDirectory" :items="files"
+            :folder="currentDirectory" :items="files"
             @items-updated="loadContents"
             @change-directory="changeDirectory"
         />
@@ -57,30 +57,24 @@ export default {
     },
     methods: {
         loadContents () {
-            console.log('loading contents')
             const breadcrumbs = this.breadcrumbs.join('/')
             const path = breadcrumbs + (breadcrumbs.length > 0 ? '/' : '') + (this.currentDirectory.name || '')
-            console.log('path', path)
-            console.log('breadcrumbs', this.breadcrumbs)
             AssetsAPI.getFiles(this.instance.id, path)
                 .then(files => {
                     this.files = files
                 })
                 .catch(error => {
-                    console.log(error)
+                    console.error(error)
                 })
         },
         changeDirectory (dir) {
-            console.log(dir, this.currentDirectory)
             this.breadcrumbs.push(this.currentDirectory.name || '')
             this.currentDirectory.name = dir.name
             this.loadContents()
         },
         breadcrumbClicked ($index) {
-            console.log($index, this.breadcrumbs)
             this.currentDirectory.name = this.breadcrumbs[$index] || ''
             this.breadcrumbs = this.breadcrumbs.slice(0, $index)
-            console.log(this.breadcrumbs, this.currentDirectory)
             this.loadContents()
         }
     }

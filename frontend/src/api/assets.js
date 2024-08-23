@@ -20,11 +20,13 @@ const createFolder = function (instanceId, path, folderName) {
     })
 }
 
-const updateFolder = function (instanceId, path, folderName) {
+const updateFolder = function (instanceId, pwd, oldName, newName) {
     // remove leading / from path
-    path = path.replace(/^\//, '')
-    return client.put(`/api/v1/projects/${instanceId}/files/_/${path || ''}`, {
-        path: folderName
+    pwd = pwd.replace(/^\//, '')
+    const oldAbsPath = pwd + '/' + oldName
+    const newAbsPath = pwd + '/' + newName
+    return client.put(`/api/v1/projects/${instanceId}/files/_/${oldAbsPath || ''}`, {
+        path: newAbsPath
     })
 }
 
@@ -34,9 +36,22 @@ const deleteItem = function (instanceId, path) {
     return client.delete(`/api/v1/projects/${instanceId}/files/_/${path || ''}`)
 }
 
+const uploadFile = function (instanceId, path, filename, file) {
+    // remove leading / from path
+    path = [path, filename].join('/').replace(/^\//, '')
+    const formData = new FormData()
+    formData.append('file', file)
+    return client.post(`/api/v1/projects/${instanceId}/files/_/${path || ''}`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+
 export default {
     getFiles,
     createFolder,
     updateFolder,
-    deleteItem
+    deleteItem,
+    uploadFile
 }

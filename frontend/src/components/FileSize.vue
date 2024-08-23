@@ -5,7 +5,7 @@
 <script>
 
 export default {
-    name: 'FileBrowserCellSize',
+    name: 'FileSize',
     inheritAttrs: false,
     props: {
         size: {
