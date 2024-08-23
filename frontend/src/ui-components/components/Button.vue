@@ -1,5 +1,5 @@
 <template>
-    <a v-if="type==='anchor'" ref="input" class="ff-btn transition-fade--color" :target="target" :class="'ff-btn--' + kind + (hasIcon ? ' ff-btn-icon' : '') + (size === 'small' ? ' ff-btn-small' : '') + (size === 'full-width' ? ' ff-btn-fwidth' : '')" :href="!to || disabled ? null : to" :aria-disabled="disabled===true?'true':null" :disabled="disabled===true?'true':null">
+    <a v-if="type==='anchor'" ref="input" class="ff-btn transition-fade--color" :target="target" :class="'ff-btn--' + kind + (hasIcon ? ' ff-btn-icon' : '') + (size === 'small' ? ' ff-btn-small' : '') + (size === 'full-width' ? ' ff-btn-fwidth' : '')" :href="(!to || disabled) ? null : to" :aria-disabled="disabled===true?'true':null" :disabled="disabled===true?'true':null">
         <span v-if="hasIconLeft" class="ff-btn--icon ff-btn--icon-left">
             <slot name="icon-left"></slot>
         </span>
