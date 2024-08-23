@@ -36,9 +36,7 @@ export default {
     },
     computed: {
         path () {
-            console.log(this.breadcrumbs, this.folder, this.name)
             const path = [...this.breadcrumbs, this.folder, this.name].join('/')
-            console.log('file path', path)
             // clear leading slash
             return path.replace(/^\//, '')
         }

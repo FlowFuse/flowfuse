@@ -77,21 +77,7 @@ export default {
                 this.errors = 'File size exceeds 5MB'
             }
 
-            console.log(this.file)
-
             this.$emit('update:modelValue', this.file)
-
-            // const reader = new FileReader()
-
-            // reader.onload = (e) => {
-            //     try {
-            //         this.fileOutput = JSON.parse(e.target.result)
-            //         this.errors = null
-            //     } catch (err) {
-            //         this.errors = 'Invalid JSON'
-            //     }
-            // }
-            // reader.readAsText(this.file)
         }
     }
 }
