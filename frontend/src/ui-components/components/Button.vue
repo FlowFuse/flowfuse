@@ -1,5 +1,5 @@
 <template>
-    <a v-if="type==='anchor'" ref="input" class="ff-btn transition-fade--color" :target="target" :class="'ff-btn--' + kind + (hasIcon ? ' ff-btn-icon' : '') + (size === 'small' ? ' ff-btn-small' : '') + (size === 'full-width' ? ' ff-btn-fwidth' : '')" :href="!to || disabled ? null : to" :aria-disabled="disabled ? 'true' : 'false'" :disabled="disabled">
+    <a v-if="type==='anchor'" ref="input" class="ff-btn transition-fade--color" :target="target" :class="'ff-btn--' + kind + (hasIcon ? ' ff-btn-icon' : '') + (size === 'small' ? ' ff-btn-small' : '') + (size === 'full-width' ? ' ff-btn-fwidth' : '')" :href="!to || disabled ? null : to" :aria-disabled="disabled===true?'true':null" :disabled="disabled===true?'true':null">
         <span v-if="hasIconLeft" class="ff-btn--icon ff-btn--icon-left">
             <slot name="icon-left"></slot>
         </span>
@@ -11,7 +11,7 @@
             <slot name="icon-right"></slot>
         </span>
     </a>
-    <button v-else ref="input" class="ff-btn transition-fade--color" :type="type" :class="'ff-btn--' + kind + (hasIcon ? ' ff-btn-icon' : '') + (size === 'small' ? ' ff-btn-small' : '') + (size === 'full-width' ? ' ff-btn-fwidth' : '')" :disabled="disabled" @click="go()">
+    <button v-else ref="input" class="ff-btn transition-fade--color" :type="type" :class="'ff-btn--' + kind + (hasIcon ? ' ff-btn-icon' : '') + (size === 'small' ? ' ff-btn-small' : '') + (size === 'full-width' ? ' ff-btn-fwidth' : '')" :disabled="disabled===true?'true':null" @click="go()">
         <span v-if="hasIconLeft" class="ff-btn--icon ff-btn--icon-left">
             <slot name="icon-left"></slot>
         </span>
@@ -59,7 +59,7 @@ export default {
             type: Boolean
         },
         disabled: {
-            default: false,
+            default: null,
             type: Boolean
         }
     },
