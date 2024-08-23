@@ -1,5 +1,12 @@
 ---
 navTitle: First Run Setup
+meta:
+   descripition: Get started with FlowFuse using our concise first-run setup guide, covering initial access, administrator creation, license uploading, and platform setup.
+  tags:
+     - setup
+     - flowfuse
+     - administrator
+     - platform configuration
 ---
 
 # First-run Setup
