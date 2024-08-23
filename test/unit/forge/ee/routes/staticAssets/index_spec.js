@@ -71,6 +71,20 @@ describe('Static Files APIs', function () {
             }
         })
         response.statusCode.should.equal(200)
+        const body = response.json()
+        body.should.have.property('files')
+        body.should.have.property('meta')
+        body.should.have.property('count')
+    })
+    it('list files for non existent directory', async function () {
+        const response = await app.inject({
+            method: 'GET',
+            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/foo/bar/test`,
+            cookies: {
+                sid: TestObjects.tokens.alice
+            }
+        })
+        response.statusCode.should.equal(404)
     })
     it('none member can not list files', async function () {
         const response = await app.inject({
@@ -301,6 +315,26 @@ describe('Static Files APIs', function () {
         const response = await app.inject({
             method: 'GET',
             url: '/api/v1/projects/foobar/files/_/',
+            cookies: {
+                sid: TestObjects.tokens.alice
+            }
+        })
+        response.statusCode.should.equal(404)
+    })
+    it('delete file from suspended instance', async function () {
+        const response = await app.inject({
+            method: 'DELETE',
+            url: `/api/v1/projects/${TestObjects.instance2.id}/files/_/foo/helloWorld.txt/`,
+            cookies: {
+                sid: TestObjects.tokens.alice
+            }
+        })
+        response.statusCode.should.equal(400)
+    })
+    it('delete file from non existent directory', async function () {
+        const response = await app.inject({
+            method: 'DELETE',
+            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/foo/bar/baz/test/helloWorld.txt`,
             cookies: {
                 sid: TestObjects.tokens.alice
             }

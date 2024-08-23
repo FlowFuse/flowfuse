@@ -279,47 +279,42 @@ module.exports = {
         if (!list[instance.id] || list[instance.id].state === 'suspended') {
             throw new Error('Cannot access instance files')
         }
-        if (files[instance.id]) {
-            const pathDots = filePath.replace('/', '.')
-            const response = {
-                meta: {},
-                files: [],
-                count: 0
-            }
-            try {
-                const dir = pathDots ? nrUtil.util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
-                Object.keys(dir).forEach(entry => {
-                    if (typeof dir[entry] === 'object') {
-                        response.files.push({
-                            name: entry,
-                            type: 'directory',
-                            lastModified: new Date().toISOString()
-                        })
-                    } else {
-                        response.files.push({
-                            name: entry,
-                            type: 'file',
-                            size: dir[entry].length,
-                            lastModified: new Date().toISOString()
-                        })
-                    }
-                    response.count++
-                })
-                return response
-            } catch (err) {
-                if (err.message === 'Cannot convert undefined or null to object') {
-                    const newErr = new Error('not found')
-                    newErr.statusCode = 404
-                    throw newErr
+        if (!files[instance.id]) {
+            files[instance.id] = {}
+        }
+        const pathDots = filePath.replace('/', '.')
+        const response = {
+            meta: {},
+            files: [],
+            count: 0
+        }
+        try {
+            const dir = pathDots ? nrUtil.util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
+            Object.keys(dir).forEach(entry => {
+                if (typeof dir[entry] === 'object') {
+                    response.files.push({
+                        name: entry,
+                        type: 'directory',
+                        lastModified: new Date().toISOString()
+                    })
                 } else {
-                    throw err
+                    response.files.push({
+                        name: entry,
+                        type: 'file',
+                        size: dir[entry].length,
+                        lastModified: new Date().toISOString()
+                    })
                 }
-            }
-        } else {
-            return {
-                meta: {},
-                files: [],
-                count: 0
+                response.count++
+            })
+            return response
+        } catch (err) {
+            if (err.message === 'Cannot convert undefined or null to object' || err.message.startsWith('Cannot read properties of undefined')) {
+                const newErr = new Error('not found')
+                newErr.statusCode = 404
+                throw newErr
+            } else {
+                throw err
             }
         }
     },
@@ -339,6 +334,9 @@ module.exports = {
         if (!list[instance.id] || list[instance.id].state === 'suspended') {
             throw new Error('Cannot access instance files')
         }
+        if (!files[instance.id]) {
+            files[instance.id] = {}
+        }
         const parts = filePath.split('/')
         const filename = parts.pop()
         const pathDots = parts.join('.')
@@ -346,7 +344,7 @@ module.exports = {
             const dir = pathDots ? nrUtil.util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
             delete dir[filename]
         } catch (err) {
-            if (err.message === 'Cannot convert undefined or null to object') {
+            if (err.message === 'Cannot convert undefined or null to object' || err.message.startsWith('Cannot read properties of undefined')) {
                 const newErr = new Error('not found')
                 newErr.statusCode = 404
                 throw newErr
@@ -368,7 +366,7 @@ module.exports = {
             const dir = pathDots ? nrUtil.util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
             nrUtil.util.setObjectProperty(dir, nameDots, {}, true)
         } catch (err) {
-            if (err.message === 'Cannot convert undefined or null to object') {
+            if (err.message === 'Cannot convert undefined or null to object' || err.message.startsWith('Cannot read properties of undefined')) {
                 const newErr = new Error('not found')
                 newErr.statusCode = 404
                 throw newErr
@@ -391,7 +389,7 @@ module.exports = {
             const dir = pathDots ? nrUtil.util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
             dir[filename] = readableStream.toString('utf-8')
         } catch (err) {
-            if (err.message === 'Cannot convert undefined or null to object') {
+            if (err.message === 'Cannot convert undefined or null to object' || err.message.startsWith('Cannot read properties of undefined')) {
                 const newErr = new Error('not found')
                 newErr.statusCode = 404
                 throw newErr
