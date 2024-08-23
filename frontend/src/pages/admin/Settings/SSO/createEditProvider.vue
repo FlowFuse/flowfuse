@@ -43,7 +43,7 @@
                             <template #description>Supplied by your Identity Provider</template>
                             <template #input><textarea v-model="input.options.cert" class="font-mono w-full" placeholder="---BEGIN CERTIFICATE---&#10;loremipsumdolorsitamet&#10;consecteturadipiscinge&#10;---END CERTIFICATE---&#10;" rows="6" /></template>
                         </FormRow>
-                        <FormRow v-model="input.options.groupMapping" type="checkbox">Manage roles using group assertions</FormRow>
+                        <!-- <FormRow v-model="input.options.groupMapping" type="checkbox">Manage roles using group assertions</FormRow>
                         <div v-if="input.options.groupMapping" class="pl-4 space-y-6">
                             <FormRow v-model="input.options.groupAssertionName" :error="groupAssertionNameError">
                                 Group Assertion Name
@@ -66,7 +66,7 @@
                             </FormRow>
                             <FormRow v-model="input.options.groupAdmin" type="checkbox">Manage Admin roles using group assertions</FormRow>
                             <FormRow v-if="input.options.groupAdmin" v-model="input.options.groupAdminName" :error="groupAdminNameError" class="pl-4">Admin Users SAML Group name</FormRow>
-                        </div>
+                        </div> -->
                     </template>
                     <template v-else-if="input.type === 'ldap'">
                         <FormRow v-model="input.options.server">
@@ -93,7 +93,63 @@
                         <div v-if="input.options.tls" class="pl-4 space-y-6">
                             <FormRow v-model="input.options.tlsVerifyServer" type="checkbox">Verify Server Certificate</FormRow>
                         </div>
+                        <!-- <FormRow v-model="input.options.groupMapping" type="checkbox">Manage roles using group membership</FormRow>
+                        <div v-if="input.options.groupMapping" class="pl-4 space-y-6">
+                            <FormRow v-model="input.options.groupsDN" :error="groupsDNError">
+                                Group Base DN
+                                <template #description>The name of the base object to search for groups</template>
+                            </FormRow>
+                            <FormRow v-model="input.options.groupAllTeams" :options="[{ value:true, label: 'Apply to all teams' }, { value:false, label: 'Apply to selected teams' }]">
+                                Team Scope
+                                <template #description>Should this apply to all teams on the platform, or just a restricted list of teams</template>
+                            </FormRow>
+                            <FormRow v-if="input.options.groupAllTeams === false" v-model="input.options.groupTeams" class="pl-4">
+                                <template #description>A list of team <b>slugs</b> that will managed by this configuration - one per line</template>
+                                <template #input><textarea v-model="input.options.groupTeams" class="font-mono w-full" rows="6" /></template>
+                            </FormRow>
+                            <FormRow v-if="input.options.groupAllTeams === false" v-model="input.options.groupOtherTeams" type="checkbox" class="pl-4">
+                                Allow users to be in other teams
+                                <template #description>
+                                    If enabled, users can be members of any teams not listed above and their membership/roles are not managed
+                                    by this SSO configuration.
+                                </template>
+                            </FormRow>
+                            <FormRow v-model="input.options.groupAdmin" type="checkbox">Manage Admin roles using group assertions</FormRow>
+                            <FormRow v-if="input.options.groupAdmin" v-model="input.options.groupAdminName" :error="groupAdminNameError" class="pl-4">Admin Users SAML Group name</FormRow>
+                        </div> -->
                     </template>
+                    <FormRow v-model="input.options.groupMapping" type="checkbox">Manage roles using group assertions</FormRow>
+                    <div v-if="input.options.groupMapping" class="pl-4 space-y-6">
+                        <div v-if="input.type === 'saml'">
+                            <FormRow v-model="input.options.groupAssertionName" :error="groupAssertionNameError">
+                                Group Assertion Name
+                                <template #description>The name of the SAML Assertion containing group membership details</template>
+                            </FormRow>
+                        </div>
+                        <div v-else-if="input.type === 'ldap'">
+                            <FormRow v-model="input.options.groupsDN" :error="groupsDNError">
+                                Group DN
+                                <template #description>The name of the base object to search for groups</template>
+                            </FormRow>
+                        </div>
+                        <FormRow v-model="input.options.groupAllTeams" :options="[{ value:true, label: 'Apply to all teams' }, { value:false, label: 'Apply to selected teams' }]">
+                            Team Scope
+                            <template #description>Should this apply to all teams on the platform, or just a restricted list of teams</template>
+                        </FormRow>
+                        <FormRow v-if="input.options.groupAllTeams === false" v-model="input.options.groupTeams" class="pl-4">
+                            <template #description>A list of team <b>slugs</b> that will managed by this configuration - one per line</template>
+                            <template #input><textarea v-model="input.options.groupTeams" class="font-mono w-full" rows="6" /></template>
+                        </FormRow>
+                        <FormRow v-if="input.options.groupAllTeams === false" v-model="input.options.groupOtherTeams" type="checkbox" class="pl-4">
+                            Allow users to be in other teams
+                            <template #description>
+                                If enabled, users can be members of any teams not listed above and their membership/roles are not managed
+                                by this SSO configuration.
+                            </template>
+                        </FormRow>
+                        <FormRow v-model="input.options.groupAdmin" type="checkbox">Manage Admin roles using group assertions</FormRow>
+                        <FormRow v-if="input.options.groupAdmin" v-model="input.options.groupAdminName" :error="groupAdminNameError" class="pl-4">Admin Users SAML Group name</FormRow>
+                    </div>
                     <FormRow v-model="input.options.provisionNewUsers" type="checkbox">Allow Provisioning of New Users on first login</FormRow>
                     <ff-button :disabled="!formValid" @click="updateProvider()">
                         Update configuration
@@ -139,7 +195,10 @@ export default {
                 active: false,
                 options: {
                     provisionNewUsers: false,
-                    groupMapping: false
+                    groupAssertionName: '',
+                    groupsDN: '',
+                    groupMapping: false,
+                    groupAdminName: ''
                 }
             },
             errors: {},
@@ -155,19 +214,33 @@ export default {
             return this.$route.params.id === 'create'
         },
         isGroupOptionsValid () {
+            try {
             return !this.input.options.groupMapping || (
-                this.isGroupAssertionNameValid
-                // && this.isGroupAdminNameValid
+                (this.input.options.type === 'saml' ? this.isGroupAssertionNameValid : this.isGroupsDNValid)
+                && this.isGroupAdminNameValid
             )
+            } catch (eee) {
+                console.log(eee)
+            }
         },
         isGroupAssertionNameValid () {
-            return this.input.options.groupAssertionName.length > 0
+            return this.input.options.groupAssertionName && this.input.options.groupAssertionName.length > 0
         },
         groupAssertionNameError () {
             return !this.isGroupAssertionNameValid ? 'Group Assertion name is required' : ''
         },
+        isGroupsDNValid () {
+            return this.input.options.groupsDN && this.input.options.groupsDN.length > 0
+        },
+        groupsDNError () {
+            return !this.isGroupsDNValid ? 'Group DN is required' : ''
+        },
         isGroupAdminNameValid () {
-            return !this.input.options.groupAdmin || this.input.options.groupAdminName.length > 0
+            try {
+                return !this.input.options.groupAdmin || (this.input.options.groupAdminName && this.input.options.groupAdminName.length > 0)
+            } catch (eee) {
+                console.log(eee)
+            }
         },
         groupAdminNameError () {
             return !this.isGroupAdminNameValid ? 'Admin Group name is required' : ''
@@ -221,6 +294,7 @@ export default {
                 if (!opts.options.groupMapping) {
                     // Remove any group-related config
                     delete opts.options.groupAssertionName
+                    delete opts.options.groupsDN
                     delete opts.options.groupAllTeams
                     delete opts.options.groupTeams
                     delete opts.options.groupAdmin
