@@ -30,7 +30,8 @@
 import { markRaw } from 'vue'
 import { mapGetters } from 'vuex'
 
-import TeamInvitationNotification from '../../notifications/TeamInvitationNotification.vue'
+import TeamInvitationAcceptedNotification from '../../notifications/invitations/Accepted.vue'
+import TeamInvitationReceivedNotification from '../../notifications/invitations/Received.vue'
 
 export default {
     name: 'NotificationsDrawer',
@@ -38,7 +39,8 @@ export default {
         return {
             notificationsComponentMap: {
                 // todo replace hardcoded value with actual notification type
-                'team-invite': markRaw(TeamInvitationNotification)
+                'team-invite': markRaw(TeamInvitationReceivedNotification),
+                'team-invite-accepted-invitor': markRaw(TeamInvitationAcceptedNotification)
             },
             selections: []
         }

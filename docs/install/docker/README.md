@@ -158,6 +158,8 @@ You will also need to update the `etc/flowforge.yml` file to change `base_url` f
 Create a folder in the `docker-compose-1.x.0` directory named `certs`, place your .crt and .key files in there, they should be named for the domain without the `*` eg `example.com.crt` & `example.com.key`
 You  also need to create a copy of the .crt and .key files named `default.crt` & `default.key` in the same folder. This is used for serving unknown hosts.
 
+If the base_url is not in the same domain as the Node-RED instances, you should also create a copy of the crt & key files matching the hostname for the forge app.
+
 In the `docker-compose.yml` file, 
 - uncomment the line 
 ```yaml

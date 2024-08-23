@@ -81,6 +81,7 @@ export default [
             {
                 path: 'members',
                 component: TeamMembers,
+                name: 'TeamMembers',
                 meta: {
                     title: 'Team - Members'
                 },

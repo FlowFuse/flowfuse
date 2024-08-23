@@ -49,19 +49,25 @@
                 <div>
                     <template v-if="billingEnabled">
                         <div class="mb-8 text-sm text-gray-500 space-y-2">
-                            <template v-if="trialMode && !trialHasEnded">
-                                <p>Setting up billing will bring your free trial to an end</p>
-                            </template>
+                            <p v-if="isContactRequired">To learn more about our {{ input.teamType?.name }} plan, click below to contact our sales team.</p>
+                            <p v-if="trialMode && !trialHasEnded">Setting up billing will bring your free trial to an end</p>
                             <p v-if="isTypeChange">Your billing subscription will be updated to reflect the new costs</p>
                         </div>
                     </template>
                     <div class="flex gap-x-4">
-                        <ff-button v-if="isTypeChange" :disabled="!formValid" data-action="change-team-type" @click="updateTeam()">
-                            Change team type
-                        </ff-button>
-                        <ff-button v-else :disabled="!formValid" data-action="setup-team-billing" @click="setupBilling()">
-                            Setup Payment Details
-                        </ff-button>
+                        <template v-if="!isContactRequired">
+                            <ff-button v-if="isTypeChange" :disabled="!formValid" data-action="change-team-type" @click="updateTeam()">
+                                Change team type
+                            </ff-button>
+                            <ff-button v-else :disabled="!formValid" data-action="setup-team-billing" @click="setupBilling()">
+                                Setup Payment Details
+                            </ff-button>
+                        </template>
+                        <template v-else>
+                            <ff-button :disabled="!formValid" data-action="contact-sales" @click="sendContact()">
+                                Contact Sales
+                            </ff-button>
+                        </template>
                         <ff-button kind="secondary" data-action="cancel-change-team-type" @click="$router.back()">
                             Cancel
                         </ff-button>
@@ -129,6 +135,11 @@ export default {
         },
         isUnmanaged () {
             return this.team.billing?.unmanaged
+        },
+        isContactRequired () {
+            return this.billingEnabled &&
+                   !this.user.admin &&
+                   this.input.teamType && this.input.teamType.properties?.billing?.requireContact
         }
     },
     watch: {
@@ -175,6 +186,17 @@ export default {
             this.loading = true
             const response = await billingApi.createSubscription(this.team.id, this.input.teamTypeId)
             window.open(response.billingURL, '_self')
+        },
+        sendContact: async function () {
+            if (this.input.teamType) {
+                billingApi.sendTeamTypeContact(this.user, this.input.teamType, 'Team: ' + this.team.name).then(() => {
+                    this.$router.push({ name: 'Team', params: { team_slug: this.team.slug } })
+                    Alerts.emit('Thanks for getting in touch. We will contact you soon regarding your request.', 'info', 15000)
+                }).catch(err => {
+                    Alerts.emit('Something went wrong with the request. Please try again or contact support for help.', 'info', 15000)
+                    console.error('Failed to submit hubspot form: ', err)
+                })
+            }
         }
     }
 }
