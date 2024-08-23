@@ -6,6 +6,21 @@ const crypto = require('crypto')
  *   - accepts any invitations matching the email
  */
 async function completeUserSignup (app, user) {
+    // Process invites first to see if user is in any teams
+    const pendingInvitations = await app.db.models.Invitation.forExternalEmail(user.email)
+    for (let i = 0; i < pendingInvitations.length; i++) {
+        const invite = pendingInvitations[i]
+        // For now we'll auto-accept any invites for this user
+        // See https://github.com/FlowFuse/flowfuse/issues/275#issuecomment-1040113991
+        await app.db.controllers.Invitation.acceptInvitation(invite, user)
+        // // If we go back to having the user be able to accept invites
+        // // as a secondary step, the following code will convert the external
+        // // invite into an internal one.
+        // invite.external = false
+        // invite.inviteeId = user.id
+        // await invite.save()
+    }
+
     let personalTeam
     if (app.settings.get('user:team:auto-create')) {
         const teamLimit = app.license.get('teams')
@@ -42,19 +57,6 @@ async function completeUserSignup (app, user) {
                 await app.billing.setupTrialTeamSubscription(personalTeam, user)
             }
         }
-    }
-    const pendingInvitations = await app.db.models.Invitation.forExternalEmail(user.email)
-    for (let i = 0; i < pendingInvitations.length; i++) {
-        const invite = pendingInvitations[i]
-        // For now we'll auto-accept any invites for this user
-        // See https://github.com/FlowFuse/flowfuse/issues/275#issuecomment-1040113991
-        await app.db.controllers.Invitation.acceptInvitation(invite, user)
-        // // If we go back to having the user be able to accept invites
-        // // as a secondary step, the following code will convert the external
-        // // invite into an internal one.
-        // invite.external = false
-        // invite.inviteeId = user.id
-        // await invite.save()
     }
 
     // only create a starting instance if the flag is set and this user and their teams have no instances
