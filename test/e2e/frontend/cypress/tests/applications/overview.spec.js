@@ -188,7 +188,7 @@ describe('FlowForge - Applications', () => {
                 .parent()
                 .parent()
                 .within(() => {
-                    cy.get('[data-action="open-editor"]').should('be.disabled')
+                    cy.get('[data-action="open-editor"]').should('have.attr', 'disabled')
                     cy.get('[data-el="kebab-menu"]').should('exist')
                     cy.contains('https://www.google.com:456/search?q=rick+ross')
                 })
