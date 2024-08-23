@@ -2,8 +2,6 @@ const FormData = require('form-data') // eslint-disable-line
 const should = require('should') // eslint-disable-line
 const setup = require('../../setup')
 
-// const FF_UTIL = require('flowforge-test-utils')
-
 describe('Static Files APIs', function () {
     let app
     const TestObjects = { tokens: {} }
@@ -135,6 +133,20 @@ describe('Static Files APIs', function () {
         fileList.files[1].should.have.property('type', 'file')
         fileList.files[1].should.have.property('name', 'helloWorld.txt')
         fileList.files[1].should.have.property('size', 10)
+    })
+    it('create file outside supported the path', async function () {
+        const form = new FormData()
+        form.append('file', 'helloWorld2', { filename: 'helloWorld2.txt', contentType: 'text/plain' })
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/foo/../../helloWorld.txt`,
+            body: form,
+            headers: form.getHeaders(),
+            cookies: {
+                sid: TestObjects.tokens.alice
+            }
+        })
+        response.statusCode.should.equal(404)
     })
     it('share directory', async function () {
         const response = await app.inject({
