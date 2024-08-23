@@ -5,6 +5,7 @@
         :show-row-checkboxes="true"
         :show-search="true"
         :rows-selectable="isRowSelectable"
+        :no-data-message="`No files in '${fullPath || 'Storage'}'`"
         search-placeholder="Search Files"
         @row-selected="directoryClicked"
     >
@@ -31,12 +32,29 @@
                 Upload
             </ff-button>
         </template>
+        <template #context-menu="{row}">
+            <template v-if="row.type === 'directory'">
+                <ff-list-item label="Edit Folder" @click.stop="editFolder(row)" />
+                <ff-list-item kind="danger" label="Delete Folder" @click.stop="deleteFolder(row)" />
+            </template>
+            <template v-if="row.type === 'file'">
+                Hello World
+            </template>
+        </template>
     </ff-data-table>
+    <!-- Dialog: New Folder -->
     <ff-dialog ref="new-folder" header="New Folder" :disablePrimary="!newFolder.name" @confirm="createFolder">
         <p style="margin-bottom: 12px">
             Please provide a name for the new folder.
         </p>
         <ff-text-input v-model="newFolder.name" placeholder="New Folder" />
+    </ff-dialog>
+    <!-- Dialog: Edit Folder -->
+    <ff-dialog ref="edit-folder" header="Edit Folder" :disablePrimary="!newFolder.name" @confirm="updateFolder">
+        <p style="margin-bottom: 12px">
+            Please update the name for the folder.
+        </p>
+        <ff-text-input v-model="newFolder.name" placeholder="Folder Name" />
     </ff-dialog>
 </template>
 
@@ -46,6 +64,7 @@ import { PlusIcon, UploadIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 
 import AssetsAPI from '../../api/assets.js'
+import Dialog from '../../services/dialog.js'
 
 import ItemFilePath from './cells/FilePath.vue'
 import ItemSize from './cells/Size.vue'
@@ -63,6 +82,10 @@ export default {
             type: Object
         },
         pwd: {
+            required: true,
+            type: Object
+        },
+        breadcrumbs: {
             required: true,
             type: Object
         }
@@ -110,31 +133,70 @@ export default {
             ],
             newFolder: {
                 name: ''
+            },
+            folder: {
+                name: ''
             }
         }
     },
     computed: {
         instanceId () {
             return this.$route.params.id
+        },
+        fullPath () {
+            // clear null values
+            const breadcrumbs = this.breadcrumbs.filter(n => n)
+            return breadcrumbs.join('/').replace('//', '/')
         }
-    },
-    mounted () {
-        console.log('FileBrowser mounted')
     },
     methods: {
         showDialog (dialog) {
             this.$refs[dialog].show()
         },
         createFolder () {
-            console.log('Create Folder')
-            AssetsAPI.createFolder(this.instanceId, this.pwd.name, this.newFolder.name)
+            AssetsAPI.createFolder(this.instanceId, this.fullPath, this.newFolder.name)
                 .then(() => {
-                    console.log('Folder created')
+                    this.newFolder.name = ''
                     this.$emit('items-updated')
                 })
                 .catch(error => {
-                    console.log(error)
+                    console.error(error)
                 })
+        },
+        editFolder (folder) {
+            this.folder = { ...folder }
+            this.newFolder = { ...folder }
+            this.$refs['edit-folder'].show()
+        },
+        updateFolder () {
+            // existing folder name
+            const uri = this.fullPath + '/' + this.folder.name
+            // update to new folder name
+            AssetsAPI.updateFolder(this.instanceId, uri, this.newFolder.name)
+                .then(() => {
+                    this.folder.name = ''
+                    this.newFolder = { name: '' }
+                    this.$emit('items-updated')
+                })
+                .catch(error => {
+                    console.error(error)
+                })
+        },
+        deleteFolder (folder) {
+            Dialog.show({
+                header: 'Delete Folder',
+                kind: 'danger',
+                text: 'Are you sure you want to delete this folder? All of this folder\'s contents will be removed too. Once deleted, there is no going back.',
+                confirmLabel: 'Delete'
+            }, async () => {
+                try {
+                    const uri = this.fullPath + '/' + folder.name
+                    await AssetsAPI.deleteItem(this.instanceId, uri)
+                    this.$emit('items-updated')
+                } catch (error) {
+                    console.error(error)
+                }
+            })
         },
         uploadFile () {
             console.log('Upload File')

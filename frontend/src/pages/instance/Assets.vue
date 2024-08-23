@@ -13,8 +13,8 @@
                 <span>/</span>
             </span>
         </div>
-        <CurrentDirectory :dir="currentDirectory" class="mb-6" />
         <FileBrowser
+            :breadcrumbs="breadcrumbs"
             :pwd="currentDirectory" :items="files"
             @items-updated="loadContents"
             @change-directory="changeDirectory"
@@ -24,14 +24,12 @@
 
 <script>
 import AssetsAPI from '../../api/assets.js'
-import CurrentDirectory from '../../components/file-browser/CurrentDirectory.vue'
 import FileBrowser from '../../components/file-browser/FileBrowser.vue'
 import permissionsMixin from '../../mixins/Permissions.js'
 
 export default {
     name: 'InstanceAssets',
     components: {
-        CurrentDirectory,
         FileBrowser
     },
     mixins: [permissionsMixin],

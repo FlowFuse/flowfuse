@@ -1,6 +1,6 @@
 <template>
-    <DocumentIcon v-if="type === 'file'" class="ff-icon" />
-    <FolderIcon v-if="type === 'directory'" class="ff-icon" />
+    <DocumentIcon v-if="type === 'file'" class="ff-icon text-gray-600" />
+    <FolderIcon v-if="type === 'directory'" class="ff-icon text-blue-600" />
 </template>
 
 <script>
