@@ -1,11 +1,16 @@
 <template>
-    <ff-dropdown v-if="team" class="ff-team-selection">
+    <ff-dropdown class="ff-team-selection">
         <template #placeholder>
-            <div class="flex grow items-center">
+            <div v-if="team" class="flex grow items-center">
                 <img :src="team.avatar" class="ff-avatar">
                 <div class="ff-team-selection-name">
                     <label>TEAM:</label>
                     <h5>{{ team.name }}</h5>
+                </div>
+            </div>
+            <div v-else class="flex grow items-center">
+                <div class="ff-team-selection-name">
+                    <h5>Select a team</h5>
                 </div>
             </div>
         </template>
@@ -36,14 +41,7 @@ export default {
     },
     computed: {
         ...mapState('account', ['team', 'teams', 'settings']),
-        ...mapGetters('account', ['isAdminUser']),
-        canCreateTeam () {
-            if (this.isAdminUser) {
-                return true
-            }
-
-            return Object.prototype.hasOwnProperty.call(this.settings, 'team:create') && this.settings['team:create']
-        }
+        ...mapGetters('account', ['hasAvailableTeams', 'canCreateTeam'])
     },
     data () {
         return {
