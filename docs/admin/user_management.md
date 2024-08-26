@@ -2,7 +2,7 @@
 navTitle: User Management
 meta:
   description: Explore effective user management on FlowFuse, covering registration, user creation, password management, and team ownership.
-  tags:
+   tags:
      - flowfuse
      - nodered
      - user management

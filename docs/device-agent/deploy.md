@@ -3,7 +3,7 @@ navTitle: Deploying your Flows
 navOrder: 6
 meta:
   description: Learn how to deploy Node-RED flows to devices using FlowFuse, enabling seamless development and deployment processes.
-  tags:
+   tags:
     - deployment
     - nodered
     - flowfuse

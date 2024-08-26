@@ -4,7 +4,7 @@ navOrder: 2
 navTitle: FlowFuse API
 meta:
   description: Explore the FlowFuse Platform API, a RESTful interface that facilitates custom integrations, workflows, and interactions
-  tags:
+   tags:
   - flowfuse
   - nodered
   - api

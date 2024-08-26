@@ -3,7 +3,7 @@ navGroup: Support
 navTitle: Debugging Node-RED issues
 meta:
   description: Learn how to troubleshoot unresponsive Node-RED instances using Safe Mode.
-  tags:
+   tags:
     - debugging
     - flowfuse
     - nodered
