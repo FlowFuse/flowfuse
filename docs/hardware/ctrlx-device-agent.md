@@ -3,7 +3,7 @@ navTitle: ctrlX - Device Agent
 navOrder: 3
 meta:
    description: Learn to install and configure the FlowFuse Device Agent on ctrlX devices for seamless integration with FlowFuse, ensuring efficient device management.
-  tags:
+   tags:
       - ctrlx
       - device agent
       - flowfuse
