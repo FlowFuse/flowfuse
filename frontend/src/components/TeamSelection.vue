@@ -1,5 +1,5 @@
 <template>
-    <ff-dropdown class="ff-team-selection">
+    <ff-dropdown v-if="hasAvailableTeams" class="ff-team-selection">
         <template #placeholder>
             <div v-if="team" class="flex grow items-center">
                 <img :src="team.avatar" class="ff-avatar">
