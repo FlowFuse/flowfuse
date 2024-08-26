@@ -101,6 +101,10 @@ Once Ubuntu system is ready, follow these steps to install Docker
 
    ![wsl-docker-complete](../images/wsl-docker-complete.png)
 
+
+Once Docker is installed, you can [install FlowFuse platform using docker compose](./README.md).
+
+
 ## Optional: Port Forwarding from External IP Address to Docker Container
 
 If you want to forward a port from your external IP address to a Docker container, follow these additional steps.
