@@ -8,7 +8,7 @@ meta:
 
 ## Disclaimer 
 
-Docker Containers are a Linux technology, and the setup described here using Docker on Windows via WSL2 should not be considered production-ready. It is more suitable for development, testing, or learning purposes.
+Docker containers are inherently a Linux technology. The setup described here for running Docker on Windows using WSL2 is intended for development, testing, or learning purposes and may not be suitable for production environments.
 
 ## Prerequisites
 
