@@ -9,8 +9,9 @@
  * @memberof forge.containers.drivers
  *
  */
-const nrUtil = require('@node-red/util') // eslint-disable-line
 const { normalize } = require('path')
+
+const nrUtil = require('@node-red/util') // eslint-disable-line
 
 const forgeUtils = require('../../db/utils')
 
@@ -347,7 +348,7 @@ module.exports = {
                 throw newErr
             } else {
                 while (parts.indexOf('..') !== -1) {
-                    parts.splice(parts.indexOf('..')-1, 2)
+                    parts.splice(parts.indexOf('..') - 1, 2)
                 }
             }
         }
@@ -403,7 +404,7 @@ module.exports = {
                 throw newErr
             } else {
                 while (parts.indexOf('..') !== -1) {
-                    parts.splice(parts.indexOf('..')-1, 2)
+                    parts.splice(parts.indexOf('..') - 1, 2)
                 }
             }
         }

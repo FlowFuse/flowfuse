@@ -2,7 +2,7 @@ const FormData = require('form-data') // eslint-disable-line
 const should = require('should') // eslint-disable-line
 const setup = require('../../setup')
 
-describe.only('Static Files APIs', function () {
+describe('Static Files APIs', function () {
     let app
     const TestObjects = { tokens: {} }
 
