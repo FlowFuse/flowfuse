@@ -17,9 +17,9 @@ Docker containers are inherently a Linux technology. The setup described here fo
 
 ## Prerequisites
 
-Ensure your system meets the following requirements:
+Ensure your system meets the following Windows Subsustem form Linux 2 requirements:
 
-- Windows Server 2019 (version 1709) and later
+- Windows Server 2022
 - Windows 10 version 2004 and higher (Build 19041 and higher)
 - Windows 11
 
@@ -43,6 +43,11 @@ Open PowerShell as an administrator and run the following commands:
 
    Once completed, you will be dropped into a new Ubuntu shell.
    ![wsl-install-complete](../images/wsl-install-complete.png)
+
+3. Confirm using proper WSL version, by running (in Powershell window):
+   ```powershell
+   wsl --status
+   ```
 
 ## Step 2: Install Docker on Ubuntu
 
