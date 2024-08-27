@@ -10,6 +10,7 @@
  *
  */
 const nrUtil = require('@node-red/util') // eslint-disable-line
+const { normalize } = require('path')
 
 const forgeUtils = require('../../db/utils')
 
@@ -337,8 +338,19 @@ module.exports = {
         if (!files[instance.id]) {
             files[instance.id] = {}
         }
-        const parts = filePath.split('/')
+        const parts = normalize(filePath).split('/')
         const filename = parts.pop()
+        if (parts.indexOf('..') !== -1) {
+            if (parts.indexOf('..') === 0) {
+                const newErr = new Error('not found')
+                newErr.statusCode = 404
+                throw newErr
+            } else {
+                while (parts.indexOf('..') !== -1) {
+                    parts.splice(parts.indexOf('..')-1, 2)
+                }
+            }
+        }
         const pathDots = parts.join('.')
         try {
             const dir = pathDots ? nrUtil.util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
@@ -382,8 +394,19 @@ module.exports = {
         if (!files[instance.id]) {
             files[instance.id] = {}
         }
-        const parts = filePath.split('/')
+        const parts = normalize(filePath).split('/')
         const filename = parts.pop()
+        if (parts.indexOf('..') !== -1) {
+            if (parts.indexOf('..') === 0) {
+                const newErr = new Error('not found')
+                newErr.statusCode = 404
+                throw newErr
+            } else {
+                while (parts.indexOf('..') !== -1) {
+                    parts.splice(parts.indexOf('..')-1, 2)
+                }
+            }
+        }
         const pathDots = parts.join('.')
         try {
             const dir = pathDots ? nrUtil.util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]

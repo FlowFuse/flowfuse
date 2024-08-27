@@ -2,7 +2,7 @@ const FormData = require('form-data') // eslint-disable-line
 const should = require('should') // eslint-disable-line
 const setup = require('../../setup')
 
-describe('Static Files APIs', function () {
+describe.only('Static Files APIs', function () {
     let app
     const TestObjects = { tokens: {} }
 
@@ -79,7 +79,7 @@ describe('Static Files APIs', function () {
     it('list files for non existent directory', async function () {
         const response = await app.inject({
             method: 'GET',
-            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/foo/bar/test`,
+            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/${encodeURIComponent('foo/bar/test')}`,
             cookies: {
                 sid: TestObjects.tokens.alice
             }
@@ -108,7 +108,7 @@ describe('Static Files APIs', function () {
         response.statusCode.should.equal(200)
         const files = await app.inject({
             method: 'GET',
-            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/foo`,
+            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/${encodeURIComponent('foo')}`,
             cookies: {
                 sid: TestObjects.tokens.alice
             }
@@ -136,7 +136,7 @@ describe('Static Files APIs', function () {
         form.append('file', 'helloWorld', { filename: 'helloWorld.txt', contentType: 'text/plain' })
         const response = await app.inject({
             method: 'POST',
-            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/foo/helloWorld.txt/`,
+            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/${encodeURIComponent('foo/helloWorld.txt/')}`,
             body: form,
             headers: form.getHeaders(),
             cookies: {
@@ -146,7 +146,7 @@ describe('Static Files APIs', function () {
         response.statusCode.should.equal(200)
         const files = await app.inject({
             method: 'GET',
-            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/foo`,
+            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/${encodeURIComponent('foo')}`,
             cookies: {
                 sid: TestObjects.tokens.alice
             }
@@ -164,7 +164,7 @@ describe('Static Files APIs', function () {
         form.append('file', 'helloWorld2', { filename: 'helloWorld2.txt', contentType: 'text/plain' })
         const response = await app.inject({
             method: 'POST',
-            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/foo/../../helloWorld.txt`,
+            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/${encodeURIComponent('foo/../../helloWorld.txt')}`,
             body: form,
             headers: form.getHeaders(),
             cookies: {
@@ -176,7 +176,7 @@ describe('Static Files APIs', function () {
     it('share directory', async function () {
         const response = await app.inject({
             method: 'PUT',
-            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/foo/bar/`,
+            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/${encodeURIComponent('foo/bar/')}`,
             body: { share: { root: '/bar' } },
             cookies: {
                 sid: TestObjects.tokens.alice
@@ -185,7 +185,7 @@ describe('Static Files APIs', function () {
         response.statusCode.should.equal(200)
         const files = await app.inject({
             method: 'GET',
-            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/foo`,
+            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/${encodeURIComponent('foo')}`,
             cookies: {
                 sid: TestObjects.tokens.alice
             }
@@ -216,7 +216,7 @@ describe('Static Files APIs', function () {
     it('delete file', async function () {
         const response = await app.inject({
             method: 'DELETE',
-            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/foo/helloWorld.txt/`,
+            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/${encodeURIComponent('foo/helloWorld.txt/')}`,
             cookies: {
                 sid: TestObjects.tokens.alice
             }
@@ -224,7 +224,7 @@ describe('Static Files APIs', function () {
         response.statusCode.should.equal(200)
         const files = await app.inject({
             method: 'GET',
-            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/foo`,
+            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/${encodeURIComponent('foo')}`,
             cookies: {
                 sid: TestObjects.tokens.alice
             }
@@ -239,7 +239,7 @@ describe('Static Files APIs', function () {
     it('get non-existent dir', async function () {
         const response = await app.inject({
             method: 'GET',
-            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/baz`,
+            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/${encodeURIComponent('baz')}`,
             cookies: {
                 sid: TestObjects.tokens.alice
             }
@@ -270,7 +270,7 @@ describe('Static Files APIs', function () {
     it('share directory on suspended Instance', async function () {
         const response = await app.inject({
             method: 'PUT',
-            url: `/api/v1/projects/${TestObjects.instance2.id}/files/_/foo/bar/`,
+            url: `/api/v1/projects/${TestObjects.instance2.id}/files/_/${encodeURIComponent('foo/bar/')}`,
             body: { share: { root: '/bar' } },
             cookies: {
                 sid: TestObjects.tokens.alice
@@ -281,7 +281,7 @@ describe('Static Files APIs', function () {
     it('share and rename directory', async function () {
         const response = await app.inject({
             method: 'PUT',
-            url: `/api/v1/projects/${TestObjects.instance2.id}/files/_/foo/bar/`,
+            url: `/api/v1/projects/${TestObjects.instance2.id}/files/_/${encodeURIComponent('foo/bar/')}`,
             body: { share: { root: '/bar' }, path: '/foo/baz' },
             cookies: {
                 sid: TestObjects.tokens.alice
@@ -292,7 +292,7 @@ describe('Static Files APIs', function () {
     it('rename directory', async function () {
         const response = await app.inject({
             method: 'PUT',
-            url: `/api/v1/projects/${TestObjects.instance2.id}/files/_/foo/bar/`,
+            url: `/api/v1/projects/${TestObjects.instance2.id}/files/_/${encodeURIComponent('foo/bar/')}`,
             body: { path: '/foo/baz' },
             cookies: {
                 sid: TestObjects.tokens.alice
@@ -303,7 +303,7 @@ describe('Static Files APIs', function () {
     it('create directory on non existent path', async function () {
         const response = await app.inject({
             method: 'POST',
-            url: `/api/v1/projects/${TestObjects.instance2.id}/files/_/empty/`,
+            url: `/api/v1/projects/${TestObjects.instance2.id}/files/_/${encodeURIComponent('empty/')}`,
             body: { path: 'foo/bar' },
             cookies: {
                 sid: TestObjects.tokens.alice
@@ -324,7 +324,7 @@ describe('Static Files APIs', function () {
     it('delete file from suspended instance', async function () {
         const response = await app.inject({
             method: 'DELETE',
-            url: `/api/v1/projects/${TestObjects.instance2.id}/files/_/foo/helloWorld.txt/`,
+            url: `/api/v1/projects/${TestObjects.instance2.id}/files/_/${encodeURIComponent('foo/helloWorld.txt/')}`,
             cookies: {
                 sid: TestObjects.tokens.alice
             }
@@ -334,7 +334,7 @@ describe('Static Files APIs', function () {
     it('delete file from non existent directory', async function () {
         const response = await app.inject({
             method: 'DELETE',
-            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/foo/bar/baz/test/helloWorld.txt`,
+            url: `/api/v1/projects/${TestObjects.instance.id}/files/_/${encodeURIComponent('foo/bar/baz/test/helloWorld.txt')}`,
             cookies: {
                 sid: TestObjects.tokens.alice
             }
