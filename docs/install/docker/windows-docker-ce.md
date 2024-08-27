@@ -41,7 +41,7 @@ Open PowerShell as an administrator and run the following commands:
 
 ## Step 2: Install Docker on Ubuntu
 
-Once Ubuntu system is ready, follow these steps to install Docker
+Once the Ubuntu system is ready, follow these steps to install Docker:
 
 1. **Remove Conflicting Packages**
 
