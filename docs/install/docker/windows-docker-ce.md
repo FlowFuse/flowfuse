@@ -135,7 +135,7 @@ Consider a scenario where you want to run an Nginx container:
    netsh interface portproxy add v4tov4 listenport=8080 listenaddress=0.0.0.0 connectport=8080 connectaddress=127.0.0.1
    ```
    
-   This command forwards traffic from port 8080 on your external IP address to port 8080 on your localhost, where the Nginx container is listening for a connections.
+   This command forwards traffic from port 8080 on your external IP address to port 8080 on your localhost, where the Nginx container is listening for connections.
    The value for `listenport` can be changed as needed.
 
 3. **Open the Port on Your Firewall**
