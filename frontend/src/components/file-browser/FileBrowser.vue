@@ -5,7 +5,7 @@
         :show-row-checkboxes="true"
         :show-search="true"
         :rows-selectable="isRowSelectable"
-        :no-data-message="`No files in '${folder.name || 'Storage'}'`"
+        :no-data-message="noDataMessages"
         search-placeholder="Search Files"
         :loading="loading"
         :disabled="disabled"
@@ -120,6 +120,11 @@ export default {
             required: false,
             default: false,
             type: Boolean
+        },
+        noDataMessage: {
+            required: false,
+            default: '',
+            type: String
         }
     },
     emits: ['change-directory', 'items-updated'],
@@ -189,6 +194,9 @@ export default {
                     sortable: true
                 }
             ]
+        },
+        noDataMessages () {
+            return this.noDataMessage.length ? this.noDataMessage : `No files in '${this.folder.name || 'Storage'}'`
         }
     },
     methods: {

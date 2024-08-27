@@ -20,6 +20,7 @@
             :breadcrumbs="breadcrumbs"
             :folder="currentDirectory" :items="files"
             :disabled="!isFeatureEnabled"
+            :no-data-message="!isInstanceRunning ? instanceSuspendedMessage : ''"
             @items-updated="loadContents"
             @change-directory="changeDirectory"
         />
@@ -61,18 +62,36 @@ export default {
                 name: null
             },
             files: [],
-            launcherVersionMessage: 'You are using an incompatible Launcher Version. You need to upgrade to => 2.8.0 in order to use this feature.'
+            launcherVersionMessage: 'You are using an incompatible Launcher Version. You need to upgrade to => 2.8.0 in order to use this feature.',
+            instanceSuspendedMessage: 'The instance must be running to access its assets.'
         }
     },
     computed: {
         launcherSatisfiesVersion () {
+            if (!this.isInstanceRunning) {
+                return true
+            }
+
             const nrLauncherVersion = SemVer.coerce(this.instance?.meta?.versions?.launcher)
             return SemVer.satisfies(nrLauncherVersion, '>=2.8.0')
         },
         isFeatureEnabled () {
             return this.isStaticAssetFeatureEnabledForPlatform &&
                 this.isStaticAssetsFeatureEnabledForTeam &&
-                this.launcherSatisfiesVersion
+                this.launcherSatisfiesVersion &&
+                this.isInstanceRunning
+        },
+        isInstanceRunning () {
+            return this.instance?.meta?.state === 'running'
+        }
+    },
+    watch: {
+        isInstanceRunning (newState, oldState) {
+            if (newState && !oldState) {
+                this.loadContents()
+            } else {
+                this.files = []
+            }
         }
     },
     mounted () {
