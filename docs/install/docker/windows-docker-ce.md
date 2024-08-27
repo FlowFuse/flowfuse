@@ -121,7 +121,7 @@ Consider a scenario where you want to run an Nginx container:
 
 1. **Run the Nginx Container**
 
-   In Linux shell, start the Nginx container, binding port 8080 on your localhost to port 80 in the container:
+   In the Linux shell, start the Nginx container, binding port 8080 on your localhost to port 80 in the container:
 
    ```bash
    sudo docker run -d -p 8080:80 --name mynginx nginx
