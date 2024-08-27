@@ -303,6 +303,56 @@ module.exports = async function (app) {
         reply.send(result)
     })
 
+    /**
+     * Get platform audit logs as CSV
+     * @name /api/v1/admin/audit-log/export
+     * @memberof forge.routes.api.admin
+     */
+    app.get('/audit-log/export', {
+        preHandler: app.needsPermission('platform:audit-log'),
+        schema: {
+            summary: 'Gets platform audit events as CSV - admin-only',
+            tags: ['Platform'],
+            query: {
+                allOf: [
+                    { $ref: 'PaginationParams' },
+                    { $ref: 'AuditLogQueryParams' }
+                ]
+            },
+            response: {
+                200: {
+                    content: {
+                        'text/csv': {
+                            schema: {
+                                type: 'string'
+                            }
+                        }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const paginationOptions = app.getPaginationOptions(request)
+        const logEntries = await app.db.models.AuditLog.forPlatform(paginationOptions)
+        const result = app.db.views.AuditLog.auditLog(logEntries)
+        reply.type('text/csv').send([
+            ['id', 'event', 'body', 'scope', 'trigger', 'createdAt'],
+            ...result.log.map(row => [
+                row.id,
+                row.event,
+                `"${row.body ? JSON.stringify(row.body).replace(/"/g, '""') : ''}"`,
+                `"${JSON.stringify(row.scope).replace(/"/g, '""')}"`,
+                `"${JSON.stringify(row.trigger).replace(/"/g, '""')}"`,
+                row.createdAt?.toISOString()
+            ])
+        ]
+            .map(row => row.join(','))
+            .join('\r\n'))
+    })
+
     app.post('/stats-token', {
         preHandler: app.needsPermission('platform:stats:token'),
         schema: {

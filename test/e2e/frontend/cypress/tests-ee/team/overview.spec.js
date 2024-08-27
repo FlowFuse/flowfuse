@@ -103,7 +103,7 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                     cy.get('[data-el="application-instances"]').find('.item-wrapper').should('have.length', 2)
                     cy.get('[data-el="application-instances"] .item-wrapper:contains("instance-2-with-devices")').within(() => {
                         cy.get('[data-el="status-badge-stopped"]').should('exist')
-                        cy.get('[data-action="open-editor"]').should('be.disabled')
+                        cy.get('[data-action="open-editor"]').should('have.attr', 'disabled')
                         cy.get('[data-el="kebab-menu"]').should('exist')
                     })
 
@@ -111,7 +111,7 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                         cy.contains('instance-2-1')
                         cy.get('[data-el="status-badge-running"]').should('exist')
                         cy.contains('http://instance-2-1.example.com')
-                        cy.get('[data-action="open-editor"]').should('be.enabled')
+                        cy.get('[data-action="open-editor"]').should('not.have.attr', 'disabled')
                         cy.get('[data-el="kebab-menu"]').should('exist')
                     })
 

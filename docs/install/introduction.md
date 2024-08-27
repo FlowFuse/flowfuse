@@ -1,7 +1,17 @@
 ---
 navTitle: Overview
 navOrder: 1
+meta:
+   description: Install and manage FlowFuse on Linux, Windows, and MacOS. Explore deployment models, request a trial license, and find Docker and Kubernetes setup guides. Start with FlowFuse today!
+   tags:
+     - installation
+     - flowfuse
+     - docker
+     - kubernetes
+     - trial license
+     - deployment models
 ---
+
 # Installing FlowFuse
 
 FlowFuse can be installed to run in Docker or Kubernetes based environments.

@@ -22,12 +22,12 @@
 <script>
 import { UserAddIcon } from '@heroicons/vue/solid'
 
-import NotificationMessageMixin from '../../mixins/NotificationMessage.js'
+import NotificationMessageMixin from '../../../mixins/NotificationMessage.js'
 
-import NotificationMessage from './Notification.vue'
+import NotificationMessage from '../Notification.vue'
 
 export default {
-    name: 'TeamInvitationNotification',
+    name: 'TeamInvitationReceivedNotification',
     components: { NotificationMessage, UserAddIcon },
     mixins: [NotificationMessageMixin],
     computed: {
