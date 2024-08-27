@@ -1,0 +1,51 @@
+.shepherd-theme-ff {
+    &.shepherd-has-title[data-popper-placement^=bottom]>.shepherd-arrow:before {
+        background-color: $ff-grey-800;
+    }
+    .shepherd-content {
+        .shepherd-header {
+            background-color: $ff-grey-800;
+            padding: 0.5rem 1rem;
+            line-height: 2rem;
+        }
+        .shepherd-title {
+            color: white;
+            font-weight: 500;
+        }
+        .shepherd-cancel-icon {
+            color: $ff-white;
+        }
+        .shepherd-text {
+            padding: 1rem;
+            p {
+                margin-bottom: 0.75rem;
+            }
+        }
+    }
+    .shepherd-footer {
+        display: flex;
+        gap: 0;
+        padding: 0;
+        border-top: 1px solid $ff-grey-300;
+        .shepherd-button {
+            flex-grow: 1;
+            border-radius: 0;
+            background-color: white;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            line-height: 2rem;
+            font-weight: bold;
+            margin: 0;
+        }
+        .shepherd-button:last-child {
+            background-color: $ff-blue-900;
+            &:hover {
+                background-color: $ff-indigo-800;
+            }
+        }
+    }
+}
+
+.shepherd-modal-overlay-container.shepherd-modal-is-visible path {
+    transition: 0.3s all;
+}
