@@ -11,9 +11,7 @@ meta:
 
 # How to Install Docker Engine (Docker CE) on Windows using WSL2
 
-## Disclaimer 
-
-Docker containers are inherently a Linux technology. The setup described here for running Docker on Windows using WSL2 is intended for development, testing, or learning purposes and may not be suitable for production environments.
+We recommend running FlowFuse Docker on Linux when ever possible as containers are inherently a Linux technology. If that really is not possible in your environment and the base OS must be Windows then the next best option is to use the WSL2 (Windows Subsystem for Linux v2) feature of Windows.
 
 ## Prerequisites
 
