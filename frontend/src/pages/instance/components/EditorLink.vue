@@ -3,11 +3,13 @@
         <slot name="default">
             <ff-button
                 v-ff-tooltip:left="(editorDisabled || disabled) ? disabledReason : undefined"
+                type="anchor"
+                :to="editorURL"
                 kind="secondary"
                 data-action="open-editor"
-                :disabled="editorDisabled || disabled || !url"
+                :disabled="buttonDisabled"
                 class="whitespace-nowrap"
-                @click.stop="openEditor()"
+                @click.stop="openEditor"
             >
                 <template v-if="showText" #icon-left>
                     <ProjectIcon />
@@ -72,16 +74,23 @@ export default {
                 return this.$router.resolve({ name: 'instance-editor', params: { id: this.instance.id } }).fullPath
             }
 
+            return this.editorURL
+        },
+        editorURL () {
             return this.instance.url || this.instance.editor?.url
+        },
+        buttonDisabled: function () {
+            return this.editorDisabled || this.disabled || !this.url
         }
     },
     methods: {
-        openEditor () {
+        openEditor (evt) {
+            evt.preventDefault()
             if (this.disabled) {
-                return
+                return false
             }
-
             window.open(this.url, !this.isImmersiveEditor ? '_blank' : '_self')
+            return false
         }
     }
 }

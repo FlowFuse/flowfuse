@@ -1035,6 +1035,62 @@ module.exports = async function (app) {
     })
 
     /**
+     * TODO: Add support for filtering by instance param when this is migrated to application API
+     * Export logs as CSV
+     * @name /api/v1/projects/:id/audit-log/export
+     * @memberof forge.routes.api.project
+     */
+    app.get('/:instanceId/audit-log/export', {
+        preHandler: app.needsPermission('project:audit-log'),
+        schema: {
+            summary: 'Get instance audit event entries',
+            tags: ['Instances'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            query: {
+                allOf: [
+                    { $ref: 'PaginationParams' },
+                    { $ref: 'AuditLogQueryParams' }
+                ]
+            },
+            response: {
+                200: {
+                    content: {
+                        'text/csv': {
+                            schema: {
+                                type: 'string'
+                            }
+                        }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const paginationOptions = app.getPaginationOptions(request)
+        const logEntries = await app.db.models.AuditLog.forProject(request.project.id, paginationOptions)
+        const result = app.db.views.AuditLog.auditLog(logEntries)
+        reply.type('text/csv').send([
+            ['id', 'event', 'body', 'scope', 'trigger', 'createdAt'],
+            ...result.log.map(row => [
+                row.id,
+                row.event,
+                `"${row.body ? JSON.stringify(row.body).replace(/"/g, '""') : ''}"`,
+                `"${JSON.stringify(row.scope).replace(/"/g, '""')}"`,
+                `"${JSON.stringify(row.trigger).replace(/"/g, '""')}"`,
+                row.createdAt?.toISOString()
+            ])
+        ]
+            .map(row => row.join(','))
+            .join('\r\n'))
+    })
+    /**
      *
      * @name /api/v1/projects/:id/import
      * @memberof forge.routes.api.project

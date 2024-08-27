@@ -737,4 +737,60 @@ module.exports = async function (app) {
         const result = app.db.views.AuditLog.auditLog(logEntries)
         reply.send(result)
     })
+
+    /**
+     * Get the team audit log
+     * @name /api/v1/team/:teamId/audit-log/export
+     * @memberof forge.routes.api.project
+     */
+    app.get('/:teamId/audit-log/export', {
+        preHandler: app.needsPermission('team:audit-log'),
+        schema: {
+            summary: 'Get team audit event entries',
+            tags: ['Teams'],
+            query: {
+                allOf: [
+                    { $ref: 'PaginationParams' },
+                    { $ref: 'AuditLogQueryParams' }
+                ]
+            },
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    content: {
+                        'text/csv': {
+                            schema: {
+                                type: 'string'
+                            }
+                        }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const paginationOptions = app.getPaginationOptions(request)
+        const logEntries = await app.db.models.AuditLog.forTeam(request.team.id, paginationOptions)
+        const result = app.db.views.AuditLog.auditLog(logEntries)
+        reply.type('text/csv').send([
+            ['id', 'event', 'body', 'scope', 'trigger', 'createdAt'],
+            ...result.log.map(row => [
+                row.id,
+                row.event,
+                `"${row.body ? JSON.stringify(row.body).replace(/"/g, '""') : ''}"`,
+                `"${JSON.stringify(row.scope).replace(/"/g, '""')}"`,
+                `"${JSON.stringify(row.trigger).replace(/"/g, '""')}"`,
+                row.createdAt?.toISOString()
+            ])
+        ]
+            .map(row => row.join(','))
+            .join('\r\n'))
+    })
 }
