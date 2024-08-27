@@ -18,6 +18,9 @@ describe('User Notifications API', async function () {
 
         await login('alice', 'aaPassword')
         await login('bob', 'bbPassword')
+        await login('chris', 'ccPassword')
+        await login('dave', 'ddPassword')
+        await login('eve', 'eePassword')
     }
 
     before(async function () {
