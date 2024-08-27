@@ -128,6 +128,14 @@ module.exports = {
             invitor,
             role
         })
+
+        // record acceptance in product analytics tool
+        app.product.capture(invitedUser.email, '$ff-invite-accepted', {
+            'accepted-at': new Date().toISOString(),
+            'invite-id': invitation.hashid
+        }, {
+            team: invitation.team.hashid
+        })
     },
 
     rejectInvitation: async (app, invitation, user) => {
