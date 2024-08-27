@@ -12,7 +12,7 @@ Docker containers are inherently a Linux technology. The setup described here fo
 
 ## Prerequisites
 
-Ensure your system meets following requirements:
+Ensure your system meets the following requirements:
 
 - Windows Server 2019 (version 1709) and later
 - Windows 10 version 2004 and higher (Build 19041 and higher)
