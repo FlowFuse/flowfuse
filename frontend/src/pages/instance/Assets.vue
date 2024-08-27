@@ -1,8 +1,10 @@
 <template>
     <div class="ff-instance-assets">
-        <FeatureUnavailable v-if="!launcherSatisfiesVersion" :message="launcherVersionMessage" :only-custom-message="true" />
-        <FeatureUnavailable v-else-if="!isStaticAssetFeatureEnabledForPlatform" />
-        <FeatureUnavailableToTeam v-else-if="!isStaticAssetsFeatureEnabledForTeam" />
+        <div class="banner-wrapper">
+            <FeatureUnavailable v-if="!isStaticAssetFeatureEnabledForPlatform" />
+            <FeatureUnavailableToTeam v-else-if="!isStaticAssetsFeatureEnabledForTeam" />
+            <FeatureUnavailable v-else-if="!launcherSatisfiesVersion" :message="launcherVersionMessage" :only-custom-message="true" />
+        </div>
         <div class="ff-breadcrumbs disable-last mb-7">
             <template v-if="breadcrumbs.length > 0">
                 <span v-for="(crumb, $index) in breadcrumbs" :key="$index" class="flex mr-1 gap-1 items-center">
@@ -125,5 +127,8 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
+.banner-wrapper > div{
+  margin-top: 0;
+}
 </style>
