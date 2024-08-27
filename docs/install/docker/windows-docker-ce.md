@@ -128,7 +128,7 @@ Consider a scenario where you want to run an Nginx container:
    ```
    
    This command forwards traffic from port 8080 on your external IP address to port 8080 on your localhost, where the Nginx container is listening for a connections.
-   Value for `listenport` can be changed as needed.
+   The value for `listenport` can be changed as needed.
 
 3. **Open the Port on Your Firewall**
 
