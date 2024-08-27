@@ -434,6 +434,7 @@ describe('License API', async function () {
         let stack
         let template
         let projectType
+        let team
         beforeEach(async function () {
             app = await FF_UTIL.setupApp({ housekeeper: true, license: TEST_LICENSE_ENTERPRISE, telemetry: { elabled: false } })
             factory = new TestModelFactory(app)
@@ -466,6 +467,7 @@ describe('License API', async function () {
                     codeEditor: true
                 }
             }, userAlice)
+            team = team1
 
             projectType = await factory.createProjectType({
                 name: 'projectType1',
@@ -517,6 +519,20 @@ describe('License API', async function () {
                     template,
                     projectType,
                     { start: true }
+                )
+            } catch (err) {
+                return
+            }
+            should.fail()
+        })
+        it('should not allow new device to be created', async function () {
+            await app.license.apply(TEST_LICENSE_EXPIRED)
+            try {
+                const device = await factory.createDevice(
+                    {},
+                    team,
+                    null,
+                    application
                 )
             } catch (err) {
                 return
