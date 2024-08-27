@@ -75,7 +75,7 @@ can modify their user details to their preferred values.
 
 LDAP implementations can also be used to group users
 
-To enable tis option, select the `Manage roles using group assertions` in the SSO configuration.
+To enable this option, select the `Manage roles using group assertions` in the SSO configuration.
 
 The following configuration options should then be set:
 
@@ -114,7 +114,7 @@ be done with care.
 
 ## Managing Admin users
 
-The SSO Configuration can be configured to managed the admin users of the platform by enabling the
+The SSO Configuration can be configured to manage the admin users of the platform by enabling the
 `Manage Admin roles using group assertions` option. Once enabled, the name of a group can be provided
 that will be used to identify whether a user is an admin or not.
 

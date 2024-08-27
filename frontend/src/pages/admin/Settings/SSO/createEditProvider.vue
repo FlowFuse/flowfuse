@@ -93,30 +93,6 @@
                         <div v-if="input.options.tls" class="pl-4 space-y-6">
                             <FormRow v-model="input.options.tlsVerifyServer" type="checkbox">Verify Server Certificate</FormRow>
                         </div>
-                        <!-- <FormRow v-model="input.options.groupMapping" type="checkbox">Manage roles using group membership</FormRow>
-                        <div v-if="input.options.groupMapping" class="pl-4 space-y-6">
-                            <FormRow v-model="input.options.groupsDN" :error="groupsDNError">
-                                Group Base DN
-                                <template #description>The name of the base object to search for groups</template>
-                            </FormRow>
-                            <FormRow v-model="input.options.groupAllTeams" :options="[{ value:true, label: 'Apply to all teams' }, { value:false, label: 'Apply to selected teams' }]">
-                                Team Scope
-                                <template #description>Should this apply to all teams on the platform, or just a restricted list of teams</template>
-                            </FormRow>
-                            <FormRow v-if="input.options.groupAllTeams === false" v-model="input.options.groupTeams" class="pl-4">
-                                <template #description>A list of team <b>slugs</b> that will managed by this configuration - one per line</template>
-                                <template #input><textarea v-model="input.options.groupTeams" class="font-mono w-full" rows="6" /></template>
-                            </FormRow>
-                            <FormRow v-if="input.options.groupAllTeams === false" v-model="input.options.groupOtherTeams" type="checkbox" class="pl-4">
-                                Allow users to be in other teams
-                                <template #description>
-                                    If enabled, users can be members of any teams not listed above and their membership/roles are not managed
-                                    by this SSO configuration.
-                                </template>
-                            </FormRow>
-                            <FormRow v-model="input.options.groupAdmin" type="checkbox">Manage Admin roles using group assertions</FormRow>
-                            <FormRow v-if="input.options.groupAdmin" v-model="input.options.groupAdminName" :error="groupAdminNameError" class="pl-4">Admin Users SAML Group name</FormRow>
-                        </div> -->
                     </template>
                     <FormRow v-model="input.options.groupMapping" type="checkbox">Manage roles using group assertions</FormRow>
                     <div v-if="input.options.groupMapping" class="pl-4 space-y-6">
