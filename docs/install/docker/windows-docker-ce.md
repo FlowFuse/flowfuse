@@ -15,7 +15,7 @@ We recommend running FlowFuse Docker on Linux when ever possible as containers a
 
 ## Prerequisites
 
-Ensure your system meets the following Windows Subsustem form Linux 2 requirements:
+Ensure your system meets the following Windows Subsystem for Linux v2 requirements:
 
 - Windows Server 2022
 - Windows 10 version 2004 and higher (Build 19041 and higher)
