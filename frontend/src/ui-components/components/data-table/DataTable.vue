@@ -3,6 +3,7 @@
         <div v-if="showOptions" class="ff-data-table--options">
             <ff-text-input
                 v-if="showSearch" v-model="filterTerm" class="ff-data-table--search"
+                :disabled="disabled"
                 data-form="search" :placeholder="searchPlaceholder"
             >
                 <template #icon><SearchIcon /></template>
@@ -188,6 +189,11 @@ export default {
         noDataMessage: {
             type: String,
             default: 'No Data Found'
+        },
+        disabled: {
+            required: false,
+            default: false,
+            type: Boolean
         }
     },
     emits: ['update:search', 'load-more', 'row-selected', 'update:sort', 'rows-checked'],
