@@ -8,6 +8,7 @@
         :no-data-message="`No files in '${folder.name || 'Storage'}'`"
         search-placeholder="Search Files"
         :loading="loading"
+        :disabled="disabled"
         loading-message="Loading directory..."
         @row-selected="directoryClicked"
     >
@@ -15,6 +16,7 @@
             <!-- <DropdownMenu data-el="bulk-actions-dropdown" buttonClass="ff-btn ff-btn--secondary" :options="bulkActionsDropdownOptions">Actions</DropdownMenu> -->
             <ff-button
                 data-action="refresh-items"
+                :disabled="disabled"
                 kind="secondary"
                 @click="$emit('items-updated')"
             >
@@ -24,6 +26,7 @@
                 Refresh
             </ff-button>
             <ff-button
+                :disabled="disabled"
                 data-action="add-folder"
                 kind="secondary"
                 @click="showDialog('new-folder')"
@@ -34,6 +37,7 @@
                 New Folder
             </ff-button>
             <ff-button
+                :disabled="disabled"
                 data-action="upload-file"
                 kind="primary"
                 @click="showDialog('upload-file')"
@@ -111,6 +115,11 @@ export default {
         breadcrumbs: {
             required: true,
             type: Object
+        },
+        disabled: {
+            required: false,
+            default: false,
+            type: Boolean
         }
     },
     emits: ['change-directory', 'items-updated'],
