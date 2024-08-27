@@ -214,14 +214,10 @@ export default {
             return this.$route.params.id === 'create'
         },
         isGroupOptionsValid () {
-            try {
             return !this.input.options.groupMapping || (
-                (this.input.options.type === 'saml' ? this.isGroupAssertionNameValid : this.isGroupsDNValid)
-                && this.isGroupAdminNameValid
+                (this.input.options.type === 'saml' ? this.isGroupAssertionNameValid : this.isGroupsDNValid) &&
+                  this.isGroupAdminNameValid
             )
-            } catch (eee) {
-                console.log(eee)
-            }
         },
         isGroupAssertionNameValid () {
             return this.input.options.groupAssertionName && this.input.options.groupAssertionName.length > 0
@@ -236,11 +232,7 @@ export default {
             return !this.isGroupsDNValid ? 'Group DN is required' : ''
         },
         isGroupAdminNameValid () {
-            try {
-                return !this.input.options.groupAdmin || (this.input.options.groupAdminName && this.input.options.groupAdminName.length > 0)
-            } catch (eee) {
-                console.log(eee)
-            }
+            return !this.input.options.groupAdmin || (this.input.options.groupAdminName && this.input.options.groupAdminName.length > 0)
         },
         groupAdminNameError () {
             return !this.isGroupAdminNameValid ? 'Admin Group name is required' : ''

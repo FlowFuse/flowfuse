@@ -441,7 +441,6 @@ module.exports.init = async function (app) {
         const desiredTeamMemberships = {}
         const groupRegEx = /^ff-(.+)-([^-]+)$/
         for (const i in searchEntries) {
-            
             const match = groupRegEx.exec(searchEntries[i].cn)
             if (match) {
                 app.log.debug(`Found group ${searchEntries[i].cn} for user ${user.username}`)
@@ -533,10 +532,10 @@ module.exports.init = async function (app) {
             }
         }
         // - Check remaining desired memberships
-            //   - create membership
-            for (const [teamSlug, teamRole] of Object.entries(desiredTeamMemberships)) {
-                // This is a new team membership
-                promises.push(app.db.models.Team.bySlug(teamSlug).then(team => {
+        //   - create membership
+        for (const [teamSlug, teamRole] of Object.entries(desiredTeamMemberships)) {
+            // This is a new team membership
+            promises.push(app.db.models.Team.bySlug(teamSlug).then(team => {
                 if (team) {
                     // console.log(`adding to team ${teamSlug} role ${teamRole}`)
                     return app.db.controllers.Team.addUser(team, user, teamRole).then(() => {
