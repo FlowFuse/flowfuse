@@ -97,7 +97,7 @@ Once the Ubuntu system is ready, follow these steps to install Docker:
    sudo docker run hello-world
    ```
 
-   If Docker is installed correctly, you should see the similar output:
+   If Docker is installed correctly, you should see a similar output:
 
    ![wsl-docker-complete](../images/wsl-docker-complete.png)
 
