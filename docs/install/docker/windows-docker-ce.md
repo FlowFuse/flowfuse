@@ -2,6 +2,11 @@
 navTitle: Docker Engine on Windows
 meta:
    description: Install Docker Engine (Docker CE) on Windows.
+   tags: 
+       - docker for windows
+       - install docker on windows
+       - install docker on windows with wsl2
+       - running docker on windows 11
 ---
 
 # How to Install Docker Engine (Docker CE) on Windows using WSL2
