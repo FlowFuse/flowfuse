@@ -1,5 +1,8 @@
 <template>
     <div class="ff-instance-assets">
+        <FeatureUnavailable v-if="!launcherSatisfiesVersion" :message="launcherVersionMessage" :only-custom-message="true" />
+        <FeatureUnavailable v-else-if="!isStaticAssetFeatureEnabledForPlatform" />
+        <FeatureUnavailableToTeam v-else-if="!isStaticAssetsFeatureEnabledForTeam" />
         <div class="ff-breadcrumbs disable-last mb-7">
             <template v-if="breadcrumbs.length > 0">
                 <span v-for="(crumb, $index) in breadcrumbs" :key="$index" class="flex mr-1 gap-1 items-center">
@@ -16,6 +19,7 @@
         <FileBrowser
             :breadcrumbs="breadcrumbs"
             :folder="currentDirectory" :items="files"
+            :disabled="!isFeatureEnabled"
             @items-updated="loadContents"
             @change-directory="changeDirectory"
         />
@@ -23,16 +27,23 @@
 </template>
 
 <script>
+import SemVer from 'semver'
+
 import AssetsAPI from '../../api/assets.js'
+import FeatureUnavailable from '../../components/banners/FeatureUnavailable.vue'
+import FeatureUnavailableToTeam from '../../components/banners/FeatureUnavailableToTeam.vue'
 import FileBrowser from '../../components/file-browser/FileBrowser.vue'
+import featuresMixin from '../../mixins/Features.js'
 import permissionsMixin from '../../mixins/Permissions.js'
 
 export default {
     name: 'InstanceAssets',
     components: {
+        FeatureUnavailable,
+        FeatureUnavailableToTeam,
         FileBrowser
     },
-    mixins: [permissionsMixin],
+    mixins: [permissionsMixin, featuresMixin],
     inheritAttrs: false,
     props: {
         instance: {
@@ -49,11 +60,25 @@ export default {
             currentDirectory: {
                 name: null
             },
-            files: []
+            files: [],
+            launcherVersionMessage: 'You are using an incompatible Launcher Version. You need to upgrade to => 2.8.0 in order to use this feature.'
+        }
+    },
+    computed: {
+        launcherSatisfiesVersion () {
+            const nrLauncherVersion = SemVer.coerce(this.instance?.meta?.versions?.launcher)
+            return SemVer.satisfies(nrLauncherVersion, '>=2.8.0')
+        },
+        isFeatureEnabled () {
+            return this.isStaticAssetFeatureEnabledForPlatform &&
+                this.isStaticAssetsFeatureEnabledForTeam &&
+                this.launcherSatisfiesVersion
         }
     },
     mounted () {
-        this.loadContents()
+        if (this.isFeatureEnabled) {
+            this.loadContents()
+        }
     },
     methods: {
         loadContents () {
