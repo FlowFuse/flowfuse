@@ -22,7 +22,9 @@ describe('FlowFuse platform invitees', () => {
 
     it('can reject an invitation to a new team', () => {
         // should show one pending invite
-        cy.get('[data-el="notification-pill"]').should('have.text', '2')
+        cy.get('[data-el="desktop-nav-right"]').within(() => {
+            cy.get('[data-el="notification-pill"]').should('have.text', '2')
+        })
 
         // user should see a message
         cy.get('[data-nav="team-invites"]').should('be.visible')
@@ -46,7 +48,9 @@ describe('FlowFuse platform invitees', () => {
 
     it('can accept an invitation to a new team and is navigated to the team\'s dashboard', () => {
         // should show one pending invite
-        cy.get('[data-el="notification-pill"]').should('have.text', '1')
+        cy.get('[data-el="desktop-nav-right"]').within(() => {
+            cy.get('[data-el="notification-pill"]').should('have.text', '1')
+        })
 
         // user should see a message
         cy.get('[data-nav="team-invites"]').should('be.visible')

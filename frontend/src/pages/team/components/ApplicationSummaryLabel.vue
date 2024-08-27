@@ -5,6 +5,7 @@
             :to="`/application/${application.id}/instances`"
             :icon="IconNodeRedSolid"
             :class="{'text-gray-400': application.instanceCount === 0}"
+            data-nav="application-instances"
             iconColor="text-red-700"
         >
             {{ application.instanceCount }}
@@ -15,6 +16,7 @@
             :to="`/application/${application.id}/devices`"
             :icon="IconDeviceSolid"
             :class="{'text-gray-400': application.deviceCount === 0}"
+            data-nav="application-devices"
         >
             {{ application.deviceCount }}
         </IconLink>
@@ -24,6 +26,7 @@
             :to="`/application/${application.id}/device-groups`"
             :icon="DeviceGroupSolidIcon"
             :class="{'text-gray-400': application.deviceGroupCount === 0}"
+            data-nav="application-device-groups"
             iconColor="text-teal-800"
         >
             {{ application.deviceGroupCount }}
@@ -34,6 +37,7 @@
             :to="`/application/${application.id}/snapshots`"
             :icon="IconSnapshotSolid"
             :class="{'text-gray-400': application.snapshotCount === 0}"
+            data-nav="application-snapshots"
         >
             {{ application.snapshotCount }}
         </IconLink>
@@ -43,6 +47,7 @@
             :to="`/application/${application.id}/pipelines`"
             :icon="IconPipelineSolid"
             :class="{'text-gray-400': application.pipelineCount === 0}"
+            data-nav="application-pipelines"
         >
             {{ application.pipelineCount || 0 }}
         </IconLink>

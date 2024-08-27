@@ -19,6 +19,10 @@ describe('User API', async function () {
         TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: app.defaultTeamType.id })
         TestObjects.Project1 = app.project
         TestObjects.tokens = {}
+        TestObjects.application = app.application
+        TestObjects.stack = app.stack
+        TestObjects.projectType = app.projectType
+        TestObjects.template = app.template
         await setupUsers()
     }
     async function setupUsers () {
@@ -740,7 +744,7 @@ describe('User API', async function () {
             const json = response.json()
             json.should.have.property('error', 'Error: Cannot delete the last platform administrator')
         })
-        it('Last owner of a team cannot delete own account', async function () {
+        it('Last owner of a team cannot delete own account when the team has other members present', async function () {
             await login('frank', 'ffPassword')
             // delete bob so that grace becomes the remaining owner of team B
             await TestObjects.bob.destroy()
@@ -753,7 +757,66 @@ describe('User API', async function () {
             })
             response.statusCode.should.equal(400)
             const json = response.json()
-            json.should.have.property('error', 'Error: Cannot delete the last owner of a team')
+            json.should.have.property('error', 'Error: Team BTeam which is being deleted alongside your account still has users in it.')
+        })
+        it('Last owner of a team cannot delete own account when the team has instances present', async function () {
+            const amidala = await app.db.models.User.create({ username: 'amidala', name: 'Padme Amidala', email: 'amidala@example.com', email_verified: true, password: 'paPassword', admin: false, sso_enabled: false })
+            const nabooTeam = await app.db.models.Team.create({ name: 'nabooTeam', TeamTypeId: app.defaultTeamType.id })
+
+            await nabooTeam.addUser(amidala, { through: { role: Roles.Owner } })
+
+            await login('amidala', 'paPassword')
+
+            const nabooTeamApplication = await app.factory.createApplication({ name: 'senate-app' }, nabooTeam)
+
+            // we create an instance so Padme won't be able to delete her account
+            await app.factory.createInstance(
+                { name: 'instance' },
+                nabooTeamApplication,
+                TestObjects.stack,
+                TestObjects.template,
+                TestObjects.projectType
+            )
+
+            // Padme now attempts to delete own account: should fail as she still has instances attached to her team
+            const response = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.amidala }
+            })
+            response.statusCode.should.equal(400)
+            const json = response.json()
+            json.should.have.property('error', 'Error: Team nabooTeam which is being deleted alongside your account still has instances assigned to it.')
+        })
+        it('Last owner of a team cannot delete own account when the team has devices present', async function () {
+            const amidala = await app.db.models.User.create({ username: 'amidala', name: 'Padme Amidala', email: 'amidala@example.com', email_verified: true, password: 'paPassword', admin: false, sso_enabled: false })
+            const nabooTeam = await app.db.models.Team.create({ name: 'nabooTeam2', TeamTypeId: app.defaultTeamType.id })
+
+            await nabooTeam.addUser(amidala, { through: { role: Roles.Owner } })
+
+            await login('amidala', 'paPassword')
+
+            const nabooTeamApplication = await app.factory.createApplication({ name: 'senate-app' }, nabooTeam)
+
+            // we create a device so Padme won't be able to delete her account
+            await app.factory.createDevice(
+                {
+                    name: 'some-device'
+                },
+                nabooTeam,
+                null,
+                nabooTeamApplication
+            )
+
+            // Padme now attempts to delete own account: should fail as owned team has devices attached
+            const response = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.amidala }
+            })
+            response.statusCode.should.equal(400)
+            const json = response.json()
+            json.should.have.property('error', 'Error: Team nabooTeam2 which is being deleted alongside your account still has devices assigned to it.')
         })
         it('Non admin user who is a team member can delete own account', async function () {
             await login('grace', 'ggPassword')
@@ -770,6 +833,24 @@ describe('User API', async function () {
                 method: 'DELETE',
                 url: '/api/v1/user',
                 cookies: { sid: TestObjects.tokens.grace }
+            })
+            response.statusCode.should.equal(200)
+        })
+        it('Team owner can delete own account if no other members, instances or devices exist', async function () {
+            const amidala = await app.db.models.User.create({ username: 'amidala', name: 'Padme Amidala', email: 'amidala@example.com', email_verified: true, password: 'paPassword', admin: false, sso_enabled: false })
+            const nabooTeam = await app.db.models.Team.create({ name: 'nabooTeam3', TeamTypeId: app.defaultTeamType.id })
+
+            await nabooTeam.addUser(amidala, { through: { role: Roles.Owner } })
+
+            await login('amidala', 'paPassword')
+
+            await app.factory.createApplication({ name: 'senate-app-2' }, nabooTeam)
+
+            // Padme now attempts to delete own account: should succeed even though it has instances attached to the team
+            const response = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.amidala }
             })
             response.statusCode.should.equal(200)
         })
@@ -972,11 +1053,20 @@ describe('User API', async function () {
             })
             return response.json().teams
         }
+        async function getUserNotifications (userToken) {
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user/notifications',
+                cookies: { sid: userToken }
+            })
+            return response.json().notifications
+        }
 
         it('user can accept an invite to a team', async function () {
             await login('grace', 'ggPassword')
             ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(0)
             ;(await getUserTeams(TestObjects.tokens.grace)).should.have.length(1)
+            ;(await getUserNotifications(TestObjects.tokens.grace)).should.have.length(0)
 
             // Create invitation
             const invitor = TestObjects.alice
@@ -986,6 +1076,7 @@ describe('User API', async function () {
 
             const invite = result.grace
 
+            ;(await getUserNotifications(TestObjects.tokens.grace)).should.have.length(1)
             ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(1)
 
             // Accept invitation
@@ -997,12 +1088,14 @@ describe('User API', async function () {
             response.statusCode.should.equal(200)
             ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(0)
             ;(await getUserTeams(TestObjects.tokens.grace)).should.have.length(2)
+            ;(await getUserNotifications(TestObjects.tokens.grace)).should.have.length(0)
         })
 
         it('user can reject an invite to a team', async function () {
             await login('grace', 'ggPassword')
             ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(0)
             ;(await getUserTeams(TestObjects.tokens.grace)).should.have.length(1)
+            ;(await getUserNotifications(TestObjects.tokens.grace)).should.have.length(0)
 
             // Create invitation
             const invitor = TestObjects.alice
@@ -1012,6 +1105,7 @@ describe('User API', async function () {
 
             const invite = result.grace
 
+            ;(await getUserNotifications(TestObjects.tokens.grace)).should.have.length(1)
             ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(1)
 
             // Accept invitation
@@ -1023,6 +1117,7 @@ describe('User API', async function () {
             response.statusCode.should.equal(200)
             ;(await getUserInvites(TestObjects.tokens.grace)).should.have.length(0)
             ;(await getUserTeams(TestObjects.tokens.grace)).should.have.length(1)
+            ;(await getUserNotifications(TestObjects.tokens.grace)).should.have.length(0)
         })
 
         it('user cannot accept an invite they do not own', async function () {

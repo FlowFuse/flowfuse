@@ -525,40 +525,46 @@ module.exports.init = async function (app) {
         enableManualBilling: async (team) => {
             app.log.info(`Enabling manual billing for team ${team.hashid}`)
             const subscription = await team.getSubscription()
-            const existingSubscription = subscription.subscription
-            subscription.subscription = ''
-            subscription.status = app.db.models.Subscription.STATUS.UNMANAGED
-            subscription.trialEndsAt = null
-            subscription.trialStatus = app.db.models.Subscription.TRIAL_STATUS.ENDED
-            await subscription.save()
+            if (subscription) {
+                const existingSubscription = subscription.subscription
+                subscription.subscription = ''
+                subscription.status = app.db.models.Subscription.STATUS.UNMANAGED
+                subscription.trialEndsAt = null
+                subscription.trialStatus = app.db.models.Subscription.TRIAL_STATUS.ENDED
+                await subscription.save()
 
-            // Now we have marked the local subscription as unmanaged, we need to
-            // check to see if there is a stripe subscription to cancel
-            if (existingSubscription) {
-                try {
-                    const stripeSubscription = await stripe.subscriptions.retrieve(existingSubscription)
-                    if (stripeSubscription && stripeSubscription.status !== 'canceled') {
-                        app.log.info(`Canceling existing subscription ${existingSubscription} for team ${team.hashid}`)
-                        // There is an existing subscription to cancel
-                        try {
-                            // We do not use `app.billing.closeSubscription` because
-                            // that expects a Subscription object. However, we've already
-                            // updated the local Subscription object to remove the information
-                            // needed by closeSubscription. This is to ensure when the
-                            // stripe callback arrives we don't trigger a suspension of
-                            // the team resources.
-                            await stripe.subscriptions.del(existingSubscription, {
-                                invoice_now: true,
-                                prorate: true
-                            })
-                        } catch (err) {
-                            app.log.warn(`Error canceling existing subscription ${existingSubscription} for team ${team.hashid}: ${err.toString()}`)
+                // Now we have marked the local subscription as unmanaged, we need to
+                // check to see if there is a stripe subscription to cancel
+                if (existingSubscription) {
+                    try {
+                        const stripeSubscription = await stripe.subscriptions.retrieve(existingSubscription)
+                        if (stripeSubscription && stripeSubscription.status !== 'canceled') {
+                            app.log.info(`Canceling existing subscription ${existingSubscription} for team ${team.hashid}`)
+                            // There is an existing subscription to cancel
+                            try {
+                                // We do not use `app.billing.closeSubscription` because
+                                // that expects a Subscription object. However, we've already
+                                // updated the local Subscription object to remove the information
+                                // needed by closeSubscription. This is to ensure when the
+                                // stripe callback arrives we don't trigger a suspension of
+                                // the team resources.
+                                await stripe.subscriptions.del(existingSubscription, {
+                                    invoice_now: true,
+                                    prorate: true
+                                })
+                            } catch (err) {
+                                app.log.warn(`Error canceling existing subscription ${existingSubscription} for team ${team.hashid}: ${err.toString()}`)
+                            }
                         }
+                    } catch (err) {
+                        // Could not find a matching stripe subscription - that's means
+                        // we have nothing cancel
                     }
-                } catch (err) {
-                    // Could not find a matching stripe subscription - that's means
-                    // we have nothing cancel
                 }
+            } else {
+                // If the team bailed out of setting up stripe, they will not have
+                // a subscription.
+                await app.db.controllers.Subscription.createUnmanagedSubscription(team)
             }
         },
         updateTrialSettings: async (team, settings) => {

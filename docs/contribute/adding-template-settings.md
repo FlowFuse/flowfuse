@@ -1,5 +1,16 @@
 ---
 navTitle: Adding Template Settings
+meta:
+   description: Learn how to add new runtime options to Node-RED templates in FlowFuse, including updates to frontend, runtime, and the launcher.
+   tags:
+      - flowfuse
+      - nodered
+      - contributing
+      - template
+      - settings
+      - frontend
+      - runtime
+      - launcher
 ---
 
 # Adding Template Settings

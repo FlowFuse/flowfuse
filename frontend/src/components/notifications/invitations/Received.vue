@@ -1,5 +1,9 @@
 <template>
-    <NotificationMessage data-el="invitation-message" :to="{name: 'User Invitations'}">
+    <NotificationMessage
+        :notification="notification"
+        :selections="selections"
+        data-el="invitation-message" :to="{name: 'User Invitations'}"
+    >
         <template #icon>
             <UserAddIcon />
         </template>
@@ -18,20 +22,20 @@
 <script>
 import { UserAddIcon } from '@heroicons/vue/solid'
 
-import NotificationMessageMixin from '../../mixins/NotificationMessage.js'
+import NotificationMessageMixin from '../../../mixins/NotificationMessage.js'
 
-import NotificationMessage from './Notification.vue'
+import NotificationMessage from '../Notification.vue'
 
 export default {
-    name: 'TeamInvitationNotification',
+    name: 'TeamInvitationReceivedNotification',
     components: { NotificationMessage, UserAddIcon },
     mixins: [NotificationMessageMixin],
     computed: {
         invitorName () {
-            return this.notification.invitor.name
+            return this.notification.data.invitor.username
         },
         teamName () {
-            return this.notification.team.name
+            return this.notification.data.team.name
         }
     }
 }

@@ -17,6 +17,7 @@ const modelTypes = [
     'Device',
     'DeviceGroup',
     'Invitation',
+    'Notification',
     'Project',
     'ProjectSnapshot',
     'ProjectStack',

@@ -2,6 +2,18 @@
 navTitle: FlowFuse Cloud Billing
 meta:
   description: Learn about billing details for FlowFuse Cloud, including payment methods, team billing, billing cycles, managing instances, handling failed payments, and cancelling subscriptions.
+  tags:
+  - flowfuse
+  - nodered
+  - billing
+  - payments
+  - subscription
+  - stripe
+  - instances
+  - team billing
+  - billing cycle
+  - failed payments
+  - account management 
 ---
 
 # Billing
@@ -50,4 +62,4 @@ When you're on the Starter tier you'll need to delete your team to cancel your s
 For the Team and Enterprise tiers, you're charged on active cloud instances and edge devices. To stop being charged it suffices
 to suspend all Cloud Node-RED instances and remove all edge devices from the team.
 
-If you have outstanding credit you can request a refund via a [support ticket](/support/).
+If you have outstanding credit you can request a refund via a [support ticket](/support/), include the Team ID in your email.

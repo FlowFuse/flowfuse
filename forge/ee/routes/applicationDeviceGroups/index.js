@@ -10,8 +10,6 @@
 const { ValidationError } = require('sequelize')
 
 const { UpdatesCollection } = require('../../../auditLog/formatters.js')
-const { registerPermissions } = require('../../../lib/permissions.js')
-const { Roles } = require('../../../lib/roles.js')
 const { DeviceGroupMembershipValidationError } = require('../../db/controllers/DeviceGroup.js')
 
 // Declare getLogger function to provide type hints / quick code nav / code completion
@@ -23,15 +21,6 @@ const getApplicationLogger = (app) => { return app.auditLog.Application }
  */
 module.exports = async function (app) {
     const deviceGroupLogger = getApplicationLogger(app).application.deviceGroup
-
-    registerPermissions({
-        'application:device-group:create': { description: 'Create a device group', role: Roles.Owner },
-        'application:device-group:list': { description: 'List device groups', role: Roles.Member },
-        'application:device-group:update': { description: 'Update a device group', role: Roles.Owner },
-        'application:device-group:delete': { description: 'Delete a device group', role: Roles.Owner },
-        'application:device-group:read': { description: 'View a device group', role: Roles.Member },
-        'application:device-group:membership:update': { description: 'Update a device group membership', role: Roles.Owner }
-    })
 
     // pre-handler for all routes in this file
     app.addHook('preHandler', async (request, reply) => {
@@ -183,7 +172,8 @@ module.exports = async function (app) {
                 type: 'object',
                 properties: {
                     name: { type: 'string' },
-                    description: { type: 'string' }
+                    description: { type: 'string' },
+                    targetSnapshotId: { type: ['string', 'null'] }
                 }
             },
             params: {
@@ -207,10 +197,17 @@ module.exports = async function (app) {
         const group = request.deviceGroup
         const name = request.body.name
         const description = request.body.description
+        const targetSnapshotId = request.body.targetSnapshotId
         try {
-            const originalDetails = { name: group.name, description: group.description }
-            const updatedGroup = await app.db.controllers.DeviceGroup.updateDeviceGroup(group, { name, description })
-            const newDetails = { name: updatedGroup.name, description: updatedGroup.description }
+            // gather before details for audit log
+            const originalDetails = { name: group.name, description: group.description, targetSnapshotId: null }
+            originalDetails.targetSnapshotId = group.targetSnapshotId ? app.db.models.ProjectSnapshot.encodeHashid(group.targetSnapshotId) : null
+            // perform update
+            const updatedGroup = await app.db.controllers.DeviceGroup.updateDeviceGroup(group, { name, description, targetSnapshotId })
+            // gather after details for audit log
+            const newDetails = { name: updatedGroup.name, description: updatedGroup.description, targetSnapshotId: null }
+            newDetails.targetSnapshotId = updatedGroup.targetSnapshotId ? app.db.models.ProjectSnapshot.encodeHashid(updatedGroup.targetSnapshotId) : null
+            // log the update
             const updates = new UpdatesCollection()
             updates.pushDifferences(originalDetails, newDetails)
             await deviceGroupLogger.updated(request.session.User, null, request.application, group, updates)

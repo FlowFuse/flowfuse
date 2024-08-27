@@ -61,10 +61,10 @@ export default {
     },
     computed: {
         ...mapState('account', ['user', 'team']),
-        ...mapGetters('account', ['notifications'])
+        ...mapGetters('account', ['teamInvitationsCount'])
     },
     watch: {
-        notifications: {
+        teamInvitationsCount: {
             handler: function () {
                 this.updateNotifications()
             },
@@ -77,7 +77,7 @@ export default {
     },
     methods: {
         updateNotifications () {
-            this.navigation[1].notifications = this.notifications.invitations
+            this.navigation[1].notifications = this.teamInvitationsCount
         }
     }
 }

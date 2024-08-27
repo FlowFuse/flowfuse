@@ -15,9 +15,14 @@ describe('Invitation controller', function () {
     */
 
     let app
+    const TestObjects = {}
+
     before(async function () {
         app = await setup()
         app.settings.set('team:user:invite:external', true)
+        TestObjects.alice = await app.db.models.User.byUsername('alice')
+        TestObjects.bob = await app.db.models.User.byUsername('bob')
+        TestObjects.chris = await app.db.models.User.byUsername('chris')
     })
 
     after(async function () {
@@ -67,14 +72,29 @@ describe('Invitation controller', function () {
 
     describe('createInvitations', function () {
         it('creates invitations for known users by username and email', async function () {
-            const invitor = await app.db.models.User.byUsername('alice')
+            const invitor = TestObjects.alice
             const team = await app.db.models.Team.byName('CTeam')
+
+            let bobNotifications = await app.db.models.Notification.forUser(TestObjects.bob)
+            bobNotifications.should.have.property('count', 0)
+
+            let chrisNotifications = await app.db.models.Notification.forUser(TestObjects.chris)
+            chrisNotifications.should.have.property('count', 0)
+
             const userList = ['bob', 'chris@example.com']
             const result = await app.db.controllers.Invitation.createInvitations(invitor, team, userList)
             Object.keys(result).should.have.length(2)
             result.should.have.property('bob')
             checkInvite(result.bob, 1, 2, team.id)
             checkInvite(result['chris@example.com'], 1, 3, team.id)
+
+            bobNotifications = await app.db.models.Notification.forUser(TestObjects.bob)
+            bobNotifications.should.have.property('count', 1)
+            bobNotifications.notifications[0].should.have.property('type', 'team-invite')
+
+            chrisNotifications = await app.db.models.Notification.forUser(TestObjects.chris)
+            chrisNotifications.should.have.property('count', 1)
+            chrisNotifications.notifications[0].should.have.property('type', 'team-invite')
         })
         it('rejects for users already in the team', async function () {
             const invitor = await app.db.models.User.byUsername('alice')
@@ -87,7 +107,7 @@ describe('Invitation controller', function () {
             checkInvite(result['chris@example.com'], 1, 3, team.id)
         })
         it('rejects for users already invited to the team', async function () {
-            const invitor = await app.db.models.User.byUsername('alice')
+            const invitor = TestObjects.alice
             const team = await app.db.models.Team.byName('CTeam')
             // Invite bob to the team
             let userList = ['bob']
@@ -103,7 +123,7 @@ describe('Invitation controller', function () {
             checkInvite(result2.chris, 1, 3, team.id)
         })
         it("rejects for unknown users that aren't emails", async function () {
-            const invitor = await app.db.models.User.byUsername('alice')
+            const invitor = TestObjects.alice
             const team = await app.db.models.Team.byName('CTeam')
             const userList = ['dave']
             const result = await app.db.controllers.Invitation.createInvitations(invitor, team, userList)
@@ -113,7 +133,7 @@ describe('Invitation controller', function () {
         })
 
         it('creates invitations for external users', async function () {
-            const invitor = await app.db.models.User.byUsername('alice')
+            const invitor = TestObjects.alice
             const team = await app.db.models.Team.byName('CTeam')
             const userList = ['dave@example.com']
             const result = await app.db.controllers.Invitation.createInvitations(invitor, team, userList)
@@ -122,7 +142,7 @@ describe('Invitation controller', function () {
         })
 
         it('rejects if team user limit will be exceeded', async function () {
-            const invitor = await app.db.models.User.byUsername('alice')
+            const invitor = TestObjects.alice
             const teamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
             const teamTypeProperties = { ...teamType.properties }
             teamTypeProperties.users.limit = 3
