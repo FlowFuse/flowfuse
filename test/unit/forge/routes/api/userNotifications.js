@@ -91,6 +91,64 @@ describe('User Notifications API', async function () {
             bobNotifications.notifications[0].should.have.property('read', false)
         })
 
+        it('Updates notification when options.upsert is set', async function () {
+            const notificationType = 'crashed'
+            const notificationRef = `${notificationType}:${TestObjects.Project1.id}`
+
+            // get current count of notifications for bob
+            const bobNotifications0 = await getNotifications(TestObjects.tokens.bob)
+            const bobCurrentCount = bobNotifications0.count
+
+            // args: (user, type, data, reference = null, options = null)
+            await app.notifications.send(TestObjects.bob, notificationType, { user: 'bob', i: 1 }, notificationRef, { upsert: true })
+
+            const bobNotifications1 = await getNotifications(TestObjects.tokens.bob)
+            bobNotifications1.should.have.property('count', bobCurrentCount + 1)
+            bobNotifications1.notifications[0].should.have.property('type', notificationType)
+            bobNotifications1.notifications[0].should.have.property('read', false)
+            const counter = bobNotifications1.notifications[0].data?.meta?.counter || 0
+            counter.should.equal(0) // first occurrence is not counted
+
+            await app.notifications.send(TestObjects.bob, notificationType, { user: 'bob', i: 2 }, notificationRef, { upsert: true })
+
+            const bobNotifications2 = await getNotifications(TestObjects.tokens.bob)
+            bobNotifications2.should.have.property('count', bobCurrentCount + 1) // should not create a new notification
+            bobNotifications2.notifications[0].should.have.property('type', notificationType)
+            bobNotifications2.notifications[0].should.have.property('read', false)
+            const counter2 = bobNotifications2.notifications[0].data?.meta?.counter || 0
+            counter2.should.equal(2) // second occurrence IS counted
+            // data should have been updated
+            bobNotifications2.notifications[0].data.should.have.property('user', 'bob')
+            bobNotifications2.notifications[0].data.should.have.property('i', 2)
+        })
+
+        it('Updates notification when options.supersede is set', async function () {
+            const notificationType = 'crashed'
+            const notificationRef = `${notificationType}:${TestObjects.Project1.id}`
+
+            // get current count of notifications for bob
+            const bobNotifications0 = await getNotifications(TestObjects.tokens.bob)
+            const bobCurrentCount = bobNotifications0.count
+
+            // args: (user, type, data, reference = null, options = null)
+            await app.notifications.send(TestObjects.bob, notificationType, { user: 'bob', i: 0 }, notificationRef, { supersede: true })
+
+            const bobNotifications1 = await getNotifications(TestObjects.tokens.bob)
+            bobNotifications1.should.have.property('count', bobCurrentCount + 1)
+            bobNotifications1.notifications[0].should.have.property('type', notificationType)
+            bobNotifications1.notifications[0].should.have.property('read', false)
+
+            await app.notifications.send(TestObjects.bob, notificationType, { user: 'bob', i: 1 }, notificationRef, { supersede: true })
+
+            const bobNotifications2 = await getNotifications(TestObjects.tokens.bob)
+
+            bobNotifications2.should.have.property('count', bobCurrentCount + 2) // should create a new notification and mark the old one as read
+            bobNotifications2.notifications[0].should.have.property('type', notificationType)
+            bobNotifications2.notifications[0].should.have.property('read', false)
+            bobNotifications2.notifications[1].should.have.property('type', notificationType)
+            bobNotifications2.notifications[1].should.have.property('read', true)
+        })
+
         it('user can mark notification as read', async function () {
             const aliceNotifications = await getNotifications(TestObjects.tokens.alice)
             aliceNotifications.should.have.property('count', 2)
