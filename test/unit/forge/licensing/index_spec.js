@@ -528,7 +528,7 @@ describe('License API', async function () {
         it('should not allow new device to be created', async function () {
             await app.license.apply(TEST_LICENSE_EXPIRED)
             try {
-                const device = await factory.createDevice(
+                await factory.createDevice(
                     {},
                     team,
                     null,
