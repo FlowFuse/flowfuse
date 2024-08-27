@@ -39,10 +39,10 @@ Open PowerShell as an administrator and run the following commands:
 
   After the reboot, WSL will automatically start installing the Ubuntu Linux distribution.
    You will be prompted to create a new UNIX account. Follow the instructions to create a new user account and set a password.
-   ![wsl-user](../images/wsl-unix-user.png)
+   ![wsl-unix-user-creation](../images/wsl-unix-user.png)
 
    Once completed, you will be dropped into a new Ubuntu shell.
-   ![wsl-complete](../images/wsl-install-complete.png)
+   ![wsl-install-complete](../images/wsl-install-complete.png)
 
 ## Step 2: Install Docker on Ubuntu
 
@@ -104,7 +104,7 @@ Once the Ubuntu system is ready, follow these steps to install Docker:
 
    If Docker is installed correctly, you should see a similar output:
 
-   ![wsl-docker-complete](../images/wsl-docker-complete.png)
+   ![wsl-docker-installation-complete](../images/wsl-docker-complete.png)
 
 
 Once Docker is installed, you can [install the FlowFuse platform using docker compose](./README.md).
