@@ -32,7 +32,7 @@ Open PowerShell as an administrator and run the following commands:
    shutdown -r -t 5
    ```
 
-   After the reboot, WSL will automatically start installing Ubuntu Linux distribution.
+  After the reboot, WSL will automatically start installing the Ubuntu Linux distribution.
    You will be prompted to create a new UNIX account. Follow the instructions to create a new user account and set a password.
    ![wsl-user](../images/wsl-unix-user.png)
 
