@@ -22,7 +22,7 @@ Ensure your system meets following requirements:
 
 Open PowerShell as an administrator and run the following commands:
 
-1. Install WSL and default Linux distribution (Ubuntu) using the following command:
+1. Install WSL and the default Linux distribution (Ubuntu) using the following command:
    ```powershell
    wsl --install
    ```
