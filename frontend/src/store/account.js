@@ -98,7 +98,17 @@ const getters = {
 
     notifications: state => state.notifications,
     notificationsCount: state => state.notifications?.length || 0,
-    unreadNotificationsCount: state => state.notifications?.filter(n => !n.read).length || 0,
+    unreadNotificationsCount: state => {
+        const unread = state.notifications?.filter(n => !n.read) || []
+        let count = unread.length || 0
+        // check data.meta.counter for any notifications that have been grouped
+        unread.forEach(n => {
+            if (n.data.meta?.counter && typeof n.data.meta.counter === 'number' && n.data.meta.counter > 1) {
+                count += n.data.meta.counter - 1 // decrement by 1 as the first notification is already counted
+            }
+        })
+        return count
+    },
     hasNotifications: (state, getters) => getters.notificationsCount > 0,
 
     teamInvitations: state => state.invitations,
