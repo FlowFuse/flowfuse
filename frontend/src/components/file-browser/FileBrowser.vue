@@ -98,6 +98,8 @@ import { markRaw } from 'vue'
 
 import AssetsAPI from '../../api/assets.js'
 import FFFileUpload from '../../components/FileUpload.vue'
+
+import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 
 import ItemSize from '../FileSize.vue'
@@ -241,6 +243,7 @@ export default {
                 })
                 .catch(error => {
                     console.error(error)
+                    Alerts.emit(error.response.data.error, 'warning')
                 })
                 .finally(() => {
                     this.loading = false
@@ -260,6 +263,7 @@ export default {
                     this.$emit('items-updated')
                 } catch (error) {
                     console.error(error)
+                    Alerts.emit(error.response.data.error, 'warning')
                 } finally {
                     this.loading = false
                 }
@@ -279,6 +283,7 @@ export default {
                     this.$emit('items-updated')
                 } catch (error) {
                     console.error(error)
+                    Alerts.emit(error.response.data.error, 'warning')
                 } finally {
                     this.loading = false
                 }
@@ -290,9 +295,13 @@ export default {
             this.loading = true
             AssetsAPI.uploadFile(this.instanceId, pwd, filename, this.forms.file)
                 .then(() => this.$emit('items-updated'))
-                .catch(error => console.error(error))
+                .catch(error => {
+                    console.error(error)
+                    Alerts.emit(error.response.data.error, 'warning')
+                })
                 .finally(() => {
                     this.forms.file = null
+                    this.$refs.fileUpload.clear()
                     this.loading = false
                 })
         },
