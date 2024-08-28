@@ -1,5 +1,6 @@
 const { getLoggers: getDeviceLogger } = require('../../auditLog/device')
 const { getLoggers: getProjectLogger } = require('../../auditLog/project')
+const { Roles } = require('../../lib/roles')
 
 /** Node-RED Audit Logging backend
  *
@@ -74,6 +75,24 @@ module.exports = async function (app) {
         } else if (event === 'crashed' || event === 'safe-mode') {
             if (app.config.features.enabled('emailAlerts')) {
                 await app.auditLog.alerts.generate(projectId, event)
+            }
+            // send notification to all members and owners in the team
+            const teamMembersAndOwners = await request.project.Team.getTeamMembers([Roles.Member, Roles.Owner])
+            if (teamMembersAndOwners && teamMembersAndOwners.length > 0) {
+                const notificationType = event === 'crashed' ? 'instance-crashed' : 'instance-safe-mode'
+                const reference = `${notificationType}:${projectId}`
+                const data = {
+                    instance: {
+                        id: projectId,
+                        name: request.project.name
+                    },
+                    meta: {
+                        severity: event === 'crashed' ? 'error' : 'warning'
+                    }
+                }
+                for (const user of teamMembersAndOwners) {
+                    await app.notifications.send(user, notificationType, data, reference, { upsert: true })
+                }
             }
         }
 
@@ -152,6 +171,27 @@ module.exports = async function (app) {
                 event,
                 auditEvent
             )
+        }
+
+        if (event === 'crashed' || event === 'safe-mode') {
+            // send notification to all members and owners in the team
+            const teamMembersAndOwners = await request.device.Team.getTeamMembers([Roles.Member, Roles.Owner])
+            if (teamMembersAndOwners && teamMembersAndOwners.length > 0) {
+                const notificationType = event === 'crashed' ? 'device-crashed' : 'device-safe-mode'
+                const reference = `${notificationType}:${deviceId}`
+                const data = {
+                    device: {
+                        id: deviceId,
+                        name: request.device.name
+                    },
+                    meta: {
+                        severity: event === 'crashed' ? 'error' : 'warning'
+                    }
+                }
+                for (const user of teamMembersAndOwners) {
+                    await app.notifications.send(user, notificationType, data, reference, { upsert: true })
+                }
+            }
         }
 
         response.status(200).send()
