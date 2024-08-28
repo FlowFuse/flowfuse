@@ -38,7 +38,7 @@ address in User Settings.
  LDAP based SSO allows the FlowFuse platform to authenticate users against a directory
  service provider, such as OpenLDAP.
 
- When logging in, the users credentials are passed to the serivce provider to verify.
+ When logging in, the users credentials are passed to the service provider to verify.
 
   - [Configuring LDAP SSO](ldap.md)
 
