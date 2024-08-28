@@ -10,6 +10,7 @@
         :loading="loading"
         :disabled="disabled"
         loading-message="Loading directory..."
+        data-el="files-table"
         @row-selected="directoryClicked"
     >
         <template #actions>
@@ -50,30 +51,30 @@
         </template>
         <template #context-menu="{row}">
             <template v-if="row.type === 'directory'">
-                <ff-list-item label="Edit Folder" @click.stop="editFolder(row)" />
-                <ff-list-item kind="danger" label="Delete Folder" @click.stop="deleteFolder(row)" />
+                <ff-list-item label="Edit Folder" data-action="edit-folder" @click.stop="editFolder(row)" />
+                <ff-list-item kind="danger" data-action="delete-folder" label="Delete Folder" @click.stop="deleteFolder(row)" />
             </template>
             <template v-if="row.type === 'file'">
-                <ff-list-item kind="danger" label="Delete File" @click.stop="deleteFile(row)" />
+                <ff-list-item kind="danger" data-action="delete-file" label="Delete File" @click.stop="deleteFile(row)" />
             </template>
         </template>
     </ff-data-table>
     <!-- Dialog: New Folder -->
-    <ff-dialog ref="new-folder" header="New Folder" :disablePrimary="!forms.newFolder.name" @confirm="createFolder">
+    <ff-dialog ref="new-folder" data-el="new-folder-dialog" header="New Folder" :disablePrimary="!forms.newFolder.name" @confirm="createFolder">
         <p style="margin-bottom: 12px">
             Please provide a name for the new folder.
         </p>
         <ff-text-input v-model="forms.newFolder.name" placeholder="New Folder" />
     </ff-dialog>
     <!-- Dialog: Edit Folder -->
-    <ff-dialog ref="edit-folder" header="Edit Folder" :disablePrimary="!forms.newFolder.name" @confirm="updateFolder">
+    <ff-dialog ref="edit-folder" data-el="edit-folder-dialog" header="Edit Folder" :disablePrimary="!forms.newFolder.name" @confirm="updateFolder">
         <p style="margin-bottom: 12px">
             Please update the name for the folder.
         </p>
         <ff-text-input v-model="forms.newFolder.name" placeholder="Folder Name" />
     </ff-dialog>
     <!-- Dialog: Upload File -->
-    <ff-dialog ref="upload-file" header="Upload File" :disablePrimary="!forms.file" @confirm="uploadFile">
+    <ff-dialog ref="upload-file" data-el="upload-file-dialog" header="Upload File" :disablePrimary="!forms.file" @confirm="uploadFile">
         <p style="margin-bottom: 12px">
             Please select a file to upload (max 5mb).
         </p>

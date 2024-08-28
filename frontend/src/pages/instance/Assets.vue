@@ -5,7 +5,7 @@
             <FeatureUnavailableToTeam v-else-if="!isStaticAssetsFeatureEnabledForTeam" />
             <FeatureUnavailable v-else-if="!launcherSatisfiesVersion" :message="launcherVersionMessage" :only-custom-message="true" />
         </div>
-        <div class="ff-breadcrumbs disable-last mb-7">
+        <div class="ff-breadcrumbs disable-last mb-7" data-el="folder-breadcrumbs">
             <template v-if="breadcrumbs.length > 0">
                 <span v-for="(crumb, $index) in breadcrumbs" :key="$index" class="flex mr-1 gap-1 items-center">
                     <span>/</span>
@@ -97,21 +97,21 @@ export default {
         }
     },
     mounted () {
-        if (this.isFeatureEnabled) {
-            this.loadContents()
-        }
+        this.loadContents()
     },
     methods: {
         loadContents () {
-            const breadcrumbs = this.breadcrumbs.join('/')
-            const path = breadcrumbs + (breadcrumbs.length > 0 ? '/' : '') + (this.currentDirectory.name || '')
-            AssetsAPI.getFiles(this.instance.id, path)
-                .then(files => {
-                    this.files = files
-                })
-                .catch(error => {
-                    console.error(error)
-                })
+            if (this.isFeatureEnabled) {
+                const breadcrumbs = this.breadcrumbs.join('/')
+                const path = breadcrumbs + (breadcrumbs.length > 0 ? '/' : '') + (this.currentDirectory.name || '')
+                AssetsAPI.getFiles(this.instance.id, path)
+                    .then(files => {
+                        this.files = files
+                    })
+                    .catch(error => {
+                        console.error(error)
+                    })
+            }
         },
         changeDirectory (dir) {
             this.breadcrumbs.push(this.currentDirectory.name || '')

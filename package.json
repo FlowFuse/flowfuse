@@ -124,6 +124,7 @@
         "cross-env": "^7.0.3",
         "css-loader": "^6.8.1",
         "cypress": "^13.2.0",
+        "cypress-file-upload": "^5.0.8",
         "cypress-mailpit": "^0.0.4",
         "dotenv-webpack": "^8.0.1",
         "eslint": "^8.48.0",
