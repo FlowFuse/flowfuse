@@ -158,14 +158,8 @@ describe('FlowForge - Instance - Assets', () => {
             cy.get('[data-el="upload-file-dialog"]').should('be.visible')
 
             cy.get('[data-el="upload-input"]').as('fileInput')
-
-            cy.fixture('files/rick.png').then(fileContent => {
-                cy.get('@fileInput').attachFile({
-                    fileContent: fileContent.toString(),
-                    fileName: 'rick.png',
-                    mimeType: 'image/png'
-                })
-            })
+            cy.fixture('files/rick.png').as('file')
+            cy.get('@fileInput').selectFile({ contents: '@file' }, { force: true }) // force because the input is hidden
 
             cy.intercept('POST', '/api/*/projects/*/files/_/*', '').as('uploadFile')
             interceptFiles(
