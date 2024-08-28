@@ -60,7 +60,11 @@
         </template>
     </ff-data-table>
     <!-- Dialog: New Folder -->
-    <ff-dialog ref="new-folder" data-el="new-folder-dialog" header="New Folder" :disablePrimary="!forms.newFolder.name" @confirm="createFolder">
+    <ff-dialog
+        ref="new-folder" data-el="new-folder-dialog" header="New Folder"
+        :disablePrimary="!forms.newFolder.name"
+        @confirm="createFolder" @cancel="cleanupModal('createFolder')"
+    >
         <p style="margin-bottom: 12px">
             Please provide a name for the new folder.
         </p>
@@ -74,11 +78,16 @@
         <ff-text-input v-model="forms.newFolder.name" placeholder="Folder Name" />
     </ff-dialog>
     <!-- Dialog: Upload File -->
-    <ff-dialog ref="upload-file" data-el="upload-file-dialog" header="Upload File" :disablePrimary="!forms.file" @confirm="uploadFile">
+    <ff-dialog
+        ref="upload-file" data-el="upload-file-dialog" header="Upload File"
+        :disablePrimary="!forms.file"
+        @cancel="cleanupModal('uploadFile')"
+        @confirm="uploadFile"
+    >
         <p style="margin-bottom: 12px">
             Please select a file to upload (max 5mb).
         </p>
-        <ff-file-upload v-model="forms.file" />
+        <ff-file-upload ref="fileUpload" v-model="forms.file" />
     </ff-dialog>
 </template>
 
@@ -208,14 +217,10 @@ export default {
             const pwd = this.baseURI + '/' + (this.folder.name || '')
             this.loading = true
             AssetsAPI.createFolder(this.instanceId, pwd, this.forms.newFolder.name)
-                .then(() => {
-                    this.forms.newFolder.name = ''
-                    this.$emit('items-updated')
-                })
-                .catch(error => {
-                    console.error(error)
-                })
+                .then(() => this.$emit('items-updated'))
+                .catch(error => console.error(error))
                 .finally(() => {
+                    this.forms.newFolder.name = ''
                     this.loading = false
                 })
         },
@@ -284,14 +289,10 @@ export default {
             const filename = this.forms.file.name
             this.loading = true
             AssetsAPI.uploadFile(this.instanceId, pwd, filename, this.forms.file)
-                .then(() => {
-                    this.forms.file = null
-                    this.$emit('items-updated')
-                })
-                .catch(error => {
-                    console.error(error)
-                })
+                .then(() => this.$emit('items-updated'))
+                .catch(error => console.error(error))
                 .finally(() => {
+                    this.forms.file = null
                     this.loading = false
                 })
         },
@@ -301,6 +302,17 @@ export default {
         directoryClicked (row) {
             if (row.type === 'directory') {
                 this.$emit('change-directory', row)
+            }
+        },
+        cleanupModal (action) {
+            switch (action) {
+            case 'createFolder':
+                this.forms.newFolder.name = ''
+                break
+            case 'uploadFile':
+                this.$refs.fileUpload.clear()
+                break
+            default:
             }
         }
     }

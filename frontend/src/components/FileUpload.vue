@@ -60,6 +60,13 @@ export default {
         }
     },
     emits: ['update:modelValue'],
+    setup () {
+        return {
+            clear () {
+                this.file = null
+            }
+        }
+    },
     data () {
         return {
             file: null,
