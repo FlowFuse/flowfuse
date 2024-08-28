@@ -431,7 +431,7 @@ module.exports.init = async function (app) {
     // LDAP Group Membership
     async function updateTeamMembershipLDAP (adminClient, user, userDN, providerOpts) {
         const filter = `(|(uniqueMember=${userDN})(member=${userDN}))`
-        const { searchEntries } = await adminClient.search(providerOpts.options.groupsDN, {
+        const { searchEntries } = await adminClient.search(providerOpts.groupsDN, {
             filter,
             attributes: ['cn']
         })
