@@ -40,7 +40,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.get('/_/*', {
+    app.get('/_/:path', {
         preHandler: app.needsPermission('project:files:list'),
         schema: {
             summary: 'List files stored in the instance',
@@ -54,8 +54,7 @@ module.exports = async function (app) {
             // TODO: response format schema
         }
     }, async (request, reply) => {
-        const rootPath = `/api/v1/projects/${request.project.id}/files/_/`
-        let filePath = request.url.substring(rootPath.length)
+        let filePath = request.params.path
         if (/\/$/.test(filePath)) {
             filePath = filePath.substring(0, filePath.length - 1)
         }
@@ -80,7 +79,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.put('/_/*', {
+    app.put('/_/:path', {
         preHandler: app.needsPermission('project:files:edit'),
         schema: {
             summary: 'Update file properties in the instance',
@@ -101,8 +100,7 @@ module.exports = async function (app) {
             // TODO: response format schema
         }
     }, async (request, reply) => {
-        const rootPath = `/api/v1/projects/${request.project.id}/files/_/`
-        let filePath = request.url.substring(rootPath.length)
+        let filePath = request.params.path
         if (/\/$/.test(filePath)) {
             filePath = filePath.substring(0, filePath.length - 1)
         }
@@ -142,7 +140,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.delete('/_/*', {
+    app.delete('/_/:path', {
         preHandler: app.needsPermission('project:files:delete'),
         schema: {
             summary: 'Delete a file in the instance',
@@ -156,8 +154,7 @@ module.exports = async function (app) {
             // TODO: response format schema
         }
     }, async (request, reply) => {
-        const rootPath = `/api/v1/projects/${request.project.id}/files/_/`
-        let filePath = request.url.substring(rootPath.length)
+        let filePath = request.params.path
         if (/\/$/.test(filePath)) {
             filePath = filePath.substring(0, filePath.length - 1)
         }
@@ -196,7 +193,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.post('/_/*', {
+    app.post('/_/:path', {
         preHandler: app.needsPermission('project:files:create'),
         schema: {
             summary: 'Upload a file to the instance/Create directory',
@@ -210,8 +207,7 @@ module.exports = async function (app) {
             // TODO: response format schema
         }
     }, async (request, reply) => {
-        const rootPath = `/api/v1/projects/${request.project.id}/files/_/`
-        let filePath = request.url.substring(rootPath.length)
+        let filePath = request.params.path
         if (/\/$/.test(filePath)) {
             filePath = filePath.substring(0, filePath.length - 1)
         }
