@@ -56,6 +56,9 @@ module.exports = {
                     ['users', 'teams', 'projects', 'devices'].includes(resource) || (resource = resource || 'unknown')
                     const info = { resource, count, limit }
                     await log('platform.license.overage', actionedBy, generateBody({ error, info }))
+                },
+                async expired (actionedBy, error, license) {
+                    await log('platform.license.expired', actionedBy, generateBody({ error, license }))
                 }
             },
             team: {

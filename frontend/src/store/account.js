@@ -85,6 +85,14 @@ const getters = {
         const defaultTeamId = state.user.defaultTeam || getters.teams[0]?.id
         return state.teams.find(team => team.id === defaultTeamId)
     },
+    canCreateTeam (state, getters) {
+        if (getters.isAdminUser) {
+            return true
+        }
+
+        return Object.prototype.hasOwnProperty.call(getters.settings, 'team:create') &&
+            getters.settings['team:create']
+    },
     blueprints: state => state.teamBlueprints[state.team?.id] || [],
     defaultBlueprint: (state, getters) => getters.blueprints?.find(blueprint => blueprint.default),
 
