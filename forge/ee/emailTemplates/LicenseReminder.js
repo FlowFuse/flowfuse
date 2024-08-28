@@ -14,6 +14,9 @@ This is a friendly reminder that your FlowFuse License will expire in
 You can check the status of your license by logging into your account at
 {{{forgeURL}}}.
 
+When your license expires all running instances will be suspended and can
+not be restarted until a new license is applied. 
+
 We hope you will get in touch to renew your license and continue to enjoy the 
 FlowFuse experience.
 
@@ -29,6 +32,9 @@ Your friendly FlowFuse Team
 
 <p>You can check the status of your license by logging into your account at
 {{{forgeURL}}}.</p>
+
+<p>When your license expires all running instances will be suspended and can
+not be restarted until a new license is applied.</p>
 
 <p>We hope you will get in touch to renew your license and continue to enjoy the 
 FlowFuse experience.</p>
