@@ -2,6 +2,7 @@
  * INFO: Instances were previously called projects, lots of the code still refers to an instance as a project
  * For all code under src/pages/instance project and instance are synonymous, but instance should be used going forward.
  */
+import InstanceAssets from './Assets.vue'
 import InstanceAuditLog from './AuditLog.vue'
 import InstanceRemoteInstances from './Devices.vue'
 import InstanceLogs from './Logs.vue'
@@ -40,6 +41,14 @@ const children = [
         component: InstanceRemoteInstances,
         meta: {
             title: 'Instance - Remote Instances'
+        }
+    },
+    {
+        path: 'assets',
+        name: 'instance-assets',
+        component: InstanceAssets,
+        meta: {
+            title: 'Instance - Assets'
         }
     },
     {

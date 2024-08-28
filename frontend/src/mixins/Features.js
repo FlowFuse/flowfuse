@@ -32,6 +32,15 @@ export default {
         },
         isCustomCatalogsFeatureEnabled () {
             return this.isCustomCatalogsFeatureEnabledForPlatform && this.isCustomCatalogsFeatureEnabledForTeam
+        },
+        isStaticAssetFeatureEnabledForPlatform () {
+            return !!this.features.staticAssets
+        },
+        isStaticAssetsFeatureEnabledForTeam () {
+            return !!this.team?.type?.properties?.features?.staticAssets
+        },
+        isStaticAssetFeatureEnabled () {
+            return this.isStaticAssetFeatureEnabledForPlatform && this.isStaticAssetsFeatureEnabledForTeam
         }
     }
 }
