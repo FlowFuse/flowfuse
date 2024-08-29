@@ -132,12 +132,16 @@ module.exports = async function (app) {
         //     reply.sendFile('index.html')
         // }
         // check if we need to inject plausible
-        if (app.config.telemetry?.frontend) {
-            const injectedContent = await injectAnalytics(app.config)
-            reply.type('text/html').send(injectedContent)
+        if (request.method === 'GET' && !request.url.startsWith('/api')) {
+            if (app.config.telemetry?.frontend) {
+                const injectedContent = await injectAnalytics(app.config)
+                reply.type('text/html').send(injectedContent)
+            } else {
+                reply.sendFile('index.html')
+            }
+            return reply
         } else {
-            reply.sendFile('index.html')
+            return reply.status(404).send()
         }
-        return reply
     })
 }
