@@ -53,7 +53,8 @@ module.exports = {
                         where: {
                             reference,
                             UserId: user.id
-                        }
+                        },
+                        order: [['id', 'DESC']]
                     })
                 },
                 forUser: async (user, pagination = {}) => {
