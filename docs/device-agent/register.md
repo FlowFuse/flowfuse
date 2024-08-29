@@ -3,6 +3,10 @@ navTitle: Register your Device
 navOrder: 4
 meta:
    description: Learn how to register devices with FlowFuse using single and bulk registration methods. Follow step-by-step instructions for generating configurations, connecting devices, assigning to applications or instances, and troubleshooting.
+   tags:
+      - device registration
+      - flowfuse
+      - troubleshooting
 ---
 
 # Register your Device

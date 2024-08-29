@@ -43,6 +43,7 @@ module.exports = async function (app) {
             }
 
             if (telemetry.frontend.posthog?.apikey) {
+                // add to frontend
                 const apihost = telemetry.frontend.posthog.apiurl || 'https://app.posthog.com'
                 const apikey = telemetry.frontend.posthog.apikey
                 const options = {

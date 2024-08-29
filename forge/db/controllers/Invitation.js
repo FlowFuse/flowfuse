@@ -105,7 +105,37 @@ module.exports = {
         await invitation.destroy()
         await app.notifications.remove(invitedUser, notificationReference)
 
+        // detail in audit log
         app.auditLog.Team.team.user.invite.accepted(user, null, invitation.team, invitedUser, role)
+
+        const team = {
+            id: invitation.team.hashid,
+            name: invitation.team.name,
+            slug: invitation.team.slug
+        }
+        const invitee = {
+            id: invitedUser.hashid,
+            username: invitedUser.username
+        }
+        const invitor = {
+            id: invitation.invitor.hashid,
+            username: invitation.invitor.username
+        }
+        // send invitor a notification
+        app.notifications.send(invitation.invitor, 'team-invite-accepted-invitor', {
+            team,
+            invitee,
+            invitor,
+            role
+        })
+
+        // record acceptance in product analytics tool
+        app.product.capture(invitedUser.email, '$ff-invite-accepted', {
+            'accepted-at': new Date().toISOString(),
+            'invite-id': invitation.hashid
+        }, {
+            team: invitation.team.hashid
+        })
     },
 
     rejectInvitation: async (app, invitation, user) => {
