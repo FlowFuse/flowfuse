@@ -36,9 +36,9 @@ This feature is available only on self-hosted Enterprise licensed versions of Fl
 If the prerequisites are met, you will be able to use the Static Asset Service capabilities of FlowFuse Instances from two locations:
 
 - Instance Assets tab within the **Instance Details** page.
-  - ![Instance Details Page](./images/assets-tab-instance.png)
+  ![Instance Details Page](./images/assets-tab-instance.png)
 - Instance Assets tab within the **Immersive Editor**.
-  - ![Immersive Editor](./images/assets-tab-editor.png)
+  ![Immersive Editor](./images/assets-tab-editor.png)
 
 The following steps assume that you have navigated to one of these locations and have the assets tab opened.
 
