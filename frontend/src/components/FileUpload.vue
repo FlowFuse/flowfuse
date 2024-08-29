@@ -64,6 +64,7 @@ export default {
         return {
             clear () {
                 this.file = null
+                this.$emit('update:modelValue', null)
             }
         }
     },
