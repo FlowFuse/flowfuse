@@ -413,6 +413,9 @@ module.exports = async function (app) {
                 const projectState = await projectStatePromise
                 project.state = projectState.meta.state
                 project.flowLastUpdatedAt = projectState.flowLastUpdatedAt
+                project.settings = {
+                    dashboard2UI: 'www.google.com'
+                }
             }))
 
             let result = await app.db.views.Project.dashboardInstancesSummaryList(filtered)

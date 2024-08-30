@@ -45,6 +45,14 @@
                             Create Instance
                         </ff-button>
                     </template>
+                    <template #row-actions="{row}">
+                        <dashboard-link :instance="row" :hidden="!row.settings?.dashboard2UI" />
+                        <instance-editor-link
+                            :instance="row"
+                            :disabled="row.status !== 'running'"
+                            disabled-reason="The Instance is not running"
+                        />
+                    </template>
                 </ff-data-table>
                 <EmptyState v-else>
                     <template #img>
@@ -91,11 +99,15 @@ import EmptyState from '../../components/EmptyState.vue'
 import permissionsMixin from '../../mixins/Permissions.js'
 import DeploymentName from '../application/components/cells/DeploymentName.vue'
 import SimpleTextCell from '../application/components/cells/SimpleTextCell.vue'
+import DashboardLink from '../instance/components/DashboardLink.vue'
+import InstanceEditorLink from '../instance/components/EditorLink.vue'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 
 export default {
     name: 'TeamInstances',
     components: {
+        InstanceEditorLink,
+        DashboardLink,
         PlusSmIcon,
         EmptyState
     },
@@ -107,8 +119,32 @@ export default {
             columns: [
                 { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true, component: { is: markRaw(DeploymentName) } },
                 { label: 'Status', class: ['w-44'], key: 'status', sortable: true, component: { is: markRaw(InstanceStatusBadge) } },
-                { label: 'Last Updated', class: ['w-60'], key: 'flowLastUpdatedAt', sortable: true, component: { is: markRaw(SimpleTextCell), map: { text: 'flowLastUpdatedSince' } } },
-                { label: 'Application', class: ['flex-grow-[0.25]'], key: 'application.name', sortable: true }
+                { label: 'Application', class: ['flex-grow-[0.25]'], key: 'application.name', sortable: true },
+                {
+                    label: 'Last Updated',
+                    class: ['w-60'],
+                    key: 'flowLastUpdatedAt',
+                    sortable: true,
+                    component: {
+                        is: markRaw(SimpleTextCell),
+                        map: { text: 'flowLastUpdatedSince' }
+                    }
+                }
+                // {
+                //     label: '',
+                //     sortable: false,
+                //     component: {
+                //         is: markRaw(DashboardLinkCell),
+                //         map: { instance: 'instance', hidden: 'hideDashboard2Button' }
+                //     }
+                // },
+                // {
+                //     label: '',
+                //     component: {
+                //         is: markRaw(InstanceEditorLinkCell),
+                //         map: { instance: 'instance' }
+                //     }
+                // }
             ]
         }
     },
@@ -122,7 +158,11 @@ export default {
         fetchData: async function (newVal) {
             this.loading = true
             if (this.team.id) {
-                this.instances = (await teamApi.getTeamInstances(this.team.id)).projects
+                if (this.hasPermission('team:projects:list')) {
+                    this.instances = (await teamApi.getTeamInstances(this.team.id)).projects
+                } else if (this.hasPermission('team:read')) {
+                    this.instances = (await teamApi.getTeamDashboards(this.team.id)).projects
+                }
             }
             this.loading = false
         },

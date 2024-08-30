@@ -222,7 +222,8 @@ module.exports = function (app) {
             links: { $ref: 'LinksMeta' },
             application: { type: 'object', additionalProperties: true },
             flowLastUpdatedAt: { type: 'string' },
-            status: { type: 'string' }
+            status: { type: 'string' },
+            settings: { type: 'object', additionalProperties: true }
         }
     })
     function dashboardInstanceSummary (project) {
@@ -235,7 +236,8 @@ module.exports = function (app) {
             links: project.links,
             application: project.Application,
             flowLastUpdatedAt: project.flowLastUpdatedAt,
-            status: project.state
+            status: project.state,
+            settings: project.settings
         }
 
         return result

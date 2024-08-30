@@ -15,6 +15,8 @@
             <router-view />
         </div>
         <div v-else-if="!canAccessTeam">
+            <TeamInstances />
+
             <EmptyState>
                 <template #img>
                     <img src="../../images/empty-states/no-access_dashboard-only.png">
@@ -44,9 +46,12 @@ import SideNavigationTeamOptions from '../../components/SideNavigationTeamOption
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 
+import TeamInstances from './Instances.vue'
+
 export default {
     name: 'TeamPage',
     components: {
+        TeamInstances,
         EmptyState,
         Loading,
         SideNavigationTeamOptions,
@@ -67,7 +72,7 @@ export default {
     },
     computed: {
         ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange', 'features']),
-        ...mapGetters('account', ['noBilling']),
+        ...mapGetters('account', ['noBilling', 'isAdminUser']),
         isVisitingAdmin: function () {
             return (this.teamMembership.role === Roles.Admin)
         },
@@ -79,7 +84,7 @@ export default {
             return true
         },
         canAccessTeam: function () {
-            return this.teamMembership?.role >= Roles.Viewer
+            return this.isAdminUser || this.teamMembership?.role >= Roles.Viewer
         }
     },
     mounted () {
