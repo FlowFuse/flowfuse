@@ -139,6 +139,22 @@ const getTeamInstances = async (teamId) => {
     return res.data
 }
 
+const getTeamDashboards = async (teamId) => {
+    const res = await client.get(`/api/v1/teams/${teamId}/dashboard-instances`)
+    const promises = []
+    res.data.projects = res.data.projects.map(r => {
+        r.createdSince = daysSince(r.createdAt)
+        r.updatedSince = daysSince(r.updatedAt)
+        r.flowLastUpdatedSince = daysSince(r.flowLastUpdatedAt)
+
+        r.link = { name: 'Application', params: { id: r.id } }
+
+        return r
+    })
+    await Promise.all(promises)
+    return res.data
+}
+
 /**
  * Get a the name and id of of ALL instances within a team regardless of application
  * This function does not include instance status
@@ -422,6 +438,7 @@ export default {
     getTeamApplicationsAssociationsStatuses,
     getTeamInstances,
     getTeamInstancesList,
+    getTeamDashboards,
     getTeamMembers,
     changeTeamMemberRole,
     removeTeamMember,
