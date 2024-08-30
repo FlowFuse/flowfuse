@@ -85,16 +85,35 @@ const getters = {
         const defaultTeamId = state.user.defaultTeam || getters.teams[0]?.id
         return state.teams.find(team => team.id === defaultTeamId)
     },
+    canCreateTeam (state, getters) {
+        if (getters.isAdminUser) {
+            return true
+        }
+
+        return Object.prototype.hasOwnProperty.call(getters.settings, 'team:create') &&
+            getters.settings['team:create']
+    },
     blueprints: state => state.teamBlueprints[state.team?.id] || [],
     defaultBlueprint: (state, getters) => getters.blueprints?.find(blueprint => blueprint.default),
 
     notifications: state => state.notifications,
     notificationsCount: state => state.notifications?.length || 0,
-    unreadNotificationsCount: state => state.notifications?.filter(n => !n.read).length || 0,
+    unreadNotificationsCount: state => {
+        const unread = state.notifications?.filter(n => !n.read) || []
+        let count = unread.length || 0
+        // check data.meta.counter for any notifications that have been grouped
+        unread.forEach(n => {
+            if (n.data.meta?.counter && typeof n.data.meta.counter === 'number' && n.data.meta.counter > 1) {
+                count += n.data.meta.counter - 1 // decrement by 1 as the first notification is already counted
+            }
+        })
+        return count
+    },
     hasNotifications: (state, getters) => getters.notificationsCount > 0,
 
     teamInvitations: state => state.invitations,
-    teamInvitationsCount: state => state.invitations?.length || 0
+    teamInvitationsCount: state => state.invitations?.length || 0,
+    hasAvailableTeams: state => state.teams.length > 0
 }
 
 const mutations = {
@@ -254,7 +273,10 @@ const actions = {
         } catch (err) {
             // Not logged in
             commit('clearPending')
-            window.posthog?.reset()
+            // do we have a user session to clear?
+            if (state.user) {
+                window.posthog?.reset()
+            }
 
             if (router.currentRoute.value.meta.requiresLogin !== false) {
                 if (router.currentRoute.value.path !== '/') {

@@ -1,4 +1,4 @@
-const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HEALTH_CHECK_INTERVAL } = require('../../db/models/ProjectSettings')
+const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HEALTH_CHECK_INTERVAL, KEY_SHARED_ASSETS } = require('../../db/models/ProjectSettings')
 const { Roles } = require('../../lib/roles')
 
 const { isFQDN } = require('../../lib/validate')
@@ -95,6 +95,30 @@ module.exports = async function (app) {
 
         const project = await projectPromise
         const projectState = await projectStatePromise
+
+        const teamType = await request.project.Team.getTeamType()
+        const customCatalogsEnabledForTeam = app.config.features.enabled('customCatalogs') && teamType.getFeatureProperty('customCatalogs', false)
+        if (!customCatalogsEnabledForTeam) {
+            delete project.settings?.palette?.npmrc
+            delete project.settings?.palette?.catalogue
+        } else {
+            if ((!request.teamMembership && request.session.User.admin) || request.teamMembership.role < Roles.Owner || request.project.ProjectTemplate.policy.palette.npmrc === false) {
+                if (project.settings?.palette?.npmrc !== undefined) {
+                    let temp = project.settings.palette.npmrc
+                    temp = temp.replace(/_authToken="?(.*)"?/g, '_authToken="xxxxxxx"')
+                    temp = temp.replace(/_auth="?(.*)"?/g, '_auth="xxxxxxx"')
+                    temp = temp.replace(/_password="?(.*)"?/, '_password="xxxxxxx"')
+                    project.settings.palette.npmrc = temp
+                }
+                if (project.template.settings?.palette?.npmrc !== undefined) {
+                    let temp = project.template.settings.palette.npmrc
+                    temp = temp.replace(/_authToken="?(.*)"?/g, '_authToken="xxxxxxx"')
+                    temp = temp.replace(/_auth="?(.*)"?/g, '_auth="xxxxxxx"')
+                    temp = temp.replace(/_password="?(.*)"?/, '_password="xxxxxxx"')
+                    project.template.settings.palette.npmrc = temp
+                }
+            }
+        }
 
         reply.send({ ...project, ...projectState })
     })
@@ -851,6 +875,23 @@ module.exports = async function (app) {
             delete settings.settings?.palette?.npmrc
             delete settings.settings?.palette?.catalogue
         }
+
+        if (app.config.features.enabled('staticAssets') && teamType.getFeatureProperty('staticAssets', false)) {
+            const sharingConfig = await request.project.getSetting(KEY_SHARED_ASSETS) || {}
+            // Stored as object with path->config. Need to transform to an array of settings
+            const sharingPaths = Object.keys(sharingConfig)
+            if (sharingPaths.length > 0) {
+                settings.settings.httpStatic = []
+                sharingPaths.forEach(filePath => {
+                    settings.settings.httpStatic.push({
+                        path: filePath,
+                        ...sharingConfig[filePath]
+                    })
+                })
+            }
+            settings.httpStatic = sharingConfig
+        }
+
         settings.features = {
             'shared-library': app.config.features.enabled('shared-library') && teamType.getFeatureProperty('shared-library', true),
             projectComms: app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true)
@@ -1010,6 +1051,62 @@ module.exports = async function (app) {
         reply.send(result)
     })
 
+    /**
+     * TODO: Add support for filtering by instance param when this is migrated to application API
+     * Export logs as CSV
+     * @name /api/v1/projects/:id/audit-log/export
+     * @memberof forge.routes.api.project
+     */
+    app.get('/:instanceId/audit-log/export', {
+        preHandler: app.needsPermission('project:audit-log'),
+        schema: {
+            summary: 'Get instance audit event entries',
+            tags: ['Instances'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            query: {
+                allOf: [
+                    { $ref: 'PaginationParams' },
+                    { $ref: 'AuditLogQueryParams' }
+                ]
+            },
+            response: {
+                200: {
+                    content: {
+                        'text/csv': {
+                            schema: {
+                                type: 'string'
+                            }
+                        }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const paginationOptions = app.getPaginationOptions(request)
+        const logEntries = await app.db.models.AuditLog.forProject(request.project.id, paginationOptions)
+        const result = app.db.views.AuditLog.auditLog(logEntries)
+        reply.type('text/csv').send([
+            ['id', 'event', 'body', 'scope', 'trigger', 'createdAt'],
+            ...result.log.map(row => [
+                row.id,
+                row.event,
+                `"${row.body ? JSON.stringify(row.body).replace(/"/g, '""') : ''}"`,
+                `"${JSON.stringify(row.scope).replace(/"/g, '""')}"`,
+                `"${JSON.stringify(row.trigger).replace(/"/g, '""')}"`,
+                row.createdAt?.toISOString()
+            ])
+        ]
+            .map(row => row.join(','))
+            .join('\r\n'))
+    })
     /**
      *
      * @name /api/v1/projects/:id/import

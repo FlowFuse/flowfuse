@@ -1,5 +1,5 @@
 <template>
-    <section v-if="hasNoDevices" class="ff-no-data--boxed">
+    <section v-if="hasNoDevices" class="ff-no-data--boxed" data-el="application-devices-none">
         <label class="delimiter">
             <IconDeviceSolid class="ff-icon ff-icon-sm text-teal-700" />
             Devices
@@ -20,7 +20,7 @@
         </label>
         <div class="items-wrapper" :class="{one: singleDevice, two: twoDevices, three: threeDevices}">
             <div
-                v-for="device in devices"
+                v-for="device in visibleDevices"
                 :key="device.id"
                 class="item-wrapper"
             >
@@ -93,16 +93,21 @@ export default {
         }
     },
     emits: ['delete-device'],
+    data () {
+        return {
+            devices: this.application.devices
+        }
+    },
     computed: {
         hasMoreDevices () {
-            return this.application.deviceCount > this.devices.length
+            return this.application.deviceCount > this.visibleDevices.length
         },
         hasNoDevices () {
             return this.devices.length === 0
         },
         remainingDevices () {
             if (this.hasNoDevices || this.hasMoreDevices) {
-                return this.application.deviceCount - this.devices.length
+                return this.application.deviceCount - this.visibleDevices.length
             } else return 0
         },
         singleDevice () {
@@ -114,11 +119,16 @@ export default {
         threeDevices () {
             return this.application.deviceCount === 3
         },
-        devices () {
-            return this.application.devices.slice(0, 3)
+        visibleDevices () {
+            return this.devices.slice(0, 3)
         },
         isSearching () {
             return this.searchQuery.length > 0
+        }
+    },
+    watch: {
+        'application.devices' (devices) {
+            this.devices = devices
         }
     },
     mounted () {

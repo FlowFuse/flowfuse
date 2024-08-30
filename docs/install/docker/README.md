@@ -2,6 +2,14 @@
 navTitle: Docker install
 meta:
    description: Learn how to install FlowFuse using Docker Compose for on-premise deployments. Configure DNS, manage Node-RED instances, and set up HTTPS with Let's Encrypt or wildcard TLS certificates
+   tags:
+      - docker
+      - flowfuse
+      - nodered
+      - installation
+      - dns
+      - https
+      - nodered
 ---
 
 # Docker Install
@@ -37,7 +45,7 @@ FlowFuse requires docker-compose v2
 
 The orchestration uses an instance of Nginx to route requests to each Node-RED instance. To do this it needs each instance to have a unique hostname, to generate this the instance name is prepended to a supplied domain.
 
-To make this work you will need to configure a DNS server to map a wildcard domain entry to the IP address of the host running Docker. e.g `*.example.com`.
+To make this work you will need to configure a DNS server to map a [wildcard domain entry](https://en.wikipedia.org/wiki/Wildcard_DNS_record) to the IP address of the host running Docker. e.g `*.example.com`.
 
 The FlowFuse Application will be hosted on `http://forge.example.com`
 
@@ -157,6 +165,8 @@ You will also need to update the `etc/flowforge.yml` file to change `base_url` f
 
 Create a folder in the `docker-compose-1.x.0` directory named `certs`, place your .crt and .key files in there, they should be named for the domain without the `*` eg `example.com.crt` & `example.com.key`
 You  also need to create a copy of the .crt and .key files named `default.crt` & `default.key` in the same folder. This is used for serving unknown hosts.
+
+If the base_url is not in the same domain as the Node-RED instances, you should also create a copy of the crt & key files matching the hostname for the forge app.
 
 In the `docker-compose.yml` file, 
 - uncomment the line 

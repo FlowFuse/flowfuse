@@ -274,6 +274,23 @@ module.exports = {
                     // In this case the findAll above will return an array that includes null, this needs to be guarded against
                     return owners.filter((owner) => owner !== null)
                 },
+                /**
+                 * Get all members of the team optionally filtered by `role` array
+                 * @param {Array<Number> | null} roleFilter - Array of roles to filter by
+                 * @example
+                 * // Get all members of the team
+                 * const members = await team.getTeamMembers()
+                 * @example
+                 * // Get viewers only
+                 * const viewers = await team.getTeamMembers([Roles.Viewer])
+                 */
+                getTeamMembers: async function (roleFilter = null) {
+                    const where = { TeamId: this.id }
+                    if (roleFilter && Array.isArray(roleFilter)) {
+                        where.role = roleFilter
+                    }
+                    return (await M.TeamMember.findAll({ where, include: M.User })).filter(tm => tm && tm.User).map(tm => tm.User)
+                },
                 memberCount: async function (role) {
                     const where = {
                         TeamId: this.id

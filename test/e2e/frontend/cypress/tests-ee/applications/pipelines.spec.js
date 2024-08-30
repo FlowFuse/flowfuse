@@ -40,7 +40,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         const PIPELINE_NAME = `My New Pipeline - ${Math.random().toString(36).substring(2, 7)}`
 
         // Add pipeline
-        cy.get('[data-action="pipeline-add"]').click()
+        cy.get('[data-el="empty-state"] [data-action="pipeline-add"]').click()
         cy.get('[data-form="pipeline-form"]').should('be.visible')
 
         cy.get('[data-form="pipeline-name"] input').type(PIPELINE_NAME)
@@ -63,7 +63,9 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-action"] .ff-dropdown').click()
         cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
-        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+        // First stage should not have 'do nothing' as an option
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:contains("Do nothing")').should('not.exist')
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:contains("Create new instance snapshot")').click()
 
         cy.get('[data-action="add-stage"]').click()
 
@@ -76,6 +78,8 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-instance"] .ff-dropdown').click()
         cy.get('[data-form="stage-instance"] .ff-dropdown-options').should('be.visible')
+        // Last stage should have 'do nothing' as an option
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:contains("Do nothing")').should('exist')
         cy.get('[data-form="stage-instance"] .ff-dropdown-options > .ff-dropdown-option:first').click()
 
         cy.get('[data-form="stage-action"] .ff-dropdown').click()
@@ -113,7 +117,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         const PIPELINE_NAME = `My New Pipeline - ${Math.random().toString(36).substring(2, 7)}`
 
         // Add pipeline
-        cy.get('[data-action="pipeline-add"]').click()
+        cy.get('[data-el="empty-state"] [data-action="pipeline-add"]').click()
         cy.get('[data-form="pipeline-name"] input').type(PIPELINE_NAME)
         cy.get('[data-action="create-pipeline"]').click()
 
@@ -157,6 +161,8 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-instance"] .ff-dropdown-selected').should('contain', 'instance-2-with-devices')
 
+        // First stage should not have 'do nothing' as an option
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:contains("Do nothing")').should('not.exist')
         cy.get('[data-form="stage-action"] .ff-dropdown-selected').should('contain', 'Prompt to select instance snapshot')
 
         cy.get('[data-action="add-stage"]').click()
@@ -200,7 +206,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         // Select "Create new Snapshot"
         cy.get('[data-form="stage-action"] .ff-dropdown').click()
         cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
-        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:first').click() // prompt
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:contains("Create new instance snapshot")').click() // prompt
 
         cy.get('[data-action="add-stage"]').click()
 
@@ -287,7 +293,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-action"] .ff-dropdown').click()
         cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
-        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:last').click() // prompt
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:contains("Prompt")').click() // prompt
 
         cy.get('[data-action="add-stage"]').click()
 
@@ -503,7 +509,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-action"] .ff-dropdown').click()
         cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
-        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:contains("Create new instance snapshot")').click()
 
         cy.get('[data-action="add-stage"]').click()
 
@@ -618,7 +624,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-action"] .ff-dropdown').click()
         cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
-        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:contains("Create new instance snapshot")').click()
 
         cy.get('[data-action="add-stage"]').click()
 
@@ -679,7 +685,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-action"] .ff-dropdown').click()
         cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
-        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:contains("Create new instance snapshot")').click()
 
         cy.get('[data-action="add-stage"]').click()
 
@@ -766,7 +772,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-action"] .ff-dropdown').click()
         cy.get('[data-form="stage-action"] .ff-dropdown-options').should('be.visible')
-        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+        cy.get('[data-form="stage-action"] .ff-dropdown-options > .ff-dropdown-option:contains("Create new instance snapshot")').click()
 
         cy.get('[data-action="add-stage"]').click()
 

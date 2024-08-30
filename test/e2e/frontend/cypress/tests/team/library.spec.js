@@ -22,31 +22,7 @@ describe('FlowForge - Library', () => {
             cy.get('[data-el="page-name"]').contains('Library')
             cy.get('[data-el="ff-tab"]').contains('Blueprints').click()
 
-            cy.get('[data-el="category"]')
-                .contains('Category A')
-                .parent()
-                .within(() => {
-                    cy.get('[data-el="tiles-wrapper"]')
-                        .children()
-                        .should('have.length', 1)
-
-                    cy.contains('Blueprint 1')
-                    cy.contains('This is a blueprint')
-                })
-
-            cy.get('[data-el="category"]')
-                .contains('Category B')
-                .parent()
-                .within(() => {
-                    cy.get('[data-el="tiles-wrapper"]')
-                        .children()
-                        .should('have.length', 2)
-
-                    cy.contains('Blueprint 2')
-                    cy.contains('Blueprint 3')
-                    cy.contains('This is another blueprint')
-                    cy.contains('This is yet another blueprint')
-                })
+            cy.contains('This is a FlowFuse Enterprise feature. Please upgrade your instance of FlowFuse in order to use it.')
         })
     })
     describe('Team Library', () => {

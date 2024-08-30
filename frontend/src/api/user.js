@@ -19,6 +19,7 @@ const verifyMFAToken = (token) => {
     return client.post('/account/login/token', {
         token
     }).then((res) => {
+        product.capture('$ff-user-verified')
         return res.data
     })
 }
@@ -103,12 +104,6 @@ const getTeamInvitations = async () => {
 }
 const acceptTeamInvitation = async (invitationId, teamId) => {
     return client.patch('/api/v1/user/invitations/' + invitationId).then(res => {
-        product.capture('$ff-invite-accepted', {
-            'invite-id': invitationId,
-            'accepted-at': (new Date()).toISOString()
-        }, {
-            team: teamId
-        })
         return res.data
     })
 }

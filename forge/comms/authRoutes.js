@@ -23,6 +23,10 @@ module.exports = async function (app) {
             }
         }
     }, async (request, response) => {
+        if (app.license.active() && app.license.status().expired) {
+            response.status(401).send()
+            return
+        }
         const isValid = await app.db.controllers.BrokerClient.authenticateCredentials(
             request.body.username,
             request.body.password
@@ -51,6 +55,10 @@ module.exports = async function (app) {
             }
         }
     }, async (request, response) => {
+        if (app.license.active() && app.license.status().expired) {
+            response.status(401).send()
+            return
+        }
         const allowed = await app.comms.aclManager.verify(request.body.username, request.body.topic, request.body.acc)
         // ↓ Useful for debugging ↓
         // console.warn(`${allowed ? 'ALLOWED' : 'FORBIDDEN'}! ACL check: '${request.body.topic}' for user ${request.body.username} (${request.body.acc === 2 ? 'PUB' : 'SUB'})`)

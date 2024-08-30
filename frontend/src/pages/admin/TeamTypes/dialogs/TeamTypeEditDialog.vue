@@ -21,6 +21,14 @@
                 </FormRow>
                 <template v-if="billingEnabled">
                     <FormHeading>Billing</FormHeading>
+                    <div class="space-y-2">
+                        <FormRow v-model="input.properties.billing.requireContact" type="checkbox" class="mb-4">Require contact to upgrade</FormRow>
+                        <div v-if="input.properties.billing.requireContact" class="grid gap-2 grid-cols-2 pl-4">
+                            <FormRow v-model="input.properties.billing.contactHSPortalId" :type="editDisabled?'uneditable':''">HubSpot Portal Id</FormRow>
+                            <FormRow v-model="input.properties.billing.contactHSFormId" :type="editDisabled?'uneditable':''">HubSpot Form Id</FormRow>
+                        </div>
+                    </div>
+
                     <div class="grid gap-2 grid-cols-3">
                         <FormRow v-model="input.properties.billing.productId" :type="editDisabled?'uneditable':''">Product Id</FormRow>
                         <FormRow v-model="input.properties.billing.priceId" :type="editDisabled?'uneditable':''">Price Id</FormRow>
@@ -92,8 +100,8 @@
                     <FormRow v-model="input.properties.features.instanceAutoSnapshot" type="checkbox">Instance Auto Snapshot</FormRow>
                     <FormRow v-model="input.properties.features.editorLimits" type="checkbox">API/Debug Length Limits</FormRow>
                     <FormRow v-model="input.properties.features.customHostnames" type="checkbox">Custom Hostnames</FormRow>
-                    <!-- BEN -->
-                    <!-- <span /> to make the grid work nicely, only needed if there is an odd number of checkbox features above -->
+                    <FormRow v-model="input.properties.features.staticAssets" type="checkbox">Static Assets</FormRow>
+                    <span /> <!-- to make the grid work nicely, only needed if there is an odd number of checkbox features above -->
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
                 </div>
@@ -330,6 +338,10 @@ export default {
                         }
                     } else {
                         opts.properties.trial = { active: false }
+                    }
+                    if (!opts.properties.billing.requireContact) {
+                        delete opts.properties.billing.contactHSPortalId
+                        delete opts.properties.billing.contactHSFormId
                     }
                 }
                 formatNumber(opts.properties.features, 'fileStorageLimit')
