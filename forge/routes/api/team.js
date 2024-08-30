@@ -382,6 +382,57 @@ module.exports = async function (app) {
     })
 
     /**
+     * Get team instances that have dashboards installed
+     * /api/v1/teams/:teamId/dashboard-instances
+     */
+    app.get('/:teamId/dashboard-instances', {
+        preHandler: app.needsPermission('team:read')
+    }, async (request, reply) => {
+        const projects = await app.db.models.Project.byTeamForDashboard(request.params.teamId)
+        if (projects) {
+            // filters out projects/instances without dashboards
+            const filtered = projects.filter(project => {
+                return project.ProjectSettings.filter(settingEntry => {
+                    const isSettingsEntry = settingEntry.key === 'settings'
+                    let hasDashboardInstalled = false
+                    if (
+                        isSettingsEntry &&
+                        Object.prototype.hasOwnProperty.call(settingEntry.value, 'palette') &&
+                        Object.prototype.hasOwnProperty.call(settingEntry.value.palette, 'modules')
+                    ) {
+                        hasDashboardInstalled = !!settingEntry.value.palette.modules.find(module => module.name === '@flowfuse/node-red-dashboard')
+                    }
+
+                    return isSettingsEntry && hasDashboardInstalled
+                }).length > 0
+            })
+
+            // map additional data
+            await Promise.all(filtered.map(async project => {
+                const projectStatePromise = project.liveState()
+                const projectState = await projectStatePromise
+                project.state = projectState.meta.state
+                project.flowLastUpdatedAt = projectState.flowLastUpdatedAt
+            }))
+
+            let result = await app.db.views.Project.dashboardInstancesSummaryList(filtered)
+            if (request.session.ownerType === 'project') {
+                // This request is from a project token. Filter the list to return
+                // the minimal information needed
+                result = result.map(e => {
+                    return { id: e.id, name: e.name }
+                })
+            }
+            reply.send({
+                count: result.length,
+                projects: result
+            })
+        } else {
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+    })
+
+    /**
      * Create a new team
      * /api/v1/teams
      */

@@ -211,6 +211,37 @@ module.exports = function (app) {
     }
 
     app.addSchema({
+        $id: 'DashboardInstanceSummary',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            url: { type: 'string' },
+            createdAt: { type: 'string' },
+            updatedAt: { type: 'string' },
+            links: { $ref: 'LinksMeta' },
+            application: { type: 'object', additionalProperties: true },
+            flowLastUpdatedAt: { type: 'string' },
+            status: { type: 'string' }
+        }
+    })
+    function dashboardInstanceSummary (project) {
+        const result = {
+            id: project.id,
+            name: project.name,
+            url: project.url,
+            createdAt: project.createdAt,
+            updatedAt: project.updatedAt,
+            links: project.links,
+            application: project.Application,
+            flowLastUpdatedAt: project.flowLastUpdatedAt,
+            status: project.state
+        }
+
+        return result
+    }
+
+    app.addSchema({
         $id: 'InstanceSummaryList',
         type: 'array',
         items: {
@@ -220,6 +251,23 @@ module.exports = function (app) {
     function instancesSummaryList (instancesArray) {
         return instancesArray.map((instance) => {
             const result = projectSummary(instance)
+            if (!result.url) {
+                delete result.url
+            }
+            return result
+        })
+    }
+
+    app.addSchema({
+        $id: 'DashboardInstancesSummaryList',
+        type: 'array',
+        items: {
+            $ref: 'DashboardInstanceSummary'
+        }
+    })
+    function dashboardInstancesSummaryList (instancesArray) {
+        return instancesArray.map((instance) => {
+            const result = dashboardInstanceSummary(instance)
             if (!result.url) {
                 delete result.url
             }
@@ -276,7 +324,8 @@ module.exports = function (app) {
         instancesSummaryList,
         instanceStatusList,
         projectSummary,
-        userProjectList
+        userProjectList,
+        dashboardInstancesSummaryList
     }
 }
 

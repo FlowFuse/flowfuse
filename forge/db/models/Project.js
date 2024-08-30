@@ -470,9 +470,28 @@ module.exports = {
                         return project.TeamId
                     }
                 },
-
                 generateCredentialSecret () {
                     return crypto.randomBytes(32).toString('hex')
+                },
+                byTeamForDashboard: async (teamHashId) => {
+                    const teamId = M.Team.decodeHashid(teamHashId)
+                    return this.findAll({
+                        include: [
+                            {
+                                model: M.Team,
+                                where: { id: teamId },
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
+                            },
+                            {
+                                model: M.Application,
+                                attributes: ['hashid', 'id', 'name', 'links']
+                            },
+                            {
+                                model: M.ProjectSettings,
+                                attributes: ['id', 'key', 'value', 'projectId']
+                            }
+                        ]
+                    })
                 }
             }
         }
