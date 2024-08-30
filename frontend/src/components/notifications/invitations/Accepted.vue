@@ -13,9 +13,6 @@
         <template #message>
             <i>"{{ inviteeName }}"</i> has accepted your invitation to join <i>"{{ teamName }}"</i> as a <i>"{{ role }}".</i>
         </template>
-        <template #timestamp>
-            {{ notification.createdSince }}
-        </template>
     </NotificationMessage>
 </template>
 

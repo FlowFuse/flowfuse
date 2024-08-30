@@ -1,7 +1,13 @@
 <template>
     <div class="ff-notifications-drawer" data-el="notifications-drawer">
         <div class="header">
-            <h2 class="title">Notifications</h2>
+            <div class="flex">
+                <h2 class="title flex-grow">Notifications</h2>
+                <ff-checkbox v-model="hideReadNotifications" class=" mt-2 mr-4" data-action="show-read-check">
+                    Hide Read
+                </ff-checkbox>
+            </div>
+
             <!--            <div class="actions">-->
             <!--                <span class="forge-badge" :class="{disabled: !canSelectAll}" @click="selectAll">select all</span>-->
             <!--                <span class="forge-badge" :class="{disabled: !canDeselectAll}" @click="deselectAll">deselect all</span>-->
@@ -10,9 +16,9 @@
             <!--            </div>-->
         </div>
         <ul v-if="hasNotificationMessages" class="messages-wrapper" data-el="messages-wrapper">
-            <li v-for="notification in notifications" :key="notification.id" data-el="message">
+            <li v-for="notification in filteredNotifications" :key="notification.id" data-el="message">
                 <component
-                    :is="notificationsComponentMap[notification.type]"
+                    :is="getNotificationsComponent(notification)"
                     :notification="notification"
                     :selections="selections"
                     @selected="onSelected"
@@ -20,8 +26,11 @@
                 />
             </li>
         </ul>
+        <div v-else-if="hideReadNotifications" class="empty">
+            <p>No unread notifications...</p>
+        </div>
         <div v-else class="empty">
-            <p>Nothing so far...</p>
+            <p>No notifications...</p>
         </div>
     </div>
 </template>
@@ -30,6 +39,7 @@
 import { markRaw } from 'vue'
 import { mapGetters } from 'vuex'
 
+import GenericNotification from '../../notifications/Generic.vue'
 import TeamInvitationAcceptedNotification from '../../notifications/invitations/Accepted.vue'
 import TeamInvitationReceivedNotification from '../../notifications/invitations/Received.vue'
 
@@ -37,12 +47,9 @@ export default {
     name: 'NotificationsDrawer',
     data () {
         return {
-            notificationsComponentMap: {
-                // todo replace hardcoded value with actual notification type
-                'team-invite': markRaw(TeamInvitationReceivedNotification),
-                'team-invite-accepted-invitor': markRaw(TeamInvitationAcceptedNotification)
-            },
-            selections: []
+            componentCache: {},
+            selections: [],
+            hideReadNotifications: true
         }
     },
     computed: {
@@ -54,10 +61,34 @@ export default {
             return this.selections.length > 0
         },
         hasNotificationMessages () {
-            return this.notifications.length > 0
+            return this.filteredNotifications.length > 0
+        },
+        filteredNotifications () {
+            return this.hideReadNotifications ? this.notifications.filter(n => !n.read) : this.notifications
         }
     },
     methods: {
+        getNotificationsComponent (notification) {
+            let comp = this.componentCache[notification.type]
+            if (comp) {
+                return comp
+            }
+            // return specific notification component based on type
+            switch (notification.type) {
+            case 'team-invite':
+                comp = markRaw(TeamInvitationReceivedNotification)
+                break
+            case 'team-invite-accepted-invitor':
+                comp = markRaw(TeamInvitationAcceptedNotification)
+                break
+            default:
+                // default to generic notification
+                comp = markRaw(GenericNotification)
+                break
+            }
+            this.componentCache[notification.type] = comp
+            return comp
+        },
         onSelected (notification) {
             this.selections.push(notification)
         },

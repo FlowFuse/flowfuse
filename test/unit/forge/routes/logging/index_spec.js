@@ -1,6 +1,7 @@
 const should = require('should') // eslint-disable-line
 const sinon = require('sinon')
 
+const { Roles } = require('../../../../../forge/lib/roles')
 const setup = require('../setup')
 
 describe('Logging API', function () {
@@ -17,27 +18,43 @@ describe('Logging API', function () {
             device1: null,
             device2: null
         },
-        team1: null,
+        ATeam: null,
         project1: null,
         project2: null,
         device1: null,
         device2: null,
-        alice: null
+        alice: null,
+        bob: null,
+        chris: null,
+        dave: null
     }
 
     before(async function () {
         app = await setup({})
         factory = app.factory
+        TestObjects.ATeam = app.team
         TestObjects.application = app.application
         TestObjects.alice = await app.db.models.User.byUsername('alice')
-        TestObjects.team1 = app.team
+        // owner of ATeam
+        TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Fett', email: 'bob@example.com', password: 'bbPassword', sso_enabled: true })
+        await app.db.controllers.Team.addUser(TestObjects.ATeam, TestObjects.bob, Roles.Owner)
+        // member of ATeam
+        TestObjects.chris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', password: 'ccPassword', sso_enabled: true })
+        await app.db.controllers.Team.addUser(TestObjects.ATeam, TestObjects.chris, Roles.Member)
+        // viewer of ATeam
+        TestObjects.dave = await app.db.models.User.create({ username: 'dave', name: 'Dave Vader', email: 'dave@example.com', password: 'ddPassword', sso_enabled: true })
+        await app.db.controllers.Team.addUser(TestObjects.ATeam, TestObjects.dave, Roles.Viewer)
+        // dashboard viewer of ATeam
+        TestObjects.eve = await app.db.models.User.create({ username: 'eve', name: 'Eve Skywalker', email: 'eve@example.com', password: 'eePassword', sso_enabled: true })
+        await app.db.controllers.Team.addUser(TestObjects.ATeam, TestObjects.eve, Roles.Dashboard)
+
         TestObjects.project1 = app.project
         TestObjects.project2 = await app.db.models.Project.create({ name: 'project2', type: '', url: '' })
-        const device1 = await factory.createDevice({ name: generateName('device-1') }, TestObjects.team1, null, TestObjects.application)
+        const device1 = await factory.createDevice({ name: generateName('device-1') }, TestObjects.ATeam, null, TestObjects.application)
         TestObjects.device1 = await app.db.models.Device.byId(device1.id)
-        const device2 = await factory.createDevice({ name: generateName('device-2') }, TestObjects.team1, null, TestObjects.application)
+        const device2 = await factory.createDevice({ name: generateName('device-2') }, TestObjects.ATeam, null, TestObjects.application)
         TestObjects.device2 = await app.db.models.Device.byId(device2.id)
-        await TestObjects.team1.addProject(TestObjects.project2)
+        await TestObjects.ATeam.addProject(TestObjects.project2)
         TestObjects.tokens.project1 = (await TestObjects.project1.refreshAuthTokens()).token
         TestObjects.tokens.project2 = (await TestObjects.project2.refreshAuthTokens()).token
         TestObjects.tokens.device1 = (await TestObjects.device1.refreshAuthTokens()).token
@@ -54,7 +71,7 @@ describe('Logging API', function () {
     after(async () => {
         app && await app.close()
         delete TestObjects.tokens
-        delete TestObjects.team1
+        delete TestObjects.ATeam
         delete TestObjects.project1
         delete TestObjects.project2
         delete TestObjects.device1
@@ -63,7 +80,9 @@ describe('Logging API', function () {
         delete TestObjects.application
         app.db.controllers.Project.addProjectModule.restore()
         app.db.controllers.Project.removeProjectModule.restore()
+        sinon.restore()
     })
+
     describe('instance audit logging', function () {
         it('Accepts valid token', async function () {
             const url = `/logging/${TestObjects.project1.id}/audit`
@@ -373,5 +392,64 @@ describe('Logging API', function () {
                 app.db.controllers.ProjectSnapshot.doDeviceAutoSnapshot.called.should.be.false()
             })
         })
+    })
+
+    describe('adds notification', function () {
+        beforeEach(function () {
+            sinon.stub(app.notifications, 'send')
+        })
+        afterEach(async function () {
+            await app.db.models.Notification.destroy({ where: {} })
+            app.notifications.send.restore()
+        })
+        it('for every member and owner when instance crashed', async function () {
+            await testSimulateLogEvent('instance', 'crashed', 'error', TestObjects.project1, TestObjects.tokens.project1)
+        })
+        it('for every member and owner when device crashed', async function () {
+            await testSimulateLogEvent('device', 'crashed', 'error', TestObjects.device1, TestObjects.tokens.device1)
+        })
+        it('for every member and owner when instance safe-mode', async function () {
+            await testSimulateLogEvent('instance', 'safe-mode', 'warning', TestObjects.project1, TestObjects.tokens.project1)
+        })
+        it('for every member and owner when device safe-mode', async function () {
+            await testSimulateLogEvent('device', 'safe-mode', 'warning', TestObjects.device1, TestObjects.tokens.device1)
+        })
+
+        async function testSimulateLogEvent (kind, event, severity, model, token) {
+            const id = kind === 'instance' ? model.id : model.hashid
+            const type = `${kind}-${event}`
+            const reference = `${type}:${id}`
+            const baseUrl = kind === 'instance' ? '/logging' : '/logging/device'
+            const url = `${baseUrl}/${id}/audit`
+            const response = await app.inject({
+                method: 'POST',
+                url,
+                headers: {
+                    authorization: `Bearer ${token}`
+                },
+                payload: { event }
+            })
+            response.should.have.property('statusCode', 200)
+            // should be called for every member and owner
+            app.notifications.send.callCount.should.equal(3) // alice, bob, chris
+            const calls = app.notifications.send.getCalls()
+            for (const call of calls) {
+                const args = call.args
+                // func signature of notification.send (user, type, data, reference = null, options = null)
+                args.should.have.length(5)
+                args[0].should.be.an.instanceOf(app.db.models.User)
+                args[0].should.have.property('id').and.be.oneOf([TestObjects.alice.id, TestObjects.bob.id, TestObjects.chris.id])
+                args[1].should.equal(type)
+                args[2].should.be.an.Object()
+                args[2].should.have.property(kind).and.be.an.Object() // instance or device
+                args[2][kind].should.have.property('id').and.equal(id)
+                args[2][kind].should.have.property('name').and.equal(model.name)
+                args[2].should.have.property('meta').and.be.an.Object()
+                args[2].meta.should.have.property('severity', severity)
+                args[3].should.equal(reference)
+                args[4].should.be.an.Object()
+                args[4].should.have.property('upsert', true) // crash and safe notifications use upsert option
+            }
+        }
     })
 })

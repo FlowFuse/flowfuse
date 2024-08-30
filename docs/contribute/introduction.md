@@ -54,7 +54,7 @@ The following steps will get your development environment setup in no time:
 
 ```bash
 git clone https://github.com/FlowFuse/dev-env.git
-cd flowforge-dev-env
+cd dev-env
 npm install
 npm run init
 ```

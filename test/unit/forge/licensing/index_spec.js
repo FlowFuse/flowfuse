@@ -1,4 +1,6 @@
 const should = require('should') // eslint-disable-line
+const TestModelFactory = require('../../../lib/TestModelFactory')
+
 const FF_UTIL = require('flowforge-test-utils')
 
 describe('License API', async function () {
@@ -105,6 +107,28 @@ describe('License API', async function () {
     * ```
     */
     const TEST_LICENSE_ENTERPRISE = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjJmZjAwMjJiLTAwOGMtNDI3OS1hNWU5LTEwOTI2YTNhNWNjMCIsImlzcyI6IkZsb3dGb3JnZSBJbmMuIiwic3ViIjoiRmxvd0ZvcmdlIEluYy4iLCJuYmYiOjE2OTQ2NDk2MDAsImV4cCI6MzI1MDM2ODAwMDAsIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjo1MCwidGllciI6ImVudGVycHJpc2UiLCJkZXYiOnRydWUsImlhdCI6MTY5NDcwMTM3Nn0.3Gtyr0axCR2LcBUFAJgDwfIjhLEBbd91rHiGpePHl_oBab9Y6f3osPK6xBtR5ZnRwuSg6XuTp6xc7bQtdONKmA' // eslint-disable-line camelcase
+
+    /**
+     * Test license: expired
+     * Details:
+     * ```
+     * {
+     *   "id": "c8cff86c-fe25-499c-8bf4-a3deb35ec358",
+     *   "ver": "2024-03-04",
+     *   "iss": "FlowForge Inc.",
+     *   "sub": "FlowForge Inc.",
+     *   "nbf": 1704067200,
+     *   "exp": 1704153600,
+     *   "note": "Development-mode Only. Not for production",
+     *   "users": 10,
+     *   "teams": 10,
+     *   "instances": 10,
+     *   "tier": "enterprise",
+     *   "dev": true
+     * }
+     * ```
+     */
+    const TEST_LICENSE_EXPIRED = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImM4Y2ZmODZjLWZlMjUtNDk5Yy04YmY0LWEzZGViMzVlYzM1OCIsInZlciI6IjIwMjQtMDMtMDQiLCJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIiwibmJmIjoxNzA0MDY3MjAwLCJleHAiOjE3MDQxNTM2MDAsIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxMCwidGVhbXMiOjEwLCJpbnN0YW5jZXMiOjEwLCJ0aWVyIjoiZW50ZXJwcmlzZSIsImRldiI6dHJ1ZSwiaWF0IjoxNzIyMzQ4MDI1fQ.MCPy-faamAI2kOE9Mm_3GxF2FXMhpnr8pm5T9zltdoT1tcNQ6cVVeQYyzIWrXvpbCZbDkuMHSEq9yGe3p75q9A'
 
     /**
      * Get the forge application (licensed or unlicensed)
@@ -401,6 +425,119 @@ describe('License API', async function () {
         })
         it('Identifies as Enterprise Tier', async function () {
             app.license.get('tier').should.equal('enterprise')
+        })
+    })
+    describe('licensed - expired', async function () {
+        let instance
+        let factory
+        let application
+        let stack
+        let template
+        let projectType
+        let team
+        beforeEach(async function () {
+            app = await FF_UTIL.setupApp({ housekeeper: true, license: TEST_LICENSE_ENTERPRISE, telemetry: { elabled: false } })
+            factory = new TestModelFactory(app)
+            const userAlice = await factory.createUser({
+                admin: true,
+                username: 'alice',
+                name: 'Alice Skywalker',
+                email: 'alice@example.com',
+                password: 'aaPassword'
+            })
+            const team1 = await factory.createTeam({ name: 'ATeam' })
+            await team1.addUser(userAlice, { through: { role: factory.Roles.Roles.Owner } })
+            template = await factory.createProjectTemplate({
+                name: 'template1',
+                settings: {
+                    httpAdminRoot: '',
+                    codeEditor: '',
+                    palette: {
+                        npmrc: 'example npmrc',
+                        catalogue: ['https://example.com/catalog'],
+                        modules: [
+                            { name: 'node-red-dashboard', version: '3.0.0' },
+                            { name: 'node-red-contrib-ping', version: '0.3.0' }
+                        ]
+                    }
+                },
+                policy: {
+                    httpAdminRoot: true,
+                    dashboardUI: true,
+                    codeEditor: true
+                }
+            }, userAlice)
+            team = team1
+
+            projectType = await factory.createProjectType({
+                name: 'projectType1',
+                description: 'default project type',
+                properties: { foo: 'bar' }
+            })
+
+            stack = await factory.createStack({ name: 'stack1' }, projectType)
+            application = await factory.createApplication({ name: 'application-1' }, team1)
+
+            instance = await factory.createInstance(
+                { name: 'project1' },
+                application,
+                stack,
+                template,
+                projectType,
+                { start: true }
+            )
+        })
+        afterEach(async function () {
+            await app.close()
+        })
+        async function getLog () {
+            const logs = await app.db.models.AuditLog.forEntity()
+            logs.log.should.have.length(1)
+            return (await app.db.views.AuditLog.auditLog({ log: logs.log })).log[0]
+        }
+        it('should suspend all instances', async function () {
+            instance.state.should.equal('running')
+            await app.license.apply(TEST_LICENSE_EXPIRED)
+            const licenseCheck = require('../../../../forge/housekeeper/tasks/licenseCheck')
+            await licenseCheck.run(app)
+
+            // check logs
+            const log = await getLog()
+            log.event.should.equal('platform.license.expired')
+
+            // check instance suspended
+            await instance.reload()
+            instance.state.should.equal('suspended')
+        })
+        it('should not allow new instances to be started', async function () {
+            await app.license.apply(TEST_LICENSE_EXPIRED)
+            try {
+                await factory.createInstance(
+                    { name: 'project2' },
+                    application,
+                    stack,
+                    template,
+                    projectType,
+                    { start: true }
+                )
+            } catch (err) {
+                return
+            }
+            should.fail()
+        })
+        it('should not allow new device to be created', async function () {
+            await app.license.apply(TEST_LICENSE_EXPIRED)
+            try {
+                await factory.createDevice(
+                    {},
+                    team,
+                    null,
+                    application
+                )
+            } catch (err) {
+                return
+            }
+            should.fail()
         })
     })
 })
