@@ -2,7 +2,6 @@
     <ff-data-table
         :rows="items"
         :columns="columns"
-        :show-row-checkboxes="true"
         :show-search="true"
         :rows-selectable="isRowSelectable"
         :no-data-message="noDataMessages"
