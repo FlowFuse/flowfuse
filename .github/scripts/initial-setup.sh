@@ -189,19 +189,21 @@ curl -ks -w "\n" -XPOST \
                       "limit": 10
                   },
                   "features": {
-                      "shared-library": false,
-                      "projectComms": false,
-                      "ha": false,
-                      "teamHttpSecurity": false,
-                      "customCatalogs": false,
-                      "deviceGroups": false,
-                      "emailAlerts": false,
-                      "protectedInstance": false,
-                      "deviceAutoSnapshot": false,
-                      "instanceAutoSnapshot": false,
-                      "editorLimits": false,
-                      "fileStorageLimit": null,
-                      "contextLimit": null
+                       "shared-library": false,
+                       "projectComms": false,
+                       "ha": false,
+                       "teamHttpSecurity": false,
+                       "customCatalogs": false,
+                       "deviceGroups": false,
+                       "emailAlerts": false,
+                       "protectedInstance": false,
+                       "deviceAutoSnapshot": false,
+                       "instanceAutoSnapshot": false,
+                       "editorLimits": false,
+                       "fileStorageLimit": null,
+                       "contextLimit": null,
+                       "customHostnames":false,
+                       "staticAssets":false
                   },
                   "instances": {
                       "'"$projectTypeId"'": {
@@ -228,20 +230,22 @@ curl -ks -w "\n" -XPOST \
                     "devices": {
                         "limit": 10
                     },
-                    "features": {
-                        "shared-library": true,
-                        "projectComms": true,
-                        "ha": true,
-                        "teamHttpSecurity": true,
-                        "customCatalogs": true,
-                        "deviceGroups": true,
-                        "emailAlerts": true,
-                        "protectedInstance": true,
-                        "deviceAutoSnapshot": true,
-                        "instanceAutoSnapshot": true,
-                        "editorLimits": true,
-                        "fileStorageLimit": null,
-                        "contextLimit": null
+                    "features":{
+                        "ha":true,
+                        "shared-library":true,
+                        "projectComms":true,
+                        "teamHttpSecurity":true,
+                        "fileStorageLimit":null,
+                        "contextLimit":null,
+                        "customCatalogs":true,
+                        "deviceGroups":true,
+                        "emailAlerts":true,
+                        "deviceAutoSnapshot":true,
+                        "instanceAutoSnapshot":true,
+                        "protectedInstance":true,
+                        "editorLimits":true,
+                        "customHostnames":true,
+                        "staticAssets":true
                     },
                     "instances": {
                         "'"$projectTypeId"'": {
@@ -269,19 +273,21 @@ curl -ks -w "\n" -XPOST \
                         "limit": 10
                     },
                     "features": {
-                        "shared-library": true,
-                        "projectComms": true,
-                        "ha": true,
-                        "teamHttpSecurity": true,
-                        "customCatalogs": true,
-                        "deviceGroups": true,
-                        "emailAlerts": true,
-                        "protectedInstance": true,
-                        "deviceAutoSnapshot": true,
-                        "instanceAutoSnapshot": true,
-                        "editorLimits": true,
-                        "fileStorageLimit": null,
-                        "contextLimit": null
+                        "ha":true,
+                        "shared-library":true,
+                        "projectComms":true,
+                        "teamHttpSecurity":true,
+                        "fileStorageLimit":null,
+                        "contextLimit":null,
+                        "customCatalogs":true,
+                        "deviceGroups":true,
+                        "emailAlerts":true,
+                        "deviceAutoSnapshot":true,
+                        "instanceAutoSnapshot":true,
+                        "protectedInstance":true,
+                        "editorLimits":true,
+                        "customHostnames":true,
+                        "staticAssets":true
                     },
                     "instances": {
                         "'"$projectTypeId"'": {
