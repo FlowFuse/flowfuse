@@ -4,6 +4,10 @@ forge:
   localPostgresql: true
   broker:
     enabled: true
+  email:
+    ses:
+      region: eu-west-1
+      
 
 postgresql:
   persistence:
