@@ -273,19 +273,21 @@ curl -ks -w "\n" -XPOST \
                         "limit": 10
                     },
                     "features": {
-                        "shared-library": true,
-                        "projectComms": true,
-                        "ha": true,
-                        "teamHttpSecurity": true,
-                        "customCatalogs": true,
-                        "deviceGroups": true,
-                        "emailAlerts": true,
-                        "protectedInstance": true,
-                        "deviceAutoSnapshot": true,
-                        "instanceAutoSnapshot": true,
-                        "editorLimits": true,
-                        "fileStorageLimit": null,
-                        "contextLimit": null
+                        "ha":true,
+                        "shared-library":true,
+                        "projectComms":true,
+                        "teamHttpSecurity":true,
+                        "fileStorageLimit":null,
+                        "contextLimit":null,
+                        "customCatalogs":true,
+                        "deviceGroups":true,
+                        "emailAlerts":true,
+                        "deviceAutoSnapshot":true,
+                        "instanceAutoSnapshot":true,
+                        "protectedInstance":true,
+                        "editorLimits":true,
+                        "customHostnames":true,
+                        "staticAssets":true
                     },
                     "instances": {
                         "'"$projectTypeId"'": {
