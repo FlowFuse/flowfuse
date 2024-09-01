@@ -133,7 +133,9 @@ kubectl run flowfuse-setup-1 \
   --image bitnami/postgresql:14.10.0-debian-11-r3 \
   -- psql -h flowfuse-pr-$PR_NUMBER-postgresql -U forge -d flowforge -c \
   "INSERT INTO public.\"PlatformSettings\" (\"key\",value,\"valueType\",\"createdAt\",\"updatedAt\")\
-    VALUES ('setup:initialised','true',1,'2024-03-15 19:51:52.287','2024-03-15 19:51:52.287')"
+    VALUES ('setup:initialised','true',1,'2024-03-15 19:51:52.287','2024-03-15 19:51:52.287'),
+           ('team:user:invite:external','true',1,'2024-03-15 19:51:52.287','2024-03-15 19:51:52.287');"
+
 ### Configure access token
 kubectl run flowfuse-setup-2 \
   --namespace "pr-$PR_NUMBER" \
