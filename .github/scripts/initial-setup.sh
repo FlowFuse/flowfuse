@@ -154,9 +154,10 @@ curl -ks -w "\n" -XPOST \
   https://$FLOWFUSE_URL/api/v1/project-types/
 
 ### Create stacks
-create_stack "Default" "Default" 100 256 "flowfuse/node-red"
+create_stack "NR-40x" "Default" 100 256 "flowfuse/node-red:$(get_latest_image_tag "4.0.x")"
+create_stack "NR-30x" "3.0.x" 100 256 "flowfuse/node-red:latest"
 create_stack "NR-31x" "3.1.x" 100 256 "flowfuse/node-red:$(get_latest_image_tag "3.1.x")"
-create_stack "NR-40x" "4.0.x" 100 256 "flowfuse/node-red:$(get_latest_image_tag "4.0.x")"
+
 
 ### Link Default to project type
 echo "Linking stack to project type"
