@@ -2,7 +2,6 @@
     <ff-data-table
         :rows="items"
         :columns="columns"
-        :show-row-checkboxes="true"
         :show-search="true"
         :rows-selectable="isRowSelectable"
         :no-data-message="noDataMessages"
@@ -220,7 +219,10 @@ export default {
             this.loading = true
             AssetsAPI.createFolder(this.instanceId, pwd, this.forms.newFolder.name)
                 .then(() => this.$emit('items-updated'))
-                .catch(error => console.error(error))
+                .catch(error => {
+                    console.error(error)
+                    Alerts.emit(error.response.data.error, 'warning')
+                })
                 .finally(() => {
                     this.forms.newFolder.name = ''
                     this.loading = false
