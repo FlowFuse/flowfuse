@@ -362,6 +362,26 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('team:edit')
     }, async (request, response) => {
         const team = request.team
+        if (request.body?.teamTypeId) {
+            const targetTeamType = await app.db.models.TeamType.byId(request.body.teamTypeId)
+            if (!targetTeamType) {
+                response.code(400).send({ code: 'invalid_team_type', error: 'Invalid team type' })
+                return
+            }
+            try {
+                await request.team.checkTeamTypeUpdateAllowed(targetTeamType)
+            } catch (err) {
+                const result = {
+                    code: err.code || 'unexpected_error',
+                    error: err.toString()
+                }
+                if (err.errors) {
+                    result.errors = err.errors
+                }
+                response.code(400).send(result)
+                return
+            }
+        }
         try {
             const session = await app.billing.createSubscriptionSession(team, request.session.User, request.body?.teamTypeId)
             await app.auditLog.Team.billing.session.created(request.session.User, null, team, session)
