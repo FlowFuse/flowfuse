@@ -154,7 +154,7 @@
         "sass-loader": "^14.1.1",
         "should": "^13.2.3",
         "should-sinon": "^0.0.6",
-        "sinon": "^17.0.1",
+        "sinon": "^18.0.0",
         "style-loader": "^3.3.3",
         "tailwindcss": "^2.2.19",
         "vitest": "^1.1.0",
