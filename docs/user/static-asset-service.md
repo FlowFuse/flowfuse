@@ -25,11 +25,10 @@ This feature is available only on self-hosted Enterprise licensed versions of Fl
 ### Limitations
 
 - Uploaded file sizes must not exceed 5MB.
-- Allowed MIME types: // todo couldn't find any on the BE or localfs driver
-- Unsupported characters: // todo to be confirmed 
+- Unsupported characters (dependent on the operating system):
   - empty paths (eg: `/`, `//` or `\`, `\\`)
   - special chars: `*`, `:`
-- Team permissions required: owner // to be confirmed or rephrased
+- Team permissions required: owner / member
 
 ## Getting Started
 
