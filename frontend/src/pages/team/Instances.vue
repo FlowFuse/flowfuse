@@ -3,21 +3,22 @@
         <template #header>
             <ff-page-header title="Instances">
                 <template #context>
-                    A list of all Node-RED instances belonging to this Team.
+                    <span v-if="!dashboardRoleOnly">A list of all Node-RED instances belonging to this Team.</span>
+                    <span v-else>A list of Node-RED instances with Dashboards belonging to this Team.</span>
                 </template>
                 <template #help-header>
                     Instances
                 </template>
                 <template #helptext>
                     <p>
-                        This is a list of all Node-RED instances belonging to this team running
+                        This is a list of <span v-if="!dashboardRoleOnly">all</span> Node-RED instances belonging to this team running
                         in this FlowFuse.
                     </p>
                     <p>
                         Each Instance is a customised version of Node-RED that includes various
                         FlowFuse plugins to integrate it with the platform.
                     </p>
-                    <p>
+                    <p v-if="!dashboardRoleOnly">
                         A number of the standard Node-RED settings are exposed for customisation,
                         and they can be preset by applying a Template upon creation of an Instance.
                     </p>
@@ -30,7 +31,8 @@
                 <ff-data-table
                     v-if="instances.length > 0"
                     data-el="instances-table" :columns="columns" :rows="instances" :show-search="true" search-placeholder="Search Instances..."
-                    :rows-selectable="true" @row-selected="openInstance"
+                    :rows-selectable="!dashboardRoleOnly"
+                    @row-selected="openInstance"
                 >
                     <template #actions>
                         <ff-button
@@ -46,15 +48,16 @@
                         </ff-button>
                     </template>
                     <template #row-actions="{row}">
-                        <dashboard-link :instance="row" :hidden="!row.settings?.dashboard2UI" />
+                        <dashboard-link v-if="!!row.settings?.dashboard2UI?.length" :disabled="row.status !== 'running'" :instance="row" />
                         <instance-editor-link
+                            v-if="hasPermission('team:projects:list')"
                             :instance="row"
                             :disabled="row.status !== 'running'"
                             disabled-reason="The Instance is not running"
                         />
                     </template>
                 </ff-data-table>
-                <EmptyState v-else>
+                <EmptyState v-else-if="!dashboardRoleOnly">
                     <template #img>
                         <img src="../../images/empty-states/team-instances.png">
                     </template>
@@ -85,6 +88,17 @@
                         </ff-button>
                     </template>
                 </EmptyState>
+                <EmptyState v-else>
+                    <template #img>
+                        <img src="../../images/empty-states/team-instances.png">
+                    </template>
+                    <template #header>There are currently no instances with dashboards in this team</template>
+                    <template #message>
+                        <p>
+                            Ask an Admin or Team Owner to verify the Instances you should have access to.
+                        </p>
+                    </template>
+                </EmptyState>
             </template>
         </div>
     </ff-page>
@@ -112,6 +126,13 @@ export default {
         EmptyState
     },
     mixins: [permissionsMixin],
+    props: {
+        dashboardRoleOnly: {
+            required: false,
+            default: false,
+            type: Boolean
+        }
+    },
     data () {
         return {
             loading: false,
@@ -130,21 +151,6 @@ export default {
                         map: { text: 'flowLastUpdatedSince' }
                     }
                 }
-                // {
-                //     label: '',
-                //     sortable: false,
-                //     component: {
-                //         is: markRaw(DashboardLinkCell),
-                //         map: { instance: 'instance', hidden: 'hideDashboard2Button' }
-                //     }
-                // },
-                // {
-                //     label: '',
-                //     component: {
-                //         is: markRaw(InstanceEditorLinkCell),
-                //         map: { instance: 'instance' }
-                //     }
-                // }
             ]
         }
     },
