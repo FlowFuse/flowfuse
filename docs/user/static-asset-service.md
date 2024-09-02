@@ -5,7 +5,7 @@ navOrder: 1
 
 # Static asset service
 
-Our platform now includes a Static Asset Service, enabling you to save, access, and manage files seamlessly within your hosted Node-RED instances.
+Our platform now includes a Static Asset Service, enabling you to manage files seamlessly within your hosted Node-RED instances.
 
 ## What is Static asset service?
 
