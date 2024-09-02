@@ -2952,8 +2952,8 @@ describe('Pipelines API', function () {
                 TestObjects.projectType,
                 { start: false }
             )
-            await instanceStart.updateSetting('settings', { theme: 'forge-light', page: { title: 'startProject' } })
-            await instanceEnd.updateSetting('settings', { theme: 'forge-dark', page: { title: 'endProject' } })
+            await instanceStart.updateSetting('settings', { theme: 'forge-light', page: { title: 'startProject' }, header: { title: 'startProject' } })
+            await instanceEnd.updateSetting('settings', { theme: 'forge-dark', page: { title: 'endProject' }, header: { title: 'endProject' } })
             const pipeline = await app.factory.createPipeline({ name: 'overwrite-fields-pipeine' }, app.application)
             const startStage = await app.factory.createPipelineStage({ name: 'start', instanceId: instanceStart.id }, pipeline)
             await app.factory.createPipelineStage({ name: 'end', source: startStage.hashid, instanceId: instanceEnd.id }, pipeline)
@@ -2971,6 +2971,8 @@ describe('Pipelines API', function () {
             endSettings.should.have.property('theme', 'forge-dark')
             endSettings.should.have.property('page')
             endSettings.page.should.have.property('title', 'endProject')
+            endSettings.should.have.property('header')
+            endSettings.header.should.have.property('title', 'endProject')
         })
     })
 })
