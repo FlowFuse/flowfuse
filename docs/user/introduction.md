@@ -64,6 +64,7 @@ FlowFuse supports managing Node-RED on your own hardware.
 FlowFuse supports reading and writing persistent files and persistent context.
 
  - [Working with Files](/docs/user/filenodes.md)
+ - [Working with the Static Asset Service](/docs/user/static-asset-service.md)
  - [Working with Context](/docs/user/persistent-context.md)
 
  ## Working with Instances
