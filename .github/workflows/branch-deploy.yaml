@@ -193,6 +193,8 @@ jobs:
             --set forge.projectNamespace=pr-${{ env.PR_NUMBER }}-projects \
             --set forge.clusterRole.name=pr-${{ env.PR_NUMBER }}-clusterrole \
             --set forge.license=${{ secrets.PRE_STAGING_LICENSE }} \
+            --set forge.aws.IAMRole=arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/flowforge_service_account_role \
+            --set forge.email.ses.sourceArn=arn:aws:ses:eu-west-1:${{ secrets.AWS_ACCOUNT_ID }}:identity/flowfuse.com \
             flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowforge
 
       - name: Initial setup
