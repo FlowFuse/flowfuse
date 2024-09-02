@@ -50,17 +50,30 @@ describe('FlowForge - Trial Users', () => {
     it('setup billing redirects to team type selection', () => {
         let teamType
         cy.intercept('GET', '/api/*/team-types*').as('getTeamTypes')
+        cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')
         cy.get('[data-nav="team-billing"]').click()
         cy.url().should('include', 'team/tteam/billing')
         cy.get('[data-action="change-team-type"]').click()
         cy.url().should('include', 'team/tteam/settings/change-type')
         cy.wait('@getTeamTypes').then(response => {
-            teamType = response.response.body.types[1]
+            // We will eventually submit with the 3rd team type
+            teamType = response.response.body.types[2]
         })
+        cy.wait('@getInstanceTypes')
 
+        // Select the 2nd team type
         cy.get('[data-form="team-type"] > div:nth-child(2)').click({
             scrollBehavior: false
         })
+        // This team type should be blocked due to unavailable instance
+        cy.get('[data-action="setup-team-billing"]').should('be.disabled')
+
+        // Select the 3rd team type
+        cy.get('[data-form="team-type"] > div:nth-child(3)').click({
+            scrollBehavior: false
+        })
+        // This team type should be blocked due to unavailable instance
+        cy.get('[data-action="setup-team-billing"]').should('not.be.disabled')
 
         // Stub response to redirect to the static api page rather than stripe
         // to avoid depending on external urls to run the test
