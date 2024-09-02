@@ -1,4 +1,4 @@
-const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HEALTH_CHECK_INTERVAL } = require('../../db/models/ProjectSettings')
+const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HEALTH_CHECK_INTERVAL, KEY_SHARED_ASSETS } = require('../../db/models/ProjectSettings')
 const { Roles } = require('../../lib/roles')
 
 const { isFQDN } = require('../../lib/validate')
@@ -875,6 +875,23 @@ module.exports = async function (app) {
             delete settings.settings?.palette?.npmrc
             delete settings.settings?.palette?.catalogue
         }
+
+        if (app.config.features.enabled('staticAssets') && teamType.getFeatureProperty('staticAssets', false)) {
+            const sharingConfig = await request.project.getSetting(KEY_SHARED_ASSETS) || {}
+            // Stored as object with path->config. Need to transform to an array of settings
+            const sharingPaths = Object.keys(sharingConfig)
+            if (sharingPaths.length > 0) {
+                settings.settings.httpStatic = []
+                sharingPaths.forEach(filePath => {
+                    settings.settings.httpStatic.push({
+                        path: filePath,
+                        ...sharingConfig[filePath]
+                    })
+                })
+            }
+            settings.httpStatic = sharingConfig
+        }
+
         settings.features = {
             'shared-library': app.config.features.enabled('shared-library') && teamType.getFeatureProperty('shared-library', true),
             projectComms: app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true)

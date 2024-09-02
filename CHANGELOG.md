@@ -1,3 +1,56 @@
+#### 2.8.0: Release
+
+ - docs: Docker Engine on Windows how-to article (#4406)
+ - Update Dockerfile (#4365)
+ - Implement files api (#4384) @knolleary
+ - hide the application page instance kebab menu for non admin/owner users (#4417) @cstns
+ - Adds LDAP group support (#4407) @hardillb
+ - Add crash notifications (#4409) @Steve-Mcl
+ - Fill width to match other controls on form (#4414) @Steve-Mcl
+ - Fix broken navbar on 404 (#4403) @cstns
+ - Shutdown Instances when license expires (#4268) @hardillb
+ - Track server-side invitation events with PostHog (#4386) @joepavitt
+ - fix tags indentation (#4401) @sumitshinde-84
+ - Fix tags indentation (#4400) @Yndira-E
+ - Move invite accept to before personal team create (#4397) @hardillb
+ - Change editor & dashboard buttons to anchors (#4396) @Steve-Mcl
+ - Audit log export (#4330) @hardillb
+ - Add meta tags and description (#4225) @sumitshinde-84
+ - Dashboard URL setting clarification (#4395) @Steve-Mcl
+ - Add comment about different certs for the forge app. (#4389) @hardillb
+ - Product Tour - Welcome to FlowFuse (#4383) @joepavitt
+ - Send notification to inviter when a team invite is accepted (#4385) @joepavitt
+ - Bump axios from 1.6.5 to 1.7.4 (#4372) @dependabot
+ - Add 'none' option as pipeline stage action (#4369) @knolleary
+ - Bulk update team devices API (bulk move support only) (#4336) @Steve-Mcl
+ - Allow users to delete accounts even when they have active teams (#4354) @cstns
+ - Pipelines: Adds missing [data-action="pipeline-add"] on empty state button (#4364) @joepavitt
+ - Ensure personal instance is created in personal team on signup (#4360) @knolleary
+ - Custom catalog and npmrc settings UX improvements (#4349) @cstns
+ - Add option to require contact via HS form for create/upgrade of team type (#4343) @knolleary
+ - Highlighting the update stack options when navigating to the instance update settings (#4321) @cstns
+ - Fix lingering active tab when navigating back (#4350) @cstns
+ - 4249 application device kebab menu not clearing devices (#4340) @cstns
+ - Update billing.md (#4348) @ZJvandeWeg
+ - Add explicit PH event for verification (#4344) @joepavitt
+ - Show feature not available on CE Blueprint page (#4341) @hardillb
+ - Remove limits on img-src (#4293) @hardillb
+ - Remove dynamically registered permissions (#4320) @cstns
+ - Fix incorrect status codes in tests (#4334) @Steve-Mcl
+ - Add link to description of wildcard DNS entry (#4332) @hardillb
+ - Add Keycloak to the provider list (#4331) @hardillb
+ - Update immersive editor loading animations (#4329) @cstns
+ - Fix instance not being removed from the applications list after being deleted (#4322) @cstns
+ - Only clear PH data if there is user session to clear (#4328) @joepavitt
+ - Fix project access for Admins (#4327) @hardillb
+ - Hide npmrc secrets from frontend (#4316) @hardillb
+ - UX Fixes for Users Without Assigned Teams (#4314) @cstns
+ - Site wide audit log better formatting when updates object is to be displayed (#4315) @Steve-Mcl
+ - Fix bulk intermittent e2e tests (#4309) @Steve-Mcl
+ - Hide the invite member button for users that don't have access to a team or insufficient privileges (#4303) @cstns
+ - Bump fast-xml-parser, @aws-sdk/client-ses and @aws-sdk/credential-provider-node (#4301) @dependabot
+ - Allow a team without subscription to go unmanaged (#4302) @knolleary
+
 #### 2.7.0: Release
 
  - ci: Add logs link to pre-staging slack message (#4215)

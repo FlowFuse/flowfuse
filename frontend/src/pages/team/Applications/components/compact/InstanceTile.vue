@@ -52,7 +52,7 @@
                 :show-text="showButtonLabels"
             />
 
-            <ff-kebab-menu @click.stop>
+            <ff-kebab-menu v-if="shouldDisplayKebabMenu" @click.stop>
                 <ff-list-item
                     :disabled="localInstance.pendingStateChange || instanceRunning "
                     label="Start"
@@ -82,6 +82,8 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+
 import InstanceStatusPolling from '../../../../../components/InstanceStatusPolling.vue'
 import AuditMixin from '../../../../../mixins/Audit.js'
 import instanceActionsMixin from '../../../../../mixins/InstanceActions.js'
@@ -121,6 +123,7 @@ export default {
         }
     },
     computed: {
+        ...mapGetters('account', ['isAdminUser']),
         isInstanceRunning () {
             return this.localInstance.meta?.state === 'running'
         },
@@ -135,6 +138,9 @@ export default {
         },
         instanceSuspended () {
             return this.localInstance.meta?.state === 'suspended'
+        },
+        shouldDisplayKebabMenu () {
+            return this.isAdminUser || this.hasPermission('project:change-status')
         }
     },
     watch: {
