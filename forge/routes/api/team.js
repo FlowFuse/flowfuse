@@ -362,9 +362,9 @@ module.exports = async function (app) {
     app.get('/:teamId/projects', {
         preHandler: app.needsPermission('team:projects:list')
     }, async (request, reply) => {
-        const projects = await app.db.models.Project.byTeam(request.params.teamId)
+        const projects = await app.db.models.Project.byTeam(request.params.teamId, { includeSettings: true })
         if (projects) {
-            let result = await app.db.views.Project.instancesList(projects)
+            let result = await app.db.views.Project.instancesList(projects, { includeSettings: true })
             if (request.session.ownerType === 'project') {
                 // This request is from a project token. Filter the list to return
                 // the minimal information needed
@@ -414,7 +414,7 @@ module.exports = async function (app) {
                 project.state = projectState.meta.state
                 project.flowLastUpdatedAt = projectState.flowLastUpdatedAt
                 project.settings = {
-                    dashboard2UI: 'www.google.com'
+                    dashboard2UI: '/dashboard' // hardcoding the dashboard endpoint for the time being
                 }
             }))
 
