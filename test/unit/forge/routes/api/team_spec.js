@@ -630,6 +630,82 @@ describe('Team API', function () {
         })
     })
 
+    describe('Get a list of a teams dashboard instances', () => {
+        it('Users can get a filtered list of team instances that only have the dashboard module installed', async function () {
+            // GET /api/v1/team/:teamId/dashboard-instances
+            const team = await app.db.models.Team.create({ name: 'mock-team-1', TeamTypeId: app.defaultTeamType.id })
+            const application = await app.factory.createApplication({ name: 'application-1' }, team)
+            await app.factory.createInstance(
+                { name: 'mock-instance-1' },
+                application,
+                app.stack,
+                app.template,
+                app.projectType,
+                {
+                    start: false,
+                    settings: {
+                        palette: { modules: [{ name: '@flowfuse/node-red-dashboard', version: '~1.15.0', local: true }] }
+                    }
+                }
+            )
+            await app.factory.createInstance(
+                { name: 'mock-instance-2' },
+                application,
+                app.stack,
+                app.template,
+                app.projectType,
+                {
+                    start: false
+                }
+            )
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${team.hashid}/dashboard-instances`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('projects').and.be.an.Array()
+            result.projects.should.have.a.property('length', 1)
+        })
+        it('Returns a 404 response when no instances are found', async () => {
+            // GET /api/v1/team/:teamId/dashboard-instances
+            const team = await app.db.models.Team.create({ name: 'mock-team-1', TeamTypeId: app.defaultTeamType.id })
+            const application = await app.factory.createApplication({ name: 'application-1' }, team)
+
+            await app.factory.createInstance(
+                { name: 'mock-instance-1' },
+                application,
+                app.stack,
+                app.template,
+                app.projectType,
+                {
+                    start: false,
+                    settings: {}
+                }
+            )
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${team.hashid}/dashboard-instances`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(404)
+        })
+        it('Returns a 404 response when no instances with dashboards are found', async () => {
+            // GET /api/v1/team/:teamId/dashboard-instances
+            const team = await app.db.models.Team.create({ name: 'mock-team-1', TeamTypeId: app.defaultTeamType.id })
+
+            await app.factory.createApplication({ name: 'application-1' }, team)
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${team.hashid}/dashboard-instances`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(404)
+        })
+    })
+
     describe('Create team', async function () {
         // POST /api/v1/teams
         // - Admin/Owner/Member
