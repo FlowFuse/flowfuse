@@ -278,4 +278,15 @@ module.exports = function (app) {
         }
         return this.TeamType.getProperty('runtimes.limit', -1)
     }
+
+    app.db.models.Team.prototype._suspend = app.db.models.Team.prototype.suspend
+    /**
+     * Overloads the default suspend to include billing activity
+     * - deletes the team subscription (if one exists)
+     * - call the original suspend function to actually suspend the team's instances
+     */
+    app.db.models.Team.prototype.suspend = async function () {
+        await app.db.controllers.Subscription.deleteSubscription(this)
+        await this._suspend()
+    }
 }
