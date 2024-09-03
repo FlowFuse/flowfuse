@@ -389,7 +389,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('team:read')
     }, async (request, reply) => {
         const projects = await app.db.models.Project.byTeamForDashboard(request.params.teamId)
-        if (projects) {
+        if (projects && projects.length > 0) {
             // filters out projects/instances without dashboards
             const filtered = projects.filter(project => {
                 return project.ProjectSettings.filter(settingEntry => {
@@ -406,6 +406,10 @@ module.exports = async function (app) {
                     return isSettingsEntry && hasDashboardInstalled
                 }).length > 0
             })
+
+            if (filtered.length === 0) {
+                reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+            }
 
             // map additional data
             await Promise.all(filtered.map(async project => {
