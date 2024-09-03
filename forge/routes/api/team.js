@@ -408,7 +408,7 @@ module.exports = async function (app) {
             })
 
             if (filtered.length === 0) {
-                reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             }
 
             // map additional data
@@ -430,12 +430,12 @@ module.exports = async function (app) {
                     return { id: e.id, name: e.name }
                 })
             }
-            reply.send({
+            return reply.send({
                 count: result.length,
                 projects: result
             })
         } else {
-            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+            return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
     })
 
