@@ -141,7 +141,6 @@ const getTeamInstances = async (teamId) => {
 
 const getTeamDashboards = async (teamId) => {
     const res = await client.get(`/api/v1/teams/${teamId}/dashboard-instances`)
-    const promises = []
     res.data.projects = res.data.projects.map(r => {
         r.createdSince = daysSince(r.createdAt)
         r.updatedSince = daysSince(r.updatedAt)
@@ -151,7 +150,6 @@ const getTeamDashboards = async (teamId) => {
 
         return r
     })
-    await Promise.all(promises)
     return res.data
 }
 
