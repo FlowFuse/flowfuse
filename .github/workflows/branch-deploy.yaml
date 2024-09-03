@@ -202,7 +202,8 @@ jobs:
             --set forge.license=${{ secrets.PRE_STAGING_LICENSE }} \
             --set forge.aws.IAMRole=arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/flowforge_service_account_role \
             --set forge.email.ses.sourceArn=arn:aws:ses:eu-west-1:${{ secrets.AWS_ACCOUNT_ID }}:identity/flowfuse.com \
-            --set forge.assistant.enabled=$(op read op://ci/staging_flowfuse/assistant_enabled) \
+            --set forge.assistant.service.url=$(op read op://ci/staging_flowfuse/assistant_url) \
+            --set forge.assistant.service.token=$(op read op://ci/staging_flowfuse/assistant_token) \
             flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowforge
 
       - name: Initial setup
