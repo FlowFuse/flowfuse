@@ -460,7 +460,7 @@ module.exports = {
                     if (includeSettings) {
                         include.push({
                             model: M.ProjectSettings,
-                            attributes: ['id', 'key', 'value', 'projectId'],
+                            attributes: ['id', 'key', 'value', 'ProjectId'],
                             where: { key: 'settings' }
                         })
                     }
@@ -496,7 +496,7 @@ module.exports = {
                             },
                             {
                                 model: M.ProjectSettings,
-                                attributes: ['id', 'key', 'value', 'projectId'],
+                                attributes: ['id', 'key', 'value', 'ProjectId'],
                                 where: { key: 'settings' }
                             }
                         ]
