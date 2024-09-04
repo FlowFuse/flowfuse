@@ -408,7 +408,10 @@ module.exports = async function (app) {
             })
 
             if (filtered.length === 0) {
-                return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                return reply.send({
+                    count: 0,
+                    projects: []
+                })
             }
 
             // map additional data
