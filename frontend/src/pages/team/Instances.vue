@@ -3,8 +3,8 @@
         <template #header>
             <ff-page-header title="Instances">
                 <template #context>
-                    <span v-if="!dashboardRoleOnly">A list of all Node-RED instances belonging to this Team.</span>
-                    <span v-else>A list of Node-RED instances with Dashboards belonging to this Team.</span>
+                    <span v-if="dashboardRoleOnly">A list of Node-RED Dashboards in this Team.</span>
+                    <span v-else>A list of all Node-RED instances belonging to this Team.</span>
                 </template>
                 <template #help-header>
                     Instances
