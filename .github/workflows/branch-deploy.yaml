@@ -161,6 +161,11 @@ jobs:
         run: |
           aws eks update-kubeconfig --region eu-west-1 --name ${{ secrets.EKS_CLUSTER_NAME }}
 
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+        with:
+          version: 2.25.0
+
       - name: Check out FlowFuse/helm repository (to access latest helm chart)
         uses: actions/checkout@v4
         with:
@@ -179,6 +184,8 @@ jobs:
           fi
 
       - name: Deploy
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
           helm upgrade --install \
             --create-namespace \
@@ -195,6 +202,8 @@ jobs:
             --set forge.license=${{ secrets.PRE_STAGING_LICENSE }} \
             --set forge.aws.IAMRole=arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/flowforge_service_account_role \
             --set forge.email.ses.sourceArn=arn:aws:ses:eu-west-1:${{ secrets.AWS_ACCOUNT_ID }}:identity/flowfuse.com \
+            --set forge.assistant.service.url=$(op read op://ci/staging_flowfuse/assistant_url) \
+            --set forge.assistant.service.token=$(op read op://ci/staging_flowfuse/assistant_token) \
             flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowforge
 
       - name: Initial setup
