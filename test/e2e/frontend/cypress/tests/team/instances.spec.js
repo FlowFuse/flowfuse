@@ -84,8 +84,7 @@ describe('Team - Instances', () => {
 
             cy.get('[data-el="page-name"]').contains('Instances')
             cy.contains('A list of Node-RED instances with Dashboards belonging to this Team.')
-            cy.contains('There are currently no instances with dashboards in this team')
-            cy.contains(' Ask an Admin or Team Owner to verify the Instances you should have access to. ')
+            cy.contains('There are no dashboards in this team.')
         })
 
         it('are shown a list of instances when dashboard instances are found', () => {
