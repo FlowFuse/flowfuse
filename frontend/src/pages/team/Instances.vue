@@ -3,7 +3,7 @@
         <template #header>
             <ff-page-header title="Instances">
                 <template #context>
-                    <span v-if="!dashboardRoleOnly">A list of all Node-RED instances belonging to this Team.</span>
+                    <span v-if="!dashboardRoleOnly">Dashboards</span>
                     <span v-else>A list of Node-RED instances with Dashboards belonging to this Team.</span>
                 </template>
                 <template #help-header>
@@ -92,12 +92,7 @@
                     <template #img>
                         <img src="../../images/empty-states/team-instances.png">
                     </template>
-                    <template #header>There are currently no instances with dashboards in this team</template>
-                    <template #message>
-                        <p>
-                            Ask an Admin or Team Owner to verify the Instances you should have access to.
-                        </p>
-                    </template>
+                    <template #header>There are no dashboards in this team.</template>
                 </EmptyState>
             </template>
         </div>
