@@ -82,7 +82,7 @@ describe('Team - Instances', () => {
             cy.wait('@getUser')
             cy.wait('@getDashboardInstances')
 
-            cy.get('[data-el="page-name"]').contains('Instances')
+            cy.get('[data-el="page-name"]').contains('Dashboards')
             cy.contains('A list of Node-RED instances with Dashboards belonging to this Team.')
             cy.contains('There are no dashboards in this team.')
         })
