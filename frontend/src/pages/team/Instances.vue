@@ -1,10 +1,10 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Instances">
+            <ff-page-header :title="dashboardRoleOnly ? 'Dashboards' : 'Instances'">
                 <template #context>
-                    <span v-if="!dashboardRoleOnly">Dashboards</span>
-                    <span v-else>A list of all Node-RED instances belonging to this Team.</span>
+                    <span v-if="!dashboardRoleOnly">A list of all dashboards belonging to this Team.</span>
+                    <span v-else>A list of Node-RED instances with Dashboards belonging to this Team.</span>
                 </template>
                 <template #help-header>
                     Instances
