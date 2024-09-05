@@ -220,7 +220,7 @@ module.exports = function (app) {
             createdAt: { type: 'string' },
             updatedAt: { type: 'string' },
             links: { $ref: 'LinksMeta' },
-            application: { type: 'object', additionalProperties: true },
+            application: { $ref: 'ApplicationSummary' },
             flowLastUpdatedAt: { type: 'string' },
             status: { type: 'string' },
             settings: { type: 'object', additionalProperties: true }
