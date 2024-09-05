@@ -2827,7 +2827,7 @@ describe('Pipelines API', function () {
         it('locked fields should not be overridden', async function () {
             const startTemplate = await app.factory.createProjectTemplate(
                 {
-                    name: 'startTemplate',
+                    name: 'startTemplate-1',
                     settings: {
                         palette: {
                             catalogue: ['https://www.first.com'],
@@ -2921,7 +2921,7 @@ describe('Pipelines API', function () {
         it('keep title', async function () {
             const startTemplate = await app.factory.createProjectTemplate(
                 {
-                    name: 'startTemplate',
+                    name: 'startTemplate-2',
                     settings: {
                         palette: {
                             catalogue: ['https://www.first.com'],
@@ -2937,7 +2937,7 @@ describe('Pipelines API', function () {
                 app.user
             )
             const instanceStart = await app.factory.createInstance(
-                { name: 'startProject' },
+                { name: 'startProject-2' },
                 TestObjects.application,
                 TestObjects.stack,
                 startTemplate,
@@ -2945,15 +2945,15 @@ describe('Pipelines API', function () {
                 { start: false }
             )
             const instanceEnd = await app.factory.createInstance(
-                { name: 'endProject' },
+                { name: 'endProject-2' },
                 TestObjects.application,
                 TestObjects.stack,
                 startTemplate,
                 TestObjects.projectType,
                 { start: false }
             )
-            await instanceStart.updateSetting('settings', { theme: 'forge-light', page: { title: 'startProject' }, header: { title: 'startProject' } })
-            await instanceEnd.updateSetting('settings', { theme: 'forge-dark', page: { title: 'endProject' }, header: { title: 'endProject' } })
+            await instanceStart.updateSetting('settings', { theme: 'forge-light', page: { title: 'startProject-2' }, header: { title: 'startProject-2' } })
+            await instanceEnd.updateSetting('settings', { theme: 'forge-dark', page: { title: 'endProject-2' }, header: { title: 'endProject-2' } })
             const pipeline = await app.factory.createPipeline({ name: 'overwrite-fields-pipeine' }, app.application)
             const startStage = await app.factory.createPipelineStage({ name: 'start', instanceId: instanceStart.id }, pipeline)
             await app.factory.createPipelineStage({ name: 'end', source: startStage.hashid, instanceId: instanceEnd.id }, pipeline)
@@ -2970,9 +2970,9 @@ describe('Pipelines API', function () {
             const endSettings = await app.db.controllers.Project.getRuntimeSettings(instanceEnd)
             endSettings.should.have.property('theme', 'forge-dark')
             endSettings.should.have.property('page')
-            endSettings.page.should.have.property('title', 'endProject')
+            endSettings.page.should.have.property('title', 'endProject-2')
             endSettings.should.have.property('header')
-            endSettings.header.should.have.property('title', 'endProject')
+            endSettings.header.should.have.property('title', 'endProject-2')
         })
     })
 })
