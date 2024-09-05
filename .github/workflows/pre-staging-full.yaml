@@ -27,7 +27,7 @@ jobs:
     name: Validate trigger author
     runs-on: ubuntu-latest
     if: |
-      github.event_name == 'pull_request' &&
+      (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch') &&
       github.actor != 'dependabot[bot]'
     outputs:
       is_org_member: ${{ steps.validate.outputs.is_member }}
