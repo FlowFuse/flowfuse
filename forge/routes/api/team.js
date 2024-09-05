@@ -575,7 +575,9 @@ module.exports = async function (app) {
                 type: 'object',
                 properties: {
                     name: { type: 'string' },
-                    slug: { type: 'string' }
+                    slug: { type: 'string' },
+                    type: { type: 'string' },
+                    suspended: { type: 'boolean' }
                 }
             },
             response: {
