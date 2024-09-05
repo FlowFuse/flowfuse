@@ -539,8 +539,18 @@ module.exports = async function (app) {
 
             if (app.license.active() && app.billing) {
                 const subscription = await request.team.getSubscription()
-                if (subscription && !subscription.isTrial() && !subscription.isUnmanaged()) {
-                    await app.billing.closeSubscription(subscription)
+                if (subscription) {
+                    if (!subscription.isTrial() && !subscription.isUnmanaged()) {
+                        const subId = subscription.subscription || 'unknown'
+                        try {
+                            await app.billing.closeSubscription(subscription)
+                        } catch (err) {
+                            app.log.warn(`Error canceling subscription ${subId} for team ${request.team.hashid}`)
+                            app.log.warn(err)
+                        }
+                    }
+                    // Delete the subscription
+                    await subscription.destroy()
                 }
             }
 
