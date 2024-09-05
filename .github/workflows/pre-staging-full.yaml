@@ -69,7 +69,7 @@ jobs:
     with:
       package_name: driver-k8s
       publish_package: true
-      repository_name: ${{ env.FLOWFUSE_K8S_REPO }}
+      repository_name: $FLOWFUSE_K8S_REPO
       branch_name: ${{ inputs.driver-k8s-branch }}
       release_name: "flowfuse-k8s-driver-pre-staging-${{ github.event.pull_request.number }}"
     secrets:
