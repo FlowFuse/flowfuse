@@ -68,7 +68,7 @@ jobs:
       publish_package: true
       repository_name: 'FlowFuse/driver-k8s'
       branch_name: ${{ inputs.driver-k8s-branch }}
-      release_name: "flowfuse-k8s-driver-pre-staging-${{ github.event.pull_request.number }}"
+      release_name: "flowfuse-k8s-driver-pre-staging-${{ github.run_id}}"
     secrets:
       npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
 
@@ -80,7 +80,7 @@ jobs:
       - publish_k8s_driver
     if: |
       needs.validate-user.outputs.is_org_member == 'true' &&
-      github.event_name == 'pull_request' && 
+      (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch') && 
       github.event.action != 'closed'
     runs-on: ubuntu-latest
     env:
