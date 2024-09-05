@@ -286,7 +286,10 @@ module.exports = function (app) {
      * - call the original suspend function to actually suspend the team's instances
      */
     app.db.models.Team.prototype.suspend = async function () {
-        await app.db.controllers.Subscription.deleteSubscription(this)
+        const subscription = await this.getSubscription()
+        if (subscription) {
+            await app.billing.closeSubscription(subscription)
+        }
         await this._suspend()
     }
 }
