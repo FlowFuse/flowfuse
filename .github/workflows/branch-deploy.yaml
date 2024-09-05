@@ -1,14 +1,15 @@
 name: Create pre-staging environment
 
 on:
-  pull_request:
-    types: 
-      - opened
-      - synchronize
-      - reopened
-      - closed
-    paths-ignore:
-      - 'docs/**'
+  workflow_dispatch:
+  # pull_request:
+  #   types: 
+  #     - opened
+  #     - synchronize
+  #     - reopened
+  #     - closed
+  #   paths-ignore:
+  #     - 'docs/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.number }}
