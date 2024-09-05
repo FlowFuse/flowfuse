@@ -234,7 +234,7 @@ module.exports = function (app) {
             createdAt: project.createdAt,
             updatedAt: project.updatedAt,
             links: project.links,
-            application: project.Application,
+            application: app.db.views.Application.applicationSummary(project.Application),
             flowLastUpdatedAt: project.flowLastUpdatedAt,
             status: project.state,
             settings: project.settings
