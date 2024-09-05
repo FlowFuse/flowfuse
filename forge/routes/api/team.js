@@ -426,13 +426,6 @@ module.exports = async function (app) {
             }))
 
             let result = await app.db.views.Project.dashboardInstancesSummaryList(filtered)
-            if (request.session.ownerType === 'project') {
-                // This request is from a project token. Filter the list to return
-                // the minimal information needed
-                result = result.map(e => {
-                    return { id: e.id, name: e.name }
-                })
-            }
             return reply.send({
                 count: result.length,
                 projects: result
