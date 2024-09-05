@@ -425,7 +425,7 @@ module.exports = async function (app) {
                 }
             }))
 
-            let result = await app.db.views.Project.dashboardInstancesSummaryList(filtered)
+            const result = await app.db.views.Project.dashboardInstancesSummaryList(filtered)
             return reply.send({
                 count: result.length,
                 projects: result
