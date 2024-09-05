@@ -223,7 +223,12 @@ module.exports = function (app) {
             application: { $ref: 'ApplicationSummary' },
             flowLastUpdatedAt: { type: 'string' },
             status: { type: 'string' },
-            settings: { type: 'object', additionalProperties: true }
+            settings: {
+                type: 'object',
+                properties: {
+                    dashboard2UI: { type: 'string' }
+                }
+            }
         }
     })
     function dashboardInstanceSummary (project) {
