@@ -80,6 +80,7 @@ jobs:
       - publish_k8s_driver
     if: |
       needs.validate-user.outputs.is_org_member == 'true' &&
+      (always() && needs.publish_k8s_driver.result != 'failure') &&
       (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch') && 
       github.event.action != 'closed'
     runs-on: ubuntu-latest
