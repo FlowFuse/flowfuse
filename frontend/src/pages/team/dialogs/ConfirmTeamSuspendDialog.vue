@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" data-el="delete-team-dialog" :header="'Suspend Team: \'' + team?.name + '\''" kind="danger" confirm-label="Suspend" :disable-primary="!formValid" @confirm="confirm()">
+    <ff-dialog ref="dialog" data-el="suspend-team-dialog" :header="'Suspend Team: \'' + team?.name + '\''" kind="danger" confirm-label="Suspend" :disable-primary="!formValid" @confirm="confirm()">
         <template #default>
             <form v-if="team" class="space-y-6" @submit.prevent>
                 <p>
