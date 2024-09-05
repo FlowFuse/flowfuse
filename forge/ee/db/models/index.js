@@ -13,7 +13,8 @@ const modelTypes = [
     'PipelineStageDevice',
     'PipelineStageDeviceGroup',
     'FlowTemplate',
-    'MFAToken'
+    'MFAToken',
+    'TeamBrokerUser'
 ]
 
 async function init (app) {
