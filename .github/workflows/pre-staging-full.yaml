@@ -139,6 +139,7 @@ jobs:
   deploy:
     name: Deploy application
     needs: 
+      - validate-user
       - build
     if: |
       ( github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' ) &&
