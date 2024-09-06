@@ -34,6 +34,21 @@ export default {
         currentDirectoryName () {
             return this.currentDirectory ? this.currentDirectory.name : 'Storage'
         },
+        isCurrentDirectoryPublic () {
+            if (!this.currentDirectory) {
+                return false
+            }
+
+            return Object.prototype.hasOwnProperty.call(this.currentDirectory, 'share') &&
+              Object.prototype.hasOwnProperty.call(this.currentDirectory.share, 'root')
+        },
+        folderStaticPath () {
+            if (!this.isCurrentDirectoryPublic) {
+                return ''
+            }
+
+            return this.currentDirectory.share.root
+        },
         rows () {
             return [
                 {
@@ -115,8 +130,8 @@ export default {
                         is: markRaw(ItemFilePath),
                         extraProps: {
                             breadcrumbs: this.breadcrumbs,
-                            prepend: '/data/storage',
-                            isNotAvailable: true
+                            prepend: this.folderStaticPath,
+                            isNotAvailable: !this.isCurrentDirectoryPublic
                         }
                     }
                 }

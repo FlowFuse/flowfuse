@@ -18,11 +18,6 @@ export default {
     },
     inheritAttrs: false,
     props: {
-        type: {
-            required: false,
-            type: String,
-            default: 'file'
-        },
         name: {
             required: false,
             type: String,
@@ -41,11 +36,17 @@ export default {
             required: false,
             default: false,
             type: Boolean
+        },
+        isBaseUrl: {
+            required: false,
+            default: false,
+            type: Boolean
         }
     },
     computed: {
         path () {
-            const path = [this.prepend, ...this.breadcrumbs.map(crumb => crumb.name), this.name].join('/')
+            const breadcrumbs = this.isBaseUrl ? [[...this.breadcrumbs].pop()] : this.breadcrumbs
+            const path = [this.prepend, ...breadcrumbs.map(crumb => crumb.name), this.name].join('/')
             // clear leading slash
             return path.replace(/^\//, '')
         }
