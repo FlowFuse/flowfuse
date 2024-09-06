@@ -135,13 +135,13 @@ jobs:
     name: Deploy application
     needs: build
     if: |
-      (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch') &&
+      ( github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' ) &&
       github.event.action != 'closed'
     runs-on: ubuntu-latest
     environment: staging
     env:
       IMAGE_NAME: 'forge-k8s'
-      PR_NUMBER: ${{ github.event.number }}
+      PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
