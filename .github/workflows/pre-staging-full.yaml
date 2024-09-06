@@ -135,7 +135,6 @@ jobs:
         run: |
           echo "Event name: ${{ github.event_name }}"
           echo "Event action: ${{ github.event.action }}"
-          echo "Should return true:" ( github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' )
 
   deploy:
     name: Deploy application
@@ -144,7 +143,8 @@ jobs:
       - build
     if: |
       ( github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' ) &&
-      github.event.action != 'closed'
+      github.event.action != 'closed' &&
+      needs.validate-user.outputs.is_org_member == 'true'
     runs-on: ubuntu-latest
     environment: staging
     env:
