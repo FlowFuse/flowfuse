@@ -739,19 +739,8 @@ describe('Team API', function () {
         it('Returns a 404 response when no instances are found', async () => {
             // GET /api/v1/team/:teamId/dashboard-instances
             const team = await app.db.models.Team.create({ name: 'mock-team-1', TeamTypeId: app.defaultTeamType.id })
-            const application = await app.factory.createApplication({ name: 'application-1' }, team)
+            await app.factory.createApplication({ name: 'application-1' }, team)
 
-            await app.factory.createInstance(
-                { name: 'mock-instance-1' },
-                application,
-                app.stack,
-                app.template,
-                app.projectType,
-                {
-                    start: false,
-                    settings: {}
-                }
-            )
             const response = await app.inject({
                 method: 'GET',
                 url: `/api/v1/teams/${team.hashid}/dashboard-instances`,
