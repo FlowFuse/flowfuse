@@ -131,12 +131,12 @@ module.exports = function (app) {
     }
 
     // This view is only used by the 'deprecated' /team/:teamId/projects end point.
-    // However it is still used in a few places from the frontend. None of them
+    // However, it is still used in a few places from the frontend. None of them
     // require the full details of the instances - so the settings object can be omitted
-    async function instancesList (instancesArray) {
+    async function instancesList (instancesArray, { includeSettings = false } = {}) {
         return Promise.all(instancesArray.map(async (instance) => {
             // Full settings are not required for the instance summary list
-            const result = await app.db.views.Project.project(instance, { includeSettings: false })
+            const result = await app.db.views.Project.project(instance, { includeSettings })
 
             if (!result.url) {
                 delete result.url
@@ -211,6 +211,44 @@ module.exports = function (app) {
     }
 
     app.addSchema({
+        $id: 'DashboardInstanceSummary',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            url: { type: 'string' },
+            createdAt: { type: 'string' },
+            updatedAt: { type: 'string' },
+            links: { $ref: 'LinksMeta' },
+            application: { $ref: 'ApplicationSummary' },
+            flowLastUpdatedAt: { type: 'string' },
+            status: { type: 'string' },
+            settings: {
+                type: 'object',
+                properties: {
+                    dashboard2UI: { type: 'string' }
+                }
+            }
+        }
+    })
+    function dashboardInstanceSummary (project) {
+        const result = {
+            id: project.id,
+            name: project.name,
+            url: project.url,
+            createdAt: project.createdAt,
+            updatedAt: project.updatedAt,
+            links: project.links,
+            application: app.db.views.Application.applicationSummary(project.Application),
+            flowLastUpdatedAt: project.flowLastUpdatedAt,
+            status: project.state,
+            settings: project.settings
+        }
+
+        return result
+    }
+
+    app.addSchema({
         $id: 'InstanceSummaryList',
         type: 'array',
         items: {
@@ -220,6 +258,23 @@ module.exports = function (app) {
     function instancesSummaryList (instancesArray) {
         return instancesArray.map((instance) => {
             const result = projectSummary(instance)
+            if (!result.url) {
+                delete result.url
+            }
+            return result
+        })
+    }
+
+    app.addSchema({
+        $id: 'DashboardInstancesSummaryList',
+        type: 'array',
+        items: {
+            $ref: 'DashboardInstanceSummary'
+        }
+    })
+    function dashboardInstancesSummaryList (instancesArray) {
+        return instancesArray.map((instance) => {
+            const result = dashboardInstanceSummary(instance)
             if (!result.url) {
                 delete result.url
             }
@@ -276,7 +331,8 @@ module.exports = function (app) {
         instancesSummaryList,
         instanceStatusList,
         projectSummary,
-        userProjectList
+        userProjectList,
+        dashboardInstancesSummaryList
     }
 }
 

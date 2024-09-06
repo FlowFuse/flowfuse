@@ -16,19 +16,7 @@
             <router-view />
         </div>
         <div v-else-if="!canAccessTeam">
-            <EmptyState>
-                <template #img>
-                    <img src="../../images/empty-states/no-access_dashboard-only.png">
-                </template>
-                <template #header>No Access</template>
-                <template #message>
-                    <p>You have a dashboard-only role in this team.</p>
-                    <p>
-                        This means you can access the pages created by the Node-RED instances in this team, but
-                        you cannot access their FlowFuse settings.
-                    </p>
-                </template>
-            </EmptyState>
+            <TeamInstances :dashboard-role-only="true" />
         </div>
     </div>
 </template>
@@ -39,17 +27,18 @@ import { mapGetters, mapState } from 'vuex'
 
 import { Roles } from '../../../../forge/lib/roles.js'
 
-import EmptyState from '../../components/EmptyState.vue'
 import Loading from '../../components/Loading.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamSuspendedBanner from '../../components/banners/TeamSuspended.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 
+import TeamInstances from './Instances.vue'
+
 export default {
     name: 'TeamPage',
     components: {
-        EmptyState,
+        TeamInstances,
         Loading,
         SideNavigationTeamOptions,
         SubscriptionExpiredBanner,
@@ -70,7 +59,7 @@ export default {
     },
     computed: {
         ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange', 'features']),
-        ...mapGetters('account', ['noBilling']),
+        ...mapGetters('account', ['noBilling', 'isAdminUser']),
         isVisitingAdmin: function () {
             return (this.teamMembership.role === Roles.Admin)
         },
@@ -82,7 +71,7 @@ export default {
             return true
         },
         canAccessTeam: function () {
-            return this.teamMembership?.role >= Roles.Viewer
+            return this.isAdminUser || this.teamMembership?.role >= Roles.Viewer
         }
     },
     mounted () {

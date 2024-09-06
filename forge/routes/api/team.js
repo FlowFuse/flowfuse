@@ -362,9 +362,9 @@ module.exports = async function (app) {
     app.get('/:teamId/projects', {
         preHandler: app.needsPermission('team:projects:list')
     }, async (request, reply) => {
-        const projects = await app.db.models.Project.byTeam(request.params.teamId)
+        const projects = await app.db.models.Project.byTeam(request.params.teamId, { includeSettings: true })
         if (projects) {
-            let result = await app.db.views.Project.instancesList(projects)
+            let result = await app.db.views.Project.instancesList(projects, { includeSettings: true })
             if (request.session.ownerType === 'project') {
                 // This request is from a project token. Filter the list to return
                 // the minimal information needed
@@ -378,6 +378,60 @@ module.exports = async function (app) {
             })
         } else {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+    })
+
+    /**
+     * Get team instances that have dashboards installed
+     * /api/v1/teams/:teamId/dashboard-instances
+     */
+    app.get('/:teamId/dashboard-instances', {
+        preHandler: app.needsPermission('team:read')
+    }, async (request, reply) => {
+        const projects = await app.db.models.Project.byTeamForDashboard(request.params.teamId)
+        if (projects && projects.length > 0) {
+            // filters out projects/instances without dashboards
+            const filtered = projects.filter(project => {
+                return project.ProjectSettings.filter(settingEntry => {
+                    const isSettingsEntry = settingEntry.key === 'settings'
+                    let hasDashboardInstalled = false
+                    if (
+                        isSettingsEntry &&
+                        Object.prototype.hasOwnProperty.call(settingEntry.value, 'palette') &&
+                        Object.prototype.hasOwnProperty.call(settingEntry.value.palette, 'modules')
+                    ) {
+                        hasDashboardInstalled = !!settingEntry.value.palette.modules.find(module => module.name === '@flowfuse/node-red-dashboard')
+                    }
+
+                    return isSettingsEntry && hasDashboardInstalled
+                }).length > 0
+            })
+
+            if (filtered.length === 0) {
+                return reply.send({
+                    count: 0,
+                    projects: []
+                })
+            }
+
+            // map additional data
+            await Promise.all(filtered.map(async project => {
+                const projectStatePromise = project.liveState()
+                const projectState = await projectStatePromise
+                project.state = projectState.meta.state
+                project.flowLastUpdatedAt = projectState.flowLastUpdatedAt
+                project.settings = {
+                    dashboard2UI: '/dashboard' // hardcoding the dashboard endpoint for the time being
+                }
+            }))
+
+            const result = await app.db.views.Project.dashboardInstancesSummaryList(filtered)
+            return reply.send({
+                count: result.length,
+                projects: result
+            })
+        } else {
+            return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
     })
 

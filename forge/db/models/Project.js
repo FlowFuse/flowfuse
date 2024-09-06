@@ -432,7 +432,56 @@ module.exports = {
                         include
                     })
                 },
-                byTeam: async (teamHashId) => {
+                byTeam: async (teamHashId, { includeSettings = false } = {}) => {
+                    const teamId = M.Team.decodeHashid(teamHashId)
+                    const include = [
+                        {
+                            model: M.Team,
+                            where: { id: teamId },
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
+                        },
+                        {
+                            model: M.Application,
+                            attributes: ['hashid', 'id', 'name', 'links']
+                        },
+                        {
+                            model: M.ProjectType,
+                            attributes: ['hashid', 'id', 'name']
+                        },
+                        {
+                            model: M.ProjectStack
+                        },
+                        {
+                            model: M.ProjectTemplate,
+                            attributes: ['hashid', 'id', 'name', 'links']
+                        }
+                    ]
+
+                    if (includeSettings) {
+                        include.push({
+                            model: M.ProjectSettings,
+                            attributes: ['id', 'key', 'value', 'ProjectId'],
+                            where: { key: 'settings' }
+                        })
+                    }
+
+                    return this.findAll({ include })
+                },
+                getProjectTeamId: async (id) => {
+                    const project = await this.findOne({
+                        where: { id },
+                        attributes: [
+                            'TeamId'
+                        ]
+                    })
+                    if (project) {
+                        return project.TeamId
+                    }
+                },
+                generateCredentialSecret () {
+                    return crypto.randomBytes(32).toString('hex')
+                },
+                byTeamForDashboard: async (teamHashId) => {
                     const teamId = M.Team.decodeHashid(teamHashId)
                     return this.findAll({
                         include: [
@@ -446,33 +495,12 @@ module.exports = {
                                 attributes: ['hashid', 'id', 'name', 'links']
                             },
                             {
-                                model: M.ProjectType,
-                                attributes: ['hashid', 'id', 'name']
-                            },
-                            {
-                                model: M.ProjectStack
-                            },
-                            {
-                                model: M.ProjectTemplate,
-                                attributes: ['hashid', 'id', 'name', 'links']
+                                model: M.ProjectSettings,
+                                attributes: ['id', 'key', 'value', 'ProjectId'],
+                                where: { key: 'settings' }
                             }
                         ]
                     })
-                },
-                getProjectTeamId: async (id) => {
-                    const project = await this.findOne({
-                        where: { id },
-                        attributes: [
-                            'TeamId'
-                        ]
-                    })
-                    if (project) {
-                        return project.TeamId
-                    }
-                },
-
-                generateCredentialSecret () {
-                    return crypto.randomBytes(32).toString('hex')
                 }
             }
         }
