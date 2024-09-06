@@ -13,8 +13,9 @@ import { ArrowLeftIcon } from '@heroicons/vue/outline'
 
 import { markRaw } from 'vue'
 
+import VisibilitySelector from '../../../components/file-browser/VisibilitySelector.vue'
 import ItemFilePath from '../../../components/file-browser/cells/FilePath.vue'
-import ProjectIcon from '../../../components/icons/Projects.js'
+import breadcrumb from '../../../ui-components/components/Breadcrumb.vue'
 
 export default {
     name: 'FolderBreadcrumbs',
@@ -22,22 +23,26 @@ export default {
         breadcrumbs: {
             required: true,
             type: Object
-        },
-        currentDirectory: {
-            required: true,
-            type: Object
         }
     },
-    emits: ['clicked', 'go-back'],
+    emits: ['clicked', 'go-back', 'selected-visibility'],
     computed: {
+        breadcrumb () {
+            return breadcrumb
+        },
+        currentDirectory () {
+            return this.breadcrumbs.length > 0
+                ? this.breadcrumbs[this.breadcrumbs.length - 1]
+                : 'Storage'
+        },
         rows () {
             return [
                 {
                     back: '',
                     activeDirectory: 'active-directory',
-                    visibility: 'asd visibility',
-                    folderPath: 'asd folderPath',
-                    baseUrl: 'asd baseUrl'
+                    visibility: 'visibility',
+                    folderPath: 'folder-path',
+                    baseUrl: 'baseUrl'
                 }
             ]
         },
@@ -69,7 +74,7 @@ export default {
                     component: {
                         is: markRaw({
                             props: ['currentDirectory'],
-                            template: '<div :title="this.currentDirectory?.name">{{ this.currentDirectory?.name ||  "Storage"}}</div>'
+                            template: '<div :title="this.currentDirectory">{{ this.currentDirectory }}</div>'
                         }),
                         extraProps: {
                             currentDirectory: this.currentDirectory
@@ -81,10 +86,16 @@ export default {
                     label: 'Visibility',
                     component: {
                         is: markRaw({
-                            template: '<div class="flex gap-2"><ProjectIcon class="ff-icon" /> Node-RED Only</div>',
-                            components: { ProjectIcon },
-                            inheritAttrs: false
-                        })
+                            template: '<VisibilitySelector :breadcrumbs="breadcrumbs" @selected="selectedVisibility"/>',
+                            components: { VisibilitySelector },
+                            props: ['breadcrumbs'],
+                            methods: {
+                                selectedVisibility: this.selectedVisibility
+                            }
+                        }),
+                        extraProps: {
+                            breadcrumbs: this.breadcrumbs
+                        }
                     }
                 },
                 {
@@ -120,6 +131,9 @@ export default {
     methods: {
         goBack () {
             this.$emit('go-back', '')
+        },
+        selectedVisibility (visibility) {
+            this.$emit('selected-visibility', visibility)
         }
     }
 }

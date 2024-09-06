@@ -6,10 +6,10 @@
             <FeatureUnavailable v-else-if="!launcherSatisfiesVersion" :message="launcherVersionMessage" :only-custom-message="true" />
         </div>
         <FolderBreadcrumbs
-            :current-directory="currentDirectory"
             :breadcrumbs="breadcrumbs"
             @clicked="breadcrumbClicked"
             @go-back="goBack"
+            @selected-visibility="onVisibilitySelected"
         />
         <FileBrowser
             :breadcrumbs="breadcrumbs"
@@ -133,6 +133,18 @@ export default {
             } else {
                 this.changeDirectory({ name: this.breadcrumbs.pop() })
             }
+        },
+        onVisibilitySelected (payload) {
+            AssetsAPI.updateVisibility(
+                this.instance.id,
+                this.breadcrumbs.join('/').replace('//', '/'),
+                payload.visibility,
+                payload.path
+            ).then((res) => {
+                this.loadContents()
+            }).catch(err => {
+                console.log(err)
+            })
         }
     }
 }
