@@ -317,7 +317,7 @@ module.exports = {
                     return this.findAll({
                         include: {
                             model: M.Team,
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId'],
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended'],
                             include: [
                                 {
                                     model: M.TeamMember,
@@ -334,7 +334,7 @@ module.exports = {
                     const include = [
                         {
                             model: M.Team,
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended']
                         },
                         {
                             model: M.Application,
@@ -387,7 +387,7 @@ module.exports = {
                     const include = [
                         {
                             model: M.Team,
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended']
                         },
                         {
                             model: M.Application,
@@ -439,7 +439,7 @@ module.exports = {
                             {
                                 model: M.Team,
                                 where: { id: teamId },
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended']
                             },
                             {
                                 model: M.Application,

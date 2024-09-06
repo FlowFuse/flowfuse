@@ -1,6 +1,6 @@
 <template>
     <div class="space-y-6">
-        <template v-if="teamTypes.length > 1">
+        <template v-if="teamTypes.length > 1 && !team.suspended">
             <FormHeading>Change Team Type</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="flex-grow">
@@ -8,6 +8,29 @@
                 </div>
                 <div class="min-w-fit flex-shrink-0">
                     <ff-button data-action="change-team-type" :to="{name: 'TeamChangeType'}">Change Team Type</ff-button>
+                </div>
+            </div>
+        </template>
+        <template v-if="!team.suspended">
+            <FormHeading class="text-red-700">Suspend Team</FormHeading>
+            <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+                <div class="flex-grow">
+                    <div class="max-w-sm pr-2">Suspending the team will suspend all instances and prevent any further activity on the team.</div>
+                </div>
+                <div class="min-w-fit flex-shrink-0">
+                    <ff-button kind="danger" data-action="suspend-team" @click="showConfirmSuspendDialog()">Suspend Team</ff-button>
+                    <ConfirmTeamSuspendDialog ref="confirmTeamSuspendDialog" @suspend-team="suspendTeam" />
+                </div>
+            </div>
+        </template>
+        <template v-else>
+            <FormHeading class="text-red-700">Reactivate Team</FormHeading>
+            <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+                <div class="flex-grow">
+                    <div class="max-w-sm pr-2">This team is currently suspended.</div>
+                </div>
+                <div class="min-w-fit flex-shrink-0">
+                    <ff-button kind="danger" data-action="unsuspend-team" @click="unsuspendTeam()">Reactivate Team</ff-button>
                 </div>
             </div>
         </template>
@@ -36,6 +59,7 @@ import FormHeading from '../../../components/FormHeading.vue'
 import alerts from '../../../services/alerts.js'
 
 import ConfirmTeamDeleteDialog from '../dialogs/ConfirmTeamDeleteDialog.vue'
+import ConfirmTeamSuspendDialog from '../dialogs/ConfirmTeamSuspendDialog.vue'
 
 import TeamAdminTools from './TeamAdminTools.vue'
 
@@ -44,6 +68,7 @@ export default {
     components: {
         FormHeading,
         ConfirmTeamDeleteDialog,
+        ConfirmTeamSuspendDialog,
         TeamAdminTools
     },
     data () {
@@ -89,6 +114,27 @@ export default {
                 this.applicationList = applicationList
                 this.applicationCount = applicationList.count
             }
+        },
+        showConfirmSuspendDialog () {
+            this.$refs.confirmTeamSuspendDialog.show(this.team)
+        },
+        suspendTeam () {
+            teamApi.updateTeam(this.team.id, { suspended: true }).then(() => {
+                alerts.emit('Team successfully suspended', 'confirmation')
+                this.$store.dispatch('account/refreshTeam')
+            }).catch(err => {
+                alerts.emit('Problem suspending team', 'warning')
+                console.warn(err)
+            })
+        },
+        unsuspendTeam () {
+            teamApi.updateTeam(this.team.id, { suspended: false }).then(() => {
+                alerts.emit('Team successfully reactivated', 'confirmation')
+                this.$store.dispatch('account/refreshTeam')
+            }).catch(err => {
+                alerts.emit('Problem suspending team', 'warning')
+                console.warn(err)
+            })
         }
     }
 }
