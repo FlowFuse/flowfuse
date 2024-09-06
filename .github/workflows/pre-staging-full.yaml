@@ -138,13 +138,12 @@ jobs:
 
   deploy:
     name: Deploy application
-    needs: 
-      - validate-user
-      - build
+    # needs: 
+    #   - validate-user
+    #   - build
     if: |
-      ( github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' ) &&
-      github.event.action != 'closed' &&
-      needs.validate-user.outputs.is_org_member == 'true'
+      ( github.event_name == 'pull_request' && github.event.action != 'closed' ) ||
+      ( github.event_name == 'workflow_dispatch' && github.event.action != 'closed' )
     runs-on: ubuntu-latest
     environment: staging
     env:
