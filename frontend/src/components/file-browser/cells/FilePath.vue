@@ -29,7 +29,7 @@ export default {
             default: ''
         },
         breadcrumbs: {
-            default: null,
+            default: () => [],
             type: Array
         },
         prepend: {
@@ -45,7 +45,7 @@ export default {
     },
     computed: {
         path () {
-            const path = [this.prepend, ...this.breadcrumbs, this.name].join('/')
+            const path = [this.prepend, ...this.breadcrumbs.map(crumb => crumb.name), this.name].join('/')
             // clear leading slash
             return path.replace(/^\//, '')
         }

@@ -119,13 +119,9 @@ export default {
             required: true,
             type: Object
         },
-        folder: {
-            required: true,
-            type: Object
-        },
         breadcrumbs: {
             required: true,
-            type: Object
+            type: Array
         },
         disabled: {
             required: false,
@@ -154,15 +150,21 @@ export default {
         }
     },
     computed: {
+        folder () {
+            return [...this.breadcrumbs].pop()
+        },
         instanceId () {
             return this.$route.params.id
         },
         pwd () {
-            return [...this.breadcrumbs].filter(b => b).join('/').replace('//', '/')
+            return [...this.breadcrumbs.map(crumb => crumb.name)]
+                .filter(b => b)
+                .join('/')
+                .replace('//', '/')
         },
         baseURI () {
             // clear null values
-            const breadcrumbs = this.breadcrumbs.filter(n => n)
+            const breadcrumbs = this.breadcrumbs.map(crumb => crumb.name).filter(n => n)
             return breadcrumbs.join('/').replace('//', '/')
         },
         columns () {
@@ -195,7 +197,7 @@ export default {
                         is: markRaw(ItemFilePath),
                         extraProps: {
                             breadcrumbs: this.breadcrumbs,
-                            folder: this.folder.name || ''
+                            folder: this.folder?.name || ''
                         }
                     }
                 },
@@ -207,7 +209,7 @@ export default {
             ]
         },
         noDataMessages () {
-            return this.noDataMessage.length ? this.noDataMessage : `No files in '${this.folder.name || 'Storage'}'`
+            return this.noDataMessage.length ? this.noDataMessage : `No files in '${this.folder?.name || 'Storage'}'`
         }
     },
     methods: {
@@ -215,7 +217,7 @@ export default {
             this.$refs[dialog].show()
         },
         createFolder () {
-            const pwd = this.baseURI + '/' + (this.folder.name || '')
+            const pwd = this.baseURI + '/' + (this.folder?.name || '')
             this.loading = true
             AssetsAPI.createFolder(this.instanceId, pwd, this.forms.newFolder.name)
                 .then(() => this.$emit('items-updated'))

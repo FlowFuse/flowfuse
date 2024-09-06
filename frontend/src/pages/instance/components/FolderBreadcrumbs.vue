@@ -15,25 +15,24 @@ import { markRaw } from 'vue'
 
 import VisibilitySelector from '../../../components/file-browser/VisibilitySelector.vue'
 import ItemFilePath from '../../../components/file-browser/cells/FilePath.vue'
-import breadcrumb from '../../../ui-components/components/Breadcrumb.vue'
 
 export default {
     name: 'FolderBreadcrumbs',
     props: {
         breadcrumbs: {
             required: true,
-            type: Object
+            type: Array
         }
     },
-    emits: ['clicked', 'go-back', 'selected-visibility'],
+    emits: ['go-back', 'selected-visibility'],
     computed: {
-        breadcrumb () {
-            return breadcrumb
-        },
         currentDirectory () {
             return this.breadcrumbs.length > 0
                 ? this.breadcrumbs[this.breadcrumbs.length - 1]
-                : 'Storage'
+                : null
+        },
+        currentDirectoryName () {
+            return this.currentDirectory ? this.currentDirectory.name : 'Storage'
         },
         rows () {
             return [
@@ -77,7 +76,7 @@ export default {
                             template: '<div :title="this.currentDirectory">{{ this.currentDirectory }}</div>'
                         }),
                         extraProps: {
-                            currentDirectory: this.currentDirectory
+                            currentDirectory: this.currentDirectoryName
                         }
                     }
                 },

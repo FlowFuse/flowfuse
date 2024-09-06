@@ -7,13 +7,12 @@
         </div>
         <FolderBreadcrumbs
             :breadcrumbs="breadcrumbs"
-            @clicked="breadcrumbClicked"
             @go-back="goBack"
             @selected-visibility="onVisibilitySelected"
         />
         <FileBrowser
             :breadcrumbs="breadcrumbs"
-            :folder="currentDirectory" :items="sortedFiles"
+            :items="sortedFiles"
             :disabled="!isFeatureEnabled"
             :no-data-message="!isInstanceRunning ? instanceSuspendedMessage : ''"
             @items-updated="loadContents"
@@ -51,20 +50,20 @@ export default {
         }
     },
     data () {
-        // const breadcrumbs = this.$route.params.filePath
-        // const dir = breadcrumbs.pop() || '/'
         return {
             breadcrumbs: [],
-            // default current directory
-            currentDirectory: {
-                name: null
-            },
             files: [],
             launcherVersionMessage: 'You are using an incompatible Launcher Version. You need to upgrade to => 2.8.0 in order to use this feature.',
             instanceSuspendedMessage: 'The instance must be running to access its assets.'
         }
     },
     computed: {
+        currentDirectory () {
+            if (this.breadcrumbs.length) {
+                return this.breadcrumbs[this.breadcrumbs.length - 1]
+            }
+            return null
+        },
         launcherSatisfiesVersion () {
             if (!this.isInstanceRunning) {
                 return true
@@ -96,15 +95,22 @@ export default {
             } else {
                 this.files = []
             }
+        },
+        currentDirectory () {
+            this.loadContents()
         }
     },
     mounted () {
         this.loadContents()
     },
     methods: {
-        loadContents () {
+        loadContents (breadcrumbs = []) {
             if (this.isFeatureEnabled) {
-                const filepath = this.breadcrumbs.join('/')
+                if (breadcrumbs.length === 0) {
+                    breadcrumbs = this.breadcrumbs
+                }
+
+                const filepath = breadcrumbs.map(crumb => crumb.name).join('/')
                 AssetsAPI.getFiles(this.instance.id, filepath)
                     .then(files => {
                         this.files = files
@@ -115,36 +121,34 @@ export default {
             }
         },
         changeDirectory (dir) {
-            this.currentDirectory.name = dir.name
-            if (this.currentDirectory.name) {
-                this.breadcrumbs.push(this.currentDirectory.name)
+            if (dir.name) {
+                this.breadcrumbs.push(dir)
             }
-            this.loadContents()
         },
-        breadcrumbClicked ($index) {
-            this.currentDirectory.name = this.breadcrumbs[$index] || ''
-            this.breadcrumbs = this.breadcrumbs.slice(0, $index)
-            this.loadContents()
-        },
-        goBack (dir) {
+        goBack () {
             this.breadcrumbs.pop()
             if (this.breadcrumbs.length === 0) {
-                this.changeDirectory({ name: null })
+                this.changeDirectory(null)
             } else {
-                this.changeDirectory({ name: this.breadcrumbs.pop() })
+                this.changeDirectory(this.breadcrumbs.pop())
             }
         },
         onVisibilitySelected (payload) {
+            const pwd = this.breadcrumbs
+                .map(crumb => crumb.name)
+                .join('/')
+                .replace('//', '/')
+
             AssetsAPI.updateVisibility(
                 this.instance.id,
-                this.breadcrumbs.join('/').replace('//', '/'),
+                pwd,
                 payload.visibility,
                 payload.path
-            ).then((res) => {
-                this.loadContents()
-            }).catch(err => {
-                console.log(err)
-            })
+            )
+                .then((res) => {
+                    this.loadContents()
+                })
+                .catch(err => console.warn(err))
         }
     }
 }
