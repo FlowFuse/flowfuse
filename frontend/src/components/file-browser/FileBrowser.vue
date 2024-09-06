@@ -158,7 +158,7 @@ export default {
             return this.$route.params.id
         },
         pwd () {
-            return [...this.breadcrumbs, this.folder.name].filter(b => b).join('/').replace('//', '/')
+            return [...this.breadcrumbs].filter(b => b).join('/').replace('//', '/')
         },
         baseURI () {
             // clear null values
@@ -292,7 +292,7 @@ export default {
             })
         },
         uploadFile () {
-            const pwd = this.baseURI + '/' + (this.folder.name || '')
+            const pwd = this.baseURI + '/'
             const filename = this.forms.file.name
             this.loading = true
             AssetsAPI.uploadFile(this.instanceId, pwd, filename, this.forms.file)

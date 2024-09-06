@@ -1,9 +1,10 @@
 <template>
-    <div v-if="type === 'file'" class="ff-row-file--copy" @click="copyPath">
-        {{ path }}
-        <DuplicateIcon class="ff-icon" />
+    <div v-if="!isNotAvailable" class="ff-row-file--copy">
+        <span class="path" :title="path">{{ path }}</span>
+        <DuplicateIcon class="ff-icon" @click="copyPath" @click.prevent.stop />
         <span ref="copied" class="ff-copied">Copied!</span>
     </div>
+    <span v-else class="not-available">Not Available</span>
 </template>
 
 <script>
@@ -18,25 +19,33 @@ export default {
     inheritAttrs: false,
     props: {
         type: {
-            required: true,
-            type: String
+            required: false,
+            type: String,
+            default: 'file'
         },
         name: {
-            required: true,
-            type: String
-        },
-        folder: {
-            required: true,
-            type: String
+            required: false,
+            type: String,
+            default: ''
         },
         breadcrumbs: {
             default: null,
             type: Array
+        },
+        prepend: {
+            required: false,
+            default: '',
+            type: String
+        },
+        isNotAvailable: {
+            required: false,
+            default: false,
+            type: Boolean
         }
     },
     computed: {
         path () {
-            const path = [...this.breadcrumbs, this.folder, this.name].join('/')
+            const path = [this.prepend, ...this.breadcrumbs, this.name].join('/')
             // clear leading slash
             return path.replace(/^\//, '')
         }
@@ -60,9 +69,14 @@ export default {
 .ff-row-file--copy {
     position: relative;
     &:hover {
-        cursor: pointer;
         color: $ff-blue-600;
     }
+
+  .ff-icon {
+    &:hover {
+      cursor: pointer;
+    }
+  }
 }
 
 .ff-copied {
@@ -74,5 +88,9 @@ export default {
     margin-top: -3px;
     margin-left: 3px;
     display: none;
+}
+
+.not-available {
+  opacity: .4;
 }
 </style>

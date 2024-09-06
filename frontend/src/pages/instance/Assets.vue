@@ -5,22 +5,15 @@
             <FeatureUnavailableToTeam v-else-if="!isStaticAssetsFeatureEnabledForTeam" />
             <FeatureUnavailable v-else-if="!launcherSatisfiesVersion" :message="launcherVersionMessage" :only-custom-message="true" />
         </div>
-        <div class="ff-breadcrumbs disable-last mb-7" data-el="folder-breadcrumbs">
-            <template v-if="breadcrumbs.length > 0">
-                <span v-for="(crumb, $index) in breadcrumbs" :key="$index" class="flex mr-1 gap-1 items-center">
-                    <span>/</span>
-                    <label @click="breadcrumbClicked($index)">{{ crumb || 'Storage' }}</label>
-                </span>
-            </template>
-            <span class="flex gap-1 items-center">
-                <span>/</span>
-                <label>{{ currentDirectory.name || 'Storage' }}</label>
-                <span>/</span>
-            </span>
-        </div>
+        <FolderBreadcrumbs
+            :current-directory="currentDirectory"
+            :breadcrumbs="breadcrumbs"
+            @clicked="breadcrumbClicked"
+            @go-back="goBack"
+        />
         <FileBrowser
             :breadcrumbs="breadcrumbs"
-            :folder="currentDirectory" :items="files"
+            :folder="currentDirectory" :items="sortedFiles"
             :disabled="!isFeatureEnabled"
             :no-data-message="!isInstanceRunning ? instanceSuspendedMessage : ''"
             @items-updated="loadContents"
@@ -39,9 +32,12 @@ import FileBrowser from '../../components/file-browser/FileBrowser.vue'
 import featuresMixin from '../../mixins/Features.js'
 import permissionsMixin from '../../mixins/Permissions.js'
 
+import FolderBreadcrumbs from './components/FolderBreadcrumbs.vue'
+
 export default {
     name: 'InstanceAssets',
     components: {
+        FolderBreadcrumbs,
         FeatureUnavailable,
         FeatureUnavailableToTeam,
         FileBrowser
@@ -85,6 +81,12 @@ export default {
         },
         isInstanceRunning () {
             return this.instance?.meta?.state === 'running'
+        },
+        sortedFiles () {
+            const files = this.files.filter(file => file.type === 'file').sort()
+            const folders = this.files.filter(file => file.type === 'directory').sort()
+
+            return [...folders, ...files]
         }
     },
     watch: {
@@ -102,9 +104,8 @@ export default {
     methods: {
         loadContents () {
             if (this.isFeatureEnabled) {
-                const breadcrumbs = this.breadcrumbs.join('/')
-                const path = breadcrumbs + (breadcrumbs.length > 0 ? '/' : '') + (this.currentDirectory.name || '')
-                AssetsAPI.getFiles(this.instance.id, path)
+                const filepath = this.breadcrumbs.join('/')
+                AssetsAPI.getFiles(this.instance.id, filepath)
                     .then(files => {
                         this.files = files
                     })
@@ -114,14 +115,24 @@ export default {
             }
         },
         changeDirectory (dir) {
-            this.breadcrumbs.push(this.currentDirectory.name || '')
             this.currentDirectory.name = dir.name
+            if (this.currentDirectory.name) {
+                this.breadcrumbs.push(this.currentDirectory.name)
+            }
             this.loadContents()
         },
         breadcrumbClicked ($index) {
             this.currentDirectory.name = this.breadcrumbs[$index] || ''
             this.breadcrumbs = this.breadcrumbs.slice(0, $index)
             this.loadContents()
+        },
+        goBack (dir) {
+            this.breadcrumbs.pop()
+            if (this.breadcrumbs.length === 0) {
+                this.changeDirectory({ name: null })
+            } else {
+                this.changeDirectory({ name: this.breadcrumbs.pop() })
+            }
         }
     }
 }
