@@ -3,6 +3,9 @@ name: Create custom pre-staging environment
 on:
   workflow_dispatch:
     inputs:
+      pr_number:
+        description: 'Pull request number'
+        required: true
       driver-k8s-branch:
         description: 'flowfuse/driver-k8s branch name'
         required: true
@@ -68,7 +71,7 @@ jobs:
       publish_package: true
       repository_name: 'FlowFuse/driver-k8s'
       branch_name: ${{ inputs.driver-k8s-branch }}
-      release_name: "flowfuse-k8s-driver-pre-staging-${{ github.run_id}}"
+      release_name: "flowfuse-k8s-driver-pre-staging-${{ inputs.driver-k8s-branch }}"
     secrets:
       npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
 
@@ -105,7 +108,7 @@ jobs:
         id: set-build-args
         run: |
           if [ "${{ inputs.driver-k8s-branch }}" != "main" ]; then
-            echo "BUILD_ARGS=flowfuse-k8s-driver-pre-staging-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+            echo "BUILD_ARGS=flowfuse-k8s-driver-pre-staging-${{ github.event.inputs.driver-k8s-branch }}" >> $GITHUB_ENV
           else
             echo "BUILD_ARGS=" >> $GITHUB_ENV
           fi
@@ -130,10 +133,9 @@ jobs:
 
   deploy:
     name: Deploy application
-    needs: [ validate-user, build ]
+    needs: build
     if: |
-      needs.validate-user.outputs.is_org_member == 'true' &&
-      github.event_name == 'pull_request' && 
+      (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch') &&
       github.event.action != 'closed'
     runs-on: ubuntu-latest
     environment: staging
