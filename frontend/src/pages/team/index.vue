@@ -9,7 +9,8 @@
         <div v-else-if="canAccessTeam && team">
             <Teleport v-if="mounted" to="#platform-banner">
                 <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-team-as-admin">You are viewing this team as an Administrator</div>
-                <SubscriptionExpiredBanner :team="team" />
+                <TeamSuspendedBanner v-if="team.suspended" :team="team" />
+                <SubscriptionExpiredBanner v-else :team="team" />
                 <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
             </Teleport>
             <router-view />
@@ -29,6 +30,7 @@ import { Roles } from '../../../../forge/lib/roles.js'
 import Loading from '../../components/Loading.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
+import TeamSuspendedBanner from '../../components/banners/TeamSuspended.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 
 import TeamInstances from './Instances.vue'
@@ -40,6 +42,7 @@ export default {
         Loading,
         SideNavigationTeamOptions,
         SubscriptionExpiredBanner,
+        TeamSuspendedBanner,
         TeamTrialBanner
     },
     async beforeRouteUpdate (to, from, next) {

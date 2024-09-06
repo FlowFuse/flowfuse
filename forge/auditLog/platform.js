@@ -67,6 +67,12 @@ module.exports = {
                 },
                 async deleted (actionedBy, error, team) {
                     await log('platform.team.deleted', actionedBy, generateBody({ error, team }))
+                },
+                async suspended (actionedBy, error, team) {
+                    await log('platform.team.suspended', actionedBy, generateBody({ error, team }))
+                },
+                async unsuspended (actionedBy, error, team) {
+                    await log('platform.team.unsuspended', actionedBy, generateBody({ error, team }))
                 }
             }
         }

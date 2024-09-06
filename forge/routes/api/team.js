@@ -593,8 +593,18 @@ module.exports = async function (app) {
 
             if (app.license.active() && app.billing) {
                 const subscription = await request.team.getSubscription()
-                if (subscription && !subscription.isTrial() && !subscription.isUnmanaged()) {
-                    await app.billing.closeSubscription(subscription)
+                if (subscription) {
+                    if (!subscription.isTrial() && !subscription.isUnmanaged()) {
+                        const subId = subscription.subscription || 'unknown'
+                        try {
+                            await app.billing.closeSubscription(subscription)
+                        } catch (err) {
+                            app.log.warn(`Error canceling subscription ${subId} for team ${request.team.hashid}`)
+                            app.log.warn(err)
+                        }
+                    }
+                    // Delete the subscription
+                    await subscription.destroy()
                 }
             }
 
@@ -629,7 +639,9 @@ module.exports = async function (app) {
                 type: 'object',
                 properties: {
                     name: { type: 'string' },
-                    slug: { type: 'string' }
+                    slug: { type: 'string' },
+                    type: { type: 'string' },
+                    suspended: { type: 'boolean' }
                 }
             },
             response: {
@@ -667,6 +679,43 @@ module.exports = async function (app) {
                     // - then we apply it
                     await request.team.updateTeamType(targetTeamType)
                 } else {
+                    reply.send(app.db.views.Team.team(request.team))
+                    return
+                }
+            } else if (Object.hasOwn(request.body, 'suspended')) {
+                if (Object.keys(request.body).length > 1) {
+                    reply.code(400).send({ code: 'invalid_request', error: 'Cannot modify other properties whilst changing suspended state' })
+                    return
+                }
+                if (!!request.body.suspended !== !!request.team.suspended) {
+                    let teamAuditFunc = app.auditLog.Team.team.suspended
+                    let platformAuditFunc = app.auditLog.Platform.platform.team.suspended
+                    try {
+                        if (request.body.suspended) {
+                            // Suspend the team
+                            await request.team.suspend()
+                        } else {
+                            teamAuditFunc = app.auditLog.Team.team.unsuspended
+                            platformAuditFunc = app.auditLog.Platform.platform.team.unsuspended
+                            // Reactivate the team
+                            await request.team.unsuspend()
+                        }
+                        teamAuditFunc(request.session.User, null, request.team)
+                        platformAuditFunc(request.session.User, null, request.team)
+                        reply.send(app.db.views.Team.team(request.team))
+                        return
+                    } catch (err) {
+                        teamAuditFunc(request.session.User, err, request.team)
+                        platformAuditFunc(request.session.User, err, request.team)
+                        const response = {
+                            code: err.code || 'unexpected_error',
+                            error: err.toString()
+                        }
+                        reply.code(400).send(response)
+                        return
+                    }
+                } else {
+                    // Already in the right state - no-op it
                     reply.send(app.db.views.Team.team(request.team))
                     return
                 }

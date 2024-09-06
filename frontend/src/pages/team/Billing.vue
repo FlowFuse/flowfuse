@@ -72,7 +72,7 @@
                     </template>
                 </template>
                 <template #actions>
-                    <ff-button data-action="change-team-type" :to="{name: 'TeamChangeType'}">Setup Billing</ff-button>
+                    <ff-button v-if="hasPermission('team:edit')" data-action="change-team-type" :to="{name: 'TeamChangeType'}">Setup Billing</ff-button>
                 </template>
             </EmptyState>
             <EmptyState v-else>
