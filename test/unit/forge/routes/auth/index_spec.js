@@ -432,7 +432,7 @@ describe('Accounts API', async function () {
                 app.settings.set('user:team:auto-create:teamType', null)
             })
 
-            it('Creates instance in personal team when invites to other teams present', async function () {
+            it('Does not create personal team/instance when invites to other teams present', async function () {
                 app.settings.set('user:signup', true)
                 app.settings.set('user:team:auto-create', true)
                 app.settings.set('user:team:auto-create:instanceType', app.projectType.hashid)
@@ -490,92 +490,8 @@ describe('Accounts API', async function () {
                 verifyResponse.statusCode.should.equal(200)
 
                 const teams = await app.db.models.Team.forUser(user)
-                // User is member of both personal & invited team
-                teams.should.have.length(2)
-
-                // Find the personal team
-                const userTeam = teams.find(t => t.TeamId !== existingTeam.id).Team
-
-                // Verify the resources were created in that team and not the existing team
-                const applications = await app.db.models.Application.byTeam(userTeam.id, { includeInstances: true })
-                applications.length.should.equal(1)
-
-                const application = applications[0]
-                application.name.should.match('Pez Cuckow\'s Application')
-
-                application.Instances.length.should.equal(1)
-                application.Instances[0].safeName.should.match(/team-pez-cuckow-user6-(\w)+/)
-
-                // cleanup else this becomes the new default and breaks other tests
-                newTeamType.active = false
-                await newTeamType.save()
-                app.settings.set('user:team:auto-create:teamType', null)
-            })
-
-            it('Skips creating instance in personal team when invited to other team with instance', async function () {
-                app.settings.set('user:signup', true)
-                app.settings.set('user:team:auto-create', true)
-                app.settings.set('user:team:auto-create:instanceType', app.projectType.hashid)
-                app.settings.set('team:user:invite:external', true)
-
-                // Allow this new project type to be used by the new team type
-                const teamTypeProperties = { instances: {} }
-                teamTypeProperties.instances[app.projectType.hashid] = {
-                    active: true,
-                    limit: 2,
-                    free: 2
-                }
-                const newTeamType = await app.db.models.TeamType.create({
-                    name: 'new-starter-test-2',
-                    properties: teamTypeProperties
-                })
-                app.settings.set('user:team:auto-create:teamType', newTeamType.hashid)
-
-                // Alice invite External User to ATeam - that already has instances
-                await login('alice', 'aaPassword')
-                const inviteResponse = await app.inject({
-                    method: 'POST',
-                    url: `/api/v1/teams/${app.team.hashid}/invitations`,
-                    cookies: { sid: TestObjects.tokens.alice },
-                    payload: {
-                        user: 'user7@example.com',
-                        role: app.factory.Roles.Roles.Owner
-                    }
-                })
-                const result = inviteResponse.json()
-                result.should.have.property('status', 'okay')
-
-                const response = await registerUser({
-                    username: 'user7',
-                    password: '12345678',
-                    name: 'Pedro Peterson',
-                    email: 'user7@example.com'
-                })
-                response.statusCode.should.equal(200)
-
-                // Process only runs after email verification
-                const user = await app.db.models.User.findOne({ where: { username: 'user7' } })
-                const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
-                const verifyResponse = await app.inject({
-                    method: 'POST',
-                    url: '/account/verify/token',
-                    payload: {
-                        token: verificationToken.token
-                    },
-                    cookies: { sid: TestObjects.tokens.user7 }
-                })
-                verifyResponse.statusCode.should.equal(200)
-
-                const teams = await app.db.models.Team.forUser(user)
-                // User is member of both personal & invited team
-                teams.should.have.length(2)
-
-                // Find the personal team
-                const userTeam = teams.find(t => t.TeamId !== app.team.id).Team
-
-                // Verify the resources were not created as the existing team already had an instance
-                const applications = await app.db.models.Application.byTeam(userTeam.id, { includeInstances: true })
-                applications.length.should.equal(0)
+                teams.length.should.equal(1)
+                teams[0].Team.id.should.equal(existingTeam.id)
 
                 // cleanup else this becomes the new default and breaks other tests
                 newTeamType.active = false

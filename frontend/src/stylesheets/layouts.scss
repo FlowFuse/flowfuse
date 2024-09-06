@@ -660,6 +660,12 @@ $nav_height: 60px;
         .ff-nav-item:last-child {
             border-top: 2px solid $ff-red-600;
         }
+
+        &.without-divider {
+            .ff-nav-item:last-child {
+                border-top: unset;
+            }
+        }
     }
     &.open {
         left: 0;

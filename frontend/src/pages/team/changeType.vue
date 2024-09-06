@@ -62,6 +62,7 @@
                         <div class="mb-8 text-sm text-gray-500 space-y-2">
                             <p v-if="isContactRequired">To learn more about our {{ input.teamType?.name }} plan, click below to contact our sales team.</p>
                             <p v-if="trialMode && !trialHasEnded">Setting up billing will bring your free trial to an end</p>
+                            <p v-if="!isContactRequired && team.suspended">Setting up billing will unsuspend your team</p>
                             <p v-if="isTypeChange">Your billing subscription will be updated to reflect the new costs</p>
                         </div>
                     </template>
@@ -155,6 +156,9 @@ export default {
                    this.input.teamType && this.input.teamType.properties?.billing?.requireContact
         },
         upgradeErrors () {
+            if (!this.input.teamType) {
+                return
+            }
             try {
                 // Check the following limits:
                 // - User count

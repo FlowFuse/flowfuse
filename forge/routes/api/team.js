@@ -362,9 +362,9 @@ module.exports = async function (app) {
     app.get('/:teamId/projects', {
         preHandler: app.needsPermission('team:projects:list')
     }, async (request, reply) => {
-        const projects = await app.db.models.Project.byTeam(request.params.teamId)
+        const projects = await app.db.models.Project.byTeam(request.params.teamId, { includeSettings: true })
         if (projects) {
-            let result = await app.db.views.Project.instancesList(projects)
+            let result = await app.db.views.Project.instancesList(projects, { includeSettings: true })
             if (request.session.ownerType === 'project') {
                 // This request is from a project token. Filter the list to return
                 // the minimal information needed
@@ -378,6 +378,60 @@ module.exports = async function (app) {
             })
         } else {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+    })
+
+    /**
+     * Get team instances that have dashboards installed
+     * /api/v1/teams/:teamId/dashboard-instances
+     */
+    app.get('/:teamId/dashboard-instances', {
+        preHandler: app.needsPermission('team:read')
+    }, async (request, reply) => {
+        const projects = await app.db.models.Project.byTeamForDashboard(request.params.teamId)
+        if (projects && projects.length > 0) {
+            // filters out projects/instances without dashboards
+            const filtered = projects.filter(project => {
+                return project.ProjectSettings.filter(settingEntry => {
+                    const isSettingsEntry = settingEntry.key === 'settings'
+                    let hasDashboardInstalled = false
+                    if (
+                        isSettingsEntry &&
+                        Object.prototype.hasOwnProperty.call(settingEntry.value, 'palette') &&
+                        Object.prototype.hasOwnProperty.call(settingEntry.value.palette, 'modules')
+                    ) {
+                        hasDashboardInstalled = !!settingEntry.value.palette.modules.find(module => module.name === '@flowfuse/node-red-dashboard')
+                    }
+
+                    return isSettingsEntry && hasDashboardInstalled
+                }).length > 0
+            })
+
+            if (filtered.length === 0) {
+                return reply.send({
+                    count: 0,
+                    projects: []
+                })
+            }
+
+            // map additional data
+            await Promise.all(filtered.map(async project => {
+                const projectStatePromise = project.liveState()
+                const projectState = await projectStatePromise
+                project.state = projectState.meta.state
+                project.flowLastUpdatedAt = projectState.flowLastUpdatedAt
+                project.settings = {
+                    dashboard2UI: '/dashboard' // hardcoding the dashboard endpoint for the time being
+                }
+            }))
+
+            const result = await app.db.views.Project.dashboardInstancesSummaryList(filtered)
+            return reply.send({
+                count: result.length,
+                projects: result
+            })
+        } else {
+            return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
     })
 
@@ -539,8 +593,18 @@ module.exports = async function (app) {
 
             if (app.license.active() && app.billing) {
                 const subscription = await request.team.getSubscription()
-                if (subscription && !subscription.isTrial() && !subscription.isUnmanaged()) {
-                    await app.billing.closeSubscription(subscription)
+                if (subscription) {
+                    if (!subscription.isTrial() && !subscription.isUnmanaged()) {
+                        const subId = subscription.subscription || 'unknown'
+                        try {
+                            await app.billing.closeSubscription(subscription)
+                        } catch (err) {
+                            app.log.warn(`Error canceling subscription ${subId} for team ${request.team.hashid}`)
+                            app.log.warn(err)
+                        }
+                    }
+                    // Delete the subscription
+                    await subscription.destroy()
                 }
             }
 
@@ -575,7 +639,9 @@ module.exports = async function (app) {
                 type: 'object',
                 properties: {
                     name: { type: 'string' },
-                    slug: { type: 'string' }
+                    slug: { type: 'string' },
+                    type: { type: 'string' },
+                    suspended: { type: 'boolean' }
                 }
             },
             response: {
@@ -613,6 +679,43 @@ module.exports = async function (app) {
                     // - then we apply it
                     await request.team.updateTeamType(targetTeamType)
                 } else {
+                    reply.send(app.db.views.Team.team(request.team))
+                    return
+                }
+            } else if (Object.hasOwn(request.body, 'suspended')) {
+                if (Object.keys(request.body).length > 1) {
+                    reply.code(400).send({ code: 'invalid_request', error: 'Cannot modify other properties whilst changing suspended state' })
+                    return
+                }
+                if (!!request.body.suspended !== !!request.team.suspended) {
+                    let teamAuditFunc = app.auditLog.Team.team.suspended
+                    let platformAuditFunc = app.auditLog.Platform.platform.team.suspended
+                    try {
+                        if (request.body.suspended) {
+                            // Suspend the team
+                            await request.team.suspend()
+                        } else {
+                            teamAuditFunc = app.auditLog.Team.team.unsuspended
+                            platformAuditFunc = app.auditLog.Platform.platform.team.unsuspended
+                            // Reactivate the team
+                            await request.team.unsuspend()
+                        }
+                        teamAuditFunc(request.session.User, null, request.team)
+                        platformAuditFunc(request.session.User, null, request.team)
+                        reply.send(app.db.views.Team.team(request.team))
+                        return
+                    } catch (err) {
+                        teamAuditFunc(request.session.User, err, request.team)
+                        platformAuditFunc(request.session.User, err, request.team)
+                        const response = {
+                            code: err.code || 'unexpected_error',
+                            error: err.toString()
+                        }
+                        reply.code(400).send(response)
+                        return
+                    }
+                } else {
+                    // Already in the right state - no-op it
                     reply.send(app.db.views.Team.team(request.team))
                     return
                 }

@@ -108,7 +108,7 @@ export default {
                 },
                 {
                     label: 'Members',
-                    to: '/members',
+                    to: '/members/general',
                     tag: 'team-members',
                     icon: UsersIcon,
                     disabled: this.noBilling
