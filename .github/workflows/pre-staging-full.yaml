@@ -139,11 +139,15 @@ jobs:
   deploy:
     name: Deploy application
     if: |
-      ( github.event_name == 'pull_request' && github.event.action != 'closed' ) ||
-      ( github.event_name == 'workflow_dispatch' && github.event.action != 'closed' )
+      (always() && needs.publish_k8s_driver.result != 'failure') &&
+      (( github.event_name == 'pull_request' && github.event.action != 'closed' ) ||
+      ( github.event_name == 'workflow_dispatch' && github.event.action != 'closed' ))
     runs-on: ubuntu-latest
     environment: staging
-    needs: build
+    needs: 
+      - validate-user
+      - publish_k8s_driver
+      - build
     env:
       IMAGE_NAME: 'forge-k8s'
       PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
