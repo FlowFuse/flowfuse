@@ -131,9 +131,15 @@ jobs:
           path: /tmp/k8s-forge.tar
           retention-days: 7
 
+      - name: debug
+        run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "Event action: ${{ github.event.action }}"
+
   deploy:
     name: Deploy application
-    needs: build
+    needs: 
+      - build
     if: |
       ( github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' ) &&
       github.event.action != 'closed'
