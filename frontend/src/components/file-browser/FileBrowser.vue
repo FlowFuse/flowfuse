@@ -153,6 +153,21 @@ export default {
         folder () {
             return [...this.breadcrumbs].pop()
         },
+        isPublicFolder () {
+            if (!this.folder) {
+                return false
+            }
+
+            return Object.prototype.hasOwnProperty.call(this.folder, 'share') &&
+                Object.prototype.hasOwnProperty.call(this.folder.share, 'root')
+        },
+        publicFolderPath () {
+            if (!this.isPublicFolder) {
+                return null
+            }
+
+            return this.folder.share.root
+        },
         instanceId () {
             return this.$route.params.id
         },
@@ -200,6 +215,21 @@ export default {
                             folder: this.folder?.name || ''
                         }
                     }
+                },
+                {
+                    key: 'url',
+                    label: 'URL',
+                    sortable: true,
+                    component: {
+                        is: markRaw(ItemFilePath),
+                        extraProps: {
+                            isBaseUrl: true,
+                            breadcrumbs: this.breadcrumbs,
+                            prepend: this.publicFolderPath,
+                            isNotAvailable: !this.isPublicFolder
+                        }
+                    },
+                    hidden: true
                 },
                 {
                     key: 'lastModified',
