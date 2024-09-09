@@ -45,8 +45,12 @@ export default {
     },
     computed: {
         path () {
-            const breadcrumbs = this.isBaseUrl ? [[...this.breadcrumbs].pop()] : this.breadcrumbs
-            const path = [this.prepend, ...breadcrumbs.map(crumb => crumb.name), this.name].join('/')
+            const breadcrumbs = this.isBaseUrl ? [] : this.breadcrumbs
+            const path = [
+                this.prepend,
+                ...breadcrumbs.map(crumb => crumb.name),
+                this.name
+            ].join('/')
             // clear leading slash
             return path.replace(/^\//, '')
         }
