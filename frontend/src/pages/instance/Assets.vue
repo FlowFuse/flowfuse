@@ -3,7 +3,11 @@
         <div class="banner-wrapper">
             <FeatureUnavailable v-if="!isStaticAssetFeatureEnabledForPlatform" />
             <FeatureUnavailableToTeam v-else-if="!isStaticAssetsFeatureEnabledForTeam" />
-            <FeatureUnavailable v-else-if="!launcherSatisfiesVersion" :message="launcherVersionMessage" :only-custom-message="true" />
+            <FeatureUnavailable
+                v-else-if="!launcherSatisfiesVersion"
+                :message="launcherVersionMessage"
+                :only-custom-message="true"
+            />
         </div>
         <FolderBreadcrumbs
             :breadcrumbs="breadcrumbs"
@@ -111,7 +115,7 @@ export default {
                 }
 
                 const filepath = breadcrumbs.map(crumb => crumb.name).join('/')
-                AssetsAPI.getFiles(this.instance.id, filepath)
+                return AssetsAPI.getFiles(this.instance.id, filepath)
                     .then(files => {
                         this.files = files
                     })
@@ -145,8 +149,18 @@ export default {
                 payload.visibility,
                 payload.path
             )
+                .then((res) => this.loadContents())
                 .then((res) => {
-                    this.loadContents()
+                    if (payload.visibility === 'private') {
+                        delete this.breadcrumbs[this.breadcrumbs.length - 1].share
+                    } else {
+                        this.breadcrumbs[this.breadcrumbs.length - 1] = {
+                            ...this.breadcrumbs[this.breadcrumbs.length - 1],
+                            share: {
+                                root: payload.path
+                            }
+                        }
+                    }
                 })
                 .catch(err => console.warn(err))
         }
@@ -155,7 +169,7 @@ export default {
 </script>
 
 <style lang="scss">
-.banner-wrapper > div{
+.banner-wrapper > div {
   margin-top: 0;
 }
 </style>
