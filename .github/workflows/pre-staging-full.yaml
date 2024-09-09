@@ -71,7 +71,7 @@ jobs:
       publish_package: true
       repository_name: 'FlowFuse/driver-k8s'
       branch_name: ${{ inputs.driver-k8s-branch }}
-      release_name: "flowfuse-k8s-driver-pre-staging-${{ inputs.driver-k8s-branch }}"
+      release_name: "pre-staging-${{ inputs.driver-k8s-branch }}"
     secrets:
       npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
 
