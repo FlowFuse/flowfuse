@@ -2,7 +2,7 @@
     <div>
         <SectionTopMenu hero="Node-RED Instances" help-header="Node-RED Instances - Running in FlowFuse" info="Instances of Node-RED belonging to this application.">
             <template #pictogram>
-                <img src="../../images/pictograms/edge_red.png">
+                <img src="../../images/pictograms/instance_red.png">
             </template>
             <template #helptext>
                 <p>This is a list of Node-RED instances in this Application, hosted on the same domain as FlowFuse.</p>
