@@ -131,7 +131,8 @@ export default {
                         extraProps: {
                             breadcrumbs: this.breadcrumbs,
                             prepend: this.folderStaticPath,
-                            isNotAvailable: !this.isCurrentDirectoryPublic
+                            isNotAvailable: !this.isCurrentDirectoryPublic,
+                            isBaseUrl: true
                         }
                     }
                 }
