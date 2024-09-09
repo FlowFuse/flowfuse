@@ -1,10 +1,11 @@
 <template>
     <ff-dropdown :disabled="isRootFolder">
         <template #placeholder>
-            <div class="flex gap-2"><ProjectIcon class="ff-icon" /> Node-RED Only</div>
+            <div v-if="isCurrentFolderPublic" class="flex gap-2"><GlobeAltIcon class="ff-icon" /> Public</div>
+            <div v-else class="flex gap-2"><ProjectIcon class="ff-icon" /> Node-RED Only</div>
         </template>
         <template #default>
-            <ff-dropdown-option data-action="select-private" @click="selected('private')">
+            <ff-dropdown-option data-action="select-private" :disabled="!isCurrentFolderPublic" @click="selected('private')">
                 <div class="flex gap-2"><ProjectIcon class="ff-icon" /> Node-RED Only</div>
             </ff-dropdown-option>
             <ff-dropdown-option data-action="select-public" @click="showStaticPathSelectionDialog">
@@ -47,11 +48,27 @@ export default {
     computed: {
         isRootFolder () {
             return this.breadcrumbs.length === 0
+        },
+        currentFolder () {
+            if (this.breadcrumbs.length > 0) {
+                return this.breadcrumbs[this.breadcrumbs.length - 1]
+            }
+            return null
+        },
+        isCurrentFolderPublic () {
+            if (!this.currentFolder) {
+                return false
+            }
+
+            return Object.prototype.hasOwnProperty.call(this.currentFolder, 'share') &&
+                Object.prototype.hasOwnProperty.call(this.currentFolder.share, 'root')
         }
     },
     methods: {
         selected (visibility, path) {
-            this.$emit('selected', { visibility, path })
+            if (visibility === 'private' && !this.isCurrentFolderPublic) {
+                // do nothing
+            } else this.$emit('selected', { visibility, path })
         },
         showStaticPathSelectionDialog () {
             this.$refs.selectStaticPath.show()
@@ -65,6 +82,32 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
+.ff-dropdown {
+  min-width: 130px;
 
+  .ff-dropdown-selected {
+    padding-left: 0;
+    padding-right: 0;
+    border: none;
+  }
+
+  .ff-dropdown-options {
+    border: 1px solid $ff-grey-200 !important;
+
+    .ff-dropdown-option {
+      background: white !important;
+      border: none !important;
+
+      &[disabled="true"] {
+        color: $ff-grey-600;
+        cursor: not-allowed;
+      }
+
+      &:hover {
+        background-color: $ff-grey-200 !important;
+      }
+    }
+  }
+}
 </style>
