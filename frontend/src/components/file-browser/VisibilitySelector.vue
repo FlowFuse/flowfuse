@@ -16,6 +16,7 @@
     <ff-dialog
         ref="selectStaticPath" data-el="select-static-path-dialog"
         header="Select a static path"
+        :disablePrimary="staticPath.length === 0"
         @confirm="confirmStaticPath"
     >
         <p style="margin-bottom: 12px">
@@ -74,8 +75,10 @@ export default {
             this.$refs.selectStaticPath.show()
         },
         confirmStaticPath () {
-            this.selected('public', this.staticPath)
-            this.staticPath = ''
+            if (this.staticPath.length > 0) {
+                this.selected('public', this.staticPath)
+                this.staticPath = ''
+            }
         }
     }
 
