@@ -65,6 +65,8 @@ export default {
             clear () {
                 this.file = null
                 this.errors = null
+                // clear the input so that the same file can be selected again
+                this.$refs.fileUpload.value = ''
                 this.$emit('update:modelValue', null)
             }
         }
