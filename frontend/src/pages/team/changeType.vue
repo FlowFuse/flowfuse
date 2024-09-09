@@ -159,7 +159,7 @@ export default {
                    this.input.teamType && this.input.teamType.properties?.billing?.requireContact
         },
         isCurrentUnavailable () {
-            if (!this.teamTypes) {
+            if (this.teamTypes.length === 0) {
                 return false
             }
             // The team's current type is no longer available
