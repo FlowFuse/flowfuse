@@ -22,6 +22,10 @@ export default {
         breadcrumbs: {
             required: true,
             type: Array
+        },
+        instance: {
+            required: true,
+            type: Object
         }
     },
     emits: ['go-back', 'selected-visibility'],
@@ -108,7 +112,8 @@ export default {
                             }
                         }),
                         extraProps: {
-                            breadcrumbs: this.breadcrumbs
+                            breadcrumbs: this.breadcrumbs,
+                            instance: this.instance
                         }
                     }
                 },

@@ -18,10 +18,22 @@
         header="Select a static path"
         :disablePrimary="staticPath.length === 0"
         @confirm="confirmStaticPath"
+        @close="clearStaticPath"
     >
-        <p style="margin-bottom: 12px">
+        <p>
             Please set the static path mapping
         </p>
+        <div class="ff-description">
+            <p>
+                Setting one of the following paths is disabled as it may interfere with internal functionality:
+            </p>
+            <dl>
+                <dt v-for="(restriction, key) in restrictedStaticFilePaths" :key="key">
+                    <span class="code">/{{ restriction }}</span>
+                </dt>
+            </dl>
+        </div>
+
         <ff-text-input v-model="staticPath" placeholder="Static Path" />
     </ff-dialog>
 </template>
@@ -30,6 +42,9 @@
 import { GlobeAltIcon } from '@heroicons/vue/outline'
 
 import ProjectIcon from '../../components/icons/Projects.js'
+import { removeSlashes } from '../../composables/String.js'
+import Alerts from '../../services/alerts.js'
+
 export default {
     name: 'VisibilitySelector',
     components: { ProjectIcon, GlobeAltIcon },
@@ -38,6 +53,11 @@ export default {
         breadcrumbs: {
             type: Array,
             required: true
+        },
+        instance: {
+            required: false,
+            type: [Object],
+            default: null
         }
     },
     emits: ['selected'],
@@ -63,6 +83,17 @@ export default {
 
             return Object.prototype.hasOwnProperty.call(this.currentFolder, 'share') &&
                 Object.prototype.hasOwnProperty.call(this.currentFolder.share, 'root')
+        },
+        restrictedStaticFilePaths () {
+            const restrictions = [
+                '/dashboard',
+                '/ui'
+            ]
+            if (this.instance?.settings?.httpAdminRoot) {
+                restrictions.push(this.instance?.settings?.httpAdminRoot)
+            }
+
+            return restrictions.map(restriction => removeSlashes(restriction))
         }
     },
     methods: {
@@ -76,12 +107,23 @@ export default {
         },
         confirmStaticPath () {
             if (this.staticPath.length > 0) {
-                this.selected('public', this.staticPath)
-                this.staticPath = ''
-            }
+                const startingPath = this.staticPath
+                    .split('/')
+                    .filter(p => p)
+                    .shift()
+                if (!this.restrictedStaticFilePaths.includes(removeSlashes(startingPath))) {
+                    this.selected('public', this.staticPath)
+                    this.clearStaticPath()
+                    Alerts.emit('Instance settings successfully updated. Restart the instance to apply the changes.', 'confirmation', 6000)
+                } else {
+                    Alerts.emit('Unable to set a restricted static path', 'warning')
+                }
+            } else Alerts.emit('Unable to set an empty static path', 'warning')
+        },
+        clearStaticPath () {
+            this.staticPath = ''
         }
     }
-
 }
 </script>
 

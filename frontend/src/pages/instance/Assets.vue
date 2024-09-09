@@ -11,6 +11,7 @@
         </div>
         <FolderBreadcrumbs
             :breadcrumbs="breadcrumbs"
+            :instance="instance"
             @go-back="goBack"
             @selected-visibility="onVisibilitySelected"
         />
@@ -154,12 +155,14 @@ export default {
                     if (payload.visibility === 'private') {
                         delete this.breadcrumbs[this.breadcrumbs.length - 1].share
                     } else {
-                        this.breadcrumbs[this.breadcrumbs.length - 1] = {
-                            ...this.breadcrumbs[this.breadcrumbs.length - 1],
-                            share: {
-                                root: payload.path
-                            }
-                        }
+                        // update the last entry in the breadcrumbs with the updated visibility
+                        // disabled as the folder visibility is not reflected until the instance is restarted
+                        // this.breadcrumbs[this.breadcrumbs.length - 1] = {
+                        //     ...this.breadcrumbs[this.breadcrumbs.length - 1],
+                        //     share: {
+                        //         root: payload.path
+                        //     }
+                        // }
                     }
                 })
                 .catch(err => console.warn(err))
