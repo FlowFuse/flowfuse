@@ -108,7 +108,7 @@ jobs:
         id: set-build-args
         run: |
           if [ "${{ inputs.driver-k8s-branch }}" != "main" ]; then
-            echo "BUILD_ARGS='KUBERNETES_DRIVER_TAG=flowfuse-k8s-driver-pre-staging-${{ github.event.inputs.driver-k8s-branch }}'" >> $GITHUB_ENV
+            echo "BUILD_ARGS=KUBERNETES_DRIVER_TAG=flowfuse-k8s-driver-pre-staging-${{ github.event.inputs.driver-k8s-branch }}" >> $GITHUB_ENV
           else
             echo "BUILD_ARGS=" >> $GITHUB_ENV
           fi
