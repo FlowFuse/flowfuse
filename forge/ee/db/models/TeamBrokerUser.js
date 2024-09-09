@@ -14,15 +14,22 @@ module.exports = {
         },
         acls: { type: DataTypes.STRING, defaultValue: '#' }
     },
+    indexs: [
+        { name: 'broker_users_team_unique', fields: ['username','TeamId'], unique: true }
+    ],
     associations: function (M) {
         this.belongsTo(M.Team)
     },
     finders: function (M) {
         return {
             static: {
-                byUsername: async (username) => {
+                byUsername: async (username, teamHashId) => {
+                    let teamId = teamHashId
+                    if (typeof teamHashId === 'string') {
+                        teamId = M.Team.decodeHashid(teamHashId)
+                    }
                     return this.findOne({
-                        where: { username }
+                        where: { username, TeamId: teamId }
                     })
                 },
                 byTeam: async (teamHashId) => {

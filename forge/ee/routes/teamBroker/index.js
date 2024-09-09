@@ -36,18 +36,44 @@ module.exports = async function (app) {
     app.post('/user', {
 
     }, async (request, reply) => {
-        
+        try {
+            console.log(request.body)
+            const newUser = request.body
+            newUser.acls = JSON.stringify(newUser.acls)
+            const user = await app.db.models.TeamBrokerUser.create({ ...request.body, TeamId: request.team.id})
+            console.log(user)
+            reply.send({
+                username: user.username,
+                acls: user.acls
+            })
+        } catch  (err) {
+            console.log(err)
+            reply.status(500).send({})
+        }
     })
 
     app.get('/user/:username', {
 
     }, async (request, reply) => {
-
+        const user = await app.db.models.TeamBrokerUser.byUsername(request.params.username, request.team.hashid)
+        if (user) {
+            reply.send({
+                username: user.username,
+                acls: user.acls
+            })
+        } else {
+            reply.status(404).send({})
+        }
     })
 
     app.delete('/user/:username', {
 
     }, async (request, reply) => {
-        
+        const user = await app.db.models.TeamBrokerUser.byUsername(request.params.username, request.team.hashid)
+        if (user) {
+            await user.destroy()
+        } else {
+            reply.status(404).send({})
+        }
     })
 }

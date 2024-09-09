@@ -3,7 +3,8 @@ const { compareHash } = require('../../../db/utils')
 module.exports = {
 
     authenticateCredentials: async function (app, username, password) {
-        const user = await app.db.models.TeamBrokerUser.byUsername(username)
+        const parts = username.split('@')
+        const user = await app.db.models.TeamBrokerUser.byUsername(parts[0], parts[1])
         if (!user) {
             return false
         }
