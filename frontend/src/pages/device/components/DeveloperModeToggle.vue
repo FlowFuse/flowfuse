@@ -89,7 +89,18 @@ export default {
             this.$emit('mode-change', devModeOn ? 'developer' : 'autonomous', (err, _result) => {
                 if (err) {
                     console.warn('Error setting developer mode', err)
-                    alerts.emit(err.message, 'warning', 7000)
+                    const basicError = 'An error occurred while attempting to change developer mode.'
+                    if (err.response && typeof err.response.status === 'number') {
+                        if (err.response.status === 403) {
+                            alerts.emit('You do not have permission to change developer mode', 'warning', 7000)
+                        } else if (err.response.status === 401) {
+                            alerts.emit('You are not authorized to change developer mode', 'warning', 7000)
+                        } else {
+                            alerts.emit(basicError, 'warning', 7000)
+                        }
+                    } else {
+                        alerts.emit(basicError, 'warning', 7000)
+                    }
                 } else if (_result) {
                     this.developerModeLocal = _result.mode === 'developer'
                 }
