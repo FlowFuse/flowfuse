@@ -6,7 +6,7 @@ on:
       pr_number:
         description: 'Pull request number'
         required: true
-      driver-k8s-branch:
+      driver_k8s_branch:
         description: 'flowfuse/driver-k8s branch name'
         required: true
         default: 'main'
@@ -70,8 +70,8 @@ jobs:
       package_name: driver-k8s
       publish_package: true
       repository_name: 'FlowFuse/driver-k8s'
-      branch_name: ${{ inputs.driver-k8s-branch }}
-      release_name: "pre-staging-${{ inputs.driver-k8s-branch }}"
+      branch_name: ${{ inputs.driver_k8s_branch }}
+      release_name: "pre-staging-${{ inputs.driver_k8s_branch }}"
     secrets:
       npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
 
@@ -107,8 +107,8 @@ jobs:
       - name: Set build-args if branch is not main
         id: set-build-args
         run: |
-          if [ "${{ inputs.driver-k8s-branch }}" != "main" ]; then
-            echo "BUILD_ARGS=KUBERNETES_DRIVER_TAG=flowfuse-k8s-driver-pre-staging-${{ github.event.inputs.driver-k8s-branch }}" >> $GITHUB_ENV
+          if [ "${{ inputs.driver_k8s_branch }}" != "" ]; then
+            echo "BUILD_ARGS=KUBERNETES_DRIVER_TAG=flowfuse-k8s-driver-pre-staging-${{ inputs.driver_k8s_branch }}" >> $GITHUB_ENV
           else
             echo "BUILD_ARGS=" >> $GITHUB_ENV
           fi
