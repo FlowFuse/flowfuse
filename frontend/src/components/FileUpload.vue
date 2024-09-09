@@ -64,6 +64,7 @@ export default {
         return {
             clear () {
                 this.file = null
+                this.errors = null
                 this.$emit('update:modelValue', null)
             }
         }
@@ -78,7 +79,7 @@ export default {
         onFileChange (event) {
             const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5 MB
             this.file = event.target && event.target.files && event.target.files[0]
-
+            this.errors = null
             // check against max file size
             if (this.file.size > MAX_FILE_SIZE) {
                 this.file = null
