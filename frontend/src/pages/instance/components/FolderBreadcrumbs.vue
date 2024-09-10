@@ -72,7 +72,7 @@ export default {
                     component: {
                         is: markRaw({
                             props: ['shouldDisplayBackButton'],
-                            template: '<arrow-left-icon class="ff-icon cursor-pointer" @click="goBack" v-if="shouldDisplayBackButton"/>',
+                            template: '<span data-action="navigate-back"><arrow-left-icon class="ff-icon cursor-pointer" @click="goBack" v-if="shouldDisplayBackButton"/></span>',
                             components: { ArrowLeftIcon },
                             methods: {
                                 goBack: this.goBack
