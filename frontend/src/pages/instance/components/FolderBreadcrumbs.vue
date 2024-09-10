@@ -124,7 +124,8 @@ export default {
                         is: markRaw(ItemFilePath),
                         extraProps: {
                             breadcrumbs: this.breadcrumbs,
-                            prepend: '/data/storage'
+                            prepend: '/data/storage',
+                            isNotAvailable: !this.isInstanceRunning
                         }
                     }
                 },
@@ -136,7 +137,7 @@ export default {
                         extraProps: {
                             breadcrumbs: this.breadcrumbs,
                             prepend: this.folderStaticPath,
-                            isNotAvailable: !this.isCurrentDirectoryPublic,
+                            isNotAvailable: !this.isCurrentDirectoryPublic || !this.isInstanceRunning,
                             isBaseUrl: true
                         }
                     }
@@ -144,7 +145,14 @@ export default {
 
             ]
         },
+        isInstanceRunning () {
+            return this.instance?.meta?.state === 'running'
+        },
         shouldDisplayTheBackButton () {
+            if (!this.isInstanceRunning) {
+                return false
+            }
+
             return this.breadcrumbs.length > 0
         }
     },

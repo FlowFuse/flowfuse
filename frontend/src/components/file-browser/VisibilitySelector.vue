@@ -1,5 +1,5 @@
 <template>
-    <ff-dropdown :disabled="isRootFolder">
+    <ff-dropdown :disabled="isDisabled">
         <template #placeholder>
             <div v-if="isCurrentFolderPublic" class="flex gap-2"><GlobeAltIcon class="ff-icon" /> Public</div>
             <div v-else class="flex gap-2"><ProjectIcon class="ff-icon" /> Node-RED Only</div>
@@ -94,6 +94,13 @@ export default {
             }
 
             return restrictions.map(restriction => removeSlashes(restriction))
+        },
+        isDisabled () {
+            if (this.isRootFolder) {
+                return true
+            }
+
+            return this.instance?.meta?.state !== 'running'
         }
     },
     methods: {
