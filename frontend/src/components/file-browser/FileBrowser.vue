@@ -132,6 +132,10 @@ export default {
             required: false,
             default: '',
             type: String
+        },
+        instance: {
+            required: true,
+            type: Object
         }
     },
     emits: ['change-directory', 'items-updated'],
@@ -224,7 +228,7 @@ export default {
                     component: {
                         is: markRaw(ItemFilePath),
                         extraProps: {
-                            isBaseUrl: true,
+                            aseUrl: this.instance?.url,
                             breadcrumbs: this.breadcrumbs,
                             prepend: this.publicFolderPath,
                             isNotAvailable: !this.isPublicFolder

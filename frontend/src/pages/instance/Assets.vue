@@ -18,6 +18,7 @@
         <FileBrowser
             :breadcrumbs="breadcrumbs"
             :items="sortedFiles"
+            :instance="instance"
             :disabled="!isFeatureEnabled"
             :no-data-message="!isInstanceRunning ? instanceSuspendedMessage : ''"
             @items-updated="loadContents"

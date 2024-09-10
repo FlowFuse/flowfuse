@@ -138,7 +138,7 @@ export default {
                             breadcrumbs: this.breadcrumbs,
                             prepend: this.folderStaticPath,
                             isNotAvailable: !this.isCurrentDirectoryPublic || !this.isInstanceRunning,
-                            isBaseUrl: true
+                            baseUrl: this.instance?.url
                         }
                     }
                 }
