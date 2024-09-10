@@ -35,6 +35,7 @@ import FeatureUnavailableToTeam from '../../components/banners/FeatureUnavailabl
 import FileBrowser from '../../components/file-browser/FileBrowser.vue'
 import featuresMixin from '../../mixins/Features.js'
 import permissionsMixin from '../../mixins/Permissions.js'
+import Alerts from '../../services/alerts.js'
 
 import FolderBreadcrumbs from './components/FolderBreadcrumbs.vue'
 
@@ -96,20 +97,22 @@ export default {
     watch: {
         isInstanceRunning (newState, oldState) {
             if (newState && !oldState) {
-                this.loadContents()
+                this.loadContents(this.breadcrumbs, true)
             } else {
                 this.files = []
             }
         },
-        currentDirectory () {
-            this.loadContents()
+        currentDirectory (currentDirectory, previousDirectory) {
+            if (currentDirectory?.name !== previousDirectory?.name) {
+                this.loadContents()
+            }
         }
     },
     mounted () {
         this.loadContents()
     },
     methods: {
-        loadContents (breadcrumbs = []) {
+        loadContents (breadcrumbs = [], reloadDirectory = false) {
             if (this.isFeatureEnabled) {
                 if (breadcrumbs.length === 0) {
                     breadcrumbs = this.breadcrumbs
@@ -117,8 +120,11 @@ export default {
 
                 const filepath = breadcrumbs.map(crumb => crumb.name).join('/')
                 return AssetsAPI.getFiles(this.instance.id, filepath)
-                    .then(files => {
-                        this.files = files
+                    .then(payload => {
+                        this.files = payload.files
+                        if (payload.folder && reloadDirectory) {
+                            this.breadcrumbs[this.breadcrumbs.length - 1] = payload.folder
+                        }
                     })
                     .catch(error => {
                         console.error(error)
@@ -151,20 +157,7 @@ export default {
                 payload.path
             )
                 .then((res) => this.loadContents())
-                .then((res) => {
-                    if (payload.visibility === 'private') {
-                        delete this.breadcrumbs[this.breadcrumbs.length - 1].share
-                    } else {
-                        // update the last entry in the breadcrumbs with the updated visibility
-                        // disabled as the folder visibility is not reflected until the instance is restarted
-                        // this.breadcrumbs[this.breadcrumbs.length - 1] = {
-                        //     ...this.breadcrumbs[this.breadcrumbs.length - 1],
-                        //     share: {
-                        //         root: payload.path
-                        //     }
-                        // }
-                    }
-                })
+                .then((res) => Alerts.emit('Instance settings successfully updated. Restart the instance to apply the changes.', 'confirmation', 6000))
                 .catch(err => console.warn(err))
         }
     }
