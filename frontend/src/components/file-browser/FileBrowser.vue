@@ -212,6 +212,7 @@ export default {
                         is: markRaw(ItemFilePath),
                         extraProps: {
                             breadcrumbs: this.breadcrumbs,
+                            prepend: '/data/storage',
                             folder: this.folder?.name || ''
                         }
                     }

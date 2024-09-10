@@ -46,18 +46,16 @@ export default {
     computed: {
         path () {
             const breadcrumbs = this.isBaseUrl ? [] : this.breadcrumbs
-            const path = [
+            return [
                 this.prepend,
                 ...breadcrumbs.map(crumb => crumb.name),
                 this.name
             ].join('/')
-            // clear leading slash
-            return path.replace(/^\//, '')
         }
     },
     methods: {
         copyPath () {
-            navigator.clipboard.writeText('/' + this.path)
+            navigator.clipboard.writeText(this.path)
 
             // show "Copied" notification
             this.$refs.copied.style.display = 'inline'
