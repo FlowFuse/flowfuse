@@ -340,9 +340,11 @@ describe('FlowForge - Instance - Assets', () => {
 
             cy.get('[data-el="folder-breadcrumbs"]').contains('hello_world')
 
-            cy.get('[data-el="folder-breadcrumbs"]').contains('Storage').click()
+            cy.get('[data-action="navigate-back"]').click()
 
             cy.get('[data-el="folder-breadcrumbs"]').should('not.contain', 'hello_world')
+
+            cy.get('[data-el="files-table"] table tbody').contains('hello_world')
         })
     })
 })
