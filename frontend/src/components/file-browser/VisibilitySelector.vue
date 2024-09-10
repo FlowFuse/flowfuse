@@ -1,5 +1,5 @@
 <template>
-    <ff-dropdown :disabled="isDisabled">
+    <ff-dropdown :disabled="isDisabled" data-el="visibility-selector">
         <template #placeholder>
             <div v-if="isCurrentFolderPublic" class="flex gap-2"><GlobeAltIcon class="ff-icon" /> Public</div>
             <div v-else class="flex gap-2"><ProjectIcon class="ff-icon" /> Node-RED Only</div>
