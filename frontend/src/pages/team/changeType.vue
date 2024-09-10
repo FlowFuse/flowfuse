@@ -32,6 +32,9 @@
                             Please contact <a href="https://flowfuse.com/support/" class="underline" target="_blank">Support</a> for help.
                         </p>
                     </div>
+                    <div v-else-if="isCurrentUnavailable">
+                        <p>Your current team plan is no longer available. Please select a new plan to continue.</p>
+                    </div>
                 </div>
                 <!-- TeamType Type -->
                 <div class="grid">
@@ -155,6 +158,13 @@ export default {
                    !this.user.admin &&
                    this.input.teamType && this.input.teamType.properties?.billing?.requireContact
         },
+        isCurrentUnavailable () {
+            if (this.teamTypes.length === 0) {
+                return false
+            }
+            // The team's current type is no longer available
+            return !this.teamTypes.find(tt => tt.id === this.team.type.id)
+        },
         upgradeErrors () {
             if (!this.input.teamType) {
                 return
@@ -232,6 +242,9 @@ export default {
         'input.teamTypeId': function (v) {
             if (v) {
                 this.input.teamType = this.teamTypes.find(tt => tt.id === v)
+                if (!this.input.teamType && this.team.type.id === v) {
+                    this.input.teamType = this.team.type
+                }
             } else {
                 this.input.teamType = null
             }
