@@ -57,7 +57,7 @@ export default {
     },
     methods: {
         copyPath () {
-            navigator.clipboard.writeText(this.path)
+            navigator.clipboard.writeText('/' + this.path)
 
             // show "Copied" notification
             this.$refs.copied.style.display = 'inline'
