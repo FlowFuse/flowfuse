@@ -4,7 +4,10 @@ const getFiles = function (instanceId, path) {
     // remove leading / from path
     path = path.replace(/^\//, '')
     return client.get(`/api/v1/projects/${instanceId}/files/_/${encodeURIComponent(path || '')}`).then(res => {
-        return res.data.files
+        return {
+            files: res.data.files,
+            folder: res.data.folder
+        }
     })
 }
 
