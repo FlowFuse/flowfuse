@@ -7,7 +7,8 @@ module.exports = async function (app) {
                 required: ['username', 'password'],
                 properties: {
                     username: { type: 'string' },
-                    password: { type: 'string' }
+                    password: { type: 'string' },
+                    clientId: { type: 'string' }
                 }
             },
             response: {
@@ -24,6 +25,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
+        console.log(request.body)
         const auth = await app.db.controllers.TeamBrokerUser.authenticateCredentials(request.body.username, request.body.password)
         if (auth) {
             const parts = request.body.username.split('@')
