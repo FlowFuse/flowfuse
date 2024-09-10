@@ -114,7 +114,6 @@ export default {
                 if (!this.restrictedStaticFilePaths.includes(removeSlashes(startingPath))) {
                     this.selected('public', this.staticPath)
                     this.clearStaticPath()
-                    Alerts.emit('Instance settings successfully updated. Restart the instance to apply the changes.', 'confirmation', 6000)
                 } else {
                     Alerts.emit('Unable to set a restricted static path', 'warning')
                 }
