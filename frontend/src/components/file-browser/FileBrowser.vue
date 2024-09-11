@@ -251,9 +251,8 @@ export default {
             this.$refs[dialog].show()
         },
         createFolder () {
-            const pwd = this.baseURI + '/' + (this.folder?.name || '')
             this.loading = true
-            AssetsAPI.createFolder(this.instanceId, pwd, this.forms.newFolder.name)
+            AssetsAPI.createFolder(this.instanceId, this.baseURI, this.forms.newFolder.name)
                 .then(() => this.$emit('items-updated'))
                 .catch(error => {
                     console.error(error)
