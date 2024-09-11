@@ -228,7 +228,7 @@ export default {
                     component: {
                         is: markRaw(ItemFilePath),
                         extraProps: {
-                            aseUrl: this.instance?.url,
+                            baseURL: this.instance?.url,
                             breadcrumbs: this.breadcrumbs,
                             prepend: this.publicFolderPath,
                             isNotAvailable: !this.isPublicFolder

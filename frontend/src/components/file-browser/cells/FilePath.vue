@@ -37,22 +37,21 @@ export default {
             default: false,
             type: Boolean
         },
-        baseUrl: {
+        baseURL: {
             required: false,
             default: null,
-            type: String
+            type: [String, null]
         }
     },
     computed: {
         path () {
-            if (this.baseUrl) {
-                const url = new URL(this.baseUrl)
+            if (this.baseURL && this.baseURL.length > 0) {
+                const url = new URL(this.baseURL)
                 return [url.origin, this.prepend, this.name].join('/')
             }
-            const breadcrumbs = this.baseUrl ? [] : this.breadcrumbs
             return [
                 this.prepend,
-                ...breadcrumbs.map(crumb => crumb.name),
+                ...this.breadcrumbs.map(crumb => crumb.name),
                 this.name
             ].join('/')
         }
