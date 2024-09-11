@@ -1,7 +1,7 @@
 <template>
     <div v-if="!isNotAvailable" class="ff-row-file--copy">
         <span class="path" :title="path">{{ path }}</span>
-        <DuplicateIcon class="ff-icon" @click="copyPath" @click.prevent.stop />
+        <DuplicateIcon v-if="path.length" class="ff-icon" @click="copyPath" @click.prevent.stop />
         <span ref="copied" class="ff-copied">Copied!</span>
     </div>
     <span v-else class="not-available">Not Available</span>
@@ -18,18 +18,13 @@ export default {
     },
     inheritAttrs: false,
     props: {
-        type: {
-            required: false,
-            type: String,
-            default: 'file'
-        },
         name: {
             required: false,
             type: String,
             default: ''
         },
         breadcrumbs: {
-            default: null,
+            default: () => [],
             type: Array
         },
         prepend: {
@@ -41,11 +36,25 @@ export default {
             required: false,
             default: false,
             type: Boolean
+        },
+        baseURL: {
+            required: false,
+            default: null,
+            type: [String, null]
         }
     },
     computed: {
         path () {
-            const path = [this.prepend, ...this.breadcrumbs, this.name].join('/')
+            if (this.baseURL && this.baseURL.length > 0) {
+                const url = new URL(this.baseURL)
+                return [url.origin, this.prepend, this.name].join('/')
+            }
+            const path = [
+                this.prepend,
+                ...this.breadcrumbs.map(crumb => crumb.name),
+                this.name
+            ].join('/')
+
             // clear leading slash
             return path.replace(/^\//, '')
         }

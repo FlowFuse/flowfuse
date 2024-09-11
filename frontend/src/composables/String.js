@@ -20,3 +20,14 @@ export const dateToSlug = (date) => {
 
     return `${year}-${month}-${day}_${hours}-${minutes}`
 }
+
+// utility function to remove leading and trailing slashes
+export const removeSlashes = (str, leading = true, trailing = true) => {
+    if (leading && str.startsWith('/')) {
+        str = str.slice(1)
+    }
+    if (trailing && str.endsWith('/')) {
+        str = str.slice(0, -1)
+    }
+    return str
+}

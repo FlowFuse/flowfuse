@@ -3,17 +3,22 @@
         <div class="banner-wrapper">
             <FeatureUnavailable v-if="!isStaticAssetFeatureEnabledForPlatform" />
             <FeatureUnavailableToTeam v-else-if="!isStaticAssetsFeatureEnabledForTeam" />
-            <FeatureUnavailable v-else-if="!launcherSatisfiesVersion" :message="launcherVersionMessage" :only-custom-message="true" />
+            <FeatureUnavailable
+                v-else-if="!launcherSatisfiesVersion"
+                :message="launcherVersionMessage"
+                :only-custom-message="true"
+            />
         </div>
         <FolderBreadcrumbs
-            :current-directory="currentDirectory"
             :breadcrumbs="breadcrumbs"
-            @clicked="breadcrumbClicked"
+            :instance="instance"
             @go-back="goBack"
+            @selected-visibility="onVisibilitySelected"
         />
         <FileBrowser
             :breadcrumbs="breadcrumbs"
-            :folder="currentDirectory" :items="sortedFiles"
+            :items="sortedFiles"
+            :instance="instance"
             :disabled="!isFeatureEnabled"
             :no-data-message="!isInstanceRunning ? instanceSuspendedMessage : ''"
             @items-updated="loadContents"
@@ -31,6 +36,7 @@ import FeatureUnavailableToTeam from '../../components/banners/FeatureUnavailabl
 import FileBrowser from '../../components/file-browser/FileBrowser.vue'
 import featuresMixin from '../../mixins/Features.js'
 import permissionsMixin from '../../mixins/Permissions.js'
+import Alerts from '../../services/alerts.js'
 
 import FolderBreadcrumbs from './components/FolderBreadcrumbs.vue'
 
@@ -51,20 +57,20 @@ export default {
         }
     },
     data () {
-        // const breadcrumbs = this.$route.params.filePath
-        // const dir = breadcrumbs.pop() || '/'
         return {
             breadcrumbs: [],
-            // default current directory
-            currentDirectory: {
-                name: null
-            },
             files: [],
             launcherVersionMessage: 'You are using an incompatible Launcher Version. You need to upgrade to => 2.8.0 in order to use this feature.',
             instanceSuspendedMessage: 'The instance must be running to access its assets.'
         }
     },
     computed: {
+        currentDirectory () {
+            if (this.breadcrumbs.length) {
+                return this.breadcrumbs[this.breadcrumbs.length - 1]
+            }
+            return null
+        },
         launcherSatisfiesVersion () {
             if (!this.isInstanceRunning) {
                 return true
@@ -92,9 +98,14 @@ export default {
     watch: {
         isInstanceRunning (newState, oldState) {
             if (newState && !oldState) {
-                this.loadContents()
+                this.loadContents(this.breadcrumbs, true)
             } else {
                 this.files = []
+            }
+        },
+        currentDirectory (currentDirectory, previousDirectory) {
+            if (currentDirectory?.name !== previousDirectory?.name) {
+                this.loadContents()
             }
         }
     },
@@ -102,12 +113,19 @@ export default {
         this.loadContents()
     },
     methods: {
-        loadContents () {
+        loadContents (breadcrumbs = [], reloadDirectory = false) {
             if (this.isFeatureEnabled) {
-                const filepath = this.breadcrumbs.join('/')
-                AssetsAPI.getFiles(this.instance.id, filepath)
-                    .then(files => {
-                        this.files = files
+                if (breadcrumbs.length === 0) {
+                    breadcrumbs = this.breadcrumbs
+                }
+
+                const filepath = breadcrumbs.map(crumb => crumb.name).join('/')
+                return AssetsAPI.getFiles(this.instance.id, filepath)
+                    .then(payload => {
+                        this.files = payload.files
+                        if (payload.folder && reloadDirectory) {
+                            this.breadcrumbs[this.breadcrumbs.length - 1] = payload.folder
+                        }
                     })
                     .catch(error => {
                         console.error(error)
@@ -115,31 +133,40 @@ export default {
             }
         },
         changeDirectory (dir) {
-            this.currentDirectory.name = dir.name
-            if (this.currentDirectory.name) {
-                this.breadcrumbs.push(this.currentDirectory.name)
+            if (dir.name) {
+                this.breadcrumbs.push(dir)
             }
-            this.loadContents()
         },
-        breadcrumbClicked ($index) {
-            this.currentDirectory.name = this.breadcrumbs[$index] || ''
-            this.breadcrumbs = this.breadcrumbs.slice(0, $index)
-            this.loadContents()
-        },
-        goBack (dir) {
+        goBack () {
             this.breadcrumbs.pop()
             if (this.breadcrumbs.length === 0) {
-                this.changeDirectory({ name: null })
+                this.changeDirectory(null)
             } else {
-                this.changeDirectory({ name: this.breadcrumbs.pop() })
+                this.changeDirectory(this.breadcrumbs.pop())
             }
+        },
+        onVisibilitySelected (payload) {
+            const pwd = this.breadcrumbs
+                .map(crumb => crumb.name)
+                .join('/')
+                .replace('//', '/')
+
+            AssetsAPI.updateVisibility(
+                this.instance.id,
+                pwd,
+                payload.visibility,
+                payload.path
+            )
+                .then((res) => this.loadContents())
+                .then((res) => Alerts.emit('Instance settings successfully updated. Restart the instance to apply the changes.', 'confirmation', 6000))
+                .catch(err => console.warn(err))
         }
     }
 }
 </script>
 
 <style lang="scss">
-.banner-wrapper > div{
+.banner-wrapper > div {
   margin-top: 0;
 }
 </style>

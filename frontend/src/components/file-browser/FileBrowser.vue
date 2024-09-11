@@ -119,13 +119,9 @@ export default {
             required: true,
             type: Object
         },
-        folder: {
-            required: true,
-            type: Object
-        },
         breadcrumbs: {
             required: true,
-            type: Object
+            type: Array
         },
         disabled: {
             required: false,
@@ -136,6 +132,10 @@ export default {
             required: false,
             default: '',
             type: String
+        },
+        instance: {
+            required: true,
+            type: Object
         }
     },
     emits: ['change-directory', 'items-updated'],
@@ -154,15 +154,36 @@ export default {
         }
     },
     computed: {
+        folder () {
+            return [...this.breadcrumbs].pop()
+        },
+        isPublicFolder () {
+            if (!this.folder) {
+                return false
+            }
+
+            return Object.prototype.hasOwnProperty.call(this.folder, 'share') &&
+                Object.prototype.hasOwnProperty.call(this.folder.share, 'root')
+        },
+        publicFolderPath () {
+            if (!this.isPublicFolder) {
+                return null
+            }
+
+            return this.folder.share.root
+        },
         instanceId () {
             return this.$route.params.id
         },
         pwd () {
-            return [...this.breadcrumbs].filter(b => b).join('/').replace('//', '/')
+            return [...this.breadcrumbs.map(crumb => crumb.name)]
+                .filter(b => b)
+                .join('/')
+                .replace('//', '/')
         },
         baseURI () {
             // clear null values
-            const breadcrumbs = this.breadcrumbs.filter(n => n)
+            const breadcrumbs = this.breadcrumbs.map(crumb => crumb.name).filter(n => n)
             return breadcrumbs.join('/').replace('//', '/')
         },
         columns () {
@@ -195,9 +216,24 @@ export default {
                         is: markRaw(ItemFilePath),
                         extraProps: {
                             breadcrumbs: this.breadcrumbs,
-                            folder: this.folder.name || ''
+                            folder: this.folder?.name || ''
                         }
                     }
+                },
+                {
+                    key: 'url',
+                    label: 'URL',
+                    sortable: true,
+                    component: {
+                        is: markRaw(ItemFilePath),
+                        extraProps: {
+                            baseURL: this.instance?.url,
+                            breadcrumbs: this.breadcrumbs,
+                            prepend: this.publicFolderPath,
+                            isNotAvailable: !this.isPublicFolder
+                        }
+                    },
+                    hidden: true
                 },
                 {
                     key: 'lastModified',
@@ -207,7 +243,7 @@ export default {
             ]
         },
         noDataMessages () {
-            return this.noDataMessage.length ? this.noDataMessage : `No files in '${this.folder.name || 'Storage'}'`
+            return this.noDataMessage.length ? this.noDataMessage : `No files in '${this.folder?.name || 'Storage'}'`
         }
     },
     methods: {
@@ -215,9 +251,8 @@ export default {
             this.$refs[dialog].show()
         },
         createFolder () {
-            const pwd = this.baseURI + '/' + (this.folder.name || '')
             this.loading = true
-            AssetsAPI.createFolder(this.instanceId, pwd, this.forms.newFolder.name)
+            AssetsAPI.createFolder(this.instanceId, this.baseURI, this.forms.newFolder.name)
                 .then(() => this.$emit('items-updated'))
                 .catch(error => {
                     console.error(error)
