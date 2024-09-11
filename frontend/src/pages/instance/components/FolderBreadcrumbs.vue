@@ -97,6 +97,9 @@ export default {
                         extraProps: {
                             currentDirectory: this.currentDirectoryName
                         }
+                    },
+                    style: {
+                        width: '200px'
                     }
                 },
                 {
@@ -115,6 +118,9 @@ export default {
                             breadcrumbs: this.breadcrumbs,
                             instance: this.instance
                         }
+                    },
+                    style: {
+                        width: '200px'
                     }
                 },
                 {
