@@ -124,7 +124,6 @@ export default {
                         is: markRaw(ItemFilePath),
                         extraProps: {
                             breadcrumbs: this.breadcrumbs,
-                            prepend: '/data/storage',
                             isNotAvailable: !this.isInstanceRunning
                         }
                     }

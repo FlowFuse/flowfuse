@@ -1,7 +1,7 @@
 <template>
     <div v-if="!isNotAvailable" class="ff-row-file--copy">
         <span class="path" :title="path">{{ path }}</span>
-        <DuplicateIcon class="ff-icon" @click="copyPath" @click.prevent.stop />
+        <DuplicateIcon v-if="path.length" class="ff-icon" @click="copyPath" @click.prevent.stop />
         <span ref="copied" class="ff-copied">Copied!</span>
     </div>
     <span v-else class="not-available">Not Available</span>
