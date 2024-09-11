@@ -49,11 +49,14 @@ export default {
                 const url = new URL(this.baseURL)
                 return [url.origin, this.prepend, this.name].join('/')
             }
-            return [
+            const path = [
                 this.prepend,
                 ...this.breadcrumbs.map(crumb => crumb.name),
                 this.name
             ].join('/')
+
+            // clear leading slash
+            return path.replace(/^\//, '')
         }
     },
     methods: {
