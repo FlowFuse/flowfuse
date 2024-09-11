@@ -119,7 +119,7 @@ export default {
                     .filter(p => p)
                     .shift()
                 if (!this.restrictedStaticFilePaths.includes(removeSlashes(startingPath))) {
-                    this.selected('public', this.staticPath)
+                    this.selected('public', this.staticPath.replace(/^\//, ''))
                     this.clearStaticPath()
                 } else {
                     Alerts.emit('Unable to set a restricted static path', 'warning')
