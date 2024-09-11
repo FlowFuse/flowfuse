@@ -5,7 +5,7 @@
  * No new functionality should be added here.
  */
 import ApplicationActivity from './Activity.vue'
-import Dependencies from './Dependencies.vue'
+import Dependencies from './Dependencies/Dependencies.vue'
 import ApplicationDeviceGroupDevices from './DeviceGroup/devices.vue'
 import ApplicationDeviceGroupIndex from './DeviceGroup/index.vue'
 import ApplicationDeviceGroupSettings from './DeviceGroup/settings.vue'

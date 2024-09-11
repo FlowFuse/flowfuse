@@ -1,7 +1,9 @@
 <template>
     <div class="ff-accordion" :class="{'open': isOpen}">
         <button class="ff-accordion--button" :disabled="disabled" @click="toggle()">
-            <label>{{ label }}</label>
+            <slot name="label">
+                <label>{{ label }}</label>
+            </slot>
             <div>
                 <slot name="meta" />
                 <ChevronLeftIcon v-if="!disabled" class="ff-icon" />
@@ -24,7 +26,8 @@ export default {
     props: {
         label: {
             type: String,
-            required: true
+            required: false,
+            default: ''
         },
         setOpen: {
             type: Boolean,
