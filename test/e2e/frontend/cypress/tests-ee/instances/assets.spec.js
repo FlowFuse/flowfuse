@@ -374,7 +374,7 @@ describe('FlowForge - Instance - Assets', () => {
             cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-dropdown-options')
                 .should('not.be.visible')
             cy.get('[data-el="folder-breadcrumbs"]').contains('Storage')
-            cy.get('[data-el="folder-breadcrumbs"]').contains('data/storage/')
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="ff-data-cell"]:nth-child(4) .path').should('be.empty')
         })
 
         it('displays an enabled visibility selector on nested folders and correct folder path', () => {
@@ -400,7 +400,7 @@ describe('FlowForge - Instance - Assets', () => {
                 .should('not.be.visible')
 
             cy.get('[data-el="folder-breadcrumbs"]').contains('Storage')
-            cy.get('[data-el="folder-breadcrumbs"]').contains('data/storage/')
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="ff-data-cell"]:nth-child(4) .path').should('be.empty')
 
             cy.get('[data-el="files-table"] table tbody tr').contains('hello_world').click()
             cy.wait('@getNestedFiles')
@@ -410,9 +410,9 @@ describe('FlowForge - Instance - Assets', () => {
             cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-dropdown-options')
                 .should('be.visible')
 
-            cy.get('[data-el="folder-breadcrumbs"]').contains('hello_world')
-            cy.get('[data-el="folder-breadcrumbs"]').contains('data/storage/hello_world')
-            cy.get('[data-el="folder-breadcrumbs"]').contains('Not Available')
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="ff-data-cell"]:nth-child(2)').contains('hello_world')
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="ff-data-cell"]:nth-child(4)').contains('hello_world/')
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="ff-data-cell"]:nth-child(5)').contains('Not Available')
         })
 
         it('prevents users to set private visibility when the folder is private', () => {
