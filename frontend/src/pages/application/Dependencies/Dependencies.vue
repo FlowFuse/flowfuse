@@ -21,6 +21,10 @@ export default {
         application: {
             type: Object,
             required: true
+        },
+        instances: {
+            type: Array,
+            required: true
         }
     },
     data () {
@@ -30,18 +34,26 @@ export default {
     },
     computed: {
         dependencies () {
-            return this.payload.children.reduce((acc, currentInstance) => {
-                currentInstance.dependencies.forEach(dep => {
-                    if (!Object.prototype.hasOwnProperty.call(acc, dep.name)) {
-                        acc[dep.name] = { }
+            return this.payload.children
+                .map(instance => {
+                    const fullInstanceData = this.instances.find(ins => ins.id === instance.id)
+                    if (fullInstanceData && Object.prototype.hasOwnProperty.call(fullInstanceData, 'meta')) {
+                        instance.meta = fullInstanceData.meta
                     }
-                    if (!Object.prototype.hasOwnProperty.call(acc[dep.name], dep.version.installed)) {
-                        acc[dep.name][dep.version.installed] = []
-                    }
-                    acc[dep.name][dep.version.installed].push(currentInstance)
+                    return instance
                 })
-                return acc
-            }, {})
+                .reduce((acc, currentInstance) => {
+                    currentInstance.dependencies.forEach(dep => {
+                        if (!Object.prototype.hasOwnProperty.call(acc, dep.name)) {
+                            acc[dep.name] = { }
+                        }
+                        if (!Object.prototype.hasOwnProperty.call(acc[dep.name], dep.version.installed)) {
+                            acc[dep.name][dep.version.installed] = []
+                        }
+                        acc[dep.name][dep.version.installed].push(currentInstance)
+                    })
+                    return acc
+                }, {})
         }
     },
     mounted () {

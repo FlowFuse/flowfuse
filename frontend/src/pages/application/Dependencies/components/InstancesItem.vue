@@ -10,7 +10,7 @@
             </h6>
         </div>
         <div class="actions">
-            <status-badge :status="'running'" />
+            <status-badge v-if="!isDevice" :status="instance.meta?.state" />
         </div>
     </div>
 </template>
