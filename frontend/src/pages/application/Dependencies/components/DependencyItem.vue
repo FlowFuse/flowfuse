@@ -108,10 +108,9 @@ export default {
 
   &:last-of-type {
     .ff-accordion {
-
-    button {
-      border-bottom: none;
-    }
+      button {
+        border-bottom: none;
+      }
   }
   }
 }

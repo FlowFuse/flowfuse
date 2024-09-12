@@ -1,5 +1,5 @@
 <template>
-    <ff-accordion>
+    <ff-accordion class="versions-list">
         <template #label>
             <span class="version">{{ version }}</span>
             <div class="counter">
@@ -52,20 +52,23 @@ export default {
 </script>
 
 <style lang="scss">
-.ff-accordion {
+.versions-list.ff-accordion {
   margin: 0;
 
   button {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
     background: $ff-white;
-    color: $ff-black;
     gap: 15px;
+    border: none;
+    border-bottom: 1px solid $ff-grey-300;
 
     .version {
       grid-column-start: 2;
       display: flex;
       justify-content: flex-start;
+      color: $ff-black;
+      font-weight: 500;
     }
 
     .counter {
