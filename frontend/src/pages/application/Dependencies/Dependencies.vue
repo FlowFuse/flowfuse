@@ -1,21 +1,51 @@
 <template>
-    <ff-loading v-if="loading" message="Loading Snapshots..." />
-    <div v-else class="dependencies-wrapper">
-        <ff-text-input
-            v-model="searchTerm"
-            class="ff-data-table--search mb-5"
-            data-form="search"
-            placeholder="Search Package Dependency, Instance or Device"
-        >
-            <template #icon><SearchIcon /></template>
-        </ff-text-input>
-        <div class="dependencies">
-            <dependency-item
-                v-for="(versions, dependencyTitle) in dependencies"
-                :key="dependencyTitle"
-                :title="dependencyTitle"
-                :versions="versions"
-            />
+    <div class="dependencies-wrapper">
+        <SectionTopMenu hero="Dependencies" help-header="Node-RED Dependencies - Running in FlowFuse" info="Dependencies of Node-RED Instances belonging to this application.">
+            <template #pictogram>
+                <img src="../../../images/pictograms/edge_red.png">
+            </template>
+            <template #helptext>
+                <p>This is a list of Node-RED Dependencies in this Application, hosted on the same domain as FlowFuse.</p>
+            </template>
+        </SectionTopMenu>
+
+        <div class="space-y-6 mb-12">
+            <ff-loading v-if="loading" message="Loading Snapshots..." />
+            <div v-else-if="hasInstances">
+                <ff-text-input
+                    v-model="searchTerm"
+                    class="ff-data-table--search mb-5 mt-5"
+                    data-form="search"
+                    placeholder="Search Package Dependency, Instance or Device"
+                >
+                    <template #icon><SearchIcon /></template>
+                </ff-text-input>
+                <div v-if="Object.keys(dependencies).length > 0" class="dependencies">
+                    <dependency-item
+                        v-for="(versions, dependencyTitle) in dependencies"
+                        :key="dependencyTitle"
+                        :title="dependencyTitle"
+                        :versions="versions"
+                    />
+                </div>
+                <div v-else class="empty text-center opacity-60">
+                    <p>Oops! We couldn't find any matching results.</p>
+                </div>
+            </div>
+            <EmptyState v-else>
+                <template #img>
+                    <img src="../../../images/empty-states/application-instances.png">
+                </template>
+                <template #header>Your application doesn't contain any Instances or Devices</template>
+                <template #message>
+                    <p>
+                        Applications in FlowFuse are used to manage groups of Node-RED Instances and Devices.
+                    </p>
+                    <p>
+                        Once you assign an Instance or Device to this application, you'll be able to view a complete list of their dependencies.
+                    </p>
+                </template>
+            </EmptyState>
         </div>
     </div>
 </template>
@@ -24,12 +54,19 @@
 import { SearchIcon } from '@heroicons/vue/outline'
 
 import ApplicationsApi from '../../../api/application.js'
+import EmptyState from '../../../components/EmptyState.vue'
+import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 
 import DependencyItem from './components/DependencyItem.vue'
 
 export default {
     name: 'ApplicationDependencies',
-    components: { SearchIcon, DependencyItem },
+    components: {
+        EmptyState,
+        SectionTopMenu,
+        SearchIcon,
+        DependencyItem
+    },
     inheritAttrs: false,
     props: {
         application: {
@@ -43,17 +80,27 @@ export default {
     },
     data () {
         return {
-            payload: [],
+            payload: null,
             loading: false,
             searchTerm: ''
         }
     },
     computed: {
-        dependencies () {
-            if (!this.payload.children) {
-                return {}
+        extendedInstances () {
+            if (!this.payload?.children) {
+                return []
             }
-            return this.payload.children
+
+            return this.payload.children.map(instance => {
+                const fullInstanceData = this.instances.find(ins => ins.id === instance.id)
+                if (fullInstanceData && Object.prototype.hasOwnProperty.call(fullInstanceData, 'meta')) {
+                    instance.meta = fullInstanceData.meta
+                }
+                return instance
+            })
+        },
+        filteredInstances () {
+            return this.extendedInstances
                 .filter(instance => {
                     if (this.searchTerm.length === 0) {
                         return true
@@ -67,25 +114,24 @@ export default {
                     ].map(term => term.toLowerCase().includes(this.searchTerm.trim().toLowerCase()))
                         .includes(true)
                 })
-                .map(instance => {
-                    const fullInstanceData = this.instances.find(ins => ins.id === instance.id)
-                    if (fullInstanceData && Object.prototype.hasOwnProperty.call(fullInstanceData, 'meta')) {
-                        instance.meta = fullInstanceData.meta
+        },
+
+        dependencies () {
+            return this.filteredInstances.reduce((acc, currentInstance) => {
+                currentInstance.dependencies.forEach(dep => {
+                    if (!Object.prototype.hasOwnProperty.call(acc, dep.name)) {
+                        acc[dep.name] = { }
                     }
-                    return instance
+                    if (!Object.prototype.hasOwnProperty.call(acc[dep.name], dep.version.installed)) {
+                        acc[dep.name][dep.version.installed] = []
+                    }
+                    acc[dep.name][dep.version.installed].push(currentInstance)
                 })
-                .reduce((acc, currentInstance) => {
-                    currentInstance.dependencies.forEach(dep => {
-                        if (!Object.prototype.hasOwnProperty.call(acc, dep.name)) {
-                            acc[dep.name] = { }
-                        }
-                        if (!Object.prototype.hasOwnProperty.call(acc[dep.name], dep.version.installed)) {
-                            acc[dep.name][dep.version.installed] = []
-                        }
-                        acc[dep.name][dep.version.installed].push(currentInstance)
-                    })
-                    return acc
-                }, {})
+                return acc
+            }, {})
+        },
+        hasInstances () {
+            return !(!this.payload || this.payload.children.length === 0)
         }
     },
     mounted () {
