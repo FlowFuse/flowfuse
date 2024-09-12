@@ -5,8 +5,8 @@
                 <h3>{{ title }}</h3>
             </div>
             <div class="details">
-                <span>Latest: 1.12.0-tbd</span>
-                <span>Released: 3 Days Ago -tbd</span>
+                <span>Latest: {{ externalLatest }}</span>
+                <span>Released: {{ externalLastModified }}</span>
             </div>
         </div>
         <versions-list
@@ -18,6 +18,9 @@
 </template>
 
 <script>
+
+import ExternalClient from '../../../../api/external.js'
+import daysSince from '../../../../utils/daysSince.js'
 
 import VersionsList from './VersionsList.vue'
 
@@ -32,6 +35,47 @@ export default {
         versions: {
             required: true,
             type: Object
+        }
+    },
+    data () {
+        return {
+            externalDependency: null
+        }
+    },
+    computed: {
+        externalLatest () {
+            if (
+                !this.externalDependency ||
+                (
+                    !Object.prototype.hasOwnProperty.call(this.externalDependency, 'dist-tags') &&
+                    !Object.prototype.hasOwnProperty.call(this.externalDependency['dist-tags'], 'latest')
+                )
+            ) {
+                return 'N/A'
+            }
+
+            return this.externalDependency['dist-tags'].latest
+        },
+        externalLastModified () {
+            if (
+                !this.externalDependency ||
+            (
+                !Object.prototype.hasOwnProperty.call(this.externalDependency, 'time') &&
+                !Object.prototype.hasOwnProperty.call(this.externalDependency.time, 'modified')
+            )
+            ) {
+                return 'N/A'
+            }
+
+            return daysSince(this.externalDependency.time.modified)
+        }
+    },
+    mounted () {
+        this.getExternalDependency()
+    },
+    methods: {
+        async getExternalDependency () {
+            this.externalDependency = await ExternalClient.getNpmDependency(this.title)
         }
     }
 }
