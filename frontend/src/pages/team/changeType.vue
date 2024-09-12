@@ -32,6 +32,9 @@
                             Please contact <a href="https://flowfuse.com/support/" class="underline" target="_blank">Support</a> for help.
                         </p>
                     </div>
+                    <div v-else-if="isCurrentUnavailable">
+                        <p>Your current team plan is no longer available. Please select a new plan to continue.</p>
+                    </div>
                 </div>
                 <!-- TeamType Type -->
                 <div class="grid">
@@ -47,10 +50,22 @@
                     </ff-tile-selection>
                 </div>
                 <div>
-                    <template v-if="billingEnabled">
+                    <template v-if="upgradeErrors.length > 0">
+                        <div class="mb-8 text-sm text-gray-500 space-y-2">
+                            <p>Your current usage of the platform is higher than that available to the {{ input.teamType?.name }} team.</p>
+                            <p>To change to this type, you will need to reduce your usage:</p>
+                            <ul class="space-y-2 list-disc ml-8">
+                                <li v-for="(error, index) in upgradeErrors" :key="index">
+                                    {{ error.error }}. {{ input.teamType?.name }} teams are limited to {{ error.limit }}, this team currently has {{ error.count }}.
+                                </li>
+                            </ul>
+                        </div>
+                    </template>
+                    <template v-else-if="billingEnabled">
                         <div class="mb-8 text-sm text-gray-500 space-y-2">
                             <p v-if="isContactRequired">To learn more about our {{ input.teamType?.name }} plan, click below to contact our sales team.</p>
                             <p v-if="trialMode && !trialHasEnded">Setting up billing will bring your free trial to an end</p>
+                            <p v-if="!isContactRequired && team.suspended">Setting up billing will unsuspend your team</p>
                             <p v-if="isTypeChange">Your billing subscription will be updated to reflect the new costs</p>
                         </div>
                     </template>
@@ -83,6 +98,7 @@ import { ChevronLeftIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
 import billingApi from '../../api/billing.js'
+import instanceTypesApi from '../../api/instanceTypes.js'
 import teamApi from '../../api/team.js'
 import teamTypesApi from '../../api/teamTypes.js'
 import FormHeading from '../../components/FormHeading.vue'
@@ -104,6 +120,7 @@ export default {
             loading: false,
             redirecting: false,
             teamTypes: [],
+            instanceTypes: {},
             icons: {
                 chevronLeft: ChevronLeftIcon
             },
@@ -116,7 +133,7 @@ export default {
     computed: {
         ...mapState('account', ['user', 'team', 'features']),
         formValid () {
-            return !this.isUnmanaged && this.input.teamTypeId && (!this.isTypeChange || this.input.teamTypeId !== this.team.type.id)
+            return !this.isUnmanaged && this.input.teamTypeId && (!this.isTypeChange || this.input.teamTypeId !== this.team.type.id) && this.upgradeErrors.length === 0
         },
         billingEnabled () {
             return this.features.billing
@@ -140,27 +157,112 @@ export default {
             return this.billingEnabled &&
                    !this.user.admin &&
                    this.input.teamType && this.input.teamType.properties?.billing?.requireContact
+        },
+        isCurrentUnavailable () {
+            if (this.teamTypes.length === 0) {
+                return false
+            }
+            // The team's current type is no longer available
+            return !this.teamTypes.find(tt => tt.id === this.team.type.id)
+        },
+        upgradeErrors () {
+            if (!this.input.teamType) {
+                return
+            }
+            try {
+                // Check the following limits:
+                // - User count
+                // - Device count
+                // - Instance Type counts
+                const errors = []
+                const currentMemberCount = this.team.memberCount
+                const targetMemberLimit = this.input.teamType.properties?.users?.limit ?? -1
+                if (targetMemberLimit !== -1 && targetMemberLimit < currentMemberCount) {
+                    errors.push({
+                        code: 'member_limit_reached',
+                        error: 'Team Member limit reached',
+                        limit: targetMemberLimit,
+                        count: currentMemberCount
+                    })
+                }
+
+                const currentInstanceCountsByType = this.team.instanceCountByType
+                const targetInstanceLimits = {}
+                let totalInstanceCount = 0
+                for (const instanceType of Object.keys(currentInstanceCountsByType)) {
+                    if (!this.input.teamType.properties?.instances?.[instanceType]?.active ?? false) {
+                        targetInstanceLimits[instanceType] = 0
+                    } else {
+                        targetInstanceLimits[instanceType] = this.input.teamType.properties?.instances?.[instanceType]?.limit ?? -1
+                    }
+                    totalInstanceCount += currentInstanceCountsByType[instanceType]
+                    if (targetInstanceLimits[instanceType] !== -1 && targetInstanceLimits[instanceType] < currentInstanceCountsByType[instanceType]) {
+                        errors.push({
+                            code: 'instance_limit_reached',
+                            error: `${this.instanceTypes[instanceType].name} instance type limit reached`,
+                            type: this.instanceTypes[instanceType].name,
+                            limit: targetInstanceLimits[instanceType],
+                            count: currentInstanceCountsByType[instanceType]
+                        })
+                    }
+                }
+
+                const currentDeviceCount = this.team.deviceCount
+                const targetDeviceLimit = this.input.teamType.properties?.devices?.limit ?? -1
+                if (targetDeviceLimit !== -1 && targetDeviceLimit < currentDeviceCount) {
+                    errors.push({
+                        code: 'device_limit_reached',
+                        error: 'Device limit reached',
+                        limit: targetDeviceLimit,
+                        count: currentDeviceCount
+                    })
+                }
+
+                // Check for a combined instance+device limit
+                const runtimeLimit = this.input.teamType.properties?.runtimes?.limit ?? -1
+                if (runtimeLimit > -1) {
+                    const currentRuntimeCount = currentDeviceCount + totalInstanceCount
+                    if (currentRuntimeCount > runtimeLimit) {
+                        errors.push({
+                            code: 'runtime_limit_reached',
+                            error: 'Runtime limit reached',
+                            limit: runtimeLimit,
+                            count: currentRuntimeCount
+                        })
+                    }
+                }
+                return errors
+            } catch (err) {
+                console.warn(err)
+                return []
+            }
         }
     },
     watch: {
         'input.teamTypeId': function (v) {
             if (v) {
                 this.input.teamType = this.teamTypes.find(tt => tt.id === v)
+                if (!this.input.teamType && this.team.type.id === v) {
+                    this.input.teamType = this.team.type
+                }
             } else {
                 this.input.teamType = null
             }
         }
     },
     async created () {
-        const teamTypesPromise = await teamTypesApi.getTeamTypes()
-
-        this.teamTypes = (await teamTypesPromise).types.map(teamType => {
+        this.teamTypes = (await teamTypesApi.getTeamTypes()).types.map(teamType => {
             if (this.isTypeChange && teamType.id === this.team.type.id) {
                 teamType.name = `${teamType.name} (current)`
             }
             return teamType
         })
         this.input.teamTypeId = this.team.type.id
+
+        const instanceTypes = (await instanceTypesApi.getInstanceTypes()).types
+        instanceTypes.forEach(instanceType => {
+            this.instanceTypes[instanceType.id] = instanceType
+        })
     },
     async mounted () {
         this.mounted = true
@@ -184,8 +286,14 @@ export default {
         },
         setupBilling: async function () {
             this.loading = true
-            const response = await billingApi.createSubscription(this.team.id, this.input.teamTypeId)
-            window.open(response.billingURL, '_self')
+            try {
+                const response = await billingApi.createSubscription(this.team.id, this.input.teamTypeId)
+                window.open(response.billingURL, '_self')
+            } catch (err) {
+                Alerts.emit('Something went wrong with the request. Please try again or contact support for help.', 'info', 15000)
+                console.error('Error creating initial subscription: ', err)
+                this.loading = false
+            }
         },
         sendContact: async function () {
             if (this.input.teamType) {

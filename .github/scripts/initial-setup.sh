@@ -133,7 +133,9 @@ kubectl run flowfuse-setup-1 \
   --image bitnami/postgresql:14.10.0-debian-11-r3 \
   -- psql -h flowfuse-pr-$PR_NUMBER-postgresql -U forge -d flowforge -c \
   "INSERT INTO public.\"PlatformSettings\" (\"key\",value,\"valueType\",\"createdAt\",\"updatedAt\")\
-    VALUES ('setup:initialised','true',1,'2024-03-15 19:51:52.287','2024-03-15 19:51:52.287')"
+    VALUES ('setup:initialised','true',1,'2024-03-15 19:51:52.287','2024-03-15 19:51:52.287'),
+           ('team:user:invite:external','true',1,'2024-03-15 19:51:52.287','2024-03-15 19:51:52.287');"
+
 ### Configure access token
 kubectl run flowfuse-setup-2 \
   --namespace "pr-$PR_NUMBER" \
@@ -154,9 +156,10 @@ curl -ks -w "\n" -XPOST \
   https://$FLOWFUSE_URL/api/v1/project-types/
 
 ### Create stacks
-create_stack "Default" "Default" 100 256 "flowfuse/node-red"
-create_stack "NR-31x" "3.1.x" 100 256 "flowfuse/node-red:$(get_latest_image_tag "3.1.x")"
-create_stack "NR-40x" "4.0.x" 100 256 "flowfuse/node-red:$(get_latest_image_tag "4.0.x")"
+create_stack "Default" "Default" 30 256 "flowfuse/node-red:$(get_latest_image_tag "4.0.x")"
+create_stack "NR-30x" "3.0.x" 30 256 "flowfuse/node-red:latest"
+create_stack "NR-31x" "3.1.x" 30 256 "flowfuse/node-red:$(get_latest_image_tag "3.1.x")"
+
 
 ### Link Default to project type
 echo "Linking stack to project type"
@@ -189,19 +192,21 @@ curl -ks -w "\n" -XPOST \
                       "limit": 10
                   },
                   "features": {
-                      "shared-library": false,
-                      "projectComms": false,
-                      "ha": false,
-                      "teamHttpSecurity": false,
-                      "customCatalogs": false,
-                      "deviceGroups": false,
-                      "emailAlerts": false,
-                      "protectedInstance": false,
-                      "deviceAutoSnapshot": false,
-                      "instanceAutoSnapshot": false,
-                      "editorLimits": false,
-                      "fileStorageLimit": null,
-                      "contextLimit": null
+                       "shared-library": false,
+                       "projectComms": false,
+                       "ha": false,
+                       "teamHttpSecurity": false,
+                       "customCatalogs": false,
+                       "deviceGroups": false,
+                       "emailAlerts": false,
+                       "protectedInstance": false,
+                       "deviceAutoSnapshot": false,
+                       "instanceAutoSnapshot": false,
+                       "editorLimits": false,
+                       "fileStorageLimit": null,
+                       "contextLimit": null,
+                       "customHostnames":false,
+                       "staticAssets":false
                   },
                   "instances": {
                       "'"$projectTypeId"'": {
@@ -228,20 +233,22 @@ curl -ks -w "\n" -XPOST \
                     "devices": {
                         "limit": 10
                     },
-                    "features": {
-                        "shared-library": true,
-                        "projectComms": true,
-                        "ha": true,
-                        "teamHttpSecurity": true,
-                        "customCatalogs": true,
-                        "deviceGroups": true,
-                        "emailAlerts": true,
-                        "protectedInstance": true,
-                        "deviceAutoSnapshot": true,
-                        "instanceAutoSnapshot": true,
-                        "editorLimits": true,
-                        "fileStorageLimit": null,
-                        "contextLimit": null
+                    "features":{
+                        "ha":true,
+                        "shared-library":true,
+                        "projectComms":true,
+                        "teamHttpSecurity":true,
+                        "fileStorageLimit":null,
+                        "contextLimit":null,
+                        "customCatalogs":true,
+                        "deviceGroups":true,
+                        "emailAlerts":true,
+                        "deviceAutoSnapshot":true,
+                        "instanceAutoSnapshot":true,
+                        "protectedInstance":true,
+                        "editorLimits":true,
+                        "customHostnames":true,
+                        "staticAssets":true
                     },
                     "instances": {
                         "'"$projectTypeId"'": {
@@ -269,19 +276,21 @@ curl -ks -w "\n" -XPOST \
                         "limit": 10
                     },
                     "features": {
-                        "shared-library": true,
-                        "projectComms": true,
-                        "ha": true,
-                        "teamHttpSecurity": true,
-                        "customCatalogs": true,
-                        "deviceGroups": true,
-                        "emailAlerts": true,
-                        "protectedInstance": true,
-                        "deviceAutoSnapshot": true,
-                        "instanceAutoSnapshot": true,
-                        "editorLimits": true,
-                        "fileStorageLimit": null,
-                        "contextLimit": null
+                        "ha":true,
+                        "shared-library":true,
+                        "projectComms":true,
+                        "teamHttpSecurity":true,
+                        "fileStorageLimit":null,
+                        "contextLimit":null,
+                        "customCatalogs":true,
+                        "deviceGroups":true,
+                        "emailAlerts":true,
+                        "deviceAutoSnapshot":true,
+                        "instanceAutoSnapshot":true,
+                        "protectedInstance":true,
+                        "editorLimits":true,
+                        "customHostnames":true,
+                        "staticAssets":true
                     },
                     "instances": {
                         "'"$projectTypeId"'": {

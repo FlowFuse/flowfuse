@@ -182,7 +182,8 @@
     }
   }
 
-  &:disabled {
+  &:disabled,
+  &[disabled=true] {
     cursor: not-allowed;
     border-color: $ff-grey-200;
     color: $ff-grey-400;

@@ -100,8 +100,8 @@
                     <FormRow v-model="input.properties.features.instanceAutoSnapshot" type="checkbox">Instance Auto Snapshot</FormRow>
                     <FormRow v-model="input.properties.features.editorLimits" type="checkbox">API/Debug Length Limits</FormRow>
                     <FormRow v-model="input.properties.features.customHostnames" type="checkbox">Custom Hostnames</FormRow>
-                    <!-- BEN -->
-                    <!-- <span /> to make the grid work nicely, only needed if there is an odd number of checkbox features above -->
+                    <FormRow v-model="input.properties.features.staticAssets" type="checkbox">Static Assets</FormRow>
+                    <span /> <!-- to make the grid work nicely, only needed if there is an odd number of checkbox features above -->
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
                 </div>

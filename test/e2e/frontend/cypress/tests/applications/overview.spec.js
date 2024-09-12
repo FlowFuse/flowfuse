@@ -188,7 +188,7 @@ describe('FlowForge - Applications', () => {
                 .parent()
                 .parent()
                 .within(() => {
-                    cy.get('[data-action="open-editor"]').should('be.disabled')
+                    cy.get('[data-action="open-editor"]').should('have.attr', 'disabled')
                     cy.get('[data-el="kebab-menu"]').should('exist')
                     cy.contains('https://www.google.com:456/search?q=rick+ross')
                 })
@@ -373,6 +373,65 @@ describe('FlowForge - Applications', () => {
                         .should('be.visible')
                         .should('not.be.disabled')
                 })
+        })
+
+        it('doesn\'t display the instance kebab menu for non-owner users', () => {
+            cy.intercept(
+                'GET',
+                '/api/*/teams/*/user',
+                { role: 30 }
+            ).as('getTeamRole')
+            cy.intercept(
+                'GET',
+                '/api/*/teams/*/applications/status*',
+                { count: 1, applications: [{ id: 'some-id', instances: [], devices: [] }] }
+            ).as('getAppStatuses')
+            cy.intercept('get', '/api/*/applications/*/devices*', {
+                meta: {},
+                count: 0,
+                devices: []
+            }).as('getDevices')
+            cy.intercept(
+                'GET',
+                '/api/*/teams/*/applications*',
+                req => req.reply(res => {
+                    res.send({
+                        count: 1,
+                        applications: [
+                            {
+                                id: 'some-id',
+                                name: 'My app',
+                                description: 'My empty app description',
+                                instancesSummary: {
+                                    instances: [
+                                        {
+                                            id: 1,
+                                            name: 'instance-1',
+                                            meta: {
+                                                versions: {
+                                                    launcher: '2.3.1'
+                                                },
+                                                state: 'running'
+                                            },
+                                            url: 'https://www.google.com:123/search?q=rick+astley'
+                                        }
+                                    ]
+                                },
+                                devicesSummary: {
+                                    devices: [
+                                    ]
+                                }
+                            }
+                        ]
+                    })
+                })
+            ).as('getApplication')
+
+            cy.visit('/')
+            cy.wait('@getTeamRole')
+            cy.wait('@getDevices')
+
+            cy.get('[data-el="kebab-menu"]').should('not.exist')
         })
 
         describe('can search through', () => {

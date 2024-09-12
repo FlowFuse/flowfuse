@@ -162,7 +162,13 @@ const Permissions = {
     'saml-provider:list': { description: 'List all SAML Providers', role: Roles.Admin },
     'saml-provider:read': { description: 'View a SAML Provider', role: Roles.Admin },
     'saml-provider:delete': { description: 'Delete a SAML Provider', role: Roles.Admin },
-    'saml-provider:edit': { description: 'Edit a SAML Provider', role: Roles.Admin }
+    'saml-provider:edit': { description: 'Edit a SAML Provider', role: Roles.Admin },
+
+    // Static Assets
+    'project:files:list': { description: 'List files under a project', role: Roles.Member },
+    'project:files:create': { description: 'Upload files to a project', role: Roles.Member },
+    'project:files:edit': { description: 'Modify files in a project', role: Roles.Member },
+    'project:files:delete': { description: 'Delete files in a project', role: Roles.Member }
 }
 
 module.exports = {

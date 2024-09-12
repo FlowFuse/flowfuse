@@ -179,6 +179,7 @@ module.exports = async function (app) {
                     response.status(200).send()
                     return
                 }
+                let teamModified = false
                 let currentTeamType = team.TeamType
                 if (metadata.teamTypeId) {
                     const [teamTypeId] = app.db.models.TeamType.decodeHashid(metadata.teamTypeId)
@@ -189,10 +190,19 @@ module.exports = async function (app) {
                             new: { id: newTeamType.hashid, name: newTeamType.name }
                         }
                         team.TeamTypeId = teamTypeId
-                        await team.save()
+                        teamModified = true
                         currentTeamType = newTeamType
                         await app.auditLog.Team.team.type.changed(request.session?.User || 'system', null, team, auditUpdates)
                     }
+                }
+                if (team.suspended) {
+                    app.auditLog.Team.team.unsuspended(request.session?.User || 'system', null, team)
+                    app.auditLog.Platform.platform.team.unsuspended(request.session?.User || 'system', null, team)
+                    team.suspended = false
+                    teamModified = true
+                }
+                if (teamModified) {
+                    await team.save()
                 }
                 await app.db.controllers.Subscription.createSubscription(team, stripeSubscriptionId, stripeCustomerId)
                 await app.auditLog.Team.billing.session.completed(request.session?.User || 'system', null, team, event.data.object)
@@ -362,6 +372,26 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('team:edit')
     }, async (request, response) => {
         const team = request.team
+        if (request.body?.teamTypeId) {
+            const targetTeamType = await app.db.models.TeamType.byId(request.body.teamTypeId)
+            if (!targetTeamType) {
+                response.code(400).send({ code: 'invalid_team_type', error: 'Invalid team type' })
+                return
+            }
+            try {
+                await request.team.checkTeamTypeUpdateAllowed(targetTeamType)
+            } catch (err) {
+                const result = {
+                    code: err.code || 'unexpected_error',
+                    error: err.toString()
+                }
+                if (err.errors) {
+                    result.errors = err.errors
+                }
+                response.code(400).send(result)
+                return
+            }
+        }
         try {
             const session = await app.billing.createSubscriptionSession(team, request.session.User, request.body?.teamTypeId)
             await app.auditLog.Team.billing.session.created(request.session.User, null, team, session)

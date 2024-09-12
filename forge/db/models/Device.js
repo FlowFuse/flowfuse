@@ -80,6 +80,10 @@ module.exports = {
                     if (devices.count >= devices.limit) {
                         throw new Error('license limit reached')
                     }
+                } else {
+                    if (app.license.status().expired) {
+                        throw new Error('license expired')
+                    }
                 }
             },
             afterCreate: async (device, options) => {

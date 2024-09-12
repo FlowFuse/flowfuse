@@ -230,7 +230,7 @@ module.exports = {
     mergeSettings: function (app, existingSettings, settings, { mergeEnvVars = false, mergeEditorSettings = false, targetTemplate = undefined } = {}) {
         // Quick deep clone that is safe as we know settings are JSON-safe
         const result = JSON.parse(JSON.stringify(existingSettings))
-        const skipList = ['disableEditor', 'page_title', 'header_title']
+        const skipList = ['disableEditor', 'page_title', 'header_title', 'theme']
         templateFields.forEach((name) => {
             if (mergeEditorSettings && skipList.includes(name)) {
                 return

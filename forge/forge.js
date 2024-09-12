@@ -16,6 +16,7 @@ const housekeeper = require('./housekeeper')
 const license = require('./licensing')
 const notifications = require('./notifications')
 const postoffice = require('./postoffice')
+const product = require('./product')
 const routes = require('./routes')
 const settings = require('./settings')
 const { finishSetup } = require('./setup')
@@ -438,6 +439,8 @@ module.exports = async (options = {}) => {
         // Post Office : handles email
         await server.register(postoffice)
         await server.register(notifications)
+        // Product service handles reporting to PostHog
+        await server.register(product, runtimeConfig.telemetry.frontend?.posthog)
         // Comms : real-time communication broker
         await server.register(comms)
         // Containers:
@@ -454,7 +457,7 @@ module.exports = async (options = {}) => {
         await server.db.controllers.TeamType.ensureDefaultTypeExists()
 
         // Create ff-admin
-        if (server.config.create_admin) {
+        if (server.config.create_admin && !server.settings.get('setup:initialised')) {
             await createAdminUser(server)
             await finishSetup(server)
         }

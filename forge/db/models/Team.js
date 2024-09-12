@@ -3,7 +3,7 @@
  * @namespace forge.db.models.Team
  */
 
-const { DataTypes, literal } = require('sequelize')
+const { DataTypes, literal, Op } = require('sequelize')
 
 const { Roles } = require('../../lib/roles')
 const { slugify, generateTeamAvatar, buildPaginationSearchClause } = require('../utils')
@@ -13,6 +13,7 @@ module.exports = {
     schema: {
         name: { type: DataTypes.STRING, allowNull: false, validate: { not: /:\/\// } },
         slug: { type: DataTypes.STRING, unique: true, validate: { is: /^[a-z0-9-_]+$/i } },
+        suspended: { type: DataTypes.BOOLEAN, defaultValue: false },
         avatar: { type: DataTypes.STRING }
     },
     hooks: function (M, app) {
@@ -80,7 +81,7 @@ module.exports = {
         this.hasMany(M.Invitation, { foreignKey: 'teamId' })
         this.hasMany(M.Application)
     },
-    finders: function (M) {
+    finders: function (M, app) {
         const self = this
         return {
             static: {
@@ -181,7 +182,7 @@ module.exports = {
                         },
                         include: {
                             model: M.Team,
-                            attributes: ['hashid', 'links', 'id', 'name', 'avatar', 'slug'],
+                            attributes: ['hashid', 'links', 'id', 'name', 'avatar', 'slug', 'suspended'],
                             include: { model: M.TeamType, attributes: ['hashid', 'id', 'name'] }
                         },
                         attributes: {
@@ -274,6 +275,23 @@ module.exports = {
                     // In this case the findAll above will return an array that includes null, this needs to be guarded against
                     return owners.filter((owner) => owner !== null)
                 },
+                /**
+                 * Get all members of the team optionally filtered by `role` array
+                 * @param {Array<Number> | null} roleFilter - Array of roles to filter by
+                 * @example
+                 * // Get all members of the team
+                 * const members = await team.getTeamMembers()
+                 * @example
+                 * // Get viewers only
+                 * const viewers = await team.getTeamMembers([Roles.Viewer])
+                 */
+                getTeamMembers: async function (roleFilter = null) {
+                    const where = { TeamId: this.id }
+                    if (roleFilter && Array.isArray(roleFilter)) {
+                        where.role = roleFilter
+                    }
+                    return (await M.TeamMember.findAll({ where, include: M.User })).filter(tm => tm && tm.User).map(tm => tm.User)
+                },
                 memberCount: async function (role) {
                     const where = {
                         TeamId: this.id
@@ -344,6 +362,12 @@ module.exports = {
                     return this.TeamType.getProperty('devices.limit', -1)
                 },
                 checkDeviceCreateAllowed: async function () {
+                    if (this.suspended) {
+                        const err = new Error()
+                        err.code = 'team_suspended'
+                        err.error = 'Team suspended'
+                        throw err
+                    }
                     // Check for a specific device limit
                     const deviceLimit = await this.getDeviceLimit()
                     let currentDeviceCount = null
@@ -402,6 +426,12 @@ module.exports = {
                  * @param {object} instanceType - a fully populated ProjectType object
                  */
                 checkInstanceTypeCreateAllowed: async function (instanceType) {
+                    if (this.suspended) {
+                        const err = new Error()
+                        err.code = 'team_suspended'
+                        err.error = 'Team suspended'
+                        throw err
+                    }
                     await this.ensureTeamTypeExists()
 
                     const typeAvailable = await this.isInstanceTypeAvailable(instanceType)
@@ -452,6 +482,12 @@ module.exports = {
                  * Throws an error if it is not allowed
                  */
                 checkInstanceStartAllowed: async function (instance) {
+                    if (this.suspended) {
+                        const err = new Error()
+                        err.code = 'team_suspended'
+                        err.error = 'Team suspended'
+                        throw err
+                    }
                     return true
                 },
 
@@ -514,18 +550,13 @@ module.exports = {
                     const runtimeLimit = await this.getRuntimeLimit()
                     if (runtimeLimit > -1) {
                         const currentRuntimeCount = currentDeviceCount + totalInstanceCount
-                        if (currentRuntimeCount >= runtimeLimit) {
+                        if (currentRuntimeCount > runtimeLimit) {
                             errors.push({
                                 code: 'instance_limit_reached',
                                 error: 'Instance limit reached',
                                 limit: runtimeLimit,
                                 count: currentRuntimeCount
                             })
-
-                            const err = new Error()
-                            err.code = 'instance_limit_reached'
-                            err.error = 'Team instance limit reached'
-                            throw err
                         }
                     }
 
@@ -547,6 +578,50 @@ module.exports = {
                     await this.setTeamType(teamType)
                     await this.save()
                     await this.reload({ include: [{ model: M.TeamType }] })
+                },
+
+                /**
+                 * Suspend the team
+                 *  - sets suspended=true
+                 *  - suspends all team instances
+                 *
+                 * When running with EE, this function is replaced via ee/lib/billing/Team.js
+                 * to complete billing related operations first
+                 */
+                suspend: async function () {
+                    this.suspended = true
+                    await this.save()
+                    // get list of running Instances
+                    const instanceList = await app.db.models.Project.findAll({
+                        attributes: [
+                            'id',
+                            'state',
+                            'ProjectStackId',
+                            'TeamId'
+                        ],
+                        where: {
+                            TeamId: this.id,
+                            state: {
+                                [Op.eq]: 'running'
+                            }
+                        }
+                    })
+                    // Shut down all running instances
+                    instanceList.forEach(async (instance) => {
+                        try {
+                            await app.containers.stop(instance)
+                        } catch (err) {
+                            // do we need to log a failure?
+                        }
+                    })
+                },
+
+                /**
+                 * Unsuspend a team
+                 */
+                unsuspend: async function () {
+                    this.suspended = false
+                    await this.save()
                 }
             }
         }

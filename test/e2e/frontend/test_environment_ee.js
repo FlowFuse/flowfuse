@@ -82,6 +82,20 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
         properties: { instances: {}, devices: {}, users: {}, features: {} }
     })
 
+    // Enable the default instance type for this team type
+    await factory.createTeamType({
+        name: 'Third Team Type',
+        description: 'team type description',
+        active: true,
+        order: 3,
+        properties: {
+            instances: { [flowforge.projectTypes[0].hashid]: { active: true } },
+            devices: {},
+            users: {},
+            features: {}
+        }
+    })
+
     // create a snapshot on DeviceB
     const deviceB = flowforge.applicationDevices.find((device) => device.name === 'application-device-b')
     await factory.createDeviceSnapshot({ name: 'application-device-b snapshot 1' }, deviceB, userTerry)
