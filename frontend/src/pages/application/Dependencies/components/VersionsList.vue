@@ -11,7 +11,11 @@
             </div>
         </template>
         <template #content>
-            <instances-list :instances="instances" />
+            <ul class="instances-list">
+                <li v-for="instance in instances" :key="instance.id">
+                    <instances-item :instance="instance" />
+                </li>
+            </ul>
         </template>
     </ff-accordion>
 </template>
@@ -19,11 +23,11 @@
 <script>
 import FfAccordion from '../../../../components/Accordion.vue'
 
-import InstancesList from './InstancesList.vue'
+import InstancesItem from './InstancesItem.vue'
 
 export default {
     name: 'VersionsList',
-    components: { FfAccordion, InstancesList },
+    components: { FfAccordion, InstancesItem },
     props: {
         version: {
             required: true, type: String
@@ -52,6 +56,7 @@ export default {
 <style lang="scss">
 .ff-accordion {
   margin: 0;
+
   button {
     display: flex;
     background: #fff;
@@ -73,12 +78,5 @@ export default {
       }
     }
   }
-
-  &:last-of-type {
-    button {
-      border-bottom: none;
-    }
-  }
-
 }
 </style>

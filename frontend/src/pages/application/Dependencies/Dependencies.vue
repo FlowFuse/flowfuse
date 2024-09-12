@@ -1,5 +1,4 @@
 <template>
-    <h1>Hello World</h1>
     <div class="dependencies">
         <dependency-item
             v-for="(versions, dependencyTitle) in dependencies" :key="dependencyTitle"

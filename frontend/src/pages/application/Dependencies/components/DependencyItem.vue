@@ -37,7 +37,7 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
 .dependency-item {
   .dependency-header {
     background: $ff-grey-100;
@@ -60,6 +60,15 @@ export default {
       font-size: 12px;
       font-weight: 500;
     }
+  }
+
+  &:last-of-type {
+    .ff-accordion {
+
+    button {
+      border-bottom: none;
+    }
+  }
   }
 }
 </style>
