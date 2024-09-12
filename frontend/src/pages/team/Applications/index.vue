@@ -44,7 +44,8 @@
                 >
                     <template #icon><SearchIcon /></template>
                 </ff-text-input>
-                <ul v-if="filteredApplications.length > 0" class="ff-applications-list" data-el="applications-list">
+                <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
+                <ul v-if="filteredApplications.length > 0" class="ff-applications-list mb-14" data-el="applications-list">
                     <li v-for="application in filteredApplications" :key="application.id" data-el="application-item">
                         <ApplicationListItem
                             :application="application"
