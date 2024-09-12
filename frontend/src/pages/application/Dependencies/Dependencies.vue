@@ -10,7 +10,13 @@
         </SectionTopMenu>
 
         <div class="space-y-6 mb-12">
+            <div class="banner-wrapper mt-5">
+                <FeatureUnavailable v-if="!isBOMFeatureEnabledForPlatform" />
+                <FeatureUnavailableToTeam v-else-if="!isBOMFeatureEnabledForTeam" />
+            </div>
+
             <ff-loading v-if="loading" message="Loading Snapshots..." />
+
             <div v-else-if="hasInstances">
                 <ff-text-input
                     v-model="searchTerm"
@@ -36,12 +42,14 @@
                 <template #img>
                     <img src="../../../images/empty-states/application-instances.png">
                 </template>
-                <template #header>Your application doesn't contain any Instances or Devices</template>
+                <template v-if="isBOMFeatureEnabledForPlatform" #header>This is a FlowFuse Enterprise feature. Please upgrade your instance of FlowFuse in order to use it.</template>
+                <template v-else-if="isBOMFeatureEnabledForTeam" #header>This feature is not available for your current Team. Please upgrade your Team in order to use it.</template>
+                <template v-else #header>Your application doesn't contain any Instances or Devices</template>
                 <template #message>
                     <p>
                         Applications in FlowFuse are used to manage groups of Node-RED Instances and Devices.
                     </p>
-                    <p>
+                    <p v-if="isBOMFeatureEnabled">
                         Once you assign an Instance or Device to this application, you'll be able to view a complete list of their dependencies.
                     </p>
                 </template>
@@ -56,17 +64,24 @@ import { SearchIcon } from '@heroicons/vue/outline'
 import ApplicationsApi from '../../../api/application.js'
 import EmptyState from '../../../components/EmptyState.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
+import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
+
+import featuresMixin from '../../../mixins/Features.js'
 
 import DependencyItem from './components/DependencyItem.vue'
 
 export default {
     name: 'ApplicationDependencies',
     components: {
+        FeatureUnavailable,
+        FeatureUnavailableToTeam,
         EmptyState,
         SectionTopMenu,
         SearchIcon,
         DependencyItem
     },
+    mixins: [featuresMixin],
     inheritAttrs: false,
     props: {
         application: {
@@ -135,18 +150,25 @@ export default {
         }
     },
     mounted () {
-        this.loading = true
-        ApplicationsApi.getDependencies(this.application.id)
-            .then(res => {
-                this.payload = res
-            })
-            .catch(err => {
-                this.payload = []
-                console.warn(err)
-            })
-            .finally(() => {
-                this.loading = false
-            })
+        this.getDependencies()
+    },
+    methods: {
+        getDependencies () {
+            if (this.isBOMFeatureEnabled) {
+                this.loading = true
+                ApplicationsApi.getDependencies(this.application.id)
+                    .then(res => {
+                        this.payload = res
+                    })
+                    .catch(err => {
+                        this.payload = []
+                        console.warn(err)
+                    })
+                    .finally(() => {
+                        this.loading = false
+                    })
+            }
+        }
     }
 }
 </script>

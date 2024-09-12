@@ -41,6 +41,15 @@ export default {
         },
         isStaticAssetFeatureEnabled () {
             return this.isStaticAssetFeatureEnabledForPlatform && this.isStaticAssetsFeatureEnabledForTeam
+        },
+        isBOMFeatureEnabledForPlatform () {
+            return !!this.features.bom
+        },
+        isBOMFeatureEnabledForTeam () {
+            return !!this.team?.type?.properties?.features?.bom
+        },
+        isBOMFeatureEnabled () {
+            return this.isBOMFeatureEnabledForPlatform && this.isBOMFeatureEnabledForTeam
         }
     }
 }
