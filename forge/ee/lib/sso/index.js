@@ -262,6 +262,10 @@ module.exports.init = async function (app) {
                 userClient = new Client(clientOptions)
                 try {
                     await userClient.bind(userDN, password)
+                    // if ldap group support enabled
+                    if (providerConfig.options.groupMapping) {
+                        await updateTeamMembershipLDAP(adminClient, user, userDN, providerConfig.options)
+                    }
                     return true
                 } catch (err) {
                     // Failed to bind user
@@ -304,6 +308,7 @@ module.exports.init = async function (app) {
             }
             let adminGroup = false
             const desiredTeamMemberships = {}
+            app.log.debug(`SAML Group Assertions for ${user.username} ${JSON.stringify(groupAssertions)}`)
             groupAssertions.forEach(ga => {
                 // Parse the group name - format: 'ff-SLUG-ROLE'
                 // Generate a slug->role object (desiredTeamMemberships)
@@ -345,6 +350,7 @@ module.exports.init = async function (app) {
                     await user.save()
                 }
             }
+            app.log.debug(`Desired Teams for ${user.username} ${JSON.stringify(desiredTeamMemberships)}`)
 
             // Get the existing memberships and generate a slug->membership object (existingMemberships)
             const existingMemberships = {}
@@ -362,6 +368,7 @@ module.exports.init = async function (app) {
                     existingMemberships[membership.Team.slug] = membership
                 }
             })
+            app.log.debug(`Existing Teams for ${user.username} ${JSON.stringify(existingMemberships)}`)
 
             // We now have the list of desiredTeamMemberships and existingMemberships
             // that are in scope of being modified
@@ -422,6 +429,132 @@ module.exports.init = async function (app) {
             missingGroupAssertions.code = 'unknown_sso_user'
             throw missingGroupAssertions
         }
+    }
+
+    // LDAP Group Membership
+    async function updateTeamMembershipLDAP (adminClient, user, userDN, providerOpts) {
+        const filter = `(|(uniqueMember=${userDN})(member=${userDN}))`
+        const { searchEntries } = await adminClient.search(providerOpts.groupsDN, {
+            filter,
+            attributes: ['cn']
+        })
+        app.log.debug(`LDAP Groups for ${user.username} ${JSON.stringify(searchEntries)}`)
+        const promises = []
+        let adminGroup = false
+        const desiredTeamMemberships = {}
+        const groupRegEx = /^ff-(.+)-([^-]+)$/
+        for (const i in searchEntries) {
+            const match = groupRegEx.exec(searchEntries[i].cn)
+            if (match) {
+                app.log.debug(`Found group ${searchEntries[i].cn} for user ${user.username}`)
+                const teamSlug = match[1]
+                const teamRoleName = match[2]
+                const teamRole = Roles[teamRoleName]
+                // Check this role is a valid team role
+                if (TeamRoles.includes(teamRole)) {
+                    // Check if this team is allowed to be managed for this SSO provider
+                    //  - either `groupAllTeams` is true (allowing all teams to be managed this way)
+                    //  - or `groupTeams` (array) contains the teamSlug
+                    if (providerOpts.groupAllTeams || (providerOpts.groupTeams || []).includes(teamSlug)) {
+                        // In case we have multiple assertions for a single team,
+                        // ensure we keep the highest level of access
+                        desiredTeamMemberships[teamSlug] = Math.max(desiredTeamMemberships[teamSlug] || 0, teamRole)
+                    }
+                }
+            }
+            if (providerOpts.groupAdmin && providerOpts.groupAdminName === searchEntries[i].cn) {
+                adminGroup = true
+            }
+        }
+        app.log.debug(`Desired Teams for ${user.username} ${JSON.stringify(desiredTeamMemberships)}`)
+        if (providerOpts.groupAdmin) {
+            if (user.admin && !adminGroup) {
+                app.auditLog.User.user.updatedUser(0, null, [{ key: 'admin', old: true, new: false }], user)
+                user.admin = false
+                try {
+                    await user.save()
+                } catch (err) {
+                    // did we just fail remove the last admin?
+                    app.log.info(`Failed to remove admin from ${user.username}, as this would have been the last admin`)
+                }
+            } else if (adminGroup && !user.admin) {
+                app.auditLog.User.user.updatedUser(0, null, [{ key: 'admin', old: false, new: true }], user)
+                user.admin = true
+                await user.save()
+            }
+        }
+
+        // Get the existing memberships and generate a slug->membership object (existingMemberships)
+        const existingMemberships = {}
+        ;((await user.getTeamMemberships(true)) || []).forEach(membership => {
+            // Filter out any teams that are not to be managed by this configuration.
+            // A team is managed by this configuration if any of the follow is true:
+            //  - groupAllTeams is true (all teams to be managed)
+            //  - groupTeams includes this team (this is explicitly a team to be managed)
+            //  - groupOtherTeams is false (not allowed to be a member of other teams - so need to remove them)
+            if (
+                providerOpts.groupAllTeams ||
+                (providerOpts.groupTeams || []).includes(membership.Team.slug) ||
+                !providerOpts.groupOtherTeams
+            ) {
+                existingMemberships[membership.Team.slug] = membership
+            }
+        })
+        app.log.debug(`Existing Teams for ${user.username} ${JSON.stringify(existingMemberships)}`)
+        // We now have the list of desiredTeamMemberships and existingMemberships
+        // that are in scope of being modified
+
+        // - Check each existing membership
+        //   - if in desired list, update role to match and delete from desired list
+        //   - if not in desired list,
+        //      - if groupOtherTeams is false or, delete membership
+        //      - else leave alone
+        for (const [teamSlug, membership] of Object.entries(existingMemberships)) {
+            if (Object.hasOwn(desiredTeamMemberships, teamSlug)) {
+                // This team is in the desired list
+                if (desiredTeamMemberships[teamSlug] !== membership.role) {
+                    // Role has changed - update membership
+                    const updates = new app.auditLog.formatters.UpdatesCollection()
+                    const oldRole = app.auditLog.formatters.roleObject(membership.role)
+                    const role = app.auditLog.formatters.roleObject(desiredTeamMemberships[teamSlug])
+                    updates.push('role', oldRole.role, role.role)
+                    membership.role = desiredTeamMemberships[teamSlug]
+                    promises.push(membership.save().then(() => {
+                        return app.auditLog.Team.team.user.roleChanged(user, null, membership.Team, user, updates)
+                    }))
+                } else {
+                    // Role has not changed - no update needed
+                    // console.log(`no change needed for team ${teamSlug} role ${membership.role}`)
+                }
+                // Remove from the desired list as it has been dealt with
+                delete desiredTeamMemberships[teamSlug]
+            } else {
+                // console.log(`removing from team ${teamSlug}`)
+                // This team is not in the desired list - delete the membership
+                promises.push(membership.destroy().then(() => {
+                    return app.auditLog.Team.team.user.removed(user, null, membership.Team, user)
+                }))
+            }
+        }
+        // - Check remaining desired memberships
+        //   - create membership
+        for (const [teamSlug, teamRole] of Object.entries(desiredTeamMemberships)) {
+            // This is a new team membership
+            promises.push(app.db.models.Team.bySlug(teamSlug).then(team => {
+                if (team) {
+                    // console.log(`adding to team ${teamSlug} role ${teamRole}`)
+                    return app.db.controllers.Team.addUser(team, user, teamRole).then(() => {
+                        return app.auditLog.Team.team.user.added(user, null, team, user)
+                    })
+                } else {
+                    // console.log(`team not found ${teamSlug}`)
+                    // Unrecognised team - ignore
+                    return null
+                }
+            }))
+        }
+
+        await Promise.all(promises)
     }
 
     return {

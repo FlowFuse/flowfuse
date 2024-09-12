@@ -4,6 +4,13 @@ forge:
   localPostgresql: true
   broker:
     enabled: true
+  cloudProvider: aws
+  email:
+    ses:
+      region: eu-west-1
+  assistant:
+    enabled: true
+
 
 postgresql:
   persistence:

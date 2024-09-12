@@ -124,6 +124,11 @@ export default {
                     tag: 'instance-snapshots'
                 },
                 {
+                    label: 'Assets',
+                    to: { name: 'instance-editor-assets', params: { id: this.instance.id } },
+                    tag: 'instance-assets'
+                },
+                {
                     label: 'Audit Log',
                     to: { name: 'instance-editor-audit-log', params: { id: this.instance.id } },
                     tag: 'instance-activity'

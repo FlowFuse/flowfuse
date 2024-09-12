@@ -49,12 +49,6 @@ export default {
         ChevronRightIcon
     },
     mixins: [permissionsMixin],
-    props: {
-        team: {
-            type: Object,
-            required: true
-        }
-    },
     computed: {
         ...mapState('account', ['teamMembership']),
         billingPath () {

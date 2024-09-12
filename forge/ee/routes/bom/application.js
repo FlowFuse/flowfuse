@@ -30,6 +30,11 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
+        const teamType = await request.application.Team.getTeamType()
+        if (!teamType.getFeatureProperty('bom', false)) {
+            return reply.code(404).send({ code: 'unexpected_error', error: 'Feature not enabled.' })
+        }
+
         const dependants = await request.application.getChildren({ includeDependencies: true })
         const childrenView = dependants.map(child => app.db.views.BOM.dependant(child.model, child.dependencies))
         const result = {

@@ -10,7 +10,7 @@
         <div class="flex ff-mobile-navigation-right" data-el="mobile-nav-right">
             <NotificationsButton class="ff-header--mobile-notificationstoggle" :class="{'active': mobileTeamSelectionOpen}" />
             <i v-if="hasAvailableTeams" class="ff-header--mobile-usertoggle" :class="{'active': mobileTeamSelectionOpen}">
-                <img :src="team.avatar" class="ff-avatar" @click="mobileTeamSelectionOpen = !mobileTeamSelectionOpen">
+                <img :src="team ? team.avatar : defaultUserTeam.avatar" class="ff-avatar" @click="mobileTeamSelectionOpen = !mobileTeamSelectionOpen">
             </i>
             <i class="ff-header--mobile-usertoggle" :class="{'active': mobileUserOptionsOpen}">
                 <img :src="user.avatar" class="ff-avatar" @click="mobileUserOptionsOpen = !mobileUserOptionsOpen">
@@ -25,13 +25,14 @@
             />
         </div>
         <!-- Mobile: Team Selection -->
-        <div class="ff-navigation ff-navigation-right" :class="{'open': mobileTeamSelectionOpen}" data-action="team-selection">
+        <div class="ff-navigation ff-navigation-right" :class="{'open': mobileTeamSelectionOpen, 'without-divider': !canCreateTeam}" data-action="team-selection">
             <nav-item
                 v-for="team in teams" :key="team.name"
                 :label="team.name" :avatar="team.avatar"
                 @click="mobileTeamSelectionOpen = false; $router.push({name: 'Team', params: {team_slug: team.slug}})"
             />
             <nav-item
+                v-if="canCreateTeam"
                 label="Create New Team" :icon="plusIcon"
                 @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"
             />
@@ -91,7 +92,7 @@ export default {
     mixins: [navigationMixin, permissionsMixin],
     computed: {
         ...mapState('account', ['user', 'team', 'teams']),
-        ...mapGetters('account', ['notifications', 'hasAvailableTeams']),
+        ...mapGetters('account', ['notifications', 'hasAvailableTeams', 'defaultUserTeam', 'canCreateTeam']),
         ...mapGetters('ux', ['shouldShowLeftMenu']),
         navigationOptions () {
             return [

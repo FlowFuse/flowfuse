@@ -79,6 +79,7 @@
                 data-form="stage-instance"
                 :placeholder="instanceDropdownPlaceholder"
                 :disabled="instanceDropdownDisabled"
+                class="flex-grow"
             >
                 <template #default>
                     Choose Instance
@@ -92,6 +93,7 @@
                 data-form="stage-device"
                 :placeholder="deviceDropdownPlaceholder"
                 :disabled="deviceDropdownDisabled"
+                class="flex-grow"
             >
                 <template #default>
                     Choose Device
