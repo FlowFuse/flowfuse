@@ -3,7 +3,9 @@
         <h6>
             <IconDeviceSolid v-if="isDevice" class="ff-icon text-teal-700" />
             <IconNodeRedSolid v-else class="ff-icon text-red-700" />
-            {{ instance.name }}
+            <router-link :to="{name: 'instance-overview', params: {id: instance.id}}" class="ff-link">
+                {{ instance.name }}
+            </router-link>
         </h6>
         <status-badge :status="'running'" />
     </div>
