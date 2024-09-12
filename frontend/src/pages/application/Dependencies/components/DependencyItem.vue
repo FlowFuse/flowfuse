@@ -87,7 +87,7 @@ export default {
     background: $ff-grey-100;
     display: flex;
     border-bottom: 1px solid $ff-grey-300;
-    padding: 15px 5px;
+    padding: 5px 5px;
     align-items: center;
 
     .title {
