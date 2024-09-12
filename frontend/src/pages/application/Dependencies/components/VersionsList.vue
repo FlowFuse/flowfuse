@@ -1,13 +1,11 @@
 <template>
     <ff-accordion>
         <template #label>
-            <div class="label-wrapper">
-                <span class="version">{{ version }}</span>
-                <div class="counter">
-                    <span v-if="instancesCount > 0" class="instance-counter">{{ instancesCount }} x Instances</span>
-                    <span v-if="hasInstances & hasDevices" class="delimiter">, </span>
-                    <span v-if="devicesCount > 0" class="devices-counter">{{ devicesCount }} x Devices</span>
-                </div>
+            <span class="version">{{ version }}</span>
+            <div class="counter">
+                <span v-if="instancesCount > 0" class="instance-counter">{{ instancesCount }} x Instances</span>
+                <span v-if="hasInstances & hasDevices" class="delimiter">, </span>
+                <span v-if="devicesCount > 0" class="devices-counter">{{ devicesCount }} x Devices</span>
             </div>
         </template>
         <template #content>
@@ -58,24 +56,29 @@ export default {
   margin: 0;
 
   button {
-    display: flex;
-    background: #fff;
-    border-left: none;
-    border-right: none;
-    border-top: none;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    background: $ff-white;
+    color: $ff-black;
+    gap: 15px;
 
-    .label-wrapper {
-      flex: 1;
-      justify-content: flex-start;
+    .version {
+      grid-column-start: 2;
       display: flex;
-      gap: 10%;
-      margin-left: 10%;
-      color: $ff-black;
+      justify-content: flex-start;
+    }
 
-      .version {
-        padding: 0 15px;
-        font-weight: 500;
-      }
+    .counter {
+      grid-column-start: 3;
+      grid-column-end: 6;
+      display: flex;
+      justify-content: flex-start;
+    }
+
+    .toggle {
+      grid-column-start: 12;
+      display: flex;
+      justify-content: flex-end;
     }
   }
 }

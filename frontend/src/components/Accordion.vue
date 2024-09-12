@@ -4,7 +4,7 @@
             <slot name="label">
                 <label>{{ label }}</label>
             </slot>
-            <div>
+            <div class="toggle">
                 <slot name="meta" />
                 <ChevronLeftIcon v-if="!disabled" class="ff-icon" />
             </div>
