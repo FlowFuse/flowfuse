@@ -42,14 +42,14 @@
                 <template #img>
                     <img src="../../../images/empty-states/application-instances.png">
                 </template>
-                <template v-if="isBOMFeatureEnabledForPlatform" #header>This is a FlowFuse Enterprise feature. Please upgrade your instance of FlowFuse in order to use it.</template>
-                <template v-else-if="isBOMFeatureEnabledForTeam" #header>This feature is not available for your current Team. Please upgrade your Team in order to use it.</template>
+                <template v-if="!isBOMFeatureEnabledForPlatform" #header>This is a FlowFuse Enterprise feature. Please upgrade your instance of FlowFuse in order to use it.</template>
+                <template v-else-if="!isBOMFeatureEnabledForTeam" #header>This feature is not available for your current Team. Please upgrade your Team in order to use it.</template>
                 <template v-else #header>Your application doesn't contain any Instances or Devices</template>
                 <template #message>
                     <p>
                         Applications in FlowFuse are used to manage groups of Node-RED Instances and Devices.
                     </p>
-                    <p v-if="isBOMFeatureEnabled">
+                    <p v-if="!isBOMFeatureEnabled">
                         Once you assign an Instance or Device to this application, you'll be able to view a complete list of their dependencies.
                     </p>
                 </template>
