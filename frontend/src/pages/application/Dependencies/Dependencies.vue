@@ -44,6 +44,7 @@
                 </template>
                 <template v-if="!isBOMFeatureEnabledForPlatform" #header>This is a FlowFuse Enterprise feature. Please upgrade your instance of FlowFuse in order to use it.</template>
                 <template v-else-if="!isBOMFeatureEnabledForTeam" #header>This feature is not available for your current Team. Please upgrade your Team in order to use it.</template>
+                <template v-else-if="!hasTeamPermission" #header>This feature is not available for your current Team Role.</template>
                 <template v-else #header>Your application doesn't contain any Instances or Devices</template>
                 <template #message>
                     <p>
@@ -68,6 +69,7 @@ import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.v
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 
 import featuresMixin from '../../../mixins/Features.js'
+import permissionsMixin from '../../../mixins/Permissions.js'
 
 import DependencyItem from './components/DependencyItem.vue'
 
@@ -81,7 +83,7 @@ export default {
         SearchIcon,
         DependencyItem
     },
-    mixins: [featuresMixin],
+    mixins: [featuresMixin, permissionsMixin],
     inheritAttrs: false,
     props: {
         application: {
@@ -130,7 +132,6 @@ export default {
                         .includes(true)
                 })
         },
-
         dependencies () {
             return this.filteredInstances.reduce((acc, currentInstance) => {
                 currentInstance.dependencies.forEach(dep => {
@@ -147,6 +148,9 @@ export default {
         },
         hasInstances () {
             return !(!this.payload || this.payload.children.length === 0)
+        },
+        hasTeamPermission () {
+            return this.hasPermission('application:bom')
         }
     },
     mounted () {
@@ -154,7 +158,7 @@ export default {
     },
     methods: {
         getDependencies () {
-            if (this.isBOMFeatureEnabled) {
+            if (this.isBOMFeatureEnabled && this.hasTeamPermission) {
                 this.loading = true
                 ApplicationsApi.getDependencies(this.application.id)
                     .then(res => {
