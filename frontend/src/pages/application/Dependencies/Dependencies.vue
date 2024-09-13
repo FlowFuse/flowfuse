@@ -42,10 +42,7 @@
                 <template #img>
                     <img src="../../../images/empty-states/application-instances.png">
                 </template>
-                <template v-if="!isBOMFeatureEnabledForPlatform" #header>This is a FlowFuse Enterprise feature. Please upgrade your instance of FlowFuse in order to use it.</template>
-                <template v-else-if="!isBOMFeatureEnabledForTeam" #header>This feature is not available for your current Team. Please upgrade your Team in order to use it.</template>
-                <template v-else-if="!hasTeamPermission" #header>This feature is not available for your current Team Role.</template>
-                <template v-else #header>Your application doesn't contain any Instances or Devices</template>
+                <template #header>Your application doesn't contain any Instances or Devices</template>
                 <template #message>
                     <p>
                         Applications in FlowFuse are used to manage groups of Node-RED Instances and Devices.
