@@ -104,7 +104,13 @@ export default {
                 },
                 { label: 'Logs', to: `/application/${this.application.id}/logs`, tag: 'application-logs', icon: TerminalIcon },
                 { label: 'Audit Log', to: `/application/${this.application.id}/activity`, tag: 'application-activity', icon: ViewListIcon },
-                { label: 'Dependencies', to: `/application/${this.application.id}/dependencies`, tag: 'application-dependencies', icon: CogIcon },
+                {
+                    label: 'Dependencies',
+                    to: `/application/${this.application.id}/dependencies`,
+                    tag: 'application-dependencies',
+                    icon: CogIcon,
+                    hidden: !this.hasPermission('application:bom')
+                },
                 { label: 'Settings', to: `/application/${this.application.id}/settings`, tag: 'application-settings', icon: CogIcon }
             ]
 

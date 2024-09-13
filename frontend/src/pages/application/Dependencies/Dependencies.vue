@@ -151,11 +151,14 @@ export default {
         }
     },
     mounted () {
+        if (!this.hasTeamPermission) {
+            return this.$router.push({ name: 'Application', params: { id: this.application.id } })
+        }
         this.getDependencies()
     },
     methods: {
         getDependencies () {
-            if (this.isBOMFeatureEnabled && this.hasTeamPermission) {
+            if (this.isBOMFeatureEnabled) {
                 this.loading = true
                 ApplicationsApi.getDependencies(this.application.id)
                     .then(res => {
