@@ -1,7 +1,7 @@
 import { mapState } from 'vuex'
 
 import { Permissions } from '../../../forge/lib/permissions.js'
-import { Roles } from '../../../forge/lib/roles.js'
+import { RoleNames, Roles } from '../../../forge/lib/roles.js'
 
 export default {
     computed: {
@@ -26,6 +26,21 @@ export default {
                 }
             }
             return true
+        },
+        /**
+         *
+         * @param {'dashboard', 'viewer', 'member', 'owner'} role
+         *
+         * @return Boolean
+         */
+        hasAMinimumTeamRoleOf (role) {
+            if (this.isVisitingAdmin) {
+                return true
+            }
+
+            const [roleValue] = Object.entries(RoleNames).find(([key, value]) => value === role) || []
+
+            return this.teamMembership?.role >= roleValue
         }
     }
 }

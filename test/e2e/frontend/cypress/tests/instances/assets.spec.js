@@ -5,13 +5,20 @@ describe('FlowForge - Instance - Assets', () => {
                 const team = response.body.teams.find(
                     (team) => team.name === teamName
                 )
+
+                cy.wrap(team.id).as('teamId')
+
                 return cy.request('GET', `/api/v1/teams/${team.id}/projects`)
             })
             .then((response) => {
                 const instance = response.body.projects.find(
                     (project) => project.name === projectName
                 )
+
+                cy.wrap(instance.id).as('instanceId')
+
                 cy.visit(`/instance/${instance.id}/${tab}`)
+
                 cy.wait('@getAuditLog')
             })
     }
@@ -45,5 +52,25 @@ describe('FlowForge - Instance - Assets', () => {
 
         cy.get('[data-action="upload-file"]').should('be.visible')
         cy.get('[data-action="upload-file"]').should('be.disabled')
+    })
+
+    it('doesn\'t display the assets tab to users with team permissions lesser than member', () => {
+        cy.intercept('GET', '/api/*/teams/*/user', { role: 10 }).as('getTeamRole')
+
+        navigateToProject('BTeam', 'instance-2-1')
+
+        cy.get('[data-nav="instance-assets"]').should('not.exist')
+    })
+
+    it('redirects users without permissions to the instance overview when they try an access the assets tab manually', () => {
+        cy.intercept('GET', '/api/*/teams/*/user', { role: 10 }).as('getTeamRole')
+
+        navigateToProject('BTeam', 'instance-2-1')
+
+        cy.get('@instanceId')
+            .then(instanceId => {
+                cy.visit(`/instance/${instanceId}/assets`)
+                cy.url().should('include', `/instance/${instanceId}/overview`)
+            })
     })
 })
