@@ -26,7 +26,7 @@
                 >
                     <template #icon><SearchIcon /></template>
                 </ff-text-input>
-                <div v-if="Object.keys(dependencies).length > 0" class="dependencies">
+                <div v-if="Object.keys(dependencies).length > 0" class="dependencies" data-el="dependencies">
                     <dependency-item
                         v-for="(versions, dependencyTitle) in dependencies"
                         :key="dependencyTitle"

@@ -1,5 +1,5 @@
 <template>
-    <section class="dependency-item">
+    <section class="dependency-item" data-el="dependency-item">
         <div class="dependency-header">
             <div class="title">
                 <h3>{{ title }}</h3>

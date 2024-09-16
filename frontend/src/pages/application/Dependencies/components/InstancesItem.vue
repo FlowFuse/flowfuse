@@ -1,5 +1,5 @@
 <template>
-    <div class="instance-item">
+    <div class="instance-item" data-el="instance-item">
         <div class="title">
             <h6>
                 <IconDeviceSolid v-if="isDevice" class="ff-icon text-teal-700" />
