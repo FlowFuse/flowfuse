@@ -110,6 +110,10 @@ export default {
         }
     },
     mounted () {
+        if (!this.hasAMinimumTeamRoleOf('member')) {
+            return this.$router.push({ name: 'instance-overview' })
+        }
+
         this.loadContents()
     },
     methods: {

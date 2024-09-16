@@ -32,17 +32,18 @@ export default {
     emits: ['tab-selected'],
     data () {
         return {
-            selectedIndex: -1,
-            scopedTabs: []
+            selectedIndex: -1
         }
     },
-    watch: {
-        tabs: function () {
-            this.scopedTabs = this.tabs
+    computed: {
+        scopedTabs () {
+            return this.tabs.filter(tab => {
+                if (Object.prototype.hasOwnProperty.call(tab, 'hidden')) {
+                    return !tab.hidden
+                }
+                return true
+            })
         }
-    },
-    mounted () {
-        this.scopedTabs = this.tabs
     },
     methods: {
         selectTab (i) {
