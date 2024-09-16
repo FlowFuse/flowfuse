@@ -50,6 +50,7 @@ import { mapState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
 import FormHeading from '../../../components/FormHeading.vue'
+import featuresMixin from '../../../mixins/Features.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import alerts from '../../../services/alerts.js'
 import TokenCreated from '../../account/Security/dialogs/TokenCreated.vue'
@@ -76,7 +77,7 @@ export default {
         TokenCreated,
         TokenDialog
     },
-    mixins: [permissionsMixin],
+    mixins: [permissionsMixin, featuresMixin],
     inheritAttrs: false,
     props: {
         project: {
@@ -157,7 +158,7 @@ export default {
     mounted () {
         this.checkAccess()
         this.getSettings()
-        if (this.settings.features.httpBearerTokens && this.team.type.properties.features.teamHttpSecurity) {
+        if (this.isHTTPBearerTokensFeatureEnabledForTeam()) {
             this.getTokens()
         }
     },
