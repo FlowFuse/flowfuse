@@ -113,35 +113,41 @@ export default {
                 return instance
             })
         },
-        filteredInstances () {
-            return this.extendedInstances
-                .filter(instance => {
-                    if (this.searchTerm.length === 0) {
-                        return true
-                    }
-                    return [
-                        instance.name,
-                        instance.type,
-                        ...instance.dependencies.map(dependency => {
-                            return dependency.name + ' ' + dependency.version.installed
-                        })
-                    ].map(term => term.toLowerCase().includes(this.searchTerm.trim().toLowerCase()))
-                        .includes(true)
-                })
-        },
         dependencies () {
-            return this.filteredInstances.reduce((acc, currentInstance) => {
-                currentInstance.dependencies.forEach(dep => {
-                    if (!Object.prototype.hasOwnProperty.call(acc, dep.name)) {
-                        acc[dep.name] = { }
-                    }
-                    if (!Object.prototype.hasOwnProperty.call(acc[dep.name], dep.version.installed)) {
-                        acc[dep.name][dep.version.installed] = []
-                    }
-                    acc[dep.name][dep.version.installed].push(currentInstance)
-                })
-                return acc
-            }, {})
+            return this.extendedInstances
+                .reduce((acc, currentInstance) => {
+                    currentInstance.dependencies.forEach(dep => {
+                        const searchTerm = this.searchTerm.trim()
+                        const installedDependencyVersion = dep.version.installed ?? dep.version.semver
+                        const dependencyNameMatchesSearch = dep.name.toLowerCase().includes(searchTerm.toLowerCase())
+                        const dependencyVersionMatchesSearch = installedDependencyVersion.toLowerCase().includes(searchTerm.toLowerCase())
+                        const matchesInstanceName = currentInstance.name.toLowerCase().includes(searchTerm.toLowerCase())
+                        const includeDependency = () => {
+                            if (!Object.prototype.hasOwnProperty.call(acc, dep.name)) {
+                                acc[dep.name] = {}
+                            }
+                            if (!Object.prototype.hasOwnProperty.call(acc[dep.name], installedDependencyVersion)) {
+                                acc[dep.name][installedDependencyVersion] = []
+                            }
+                            acc[dep.name][installedDependencyVersion].push(currentInstance)
+                        }
+
+                        switch (true) {
+                        case !searchTerm.length:
+                            includeDependency()
+                            break
+                        case matchesInstanceName:
+                            includeDependency()
+                            break
+                        case dependencyVersionMatchesSearch || dependencyNameMatchesSearch:
+                            includeDependency()
+                            break
+                        default:
+                            break
+                        }
+                    })
+                    return acc
+                }, {})
         },
         hasInstances () {
             return !(!this.payload || this.payload.children.length === 0)
