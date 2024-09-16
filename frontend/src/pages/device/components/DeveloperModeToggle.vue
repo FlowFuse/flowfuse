@@ -28,6 +28,14 @@ export default {
         device: {
             type: Object,
             required: true
+        },
+        disabled: {
+            type: Boolean,
+            default: false
+        },
+        disabledReason: {
+            type: String,
+            default: null
         }
     },
     emits: ['mode-change'],
@@ -40,12 +48,15 @@ export default {
     },
     computed: {
         toggleDisabled () {
-            return this.unsupportedVersion || this.busy
+            return this.disabled || this.unsupportedVersion || this.busy
         },
         developerMode () {
             return this.device?.mode === 'developer'
         },
         toggleTip () {
+            if (this.disabled && this.disabledReason) {
+                return this.disabledReason
+            }
             if (this.unsupportedVersion) {
                 return 'Developer Mode unavailable'
             } else {
