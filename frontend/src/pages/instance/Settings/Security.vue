@@ -157,7 +157,7 @@ export default {
     mounted () {
         this.checkAccess()
         this.getSettings()
-        if (this.settings.features.httpBearerTokens) {
+        if (this.settings.features.httpBearerTokens && this.team.type.properties.features.teamHttpSecurity) {
             this.getTokens()
         }
     },
