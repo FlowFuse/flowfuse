@@ -53,6 +53,7 @@ describe('Application API', function () {
         // Need to give the default TeamType permission to use DeviceGroup feature
         const defaultTeamTypeProperties = app.defaultTeamType.properties
         defaultTeamTypeProperties.features.deviceGroups = true
+        defaultTeamTypeProperties.features.bom = true
         app.defaultTeamType.properties = defaultTeamTypeProperties
         await app.defaultTeamType.save()
         TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: app.defaultTeamType.id })
