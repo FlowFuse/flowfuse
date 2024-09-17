@@ -308,6 +308,7 @@ module.exports.init = async function (app) {
             }
             let adminGroup = false
             const desiredTeamMemberships = {}
+            app.log.debug(`SAML Group Assertions for ${user.username} ${JSON.stringify(groupAssertions)}`)
             groupAssertions.forEach(ga => {
                 // Parse the group name - format: 'ff-SLUG-ROLE'
                 // Generate a slug->role object (desiredTeamMemberships)
@@ -349,6 +350,7 @@ module.exports.init = async function (app) {
                     await user.save()
                 }
             }
+            app.log.debug(`Desired Teams for ${user.username} ${JSON.stringify(desiredTeamMemberships)}`)
 
             // Get the existing memberships and generate a slug->membership object (existingMemberships)
             const existingMemberships = {}
@@ -366,6 +368,7 @@ module.exports.init = async function (app) {
                     existingMemberships[membership.Team.slug] = membership
                 }
             })
+            app.log.debug(`Existing Teams for ${user.username} ${JSON.stringify(existingMemberships)}`)
 
             // We now have the list of desiredTeamMemberships and existingMemberships
             // that are in scope of being modified
@@ -435,6 +438,7 @@ module.exports.init = async function (app) {
             filter,
             attributes: ['cn']
         })
+        app.log.debug(`LDAP Groups for ${user.username} ${JSON.stringify(searchEntries)}`)
         const promises = []
         let adminGroup = false
         const desiredTeamMemberships = {}
@@ -462,6 +466,7 @@ module.exports.init = async function (app) {
                 adminGroup = true
             }
         }
+        app.log.debug(`Desired Teams for ${user.username} ${JSON.stringify(desiredTeamMemberships)}`)
         if (providerOpts.groupAdmin) {
             if (user.admin && !adminGroup) {
                 app.auditLog.User.user.updatedUser(0, null, [{ key: 'admin', old: true, new: false }], user)
@@ -495,6 +500,7 @@ module.exports.init = async function (app) {
                 existingMemberships[membership.Team.slug] = membership
             }
         })
+        app.log.debug(`Existing Teams for ${user.username} ${JSON.stringify(existingMemberships)}`)
         // We now have the list of desiredTeamMemberships and existingMemberships
         // that are in scope of being modified
 
