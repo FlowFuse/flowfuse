@@ -215,6 +215,7 @@ jobs:
     name: Deploy application
     if: |
       (always() && needs.publish_k8s_driver.result != 'failure') &&
+      (always() && needs.upload-node-red.result != 'failure') &&
       (( github.event_name == 'pull_request' && github.event.action != 'closed' ) ||
       ( github.event_name == 'workflow_dispatch' && github.event.action != 'closed' ))
     runs-on: ubuntu-latest
@@ -222,6 +223,7 @@ jobs:
     needs: 
       - validate-user
       - publish_k8s_driver
+      - upload-node-red
       - build
     env:
       IMAGE_NAME: 'forge-k8s'
