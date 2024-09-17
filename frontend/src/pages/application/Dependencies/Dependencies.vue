@@ -186,7 +186,8 @@ export default {
 <style scoped lang="scss">
 .dependencies-wrapper {
   .dependencies {
-    border: 1px solid $ff-grey-300;
+    display: grid;
+    gap: 12px;
   }
 }
 </style>

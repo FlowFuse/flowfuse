@@ -84,5 +84,8 @@ export default {
       justify-content: flex-end;
     }
   }
+  &:last-child button {
+    border-bottom: none;
+  }
 }
 </style>
