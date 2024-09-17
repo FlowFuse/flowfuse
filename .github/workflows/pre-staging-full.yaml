@@ -10,6 +10,10 @@ on:
         description: 'flowfuse/driver-k8s branch name'
         required: true
         default: 'main'
+      nr_launcher_branch:
+        description: 'flowfuse/nr-launcher branch name'
+        required: true
+        default: 'main'
   pull_request:
     types: 
       - opened
@@ -75,14 +79,30 @@ jobs:
     secrets:
       npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
 
-
-  build-node-red:
-    name: Build Node-RED 4.0.x container images
+  publish_nr_launcher:
+    name: Build and publish Node-RED launcher package
     needs: validate-user
     if: |
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
-      github.event.action != 'closed'
+      github.event.action != 'closed' &&
+      github.event.inputs.nr_launcher_branch != 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Simulate package build and push
+        run:
+          echo "Build package"
+
+  build-node-red:
+    name: Build Node-RED 4.0.x container images
+    needs: 
+      - validate-user
+      - publish_nr_launcher
+    if: |
+      needs.validate-user.outputs.is_org_member == 'true' &&
+      github.event_name == 'workflow_dispatch' &&
+      github.event.action != 'closed' &&
+      (always() && needs.publish_nr_launcher.result != 'failure')
     uses: flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml@v0.29.0
     with:
       image_name: 'node-red'
