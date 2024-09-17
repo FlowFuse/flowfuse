@@ -401,6 +401,15 @@ export default {
         persistence: {
             redirectUrlAfterLogin: {
                 storage: 'localStorage'
+            },
+            settings: {
+                storage: 'localStorage'
+            },
+            teamMembership: {
+                storage: 'localStorage'
+            },
+            team: {
+                storage: 'localStorage'
             }
         }
     }
