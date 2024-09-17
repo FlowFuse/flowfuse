@@ -77,6 +77,9 @@ export default {
 <style scoped lang="scss">
 .ff-row-file--copy {
     position: relative;
+    display: flex;
+    align-items: center;
+    gap: 3px;
     &:hover {
         color: $ff-blue-600;
     }
