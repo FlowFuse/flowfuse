@@ -1,20 +1,20 @@
 <template>
-    <div v-if="!isNotAvailable" class="ff-row-file--copy">
-        <span class="path" :title="path">{{ path }}</span>
-        <DuplicateIcon v-if="path.length" class="ff-icon" @click="copyPath" @click.prevent.stop />
-        <span ref="copied" class="ff-copied">Copied!</span>
+    <div v-if="!isNotAvailable" class="ff-row-file">
+        <text-copier v-if="canBeCopied" :text="path">
+            <span class="path" :title="path">{{ path }}</span>
+        </text-copier>
+        <span v-else class="path" :title="path">{{ path }}</span>
     </div>
     <span v-else class="not-available">Not Available</span>
 </template>
 
 <script>
-
-import { DuplicateIcon } from '@heroicons/vue/outline'
+import TextCopier from '../../TextCopier.vue'
 
 export default {
     name: 'FileBrowserCellFilePath',
     components: {
-        DuplicateIcon
+        TextCopier
     },
     inheritAttrs: false,
     props: {
@@ -41,6 +41,10 @@ export default {
             required: false,
             default: null,
             type: [String, null]
+        },
+        type: {
+            required: true,
+            type: String
         }
     },
     computed: {
@@ -57,6 +61,9 @@ export default {
 
             // clear leading slash
             return path.replace(/^\//, '')
+        },
+        canBeCopied () {
+            return this.type === 'file' || this.type === 'url'
         }
     },
     methods: {
@@ -75,7 +82,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.ff-row-file--copy {
+.ff-row-file {
     position: relative;
     display: flex;
     align-items: center;
@@ -83,23 +90,6 @@ export default {
     &:hover {
         color: $ff-blue-600;
     }
-
-  .ff-icon {
-    &:hover {
-      cursor: pointer;
-    }
-  }
-}
-
-.ff-copied {
-    background-color: black;
-    color: white;
-    padding: 3px;
-    border-radius: 3px;
-    position: absolute;
-    margin-top: -3px;
-    margin-left: 3px;
-    display: none;
 }
 
 .not-available {

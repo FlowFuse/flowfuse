@@ -130,7 +130,8 @@ export default {
                         is: markRaw(ItemFilePath),
                         extraProps: {
                             breadcrumbs: this.breadcrumbs,
-                            isNotAvailable: !this.isInstanceRunning
+                            isNotAvailable: !this.isInstanceRunning,
+                            type: 'folder'
                         }
                     }
                 },
@@ -143,7 +144,8 @@ export default {
                             breadcrumbs: this.breadcrumbs,
                             prepend: this.folderStaticPath,
                             isNotAvailable: !this.isCurrentDirectoryPublic || !this.isInstanceRunning,
-                            baseURL: this.instance?.url
+                            baseURL: this.instance?.url,
+                            type: 'url'
                         }
                     }
                 }
