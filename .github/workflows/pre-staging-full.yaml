@@ -106,7 +106,7 @@ jobs:
     uses: flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml@v0.29.0
     with:
       image_name: 'node-red'
-      dockerfile_path: ./ci/node-red/Dockerfile
+      dockerfile_path: Dockerfile
       image_tag_prefix: '4.0.x-'
       package_dependencies: |
         @flowforge/nr-project-nodes
