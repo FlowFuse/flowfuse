@@ -23,7 +23,7 @@
             <FormRow
                 v-model="input.applicationId"
                 :options="applications"
-                :error="errors.applicationId || submitErrors?.applicationId"
+                :error="!input.applicationId ? (errors.applicationId || submitErrors?.applicationId) : undefined"
                 :disabled="applicationFieldsLocked"
                 data-form="application-id"
             >

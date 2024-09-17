@@ -457,7 +457,7 @@ module.exports = async (options = {}) => {
         await server.db.controllers.TeamType.ensureDefaultTypeExists()
 
         // Create ff-admin
-        if (server.config.create_admin) {
+        if (server.config.create_admin && !server.settings.get('setup:initialised')) {
             await createAdminUser(server)
             await finishSetup(server)
         }

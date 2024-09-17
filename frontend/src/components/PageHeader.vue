@@ -25,7 +25,7 @@
             />
         </div>
         <!-- Mobile: Team Selection -->
-        <div class="ff-navigation ff-navigation-right" :class="{'open': mobileTeamSelectionOpen}" data-action="team-selection">
+        <div class="ff-navigation ff-navigation-right" :class="{'open': mobileTeamSelectionOpen, 'without-divider': !canCreateTeam}" data-action="team-selection">
             <nav-item
                 v-for="team in teams" :key="team.name"
                 :label="team.name" :avatar="team.avatar"
