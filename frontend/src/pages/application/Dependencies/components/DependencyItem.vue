@@ -87,7 +87,7 @@ export default {
     background: $ff-grey-100;
     display: flex;
     border-bottom: 1px solid $ff-grey-300;
-    padding: 5px 5px;
+    padding: 6px 9px;
     align-items: center;
 
     .title {
@@ -101,7 +101,7 @@ export default {
     .details {
       display: flex;
       flex-direction: column;
-      font-size: 12px;
+      font-size: 0.875rem;
       font-weight: 500;
     }
   }
@@ -111,7 +111,7 @@ export default {
       button {
         border-bottom: none;
       }
-  }
+    }
   }
 }
 </style>
