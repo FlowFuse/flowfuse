@@ -116,7 +116,7 @@ export default {
     },
     methods: {
         loadContents () {
-            if (this.isFeatureEnabled) {
+            if (this.isFeatureEnabled && this.hasAMinimumTeamRoleOf('member')) {
                 const breadcrumbs = this.breadcrumbs.join('/')
                 const path = breadcrumbs + (breadcrumbs.length > 0 ? '/' : '') + (this.currentDirectory.name || '')
                 AssetsAPI.getFiles(this.instance.id, path)
