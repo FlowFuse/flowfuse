@@ -2614,6 +2614,7 @@ describe('Project API', function () {
             response.statusCode.should.eqls(403)
         })
     })
+
     describe('Validate Project Env Vars', function () {
         it('Reject Duplicate Env Var Names', async function () {
             const response = await app.inject({
@@ -2664,5 +2665,16 @@ describe('Project API', function () {
         //     response.should.have.property('statusCode')
         //     response.statusCode.should.eqls(400)
         // })
+    })
+
+    describe('Project History', function () {
+        it('Should not get a timeline of changes to the project (EE only)', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${TestObjects.project1.id}/history`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(404)
+        })
     })
 })
