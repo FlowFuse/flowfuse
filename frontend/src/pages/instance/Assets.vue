@@ -31,6 +31,7 @@
 
 <script>
 import SemVer from 'semver'
+import { mapState } from 'vuex'
 
 import AssetsAPI from '../../api/assets.js'
 import FeatureUnavailable from '../../components/banners/FeatureUnavailable.vue'
@@ -69,6 +70,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['teamMembership', 'team']),
         launcherSatisfiesVersion () {
             if (!this.isInstanceRunning) {
                 return true
@@ -88,6 +90,19 @@ export default {
         }
     },
     watch: {
+        teamMembership: {
+            handler (newState) {
+                if (newState && !this.hasAMinimumTeamRoleOf('member')) {
+                    return this.$router.push({ name: 'instance-overview' })
+                }
+            },
+            immediate: true
+        },
+        team (newState) {
+            if (newState && this.files.length === 0) {
+                this.loadContents()
+            }
+        },
         isInstanceRunning (newState, oldState) {
             if (newState && !oldState) {
                 this.loadContents()
@@ -97,10 +112,6 @@ export default {
         }
     },
     mounted () {
-        if (!this.hasAMinimumTeamRoleOf('member')) {
-            return this.$router.push({ name: 'instance-overview' })
-        }
-
         this.loadContents()
     },
     methods: {
