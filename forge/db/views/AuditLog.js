@@ -60,8 +60,43 @@ module.exports = function (app) {
         })
         return logEntries
     }
+    app.addSchema({
+        $id: 'TimelineEntry',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            createdAt: { type: 'string' },
+            user: { $ref: 'User' },
+            event: { type: 'string' },
+            data: { type: 'object', additionalProperties: true }
+        }
+    })
+
+    app.addSchema({
+        $id: 'TimelineList',
+        type: 'array',
+        items: {
+            $ref: 'TimelineEntry'
+        }
+    })
+
+    function timelineEntry (timelineEntry) {
+        const logEntry = app.auditLog.formatters.formatLogEntry(timelineEntry)
+        return {
+            id: timelineEntry.hashid,
+            createdAt: timelineEntry.createdAt,
+            user: sanitiseObjectIds(logEntry.trigger),
+            event: logEntry.event,
+            data: logEntry.body
+        }
+    }
+
+    function timelineList (timeline) {
+        return timeline.map(timelineEntry)
+    }
 
     return {
-        auditLog
+        auditLog,
+        timelineList
     }
 }
