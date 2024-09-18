@@ -1,7 +1,11 @@
+const crypto = require('crypto')
 const sleep = require('util').promisify(setTimeout)
 
 const should = require('should')
 const sinon = require('sinon')
+
+const { createSnapshot } = require('../../../../../../forge/services/snapshots')
+const TestModelFactory = require('../../../../../lib/TestModelFactory.js')
 
 const setup = require('../../setup')
 
@@ -128,6 +132,7 @@ describe('Projects API - with billing enabled', function () {
         })
     })
 })
+
 describe('npmrc values should be hidden from none owners', function () {
     const TestObjects = {}
 
@@ -264,5 +269,313 @@ describe('npmrc values should be hidden from none owners', function () {
         response.statusCode.should.equal(200)
         const body = response.json()
         body.template.settings.palette.npmrc.should.equal('//_authToken="xxxxxxx"')
+    })
+})
+
+describe('Project (EE)', function () {
+    const TestObjects = {
+        /** admin */ alice: null,
+        /** owner */ bob: null,
+        /** member */ chris: null,
+        /** viewer */ dave: null,
+        /** non member */ elvis: null,
+        instanceOne: null,
+        instanceTwo: null,
+        team: null,
+        application: null,
+        stack: null,
+        template: null,
+        projectType: null,
+        tokens: {
+            alice: null,
+            bob: null,
+            chris: null,
+            dave: null,
+            elvis: null
+        },
+        /** @type {TestModelFactory} */
+        factory: null
+    }
+
+    let app
+    const sandbox = sinon.createSandbox()
+    /** @type {import('../../../../../../forge/auditLog/project.js').getLoggers} */
+    const getProjectLogger = (app) => { return app?.auditLog?.Project }
+    let projectLogger = getProjectLogger(app)
+
+    async function login (username, password) {
+        const response = await app.inject({
+            method: 'POST',
+            url: '/account/login',
+            payload: { username, password, remember: false }
+        })
+        response.cookies.should.have.length(1)
+        response.cookies[0].should.have.property('name', 'sid')
+        TestObjects.tokens[username] = response.cookies[0].value
+    }
+
+    before(async function () {
+        app = await setup()
+        projectLogger = getProjectLogger(app)
+        sandbox.stub(app.log, 'info')
+        sandbox.stub(app.log, 'warn')
+        sandbox.stub(app.log, 'error')
+
+        const factory = new TestModelFactory(app)
+
+        TestObjects.factory = factory
+
+        TestObjects.instanceOne = app.instance
+        await TestObjects.instanceOne.updateSetting('credentialSecret', crypto.randomBytes(32).toString('hex'))
+
+        TestObjects.instanceTwo = await TestObjects.factory.createInstance(
+            { name: 'instance-two' },
+            app.application,
+            app.stack,
+            app.template,
+            app.projectType,
+            { start: false }
+        )
+
+        TestObjects.team = app.team
+        TestObjects.application = app.application
+        TestObjects.stack = app.stack
+        TestObjects.template = app.template
+        TestObjects.projectType = app.projectType
+
+        TestObjects.alice = await app.db.models.User.byUsername('alice')
+        TestObjects.bob = await TestObjects.factory.createUser({ admin: false, username: 'bob', name: 'Bob Solo', email: 'bob@example.com', password: 'bbPassword' })
+        TestObjects.chris = await TestObjects.factory.createUser({ admin: false, username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', email_verified: true, password: 'ccPassword' })
+        TestObjects.dave = await TestObjects.factory.createUser({ admin: false, username: 'dave', name: 'Dave Vader', email: 'dave@example.com', email_verified: true, password: 'ddPassword' })
+
+        await TestObjects.team.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+        await TestObjects.team.addUser(TestObjects.chris, { through: { role: Roles.Member } })
+        await TestObjects.team.addUser(TestObjects.dave, { through: { role: Roles.Viewer } })
+
+        TestObjects.elvis = await TestObjects.factory.createUser({ admin: false, username: 'elvis', name: 'Elvis Dooku', email: 'elvis@example.com', email_verified: true, password: 'eePassword' })
+        const team2 = await TestObjects.factory.createTeam({ name: 'PTeam' })
+        await team2.addUser(TestObjects.elvis, { through: { role: Roles.Member } })
+
+        await login('alice', 'aaPassword')
+        await login('bob', 'bbPassword')
+        await login('chris', 'ccPassword')
+        await login('dave', 'ddPassword')
+        await login('elvis', 'eePassword')
+    })
+
+    after(async function () {
+        await app.close()
+        sandbox.restore()
+    })
+
+    describe('Project History', function () {
+        it('Owner should get a timeline of changes to the project', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${TestObjects.instanceOne.id}/history`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+            const body = response.json()
+            body.should.have.property('meta')
+            body.should.have.property('count')
+            body.should.have.property('timeline')
+        })
+        it('Member should get a timeline of changes to the project', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${TestObjects.instanceOne.id}/history`,
+                cookies: { sid: TestObjects.tokens.chris }
+            })
+            response.statusCode.should.equal(200)
+            const body = response.json()
+            body.should.have.property('meta')
+            body.should.have.property('count')
+            body.should.have.property('timeline')
+        })
+        it('Viewer should not be able to access project history (403)', async function () {
+            // 403: Forbidden - The user does not have permission to access the resource
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${TestObjects.instanceOne.id}/history`,
+                cookies: { sid: TestObjects.tokens.dave }
+            })
+            response.statusCode.should.equal(403)
+        })
+        it('Non member should not be able to access project history (404)', async function () {
+            // 404: Not Found - The requested resource could not be found
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${TestObjects.instanceOne.id}/history`,
+                cookies: { sid: TestObjects.tokens.elvis }
+            })
+            response.statusCode.should.equal(404)
+        })
+        it('Anonymous should not be able to access project history (401)', async function () {
+            // 401: Unauthorized - The user is not authenticated
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${TestObjects.instanceOne.id}/history`
+            })
+            response.statusCode.should.equal(401)
+        })
+        describe('Timeline Data', function () {
+            async function simulateModifyFlows (instance, user) {
+                // since we don't have running instances to post flows, we just simulate the event
+                await app.db.controllers.AuditLog.projectLog(instance.id, user.id, 'flows.set', { type: 'flows' })
+            }
+
+            async function simulatePipelineDeployment (instance, user, snapshot) {
+                // simulate a pipeline deployment by logging the event
+                await projectLogger.project.snapshot.imported(user, null, instance, instance, null, snapshot)
+            }
+
+            async function doAutoSnapshot (instance, user, deploymentType = 'full') {
+                // since we don't have running instances to cause flow mods, just call the controller directly
+                await app.db.controllers.ProjectSnapshot.doInstanceAutoSnapshot(instance, deploymentType, undefined, { user })
+            }
+
+            async function rollback (instance, snapshotId, sid) {
+                await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/projects/${instance.id}/actions/rollback`,
+                    payload: { snapshotId },
+                    cookies: { sid }
+                })
+            }
+
+            async function modifySettings (instance, newSettings, sid) {
+                await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/projects/${instance.id}`,
+                    payload: { settings: newSettings },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+            }
+            before(async function () {
+                app.config.features.register('instanceAutoSnapshot', true, true)
+                // Enable instanceAutoSnapshot feature for default team type
+                const defaultTeamType = await app.db.models.TeamType.findOne({ where: { name: 'starter' } })
+                const defaultTeamTypeProperties = defaultTeamType.properties
+                defaultTeamTypeProperties.features.instanceAutoSnapshot = true
+                defaultTeamType.properties = defaultTeamTypeProperties
+                await defaultTeamType.save()
+
+                // Simulate below events by pushing entries to the audit log and generating snapshots
+                // 1. Create snapshot 1
+                // 2. Modify flows
+                // 3. Create snapshot 2
+                // 4. Modify settings
+                // 5. Create snapshot 3
+                // 6. pipeline deployment of Snapshot 1
+                // 7. Create snapshot 4
+                // 8. Rollback to snapshot 3
+
+                // createSnapshot(app, instance, user, snapshotProps)
+                const snapshotProps = (num) => {
+                    return {
+                        name: `Snapshot ${num}`,
+                        description: `Snapshot ${num}`,
+                        setAsTarget: false, // no need to deploy to devices of the source
+                        flows: { custom: `custom-flows-${num}` },
+                        // credentials: { custom: `custom-creds-${num}` },
+                        settings: {
+                            modules: { custom: `custom-module-${num}` },
+                            env: { custom: `custom-env-${num}` }
+                        }
+                    }
+                }
+                const snapshot1 = await createSnapshot(app, TestObjects.instanceOne, TestObjects.bob, snapshotProps(1))
+                await simulateModifyFlows(TestObjects.instanceOne, TestObjects.bob)
+                await doAutoSnapshot(TestObjects.instanceOne, TestObjects.bob)
+                await modifySettings(TestObjects.instanceOne, { header: { title: 'changed' } }, TestObjects.tokens.bob)
+                const snapshot3 = await createSnapshot(app, TestObjects.instanceOne, TestObjects.bob, snapshotProps(3))
+                await simulatePipelineDeployment(TestObjects.instanceOne, TestObjects.bob, snapshot1)
+                await createSnapshot(app, TestObjects.instanceOne, TestObjects.bob, snapshotProps(4))
+                await rollback(TestObjects.instanceOne, snapshot3.hashid, TestObjects.tokens.bob)
+            })
+
+            it('Should return a timeline of changes to the project', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/projects/${TestObjects.instanceOne.id}/history`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+
+                const body = response.json()
+                body.should.have.property('meta')
+                body.should.have.property('count')
+                body.should.have.property('timeline').and.be.an.Array()
+                body.timeline.should.have.length(8)
+
+                // check a selection of entries
+                const entry1 = body.timeline[0]
+                entry1.should.have.property('createdAt')
+                entry1.should.have.property('user').and.be.an.Object()
+                entry1.user.should.have.property('id').and.be.a.String()
+                entry1.should.have.property('event', 'project.snapshot.rolled-back')
+                entry1.should.have.property('data').and.be.an.Object()
+
+                const entry2 = body.timeline[1]
+                entry2.should.have.property('createdAt')
+                entry2.should.have.property('user').and.be.an.Object()
+                entry2.user.should.have.property('id').and.be.a.String()
+                entry2.should.have.property('event', 'project.snapshot.created')
+                entry2.should.have.property('data').and.be.an.Object()
+                entry2.data.should.have.property('snapshot').and.be.an.Object()
+                entry2.data.snapshot.should.have.property('id').and.be.a.String()
+                entry2.data.snapshot.should.have.property('name', 'Snapshot 4')
+                entry2.data.should.have.property('info').and.be.an.Object()
+                entry2.data.info.should.have.property('snapshotExists', true)
+
+                const entry3 = body.timeline[2]
+                entry3.should.have.property('createdAt')
+                entry3.should.have.property('user').and.be.an.Object()
+                entry3.user.should.have.property('id').and.be.a.String()
+                entry3.should.have.property('event', 'project.snapshot.imported') // pipeline deployment
+                entry3.should.have.property('data').and.be.an.Object()
+                entry3.data.should.have.property('snapshot').and.be.an.Object()
+                entry3.data.snapshot.should.have.property('id').and.be.a.String()
+                entry3.data.snapshot.should.have.property('name', 'Snapshot 1') // snapshot 1 was deployed
+                entry3.data.should.have.property('info').and.be.an.Object()
+                entry3.data.info.should.have.property('snapshotExists', true)
+            })
+
+            describe('Pagination', function () {
+                it('Should limit response', async function () {
+                    const response = await app.inject({
+                        method: 'GET',
+                        url: `/api/v1/projects/${TestObjects.instanceOne.id}/history?limit=2`,
+                        cookies: { sid: TestObjects.tokens.bob }
+                    })
+                    response.statusCode.should.equal(200)
+                    const body = response.json()
+                    body.should.have.property('count', 2)
+                })
+
+                it('Should use cursor', async function () {
+                    const response = await app.inject({
+                        method: 'GET',
+                        url: `/api/v1/projects/${TestObjects.instanceOne.id}/history?limit=2`,
+                        cookies: { sid: TestObjects.tokens.bob }
+                    })
+                    response.statusCode.should.equal(200)
+                    const body1 = response.json()
+                    body1.meta.should.have.property('next_cursor')
+
+                    const response2 = await app.inject({
+                        method: 'GET',
+                        url: `/api/v1/projects/${TestObjects.instanceOne.id}/history?cursor=${body1.meta.next_cursor}&limit=3`,
+                        cookies: { sid: TestObjects.tokens.bob }
+                    })
+                    response2.statusCode.should.equal(200)
+                    const body2 = response2.json()
+
+                    body2.meta.should.have.property('next_cursor')
+                    body2.meta.next_cursor.should.not.equal(body1.meta.next_cursor)
+                })
+            })
+        })
     })
 })
