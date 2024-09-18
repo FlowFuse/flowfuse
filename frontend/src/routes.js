@@ -62,20 +62,24 @@ function clearRedirectUrl (to, from) {
 
 // This callback runs before every route change, including on page load.
 router.beforeEach((to, from, next) => {
-    window.posthog?.capture(
-        '$pageleave',
-        {
-            to: to.fullPath,
-            $current_url: from.fullPath
-        }
-    )
-    window.posthog?.capture(
-        '$pageview',
-        {
-            from: from.fullPath,
-            $current_url: to.fullPath
-        }
-    )
+    try {
+        window.posthog?.capture(
+            '$pageleave',
+            {
+                to: to.fullPath,
+                $current_url: from.fullPath
+            }
+        )
+        window.posthog?.capture(
+            '$pageview',
+            {
+                from: from.fullPath,
+                $current_url: to.fullPath
+            }
+        )
+    } catch (err) {
+        console.log('posthog error logging route change')
+    }
     // This goes through the matched routes from last to first, finding the closest route with a title.
     // e.g., if we have `/some/deep/nested/route` and `/some`, `/deep`, and `/nested` have titles,
     // `/nested`'s will be chosen.

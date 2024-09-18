@@ -26,7 +26,11 @@ const verifyMFAToken = (token) => {
 
 const logout = () => {
     return client.post('/account/logout').then((res) => {
-        window.posthog?.reset()
+        try {
+            window.posthog?.reset()
+        } catch (err) {
+            console.log('posthog error resetting user data')
+        }
         return res.data
     })
 }
