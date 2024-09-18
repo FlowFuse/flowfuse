@@ -82,10 +82,18 @@ module.exports = function (app) {
 
     function timelineEntry (timelineEntry) {
         const logEntry = app.auditLog.formatters.formatLogEntry(timelineEntry)
+        let user = logEntry.User
+        if (!user && logEntry.trigger && logEntry.trigger.hashid) {
+            user = logEntry.trigger
+            user.username = user.username || user.name
+            user.avatar = user.avatar || app.db.utils.generateUserAvatar(user.username)
+        }
+        // catch all for missing user
+        user = user || { id: 0, type: 'system', hashid: 'system', name: 'FlowFuse Platform', username: 'System', avatar: '/avatar/camera.svg' }
         return {
             id: timelineEntry.hashid,
             createdAt: timelineEntry.createdAt,
-            user: sanitiseObjectIds(logEntry.trigger),
+            user: app.db.views.User.userSummary(user),
             event: logEntry.event,
             data: logEntry.body
         }

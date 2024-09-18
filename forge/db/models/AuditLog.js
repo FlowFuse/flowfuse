@@ -133,15 +133,40 @@ module.exports = {
                     }
 
                     //  1. Get log entries
-                    const logEntries = await M.AuditLog.forEntity(where, pagination)
+                    if (pagination.cursor) {
+                        // As we aren't using the default cursor behaviour (Op.gt)
+                        // set the appropriate clause and delete cursor so that
+                        // buildPaginationSearchClause doesn't do it for us
+                        where.id = { [Op.lt]: M.AuditLog.decodeHashid(pagination.cursor) }
+                        delete pagination.cursor
+                    }
+                    const rows = await this.findAll({
+                        where: buildPaginationSearchClause(
+                            pagination,
+                            where,
+                            // These are the columns that are searched using the `query` query param
+                            ['AuditLog.event', 'AuditLog.body', 'User.username', 'User.name'],
+                            // These map additional query params to specific columns to allow filtering
+                            {
+                                event: 'AuditLog.event',
+                                username: 'User.username'
+                            }
+                        ),
+                        order: [['createdAt', 'DESC']],
+                        include: {
+                            model: M.User,
+                            attributes: ['id', 'hashid', 'username', 'name', 'avatar']
+                        },
+                        limit
+                    })
 
                     // guard: no log entries (no need to process further)
-                    if (!logEntries || !logEntries.log || !logEntries.log.length) {
+                    if (!rows || !rows.length) {
                         return result
                     }
 
                     // 2. convert body string and grab snapshot if available
-                    for (const entry of logEntries.log) {
+                    for (const entry of rows) {
                         try {
                             entry.body = ((typeof entry.body || '{}') === 'string' ? JSON.parse(entry.body) : entry.body) || {}
                             // since we are in the context of a project history, we don't need to include the project object (redundant)
@@ -169,9 +194,9 @@ module.exports = {
                     }
 
                     // 3. Return the log entries
-                    result.meta.next_cursor = logEntries.log.length < limit ? undefined : logEntries.log[logEntries.log.length - 1].hashid
-                    result.count = logEntries.log.length
-                    result.timeline = logEntries.log
+                    result.meta.next_cursor = rows.length < limit ? undefined : rows[rows.length - 1].hashid
+                    result.count = rows.length
+                    result.timeline = rows
                     return result
                 }
             }
