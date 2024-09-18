@@ -130,11 +130,11 @@ jobs:
     environment: staging
     env:
       IMAGE_NAME: 'node-red'
-      PR_NUMBER: ${{ github.event.number }}
+      PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
     steps:
       - name: Set variables
         run: | 
-          echo "tagged_image=${{ env.IMAGE_NAME }}:4.0.x-pr-${{ env.PR_NUMBER}}" >> $GITHUB_ENV
+          echo "tagged_image=${{ env.IMAGE_NAME }}:4.0.x-pr-${{ env.PR_NUMBER }}" >> $GITHUB_ENV
           echo "timestamp=$(date +%s)" >> $GITHUB_ENV
 
       - name: Setup Docker buildx
