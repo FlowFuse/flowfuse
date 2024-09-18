@@ -487,7 +487,7 @@ describe('Project (EE)', function () {
                 // Simulate below events by pushing entries to the audit log and generating snapshots
                 // 1. Create snapshot 1
                 // 2. Modify flows
-                // 3. Create snapshot 2
+                // 3. Create snapshot 2 (auto snapshot)
                 // 4. Modify settings
                 // 5. Create snapshot 3
                 // 6. pipeline deployment of Snapshot 1
