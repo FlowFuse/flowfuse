@@ -352,6 +352,8 @@ function triggerObject (actionedBy, user, unknownValue = 'unknown') {
     let hashid = null
     let type = unknownValue
     let name = unknownValue
+    let username
+    let avatar
     if (actionedBy == null) {
         actionedBy = user
         user = null
@@ -362,11 +364,15 @@ function triggerObject (actionedBy, user, unknownValue = 'unknown') {
             type = 'system'
             hashid = 'system'
             name = 'FlowFuse Platform'
+            username = 'System'
+            avatar = '/avatar/camera.svg'
         } else if (id > 0) {
             type = 'user'
             if (user) {
                 hashid = user.hashid || null
-                name = user?.name || user?.username || (user?.email || '').split('@')[0] || unknownValue || null
+                username = user.username
+                avatar = user.avatar
+                name = user.name || user.username || (user.email || '').split('@')[0] || unknownValue || null
             }
         }
     } else if (isStringWithLength(actionedBy)) {
@@ -375,7 +381,9 @@ function triggerObject (actionedBy, user, unknownValue = 'unknown') {
         } else {
             id = isNumber(user?.id) ? +user.id : null
             hashid = actionedBy
+            username = user.username
             name = user?.name || user?.username || (user?.email || '').split('@')[0] || unknownValue || null
+            avatar = (id === 0 || id === 'system') ? '/avatar/camera.svg' : user?.avatar
             type = 'user'
         }
     } else if (looksLikeUserObject(actionedBy)) {
@@ -393,7 +401,7 @@ function triggerObject (actionedBy, user, unknownValue = 'unknown') {
             return triggerObject(user.hashid, user)
         }
     }
-    return { id, hashid, type, name }
+    return { id, hashid, type, name, username, avatar }
 }
 // #endregion (Log entry formatters)
 
