@@ -2,6 +2,17 @@ const projectShared = require('../../../routes/api/shared/project.js')
 
 module.exports = async function (app) {
     app.addHook('preHandler', projectShared.defaultPreHandler.bind(null, app))
+    app.addHook('preHandler', async (request, reply) => {
+        const team = await app.db.models.Team.byId(request.project.TeamId)
+        if (team) {
+            request.team = team
+            // Check this feature is enabled for this team type.
+            if (team.TeamType.getFeatureProperty('projectHistory', true)) {
+                return
+            }
+        }
+        reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+    })
     /**
      * Get project history
      *  - returns a timeline of changes to the project
