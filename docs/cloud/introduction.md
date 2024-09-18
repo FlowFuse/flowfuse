@@ -23,9 +23,7 @@ The [Concepts](/docs/user/concepts.md) remain the same, but we run the platform 
 ## 14-day Free Trial
 
 When users sign-up to FlowFuse Cloud they get a 14-day free trial of the platform.
-During that trial, they can create up to two Small Node-RED Instances and
-connect two devices. This is a great way to start using FlowFuse and discover a
-lot of the value it provides.
+This is a great way to start using FlowFuse and discover a lot of the value it provides.
 
 Users can end their trial by heading to the Billing page of their team and 
 setting up their payment information. This includes the option to pick which
@@ -59,13 +57,23 @@ and click the button to resend it.
 
 ## Node-RED on FlowFuse Cloud
 
-FlowFuse currently offers Node-RED 2.2 and 3.0 to customers. When creating a
-new instance a [Stack](/docs/user/concepts.md#stack) is chosen, which later
+FlowFuse currently offers Node-RED 4.x, 3.x and 2.x to customers. When creating a
+new instance a [stack](/docs/user/concepts.md#stack) is chosen, which later
 can be [upgraded to a later version](/docs/user/changestack.md).
 
 Each Node-RED can install custom modules as advertised in the [Flow Library](https://flows.nodered.org).
 
+Note that some modules have dependencies on system libraries or other components that are not available within the FlowFuse
+container images we use. Those modules cannot be used within FlowFuse Cloud. If you have a particular requirement, please
+do [contact us](https://flowfuse.com/contact-us/) so we can discuss what options may be available.
+
 ## Cloud Instance Sizes
+
+The different sizes of Cloud Instances relate to how much memory and CPU is made
+available to them.
+
+Memory tends to be the main limiting factor for a Node-RED instance. The following
+table shows what is currently allocated by instance size.
 
 | Size | Memory (RAM) |
 |--------|--------|
@@ -77,17 +85,21 @@ Medium and Large instance types require the Teams or Enterprise tier.
 
 ## Use of the File System
 
-FlowFuse Cloud provides support for using the standard File nodes in flows with
-some limits. The standard filesystem is not persisted between Node-RED restarts,
-so a custom set of nodes are used to store the files in persistent storage.
+FlowFuse Cloud hosted instances have access to a persistent file-system that will
+retain the files stored on it across restarts of the instance.
 
-Each Node-RED instance has a quota of `100MB` of file storage. A single write operation is
-limited to `10MB` in size.
+A quota limit is applied to how much data can be stored, which varies based on
+the Team type.
 
-Some 3rd party nodes try to access the filesystem directly. This can lead to
-unpredictable results if the data does not persist between restarts.
+| Team Type | File Storage Quota (per instance) |
+|--------|--------|
+| Starter | 1GB |
+| Team | 10GB |
+| Enterprise | 100GB |
 
-## Node-RED context
+Files can be manually uploaded to an instance using the [Static Asset Service](https://flowfuse.com/blog/2024/08/flowfuse-2-8-release/#static-assets-service).
+
+## Node-RED Context
 
 Node-RED Context can be used to store small pieces of application state within the
 runtime. By default, this is stored in memory only.
@@ -95,15 +107,22 @@ runtime. By default, this is stored in memory only.
 FlowFuse Cloud provides an optional context store that can be used to persist
 the data.
 
-Persistent context has a quota limit set at `1MB` per instance.
+The amount of data that can be stored in context is determined by the Team type.
+
+| Team Type | Context Store Quota (per instance) |
+|--------|--------|
+| Starter | 10MB |
+| Team | 100MB |
+| Enterprise | 1GB |
+
 
 ## Network Connections
 
 ### HTTP(S) & Websockets
 
-Node-RED exposes an HTTPS interface on port 443 with each instance having its own hostname (example.FlowFuse.cloud). Plain HTTP requests to port 80 will receive a redirect to HTTPS on port 443.
+Node-RED exposes an HTTPS interface on port 443 with each instance having its own hostname (`example.flowfuse.cloud`). Plain HTTP requests to port 80 will receive a redirect to HTTPS on port 443.
 You MUST connect using the hostname not the IP address to reach your Node-RED instance.
-Websocket connections over SSL (wss:) are also supported.
+Websocket connections over SSL (`wss:`) are also supported.
 
 The payload size per request is limited to 5MB, which is the Node-RED default.
 When a request exceeds this limit, the whole request is rejected with a `413 Payload Too Large` error.
@@ -129,6 +148,14 @@ Outbound connections from FlowFuse will always come from the IP address `63.33.8
 This can make access to a remote database or corporate network possible where those systems are protected by IP address filtering firewalls. 
 
 All incoming connections MUST use the hostname and not an IP address.
+
+## Data Security
+
+FlowFuse Cloud is hosted on Amazon Web Services. The following statements apply to data handling within the platform:
+
+ - The underlying database use the industry standard AES-256 encryption algorithm to encrypt the stored data.
+ - Persistent storage offered to Node-RED instances uses AES-256 encryption algorithm to encrypt data and metadata at rest.
+ - The network load balancer uses the latest recommended AWS Network Security policy. This enforces TLS1.2 as a minimum.
 
 ## Single-Sign On
 
@@ -165,3 +192,4 @@ Before you can delete your account, teams you own must either be deleted or have
 Once this is done, you can remove your account by going to the "User Settings" page and clicking the "Delete Account" button.
 
 See also: [cancelling your subscription](/docs/cloud/billing.md#cancelling-your-subscription).
+

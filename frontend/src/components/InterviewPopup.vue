@@ -55,14 +55,17 @@ export default {
         },
         capture (event) {
             const timestamp = new Date().toISOString()
-
-            window.posthog?.capture(event, {
-                $set: {
-                    [`$interview-popup-seen - ${this.flag}`]: timestamp,
-                    '$interview-popup-seen': timestamp
-                },
-                featureFlagName: this.flag
-            })
+            try {
+                window.posthog?.capture(event, {
+                    $set: {
+                        [`$interview-popup-seen - ${this.flag}`]: timestamp,
+                        '$interview-popup-seen': timestamp
+                    },
+                    featureFlagName: this.flag
+                })
+            } catch (err) {
+                console.error('posthog error capturing interview')
+            }
         },
         action () {
             const timestamp = new Date().toISOString()
