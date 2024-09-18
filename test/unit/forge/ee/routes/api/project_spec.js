@@ -303,6 +303,14 @@ describe('Project (EE)', function () {
     const getProjectLogger = (app) => { return app?.auditLog?.Project }
     let projectLogger = getProjectLogger(app)
 
+    async function enableTeamTypeFeatureFlag (enabled) {
+        const defaultTeamType = await app.db.models.TeamType.findOne({ where: { name: 'starter' } })
+        const defaultTeamTypeProperties = defaultTeamType.properties
+        defaultTeamTypeProperties.features.projectHistory = enabled
+        defaultTeamType.properties = defaultTeamTypeProperties
+        await defaultTeamType.save()
+    }
+
     async function login (username, password) {
         const response = await app.inject({
             method: 'POST',
@@ -363,6 +371,10 @@ describe('Project (EE)', function () {
         await login('elvis', 'eePassword')
     })
 
+    beforeEach(async function () {
+        await enableTeamTypeFeatureFlag(true)
+    })
+
     after(async function () {
         await app.close()
         sandbox.restore()
@@ -419,6 +431,17 @@ describe('Project (EE)', function () {
             })
             response.statusCode.should.equal(401)
         })
+        it('Should return 404 when the teamtype feature flag is disabled', async function () {
+            await enableTeamTypeFeatureFlag(false)
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${TestObjects.instanceOne.id}/history`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(404)
+        })
+
         describe('Timeline Data', function () {
             async function simulateModifyFlows (instance, user) {
                 // since we don't have running instances to post flows, we just simulate the event
@@ -453,8 +476,8 @@ describe('Project (EE)', function () {
                 })
             }
             before(async function () {
-                app.config.features.register('instanceAutoSnapshot', true, true)
                 // Enable instanceAutoSnapshot feature for default team type
+                app.config.features.register('instanceAutoSnapshot', true, true)
                 const defaultTeamType = await app.db.models.TeamType.findOne({ where: { name: 'starter' } })
                 const defaultTeamTypeProperties = defaultTeamType.properties
                 defaultTeamTypeProperties.features.instanceAutoSnapshot = true
