@@ -278,7 +278,7 @@ const actions = {
                 try {
                     window.posthog?.reset()
                 } catch (err) {
-                    console.log('posthog error resetting user')
+                    console.error('posthog error resetting user')
                 }
             }
 

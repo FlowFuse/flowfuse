@@ -10,7 +10,7 @@ function identify (userId, set, setonce) {
     try {
         window.posthog?.identify(userId, set, setonce)
     } catch (err) {
-        console.log('posthog error logging identity')
+        console.error('posthog error logging identity')
     }
     if (window.sentryConfig) {
         setUser({
@@ -42,7 +42,7 @@ function capture (event, properties, groups) {
     try {
         window.posthog?.capture(event, properties)
     } catch (err) {
-        console.log('posthog error capturing event')
+        console.error('posthog error capturing event')
     }
 }
 
@@ -85,13 +85,13 @@ function setTeam (team) {
         try {
             window.posthog?.group('team', team.id, props)
         } catch (err) {
-            console.log('posthost error adding to group')
+            console.error('posthost error adding to group')
         }
     } else {
         try {
             window.posthog?.group('team', null)
         } catch (err) {
-            console.log('posthost error adding to group')
+            console.error('posthost error adding to group')
         }
     }
 }

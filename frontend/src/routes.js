@@ -78,7 +78,7 @@ router.beforeEach((to, from, next) => {
             }
         )
     } catch (err) {
-        console.log('posthog error logging route change')
+        console.error('posthog error logging route change')
     }
     // This goes through the matched routes from last to first, finding the closest route with a title.
     // e.g., if we have `/some/deep/nested/route` and `/some`, `/deep`, and `/nested` have titles,

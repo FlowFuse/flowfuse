@@ -64,7 +64,7 @@ export default {
                     featureFlagName: this.flag
                 })
             } catch (err) {
-                console.log('posthog error capturing interview')
+                console.error('posthog error capturing interview')
             }
         },
         action () {

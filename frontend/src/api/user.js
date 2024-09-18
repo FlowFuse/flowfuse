@@ -29,7 +29,7 @@ const logout = () => {
         try {
             window.posthog?.reset()
         } catch (err) {
-            console.log('posthog error resetting user data')
+            console.error('posthog error resetting user data')
         }
         return res.data
     })
