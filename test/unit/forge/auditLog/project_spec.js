@@ -265,7 +265,7 @@ describe('Audit Log > Project', async function () {
         logEntry.body.project.id.should.equal(PROJECT.id)
         logEntry.body.device.should.only.have.keys('id', 'name')
         logEntry.body.device.id.should.equal(DEVICE.hashid)
-        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
@@ -284,7 +284,7 @@ describe('Audit Log > Project', async function () {
         logEntry.body.should.only.have.keys('project', 'snapshot')
         logEntry.body.project.should.only.have.keys('id', 'name')
         logEntry.body.project.id.should.equal(PROJECT.id)
-        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
@@ -301,7 +301,7 @@ describe('Audit Log > Project', async function () {
         logEntry.body.should.only.have.keys('project', 'snapshot', 'updates')
         logEntry.body.project.should.only.have.keys('id', 'name')
         logEntry.body.project.id.should.equal(PROJECT.id)
-        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
         logEntry.body.updates.should.have.length(1)
         logEntry.body.updates[0].should.eql({ key: 'name', old: 'old', new: 'new', dif: 'updated' })
@@ -318,7 +318,7 @@ describe('Audit Log > Project', async function () {
         logEntry.body.should.only.have.keys('project', 'snapshot')
         logEntry.body.project.should.only.have.keys('id', 'name')
         logEntry.body.project.id.should.equal(PROJECT.id)
-        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
@@ -333,7 +333,7 @@ describe('Audit Log > Project', async function () {
         logEntry.body.should.only.have.keys('project', 'snapshot')
         logEntry.body.project.should.only.have.keys('id', 'name')
         logEntry.body.project.id.should.equal(PROJECT.id)
-        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
@@ -348,7 +348,7 @@ describe('Audit Log > Project', async function () {
         logEntry.body.should.only.have.keys('project', 'snapshot')
         logEntry.body.project.should.only.have.keys('id', 'name')
         logEntry.body.project.id.should.equal(PROJECT.id)
-        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
@@ -363,7 +363,7 @@ describe('Audit Log > Project', async function () {
         logEntry.body.should.only.have.keys('project', 'snapshot')
         logEntry.body.project.should.only.have.keys('id', 'name')
         logEntry.body.project.id.should.equal(PROJECT.id)
-        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
