@@ -67,6 +67,7 @@ import InstanceActionsButton from '../../../components/instance/ActionButton.vue
 
 import FfPage from '../../../layouts/Page.vue'
 import instanceMixin from '../../../mixins/Instance.js'
+import permissionsMixin from '../../../mixins/Permissions.js'
 import DashboardLink from '../components/DashboardLink.vue'
 
 import EditorWrapper from './components/EditorWrapper.vue'
@@ -89,7 +90,7 @@ export default {
         ArrowLeftIcon,
         ResizeBar
     },
-    mixins: [instanceMixin],
+    mixins: [instanceMixin, permissionsMixin],
     data () {
         return {
             drawer: {
@@ -126,7 +127,8 @@ export default {
                 {
                     label: 'Assets',
                     to: { name: 'instance-editor-assets', params: { id: this.instance.id } },
-                    tag: 'instance-assets'
+                    tag: 'instance-assets',
+                    hidden: !this.hasAMinimumTeamRoleOf('member')
                 },
                 {
                     label: 'Audit Log',
