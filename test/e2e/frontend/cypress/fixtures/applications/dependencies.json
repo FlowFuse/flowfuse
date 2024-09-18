@@ -1,0 +1,174 @@
+{
+  "instances": [
+    {
+      "id": "1",
+      "name": "instance-1"
+    },
+    {
+      "id": "2",
+      "name": "instance-2"
+    },
+    {
+      "id": "3",
+      "name": "instance-3"
+    }
+  ],
+  "statuses": [
+    {
+      "id": "1",
+      "name": "instance-1",
+      "meta": {
+        "state": "running"
+      }
+    },
+    {
+      "id": "2",
+      "name": "instance-2",
+      "meta": {
+        "state": "suspended"
+      }
+    },
+    {
+      "id": "3",
+      "name": "instance-3",
+      "meta": {
+        "state": "running"
+      }
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "1",
+      "name": "instance-1",
+      "type": "instance",
+      "dependencies": [
+        {
+          "name": "@package/dep-1",
+          "version": {
+            "semver": "1.1.1",
+            "installed": "1.1.1"
+          }
+        },
+        {
+          "name": "@package/var-2",
+          "version": {
+            "semver": "~1.15.0",
+            "installed": "1.15.0"
+          }
+        },
+        {
+          "name": "@external/sem-3",
+          "version": {
+            "semver": "~2.1.1",
+            "installed": "2.1.1"
+          }
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "name": "instance-2",
+      "type": "instance",
+      "dependencies": [
+        {
+          "name": "@package/dep-1",
+          "version": {
+            "semver": "2.2.2",
+            "installed": "2.2.2"
+          }
+        },
+        {
+          "name": "@package/var-2",
+          "version": {
+            "semver": "3.3.3",
+            "installed": "3.3.3"
+          }
+        },
+        {
+          "name": "@external/sem-3",
+          "version": {
+            "semver": "4.4.4",
+            "installed": "4.4.4"
+          }
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "name": "instance-3",
+      "type": "instance",
+      "dependencies": [
+        {
+          "name": "@package/dep-1",
+          "version": {
+            "semver": "5.5.5",
+            "installed": "5.5.5"
+          }
+        },
+        {
+          "name": "@package/var-2",
+          "version": {
+            "semver": "6.6.6",
+            "installed": "7.7.7"
+          }
+        },
+        {
+          "name": "@external/sem-3",
+          "version": {
+            "semver": "8.8.8",
+            "installed": "8.8.8"
+          }
+        },
+        {
+          "name": "@lonely/package-1",
+          "version": {
+            "semver": "1.0.0",
+            "installed": "1.0.0"
+          }
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "name": "device-1",
+      "type": "device",
+      "dependencies": [
+        {
+          "name": "@package/var-2",
+          "version": {
+            "semver": "6.6.6",
+            "installed": "7.7.7"
+          }
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "name": "device-2",
+      "type": "device",
+      "dependencies": [
+        {
+          "name": "@external/sem-3",
+          "version": {
+            "semver": "8.8.8",
+            "installed": "8.8.8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "name": "device-3",
+      "type": "device",
+      "dependencies": [
+        {
+          "name": "@some-package/var",
+          "version": {
+            "semver": "1.2.0",
+            "installed": "1.1.1"
+          }
+        }
+      ]
+    }
+  ]
+}
