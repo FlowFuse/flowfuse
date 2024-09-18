@@ -2,7 +2,7 @@
     <div>
         <SectionTopMenu hero="Node-RED Devices" help-header="Node-RED Edge Devices - Registered to FlowFuse" info="Devices belonging to this application.">
             <template #pictogram>
-                <img src="../../images/pictograms/edge_red.png">
+                <img src="../../images/pictograms/devices_red.png">
             </template>
             <template #helptext>
                 <p>FlowFuse can be used to manage instances of Node-RED running on remote devices.</p>

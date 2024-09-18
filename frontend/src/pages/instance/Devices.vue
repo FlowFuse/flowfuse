@@ -1,5 +1,8 @@
 <template>
     <SectionTopMenu hero="Devices" help-header="FlowFuse - Devices" info="A list of all edge devices registered to this instance.">
+        <template #pictogram>
+            <img src="../../images/pictograms/devices_red.png">
+        </template>
         <template #helptext>
             <p>FlowFuse can be used to manage instances of Node-RED running on remote devices.</p>
             <p>Each device must run the <a href="https://flowfuse.com/docs/user/devices/" target="_blank">FlowFuse Device Agent</a>, which connects back to the platform to receive updates.</p>
