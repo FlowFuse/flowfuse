@@ -39,10 +39,12 @@ export default {
 
 <style scoped lang="scss">
 .ff-text-copier {
-  .ff-icon {
-    &:hover {
-      cursor: pointer;
-    }
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  position: relative;
+  &:hover {
+    cursor: pointer;
   }
   .ff-copied {
     background-color: black;
@@ -54,6 +56,7 @@ export default {
     margin-left: 3px;
     display: none;
     z-index: 100;
+    left: 100%;
   }
 }
 </style>
