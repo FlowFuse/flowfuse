@@ -402,14 +402,14 @@ export default {
             redirectUrlAfterLogin: {
                 storage: 'localStorage'
             },
-            settings: {
+            features: {
                 storage: 'localStorage'
             },
             teamMembership: {
-                storage: 'localStorage'
+                storage: 'sessionStorage'
             },
             team: {
-                storage: 'localStorage'
+                storage: 'sessionStorage'
             }
         }
     }
