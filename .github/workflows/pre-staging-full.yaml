@@ -160,7 +160,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${ {secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push to ECR
         run: |
