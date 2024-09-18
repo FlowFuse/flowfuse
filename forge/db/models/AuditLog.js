@@ -96,6 +96,83 @@ module.exports = {
                         count,
                         log: rows
                     }
+                },
+                forProjectHistory: async (projectId, pagination = {}) => {
+                    // Premise:
+                    //  we want to generate a timeline of events for a project, including snapshots
+                    //  so that user can see "things that changed" the project and any immediate snapshots.
+                    // Approach:
+                    //  1. Get all log entries for the project starting from the pagination cursor & limited by the pagination limit
+                    //     where they meet the criteria for project history (see Op.in filter below)
+                    //  2. If the log entry has a snapshot, try to find the actual snapshot object and replace the body with it
+                    //     This gives updates any stale snapshot references in the log entries
+                    //     Additionally, flag snapshot existence in the info object as { snapshotExists: true/false }
+                    //     (The info object is a permitted field in the log entry body)
+                    // 3. Return the log entries as { meta: Object, count: Number, timeline: Array<Object> }
+
+                    const limit = parseInt(pagination.limit) || 100
+                    const where = {
+                        entityId: projectId,
+                        entityType: 'project',
+                        event: {
+                            [Op.in]: [
+                                'project.created',
+                                'project.deleted',
+                                'flows.set', // flows deployed by user
+                                'project.settings.updated',
+                                'project.snapshot.created', // snapshot created manually or automatically
+                                'project.snapshot.rolled-back', // snapshot rolled back by user
+                                'project.snapshot.imported' // result of a pipeline deployment
+                            ]
+                        }
+                    }
+                    const result = {
+                        meta: {},
+                        count: 0,
+                        timeline: []
+                    }
+
+                    //  1. Get log entries
+                    const logEntries = await M.AuditLog.forEntity(where, pagination)
+
+                    // guard: no log entries (no need to process further)
+                    if (!logEntries || !logEntries.log || !logEntries.log.length) {
+                        return result
+                    }
+
+                    // 2. convert body string and grab snapshot if available
+                    for (const entry of logEntries.log) {
+                        try {
+                            entry.body = ((typeof entry.body || '{}') === 'string' ? JSON.parse(entry.body) : entry.body) || {}
+                            // since we are in the context of a project history, we don't need to include the project object (redundant)
+                            delete entry.body.project
+                            // update snapshot if available and flag existence
+                            if (entry.body.snapshot) {
+                                if (typeof entry.body.info !== 'object') {
+                                    entry.body.info = entry.body.info ? { _info: entry.body.info } : {}
+                                }
+                                if (entry.body.snapshot) {
+                                    const snapshot = await M.ProjectSnapshot.byId(entry.body.snapshot.id)
+                                    if (snapshot) {
+                                        entry.body.snapshot = snapshot
+                                        entry.body.info = { snapshotExists: true }
+                                    } else {
+                                        entry.body.info = { snapshotExists: false }
+                                    }
+                                } else {
+                                    entry.body.info = { snapshotExists: false }
+                                }
+                            }
+                        } catch (_e) {
+                            // do nothing
+                        }
+                    }
+
+                    // 3. Return the log entries
+                    result.meta.next_cursor = logEntries.log.length < limit ? undefined : logEntries.log[logEntries.log.length - 1].hashid
+                    result.count = logEntries.log.length
+                    result.timeline = logEntries.log
+                    return result
                 }
             }
         }
