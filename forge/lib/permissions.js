@@ -120,6 +120,10 @@ const Permissions = {
     /**
      * EE Permissions
      */
+
+    // Projects
+    'project:history': { description: 'View project history', role: Roles.Member },
+
     // Device Groups
     'application:device-group:create': { description: 'Create a device group', role: Roles.Owner },
     'application:device-group:list': { description: 'List device groups', role: Roles.Member },
