@@ -7,7 +7,11 @@ import { setUser } from '@sentry/vue'
  * @param {Object} setonce - an object containing any number of properties to bind with this user, these can never be overridden
  */
 function identify (userId, set, setonce) {
-    window.posthog?.identify(userId, set, setonce)
+    try {
+        window.posthog?.identify(userId, set, setonce)
+    } catch (err) {
+        console.error('posthog error logging identity')
+    }
     if (window.sentryConfig) {
         setUser({
             ...set,
@@ -35,7 +39,11 @@ function capture (event, properties, groups) {
     if (groups) {
         properties.$groups = groups
     }
-    window.posthog?.capture(event, properties)
+    try {
+        window.posthog?.capture(event, properties)
+    } catch (err) {
+        console.error('posthog error capturing event')
+    }
 }
 
 /**
@@ -74,9 +82,17 @@ function setTeam (team) {
                 props['billing-trial-ends-at'] = team.billing.trialEndsAt
             }
         }
-        window.posthog?.group('team', team.id, props)
+        try {
+            window.posthog?.group('team', team.id, props)
+        } catch (err) {
+            console.error('posthost error adding to group')
+        }
     } else {
-        window.posthog?.group('team', null)
+        try {
+            window.posthog?.group('team', null)
+        } catch (err) {
+            console.error('posthost error adding to group')
+        }
     }
 }
 
