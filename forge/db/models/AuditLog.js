@@ -105,7 +105,7 @@ module.exports = {
                     //  1. Get all log entries for the project starting from the pagination cursor & limited by the pagination limit
                     //     where they meet the criteria for project history (see Op.in filter below)
                     //  2. If the log entry has a snapshot, try to find the actual snapshot object and replace the body with it
-                    //     This gives updates any stale snapshot references in the log entries
+                    //     This updates any stale snapshot references in the log entries
                     //     Additionally, flag snapshot existence in the info object as { snapshotExists: true/false }
                     //     (The info object is a permitted field in the audit log entry body)
                     // 3. Return the log entries as { meta: Object, count: Number, timeline: Array<Object> }
