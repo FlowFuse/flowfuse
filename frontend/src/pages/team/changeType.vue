@@ -133,7 +133,11 @@ export default {
     computed: {
         ...mapState('account', ['user', 'team', 'features']),
         formValid () {
-            return !this.isUnmanaged && this.input.teamTypeId && (!this.isTypeChange || this.input.teamTypeId !== this.team.type.id) && this.upgradeErrors.length === 0
+            return !this.isUnmanaged &&
+                    this.input.teamTypeId &&
+                    this.isSelectionAvailable &&
+                    (!this.isTypeChange || this.input.teamTypeId !== this.team.type.id) &&
+                    this.upgradeErrors.length === 0
         },
         billingEnabled () {
             return this.features.billing
@@ -157,6 +161,16 @@ export default {
             return this.billingEnabled &&
                    !this.user.admin &&
                    this.input.teamType && this.input.teamType.properties?.billing?.requireContact
+        },
+        isSelectionAvailable () {
+            if (this.input.teamTypeId) {
+                // Ensure that this.inputs.teamTypeId is one of the available types
+                if (this.teamTypes.length === 0) {
+                    return false
+                }
+                return !!this.teamTypes.find(tt => tt.id === this.input.teamTypeId)
+            }
+            return false
         },
         isCurrentUnavailable () {
             if (this.teamTypes.length === 0) {

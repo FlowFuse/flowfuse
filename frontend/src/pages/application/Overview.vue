@@ -2,7 +2,7 @@
     <div>
         <SectionTopMenu hero="Node-RED Instances" help-header="Node-RED Instances - Running in FlowFuse" info="Instances of Node-RED belonging to this application.">
             <template #pictogram>
-                <img src="../../images/pictograms/edge_red.png">
+                <img src="../../images/pictograms/instance_red.png">
             </template>
             <template #helptext>
                 <p>This is a list of Node-RED instances in this Application, hosted on the same domain as FlowFuse.</p>
@@ -20,8 +20,8 @@
                 </ff-button>
             </template>
         </SectionTopMenu>
-
-        <div class="space-y-6 mb-12">
+        <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
+        <div class="space-y-6 mb-14">
             <ff-data-table
                 v-if="instances?.length > 0"
                 data-el="cloud-instances"
