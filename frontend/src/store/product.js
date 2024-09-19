@@ -23,34 +23,38 @@ const mutations = {
 // actions
 const actions = {
     async checkFlags (state) {
-        window.posthog?.onFeatureFlags((flags, values) => {
-            const storeFlags = {}
-            for (const flagName of flags) {
-                const payload = window.posthog?.getFeatureFlagPayload(flagName)
-                storeFlags[flagName] = {
-                    value: values[flagName],
-                    payload
-                }
-
-                /*
-                    Check if an interview flag
-                */
-
-                const flagStartsWithKeyword = flagName.startsWith('interview-')
-                const flagEnabled = window.posthog?.isFeatureEnabled(flagName, { send_event: false })
-                const flagNotShownBefore = !localStorage.getItem('ph-$interview-popup-seen')
-
-                if (flagStartsWithKeyword && flagEnabled && flagNotShownBefore) {
-                    const interview = {
-                        flag: flagName,
-                        enabled: flagEnabled,
+        try {
+            window.posthog?.onFeatureFlags((flags, values) => {
+                const storeFlags = {}
+                for (const flagName of flags) {
+                    const payload = window.posthog?.getFeatureFlagPayload(flagName)
+                    storeFlags[flagName] = {
+                        value: values[flagName],
                         payload
                     }
-                    state.commit('setInterview', interview)
+
+                    /*
+                        Check if an interview flag
+                    */
+
+                    const flagStartsWithKeyword = flagName.startsWith('interview-')
+                    const flagEnabled = window.posthog?.isFeatureEnabled(flagName, { send_event: false })
+                    const flagNotShownBefore = !localStorage.getItem('ph-$interview-popup-seen')
+
+                    if (flagStartsWithKeyword && flagEnabled && flagNotShownBefore) {
+                        const interview = {
+                            flag: flagName,
+                            enabled: flagEnabled,
+                            payload
+                        }
+                        state.commit('setInterview', interview)
+                    }
                 }
-            }
-            state.commit('setFlags', storeFlags)
-        })
+                state.commit('setFlags', storeFlags)
+            })
+        } catch (err) {
+            console.error('posthog error logging feature flags')
+        }
     }
 }
 
