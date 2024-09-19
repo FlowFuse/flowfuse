@@ -114,23 +114,10 @@ module.exports = async function (app) {
                 obj.modules['node-red'] = editor?.nodeRedVersion
             }
         }
-        const getDefaultNodeRedVersion = (dev) => {
-            let nodeRedVersion = '3.0.2' // default to older Node-RED
-            if (SemVer.satisfies(SemVer.coerce(dev.agentVersion), '>=1.11.2')) {
-                // 1.11.2 includes fix for ESM loading of GOT, so lets use 'latest' as before
-                nodeRedVersion = 'latest'
-            }
-            if (SemVer.satisfies(SemVer.coerce(dev.agentVersion), '>=1.11.2')) {
-                // 1.11.2 includes fix for ESM loading of GOT, so lets use 'latest' as before
-                nodeRedVersion = 'latest'
-            }
-            return nodeRedVersion
-        }
         if (!device.targetSnapshot) {
             // device does not have a target snapshot
             // if this is an application owned device, return a starter snapshot
             if (device.isApplicationOwned) {
-                const nodeRedVersion = getDefaultNodeRedVersion(device)
                 if (!device.agentVersion || SemVer.lt(device.agentVersion, '1.11.0')) {
                     reply.code(400).send({ code: 'invalid_agent_version', error: 'invalid agent version' })
                     return
@@ -147,13 +134,7 @@ module.exports = async function (app) {
                         { id: 'FFCHA00000000001', type: 'change', z: 'FFF0000000000001', name: 'Get Env Vars', rules: [{ t: 'set', p: 'payload', pt: 'msg', to: '{}', tot: 'json' }, { t: 'set', p: 'payload.device', pt: 'msg', to: 'FF_DEVICE_NAME', tot: 'env' }, { t: 'set', p: 'payload.application', pt: 'msg', to: 'FF_APPLICATION_NAME', tot: 'env' }], action: '', reg: false, x: 320, y: 160, wires: [['FFDBG00000000001']] },
                         { id: 'FFDBG00000000001', type: 'debug', z: 'FFF0000000000001', name: 'Info', active: true, tosidebar: true, console: true, tostatus: true, complete: 'payload', targetType: 'msg', statusVal: 'payload', statusType: 'auto', x: 490, y: 160 }
                     ],
-                    modules: {
-                        'node-red': nodeRedVersion,
-                        // as of FF v1.14.0, we permit project nodes to work on application owned devices
-                        // the support for this is in @flowfuse/nr-project-nodes > v0.5.0
-                        '@flowfuse/nr-project-nodes': '>0.5.0', // TODO: get this from the "settings" (future)
-                        '@flowfuse/nr-assistant': '>=0.1.0'
-                    },
+                    modules: device.getDefaultModules(),
                     env: {
                         FF_SNAPSHOT_ID: '0',
                         FF_SNAPSHOT_NAME: 'None',
@@ -186,18 +167,19 @@ module.exports = async function (app) {
 
                 // as of FF v1.14.0, we permit project nodes to work on application owned devices
                 if (device.isApplicationOwned) {
-                    settings.modules = settings.modules || {} // snapshot might not have any modules
+                    const defaultModules = device.getDefaultModules()
+                    settings.modules = settings.modules || defaultModules // snapshot might not have any modules
                     // @flowfuse/nr-project-nodes > v0.5.0 is required for this to work
                     // if the snapshot does not have the new module specified OR it is a version <= 0.5.0, update it
                     if (!settings.modules['@flowfuse/nr-project-nodes'] || SemVer.satisfies(SemVer.coerce(settings.modules['@flowfuse/nr-project-nodes']), '<=0.5.0')) {
-                        settings.modules['@flowfuse/nr-project-nodes'] = '>0.5.0'
+                        settings.modules['@flowfuse/nr-project-nodes'] = defaultModules['@flowfuse/nr-project-nodes'] || '>0.5.0'
                     }
                     if (!settings.modules['@flowfuse/nr-assistant']) {
-                        settings.modules['@flowfuse/nr-assistant'] = '>=0.1.0'
+                        settings.modules['@flowfuse/nr-assistant'] = defaultModules['@flowfuse/nr-assistant'] || '>=0.1.0'
                     }
                     if (!settings.modules['node-red']) {
                         // if the snapshot does not have the node-red module specified, ensure it is set to a valid version
-                        settings.modules['node-red'] = getDefaultNodeRedVersion(device)
+                        settings.modules['node-red'] = defaultModules['node-red'] || device.getDefaultNodeRedVersion()
                     }
                     // Belt and braces, remove old module! We don't want to be instructing the device to install the old version.
                     // (the old module can be present due to a snapshot applied from an instance or instance owned device)
