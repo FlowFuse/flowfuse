@@ -9,7 +9,7 @@ module.exports = {
             type: DataTypes.INTEGER,
             allowNull: true,
             defaultValue: null,
-            references: { model: 'Users', key: 'id'},
+            references: { model: 'Users', key: 'id' },
             // CHECK ME
             onDelete: 'SET NULL',
             // CHECK ME

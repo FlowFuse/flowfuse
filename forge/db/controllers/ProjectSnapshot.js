@@ -327,7 +327,6 @@ const instanceAutoSnapshotUtils = {
                 flowUser = currentFlow.UserId
             }
             const user = meta?.user || { id: flowUser } // if no user is available, use `null` (system user)
-        
 
             // 1. create a snapshot from the instance
             const snapShot = await app.db.controllers.ProjectSnapshot.createSnapshot(
