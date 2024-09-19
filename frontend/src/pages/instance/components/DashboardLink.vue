@@ -25,16 +25,7 @@
 
 import { ChartPieIcon } from '@heroicons/vue/outline'
 
-// utility function to remove leading and trailing slashes
-const removeSlashes = (str, leading = true, trailing = true) => {
-    if (leading && str.startsWith('/')) {
-        str = str.slice(1)
-    }
-    if (trailing && str.endsWith('/')) {
-        str = str.slice(0, -1)
-    }
-    return str
-}
+import { removeSlashes } from '../../../composables/String.js'
 
 export default {
     name: 'DashboardLink',

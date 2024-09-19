@@ -1,44 +1,69 @@
 <template>
-    <div v-if="type === 'file'" class="ff-row-file--copy" @click="copyPath">
-        {{ path }}
-        <DuplicateIcon class="ff-icon" />
-        <span ref="copied" class="ff-copied">Copied!</span>
+    <div v-if="!isNotAvailable" class="ff-row-file">
+        <text-copier v-if="canBeCopied" :text="path">
+            <span class="path" :title="path">{{ path }}</span>
+        </text-copier>
+        <span v-else class="path" :title="path">{{ path }}</span>
     </div>
+    <span v-else class="not-available">Not Available</span>
 </template>
 
 <script>
-
-import { DuplicateIcon } from '@heroicons/vue/outline'
+import TextCopier from '../../TextCopier.vue'
 
 export default {
     name: 'FileBrowserCellFilePath',
     components: {
-        DuplicateIcon
+        TextCopier
     },
     inheritAttrs: false,
     props: {
+        name: {
+            required: false,
+            type: String,
+            default: ''
+        },
+        breadcrumbs: {
+            default: () => [],
+            type: Array
+        },
+        prepend: {
+            required: false,
+            default: '',
+            type: String
+        },
+        isNotAvailable: {
+            required: false,
+            default: false,
+            type: Boolean
+        },
+        baseURL: {
+            required: false,
+            default: null,
+            type: [String, null]
+        },
         type: {
             required: true,
             type: String
-        },
-        name: {
-            required: true,
-            type: String
-        },
-        folder: {
-            required: true,
-            type: String
-        },
-        breadcrumbs: {
-            default: null,
-            type: Array
         }
     },
     computed: {
         path () {
-            const path = [...this.breadcrumbs, this.folder, this.name].join('/')
+            if (this.baseURL && this.baseURL.length > 0) {
+                const url = new URL(this.baseURL)
+                return [url.origin, this.prepend, this.name].join('/')
+            }
+            const path = [
+                this.prepend,
+                ...this.breadcrumbs.map(crumb => crumb.name),
+                this.name
+            ].join('/')
+
             // clear leading slash
             return path.replace(/^\//, '')
+        },
+        canBeCopied () {
+            return this.type === 'file' || this.type === 'url'
         }
     },
     methods: {
@@ -57,22 +82,14 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.ff-row-file--copy {
+.ff-row-file {
     position: relative;
     &:hover {
-        cursor: pointer;
         color: $ff-blue-600;
     }
 }
 
-.ff-copied {
-    background-color: black;
-    color: white;
-    padding: 3px;
-    border-radius: 3px;
-    position: absolute;
-    margin-top: -3px;
-    margin-left: 3px;
-    display: none;
+.not-available {
+  opacity: .4;
 }
 </style>
