@@ -2,7 +2,7 @@
     <div class="dependencies-wrapper">
         <SectionTopMenu hero="Dependencies" help-header="Node-RED Dependencies - Running in FlowFuse" info="Dependencies of Node-RED Instances belonging to this application.">
             <template #pictogram>
-                <img src="../../../images/pictograms/edge_red.png">
+                <img src="../../../images/pictograms/instance_red.png">
             </template>
             <template #helptext>
                 <p>This is a list of Node-RED Dependencies in this Application, hosted on the same domain as FlowFuse.</p>
