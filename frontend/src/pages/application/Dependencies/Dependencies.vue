@@ -118,7 +118,7 @@ export default {
                 .reduce((acc, currentInstance) => {
                     currentInstance.dependencies.forEach(dep => {
                         const searchTerm = this.searchTerm.trim()
-                        const installedDependencyVersion = dep.version.installed ?? dep.version.semver
+                        const installedDependencyVersion = dep.version?.installed ?? dep.version?.semver ?? 'N/A'
                         const dependencyNameMatchesSearch = dep.name.toLowerCase().includes(searchTerm.toLowerCase())
                         const dependencyVersionMatchesSearch = installedDependencyVersion.toLowerCase().includes(searchTerm.toLowerCase())
                         const matchesInstanceName = currentInstance.name.toLowerCase().includes(searchTerm.toLowerCase())
