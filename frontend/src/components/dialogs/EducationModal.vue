@@ -117,6 +117,10 @@ export default {
 
   .ff-dialog-content {
     padding: 10px 10px 5px 10px;
+
+    p {
+      line-height: 1.5;
+    }
   }
 
   .ff-dialog-actions {
