@@ -60,7 +60,7 @@
 
 <script>
 import { ChevronRightIcon } from '@heroicons/vue/solid'
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 
 export default {
     name: 'EducationModal',
@@ -72,10 +72,9 @@ export default {
         }
     },
     computed: {
-        ...mapState('ux', ['tours']),
-        isOpen () {
-            return this.tours.education
-        }
+        ...mapGetters({
+            isOpen: 'ux/shouldShowEducationModal'
+        })
     },
     methods: {
         ...mapActions('ux', ['deactivateTour']),

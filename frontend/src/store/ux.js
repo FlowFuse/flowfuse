@@ -12,6 +12,9 @@ const state = () => ({
 const getters = {
     shouldShowLeftMenu: (state, getters, rootState, rootGetters) => (route) => {
         return rootGetters['account/hasAvailableTeams'] || route.path.includes('/account/')
+    },
+    shouldShowEducationModal: (state) => {
+        return state.tours.education
     }
 }
 
