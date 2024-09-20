@@ -484,6 +484,10 @@ describe('Project (EE)', function () {
                 defaultTeamType.properties = defaultTeamTypeProperties
                 await defaultTeamType.save()
 
+                // clear all snapshots & audit logs
+                await app.db.models.ProjectSnapshot.destroy({ where: {}, truncate: true })
+                await app.db.models.AuditLog.destroy({ where: {}, truncate: true })
+
                 // Simulate below events by pushing entries to the audit log and generating snapshots
                 // 1. Create snapshot 1
                 // 2. Modify flows
@@ -563,6 +567,13 @@ describe('Project (EE)', function () {
                 entry3.data.snapshot.should.have.property('name', 'Snapshot 1') // snapshot 1 was deployed
                 entry3.data.should.have.property('info').and.be.an.Object()
                 entry3.data.info.should.have.property('snapshotExists', true)
+
+                // check remaining entries event string only
+                body.timeline[3].event.should.equal('project.snapshot.created')
+                body.timeline[4].event.should.equal('project.settings.updated')
+                body.timeline[5].event.should.equal('project.snapshot.created')
+                body.timeline[6].event.should.equal('flows.set')
+                body.timeline[7].event.should.equal('project.snapshot.created')
             })
 
             describe('Pagination', function () {
