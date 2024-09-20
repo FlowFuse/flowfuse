@@ -32,6 +32,7 @@
                     <router-view />
                 </ff-layout-plain>
             </template>
+            <EducationModal />
         </template>
         <!-- Password Reset Required -->
         <template v-else-if="user && user.password_expired">
@@ -52,7 +53,6 @@
         <template v-else>
             <Login />
         </template>
-        <EducationModal />
     </div>
 </template>
 
