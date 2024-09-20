@@ -8,20 +8,20 @@
                 <p class="message mb-7">Where would you like to get started?</p>
                 <ul class="options">
                     <li>
-                        <a class="ff-link" href="https://flowfuse.com/docs/user/devops-pipelines/">
+                        <a class="ff-link" target="_blank" href="https://flowfuse.com/docs/user/devops-pipelines/">
                             <ChevronRightIcon class="ff-icon" />
                             Create a DevOps Pipeline
                         </a>
                     </li>
                     <li>
-                        <a class="ff-link" href="https://flowfuse.com/docs/user/projectnodes/#flowfuse-project-nodes">
+                        <a class="ff-link" target="_blank" href="https://flowfuse.com/docs/user/projectnodes/#flowfuse-project-nodes">
                             <ChevronRightIcon class="ff-icon" />
                             Set up Project Nodes
                         </a>
                     </li>
                     <li>
                         <a
-                            class="ff-link"
+                            class="ff-link" target="_blank"
                             href="https://flowfuse.com/blog/2024/04/how-to-build-an-application-with-node-red-dashboard-2/"
                         >
                             <ChevronRightIcon class="ff-icon" />
@@ -29,7 +29,7 @@
                         </a>
                     </li>
                     <li>
-                        <a class="ff-link" href="https://www.youtube.com/watch?v=47EvfmJji-k">
+                        <a class="ff-link" target="_blank" href="https://www.youtube.com/watch?v=47EvfmJji-k">
                             <ChevronRightIcon class="ff-icon" />
                             Create a Node-RED flow
                         </a>
