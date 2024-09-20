@@ -152,7 +152,7 @@ module.exports = {
                                 username: 'User.username'
                             }
                         ),
-                        order: [['id', 'DESC']],
+                        order: [['createdAt', 'DESC']],
                         include: {
                             model: M.User,
                             attributes: ['id', 'hashid', 'username', 'name', 'avatar']
