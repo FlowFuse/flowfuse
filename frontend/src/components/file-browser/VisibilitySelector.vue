@@ -1,5 +1,5 @@
 <template>
-    <ff-dropdown :disabled="isDisabled" data-el="visibility-selector">
+    <ff-dropdown :disabled="isDisabled" data-el="visibility-selector" class="visibility-selector">
         <template #placeholder>
             <div v-if="isCurrentFolderPublic" class="flex gap-2"><GlobeAltIcon class="ff-icon" /> Public</div>
             <div v-else class="flex gap-2"><ProjectIcon class="ff-icon" /> Node-RED Only</div>
@@ -134,7 +134,7 @@ export default {
 </script>
 
 <style lang="scss">
-.ff-dropdown {
+.ff-dropdown.visibility-selector {
   min-width: 130px;
 
   .ff-dropdown-selected {
