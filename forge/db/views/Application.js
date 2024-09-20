@@ -151,6 +151,17 @@ module.exports = function (app) {
         }))
     }
 
+    app.addSchema({
+        $id: 'ApplicationBom',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            children: { type: 'array', items: { $ref: 'dependant' } } // dependant is defined in BOM.js
+        },
+        additionalProperties: true
+    })
+
     return {
         application,
         applicationAssociationsStatusList,

@@ -9,6 +9,9 @@
                 <template #help-header>
                     Instances
                 </template>
+                <template #pictogram>
+                    <img src="../../images/pictograms/instance_red.png">
+                </template>
                 <template #helptext>
                     <p>
                         This is a list of <span v-if="!dashboardRoleOnly">all</span> Node-RED instances belonging to this team running

@@ -81,6 +81,23 @@ Navigate to the folder you want to rename, click on the kebab menu, select 'Edit
 
 You can navigate through folder structures by clicking on any folder and return by using the Working Directory Breadcrumbs located at the top of the Search Files input.
 
+#### Folder Visibility
+
+Following the 2.9.0 release, you can set the folder's visibility using the Visibility selector found in the Navigation section. 
+This means that users can set the visibility of their uploaded files to public and make them accessible outside the node-red instance itself.
+
+When setting a folder's visibility to public you are required to set a static file path on which the files will be served by your instance.
+
+![static-assets-visibility-selector.png](images/static-assets-visibility-selector.png)
+
+![static-assets-select-static-path.png](images/static-assets-select-static-path.png)
+
+![static-assets-public-visibility.png](images/static-assets-public-visibility.png)
+
+Considerations:
+- Visibility and static path maps can be set on folders only.
+- Any change in visibility settings require an instance restart in order for the changes to take effect.
+
 ### How to use
 
 The following video is a quick demonstration on how to use assets inside a FlowFuse Node RED Instance:

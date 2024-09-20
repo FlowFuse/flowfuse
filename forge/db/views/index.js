@@ -14,6 +14,7 @@ const modelTypes = [
     'AccessToken',
     'Application',
     'AuditLog',
+    'BOM',
     'Device',
     'DeviceGroup',
     'Invitation',
