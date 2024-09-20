@@ -512,13 +512,24 @@ describe('Projects API (EE)', function () {
                         }
                     }
                 }
+                // NOTE: The tests rely on specific ordering of events, so every event has a different
+                // timestamp, we add a small delay between each event.
+                // IRL, these events would be triggered by user actions and any 2 events occurring
+                // at the same ms would be highly unlikely and ultimately, of little consequence.
                 const snapshot1 = await createSnapshot(app, TestObjects.instanceOne, TestObjects.bob, snapshotProps(1))
+                await sleep(10)
                 await simulateModifyFlows(TestObjects.instanceOne, TestObjects.bob)
+                await sleep(10)
                 await doAutoSnapshot(TestObjects.instanceOne, TestObjects.bob)
+                await sleep(10)
                 await modifySettings(TestObjects.instanceOne, { header: { title: 'changed' } }, TestObjects.tokens.bob)
+                await sleep(10)
                 const snapshot3 = await createSnapshot(app, TestObjects.instanceOne, TestObjects.bob, snapshotProps(3))
+                await sleep(10)
                 await simulatePipelineDeployment(TestObjects.instanceOne, TestObjects.bob, snapshot1)
+                await sleep(10)
                 await createSnapshot(app, TestObjects.instanceOne, TestObjects.bob, snapshotProps(4))
+                await sleep(10)
                 await rollback(TestObjects.instanceOne, snapshot3.hashid, TestObjects.tokens.bob)
             })
 
