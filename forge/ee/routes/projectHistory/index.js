@@ -25,7 +25,8 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('project:history'),
         schema: {
             summary: 'Get instance history',
-            tags: ['Instances'],
+            hide: true, // mark as explicitly hidden (internal for now)
+            tags: [/* 'Instances' */], // no tag hides route from swagger (internal for now)
             params: {
                 type: 'object',
                 properties: {
