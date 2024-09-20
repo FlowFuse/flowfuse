@@ -520,17 +520,9 @@ describe('Projects API (EE)', function () {
                 await simulatePipelineDeployment(TestObjects.instanceOne, TestObjects.bob, snapshot1)
                 await createSnapshot(app, TestObjects.instanceOne, TestObjects.bob, snapshotProps(4))
                 await rollback(TestObjects.instanceOne, snapshot3.hashid, TestObjects.tokens.bob)
-
-                // TEMP FOR GH DEBUGGING
-                const logs = await app.db.models.AuditLog.findAll({ order: [['createdAt', 'DESC']] })
-                console.warn('Audit Logs recorded in Timeline Data, before():', logs.map(l => l.toJSON()))
             })
 
             it('Should return a timeline of changes to the project', async function () {
-                // TEMP FOR GH DEBUGGING
-                const logs = await app.db.models.AuditLog.findAll({ order: [['createdAt', 'DESC']] })
-                console.warn('Audit Logs recorded in Timeline Data, It():', logs.map(l => l.toJSON()))
-
                 const response = await app.inject({
                     method: 'GET',
                     url: `/api/v1/projects/${TestObjects.instanceOne.id}/history`,
@@ -539,8 +531,6 @@ describe('Projects API (EE)', function () {
                 response.statusCode.should.equal(200)
 
                 const body = response.json()
-                // TEMP FOR GH DEBUGGING
-                console.warn('Timeline Response Data, It():', body.timeline)
                 body.should.have.property('meta')
                 body.should.have.property('count')
                 body.should.have.property('timeline').and.be.an.Array()
