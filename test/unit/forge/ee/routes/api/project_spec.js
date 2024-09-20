@@ -485,8 +485,8 @@ describe('Project (EE)', function () {
                 await defaultTeamType.save()
 
                 // clear all snapshots & audit logs
-                await app.db.models.ProjectSnapshot.destroy({ where: {}, truncate: true })
-                await app.db.models.AuditLog.destroy({ where: {}, truncate: true })
+                await app.db.models.ProjectSnapshot.destroy({ where: {} })
+                await app.db.models.AuditLog.destroy({ where: {} })
 
                 // Simulate below events by pushing entries to the audit log and generating snapshots
                 // 1. Create snapshot 1
