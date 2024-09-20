@@ -61,6 +61,7 @@ module.exports = async function (app) {
         try {
             const sharingConfig = await request.project.getSetting(KEY_SHARED_ASSETS) || {}
             const result = await app.containers.listFiles(request.project, filePath)
+
             result.files.forEach(file => {
                 if (file.type === 'directory') {
                     const absolutePath = filePath + (filePath.length > 0 ? '/' : '') + file.name
@@ -69,6 +70,23 @@ module.exports = async function (app) {
                     }
                 }
             })
+
+            const parentDirectoryName = filePath.split('/').pop()
+            const parentDirectoryPath = filePath.split('/').slice(0, -1).join('/')
+
+            const parentFiles = await app.containers.listFiles(
+                request.project, parentDirectoryPath
+            )
+            const currentDirectory = parentFiles.files.filter(file => file.name === parentDirectoryName).shift()
+
+            if (currentDirectory) {
+                result.folder = currentDirectory
+                const absolutePath = parentDirectoryPath + (parentDirectoryPath.length > 0 ? '/' : '') + currentDirectory.name
+                if (sharingConfig[absolutePath]) {
+                    result.folder.share = sharingConfig[absolutePath]
+                }
+            } else result.folder = null
+
             reply.send(result)
         } catch (err) {
             if (err.statusCode === 404) {

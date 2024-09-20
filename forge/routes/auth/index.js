@@ -531,7 +531,7 @@ async function init (app, opts) {
             // At this point, the user is verified. So we need to respond with success.
             // However, an error was hit whilst completing their post-signup tasks.
             await app.auditLog.User.account.verify.verifyToken(sessionUser, { error: err.toString() })
-            app.log.error(`/account/verify/token error - ${err.toString()}`)
+            app.log.error(`/account/verify/token error - ${err.stack}`)
         }
         reply.send({ status: 'okay' })
     })

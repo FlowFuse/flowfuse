@@ -342,6 +342,16 @@ const updateDeviceGroupMembership = async (applicationId, groupId, { add, remove
     return client.patch(`/api/v1/applications/${applicationId}/device-groups/${groupId}`, { add, remove, set })
 }
 
+/**
+ * Get a list of Dependencies / Bill of Materials
+ * @param applicationId
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+const getDependencies = (applicationId) => {
+    return client.get(`/api/v1/applications/${applicationId}/bom`)
+        .then(res => res.data)
+}
+
 export default {
     createApplication,
     updateApplication,
@@ -362,5 +372,6 @@ export default {
     createDeviceGroup,
     deleteDeviceGroup,
     updateDeviceGroup,
-    updateDeviceGroupMembership
+    updateDeviceGroupMembership,
+    getDependencies
 }
