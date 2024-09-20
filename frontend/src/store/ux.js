@@ -4,7 +4,8 @@ const state = () => ({
         component: null
     },
     tours: {
-        welcome: false
+        welcome: false,
+        education: false
     }
 })
 
@@ -41,7 +42,10 @@ const actions = {
     activateTour ({ commit }, tour) {
         commit('activateTour', tour)
     },
-    deactivateTour ({ commit }, tour) {
+    deactivateTour ({ commit, state }, tour) {
+        if (tour === 'welcome') {
+            commit('activateTour', 'education')
+        }
         commit('deactivateTour', tour)
     }
 }

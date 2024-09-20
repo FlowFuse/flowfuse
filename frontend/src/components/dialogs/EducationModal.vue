@@ -60,18 +60,25 @@
 
 <script>
 import { ChevronRightIcon } from '@heroicons/vue/solid'
+import { mapActions, mapState } from 'vuex'
 
 export default {
     name: 'EducationModal',
     components: { ChevronRightIcon },
     data () {
         return {
-            isOpen: true,
             isClosing: false,
             closingTimer: 0
         }
     },
+    computed: {
+        ...mapState('ux', ['tours']),
+        isOpen () {
+            return this.tours.education
+        }
+    },
     methods: {
+        ...mapActions('ux', ['deactivateTour']),
         triggerClose () {
             if (this.isClosing) {
                 this.closeModal()
@@ -90,7 +97,7 @@ export default {
             }
         },
         closeModal () {
-            this.isOpen = false
+            this.deactivateTour('education')
             this.isClosing = false
             this.closingTimer = 0
         }
