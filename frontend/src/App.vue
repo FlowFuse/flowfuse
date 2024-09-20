@@ -52,6 +52,7 @@
         <template v-else>
             <Login />
         </template>
+        <EducationModal />
     </div>
 </template>
 
@@ -61,6 +62,7 @@ import { mapState } from 'vuex'
 import Loading from './components/Loading.vue'
 import Offline from './components/Offline.vue'
 import LicenseBanner from './components/banners/LicenseBanner.vue'
+import EducationModal from './components/dialogs/EducationModal.vue'
 import FFLayoutBox from './layouts/Box.vue'
 import FFLayoutPlain from './layouts/Plain.vue'
 import FFLayoutPlatform from './layouts/Platform.vue'
@@ -72,6 +74,7 @@ import UnverifiedEmail from './pages/UnverifiedEmail.vue'
 export default {
     name: 'App',
     components: {
+        EducationModal,
         Login,
         PasswordExpired,
         UnverifiedEmail,
