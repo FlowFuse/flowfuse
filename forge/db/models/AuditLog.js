@@ -102,13 +102,13 @@ module.exports = {
                     //  we want to generate a timeline of events for a project, including snapshots
                     //  so that user can see "things that changed" the project and any immediate snapshots.
                     // Approach:
-                    //  1. Get all log entries for the project starting from the pagination cursor & limited by the pagination limit
-                    //     where they meet the criteria for project history (see Op.in filter below)
-                    //  2. If the log entry has a snapshot, try to find the actual snapshot object and replace the body with it
-                    //     This updates any stale snapshot references in the log entries
-                    //     Additionally, flag snapshot existence in the info object as { snapshotExists: true/false }
-                    //     (The info object is a permitted field in the audit log entry body)
-                    // 3. Return the log entries as { meta: Object, count: Number, timeline: Array<Object> }
+                    //  * Get all log entries for the project starting from the pagination cursor & limited by the pagination limit
+                    //    where they meet the criteria for project history (see Op.in filter below)
+                    //  * If the log entry has a snapshot, match it up to the actual snapshot object and replace in in the body
+                    //    This updates any stale snapshot references in the log entries
+                    //    Additionally, flag snapshot existence in the info object as { snapshotExists: true/false }
+                    //    (The info object is a permitted field in the audit log entry body (schema))
+                    // * Return the log entries as { meta: Object, count: Number, timeline: Array<Object> }
 
                     const limit = parseInt(pagination.limit) || 100
                     const where = {
@@ -165,35 +165,39 @@ module.exports = {
                         return result
                     }
 
-                    // 2. convert body string and grab snapshot if available
-                    for (const entry of rows) {
+                    // 2. sanitise log entries
+                    for (const row of rows) {
                         try {
-                            entry.body = ((typeof entry.body || '{}') === 'string' ? JSON.parse(entry.body) : entry.body) || {}
-                            // since we are in the context of a project history, we don't need to include the project object (redundant)
-                            delete entry.body.project
-                            // update snapshot if available and flag existence
-                            if (entry.body.snapshot) {
-                                if (typeof entry.body.info !== 'object') {
-                                    entry.body.info = entry.body.info ? { _info: entry.body.info } : {}
-                                }
-                                if (entry.body.snapshot) {
-                                    const snapshot = await M.ProjectSnapshot.byId(entry.body.snapshot.id)
-                                    if (snapshot) {
-                                        entry.body.snapshot = snapshot
-                                        entry.body.info = { snapshotExists: true }
-                                    } else {
-                                        entry.body.info = { snapshotExists: false }
-                                    }
-                                } else {
-                                    entry.body.info = { snapshotExists: false }
-                                }
-                            }
+                            row.body = typeof row.body === 'string' ? JSON.parse(row.body) : JSON.parse('' + row.body)
+                            delete row.body.project // we don't need to include the project object in specific project history
                         } catch (_e) {
-                            // do nothing
+                            row.body = {}
                         }
                     }
 
-                    // 3. Return the log entries
+                    // 3. update snapshot references
+                    const snapshotRows = rows.filter(row => row.body?.snapshot)
+                    if (snapshotRows.length) {
+                        const snapshotIds = snapshotRows.length && snapshotRows.map(entry => entry.body.snapshot.id)
+                        const snapshots = await M.ProjectSnapshot.findAll({
+                            where: { id: { [Op.in]: snapshotIds } },
+                            attributes: ['id', 'hashid', 'name', 'description', 'createdAt']
+                        })
+                        if (snapshots?.length) {
+                            for (const row of snapshotRows) {
+                                if (row.body?.snapshot) {
+                                    if (typeof row.body.info !== 'object') {
+                                        row.body.info = row.body.info ? { _info: row.body.info } : {}
+                                    }
+                                    const snapshot = snapshots.find(s => s.id === row.body.snapshot.id)
+                                    row.body.snapshot = snapshot || row.body.snapshot
+                                    row.body.info.snapshotExists = !!snapshot
+                                }
+                            }
+                        }
+                    }
+
+                    // 4. Return the log entries
                     result.meta.next_cursor = rows.length < limit ? undefined : rows[rows.length - 1].hashid
                     result.count = rows.length
                     result.timeline = rows
