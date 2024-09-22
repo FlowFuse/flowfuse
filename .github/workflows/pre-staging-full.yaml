@@ -132,7 +132,7 @@ jobs:
       IMAGE_NAME: 'node-red'
       PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
     outputs:
-      nr_custom_image: ${{ steps.image-push.outputs.nr_image }}
+      nr_custom_image_tag: ${{ steps.image-push.outputs.nr_image_tag }}
     steps:
       - name: Set variables
         run: | 
@@ -170,14 +170,14 @@ jobs:
           docker pull ${{ needs.build-node-red.outputs.image }}
           docker tag ${{ needs.build-node-red.outputs.image }} ${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }}
           docker push ${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }}
-          echo "nr_image=${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }}" >> $GITHUB_OUTPUT
-
+          echo "nr_image_tag=${{ env.tagged_image }}-${{ env.timestamp }}" >> $GITHUB_OUTPUT
 
   create-custom-stack:
     name: Create stack with custom Node-RED image
     needs: 
       - validate-user
       - upload-node-red
+      - deploy
     if: |
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
@@ -194,7 +194,7 @@ jobs:
           curl -ks -w "\n" -XPOST \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
-              -d '{"name":"'"NR-40-Custom"'","label":"'"4.0.x-custom"'", "projectType":"'"$projectTypeId"'","properties":{ "cpu":'"30"',"memory":'"256"',"container":"'"${{ needs.upload-node-red.outputs.nr_custom_image }}"'"}}' \
+              -d '{"name":"'"NR-40-Custom"'","label":"'"4.0.x-custom"'", "projectType":"'"$projectTypeId"'","properties":{ "cpu":'"30"',"memory":'"256"',"container":"'"${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ needs.upload-node-red.outputs.nr_custom_image }}"'"}}' \
               https://$PR_NUMBER.$FLOWFUSE_DOMAIN/api/v1/stacks/
 
 
