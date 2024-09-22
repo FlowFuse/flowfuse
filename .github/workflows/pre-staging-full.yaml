@@ -197,7 +197,7 @@ jobs:
               -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}"
               -H "Content-Type: application/json" \
               -d '{"properties": {"container": "'"${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ needs.upload-node-red.outputs.nr_custom_image }}"'"}}' \
-              https://$PR_NUMBER.$FLOWFUSE_DOMAIN/api/v1/stacks/$stack_id
+              https://$PR_NUMBER.$FLOWFUSE_DOMAIN/api/v1/stacks/$customStackId
           else
             echo "Stack does not exists, creating..."
             projectTypeId=$(curl -ks -XGET -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" https://$PR_NUMBER.$FLOWFUSE_DOMAIN/api/v1/project-types/ | jq -r '.types[].id')
