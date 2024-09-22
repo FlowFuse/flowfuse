@@ -188,15 +188,25 @@ jobs:
       PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
       FLOWFUSE_DOMAIN: 'flowfuse.dev'
     steps:
-      - name: Create stack
+      - name: Create/update stack
         run: |
-          projectTypeId=$(curl -ks -XGET -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" https://$PR_NUMBER.$FLOWFUSE_DOMAIN/api/v1/project-types/ | jq -r '.types[].id')
-          curl -ks -w "\n" -XPOST \
+          customStackId=$(curl -ks -XGET -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" https://$PR_NUMBER.$FLOWFUSE_DOMAIN/api/v1/stacks/ | jq -r '.stacks[] | select(.name == "NR-40-Custom") | .id')
+          if [ -n "$customStackId" ]; then
+            echo "Stack already exists, updating..."
+            curl -ks -X PUT \
+              -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}"
+              -H "Content-Type: application/json" \
+              -d '{"properties": {"container": "'"${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ needs.upload-node-red.outputs.nr_custom_image }}"'"}}' \
+              https://$PR_NUMBER.$FLOWFUSE_DOMAIN/api/v1/stacks/$stack_id
+          else
+            echo "Stack does not exists, creating..."
+            projectTypeId=$(curl -ks -XGET -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" https://$PR_NUMBER.$FLOWFUSE_DOMAIN/api/v1/project-types/ | jq -r '.types[].id')
+            curl -ks -w "\n" -XPOST \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
               -d '{"name":"'"NR-40-Custom"'","label":"'"4.0.x-custom"'", "projectType":"'"$projectTypeId"'","properties":{ "cpu":'"30"',"memory":'"256"',"container":"'"${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ needs.upload-node-red.outputs.nr_custom_image }}"'"}}' \
               https://$PR_NUMBER.$FLOWFUSE_DOMAIN/api/v1/stacks/
-
+          fi
 
 
   build:
