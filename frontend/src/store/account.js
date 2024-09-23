@@ -81,7 +81,7 @@ const getters = {
         !state.team.billing?.active
     },
     isTrialAccount (state) {
-        return state.team.billing?.trial
+        return state.team?.billing?.trial
     },
     isAdminUser: (state) => !!state.user.admin,
     defaultUserTeam: (state, getters) => {
