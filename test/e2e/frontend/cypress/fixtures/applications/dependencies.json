@@ -45,22 +45,22 @@
         {
           "name": "@package/dep-1",
           "version": {
-            "semver": "1.1.1",
-            "installed": "1.1.1"
+            "wanted": "1.1.1",
+            "current": "1.1.1"
           }
         },
         {
           "name": "@package/var-2",
           "version": {
-            "semver": "~1.15.0",
-            "installed": "1.15.0"
+            "wanted": "~1.15.0",
+            "current": "1.15.0"
           }
         },
         {
           "name": "@external/sem-3",
           "version": {
-            "semver": "~2.1.1",
-            "installed": "2.1.1"
+            "wanted": "~2.1.1",
+            "current": "2.1.1"
           }
         }
       ]
@@ -73,22 +73,22 @@
         {
           "name": "@package/dep-1",
           "version": {
-            "semver": "2.2.2",
-            "installed": "2.2.2"
+            "wanted": "2.2.2",
+            "current": "2.2.2"
           }
         },
         {
           "name": "@package/var-2",
           "version": {
-            "semver": "3.3.3",
-            "installed": "3.3.3"
+            "wanted": "3.3.3",
+            "current": "3.3.3"
           }
         },
         {
           "name": "@external/sem-3",
           "version": {
-            "semver": "4.4.4",
-            "installed": "4.4.4"
+            "wanted": "4.4.4",
+            "current": "4.4.4"
           }
         }
       ]
@@ -101,29 +101,29 @@
         {
           "name": "@package/dep-1",
           "version": {
-            "semver": "5.5.5",
-            "installed": "5.5.5"
+            "wanted": "5.5.5",
+            "current": "5.5.5"
           }
         },
         {
           "name": "@package/var-2",
           "version": {
-            "semver": "6.6.6",
-            "installed": "7.7.7"
+            "wanted": "6.6.6",
+            "current": "7.7.7"
           }
         },
         {
           "name": "@external/sem-3",
           "version": {
-            "semver": "8.8.8",
-            "installed": "8.8.8"
+            "wanted": "8.8.8",
+            "current": "8.8.8"
           }
         },
         {
           "name": "@lonely/package-1",
           "version": {
-            "semver": "1.0.0",
-            "installed": "1.0.0"
+            "wanted": "1.0.0",
+            "current": "1.0.0"
           }
         }
       ]
@@ -136,8 +136,8 @@
         {
           "name": "@package/var-2",
           "version": {
-            "semver": "6.6.6",
-            "installed": "7.7.7"
+            "wanted": "6.6.6",
+            "current": "7.7.7"
           }
         }
       ]
@@ -150,8 +150,8 @@
         {
           "name": "@external/sem-3",
           "version": {
-            "semver": "8.8.8",
-            "installed": "8.8.8"
+            "wanted": "8.8.8",
+            "current": "8.8.8"
           }
         }
       ]
@@ -164,8 +164,8 @@
         {
           "name": "@some-package/var",
           "version": {
-            "semver": "1.2.0",
-            "installed": "1.1.1"
+            "wanted": "1.2.0",
+            "current": "1.1.1"
           }
         }
       ]
