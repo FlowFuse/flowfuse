@@ -66,7 +66,7 @@ describe('Application model', function () {
     })
 
     describe('instance methods', function () {
-        describe.only('getChildren', function () {
+        describe('getChildren', function () {
             beforeEach(async () => {
                 app.license.defaults.instances = 20; // override default
                 ({ Application, Project, Team } = app.db.models)
