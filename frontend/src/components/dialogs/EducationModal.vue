@@ -7,31 +7,10 @@
             <template v-if="!isClosing">
                 <p class="message mb-7">Where would you like to get started?</p>
                 <ul class="options">
-                    <li>
-                        <a class="ff-link" target="_blank" href="https://flowfuse.com/docs/user/devops-pipelines/">
+                    <li v-for="(option, $key) in helpOptions" :key="$key">
+                        <a :href="option.href" class="ff-link" target="_blank" @click="capturePostHog(option)">
                             <ChevronRightIcon class="ff-icon" />
-                            Create a DevOps Pipeline
-                        </a>
-                    </li>
-                    <li>
-                        <a class="ff-link" target="_blank" href="https://flowfuse.com/docs/user/projectnodes/#flowfuse-project-nodes">
-                            <ChevronRightIcon class="ff-icon" />
-                            Set up Project Nodes
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            class="ff-link" target="_blank"
-                            href="https://flowfuse.com/blog/2024/04/how-to-build-an-application-with-node-red-dashboard-2/"
-                        >
-                            <ChevronRightIcon class="ff-icon" />
-                            Build a Dashboard
-                        </a>
-                    </li>
-                    <li>
-                        <a class="ff-link" target="_blank" href="https://www.youtube.com/watch?v=47EvfmJji-k">
-                            <ChevronRightIcon class="ff-icon" />
-                            Create a Node-RED flow
+                            <span>{{ option.title }}</span>
                         </a>
                     </li>
                 </ul>
@@ -62,6 +41,8 @@
 import { ChevronRightIcon } from '@heroicons/vue/solid'
 import { mapActions, mapGetters } from 'vuex'
 
+import product from '../../services/product.js'
+
 export default {
     name: 'EducationModal',
     components: { ChevronRightIcon },
@@ -74,7 +55,28 @@ export default {
     computed: {
         ...mapGetters({
             isOpen: 'ux/shouldShowEducationModal'
-        })
+        }),
+        helpOptions () {
+            return [
+                {
+                    title: 'Create a DevOps Pipeline',
+                    href: 'https://flowfuse.com/docs/user/devops-pipelines/'
+                },
+                {
+                    title: 'Set up Project Nodes',
+                    href: 'https://flowfuse.com/docs/user/projectnodes/#flowfuse-project-nodes/'
+                },
+                {
+                    title: 'Build a Dashboard',
+                    href: 'https://flowfuse.com/blog/2024/04/how-to-build-an-application-with-node-red-dashboard-2/'
+                },
+                {
+                    title: 'Create a Node-RED flow',
+                    href: 'https://www.youtube.com/watch?v=47EvfmJji-k/'
+                }
+
+            ]
+        }
     },
     methods: {
         ...mapActions('ux', ['deactivateTour']),
@@ -99,6 +101,9 @@ export default {
             this.deactivateTour('education')
             this.isClosing = false
             this.closingTimer = 0
+        },
+        capturePostHog (option) {
+            product.capture('clicked-trial-education-link', option)
         }
     }
 }
