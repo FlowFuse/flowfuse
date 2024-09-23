@@ -79,6 +79,9 @@ export default {
                 case 'navigate':
                     window.location.href = event.data.payload
                     break
+                case 'logout':
+                    this.$router.push({ name: 'instance-overview', params: { id: this.instance.id } })
+                    break
                 default:
                 }
             }
