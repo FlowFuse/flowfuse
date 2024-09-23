@@ -110,7 +110,7 @@ module.exports = {
                         const deviceCount = await team.Team.deviceCount()
                         const members = await team.Team.memberCount()
 
-                        ownedTeams.push(team)
+                        ownedTeams.push(team.Team)
 
                         // throw error if the team has other members assigned to it
                         if (members > 1) {
