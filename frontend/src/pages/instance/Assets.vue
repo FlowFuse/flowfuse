@@ -8,6 +8,15 @@
                 :message="launcherVersionMessage"
                 :only-custom-message="true"
             />
+            <FeatureUnavailable
+                v-if="fileNodesDisabled"
+                :message="fileNodesMessage"
+                :onlyCustomMessage="true"
+            >
+                <template #default>
+                    <p>This Instance currently has the default Node-RED File nodes disabled. Please remove '10-file.js' from the <router-link class="ff-link" :to="{ name: 'instance-settings-palette', params: { id: instance.id } }">exclude</router-link> list or contact your administrator</p>
+                </template>
+            </FeatureUnavailable>
         </div>
         <FolderBreadcrumbs
             :breadcrumbs="breadcrumbs"
@@ -93,6 +102,14 @@ export default {
             const folders = this.files.filter(file => file.type === 'directory').sort()
 
             return [...folders, ...files]
+        },
+        fileNodesDisabled () {
+            const settingsFile = this.instance.settings.palette?.nodesExcludes?.includes('10-file.js')
+            const templateFile = this.instance.template.settings.palette?.nodesExcludes?.includes('10-file.js')
+            console.log(this.instance.settings.palette?.nodesExcludes)
+            console.log(this.instance.template.settings.palette.nodesExcludes)
+            console.log(settingsFile || templateFile)
+            return settingsFile || templateFile
         }
     },
     watch: {
