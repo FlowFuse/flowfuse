@@ -73,6 +73,7 @@ import { AcademicCapIcon, AdjustmentsIcon, CogIcon, LogoutIcon, MenuIcon, PlusIc
 import { ref } from 'vue'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
+import product from '../../services/product.js'
 import navigationMixin from '../mixins/Navigation.js'
 import permissionsMixin from '../mixins/Permissions.js'
 
@@ -188,6 +189,7 @@ export default {
         ...mapActions('ux', ['activateTour']),
         openEducationModal () {
             this.activateTour('education')
+            product.capture('clicked-open-education-modal')
         }
     }
 }
