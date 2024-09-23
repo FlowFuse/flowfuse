@@ -9,8 +9,8 @@
                 <ul class="options">
                     <li v-for="(option, $key) in helpOptions" :key="$key">
                         <a :href="option.href" class="ff-link" target="_blank" @click="capturePostHog(option)">
-                            <ChevronRightIcon class="ff-icon" />
                             <span>{{ option.title }}</span>
+                            <ExternalLinkIcon class="ff-icon" />
                         </a>
                     </li>
                 </ul>
@@ -38,14 +38,14 @@
 </template>
 
 <script>
-import { ChevronRightIcon } from '@heroicons/vue/solid'
+import { ExternalLinkIcon } from '@heroicons/vue/solid'
 import { mapActions, mapGetters } from 'vuex'
 
 import product from '../../services/product.js'
 
 export default {
     name: 'EducationModal',
-    components: { ChevronRightIcon },
+    components: { ExternalLinkIcon },
     data () {
         return {
             isClosing: false,
@@ -112,7 +112,7 @@ export default {
 <style scoped lang="scss">
 .education-modal {
   position: absolute;
-  bottom: 5px;
+  top: 65px;
   right: 5px;
   width: 350px;
   background: $ff-white;
@@ -147,19 +147,18 @@ export default {
         transition: ease-in-out .3s;
         position: relative;
         line-height: 2;
-
-        .ff-icon {
-          transition: ease-in-out .3s;
-          position: relative;
-          left: 0;
-        }
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        border: 1px solid $ff-grey-200;
+        align-items: center;
+        padding: 5px;
+        color: $ff-black;
 
         &:hover {
           text-decoration: none;
-
-          .ff-icon {
-            left: 3px;
-          }
+          border: 1px solid $ff-blue-700;
+          color: $ff-blue-700;
         }
       }
     }
