@@ -11,8 +11,8 @@ module.exports = {
                 version: {
                     type: 'object',
                     properties: {
-                        semver: { type: 'string' },
-                        installed: { type: 'string', nullable: true }
+                        wanted: { type: 'string' },
+                        current: { type: 'string', nullable: true }
                     }
                 }
             }
@@ -42,8 +42,8 @@ module.exports = {
         const result = {
             name,
             version: {
-                semver: semverVersion,
-                installed: installedVersion || null
+                wanted: semverVersion,
+                current: installedVersion || null
             }
         }
         return result
@@ -52,7 +52,7 @@ module.exports = {
     dependant (model, dependencies) {
         const type = model instanceof app.db.models.Project ? 'instance' : model instanceof app.db.models.Device ? 'device' : null
         if (type !== null) {
-            const dependenciesArray = Object.entries(dependencies || {}).map(([name, version]) => app.db.views.BOM.dependency(name, version?.semver, version?.installed))
+            const dependenciesArray = Object.entries(dependencies || {}).map(([name, version]) => app.db.views.BOM.dependency(name, version?.wanted, version?.current))
             if (type === 'device') {
                 const { hashid, name, ownerType } = model
                 let ownerId = null
