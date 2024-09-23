@@ -106,9 +106,6 @@ export default {
         fileNodesDisabled () {
             const settingsFile = this.instance.settings.palette?.nodesExcludes?.includes('10-file.js')
             const templateFile = this.instance.template.settings.palette?.nodesExcludes?.includes('10-file.js')
-            console.log(this.instance.settings.palette?.nodesExcludes)
-            console.log(this.instance.template.settings.palette.nodesExcludes)
-            console.log(settingsFile || templateFile)
             return settingsFile || templateFile
         }
     },
