@@ -14,7 +14,7 @@ describe('Application model', function () {
     after(async function () {
         await app.close()
     })
-    let Application, Project, Team, Device
+    let Application, Project, Team
     const nameGenerator = (name) => `${name} ${Math.random().toString(36).substring(7)}`
     const newProject = async (applicationId, teamId, projectTypeId, projectStackId, projectTemplateId) => {
         const name = nameGenerator('Test Project')
@@ -45,7 +45,7 @@ describe('Application model', function () {
     describe('Relations', function () {
         beforeEach(async () => {
             app.license.defaults.instances = 20; // override default
-            ({ Application, Project, Team, Device } = app.db.models)
+            ({ Application, Project, Team } = app.db.models)
         })
 
         it('should delete Application when team is deleted', async () => {
@@ -87,17 +87,17 @@ describe('Application model', function () {
                 const device2 = children.find(c => c.type === 'device' && c.model.id === instDevice.id)
 
                 instance.should.be.an.Object()
-                instance.model.should.be.an.instanceOf(Project)
+                instance.model.should.be.an.instanceOf(app.db.models.Project)
                 instance.should.not.have.property('dependencies')
 
                 device1.should.be.an.Object()
-                device1.model.should.be.an.instanceOf(Device)
+                device1.model.should.be.an.instanceOf(app.db.models.Device)
                 device1.should.have.property('ownerId', application.id)
                 device1.should.have.property('ownerType', 'application')
                 device1.should.not.have.property('dependencies')
 
                 device2.should.be.an.Object()
-                device2.model.should.be.an.instanceOf(Device)
+                device2.model.should.be.an.instanceOf(app.db.models.Device)
                 device2.should.have.property('ownerType', 'instance')
                 device2.should.have.property('ownerId', project.id)
                 device2.should.not.have.property('dependencies')
@@ -121,23 +121,23 @@ describe('Application model', function () {
                     Object.entries(item.dependencies).forEach(([key, value]) => {
                         key.should.be.a.String()
                         value.should.be.an.Object()
-                        value.should.have.property('semver')
-                        value.should.have.property('installed')
+                        value.should.have.property('wanted')
+                        value.should.have.property('current')
                     })
                 }
 
                 instance.should.be.an.Object()
-                instance.model.should.be.an.instanceOf(Project)
+                instance.model.should.be.an.instanceOf(app.db.models.Project)
                 checkDeps(instance)
 
                 device1.should.be.an.Object()
-                device1.model.should.be.an.instanceOf(Device)
+                device1.model.should.be.an.instanceOf(app.db.models.Device)
                 device1.should.have.property('ownerId', application.id)
                 device1.should.have.property('ownerType', 'application')
                 checkDeps(device1)
 
                 device2.should.be.an.Object()
-                device2.model.should.be.an.instanceOf(Device)
+                device2.model.should.be.an.instanceOf(app.db.models.Device)
                 device2.should.have.property('ownerType', 'instance')
                 device2.should.have.property('ownerId', project.id)
                 checkDeps(device2)
