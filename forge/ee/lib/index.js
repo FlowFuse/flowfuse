@@ -17,6 +17,8 @@ module.exports = fp(async function (app, opts) {
         app.config.features.register('mfa', true, true)
         // Set the Device Groups Feature Flag
         app.config.features.register('deviceGroups', true, true)
+        // Set the Project History timeline Feature Flag
+        app.config.features.register('projectHistory', true, true)
         // Set the Bill of Materials Feature Flag
         app.config.features.register('bom', true, true)
     }

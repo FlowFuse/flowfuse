@@ -147,7 +147,7 @@ describe('Audit Log > Application', async function () {
         logEntry.body.should.only.have.keys('device', 'snapshot')
         logEntry.body.device.should.only.have.keys('id', 'name')
         logEntry.body.device.id.should.equal(DEVICE.hashid)
-        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
@@ -164,7 +164,7 @@ describe('Audit Log > Application', async function () {
         logEntry.body.should.only.have.keys('device', 'snapshot', 'updates')
         logEntry.body.device.should.only.have.keys('id', 'name')
         logEntry.body.device.id.should.equal(DEVICE.hashid)
-        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
         logEntry.body.updates.should.be.an.Array().and.have.length(1)
     })
@@ -180,7 +180,7 @@ describe('Audit Log > Application', async function () {
         logEntry.body.should.only.have.keys('device', 'snapshot')
         logEntry.body.device.should.only.have.keys('id', 'name')
         logEntry.body.device.id.should.equal(DEVICE.hashid)
-        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
@@ -195,7 +195,7 @@ describe('Audit Log > Application', async function () {
         logEntry.body.should.only.have.keys('device', 'snapshot')
         logEntry.body.device.should.only.have.keys('id', 'name')
         logEntry.body.device.id.should.equal(DEVICE.hashid)
-        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
@@ -210,7 +210,7 @@ describe('Audit Log > Application', async function () {
         logEntry.body.should.only.have.keys('device', 'snapshot')
         logEntry.body.device.should.only.have.keys('id', 'name')
         logEntry.body.device.id.should.equal(DEVICE.hashid)
-        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
