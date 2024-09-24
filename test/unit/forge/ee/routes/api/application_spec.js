@@ -73,6 +73,9 @@ describe('Application API', function () {
         TestObjects.instance = await factory.createInstance({ name: generateName('B-team-instance') }, TestObjects.application, app.stack, app.template, app.projectType, { start: false })
         TestObjects.device1 = await factory.createDevice({ name: generateName('device') }, TestObjects.ATeam, TestObjects.instance, null)
         TestObjects.device2 = await factory.createDevice({ name: generateName('device') }, TestObjects.BTeam, null, TestObjects.application)
+
+        // fake the instance `versions` to test BOM
+        await TestObjects.instance.update({ versions: { 'node-red': { wanted: '4.0.3', current: '4.0.2' } } })
     })
 
     async function login (username, password) {
@@ -115,7 +118,7 @@ describe('Application API', function () {
                 item.dependencies.forEach(dep => {
                     should(dep).be.an.Object()
                     dep.should.have.properties('name', 'version')
-                    dep.version.should.have.properties('semver', 'installed')
+                    dep.version.should.have.properties('wanted', 'current')
                 })
             }
 
@@ -130,6 +133,7 @@ describe('Application API', function () {
             should(instance).be.an.Object()
             instance.should.have.property('name', TestObjects.instance.name)
             instance.should.have.property('type', 'instance')
+            instance.dependencies.should.matchAny({ name: 'node-red', version: { wanted: '4.0.3', current: '4.0.2' } })
             depsCheck(instance)
 
             const device1 = result.children.find(c => c.type === 'device' && c.id === TestObjects.device1.hashid)

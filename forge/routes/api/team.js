@@ -591,23 +591,6 @@ module.exports = async function (app) {
                 await app.auditLog.Team.team.device.deleted(request.session.User, null, request.team, device)
             }
 
-            if (app.license.active() && app.billing) {
-                const subscription = await request.team.getSubscription()
-                if (subscription) {
-                    if (!subscription.isTrial() && !subscription.isUnmanaged()) {
-                        const subId = subscription.subscription || 'unknown'
-                        try {
-                            await app.billing.closeSubscription(subscription)
-                        } catch (err) {
-                            app.log.warn(`Error canceling subscription ${subId} for team ${request.team.hashid}`)
-                            app.log.warn(err)
-                        }
-                    }
-                    // Delete the subscription
-                    await subscription.destroy()
-                }
-            }
-
             await request.team.destroy()
             await app.auditLog.Platform.platform.team.deleted(request.session.User, null, request.team)
             await app.auditLog.Team.team.deleted(request.session.User, null, request.team)
