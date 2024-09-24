@@ -4,13 +4,17 @@ const state = () => ({
         component: null
     },
     tours: {
-        welcome: false
+        welcome: false,
+        education: false
     }
 })
 
 const getters = {
     shouldShowLeftMenu: (state, getters, rootState, rootGetters) => (route) => {
         return rootGetters['account/hasAvailableTeams'] || route.path.includes('/account/')
+    },
+    shouldShowEducationModal: (state) => {
+        return state.tours.education
     }
 }
 
@@ -41,7 +45,10 @@ const actions = {
     activateTour ({ commit }, tour) {
         commit('activateTour', tour)
     },
-    deactivateTour ({ commit }, tour) {
+    deactivateTour ({ commit, state }, tour) {
+        if (tour === 'welcome') {
+            commit('activateTour', 'education')
+        }
         commit('deactivateTour', tour)
     }
 }
