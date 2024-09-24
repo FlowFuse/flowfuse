@@ -4,13 +4,13 @@
             <template v-if="instance.ha?.replicas != undefined" #tools>
                 <div style="display: flex;align-items: center;">
                     <div class="mr-2"><strong>Replica:</strong></div>
-                    <ff-dropdown ref="dropdown" v-model="selectedHAId" data-el="select-ha-replica">
-                        <ff-dropdown-option label="All" value="all" />
-                        <ff-dropdown-option
-                            v-for="id in haIds" :key="id"
-                            :label="id" :value="id"
-                        />
-                    </ff-dropdown>
+                    <ff-listbox
+                        ref="dropdown"
+                        v-model="selectedHAId"
+                        data-el="select-ha-replica"
+                        :options="haIdOptions"
+                        :return-model-value="true"
+                    />
                 </div>
             </template>
         </SectionTopMenu>
@@ -20,12 +20,14 @@
 
 <script>
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
+import FfListbox from '../../ui-components/components/form/ListBox.vue'
 
 import LogsShared from './components/InstanceLogs.vue'
 
 export default {
     name: 'InstanceLogs',
     components: {
+        FfListbox,
         LogsShared,
         SectionTopMenu
     },
@@ -40,6 +42,11 @@ export default {
         return {
             haIds: [],
             selectedHAId: 'all'
+        }
+    },
+    computed: {
+        haIdOptions () {
+            return [{ label: 'All', value: 'all' }, ...this.haIds.map(id => ({ label: id, value: id }))]
         }
     },
     methods: {
