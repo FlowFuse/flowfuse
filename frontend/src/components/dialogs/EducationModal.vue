@@ -117,7 +117,7 @@ export default {
   width: 350px;
   background: $ff-white;
   border: 1px solid $ff-grey-300;
-  box-shadow: -6px -6px 10px rgba(0, 0, 0, .2);
+  box-shadow: -6px 6px 10px rgba(0, 0, 0, .2);
   margin: 0;
 
   .ff-dialog-content {
