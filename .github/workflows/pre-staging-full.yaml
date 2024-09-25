@@ -87,11 +87,15 @@ jobs:
       github.event_name == 'workflow_dispatch' &&
       github.event.action != 'closed' &&
       github.event.inputs.nr_launcher_branch != 'main'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Simulate package build and push
-        run:
-          echo "Build package"
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@feat-publish-package-from-branch'
+    with:
+      package_name: flowfuse-nr-launcher
+      publish_package: true
+      repository_name: 'FlowFuse/nr-launcher'
+      branch_name: ${{ inputs.nr_launcher_branch }}
+      release_name: "pre-staging-${{ inputs.nr_launcher_branch }}"
+    secrets:
+      npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
 
   build-node-red:
     name: Build Node-RED 4.0.x container images
@@ -103,14 +107,16 @@ jobs:
       github.event_name == 'workflow_dispatch' &&
       github.event.action != 'closed' &&
       (always() && needs.publish_nr_launcher.result != 'failure')
-    uses: flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml@v0.30.0
+    uses: flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml@refactor-container-build
     with:
       image_name: 'node-red'
       dockerfile_path: Dockerfile
       image_tag_prefix: '4.0.x-'
       package_dependencies: |
-        @flowforge/nr-project-nodes
+        @flowforge/nr-project-nodes=nightly
       build_context: './ci/node-red'
+      build_arguments: |
+        BUILD_TAG=${{ needs.publish_nr_launcher.outputs.release_name }}
       build_platform: "linux/arm64"
       npm_registry_url: ${{ vars.PUBLIC_NPM_REGISTRY_URL }}
     secrets:
