@@ -39,8 +39,9 @@ export default {
         instance () {
             this.$refs.AuditLog?.loadEntries()
         },
-        'team.id' () {
-            this.loadUsers()
+        'team.id': {
+            handler: function (teamId) { if (teamId) this.loadUsers() },
+            immediate: true
         }
     },
     methods: {
