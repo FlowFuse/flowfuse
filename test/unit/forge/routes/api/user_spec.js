@@ -846,13 +846,21 @@ describe('User API', async function () {
 
             await app.factory.createApplication({ name: 'senate-app-2' }, nabooTeam)
 
-            // Padme now attempts to delete own account: should succeed even though it has instances attached to the team
+            // Padme now attempts to delete own account: should succeed even though it has applications attached to the team
+            // but no instances or devices
             const response = await app.inject({
                 method: 'DELETE',
                 url: '/api/v1/user',
                 cookies: { sid: TestObjects.tokens.amidala }
             })
             response.statusCode.should.equal(200)
+
+            // Verify the team has been deleted
+
+            const team = await app.db.models.Team.byId(nabooTeam.id)
+            // Careful using raw sequelize objects and should.js
+            // Cannot use `should.not.exist(team)` as it causes a hang
+            ;(team === null).should.be.true('Team should have been deleted')
         })
     })
 

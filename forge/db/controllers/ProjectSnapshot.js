@@ -1,4 +1,7 @@
 const { Op } = require('sequelize')
+
+const { getLoggers: getProjectLogger } = require('../../auditLog/project')
+
 const DEVICE_AUTO_SNAPSHOT_LIMIT = 10
 const DEVICE_AUTO_SNAPSHOT_PREFIX = 'Auto Snapshot' // Any changes to the format should be reflected in frontend/src/pages/device/Snapshots/index.vue
 const DEPLOY_TYPE_ENUM = {
@@ -293,7 +296,9 @@ const instanceAutoSnapshotUtils = {
         }
     },
     doAutoSnapshot: async function (app, project, deploymentType, { clean = true, setAsTarget = false } = {}, meta) {
-        // eslint-disable-next-line no-useless-catch
+        const projectAuditLogger = getProjectLogger(app)
+        const user = meta?.user || { id: null } // if no user is available, use `null` (system user)
+
         try {
             // if not permitted, throw an error
             if (!project) {
@@ -316,13 +321,6 @@ const instanceAutoSnapshotUtils = {
                 setAsTarget
             }
 
-            // things to do & consider:
-            // 1. create a snapshot from the instance
-            // 2. log the snapshot creation in audit log
-            // 3. delete older auto snapshots if the limit is reached (10)
-            //    do NOT delete any snapshots that are currently in use by an target (instance/device/device group)
-            const user = meta?.user || { id: null } // if no user is available, use `null` (system user)
-
             // 1. create a snapshot from the instance
             const snapShot = await app.db.controllers.ProjectSnapshot.createSnapshot(
                 project,
@@ -332,8 +330,7 @@ const instanceAutoSnapshotUtils = {
             snapShot.User = user
 
             // 2. log the snapshot creation in audit log
-            // TODO: project snapshot: implement audit log
-            // await projectAuditLogger.project.snapshot.created(request.session.User, null, request.project, snapShot)
+            await projectAuditLogger.project.snapshot.created(user, null, project, snapShot)
 
             // 3. clean up older auto snapshots
             if (clean === true) {
@@ -342,8 +339,7 @@ const instanceAutoSnapshotUtils = {
 
             return snapShot
         } catch (error) {
-            // TODO: project snapshot:  implement audit log
-            // await projectAuditLogger.project.snapshot.created(request.session.User, error, request.project, null)
+            await projectAuditLogger.project.snapshot.created(user, error, project, null)
             throw error
         }
     }

@@ -295,7 +295,8 @@ const snapshotObject = (snapshot) => {
     return {
         id: snapshot?.id || null,
         hashid: snapshot?.hashid || null,
-        name: snapshot?.name || null
+        name: snapshot?.name || null,
+        description: snapshot?.description
     }
 }
 const pipelineObject = (pipeline) => {
