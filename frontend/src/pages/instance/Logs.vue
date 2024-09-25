@@ -9,7 +9,6 @@
                         v-model="selectedHAId"
                         data-el="select-ha-replica"
                         :options="haIdOptions"
-                        :return-model-value="true"
                     />
                 </div>
             </template>
