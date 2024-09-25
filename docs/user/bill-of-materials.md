@@ -16,7 +16,7 @@ You can search by instance/device name, package name, specific dependency, or ev
 ## Prerequisites
 ### FlowFuse Cloud
 - A Instance Stack with a launcher version of 2.9.0 or greater.
-- Team or Enterprise Team Type.
+- Enterprise Team Type.
 
 ### Self-Hosted
 
