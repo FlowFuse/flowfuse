@@ -68,7 +68,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       github.event.action != 'closed' &&
-      github.event.inputs.driver-k8s-branch != 'main'
+      inputs.driver-k8s-branch != 'main'
     uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@feat-publish-package-from-branch'
     with:
       package_name: driver-k8s
@@ -86,7 +86,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       github.event.action != 'closed' &&
-      github.event.inputs.nr_launcher_branch != 'main'
+      inputs.nr_launcher_branch != 'main'
     uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@feat-publish-package-from-branch'
     with:
       package_name: flowfuse-nr-launcher
