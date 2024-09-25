@@ -17,13 +17,15 @@
                     <ListboxOption
                         v-for="option in options"
                         v-slot="{ active, selected }"
-                        :key="option.label"
+                        :key="labelKey === 'label' ? option.label : option[labelKey]"
                         :value="option"
                         as="template"
                         class="option"
                     >
                         <li>
-                            <div class="option-content" :class="{selected, active}">{{ option.label }}</div>
+                            <div class="option-content" :class="{selected, active}">
+                                {{ labelKey === 'label' ? option.label : option[labelKey] }}
+                            </div>
                         </li>
                     </ListboxOption>
                 </ListboxOptions>
@@ -81,7 +83,7 @@ export default {
             default: 'value',
             type: String
         },
-        returnModelValue: {
+        returnModel: {
             required: false,
             default: false,
             type: Boolean
@@ -98,7 +100,7 @@ export default {
                 return this.modelValue
             },
             set (value) {
-                this.$emit('update:modelValue', this.returnModelValue ? value[this.valueKey] : value)
+                this.$emit('update:modelValue', !this.returnModel ? value[this.valueKey] : value)
             }
         },
         selectedOption () {
@@ -107,7 +109,7 @@ export default {
             }
 
             return this.options.find(opt => {
-                return opt[this.valueKey] === (this.returnModelValue ? this.value : this.value[this.valueKey])
+                return opt[this.valueKey] === (!this.returnModel ? this.value : this.value[this.valueKey])
             })
         },
         selectedLabel () {
