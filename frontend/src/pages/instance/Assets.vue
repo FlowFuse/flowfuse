@@ -149,8 +149,7 @@ export default {
                 }
 
                 const filepath = breadcrumbs.map(crumb => crumb.name).join('/')
-                const path = filepath + (breadcrumbs.length > 0 ? '/' : '') + (this.currentDirectory.name || '')
-                return AssetsAPI.getFiles(this.instance.id, path)
+                return AssetsAPI.getFiles(this.instance.id, filepath)
                     .then(payload => {
                         this.files = payload.files
                         if (payload.folder && reloadDirectory) {
