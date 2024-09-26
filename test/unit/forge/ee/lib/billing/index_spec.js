@@ -845,4 +845,44 @@ describe('Billing', function () {
             })
         })
     })
+
+    describe('delete team', async function () {
+        let stripe
+        beforeEach(async function () {
+            stripe = setup.setupStripe()
+            app = await setup({
+                billing: {
+                    stripe: {
+                        key: 1234,
+                        team_product: 'defaultteamprod',
+                        team_price: 'defaultteamprice'
+                    }
+                }
+            })
+        })
+        it('cancels team subscription when the team is deleted', async function () {
+            const team1 = await app.factory.createTeam({ name: 'DeletableTeam' })
+            await team1.addUser(app.user, { through: { role: Roles.Owner } })
+            await app.db.controllers.Subscription.createSubscription(
+                team1,
+                'sub_1234',
+                'cus_1234'
+            )
+            const teamSub = await team1.getSubscription()
+
+            stripe.subscriptions.del.called.should.be.false()
+
+            // Delete the team
+            await team1.destroy()
+
+            // Check we asked stripe to delete/cancel the subscription
+            stripe.subscriptions.del.called.should.be.true()
+            stripe.subscriptions.del.lastCall.args[0].should.equal('sub_1234')
+
+            const checkSub = await app.db.models.Subscription.findOne({ where: { id: teamSub.id } })
+            // Careful using raw sequelize objects and should.js
+            // Cannot use `should.not.exist(checkSub)` as it causes a hang
+            ;(checkSub === null).should.be.true('Subscription should not exist')
+        })
+    })
 })

@@ -73,12 +73,15 @@ const getters = {
     offline (state) {
         return state.offline
     },
-    noBilling (state) {
+    noBilling (state, getters) {
         return !state.user.admin &&
         state.features.billing &&
         (!state.team.billing?.unmanaged) &&
-        (!state.team.billing?.trial || state.team.billing?.trialEnded) &&
+        (!getters.isTrialAccount || state.team.billing?.trialEnded) &&
         !state.team.billing?.active
+    },
+    isTrialAccount (state) {
+        return state.team?.billing?.trial
     },
     isAdminUser: (state) => !!state.user.admin,
     defaultUserTeam: (state, getters) => {
@@ -275,7 +278,11 @@ const actions = {
             commit('clearPending')
             // do we have a user session to clear?
             if (state.user) {
-                window.posthog?.reset()
+                try {
+                    window.posthog?.reset()
+                } catch (err) {
+                    console.error('posthog error resetting user')
+                }
             }
 
             if (router.currentRoute.value.meta.requiresLogin !== false) {

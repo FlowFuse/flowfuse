@@ -19,7 +19,7 @@
             <drawer-trigger @click="toggleDrawer" />
 
             <middle-close-button
-                :is-visible="drawer.isHoveringOverResize"
+                :is-visible="drawer.open"
                 @click="toggleDrawer"
             />
 

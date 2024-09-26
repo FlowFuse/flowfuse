@@ -40,7 +40,7 @@
                         is still there and affects the button height in this div group)
                     -->
                     <div class="space-x-2 flex align-center" style="height: 34px;">
-                        <DeveloperModeToggle data-el="device-devmode-toggle" :device="device" @mode-change="setDeviceMode" />
+                        <DeveloperModeToggle data-el="device-devmode-toggle" :device="device" :disabled="disableModeToggle" :disabledReason="disableModeToggleReason" @mode-change="setDeviceMode" />
                         <button v-if="!isVisitingAdmin" data-action="open-editor" class="ff-btn transition-fade--color ff-btn--secondary ff-btn-icon h-9" :disabled="!editorAvailable" @click="openTunnel(true)">
                             Device Editor
                             <span class="ff-btn--icon ff-btn--icon-right">
@@ -188,8 +188,10 @@ export default {
     computed: {
         ...mapState('account', ['teamMembership', 'team', 'features', 'settings']),
         isVisitingAdmin: function () {
-            // return true
             return this.teamMembership.role === Roles.Admin
+        },
+        isOwner: function () {
+            return this.teamMembership.role === Roles.Owner
         },
         isDevModeAvailable: function () {
             return !!this.features.deviceEditor
@@ -199,6 +201,24 @@ export default {
         },
         deviceRunning () {
             return this.device?.status === 'running'
+        },
+        disableModeToggle: function () {
+            return !this.isDevModeAvailable ||
+                !this.device ||
+                !this.agentSupportsDeviceAccess ||
+                !this.isOwner
+        },
+        disableModeToggleReason: function () {
+            if (!this.device) {
+                return 'No Device selected'
+            }
+            if (!this.agentSupportsDeviceAccess) {
+                return 'Device Agent V0.8 or greater is required'
+            }
+            if (!this.isOwner) {
+                return 'Only an owner can change the Device Mode'
+            }
+            return undefined
         },
         editorAvailable: function () {
             return this.isDevModeAvailable &&

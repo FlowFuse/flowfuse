@@ -4,7 +4,10 @@ const getFiles = function (instanceId, path) {
     // remove leading / from path
     path = path.replace(/^\//, '')
     return client.get(`/api/v1/projects/${instanceId}/files/_/${encodeURIComponent(path || '')}`).then(res => {
-        return res.data.files
+        return {
+            files: res.data.files,
+            folder: res.data.folder
+        }
     })
 }
 
@@ -30,6 +33,14 @@ const updateFolder = function (instanceId, pwd, oldName, newName) {
     })
 }
 
+const updateVisibility = function (instanceId, pwd, visibility, staticPath = '') {
+    // remove leading / from path
+    pwd = pwd.replace(/^\//, '')
+    return client.put(`/api/v1/projects/${instanceId}/files/_/${encodeURIComponent(pwd)}`, {
+        share: visibility === 'public' ? { root: staticPath } : {}
+    })
+}
+
 const deleteItem = function (instanceId, path) {
     // remove leading / from path
     path = path.replace(/^\//, '')
@@ -52,6 +63,7 @@ export default {
     getFiles,
     createFolder,
     updateFolder,
+    updateVisibility,
     deleteItem,
     uploadFile
 }

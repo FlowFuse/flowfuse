@@ -32,7 +32,8 @@ const BANNED_NAME_LIST = [
     'status',
     'billing',
     'mqtt',
-    'broker'
+    'broker',
+    'egress'
 ]
 
 /** @type {FFModel} */
@@ -87,6 +88,20 @@ module.exports = {
             allowNull: false,
             get () {
                 return this.getDataValue('safeName') || this.getDataValue('name')?.toLowerCase()
+            }
+        },
+        versions: {
+            type: DataTypes.TEXT,
+            get () {
+                const rawValue = this.getDataValue('versions')
+                return rawValue ? JSON.parse(rawValue) : {}
+            },
+            set (value) {
+                if (Object.keys(value).length === 0) {
+                    this.setDataValue('versions', null)
+                    return
+                }
+                this.setDataValue('versions', JSON.stringify(value))
             }
         }
     },
@@ -289,6 +304,21 @@ module.exports = {
                         }
                     } else {
                         result.meta = await app.containers.details(this) || { state: 'unknown' }
+                        if (result.meta.versions) {
+                            const currentVersionInfo = { ...this.versions }
+                            let changed = false
+                            for (const [key, value] of Object.entries(result.meta.versions)) {
+                                currentVersionInfo[key] = currentVersionInfo[key] || {}
+                                if (currentVersionInfo[key].current !== value) {
+                                    currentVersionInfo[key].current = value
+                                    changed = true
+                                }
+                            }
+                            if (changed) {
+                                this.versions = currentVersionInfo
+                                await this.save()
+                            }
+                        }
                     }
 
                     result.meta.isDeploying = isDeploying
