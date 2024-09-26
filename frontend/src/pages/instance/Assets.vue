@@ -47,6 +47,7 @@ import FileBrowser from '../../components/file-browser/FileBrowser.vue'
 import featuresMixin from '../../mixins/Features.js'
 import permissionsMixin from '../../mixins/Permissions.js'
 import Alerts from '../../services/alerts.js'
+import { Roles } from '../../utils/roles.js'
 
 import FolderBreadcrumbs from './components/FolderBreadcrumbs.vue'
 
@@ -114,7 +115,7 @@ export default {
     watch: {
         teamMembership: {
             handler (newState) {
-                if (newState && !this.hasAMinimumTeamRoleOf('member')) {
+                if (newState && !this.hasAMinimumTeamRoleOf(Roles.Member)) {
                     return this.$router.push({ name: 'instance-overview' })
                 }
             },
@@ -143,7 +144,7 @@ export default {
     },
     methods: {
         loadContents (breadcrumbs = [], reloadDirectory = false) {
-            if (this.isFeatureEnabled && this.hasAMinimumTeamRoleOf('member')) {
+            if (this.isFeatureEnabled && this.hasAMinimumTeamRoleOf(Roles.Member)) {
                 if (breadcrumbs.length === 0) {
                     breadcrumbs = this.breadcrumbs
                 }

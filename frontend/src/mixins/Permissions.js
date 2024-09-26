@@ -1,7 +1,7 @@
 import { mapState } from 'vuex'
 
 import { Permissions } from '../../../forge/lib/permissions.js'
-import { RoleNames, Roles } from '../../../forge/lib/roles.js'
+import { Roles } from '../utils/roles.js'
 
 export default {
     computed: {
@@ -29,7 +29,7 @@ export default {
         },
         /**
          *
-         * @param {'dashboard', 'viewer', 'member', 'owner'} role
+         * @param {Roles} role
          *
          * @return Boolean
          */
@@ -38,9 +38,7 @@ export default {
                 return true
             }
 
-            const [roleValue] = Object.entries(RoleNames).find(([key, value]) => value === role) || []
-
-            return this.teamMembership?.role >= roleValue
+            return this.teamMembership?.role >= role
         }
     }
 }

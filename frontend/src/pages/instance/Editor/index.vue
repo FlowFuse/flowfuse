@@ -32,7 +32,10 @@
                 </div>
                 <ff-tabs :tabs="navigation" class="tabs" />
                 <div class="side-actions">
-                    <DashboardLink v-if="instance.settings?.dashboard2UI" :instance="instance" :disabled="!editorAvailable" />
+                    <DashboardLink
+                        v-if="instance.settings?.dashboard2UI" :instance="instance"
+                        :disabled="!editorAvailable"
+                    />
                     <InstanceActionsButton :instance="instance" @instance-deleted="onInstanceDelete" />
                     <a :href="instance.url">
                         <ExternalLinkIcon class="ff-btn--icon" />
@@ -68,6 +71,7 @@ import InstanceActionsButton from '../../../components/instance/ActionButton.vue
 import FfPage from '../../../layouts/Page.vue'
 import instanceMixin from '../../../mixins/Instance.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
+import { Roles } from '../../../utils/roles.js'
 import DashboardLink from '../components/DashboardLink.vue'
 
 import EditorWrapper from './components/EditorWrapper.vue'
@@ -128,7 +132,7 @@ export default {
                     label: 'Assets',
                     to: { name: 'instance-editor-assets', params: { id: this.instance.id } },
                     tag: 'instance-assets',
-                    hidden: !this.hasAMinimumTeamRoleOf('member')
+                    hidden: !this.hasAMinimumTeamRoleOf(Roles.Member)
                 },
                 {
                     label: 'Audit Log',
