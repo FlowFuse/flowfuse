@@ -2,7 +2,7 @@
     <div>{{ formatRole(role) }}</div>
 </template>
 <script>
-import { RoleNames } from '../../../../../forge/lib/roles.js'
+import { RoleNames } from '../../../utils/roles.js'
 
 export default {
     name: 'UserRoleCell',
