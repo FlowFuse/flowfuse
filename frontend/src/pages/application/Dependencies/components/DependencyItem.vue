@@ -67,7 +67,7 @@ export default {
                 return 'N/A'
             }
 
-            return daysSince(this.externalDependency.time.modified)
+            return daysSince(this.externalDependency.time.modified, true)
         }
     },
     mounted () {
@@ -102,6 +102,7 @@ export default {
     .details {
       display: flex;
       flex-direction: column;
+      text-align: right;
       font-size: 0.875rem;
       font-weight: 500;
     }
