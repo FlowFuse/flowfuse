@@ -59,13 +59,12 @@ import { ChevronRightIcon, PencilAltIcon, TrashIcon } from '@heroicons/vue/outli
 
 import { mapState } from 'vuex'
 
-import { Roles } from '../../../../forge/lib/roles.js'
-
 import ApplicationAPI from '../../api/application.js'
 import { StageAction, StageType } from '../../api/pipeline.js'
 
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
+import { Roles } from '../../utils/roles.js'
 
 import PipelineStage from './Stage.vue'
 
