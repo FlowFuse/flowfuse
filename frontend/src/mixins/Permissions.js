@@ -1,7 +1,11 @@
 import { mapState } from 'vuex'
 
 import { Permissions } from '../../../forge/lib/permissions.js'
-import { RoleNames, Roles } from '../../../forge/lib/roles.js'
+import { Roles } from '../utils/roles.js'
+/**
+ * @typedef {0 | 5 | 10 | 30 | 50 | 99} Role
+ * Enum for roles with specific numeric values.
+ */
 
 export default {
     computed: {
@@ -27,20 +31,21 @@ export default {
             }
             return true
         },
+
         /**
-         *
-         * @param {'dashboard', 'viewer', 'member', 'owner'} role
-         *
-         * @return Boolean
+         * Check if the user has the minimum required role.
+         * @param {Role} role - The role to check against.
+         * @returns {boolean} True if the user has the minimum required role, otherwise false.
+         * @example
+         * // Check if the user has at least the 'Member' role
+         * const isMemberOrHigher = hasAMinimumTeamRoleOf(Roles.Member)
          */
         hasAMinimumTeamRoleOf (role) {
             if (this.isVisitingAdmin) {
                 return true
             }
 
-            const [roleValue] = Object.entries(RoleNames).find(([key, value]) => value === role) || []
-
-            return this.teamMembership?.role >= roleValue
+            return this.teamMembership?.role >= role
         }
     }
 }
