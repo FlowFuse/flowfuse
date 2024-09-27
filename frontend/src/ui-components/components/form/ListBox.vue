@@ -5,9 +5,11 @@
                 class="w-full rounded-md bg-white flex justify-between button"
                 :class="[disabled ? 'cursor-not-allowed bg-gray-200 text-gray-500' : '']"
             >
-                <span class="block truncate">{{ selectedLabel }}</span>
+                <slot name="button">
+                    <span class="block truncate">{{ selectedLabel }}</span>
+                </slot>
                 <span class="icon pointer-events-none inset-y-0 flex items-center pl-2">
-                    <ChevronDownIcon class="h-5 w-5 text-black" aria-hidden="true" />
+                    <ChevronDownIcon :class="['h-5 w-5', disabled ? 'text-gray-500' : 'text-black']" aria-hidden="true" />
                 </span>
             </ListboxButton>
 
@@ -17,20 +19,22 @@
                 leave-to-class="opacity-0"
             >
                 <ListboxOptions class="absolute w-full overflow-auto bg-white py-1 options">
-                    <ListboxOption
-                        v-for="option in options"
-                        v-slot="{ active, selected }"
-                        :key="labelKey === 'label' ? option.label : option[labelKey]"
-                        :value="option"
-                        as="template"
-                        class="option"
-                    >
-                        <li>
-                            <div class="option-content" :class="{selected, active}">
-                                {{ labelKey === 'label' ? option.label : option[labelKey] }}
-                            </div>
-                        </li>
-                    </ListboxOption>
+                    <slot name="options">
+                        <ListboxOption
+                            v-for="option in options"
+                            v-slot="{ active, selected }"
+                            :key="labelKey === 'label' ? option.label : option[labelKey]"
+                            :value="option"
+                            as="template"
+                            class="option"
+                        >
+                            <li>
+                                <div class="option-content" :class="{selected, active}">
+                                    {{ labelKey === 'label' ? option.label : option[labelKey] }}
+                                </div>
+                            </li>
+                        </ListboxOption>
+                    </slot>
                 </ListboxOptions>
             </transition>
         </div>
