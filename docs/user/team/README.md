@@ -55,7 +55,7 @@ table summaries what actions are available to the different roles.
 | • Modify Flows                       | ✓     | ✓      | -      | -              |
 | **Snapshots**                        |       |        |        |                |
 | • Create Snapshot                    | ✓     | ✓      | -      | -              |
-| • Deploy Snapshot                    | ✓     | ✓      | -      | -              |
+| • Restore Snapshot                    | ✓     | ✓      | -      | -              |
 | • Set as Device Target               | ✓     | ✓      | -      | -              |
 | • View Snapshots                     | ✓     | ✓      | ✓      | -              |
 | • Download Snapshot                  | ✓     | ✓      | -      | -              |
