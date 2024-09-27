@@ -215,7 +215,7 @@ describe('FlowForge - Devices - With Billing', () => {
         cy.get('[data-el="snapshots"] tbody').find('tr').contains('Edited Snapshot Name!!!')
     })
 
-    it.only('provides functionality to compare snapshots', () => {
+    it('provides functionality to compare snapshots', () => {
         cy.intercept('GET', '/api/*/applications/*/snapshots*', deviceSnapshots).as('getSnapshots')
         cy.intercept('GET', '/api/*/snapshots/*/full', deviceFullSnapshot).as('fullSnapshot')
 
