@@ -1,9 +1,15 @@
 import elapsedTime from './elapsedTime.js'
 
-export default function (dateString) {
+export default function (dateString, shortenExtendedPeriods = false) {
     if (!dateString) {
         return ''
     }
 
-    return elapsedTime(Date.now(), dateString) + ' ago'
+    let fullElapsedTime = elapsedTime(Date.now(), dateString)
+
+    if (shortenExtendedPeriods) {
+        fullElapsedTime = fullElapsedTime.split(',').shift()
+    }
+
+    return fullElapsedTime + ' ago'
 }
