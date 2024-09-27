@@ -48,13 +48,18 @@ export default {
                 !this.externalDependency ||
                 (
                     !Object.prototype.hasOwnProperty.call(this.externalDependency, 'dist-tags') &&
-                    !Object.prototype.hasOwnProperty.call(this.externalDependency['dist-tags'], 'latest')
+                    !Object.prototype.hasOwnProperty.call(this.externalDependency['dist-tags'], 'latest') &&
+                    !Object.prototype.hasOwnProperty.call(this.externalDependency, 'versions') &&
+                    !Object.prototype.hasOwnProperty.call(
+                        this.externalDependency.versions,
+                        this.externalDependency['dist-tags'].latest
+                    )
                 )
             ) {
                 return 'N/A'
             }
 
-            return this.externalDependency['dist-tags'].latest
+            return this.externalDependency.versions[this.externalDependency['dist-tags'].latest]
         },
         externalLastModified () {
             if (
