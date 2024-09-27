@@ -25,13 +25,12 @@
 <script>
 import { mapState } from 'vuex'
 
-import { Roles } from '../../../../../forge/lib/roles.js'
-
 import InstanceApi from '../../../api/instances.js'
 
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
+import { Roles } from '../../../utils/roles.js'
 
 export default {
     name: 'InstanceSettingsProtect',
