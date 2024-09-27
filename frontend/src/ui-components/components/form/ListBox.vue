@@ -1,7 +1,10 @@
 <template>
     <Listbox v-model="value" :disabled="disabled" class="ff-listbox">
         <div class="relative">
-            <ListboxButton class="w-full rounded-md bg-white flex justify-between button">
+            <ListboxButton
+                class="w-full rounded-md bg-white flex justify-between button"
+                :class="[disabled ? 'cursor-not-allowed bg-gray-200 text-gray-500' : '']"
+            >
                 <span class="block truncate">{{ selectedLabel }}</span>
                 <span class="icon pointer-events-none inset-y-0 flex items-center pl-2">
                     <ChevronDownIcon class="h-5 w-5 text-black" aria-hidden="true" />
