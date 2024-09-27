@@ -130,6 +130,8 @@ export default {
 <style lang="scss">
 .ff-listbox {
   display: inline-block;
+  min-width: 200px;
+
   &:focus-visible {
     border: none;
     outline: none;

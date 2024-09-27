@@ -1,21 +1,21 @@
 <template>
     <div class="ff-section-header flex flex-nowrap border-b border-gray-400 mb-4 sm:mb-2 text-gray-500 justify-between h-12">
-        <div class="flex">
-            <div class="w-full flex items-center md:w-auto mb-2 mr-8 gap-x-2">
+        <div class="w-full wrapper flex items-center md:w-auto mb-2 mr-8 gap-x-2">
+            <div class="flex gap-2 items-center">
                 <slot name="hero">
                     <div class="flex">
                         <div class="text-gray-800 text-xl font-medium whitespace-nowrap">{{ hero }}</div>
                     </div>
                 </slot>
                 <InformationCircleIcon v-if="hasInfoDialog" class="min-w-[20px] ff-icon text-gray-800 cursor-pointer hover:text-blue-700" @click="openInfoDialog()" />
-                <span v-if="info" class="hidden sm:block text-gray-400">{{ info }}</span>
             </div>
-            <ul v-if="options.length > 0" class="flex">
-                <li v-for="item in options" :key="item.name" class="mr-8 pt-1 flex">
-                    <router-link :to="item.path" class="forge-nav-item" active-class="forge-nav-item-active" :data-nav="`section-${item.name.toLowerCase()}`">{{ item.name }}</router-link>
-                </li>
-            </ul>
+            <span v-if="info" class="hidden sm:block text-gray-400 info">{{ info }}</span>
         </div>
+        <ul v-if="options.length > 0" class="flex">
+            <li v-for="item in options" :key="item.name" class="mr-8 pt-1 flex">
+                <router-link :to="item.path" class="forge-nav-item" active-class="forge-nav-item-active" :data-nav="`section-${item.name.toLowerCase()}`">{{ item.name }}</router-link>
+            </li>
+        </ul>
         <ul v-if="hasTools" class="flex-shrink-0">
             <li class="w-full md:w-auto flex-grow mb-2 text-right">
                 <slot name="tools" />
@@ -82,3 +82,16 @@ export default {
 }
 
 </script>
+
+<style lang="scss">
+.wrapper {
+    max-width: 50%;
+
+    .info {
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+        max-width: 350px;
+    }
+}
+</style>
