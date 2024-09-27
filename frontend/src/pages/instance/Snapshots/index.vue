@@ -18,7 +18,7 @@
                     <ff-button kind="primary" data-action="create-snapshot" :disabled="busy" @click="showCreateSnapshotDialog"><template #icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
                 </template>
                 <template #context-menu="{row}">
-                    <ff-list-item :disabled="!hasPermission('project:snapshot:rollback')" label="Deploy Snapshot" @click="showRollbackDialog(row)" />
+                    <ff-list-item :disabled="!hasPermission('project:snapshot:rollback')" label="Restore Snapshot" @click="showRollbackDialog(row)" />
                     <ff-list-item :disabled="!hasPermission('snapshot:edit')" label="Edit Snapshot" @click="showEditSnapshotDialog(row)" />
                     <ff-list-item :disabled="!hasPermission('snapshot:full')" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
                     <ff-list-item :disabled="!hasPermission('snapshot:full')" label="Compare Snapshot..." @click="showCompareSnapshotDialog(row)" />
@@ -229,7 +229,7 @@ export default {
         // snapshot actions - rollback
         showRollbackDialog (snapshot) {
             Dialog.show({
-                header: 'Deploy Snapshot',
+                header: 'Restore Snapshot',
                 kind: 'danger',
                 text: `This will overwrite the current instance.
                        All changes to the flows, settings and environment variables made since the last snapshot will be lost.
