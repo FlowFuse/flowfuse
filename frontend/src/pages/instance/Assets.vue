@@ -38,6 +38,7 @@
 
 <script>
 import SemVer from 'semver'
+import { mapState } from 'vuex'
 
 import AssetsAPI from '../../api/assets.js'
 import FeatureUnavailable from '../../components/banners/FeatureUnavailable.vue'
@@ -46,6 +47,7 @@ import FileBrowser from '../../components/file-browser/FileBrowser.vue'
 import featuresMixin from '../../mixins/Features.js'
 import permissionsMixin from '../../mixins/Permissions.js'
 import Alerts from '../../services/alerts.js'
+import { Roles } from '../../utils/roles.js'
 
 import FolderBreadcrumbs from './components/FolderBreadcrumbs.vue'
 
@@ -74,6 +76,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['teamMembership', 'team']),
         currentDirectory () {
             if (this.breadcrumbs.length) {
                 return this.breadcrumbs[this.breadcrumbs.length - 1]
@@ -110,6 +113,19 @@ export default {
         }
     },
     watch: {
+        teamMembership: {
+            handler (newState) {
+                if (newState && !this.hasAMinimumTeamRoleOf(Roles.Member)) {
+                    return this.$router.push({ name: 'instance-overview' })
+                }
+            },
+            immediate: true
+        },
+        team (newState) {
+            if (newState && this.files.length === 0) {
+                this.loadContents()
+            }
+        },
         isInstanceRunning (newState, oldState) {
             if (newState && !oldState) {
                 this.loadContents(this.breadcrumbs, true)
@@ -124,15 +140,11 @@ export default {
         }
     },
     mounted () {
-        if (!this.hasAMinimumTeamRoleOf('member')) {
-            return this.$router.push({ name: 'instance-overview' })
-        }
-
         this.loadContents()
     },
     methods: {
         loadContents (breadcrumbs = [], reloadDirectory = false) {
-            if (this.isFeatureEnabled) {
+            if (this.isFeatureEnabled && this.hasAMinimumTeamRoleOf(Roles.Member)) {
                 if (breadcrumbs.length === 0) {
                     breadcrumbs = this.breadcrumbs
                 }

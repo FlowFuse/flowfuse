@@ -408,6 +408,15 @@ export default {
         persistence: {
             redirectUrlAfterLogin: {
                 storage: 'localStorage'
+            },
+            features: {
+                storage: 'localStorage'
+            },
+            teamMembership: {
+                storage: 'sessionStorage'
+            },
+            team: {
+                storage: 'sessionStorage'
             }
         }
     }
