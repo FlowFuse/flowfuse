@@ -10,7 +10,7 @@
                     v-model="compareSnapshot"
                     :options="compareSnapshotList"
                     data-el="snapshots-list"
-                    label-key="description"
+                    label-key="label"
                     class="flex-grow"
                 />
                 <ff-button
