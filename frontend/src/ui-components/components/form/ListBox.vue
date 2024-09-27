@@ -27,6 +27,7 @@
                             :value="option"
                             as="template"
                             class="option"
+                            :title="optionTitleKey ? option[optionTitleKey] : null"
                         >
                             <li>
                                 <div class="option-content" :class="{selected, active}">
@@ -89,6 +90,11 @@ export default {
             required: false,
             default: 'value',
             type: String
+        },
+        optionTitleKey: {
+            required: false,
+            default: null,
+            type: [null, String]
         },
         returnModel: {
             required: false,

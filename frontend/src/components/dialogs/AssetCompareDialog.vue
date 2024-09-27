@@ -11,6 +11,7 @@
                     :options="compareSnapshotList"
                     data-el="snapshots-list"
                     label-key="label"
+                    option-title-key="description"
                     class="flex-grow"
                 />
                 <ff-button
