@@ -9,7 +9,7 @@
                 <ff-listbox
                     v-model="compareSnapshot"
                     :options="compareSnapshotList"
-                    data-action="compare-snapshots"
+                    data-el="snapshots-list"
                     label-key="description"
                     class="flex-grow"
                 />
