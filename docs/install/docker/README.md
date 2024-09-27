@@ -196,19 +196,19 @@ We need to manually download the `flowfuse/node-red` container that will be used
 
 This is done with this command:
 
-```bash
+```bash {data-copy-cmd=docker-pull}
 docker pull flowfuse/node-red
 ```
 
 Once that completes we can start FlowFuse:
 
 Using the docker compose plugin
-```bash
+```bash {data-copy-cmd=docker-compose-up}
 docker compose -p flowforge up -d
 ```
 
 Or using the docker-compose command
-```bash
+```bash {data-copy-cmd=docker-compose-up}
 docker-compose -p flowforge up -d
 ```
 
