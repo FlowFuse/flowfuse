@@ -1,4 +1,6 @@
 const should = require('should') // eslint-disable-line
+const { UpdatesCollection } = require('../../../../forge/auditLog/formatters')
+
 const FF_UTIL = require('flowforge-test-utils')
 // Declare a dummy getLoggers function for type hint only
 /** @type {import('../../../../forge/auditLog/project').getLoggers} */
@@ -263,7 +265,7 @@ describe('Audit Log > Project', async function () {
         logEntry.body.project.id.should.equal(PROJECT.id)
         logEntry.body.device.should.only.have.keys('id', 'name')
         logEntry.body.device.id.should.equal(DEVICE.hashid)
-        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
@@ -282,8 +284,27 @@ describe('Audit Log > Project', async function () {
         logEntry.body.should.only.have.keys('project', 'snapshot')
         logEntry.body.project.should.only.have.keys('id', 'name')
         logEntry.body.project.id.should.equal(PROJECT.id)
-        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
+    })
+
+    it('Provides a logger for updating snapshots of a project', async function () {
+        const updates = new UpdatesCollection()
+        updates.pushDifferences({ name: 'old' }, { name: 'new' })
+        await projectLogger.project.snapshot.updated(ACTIONED_BY, null, PROJECT, SNAPSHOT, updates)
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'project.snapshot.updated')
+        logEntry.should.have.property('scope', { id: PROJECT.id, type: 'project' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('project', 'snapshot', 'updates')
+        logEntry.body.project.should.only.have.keys('id', 'name')
+        logEntry.body.project.id.should.equal(PROJECT.id)
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
+        logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
+        logEntry.body.updates.should.have.length(1)
+        logEntry.body.updates[0].should.eql({ key: 'name', old: 'old', new: 'new', dif: 'updated' })
     })
 
     it('Provides a logger for rolling back a snapshot of a project', async function () {
@@ -297,7 +318,7 @@ describe('Audit Log > Project', async function () {
         logEntry.body.should.only.have.keys('project', 'snapshot')
         logEntry.body.project.should.only.have.keys('id', 'name')
         logEntry.body.project.id.should.equal(PROJECT.id)
-        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
@@ -312,7 +333,7 @@ describe('Audit Log > Project', async function () {
         logEntry.body.should.only.have.keys('project', 'snapshot')
         logEntry.body.project.should.only.have.keys('id', 'name')
         logEntry.body.project.id.should.equal(PROJECT.id)
-        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
@@ -327,7 +348,7 @@ describe('Audit Log > Project', async function () {
         logEntry.body.should.only.have.keys('project', 'snapshot')
         logEntry.body.project.should.only.have.keys('id', 'name')
         logEntry.body.project.id.should.equal(PROJECT.id)
-        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
@@ -342,7 +363,7 @@ describe('Audit Log > Project', async function () {
         logEntry.body.should.only.have.keys('project', 'snapshot')
         logEntry.body.project.should.only.have.keys('id', 'name')
         logEntry.body.project.id.should.equal(PROJECT.id)
-        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 

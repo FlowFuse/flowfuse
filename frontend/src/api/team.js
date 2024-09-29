@@ -1,9 +1,9 @@
-import { RoleNames, Roles } from '../../../forge/lib/roles.js'
 import product from '../services/product.js'
 
 import daysSince from '../utils/daysSince.js'
 import elapsedTime from '../utils/elapsedTime.js'
 import paginateUrl from '../utils/paginateUrl.js'
+import { RoleNames, Roles } from '../utils/roles.js'
 
 import client from './client.js'
 
@@ -136,6 +136,20 @@ const getTeamInstances = async (teamId) => {
         return r
     })
     await Promise.all(promises)
+    return res.data
+}
+
+const getTeamDashboards = async (teamId) => {
+    const res = await client.get(`/api/v1/teams/${teamId}/dashboard-instances`)
+    res.data.projects = res.data.projects.map(r => {
+        r.createdSince = daysSince(r.createdAt)
+        r.updatedSince = daysSince(r.updatedAt)
+        r.flowLastUpdatedSince = daysSince(r.flowLastUpdatedAt)
+
+        r.link = { name: 'Application', params: { id: r.id } }
+
+        return r
+    })
     return res.data
 }
 
@@ -367,6 +381,48 @@ const deleteTeamDeviceProvisioningToken = async (teamId, tokenId) => {
 }
 
 /**
+ * Bulk delete devices
+ * @param {string} teamId - Team ID (hash)
+ * @param {Array<string>} devices - Array of device IDs (hash)
+ * @returns
+ */
+const bulkDeviceDelete = async (teamId, devices) => {
+    return await client.delete(`/api/v1/teams/${teamId}/devices/bulk`, { data: { devices } })
+}
+
+/**
+ * Bulk move devices
+ * @param {string} teamId - Team ID (hash)
+ * @param {Array<string>} devices - Array of device IDs (hash)
+ * @param {object} options
+ * @param {'instance' | 'application' | 'unassigned'} options.moveTo - Destination to move devices to. Can be 'instance', 'application', or 'unassigned'
+ * @param {string} [options.id] - ID (hash) of the destination
+ * @returns
+ */
+const bulkDeviceMove = async (teamId, devices, moveTo, id = undefined) => {
+    const url = `/api/v1/teams/${teamId}/devices/bulk`
+    const data = { devices }
+    if (moveTo === 'instance') {
+        data.instance = id
+    } else if (moveTo === 'application') {
+        data.application = id
+    } else if (moveTo === 'unassigned') {
+        data.instance = null
+        data.application = null
+    } else {
+        throw new Error('Invalid destination')
+    }
+    const res = await client.put(url, data)
+    res.data.devices.forEach(device => {
+        device.lastSeenSince = device.lastSeenAt ? daysSince(device.lastSeenAt) : ''
+        if (device.project) {
+            device.instance = device.project
+        }
+    })
+    return res.data
+}
+
+/**
  * Calls api routes in team.js
  * See [routes/api/team.js](../../../forge/routes/api/team.js)
 */
@@ -380,6 +436,7 @@ export default {
     getTeamApplicationsAssociationsStatuses,
     getTeamInstances,
     getTeamInstancesList,
+    getTeamDashboards,
     getTeamMembers,
     changeTeamMemberRole,
     removeTeamMember,
@@ -394,5 +451,7 @@ export default {
     getTeamDeviceProvisioningTokens,
     generateTeamDeviceProvisioningToken,
     updateTeamDeviceProvisioningToken,
-    deleteTeamDeviceProvisioningToken
+    deleteTeamDeviceProvisioningToken,
+    bulkDeviceDelete,
+    bulkDeviceMove
 }

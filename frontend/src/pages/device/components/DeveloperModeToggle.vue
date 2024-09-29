@@ -28,6 +28,14 @@ export default {
         device: {
             type: Object,
             required: true
+        },
+        disabled: {
+            type: Boolean,
+            default: false
+        },
+        disabledReason: {
+            type: String,
+            default: null
         }
     },
     emits: ['mode-change'],
@@ -40,12 +48,15 @@ export default {
     },
     computed: {
         toggleDisabled () {
-            return this.unsupportedVersion || this.busy
+            return this.disabled || this.unsupportedVersion || this.busy
         },
         developerMode () {
             return this.device?.mode === 'developer'
         },
         toggleTip () {
+            if (this.disabled && this.disabledReason) {
+                return this.disabledReason
+            }
             if (this.unsupportedVersion) {
                 return 'Developer Mode unavailable'
             } else {
@@ -89,7 +100,16 @@ export default {
             this.$emit('mode-change', devModeOn ? 'developer' : 'autonomous', (err, _result) => {
                 if (err) {
                     console.warn('Error setting developer mode', err)
-                    alerts.emit(err.message, 'warning', 7000)
+                    const basicError = 'An error occurred while attempting to change developer mode.'
+                    if (err.response && typeof err.response.status === 'number') {
+                        if (err.response.status === 401 || err.response.status === 403) {
+                            alerts.emit('You are not authorized to change developer mode', 'warning', 7000)
+                        } else {
+                            alerts.emit(basicError, 'warning', 7000)
+                        }
+                    } else {
+                        alerts.emit(basicError, 'warning', 7000)
+                    }
                 } else if (_result) {
                     this.developerModeLocal = _result.mode === 'developer'
                 }

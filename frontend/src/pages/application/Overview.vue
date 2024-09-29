@@ -2,7 +2,7 @@
     <div>
         <SectionTopMenu hero="Node-RED Instances" help-header="Node-RED Instances - Running in FlowFuse" info="Instances of Node-RED belonging to this application.">
             <template #pictogram>
-                <img src="../../images/pictograms/edge_red.png">
+                <img src="../../images/pictograms/instance_red.png">
             </template>
             <template #helptext>
                 <p>This is a list of Node-RED instances in this Application, hosted on the same domain as FlowFuse.</p>
@@ -20,14 +20,15 @@
                 </ff-button>
             </template>
         </SectionTopMenu>
-
-        <div class="space-y-6 mb-12">
+        <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
+        <div class="space-y-6 mb-14">
             <ff-data-table
                 v-if="instances?.length > 0"
                 data-el="cloud-instances"
                 :columns="cloudColumns"
                 :rows="filteredRows"
                 :show-search="true"
+                :search="searchTerm"
                 search-placeholder="Search Instances"
                 :rows-selectable="true"
                 @update:search="updateSearch"
@@ -101,12 +102,11 @@ import { PlusSmIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import { Roles } from '../../../../forge/lib/roles.js'
-
 import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
 import permissionsMixin from '../../mixins/Permissions.js'
+import { Roles } from '../../utils/roles.js'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 import DashboardLinkCell from '../instance/components/cells/DashboardLink.vue'
 import InstanceEditorLinkCell from '../instance/components/cells/InstanceEditorLink.vue'
@@ -172,6 +172,11 @@ export default {
         },
         isVisitingAdmin () {
             return this.teamMembership.role === Roles.Admin
+        }
+    },
+    mounted () {
+        if (this.$route?.query?.searchQuery) {
+            this.searchTerm = this.$route.query.searchQuery
         }
     },
     methods: {

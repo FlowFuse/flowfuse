@@ -4,12 +4,16 @@
             <StatusBadge :status="device.status" />
         </div>
         <div class="details">
-            <span class="cursor-pointer">{{ device.name }}</span>
-            <span>
-                Last seen:
-                <DaysSince v-if="device.lastSeenAt" :date="device.lastSeenAt" />
-                <template v-else>never</template>
-            </span>
+            <div class="detail-wrapper">
+                <span class="cursor-pointer name" @click="openDevice(device)">{{ device.name }}</span>
+            </div>
+            <div class="detail-wrapper">
+                <span class="detail">
+                    Last seen:
+                    <DaysSince v-if="device.lastSeenAt" :date="device.lastSeenAt" />
+                    <template v-else>never</template>
+                </span>
+            </div>
         </div>
         <div class="actions">
             <ff-kebab-menu>
@@ -18,16 +22,10 @@
                     @click.stop="$emit('device-action',{action: 'edit', id: device.id})"
                 />
                 <ff-list-item
-                    v-if="device.ownerType === 'application' && (displayingTeam || displayingApplication)"
+                    v-if="(displayingTeam || displayingApplication)"
                     label="Remove from Application"
                     data-action="device-remove-from-application"
                     @click.stop="$emit('device-action',{action: 'removeFromApplication', id: device.id})"
-                />
-                <ff-list-item
-                    v-else-if="device.ownerType === 'instance' && (displayingTeam || displayingInstance)"
-                    label="Remove from Instance"
-                    data-action="device-remove-from-instance"
-                    @click.stop="$emit('device-action',{action: 'removeFromProject', id: device.id})"
                 />
                 <ff-list-item
                     kind="danger"
@@ -71,7 +69,17 @@ export default {
             type: Object
         }
     },
-    emits: ['device-action']
+    emits: ['device-action'],
+    methods: {
+        openDevice (device) {
+            this.$router.push({
+                name: 'Device',
+                params: {
+                    id: device.id
+                }
+            })
+        }
+    }
 }
 </script>
 

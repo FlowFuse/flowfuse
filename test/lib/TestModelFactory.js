@@ -133,7 +133,7 @@ module.exports = class TestModelFactory {
         })
     }
 
-    async createInstance (projectDetails, application, stack, template, projectType, { start = true } = {}) {
+    async createInstance (projectDetails, application, stack, template, projectType, { start = true, settings = {} } = {}) {
         const defaultProjectDetails = {
             name: 'unnamed-project',
             type: '',
@@ -149,7 +149,7 @@ module.exports = class TestModelFactory {
         await instance.setProjectStack(stack)
         await instance.setProjectTemplate(template)
         await instance.setProjectType(projectType)
-        await instance.updateSetting('settings', { header: { title: instance.name } })
+        await instance.updateSetting('settings', { header: { title: instance.name }, ...settings })
         await instance.reload({
             include: [
                 { model: this.forge.db.models.Team },

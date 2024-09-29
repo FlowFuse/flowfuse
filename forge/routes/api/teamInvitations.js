@@ -113,9 +113,17 @@ module.exports = async function (app) {
         const namesOnlyDeduplicated = [...new Set(namesOnly.map(u => u.trim().toLowerCase()))].map(u => namesOnly.find(n => n.trim().toLowerCase() === u))
         // use a regex to determine if the user is an email address
         const emailsOnly = userDetails.filter(u => u.match(/^[^@]+@[^@]+$/))
-        const emailsOnlyDeduplicated = [...new Set(emailsOnly.map(u => getCanonicalEmail(u)))]
+        // Deduplicate the list based on the canonical email, but keep the as-provided
+        // email in the list
+        const emailsOnlyDeduplicated = {}
+        emailsOnly.forEach(email => {
+            const canonicalEmail = getCanonicalEmail(email)
+            if (!emailsOnlyDeduplicated[canonicalEmail]) {
+                emailsOnlyDeduplicated[canonicalEmail] = email
+            }
+        })
         // recombine the deduplicated lists
-        const userDetailsDeduplicated = [...namesOnlyDeduplicated, ...emailsOnlyDeduplicated]
+        const userDetailsDeduplicated = [...namesOnlyDeduplicated, ...Object.values(emailsOnlyDeduplicated)]
 
         // limit to 5 invites at a time
         if (userDetailsDeduplicated.length > 5) {
@@ -171,7 +179,7 @@ module.exports = async function (app) {
                                 invite.invitee,
                                 'TeamInvitation',
                                 {
-                                    invite,
+                                    teamName: invite.team.name,
                                     signupLink: `${app.config.base_url}/account/teams/invitations`
                                 }
                             )
@@ -223,6 +231,10 @@ module.exports = async function (app) {
         if (invitation && invitation.teamId === request.team.id) {
             const role = invitation.role || Roles.Member
             const invitedUser = app.auditLog.formatters.userObject(invitation.external ? invitation : invitation.invitee)
+            if (!invitation.external) {
+                const notificationReference = `team-invite:${invitation.hashid}`
+                await app.notifications.remove(invitation.invitee, notificationReference)
+            }
             await invitation.destroy()
             await app.auditLog.Team.team.user.uninvited(request.session.User, null, request.team, invitedUser, role)
             reply.send({ status: 'okay' })

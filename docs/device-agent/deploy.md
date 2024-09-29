@@ -2,7 +2,12 @@
 navTitle: Deploying your Flows
 navOrder: 6
 meta:
-   description: Learn how to deploy Node-RED flows to devices using FlowFuse, enabling seamless development and deployment processes.
+  description: Learn how to deploy Node-RED flows to devices using FlowFuse, enabling seamless development and deployment processes.
+  tags:
+    - deployment
+    - nodered
+    - flowfuse
+    - device management
 ---
 
 # Deploying Flows to the Device Agent - Team and Enterprise tier only
@@ -38,7 +43,7 @@ When running in the default of Fleet Mode, the device agent does not allow local
 Node-RED editor. This ensures the device is running the deployed snapshot without modification.
 
 When running on FlowFuse Cloud, or a premium licensed FlowFuse instance (with the
-[MQTT broker enabled](https://flowfuse.com/docs/install/local/#setting-up-mosquitto-(optional))
+[MQTT broker enabled](https://flowfuse.com/docs/contribute/local/#setting-up-mosquitto-(optional))
 the device can be placed in Developer Mode that enables remote access to the editor. 
 
 This can then be used to develop the flows directly on the device and a new snapshot
@@ -68,7 +73,7 @@ editor is only available when:
 * The device is in Developer Mode
 
 * When running on FlowFuse Cloud, or a premium licensed FlowFuse instance (with the
-[MQTT broker enabled](https://flowfuse.com/docs/install/local/#setting-up-mosquitto-(optional))
+[MQTT broker enabled](https://flowfuse.com/docs/contribute/local/#setting-up-mosquitto-(optional))
 the device can be placed in Developer Mode that enables remote access to the editor.
 
 Whilst in Developer Mode the device will not receive new updates from the platform.

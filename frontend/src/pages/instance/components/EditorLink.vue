@@ -3,31 +3,39 @@
         <slot name="default">
             <ff-button
                 v-ff-tooltip:left="(editorDisabled || disabled) ? disabledReason : undefined"
+                type="anchor"
+                :to="editorURL"
                 kind="secondary"
                 data-action="open-editor"
-                :disabled="editorDisabled || disabled || !url"
+                :disabled="buttonDisabled"
                 class="whitespace-nowrap"
-                :has-right-icon="!isImmersiveEditor"
-                @click.stop="openEditor()"
+                @click.stop="openEditor"
             >
-                <template #icon-right>
-                    <ExternalLinkIcon />
+                <template v-if="showText" #icon-left>
+                    <ProjectIcon />
                 </template>
-                {{ editorDisabled ? 'Editor Disabled' : 'Open Editor' }}
+                <template v-else #icon>
+                    <ProjectIcon />
+                </template>
+                <template v-if="showText">
+                    {{ editorDisabled ? 'Editor Disabled' : 'Open Editor' }}
+                </template>
             </ff-button>
         </slot>
     </div>
 </template>
 
 <script>
-import { ExternalLinkIcon } from '@heroicons/vue/solid'
+
 import SemVer from 'semver'
 
 import { mapState } from 'vuex'
 
+import ProjectIcon from '../../../components/icons/Projects.js'
+
 export default {
     name: 'InstanceEditorLink',
-    components: { ExternalLinkIcon },
+    components: { ProjectIcon },
     inheritAttrs: false,
     props: {
         editorDisabled: {
@@ -45,6 +53,10 @@ export default {
         instance: {
             type: Object,
             required: true
+        },
+        showText: {
+            default: true,
+            type: Boolean
         }
     },
     computed: {
@@ -62,16 +74,23 @@ export default {
                 return this.$router.resolve({ name: 'instance-editor', params: { id: this.instance.id } }).fullPath
             }
 
+            return this.editorURL
+        },
+        editorURL () {
             return this.instance.url || this.instance.editor?.url
+        },
+        buttonDisabled: function () {
+            return this.editorDisabled || this.disabled || !this.url
         }
     },
     methods: {
-        openEditor () {
+        openEditor (evt) {
+            evt.preventDefault()
             if (this.disabled) {
-                return
+                return false
             }
-
             window.open(this.url, !this.isImmersiveEditor ? '_blank' : '_self')
+            return false
         }
     }
 }

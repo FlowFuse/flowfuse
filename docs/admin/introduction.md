@@ -3,6 +3,15 @@ navTitle: Administering FlowFuse
 navOrder: 1
 meta:
   descriptions: Learn how to administer FlowFuse with this comprehensive guide. Explore user management, team setup, instance and stack management, and more.
+  tags:  
+     - flowfuse
+     - nodered 
+     - user management
+     - team setup
+     - instance management
+     - stack management
+     - platform administration
+     - security
 ---
 # Administering FlowFuse
 
@@ -130,7 +139,7 @@ to create and edit the stacks on the platform.
 For Deployment specific information about working with stacks, refer to the
 documentation of your chosen deployment model:
 
- - [Local Stacks](/docs/install/local/stacks.md)
+ - [Local Stacks](/docs/contribute/local/stacks.md)
  - [Docker Stacks](/docs/install/docker/stacks.md)
  - [Kubernetes Stacks](/docs/install/kubernetes/stacks.md)
 

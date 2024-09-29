@@ -7,7 +7,11 @@ import { setUser } from '@sentry/vue'
  * @param {Object} setonce - an object containing any number of properties to bind with this user, these can never be overridden
  */
 function identify (userId, set, setonce) {
-    window.posthog?.identify(userId, set, setonce)
+    try {
+        window.posthog?.identify(userId, set, setonce)
+    } catch (err) {
+        console.error('posthog error logging identity')
+    }
     if (window.sentryConfig) {
         setUser({
             ...set,
@@ -28,14 +32,18 @@ function identify (userId, set, setonce) {
  * a proeprty $set or $set_once which in turn can be an object to bind properties to the associated user
  * @param {Object} groups - ties a given 'group' to the event. Optional keys: 'team', 'application', 'instance', 'device'
  */
-function capture (event, properties, groups) {
+function capture (event, properties, groups = undefined) {
     if (!properties) {
         properties = {}
     }
     if (groups) {
         properties.$groups = groups
     }
-    window.posthog?.capture(event, properties)
+    try {
+        window.posthog?.capture(event, properties)
+    } catch (err) {
+        console.error('posthog error capturing event')
+    }
 }
 
 /**
@@ -60,8 +68,8 @@ function setTeam (team) {
             'count-instances': team.instanceCount,
             'count-devices': team.deviceCount,
             'count-members': team.memberCount,
-            'team-type-id': team.type.id,
-            'team-type-name': team.type.name
+            'team-type-id': team.type?.id,
+            'team-type-name': team.type?.name
         }
         if ('billing' in team) {
             props['billing-active'] = team.billing.active
@@ -74,9 +82,17 @@ function setTeam (team) {
                 props['billing-trial-ends-at'] = team.billing.trialEndsAt
             }
         }
-        window.posthog?.group('team', team.id, props)
+        try {
+            window.posthog?.group('team', team.id, props)
+        } catch (err) {
+            console.error('posthost error adding to group')
+        }
     } else {
-        window.posthog?.group('team', null)
+        try {
+            window.posthog?.group('team', null)
+        } catch (err) {
+            console.error('posthost error adding to group')
+        }
     }
 }
 

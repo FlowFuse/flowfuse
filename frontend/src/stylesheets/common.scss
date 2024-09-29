@@ -2,6 +2,7 @@
 
 @import "./layouts.scss";
 @import "./transitions.scss";
+@import "./animations.scss";
 @import "./components/charts.scss";
 
 #ff-app {
@@ -133,8 +134,6 @@ label {
 .ff-breadcrumbs {
     display: flex;
     align-items: center;
-    margin-top: 12px;
-    margin-bottom: 12px;
     label {
         color: $ff-blue-600;
         cursor: pointer;
@@ -176,4 +175,10 @@ label {
     align-items: center;
     justify-content: center;
     padding: 8px 16px;
+    
+    &.minimal {
+        background: none;
+        border: none;
+        border-radius: 0;
+    }
 }

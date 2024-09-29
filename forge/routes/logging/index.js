@@ -1,5 +1,6 @@
 const { getLoggers: getDeviceLogger } = require('../../auditLog/device')
 const { getLoggers: getProjectLogger } = require('../../auditLog/project')
+const { Roles } = require('../../lib/roles')
 
 /** Node-RED Audit Logging backend
  *
@@ -46,7 +47,11 @@ module.exports = async function (app) {
         const auditEvent = request.body
         const event = auditEvent.event
         const error = auditEvent.error
-        const userId = auditEvent.user ? app.db.models.User.decodeHashid(auditEvent.user) : undefined
+        let user = request.session?.User || null
+        if (!user && auditEvent?.user && typeof auditEvent.user === 'string') {
+            user = await app.db.models.User.byId(auditEvent.user) || null
+        }
+        const userId = user?.id || null
 
         // first check to see if the event is a known structured event
         if (event === 'start-failed') {
@@ -75,6 +80,24 @@ module.exports = async function (app) {
             if (app.config.features.enabled('emailAlerts')) {
                 await app.auditLog.alerts.generate(projectId, event)
             }
+            // send notification to all members and owners in the team
+            const teamMembersAndOwners = await request.project.Team.getTeamMembers([Roles.Member, Roles.Owner])
+            if (teamMembersAndOwners && teamMembersAndOwners.length > 0) {
+                const notificationType = event === 'crashed' ? 'instance-crashed' : 'instance-safe-mode'
+                const reference = `${notificationType}:${projectId}`
+                const data = {
+                    instance: {
+                        id: projectId,
+                        name: request.project.name
+                    },
+                    meta: {
+                        severity: event === 'crashed' ? 'error' : 'warning'
+                    }
+                }
+                for (const user of teamMembersAndOwners) {
+                    await app.notifications.send(user, notificationType, data, reference, { upsert: true })
+                }
+            }
         }
 
         response.status(200).send()
@@ -95,7 +118,7 @@ module.exports = async function (app) {
                 setImmediate(async () => {
                     // when after the response is sent & IO is done, perform the snapshot
                     try {
-                        const meta = { user: request.session.User }
+                        const meta = { user }
                         const options = { clean: true, setAsTarget: false }
                         const snapshot = await snapshotController.doInstanceAutoSnapshot(request.project, auditEvent.type, options, meta)
                         if (!snapshot) {
@@ -152,6 +175,27 @@ module.exports = async function (app) {
                 event,
                 auditEvent
             )
+        }
+
+        if (event === 'crashed' || event === 'safe-mode') {
+            // send notification to all members and owners in the team
+            const teamMembersAndOwners = await request.device.Team.getTeamMembers([Roles.Member, Roles.Owner])
+            if (teamMembersAndOwners && teamMembersAndOwners.length > 0) {
+                const notificationType = event === 'crashed' ? 'device-crashed' : 'device-safe-mode'
+                const reference = `${notificationType}:${deviceId}`
+                const data = {
+                    device: {
+                        id: deviceId,
+                        name: request.device.name
+                    },
+                    meta: {
+                        severity: event === 'crashed' ? 'error' : 'warning'
+                    }
+                }
+                for (const user of teamMembersAndOwners) {
+                    await app.notifications.send(user, notificationType, data, reference, { upsert: true })
+                }
+            }
         }
 
         response.status(200).send()

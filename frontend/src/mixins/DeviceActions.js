@@ -41,7 +41,14 @@ export default {
     emits: ['delete-device'],
     methods: {
         deviceAction (action, deviceId) {
-            const device = this.devices.get(deviceId)
+            let device
+            if (this.devices instanceof Map) {
+                // working with DevicesBrowser component
+                device = this.devices.get(deviceId)
+            } else {
+                // working with compact application views
+                device = this.devices.find(e => e.id === deviceId)
+            }
             if (action === 'edit') {
                 this.showEditDeviceDialog(device)
             } else if (action === 'delete') {
@@ -108,6 +115,20 @@ export default {
         },
 
         updateLocalCopyOfDevice (device) {
+            if (this.displayingInstance) {
+                // determine if the device is still owned by the instance, if not, remove it instead
+                if (!device.instance || device.instance.id !== this.instance.id) {
+                    this.deleteLocalCopyOfDevice(device)
+                    return
+                }
+            } else if (this.displayingApplication) {
+                // determine if the device is still owned by the application, if not, remove it instead
+                if (device.instance || !device.application || device.application.id !== this.application.id) {
+                    this.deleteLocalCopyOfDevice(device)
+                    return
+                }
+            }
+
             if (!this.allDeviceStatuses.get(device.id)) {
                 this.deviceCountDeltaSincePageLoad++
             }
@@ -123,8 +144,24 @@ export default {
             } else {
                 this.allDeviceStatuses.set(device.id, device)
             }
-
-            this.devices.set(device.id, device)
+            if (this.devices instanceof Map) {
+                // working with DevicesBrowser component
+                const localDevice = this.devices.get(device.id) || {} // if not found, we are adding a new device
+                Object.assign(localDevice, device, currentDeviceStatus)
+                this.devices.set(device.id, localDevice)
+            } else {
+                // working with compact application views
+                const localDevice = this.devices.find(e => e.id === device.id)
+                if (!localDevice) {
+                    // not found - i.e. adding new device
+                    // in theory, this should never happen as devices cannot (currently) be added from application view
+                    // but we need to _do something_ in the case of a device not found in the list
+                    this.devices.push(Object.assign({}, device, currentDeviceStatus))
+                } else {
+                    // found - i.e. update existing device
+                    Object.assign(localDevice, device, currentDeviceStatus)
+                }
+            }
         },
 
         deviceCreated (device) {
@@ -146,7 +183,13 @@ export default {
                 this.deviceCountDeltaSincePageLoad--
             }
             this.allDeviceStatuses.delete(device.id)
-            this.devices.delete(device.id)
+            if (this.devices instanceof Map) {
+                // working with DevicesBrowser component
+                this.devices.delete(device.id)
+            } else {
+                // working with compact application views
+                this.devices = this.devices.filter(e => e.id !== device.id)
+            }
 
             if ( // updates the application device count if present
                 Object.hasOwnProperty.call(this, 'application') &&

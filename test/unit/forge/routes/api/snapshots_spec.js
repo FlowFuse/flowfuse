@@ -107,6 +107,8 @@ describe('Snapshots API', function () {
         TestObjects.tokens.project1 = (await TestObjects.project1.refreshAuthTokens()).token
         TestObjects.tokens.project2 = (await TestObjects.project2.refreshAuthTokens()).token
 
+        await TestObjects.project1.updateSetting('credentialSecret', 'a-random-cred-secret')
+
         TestObjects.template1 = app.template
         TestObjects.stack1 = app.stack
     })
@@ -596,12 +598,15 @@ describe('Snapshots API', function () {
          */
         function tests (kind) {
             const modelType = kind === 'instance' ? 'project' : 'device'
+
+            const getOwner = () => kind === 'instance' ? TestObjects.project1 : TestObjects.device1
             const getOwnerId = () => kind === 'instance' ? TestObjects.project1.id : TestObjects.device1.hashid
             const getTeamBOwnerId = () => kind === 'instance' ? TestObjects.project2.id : TestObjects.device2.hashid
 
             it('Owner can import snapshot with credentials', async function () {
                 const ownerId = getOwnerId()
-                const ss = dummySnapshot('dummy', [], {}, {}, {}, encryptCredentials('test-secret', { testCreds: 'abc' }))
+                const owner = getOwner()
+                const ss = dummySnapshot('dummy', [{ id: '123' }], { testSetting: 123 }, { ONE: 'envOne' }, { module: '1.2.3' }, encryptCredentials('test-secret', { testCreds: 'abc' }))
                 const response = await importSnapshot(ownerId, kind, ss, 'test-secret', TestObjects.tokens.alice)
 
                 response.statusCode.should.equal(200)
@@ -613,6 +618,44 @@ describe('Snapshots API', function () {
                 result.should.have.property('user').and.be.an.Object() // should contain the user - for updating the snapshot table client-side without refreshing/reloading from the server
                 result.should.have.property('id').and.be.a.String()
                 result.should.have.property('name', 'dummy')
+
+                // Validate the exported snapshot looks correct
+                const exportResponse = await exportSnapshot(result.id, TestObjects.tokens.alice, 'new-secret')
+                exportResponse.statusCode.should.equal(200)
+                const data = exportResponse.json()
+                should(data).be.an.Object()
+                data.should.have.keys('id', 'name', 'description', 'createdAt', 'updatedAt', 'user', 'exportedBy', 'ownerType', 'flows', 'settings')
+                data.should.not.have.keys('credentialSecret', 'hashid', 'deviceId', 'projectId')
+                data.should.have.property('id', result.id)
+                data.should.have.property('name', result.name)
+                data.should.have.property('description', result.description)
+                data.flows.flows.should.have.length(1)
+                data.flows.flows[0].should.have.property('id')
+
+                const keyHash = crypto.createHash('sha256').update('new-secret').digest()
+                const decryptedCreds = decryptCredentials(keyHash, data.flows.credentials)
+                decryptedCreds.should.have.property('testCreds', 'abc')
+
+                data.settings.should.be.an.Object()
+                data.settings.should.only.have.keys('settings', 'env', 'modules')
+                data.settings.settings.should.be.an.Object()
+                data.settings.settings.should.have.property('testSetting', 123)
+                data.settings.env.should.be.an.Object()
+                data.settings.env.should.have.property('ONE', 'envOne')
+                data.settings.modules.should.be.an.Object()
+                data.settings.modules.should.have.property('module', '1.2.3')
+
+                data.flows.should.be.an.Object()
+                data.flows.should.only.have.keys('flows', 'credentials')
+                data.flows.flows.should.be.an.Array()
+
+                // Validate the stored credentials have been re-encrypted with the owner credentialSecret
+                const importedSnapshot = await app.db.models.ProjectSnapshot.byId(result.id)
+
+                const targetCredSec = (owner.getCredentialSecret && await owner.getCredentialSecret()) || 'test-secret'
+                const keyHash2 = crypto.createHash('sha256').update(targetCredSec).digest()
+                const decryptedCreds2 = decryptCredentials(keyHash2, importedSnapshot.flows.credentials)
+                decryptedCreds2.should.have.property('testCreds', 'abc')
             })
 
             it('Owner can import snapshot without credentials', async function () {
@@ -780,6 +823,129 @@ describe('Snapshots API', function () {
         describe('instance', function () {
             tests('instance')
         })
+        describe('device', function () {
+            tests('device')
+        })
+    })
+
+    // Tests for PUT /api/v1/snapshots/{snapshotId}
+    // * Updates a snapshot
+
+    describe('Update snapshot', function () {
+        afterEach(async function () {
+            await app.db.models.ProjectSnapshot.destroy({ where: {} })
+        })
+
+        /**
+         * put snapshot tests
+         * @param {'instance' | 'device'} kind - 'instance' or 'device'
+         */
+        function tests (kind) {
+            const createSnapshot = kind === 'instance' ? createInstanceSnapshot : createAppDeviceSnapshot
+
+            it('Returns 404 for non-existent snapshot', async function () {
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/snapshots/non-existent-snapshot-id',
+                    payload: { name: 'new-name' },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(404)
+                response.json().should.have.property('code', 'not_found')
+            })
+
+            it('Non-member cannot update snapshot', async function () {
+                const snapshotResponse = await createSnapshot()
+                const result = snapshotResponse.json()
+
+                // ensure it really exists before assuming the non-member cannot access it
+                const ownerResponse = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/snapshots/${result.id}`,
+                    payload: { name: 'new-name' },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                ownerResponse.statusCode.should.equal(200)
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/snapshots/${result.id}`,
+                    payload: { name: 'new-name' },
+                    cookies: { sid: TestObjects.tokens.chris }
+                })
+
+                // 404 as a non member should not know the resource exists
+                response.statusCode.should.equal(404)
+                response.json().should.have.property('code', 'not_found')
+            })
+
+            it('Owner can update snapshot', async function () {
+                const snapshotResponse = await createSnapshot()
+                const result = snapshotResponse.json()
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/snapshots/${result.id}`,
+                    payload: { name: 'new-name', description: 'new-description' },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(200)
+                response.json().should.have.property('name', 'new-name')
+                response.json().should.have.property('description', 'new-description')
+            })
+
+            it('Can update name only', async function () {
+                const snapshotResponse = await createSnapshot()
+                const result = snapshotResponse.json()
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/snapshots/${result.id}`,
+                    payload: { name: 'new-name' },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(200)
+                response.json().should.have.property('name', 'new-name')
+                response.json().should.have.property('description', result.description) // description should not change
+            })
+
+            it('Can update description only', async function () {
+                const snapshotResponse = await createSnapshot()
+                const result = snapshotResponse.json()
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/snapshots/${result.id}`,
+                    payload: { description: 'new-description' },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(200)
+                response.json().should.have.property('name', result.name) // name should not change
+                response.json().should.have.property('description', 'new-description')
+            })
+
+            it('Member cannot update snapshot', async function () {
+                const snapshotResponse = await createSnapshot()
+                const result = snapshotResponse.json()
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/snapshots/${result.id}`,
+                    payload: { name: 'new-name' },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+
+                response.statusCode.should.equal(403)
+                response.json().should.have.property('code', 'unauthorized')
+            })
+        }
+        describe('instance', function () {
+            tests('instance')
+        })
+
         describe('device', function () {
             tests('device')
         })

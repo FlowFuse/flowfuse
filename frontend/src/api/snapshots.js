@@ -78,10 +78,29 @@ const deleteSnapshot = async (snapshotId) => {
     })
 }
 
+/**
+ * Update a snapshot
+ * @param {String} snapshotId - id of the snapshot
+ * @param {Object} options - options to update
+ * @param {String} [options.name] - name of the snapshot
+ * @param {String} [options.description] - description of the snapshot
+ */
+const updateSnapshot = async (snapshotId, options) => {
+    return client.put(`/api/v1/snapshots/${snapshotId}`, options).then(res => {
+        const props = {
+            'snapshot-id': snapshotId,
+            'updated-at': (new Date()).toISOString()
+        }
+        product.capture('$ff-snapshot-updated', props, {})
+        return res.data
+    })
+}
+
 export default {
     getSummary,
     getFullSnapshot,
     exportSnapshot,
     importSnapshot,
-    deleteSnapshot
+    deleteSnapshot,
+    updateSnapshot
 }

@@ -14,8 +14,11 @@ describe('FlowFuse platform admin users', () => {
         cy.get('[data-cy="user-options"]').get('.ff-dropdown-options').should('not.be.visible')
         cy.get('[data-cy="user-options"]').click()
         cy.get('[data-cy="user-options"] .ff-dropdown-options').should('be.visible')
-        cy.get('[data-cy="user-options"] .ff-dropdown-options > .ff-dropdown-option').eq(2).contains('Admin Settings').should('be.visible')
-        cy.get('[data-cy="user-options"] .ff-dropdown-options > .ff-dropdown-option').eq(2).click()
+        cy.get('[data-cy="user-options"] .ff-dropdown-options > .ff-dropdown-option')
+            .contains('Admin Settings')
+            .should('be.visible')
+        cy.get('[data-cy="user-options"] .ff-dropdown-options > .ff-dropdown-option').eq(1)
+            .click()
 
         // wait for APIs to return
         cy.wait('@getSettings')
@@ -74,7 +77,7 @@ describe('FlowFuse platform admin users', () => {
         cy.wait('@getApplicationInstances')
 
         cy.get('[data-el="banner-project-as-admin"]').should('exist')
-        cy.get('[data-action="open-editor"]').should('be.disabled')
+        cy.get('[data-action="open-editor"]').should('have.attr', 'disabled')
 
         cy.get('[data-el="cloud-instances"] tr').contains('instance-2-1').click()
 

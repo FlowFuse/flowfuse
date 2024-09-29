@@ -25,41 +25,39 @@
                 data-el="application-instance-item"
                 class="item-wrapper"
             >
-                <InstanceTile :instance="instance" @delete-instance="$emit('delete-instance', $event)" />
+                <InstanceTile :instance="instance" :showButtonLabels="hasOnlyOneInstance" @delete-instance="$emit('delete-instance', $event)" />
             </div>
-            <div v-if="hasMoreInstances" class="has-more item-wrapper">
-                <router-link :to="{name: 'ApplicationInstances', params: {id: application.id}}">
-                    <span>
-                        {{ remainingInstances }}
-                        More...
-                    </span>
-                    <ChevronRightIcon class="ff-icon" />
-                </router-link>
-            </div>
+            <HasMoreTile
+                v-if="hasMoreInstances"
+                link-to="ApplicationInstances"
+                :remaining="remainingInstances"
+                :application="application"
+                :search-query="searchQuery"
+            />
         </div>
     </section>
 </template>
 
 <script>
-import { ChevronRightIcon } from '@heroicons/vue/solid'
-
 import IconNodeRedSolid from '../../../../../components/icons/NodeRedSolid.js'
+
+import HasMoreTile from './HasMoreTile.vue'
 
 import InstanceTile from './InstanceTile.vue'
 
 export default {
     name: 'InstancesWrapper',
-    components: { ChevronRightIcon, IconNodeRedSolid, InstanceTile },
+    components: { HasMoreTile, IconNodeRedSolid, InstanceTile },
     props: {
         application: {
             type: Object,
             required: true,
             default: null
         },
-        isSearching: {
-            type: Boolean,
+        searchQuery: {
+            type: String,
             required: false,
-            default: false
+            default: ''
         }
     },
     emits: ['delete-instance'],
@@ -69,6 +67,9 @@ export default {
         },
         hasMoreInstances () {
             return this.application.instanceCount > this.instances.length
+        },
+        hasOnlyOneInstance () {
+            return this.application.instanceCount === 1
         },
         hasNoInstances () {
             return this.instances.length === 0
@@ -86,6 +87,9 @@ export default {
         },
         threeInstances () {
             return this.application.instanceCount === 3
+        },
+        isSearching () {
+            return this.searchQuery.length > 0
         }
     }
 }

@@ -12,12 +12,11 @@ as Google Workspace, or using LDAP against a directory service provider.
 The platform can be configured with multiple SSO configurations and uses the
 user's email domain to identify which provider should be used.
 
-**The user must already exist on the FlowFuse platform before they can sign in via SSO.**
+Since FlowFuse 2.7, the SSO configuration can be configured to automatically
+registers when they first sign in.
 
-A user will have to register on the platform, providing a temporary password in order to create an account.
-They will then be able to login via their SSO provider. Support for auto-provisioning accounts is planned
-for the future - see [this issue for details](https://github.com/FlowFuse/flowfuse/issues/4051).
-
+Otherwise, a user will have to first register on the platform, providing a temporary
+password in order to create an account. They will then be able to log in via their SSO provider.
 
 Admin users will still be able to log in with their original FlowFuse username/password - this ensures
 they don't get locked out of the platform if there is a problem with the SSO configuration.
@@ -39,7 +38,7 @@ address in User Settings.
  LDAP based SSO allows the FlowFuse platform to authenticate users against a directory
  service provider, such as OpenLDAP.
 
- When logging in, the users credentials are passed to the serivce provider to verify.
+ When logging in, the users credentials are passed to the service provider to verify.
 
   - [Configuring LDAP SSO](ldap.md)
 

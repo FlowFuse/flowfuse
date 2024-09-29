@@ -1,5 +1,6 @@
 <template>
-    <div>
+    <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
+    <div class="ff-team-library mb-14">
         <div class="breadcrumbs-wrapper">
             <div :class="{'ff-breadcrumbs': true, 'disable-last': !viewingFile}">
                 <span v-for="(crumb, $index) in breadcrumbs" :key="$index" class="flex items-center">
@@ -208,6 +209,10 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.ff-team-library .ff-breadcrumbs {
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
 .breadcrumbs-wrapper {
   display: flex;
   justify-content: space-between;

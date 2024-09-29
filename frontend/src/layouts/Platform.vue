@@ -1,7 +1,7 @@
 <template>
     <div class="ff-layout--platform">
         <PageHeader :mobileMenuOpen="mobileMenuOpen" @menu-toggle="toggleMenu" />
-        <div class="ff-layout--platform--wrapper">
+        <div class="ff-layout--platform--wrapper" :class="{closed: !isMenuVisible}">
             <div id="platform-sidenav" class="ff-navigation" :class="{'open': mobileMenuOpen}" data-sentry-unmask>
                 <!-- Each view uses a <Teleport> to fill this -->
             </div>
@@ -9,6 +9,7 @@
                 <div id="platform-banner" />
                 <slot />
             </div>
+            <RightDrawer />
             <TransitionGroup class="ff-notifications" name="notifications-list" tag="div">
                 <ff-notification-toast
                     v-for="(a, $index) in alertsReversed" :key="a.timestamp"
@@ -32,16 +33,18 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import InterviewPopup from '../components/InterviewPopup.vue'
 import PageHeader from '../components/PageHeader.vue'
+import RightDrawer from '../components/drawers/RightDrawer.vue'
 import AlertsMixin from '../mixins/Alerts.js'
 import DialogMixin from '../mixins/Dialog.js'
 
 export default {
     name: 'ff-layout-platform',
     components: {
+        RightDrawer,
         PageHeader,
         InterviewPopup
     },
@@ -52,7 +55,12 @@ export default {
         }
     },
     computed: {
-        ...mapState('product', ['interview'])
+        ...mapState('product', ['interview']),
+        ...mapGetters('account', ['hasAvailableTeams']),
+        ...mapGetters('ux', ['shouldShowLeftMenu']),
+        isMenuVisible () {
+            return this.shouldShowLeftMenu(this.$route)
+        }
     },
     watch: {
         $route: function () {

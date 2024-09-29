@@ -2,14 +2,17 @@
 navTitle: Local Install
 meta:
    description: Learn how to install FlowFuse locally on various operating systems, including setup instructions for Node.js and configuring the platform without HTTPS support.
+   tags:
+      - installation
+      - flowfuse
+      - local deployment
+      - mosquitto
+      - docker
 ---
 
 # Local Install
 
-This version of the FlowFuse platform is intended for running on a single machine
-for a smaller deployment (e.g. evaluation or home user).
-
-
+This guide is for setting up FlowFuse on a single machine, ideal for smaller deployments, evaluations, or for contributors who want to gain a basic understanding of the FlowFuse platform and its features.
 
 **Note: Local installation does not support HTTPS**
 
@@ -134,7 +137,7 @@ If you want to allow access from other devices on the network, you must edit the
 change the `host` setting to `0.0.0.0` and change `base_url` to contain the IP address of the server.
 
 NOTE: We do not support changing the `host` and `base_url` values once you have created an instance.
-For more information on all of the options available, see the [configuration guide](../configuration.md).
+For more information on all of the options available, see the [configuration guide](/docs/install/configuration.md).
 
 
 ## Running FlowFuse
@@ -162,7 +165,7 @@ Or to run as a service:
 
 Once FlowFuse is started, you will be ready to perform the first run setup.
 
-Follow [this guide](../first-run.md) to continue.
+Follow [this guide](/docs/install/first-run.md) to continue.
 
 ## Setting up Mosquitto (optional)
 

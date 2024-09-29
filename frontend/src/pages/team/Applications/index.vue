@@ -44,11 +44,12 @@
                 >
                     <template #icon><SearchIcon /></template>
                 </ff-text-input>
-                <ul v-if="filteredApplications.length > 0" class="ff-applications-list" data-el="applications-list">
+                <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
+                <ul v-if="filteredApplications.length > 0" class="ff-applications-list mb-14" data-el="applications-list">
                     <li v-for="application in filteredApplications" :key="application.id" data-el="application-item">
                         <ApplicationListItem
                             :application="application"
-                            :is-searching="filterTerm.length > 0"
+                            :search-query="filterTerm"
                             @instance-deleted="fetchData(false)"
                             @device-deleted="fetchData(false)"
                         />
@@ -100,10 +101,15 @@
 <script>
 import { PlusSmIcon, SearchIcon } from '@heroicons/vue/outline'
 
+import { mapState } from 'vuex'
+
 import teamApi from '../../../api/team.js'
 import EmptyState from '../../../components/EmptyState.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
+import Tours from '../../../tours/Tours.js'
+
+import TourWelcome from '../../../tours/tour-welcome.json'
 
 import ApplicationListItem from './components/Application.vue'
 
@@ -127,6 +133,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('ux', ['tours']),
         applicationsList () {
             return Array.from(this.applications.values()).map(app => {
                 return {
@@ -141,24 +148,37 @@ export default {
                 return this.applicationsList
                     .filter(app => {
                         const filteredInstances = app.instances.filter(instance => {
-                            return instance.name.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            return [
+                                instance.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                                instance.id.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            ].includes(true)
                         })
                         const filteredDevices = app.devices.filter(device => {
-                            return device.name.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            return [
+                                device.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                                device.id.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            ].includes(true)
                         })
 
                         return [
                             app.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                            app.id.toLowerCase().includes(this.filterTerm.toLowerCase()),
                             filteredInstances.length > 0,
                             filteredDevices.length > 0
                         ].includes(true)
                     })
                     .map(app => {
                         const filteredInstances = app.instances.filter(instance => {
-                            return instance.name.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            return [
+                                instance.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                                instance.id.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            ].includes(true)
                         })
                         const filteredDevices = app.devices.filter(device => {
-                            return device.name.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            return [
+                                device.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                                device.id.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            ].includes(true)
                         })
 
                         const filteredInstancesOrEntireSet = filteredInstances.length
@@ -192,6 +212,11 @@ export default {
                 // allow the Alerts servcie to have subscription by wrapping in nextTick
                 Alerts.emit('Thanks for signing up to FlowFuse!', 'confirmation')
             })
+        }
+        // first time arriving here
+        if (this.tours.welcome) {
+            const tour = Tours.create('welcome', TourWelcome)
+            tour.start()
         }
     },
     methods: {

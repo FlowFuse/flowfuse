@@ -201,9 +201,12 @@ module.exports = {
                     snapshotSettings.palette = snapshotSettings.palette || {}
                     snapshotSettings.palette.modules = []
                 }
+                if (!project.ProjectTemplate) {
+                    project = await app.db.models.Project.byId(project.id)
+                }
                 const newSettings = app.db.controllers.ProjectTemplate.validateSettings(snapshotSettings, project.ProjectTemplate)
                 const currentProjectSettings = await project.getSetting('settings') || {} // necessary?
-                const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings, { mergeEnvVars, mergeEditorSettings })
+                const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings, { mergeEnvVars, mergeEditorSettings, targetTemplate: project.ProjectTemplate })
                 await project.updateSetting('settings', updatedSettings, { transaction: t }) // necessary?
             }
             await t.commit() // all good, commit the transaction

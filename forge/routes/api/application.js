@@ -1,30 +1,7 @@
+const applicationShared = require('./shared/application.js')
+
 module.exports = async function (app) {
-    app.addHook('preHandler', async (request, reply) => {
-        const applicationId = request.params.applicationId
-        if (applicationId === undefined) {
-            return
-        }
-
-        if (!applicationId) {
-            return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-        }
-
-        try {
-            request.application = await app.db.models.Application.byId(applicationId)
-            if (!request.application) {
-                return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-            }
-
-            if (request.session.User) {
-                request.teamMembership = await request.session.User.getTeamMembership(request.application.Team.id)
-                if (!request.teamMembership && !request.session.User.admin) {
-                    return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                }
-            }
-        } catch (err) {
-            return reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
-        }
-    })
+    app.addHook('preHandler', applicationShared.defaultPreHandler.bind(null, app))
 
     /**
      * Create an application
@@ -476,5 +453,61 @@ module.exports = async function (app) {
         const logEntries = await app.db.models.AuditLog.forApplication(request.application.id, paginationOptions)
         const result = app.db.views.AuditLog.auditLog(logEntries)
         reply.send(result)
+    })
+
+    /**
+     * Get the application audit log
+     * @name /api/v1/application/:applicationId/audit-log/export
+     * @memberof forge.routes.api.project
+     */
+    app.get('/:applicationId/audit-log/export', {
+        preHandler: app.needsPermission('application:audit-log'),
+        schema: {
+            summary: 'Get application audit event entries',
+            tags: ['Applications'],
+            query: {
+                allOf: [
+                    { $ref: 'PaginationParams' },
+                    { $ref: 'AuditLogQueryParams' }
+                ]
+            },
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    content: {
+                        'text/csv': {
+                            schema: {
+                                type: 'string'
+                            }
+                        }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const paginationOptions = app.getPaginationOptions(request)
+        const logEntries = await app.db.models.AuditLog.forApplication(request.application.id, paginationOptions)
+        const result = app.db.views.AuditLog.auditLog(logEntries)
+        reply.type('text/csv').send([
+            ['id', 'event', 'body', 'scope', 'trigger', 'createdAt'],
+            ...result.log.map(row => [
+                row.id,
+                row.event,
+                `"${row.body ? JSON.stringify(row.body).replace(/"/g, '""') : ''}"`,
+                `"${JSON.stringify(row.scope).replace(/"/g, '""')}"`,
+                `"${JSON.stringify(row.trigger).replace(/"/g, '""')}"`,
+                row.createdAt?.toISOString()
+            ])
+        ]
+            .map(row => row.join(','))
+            .join('\r\n'))
     })
 }

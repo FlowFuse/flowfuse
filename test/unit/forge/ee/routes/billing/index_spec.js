@@ -750,10 +750,10 @@ describe('Billing routes', function () {
             })
 
             it('Handles cancellation for unknown teams but with a subscription (team manually deleted)', async () => {
-                const team = await app.factory.createTeam({ name: 'team-02' })
-                await app.factory.createSubscription(team, 'sub_unknown_123', 'cus_unknown_123')
-                await team.destroy()
-
+                await app.db.models.Subscription.create({
+                    customer: 'cus_unknown_123',
+                    subscription: 'sub_unknown_123'
+                })
                 const response = await (app.inject({
                     method: 'POST',
                     url: callbackURL,

@@ -7,6 +7,7 @@ module.exports = function (app) {
             name: { type: 'string' },
             slug: { type: 'string' },
             avatar: { type: 'string' },
+            suspended: { type: 'boolean' },
             links: { $ref: 'LinksMeta' }
         }
     })
@@ -19,6 +20,7 @@ module.exports = function (app) {
             name: team.name,
             slug: team.slug,
             avatar: team.avatar,
+            suspended: team.suspended,
             links: team.links
         }
         return result
@@ -50,6 +52,7 @@ module.exports = function (app) {
                 type: app.db.views.TeamType.teamType(result.TeamType),
                 slug: result.slug,
                 avatar: result.avatar,
+                suspended: result.suspended,
                 instanceCount: result.projectCount,
                 memberCount: result.memberCount,
                 deviceCount: result.deviceCount,
@@ -81,6 +84,7 @@ module.exports = function (app) {
                 type: app.db.views.TeamType.teamTypeSummary(d.Team.TeamType),
                 slug: d.Team.slug,
                 avatar: d.Team.avatar,
+                suspended: d.Team.suspended,
                 role: d.role,
                 instanceCount: d.projectCount,
                 memberCount: d.memberCount,

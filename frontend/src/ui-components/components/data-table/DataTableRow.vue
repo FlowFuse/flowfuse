@@ -1,5 +1,8 @@
 <template>
-    <tr class="ff-data-table--row" :class="{'selectable': selectable}">
+    <tr class="ff-data-table--row" :class="{'selectable': typeof(selectable) === 'function' ? selectable(data) : selectable}">
+        <ff-data-table-cell v-if="hasPrepend">
+            <slot name="row-prepend" :row="data" />
+        </ff-data-table-cell>
         <slot>
             <ff-data-table-cell v-for="(col, $column) in columns" :key="col.label" :class="col.class" :style="col.style" :highlight="highlightCell === $column" @click="$emit('selected', data)">
                 <template v-if="col.component">
@@ -39,7 +42,7 @@ export default {
             default: null
         },
         selectable: {
-            type: Boolean,
+            type: [Boolean, Function],
             default: false
         },
         highlightCell: {
@@ -54,6 +57,9 @@ export default {
         },
         hasContextMenu: function () {
             return this.$slots['context-menu']
+        },
+        hasPrepend: function () {
+            return this.$slots['row-prepend']
         }
     },
     methods: {

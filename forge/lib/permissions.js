@@ -1,5 +1,8 @@
 const { Roles } = require('./roles.js')
 const Permissions = {
+    /**
+     * OS Permissions
+     */
     // User Actions
     'user:create': { description: 'Create User', role: Roles.Admin },
     'user:list': { description: 'List platform users', role: Roles.Admin },
@@ -14,6 +17,8 @@ const Permissions = {
     'team:edit': { description: 'Edit Team', role: Roles.Owner },
     'team:delete': { description: 'Delete Team', role: Roles.Owner },
     'team:audit-log': { description: 'Access Team Audit Log', role: Roles.Owner },
+    'team:device:bulk-delete': { description: 'Delete Devices', role: Roles.Owner },
+    'team:device:bulk-edit': { description: 'Edit Devices', role: Roles.Owner },
     // Team Auto Device Provisioning Tokens
     'team:device:provisioning-token:create': { description: 'Create a Team Auto Device Provisioning Token', role: Roles.Owner },
     'team:device:provisioning-token:edit': { description: 'Edit a Team Auto Device Provisioning Token', role: Roles.Owner },
@@ -83,6 +88,7 @@ const Permissions = {
     'snapshot:meta': { description: 'View a Snapshot', role: Roles.Viewer },
     'snapshot:full': { description: 'View full snapshot details excluding credentials', role: Roles.Member },
     'snapshot:export': { description: 'Export a snapshot including credentials', role: Roles.Member },
+    'snapshot:edit': { description: 'Edit a Snapshot', role: Roles.Owner },
     'snapshot:delete': { description: 'Delete a Snapshot', role: Roles.Owner },
     'snapshot:import': { description: 'Import a Snapshot', role: Roles.Owner },
 
@@ -109,14 +115,66 @@ const Permissions = {
     'platform:debug': { description: 'View platform debug information', role: Roles.Admin },
     'platform:stats': { description: 'View platform stats information', role: Roles.Admin },
     'platform:stats:token': { description: 'Create/Delete platform stats token', role: Roles.Admin },
-    'platform:audit-log': { description: 'View platform audit log', role: Roles.Admin }
+    'platform:audit-log': { description: 'View platform audit log', role: Roles.Admin },
+
+    /**
+     * EE Permissions
+     */
+
+    // Projects
+    'project:history': { description: 'View project history', role: Roles.Member },
+
+    // Application
+    'application:bom': { description: 'Get the Bill of Materials', role: Roles.Owner },
+
+    // Device Groups
+    'application:device-group:create': { description: 'Create a device group', role: Roles.Owner },
+    'application:device-group:list': { description: 'List device groups', role: Roles.Member },
+    'application:device-group:update': { description: 'Update a device group', role: Roles.Owner },
+    'application:device-group:delete': { description: 'Delete a device group', role: Roles.Owner },
+    'application:device-group:read': { description: 'View a device group', role: Roles.Member },
+    'application:device-group:membership:update': { description: 'Update a device group membership', role: Roles.Owner },
+
+    // Device Editor
+    'device:editor': { description: 'Access the Device Editor', role: Roles.Member },
+
+    // Team Billing
+    'team:billing:manual': { description: 'Setups up manual billing on a team', role: Roles.Admin },
+    'team:billing:trial': { description: 'Modify team trial settings', role: Roles.Admin },
+
+    // Flow Blueprints
+    'flow-blueprint:create': { description: 'Create a Flow Blueprint', role: Roles.Admin },
+    'flow-blueprint:list': { description: 'List all Flow Blueprints' },
+    'flow-blueprint:read': { description: 'View a Flow Blueprint' },
+    'flow-blueprint:delete': { description: 'Delete a Flow Blueprint', role: Roles.Admin },
+    'flow-blueprint:edit': { description: 'Edit a Flow Blueprint', role: Roles.Admin },
+
+    // Library
+    'library:entry:create': { description: 'Create entries in a team library', role: Roles.Member },
+    'library:entry:list': { description: 'List entries in a team library', role: Roles.Member },
+    'library:entry:delete': { description: 'Delete an entry in a team library', role: Roles.Member },
+
+    // Pipeline
+    'pipeline:read': { description: 'View a pipeline', role: Roles.Member },
+    'pipeline:create': { description: 'Create a pipeline', role: Roles.Owner },
+    'pipeline:edit': { description: 'Edit a pipeline', role: Roles.Owner },
+    'pipeline:delete': { description: 'Delete a pipeline', role: Roles.Owner },
+    'application:pipeline:list': { description: 'List pipelines within an application', role: Roles.Member },
+
+    // SAML
+    'saml-provider:create': { description: 'Create a SAML Provider', role: Roles.Admin },
+    'saml-provider:list': { description: 'List all SAML Providers', role: Roles.Admin },
+    'saml-provider:read': { description: 'View a SAML Provider', role: Roles.Admin },
+    'saml-provider:delete': { description: 'Delete a SAML Provider', role: Roles.Admin },
+    'saml-provider:edit': { description: 'Edit a SAML Provider', role: Roles.Admin },
+
+    // Static Assets
+    'project:files:list': { description: 'List files under a project', role: Roles.Member },
+    'project:files:create': { description: 'Upload files to a project', role: Roles.Member },
+    'project:files:edit': { description: 'Modify files in a project', role: Roles.Member },
+    'project:files:delete': { description: 'Delete files in a project', role: Roles.Member }
 }
 
 module.exports = {
-    Permissions,
-    registerPermissions: function (newPermisssions) {
-        Object.keys(newPermisssions).forEach(key => {
-            Permissions[key] = newPermisssions[key]
-        })
-    }
+    Permissions
 }

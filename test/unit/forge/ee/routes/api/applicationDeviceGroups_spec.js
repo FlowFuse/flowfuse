@@ -8,6 +8,8 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 describe('Application Device Groups API', function () {
     let app
+    /** @type {import('../../../../../../forge/ee/db/controllers/DeviceGroup.js')} */
+    let controller
     const TestObjects = {
         /** admin - owns ateam */
         alice: {},
@@ -29,9 +31,32 @@ describe('Application Device Groups API', function () {
     let factory = null
     let objectCount = 0
     const generateName = (root = 'object') => `${root}-${objectCount++}`
-
+    /**
+     * Check the device update call args include the expected values (ownerType, application, snapshot, settings, mode, licensed)
+     * @param {Array} calls - the calls array from sinon
+     * @param {Object} device - the device model object
+     * @param {*} snapshotId - the snapshot id to check for in the call
+     */
+    const checkDeviceUpdateCall = (calls, device, snapshotId) => {
+        const args = calls.find(e => e.args[1] === device.hashid).args
+        args[0].should.equal(device.Team.hashid)
+        args[1].should.equal(device.hashid)
+        args[2].should.equal('update')
+        const payload = args[3]
+        payload.should.have.property('ownerType', 'application')
+        payload.should.have.property('application', device.Application.hashid)
+        if (typeof snapshotId !== 'undefined') {
+            payload.should.have.property('snapshot', snapshotId)
+        } else {
+            payload.should.have.property('snapshot')
+        }
+        payload.should.have.property('settings')
+        payload.should.have.property('mode', 'autonomous')
+        payload.should.have.property('licensed')
+    }
     before(async function () {
         app = await setup()
+        controller = app.db.controllers.DeviceGroup
         factory = app.factory
 
         // ATeam ( alice  (owner), bob )
@@ -81,6 +106,14 @@ describe('Application Device Groups API', function () {
 
     after(async function () {
         await app.close()
+    })
+
+    beforeEach(async function () {
+        sinon.stub(app.comms.devices, 'sendCommand').resolves()
+    })
+
+    afterEach(async function () {
+        app.comms.devices.sendCommand.restore()
     })
 
     describe('Create Device Group', async function () {
@@ -285,7 +318,7 @@ describe('Application Device Groups API', function () {
     })
 
     describe('Update Device Group', async function () {
-        it('Owner can update a device group', async function () {
+        async function prepare () {
             const sid = await login('bob', 'bbPassword')
             const application = await factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
             const deviceGroup = await factory.createApplicationDeviceGroup({ name: generateName('device-group') + ' original name', description: 'original desc' }, application)
@@ -293,23 +326,206 @@ describe('Application Device Groups API', function () {
             deviceGroup.should.have.property('description', 'original desc')
             const originalId = deviceGroup.id
 
-            // now call the API to update name and desc
-            const response = await app.inject({
+            const instance = TestObjects.instance
+            const device1of2 = await factory.createDevice({ name: generateName('device') }, TestObjects.BTeam, null, application)
+            const device2of2 = await factory.createDevice({ name: generateName('device') }, TestObjects.BTeam, null, application)
+
+            // add the devices to the group
+            await controller.updateDeviceGroupMembership(deviceGroup, { addDevices: [device1of2.id, device2of2.id] })
+
+            // create snapshot
+            const snapshot = await factory.createSnapshot({ name: generateName('snapshot') }, instance, TestObjects.bob)
+
+            // manually set the snapshot on the group and the devices (we are not testing the snapshot API here)
+            deviceGroup.set('targetSnapshotId', snapshot.id)
+            await deviceGroup.save()
+            await device1of2.set('targetSnapshotId', snapshot.id)
+            await device1of2.save()
+            await device2of2.set('targetSnapshotId', snapshot.id)
+            await device2of2.save()
+
+            // reset the mock call history
+            app.comms.devices.sendCommand.resetHistory()
+
+            return { sid, application, deviceGroup, device1of2, device2of2, snapshot, originalId }
+        }
+        async function callUpdate (sid, application, deviceGroup, payload) {
+            return app.inject({
                 method: 'PUT',
                 url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup.hashid}`,
                 cookies: { sid },
-                payload: {
-                    name: 'updated name',
-                    description: 'updated description'
-                }
+                payload
+            })
+        }
+        it('Owner can update a device group', async function () {
+            const { sid, application, deviceGroup, device1of2, device2of2, snapshot, originalId } = await prepare()
+
+            // now call the API to update name and desc
+            const response = await callUpdate(sid, application, deviceGroup, {
+                name: 'updated name',
+                description: 'updated description'
             })
 
             // ensure success
             response.statusCode.should.equal(200)
+
             const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroup.hashid)
-            updatedDeviceGroup.should.have.property('id', originalId)
+            const updatedDevice1 = await app.db.models.Device.byId(device1of2.hashid)
+            const updatedDevice2 = await app.db.models.Device.byId(device2of2.hashid)
+
+            // check group name and description are updated
             updatedDeviceGroup.should.have.property('name', 'updated name')
             updatedDeviceGroup.should.have.property('description', 'updated description')
+
+            // check other properties are unchanged
+            updatedDeviceGroup.should.have.property('id', originalId)
+            updatedDeviceGroup.should.have.property('targetSnapshotId', snapshot.id)
+            updatedDevice1.should.have.property('targetSnapshotId', snapshot.id)
+            updatedDevice2.should.have.property('targetSnapshotId', snapshot.id)
+        })
+
+        it('Updates name only', async function () {
+            const { sid, application, deviceGroup, device1of2, device2of2, snapshot, originalId } = await prepare()
+
+            // now call the API to update name only
+            const response = await callUpdate(sid, application, deviceGroup, {
+                name: 'updated name'
+            })
+
+            // ensure success
+            response.statusCode.should.equal(200)
+
+            const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroup.hashid)
+            const updatedDevice1 = await app.db.models.Device.byId(device1of2.hashid)
+            const updatedDevice2 = await app.db.models.Device.byId(device2of2.hashid)
+
+            // check group name is updated
+            updatedDeviceGroup.should.have.property('name', 'updated name')
+
+            // check other properties are unchanged
+            updatedDeviceGroup.should.have.property('id', originalId)
+            updatedDeviceGroup.should.have.property('description', 'original desc')
+            updatedDeviceGroup.should.have.property('targetSnapshotId', snapshot.id)
+            updatedDevice1.should.have.property('targetSnapshotId', snapshot.id)
+            updatedDevice2.should.have.property('targetSnapshotId', snapshot.id)
+        })
+
+        it('Updates description only', async function () {
+            const { sid, application, deviceGroup, device1of2, device2of2, snapshot, originalId } = await prepare()
+
+            // now call the API to update description only
+            const response = await callUpdate(sid, application, deviceGroup, {
+                description: 'updated description'
+            })
+
+            // ensure success
+            response.statusCode.should.equal(200)
+
+            const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroup.hashid)
+            const updatedDevice1 = await app.db.models.Device.byId(device1of2.hashid)
+            const updatedDevice2 = await app.db.models.Device.byId(device2of2.hashid)
+
+            // check group description is updated
+            updatedDeviceGroup.should.have.property('description', 'updated description')
+
+            // check other properties are unchanged
+            updatedDeviceGroup.should.have.property('id', originalId)
+            updatedDeviceGroup.should.have.property('name', deviceGroup.name)
+            updatedDeviceGroup.should.have.property('targetSnapshotId', snapshot.id)
+            updatedDevice1.should.have.property('targetSnapshotId', snapshot.id)
+            updatedDevice2.should.have.property('targetSnapshotId', snapshot.id)
+        })
+
+        it('Updates targetSnapshot for group and devices', async function () {
+            const { sid, application, deviceGroup, device1of2, device2of2, snapshot } = await prepare()
+
+            // first lets verify the devices have the snapshot set as target
+            device1of2.should.have.property('targetSnapshotId', snapshot.id)
+            device1of2.should.have.property('targetSnapshotId', snapshot.id)
+
+            // create a new snapshot
+            const newSnapshot = await factory.createSnapshot({ name: generateName('snapshot') }, TestObjects.instance, TestObjects.bob)
+
+            // now call the API to update targetSnapshot only
+            const response = await callUpdate(sid, application, deviceGroup, {
+                targetSnapshotId: newSnapshot.hashid
+            })
+
+            // should succeed
+            response.statusCode.should.equal(200)
+
+            const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroup.hashid)
+            const updatedDevice1 = await app.db.models.Device.byId(device1of2.hashid)
+            const updatedDevice2 = await app.db.models.Device.byId(device2of2.hashid)
+
+            // check the DeviceGroup and devices `targetSnapshotId` were updated
+            updatedDeviceGroup.should.have.property('targetSnapshotId', newSnapshot.id)
+            updatedDevice1.should.have.property('targetSnapshotId', newSnapshot.id)
+            updatedDevice2.should.have.property('targetSnapshotId', newSnapshot.id)
+
+            // check both devices got an update command
+            app.comms.devices.sendCommand.callCount.should.equal(2) // both devices got an update request
+            const calls = app.comms.devices.sendCommand.getCalls()
+            checkDeviceUpdateCall(calls, updatedDevice1, newSnapshot.hashid) // both devices should have been sent an update with the new snapshot
+            checkDeviceUpdateCall(calls, updatedDevice2, newSnapshot.hashid) // both devices sh
+        })
+
+        it('Clears targetSnapshot for group and devices', async function () {
+            const { sid, application, deviceGroup, device1of2, device2of2, snapshot } = await prepare()
+
+            // first lets verify the devices have the snapshot set as target
+            device1of2.should.have.property('targetSnapshotId', snapshot.id)
+            device1of2.should.have.property('targetSnapshotId', snapshot.id)
+
+            // now call the API to update description only
+            const response = await callUpdate(sid, application, deviceGroup, {
+                targetSnapshotId: null
+            })
+
+            // should succeed
+            response.statusCode.should.equal(200)
+
+            const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroup.hashid)
+            const updatedDevice1 = await app.db.models.Device.byId(device1of2.hashid)
+            const updatedDevice2 = await app.db.models.Device.byId(device2of2.hashid)
+
+            // check the DeviceGroup and devices `targetSnapshotId` were updated
+            updatedDeviceGroup.should.have.property('targetSnapshotId', null)
+            updatedDevice1.should.have.property('targetSnapshotId', null)
+            updatedDevice2.should.have.property('targetSnapshotId', null)
+
+            // check both devices got an update command
+            app.comms.devices.sendCommand.callCount.should.equal(2) // both devices got an update request
+            const calls = app.comms.devices.sendCommand.getCalls()
+            checkDeviceUpdateCall(calls, updatedDevice1, '0') // '0' signifies starter snapshot (default snapshot for application devices)
+            checkDeviceUpdateCall(calls, updatedDevice2, '0') // '0' signifies starter snapshot (default snapshot for application devices)
+        })
+
+        it('Fails when invalid targetSnapshotId is provided', async function () {
+            const { sid, application, deviceGroup, device1of2, device2of2, snapshot } = await prepare()
+
+            // now call the API to update targetSnapshot only
+            const response = await callUpdate(sid, application, deviceGroup, {
+                targetSnapshotId: 'invalid'
+            })
+
+            // should fail
+            response.statusCode.should.equal(400)
+
+            const result = response.json()
+            result.should.have.property('code', 'invalid_input')
+
+            const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroup.hashid)
+            const updatedDevice1 = await app.db.models.Device.byId(device1of2.hashid)
+            const updatedDevice2 = await app.db.models.Device.byId(device2of2.hashid)
+
+            // should not have updated the group or devices
+            updatedDeviceGroup.should.have.property('targetSnapshotId', snapshot.id)
+            updatedDevice1.should.have.property('targetSnapshotId', snapshot.id)
+            updatedDevice2.should.have.property('targetSnapshotId', snapshot.id)
+
+            // check no devices got an update command
+            app.comms.devices.sendCommand.callCount.should.equal(0) // no devices should have been sent an update
         })
 
         it('Cannot update a device group with empty name', async function () {
@@ -320,14 +536,10 @@ describe('Application Device Groups API', function () {
             deviceGroup.should.have.property('description', 'original desc')
 
             // now call the API to update name and desc
-            const response = await app.inject({
-                method: 'PUT',
-                url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup.hashid}`,
-                cookies: { sid },
-                payload: {
-                    name: '',
-                    description: 'updated description'
-                }
+            const response = await callUpdate(sid, application, deviceGroup, {
+                name: '',
+                description: 'updated description',
+                targetSnapshotId: null
             })
 
             response.statusCode.should.equal(400)
@@ -341,15 +553,10 @@ describe('Application Device Groups API', function () {
             const sid = await login('chris', 'ccPassword')
             const application = await factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
             const deviceGroup = await factory.createApplicationDeviceGroup({ name: generateName('device-group') }, application)
-
-            const response = await app.inject({
-                method: 'PUT',
-                url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup.hashid}`,
-                cookies: { sid },
-                payload: {
-                    name: 'updated name',
-                    description: 'updated description'
-                }
+            const response = await callUpdate(sid, application, deviceGroup, {
+                name: 'updated name',
+                description: 'updated description',
+                targetSnapshotId: null
             })
 
             response.statusCode.should.equal(403)
@@ -363,15 +570,10 @@ describe('Application Device Groups API', function () {
             const sid = await login('dave', 'ddPassword')
             const application = await factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
             const deviceGroup = await factory.createApplicationDeviceGroup({ name: generateName('device-group') }, application)
-
-            const response = await app.inject({
-                method: 'PUT',
-                url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup.hashid}`,
-                cookies: { sid },
-                payload: {
-                    name: 'updated name',
-                    description: 'updated description'
-                }
+            const response = await callUpdate(sid, application, deviceGroup, {
+                name: 'updated name',
+                description: 'updated description',
+                targetSnapshotId: null
             })
 
             response.statusCode.should.be.oneOf([400, 403, 404])
@@ -672,26 +874,7 @@ describe('Application Device Groups API', function () {
             response.statusCode.should.be.oneOf([400, 403, 404])
         })
         describe('Update', async function () {
-            const checkCallArgs = (calls, device) => {
-                const args = calls.find(e => e.args[1] === device.hashid).args
-                args[0].should.equal(device.Team.hashid)
-                args[1].should.equal(device.hashid)
-                args[2].should.equal('update')
-                const payload = args[3]
-                payload.should.have.property('ownerType', 'application')
-                payload.should.have.property('application', device.Application.hashid)
-                payload.should.have.property('snapshot')
-                payload.should.have.property('settings')
-                payload.should.have.property('mode', 'autonomous')
-                payload.should.have.property('licensed')
-            }
-            beforeEach(async function () {
-                // mock the `app.comms.devices.sendCommand()`
-                sinon.stub(app.comms.devices, 'sendCommand').resolves()
-            })
-
             afterEach(async function () {
-                app.comms.devices.sendCommand.restore()
                 await app.db.models.PipelineStage.destroy({ where: {} })
                 await app.db.models.Pipeline.destroy({ where: {} })
                 await app.db.models.ProjectSnapshot.destroy({ where: {} })
@@ -737,9 +920,9 @@ describe('Application Device Groups API', function () {
                 const d2 = devices.devices.find(d => d.id === device2of3.id)
                 const d3 = devices.devices.find(d => d.id === device3of3.id)
                 const calls = app.comms.devices.sendCommand.getCalls()
-                checkCallArgs(calls, d1)
-                checkCallArgs(calls, d2)
-                checkCallArgs(calls, d3)
+                checkDeviceUpdateCall(calls, d1)
+                checkDeviceUpdateCall(calls, d2)
+                checkDeviceUpdateCall(calls, d3)
             })
             it('All Devices removed get an update request and clears DeviceGroup.targetSnapshotId', async function () {
                 // Premise:
@@ -792,8 +975,8 @@ describe('Application Device Groups API', function () {
                 const d1 = devices.devices.find(d => d.id === device1of2.id)
                 const d2 = devices.devices.find(d => d.id === device2of2.id)
                 const calls = app.comms.devices.sendCommand.getCalls()
-                checkCallArgs(calls, d1)
-                checkCallArgs(calls, d2)
+                checkDeviceUpdateCall(calls, d1)
+                checkDeviceUpdateCall(calls, d2)
 
                 // check the DeviceGroup `targetSnapshotId` is cleared
                 const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroupOne.hashid)

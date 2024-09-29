@@ -1,3 +1,6 @@
+const { ValidationError } = require('sequelize')
+const hasProperty = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key)
+
 module.exports = {
     /**
      * Get a snapshot by ID
@@ -109,6 +112,31 @@ module.exports = {
     },
 
     /**
+     * Update a snapshot
+     * @param {*} app - app instance
+     * @param {*} snapshot - snapshot object
+     * @param {*} options - options to update
+     * @param {String} [options.name] - name of the snapshot
+     * @param {String} [options.description] - description of the snapshot
+     */
+    async updateSnapshot (app, snapshot, options) {
+        const updates = {}
+        if (hasProperty(options, 'name') && (typeof options.name !== 'string' || options.name.trim() === '')) {
+            throw new ValidationError('Snapshot name is required')
+        }
+        if (options.name) {
+            updates.name = options.name
+        }
+        if (typeof options.description !== 'undefined') {
+            updates.description = options.description
+        }
+        if (Object.keys(updates).length > 0) {
+            await snapshot.update(updates)
+        }
+        return snapshot
+    },
+
+    /**
      * Upload a snapshot.
      * @param {*} app - app instance
      * @param {*} owner - project/device-originator of this snapshot
@@ -117,22 +145,7 @@ module.exports = {
      * @param {*} user - user who uploaded the snapshot
      */
     async uploadSnapshot (app, owner, snapshot, credentialSecret, user) {
-        // 1. If the snapshot includes credentials but no credentialSecret, we should reject it
-        // 2. if the snapshot includes credentials and a credentialSecret, we should validate the secret
-        if (snapshot.flows.credentials?.$) {
-            if (!credentialSecret) {
-                throw new Error('Missing credentialSecret')
-            }
-            // validate the secret by trying to decrypt and re-encrypt the credentials using the provided secret
-            // if the secret is invalid, this will throw an error
-            app.db.controllers.Project.exportCredentials(snapshot.flows.credentials, credentialSecret, credentialSecret)
-        }
-
-        // use the project/device's credentialSecret if none is provided
-        if (!credentialSecret) {
-            credentialSecret = owner.credentialSecret || (owner.getCredentialSecret && await owner.getCredentialSecret())
-        }
-
+        // Validate the owner
         let ownerType
         if (owner.constructor.name === 'Project') {
             ownerType = 'instance'
@@ -141,17 +154,30 @@ module.exports = {
         } else {
             throw new Error('Invalid owner type')
         }
+
+        const targetCredentialSecret = owner.credentialSecret || (owner.getCredentialSecret && await owner.getCredentialSecret()) || credentialSecret
+        // 1. If the snapshot includes credentials but no credentialSecret, we should reject it
+        // 2. if the snapshot includes credentials and a credentialSecret, we should reencrypt for the owner
+        if (snapshot.flows.credentials?.$) {
+            if (!credentialSecret) {
+                throw new Error('Missing credentialSecret')
+            }
+            // Need to re-encrypt the credentials for the target
+            snapshot.flows.credentials = app.db.controllers.Project.exportCredentials(snapshot.flows.credentials, credentialSecret, targetCredentialSecret)
+        }
+
         const ProjectId = ownerType === 'instance' ? owner.id : null
         const DeviceId = ownerType === 'device' ? owner.id : null
 
         const snapshotOptions = {
             name: snapshot.name,
             description: snapshot.description || '',
-            credentialSecret,
+            credentialSecret: targetCredentialSecret,
             settings: {
-                settings: snapshot.settings || {},
-                env: snapshot.env || {},
-                modules: snapshot.modules || {}
+                settings: snapshot.settings?.settings || {},
+                env: snapshot.settings?.env || {},
+                modules: snapshot.settings?.modules || {}
+
             },
             flows: {
                 flows: snapshot.flows.flows || [],

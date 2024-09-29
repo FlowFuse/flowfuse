@@ -33,7 +33,7 @@
                     <template #rows>
                         <ff-data-table-row v-for="device in availableDevices" :key="device">
                             <ff-data-table-cell>
-                                <ff-checkbox v-model="device.selected" class="inline" />
+                                <ff-checkbox v-model="device.selected" />
                             </ff-data-table-cell>
                             <ff-data-table-cell>{{ device.name }}</ff-data-table-cell>
                             <ff-data-table-cell>{{ device.type }}</ff-data-table-cell>
@@ -351,16 +351,3 @@ export default {
     }
 }
 </script>
-
-<style scoped>
-/* ensure checkboxes in the tables have appearance: auto */
-/* input[type=checkbox].editable {
-    -webkit-appearance: auto !important;
-    -moz-appearance: auto !important;
-    appearance: auto !important;
-} */
-
-table tbody .ff-checkbox, .ff-radio-btn {
-    display: inline;
-}
-</style>
