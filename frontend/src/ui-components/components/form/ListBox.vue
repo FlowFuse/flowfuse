@@ -2,7 +2,7 @@
     <Listbox v-model="value" :disabled="disabled" class="ff-listbox">
         <div class="relative">
             <ListboxButton
-                class="w-full rounded-md bg-white flex justify-between button"
+                class="w-full rounded-md bg-white flex justify-between ff-button"
                 :class="[disabled ? 'cursor-not-allowed bg-gray-200 text-gray-500' : '']"
             >
                 <slot name="button">
@@ -18,7 +18,7 @@
                 leave-from-class="opacity-100"
                 leave-to-class="opacity-0"
             >
-                <ListboxOptions class="absolute w-full overflow-auto bg-white py-1 options">
+                <ListboxOptions class="absolute w-full overflow-auto bg-white py-1 ff-options">
                     <slot name="options">
                         <ListboxOption
                             v-for="option in options"
@@ -26,11 +26,11 @@
                             :key="labelKey === 'label' ? option.label : option[labelKey]"
                             :value="option"
                             as="template"
-                            class="option"
+                            class="ff-option"
                             :title="optionTitleKey ? option[optionTitleKey] : null"
                         >
                             <li>
-                                <div class="option-content" :class="{selected, active}">
+                                <div class="ff-option-content" :class="{selected, active}">
                                     {{ labelKey === 'label' ? option.label : option[labelKey] }}
                                 </div>
                             </li>
@@ -144,7 +144,7 @@ export default {
 
   }
 
-  .button {
+  .ff-button {
     border: 1px solid $ff-grey-300;
     padding: 5px 5px 5px 10px;
     &:focus-visible, &:focus {
@@ -159,7 +159,7 @@ export default {
     }
   }
 
-  .options {
+  .ff-options {
     background: $ff-grey-50;
     box-shadow: 0 6px 9px 0 #00000038;
     max-height: 14rem;
@@ -173,7 +173,7 @@ export default {
       outline: none;
     }
 
-    .option {
+    .ff-option {
       border-bottom: 1px solid $ff-grey-200;
       background-color: $ff-grey-50;
       cursor: pointer;
@@ -182,7 +182,7 @@ export default {
         border-bottom: none;
       }
 
-      .option-content {
+      .ff-option-content {
         padding: $ff-unit-sm $ff-unit-md;
 
         &.selected, &.active {

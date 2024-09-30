@@ -6,21 +6,21 @@
         </template>
         <template #options>
             <ListboxOption
-                class="option"
+                class="ff-option"
                 :class="[!isCurrentFolderPublic ? 'cursor-not-allowed bg-gray-200 text-gray-500' : '']"
                 :disabled="!isCurrentFolderPublic"
                 data-action="select-private"
                 @click="selected('private')"
             >
                 <li>
-                    <div class="option-content">
+                    <div class="ff-option-content">
                         <div class="flex gap-2"><ProjectIcon class="ff-icon" /> Node-RED Only</div>
                     </div>
                 </li>
             </ListboxOption>
-            <ListboxOption class="option" data-action="select-public" @click="showStaticPathSelectionDialog">
+            <ListboxOption class="ff-option" data-action="select-public" @click="showStaticPathSelectionDialog">
                 <li>
-                    <div class="option-content">
+                    <div class="ff-option-content">
                         <div class="flex gap-2"><GlobeAltIcon class="ff-icon" /> Public</div>
                     </div>
                 </li>
@@ -158,18 +158,17 @@ export default {
 .ff-dropdown.visibility-selector {
   min-width: 130px;
 
-  .button {
+  .ff-button {
     padding-left: 0;
     padding-right: 0;
     border: none;
-
-      background: none !important;
+    background: none !important;
   }
 
-  .options {
+  .ff-options {
     border: 1px solid $ff-grey-200 !important;
 
-    .option {
+    .ff-option {
       background: white !important;
       border: none !important;
 
