@@ -1522,7 +1522,7 @@ describe('Project API', function () {
                 )
 
                 const state = await app.inject({
-                    url: `/api/v1/projects/${TestObjects.project1.id}/actions/stop`,
+                    url: `/api/v1/projects/${TestObjects.project1.id}/actions/start`,
                     cookies: { sid: TestObjects.tokens.alice }
                 })
 
