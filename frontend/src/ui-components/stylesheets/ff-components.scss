@@ -873,9 +873,6 @@ li.ff-list-item {
       padding: 0 $ff-unit-lg;
       color: $ff-white;
       font-weight: 600;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
     }
     &-content {
       padding: $ff-funit-lg;

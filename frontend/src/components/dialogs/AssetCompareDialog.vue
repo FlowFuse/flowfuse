@@ -55,11 +55,9 @@ import FlowRenderer from '@flowfuse/flow-renderer'
 import SnapshotsApi from '../../api/snapshots.js'
 
 import Alerts from '../../services/alerts.js'
-import FfListbox from '../../ui-components/components/form/ListBox.vue'
 
 export default {
     name: 'AssetCompareDialog',
-    components: { FfListbox },
     props: {
         title: {
             type: String,
