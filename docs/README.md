@@ -316,7 +316,7 @@ Once you're more comfortable with FlowFuse, you may want to explore some of our 
    }
    .ff-product-feature-tile label,
    .ff-product-feature-tile .ff-product-feature-tile-decorator {
-      color: #4F46E5;
+      color: #2463eb;
    }
    .ff-product-feature-tile .ff-icon {
       width: 32px;
