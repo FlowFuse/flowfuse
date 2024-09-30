@@ -1477,6 +1477,31 @@ describe('Project API', function () {
         })
 
         describe('Change project name', function () {
+            it('Updates the name fail for running instance', async function () {
+                // Setup some flows/credentials
+                await addFlowsToProject(app,
+                    TestObjects.project1.id,
+                    TestObjects.tokens.project,
+                    TestObjects.tokens.alice,
+                    [{ id: 'node1' }],
+                    { testCreds: 'abc' },
+                    'key1',
+                    {}
+                )
+
+                // call "Update a project" with a new name
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/projects/${TestObjects.project1.id}`,
+                    payload: {
+                        name: 'new project name'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(500)
+                JSON.parse(response.payload).should.have.property('name', 'Name can only be changed when suspended')
+            })
+
             it('Updates the name', async function () {
                 // Setup some flows/credentials
                 await addFlowsToProject(app,
@@ -1507,38 +1532,6 @@ describe('Project API', function () {
                 })
                 response.statusCode.should.equal(200)
                 JSON.parse(response.payload).should.have.property('error', 'new project name')
-            })
-
-            it('Updates the name', async function () {
-                // Setup some flows/credentials
-                await addFlowsToProject(app,
-                    TestObjects.project1.id,
-                    TestObjects.tokens.project,
-                    TestObjects.tokens.alice,
-                    [{ id: 'node1' }],
-                    { testCreds: 'abc' },
-                    'key1',
-                    {}
-                )
-
-                const state = await app.inject({
-                    url: `/api/v1/projects/${TestObjects.project1.id}/actions/start`,
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-
-                state.statusCode.should.equal(200)
-
-                // call "Update a project" with a new name
-                const response = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/projects/${TestObjects.project1.id}`,
-                    payload: {
-                        name: 'new project name'
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                response.statusCode.should.equal(500)
-                JSON.parse(response.payload).should.have.property('name', 'Name can only be changed when suspended')
             })
 
             it('Non-owner cannot change project name', async function () {
