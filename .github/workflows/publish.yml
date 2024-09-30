@@ -26,7 +26,7 @@ jobs:
     if: |
       ( github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main' ) ||
       ( github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' )
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.30.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.33.0'
     with:
       package_name: flowfuse
       build_package: true
