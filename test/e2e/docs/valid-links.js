@@ -31,7 +31,8 @@ const exceptions = [
     'github.com/FlowFuse/content',
     'github.com/FlowFuse/security',
     'github.com/orgs/flowforge/projects',
-    '/support'
+    '/support',
+    '/img/'
 ]
 
 const parseUri = function (uri) {
