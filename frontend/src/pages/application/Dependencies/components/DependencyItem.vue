@@ -59,7 +59,7 @@ export default {
                 return 'N/A'
             }
 
-            return this.externalDependency.versions[this.externalDependency['dist-tags'].latest]
+            return this.externalDependency.versions[this.externalDependency['dist-tags'].latest].version
         },
         externalLastModified () {
             if (
