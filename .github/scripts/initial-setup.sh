@@ -290,7 +290,8 @@ curl -ks -w "\n" -XPOST \
                         "protectedInstance":true,
                         "editorLimits":true,
                         "customHostnames":true,
-                        "staticAssets":true
+                        "staticAssets":true,
+                        "bom":true
                     },
                     "instances": {
                         "'"$projectTypeId"'": {
