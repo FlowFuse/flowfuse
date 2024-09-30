@@ -24,7 +24,7 @@ The Device Agent connects back to the FlowFuse platform on port 443. You will ne
 
 Additionally, the Device Agent does not install Node-RED at startup. When the agent receives a snapshot to run, it will need to download the required Node-RED version mentioned in the snapshot. Therefore, ensure that your firewall allows access to the following npm registry endpoint:
 
-- `https://registry.npmjs.com/`
+- `https://registry.npmjs.com`
 
 ## Installing the Device Agent
 
