@@ -1505,7 +1505,7 @@ describe('Project API', function () {
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
-                response.statusCode.should.equal(500)
+                response.statusCode.should.equal(200)
                 JSON.parse(response.payload).should.have.property('error', 'new project name')
             })
 
@@ -1521,6 +1521,13 @@ describe('Project API', function () {
                     {}
                 )
 
+                const state = await app.inject({
+                    url: `/api/v1/projects/${TestObjects.project1.id}/actions/stop`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                state.statusCode.should.equal(200)
+
                 // call "Update a project" with a new name
                 const response = await app.inject({
                     method: 'PUT',
@@ -1530,7 +1537,7 @@ describe('Project API', function () {
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
-                response.statusCode.should.equal(200)
+                response.statusCode.should.equal(500)
                 JSON.parse(response.payload).should.have.property('name', 'Name can only be changed when suspended')
             })
 
