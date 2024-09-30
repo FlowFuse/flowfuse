@@ -185,7 +185,7 @@ Once you're more comfortable with FlowFuse, you may want to explore some of our 
 
 <div class="ff-offering-tiles grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
    <div class="ff-tile ff-offering-tile">
-      <label><img src="/img/logo-dashboard.png" />FlowFuse Dashboard</label>
+      <label>FlowFuse Dashboard</label>
       <p>Create interactive, responsive and secure Dashboards in Node-RED.<p>
       <ul>
          <li><a href="https://dashboard.flowfuse.com">Install FlowFuse Dashboard<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
@@ -194,7 +194,7 @@ Once you're more comfortable with FlowFuse, you may want to explore some of our 
       </ul>
    </div>
    <div class="ff-tile ff-offering-tile">
-      <label><img src="/img/logo-device-agent.png" />FlowFuse Device Agent</label>
+      <label>FlowFuse Device Agent</label>
       <p>Manage thousands of Node-RED Instances remotely with the FlowFuse Device Agent.<p>
       <ul>
          <li><a href="/docs/device-agent/install/">Install the Device Agent<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
