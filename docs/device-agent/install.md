@@ -22,7 +22,9 @@ The Device Agent connects back to the FlowFuse platform on port 443. You will ne
  - `app.flowfuse.com:443`
  - `mqtt.flowfuse.cloud:443`
 
-Additionally, ensure your firewall permits access to the npm registry. The Device Agent does not install Node-RED at startup; but when it receives a snapshot to run, it will need to download the required Node-RED version specified in that snapshot.
+Additionally, the Device Agent does not install Node-RED at startup. When the agent receives a snapshot to run, it will need to download the required Node-RED version mentioned in the snapshot. Therefore, ensure that your firewall allows access to the following npm registry endpoint:
+
+- `https://registry.npmjs.com/`
 
 ## Installing the Device Agent
 
