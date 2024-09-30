@@ -405,7 +405,7 @@ describe('FlowForge - Instance - Assets', () => {
 
             cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
                 .click()
-            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .options')
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-options')
                 .should('be.visible')
 
             cy.get('[data-el="folder-breadcrumbs"] [data-el="ff-data-cell"]:nth-child(2)').contains('hello_world')
@@ -431,7 +431,7 @@ describe('FlowForge - Instance - Assets', () => {
 
             cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
                 .click()
-            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .options')
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-options')
                 .should('be.visible')
                 .within(() => {
                     cy.get('[data-action="select-private"]').click()
@@ -464,7 +464,7 @@ describe('FlowForge - Instance - Assets', () => {
 
             cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
                 .click()
-            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .options')
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-options')
                 .should('be.visible')
                 .within(() => {
                     cy.get('[data-action="select-private"]').click()
@@ -493,7 +493,7 @@ describe('FlowForge - Instance - Assets', () => {
 
             cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
                 .click()
-            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .options')
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-options')
                 .should('be.visible')
                 .within(() => {
                     cy.get('[data-action="select-public"]').click()
@@ -537,7 +537,7 @@ describe('FlowForge - Instance - Assets', () => {
 
             cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
                 .click()
-            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .options')
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-options')
                 .should('be.visible')
                 .within(() => {
                     cy.get('[data-action="select-public"]').click()
