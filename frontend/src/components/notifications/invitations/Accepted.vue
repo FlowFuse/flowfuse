@@ -19,9 +19,8 @@
 <script>
 import { UserAddIcon } from '@heroicons/vue/solid'
 
-import { RoleNames } from '../../../../../forge/lib/roles.js'
-
 import NotificationMessageMixin from '../../../mixins/NotificationMessage.js'
+import { RoleNames } from '../../../utils/roles.js'
 
 import NotificationMessage from '../Notification.vue'
 

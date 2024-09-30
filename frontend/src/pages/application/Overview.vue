@@ -102,12 +102,11 @@ import { PlusSmIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import { Roles } from '../../../../forge/lib/roles.js'
-
 import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
 import permissionsMixin from '../../mixins/Permissions.js'
+import { Roles } from '../../utils/roles.js'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 import DashboardLinkCell from '../instance/components/cells/DashboardLink.vue'
 import InstanceEditorLinkCell from '../instance/components/cells/InstanceEditorLink.vue'
