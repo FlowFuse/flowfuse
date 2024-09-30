@@ -207,7 +207,7 @@ Once you're more comfortable with FlowFuse, you may want to explore some of our 
       <label>FlowFuse Assistant</label>
       <p>AI in the Node-RED Editor to help build your flows.<p>
       <ul>
-         <li><a href="/docs/users/assistant/">Getting Started Guide<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+         <li><a href="/docs/user/assistant/">Getting Started Guide<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
       </ul>
    </div>
    <div class="ff-tile ff-offering-tile">
