@@ -1529,8 +1529,8 @@ describe('Project API', function () {
                     },
                     cookies: { sid: TestObjects.tokens.alice }
                 })
-                response.statusCode.should.equal(500)
-                JSON.parse(response.payload).should.have.property('error', 'Name can only be changed when suspended')
+                response.statusCode.should.equal(200)
+                JSON.parse(response.payload).should.have.property('name', 'new project name')
             })
 
             it('Non-owner cannot change project name', async function () {
