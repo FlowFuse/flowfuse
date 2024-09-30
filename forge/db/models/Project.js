@@ -150,6 +150,13 @@ module.exports = {
                     await app.auditLog.Platform.platform.license.overage('system', null, instances)
                 }
             },
+            beforeUpdate: async (project, opts) => {
+                if (project.changed('name')) {
+                    if (project.state != 'suspended') {
+                        throw new Error('Name can only be changed when suspended')
+                    }
+                }
+            },
             afterDestroy: async (project, opts) => {
                 await M.AccessToken.destroy({
                     where: {
