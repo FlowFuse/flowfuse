@@ -152,7 +152,7 @@ module.exports = {
             },
             beforeUpdate: async (project, opts) => {
                 if (project.changed('name')) {
-                    if (project.state != 'suspended') {
+                    if (project.state !== 'suspended') {
                         throw new Error('Name can only be changed when suspended')
                     }
                 }
