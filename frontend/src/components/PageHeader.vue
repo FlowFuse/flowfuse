@@ -69,12 +69,13 @@
     </div>
 </template>
 <script>
-import { AdjustmentsIcon, CogIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, UserAddIcon } from '@heroicons/vue/solid'
+import { AcademicCapIcon, AdjustmentsIcon, CogIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, UserAddIcon } from '@heroicons/vue/solid'
 import { ref } from 'vue'
-import { mapGetters, mapState } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 
 import navigationMixin from '../mixins/Navigation.js'
 import permissionsMixin from '../mixins/Permissions.js'
+import product from '../services/product.js'
 
 import NavItem from './NavItem.vue'
 import NotificationsButton from './NotificationsButton.vue'
@@ -92,7 +93,7 @@ export default {
     mixins: [navigationMixin, permissionsMixin],
     computed: {
         ...mapState('account', ['user', 'team', 'teams']),
-        ...mapGetters('account', ['notifications', 'hasAvailableTeams', 'defaultUserTeam', 'canCreateTeam']),
+        ...mapGetters('account', ['notifications', 'hasAvailableTeams', 'defaultUserTeam', 'canCreateTeam', 'isTrialAccount']),
         ...mapGetters('ux', ['shouldShowLeftMenu']),
         navigationOptions () {
             return [
@@ -118,7 +119,16 @@ export default {
                     tag: 'documentation',
                     onclick: this.to,
                     onclickparams: { url: 'https://flowfuse.com/docs/' }
-                }, {
+                },
+                this.isTrialAccount
+                    ? {
+                        label: 'Getting Started',
+                        icon: AcademicCapIcon,
+                        tag: 'getting-started',
+                        onclick: this.openEducationModal
+                    }
+                    : undefined,
+                {
                     label: 'Sign Out',
                     icon: LogoutIcon,
                     tag: 'sign-out',
@@ -175,6 +185,11 @@ export default {
                     action: 'invite'
                 }
             })
+        },
+        ...mapActions('ux', ['activateTour']),
+        openEducationModal () {
+            this.activateTour('education')
+            product.capture('clicked-open-education-modal')
         }
     }
 }

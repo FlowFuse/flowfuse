@@ -82,7 +82,7 @@ You can then create a new snapshot using the flows you have running locally.
 4. Click 'Create Snapshot'
 
 At this point, a new snapshot will be created in FlowFuse. You can then switch
-to the FlowFuse platform and from the Snapshots menu either select the 'Deploy Snapshot'
+to the FlowFuse platform and from the Snapshots menu either select the 'Restore Snapshot'
 option to deploy that snapshot, or set it as the Device Target to deploy it to your
 devices.
 

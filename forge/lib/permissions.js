@@ -120,6 +120,10 @@ const Permissions = {
     /**
      * EE Permissions
      */
+
+    // Projects
+    'project:history': { description: 'View project history', role: Roles.Member },
+
     // Application
     'application:bom': { description: 'Get the Bill of Materials', role: Roles.Owner },
 

@@ -19,6 +19,7 @@ import FFDataTableRow from './components/data-table/DataTableRow.vue'
 import FFCheckbox from './components/form/Checkbox.vue'
 import FFDropdown from './components/form/Dropdown.vue'
 import FFDropdownOption from './components/form/DropdownOption.vue'
+import FFListbox from './components/form/ListBox.vue'
 import FFRadioButton from './components/form/RadioButton.vue'
 import FFRadioGroup from './components/form/RadioGroup.vue'
 import FFTextInput from './components/form/TextInput.vue'
@@ -50,6 +51,7 @@ export default {
     // Form Elements
     FFTextInput,
     FFDropdown,
+    FFListbox,
     FFDropdownOption,
     FFCheckbox,
     FFToggleSwitch,

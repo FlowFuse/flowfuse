@@ -32,7 +32,7 @@ function identify (userId, set, setonce) {
  * a proeprty $set or $set_once which in turn can be an object to bind properties to the associated user
  * @param {Object} groups - ties a given 'group' to the event. Optional keys: 'team', 'application', 'instance', 'device'
  */
-function capture (event, properties, groups) {
+function capture (event, properties, groups = undefined) {
     if (!properties) {
         properties = {}
     }
