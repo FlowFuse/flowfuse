@@ -13,7 +13,7 @@
             Team Invitation
         </template>
         <template #message>
-            You have been invited by <i>"{{ invitorName }}"</i> to join <i>"{{ teamName }}"</i>.
+            <p>You have been invited by <i>"{{ invitorName }}"</i> to join <i>"{{ teamName }}"</i>.</p>
         </template>
     </NotificationMessage>
 </template>
