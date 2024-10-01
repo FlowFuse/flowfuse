@@ -1,3 +1,5 @@
+const aliceInviteToATeam = require('../fixtures/notifications/alice-invites-to-ateam.json')
+const bobInviteToATeam = require('../fixtures/notifications/bob-invites-to-bteam.json')
 describe('FlowForge - Notifications', () => {
     describe('Team Invitations', () => {
         describe('appear as notification messages', () => {
@@ -12,42 +14,12 @@ describe('FlowForge - Notifications', () => {
                     count: 2,
                     notifications: [
                         {
-                            id: '1',
-                            type: 'team-invite',
-                            createdAt: new Date().setTime((new Date()).getTime() - 3600000),
-                            read: false,
-                            data: {
-                                invite: {
-                                    id: 'abcd1'
-                                },
-                                team: {
-                                    id: 'gY9GQjDb2k',
-                                    name: 'ATeam'
-                                },
-                                invitor: {
-                                    username: 'alice'
-                                },
-                                role: 30
-                            }
+                            ...aliceInviteToATeam,
+                            createdAt: new Date().setTime((new Date()).getTime() - 3600000)
                         },
                         {
-                            id: '2',
-                            type: 'team-invite',
-                            createdAt: new Date().setTime((new Date()).getTime() - 3600000),
-                            read: false,
-                            data: {
-                                invite: {
-                                    id: 'abcd2'
-                                },
-                                team: {
-                                    id: 'gY9GQjDb2k',
-                                    name: 'BTeam'
-                                },
-                                invitor: {
-                                    username: 'bob'
-                                },
-                                role: 30
-                            }
+                            ...bobInviteToATeam,
+                            createdAt: new Date().setTime((new Date()).getTime() - 3600000)
                         }
                     ]
                 }).as('getNotifications')
@@ -64,19 +36,19 @@ describe('FlowForge - Notifications', () => {
                 cy.wait('@getTeams')
                 cy.wait('@getNotifications')
 
-                cy.get('[data-el="right-drawer"').should('not.be.visible')
+                cy.get('[data-el="right-drawer"]').should('not.be.visible')
 
                 cy.get('[data-el="desktop-nav-right"]').within(() => {
-                    cy.get('[data-el="notifications-button"')
+                    cy.get('[data-el="notifications-button"]')
                         .should('exist')
                         .contains(2)
 
-                    cy.get('[data-el="notifications-button"').click()
+                    cy.get('[data-el="notifications-button"]').click()
                 })
 
-                cy.get('[data-el="right-drawer"').should('be.visible')
+                cy.get('[data-el="right-drawer"]').should('be.visible')
 
-                cy.get('[data-el="right-drawer"').within(() => {
+                cy.get('[data-el="right-drawer"]').within(() => {
                     cy.get('[data-el="notifications-drawer"]')
 
                     cy.get('[data-el="invitation-message"]').should('have.length', 2)
@@ -89,7 +61,7 @@ describe('FlowForge - Notifications', () => {
                     cy.url().should('include', 'account/teams/invitations')
                 })
 
-                cy.get('[data-el="notifications-button"')
+                cy.get('[data-el="notifications-button"]')
                     .should('exist')
                     .contains(1)
             })
@@ -135,19 +107,19 @@ describe('FlowForge - Notifications', () => {
                 cy.wait('@getTeams')
                 cy.wait('@getNotifications')
 
-                cy.get('[data-el="right-drawer"').should('not.be.visible')
+                cy.get('[data-el="right-drawer"]').should('not.be.visible')
 
                 cy.get('[data-el="desktop-nav-right"]').within(() => {
-                    cy.get('[data-el="notifications-button"')
+                    cy.get('[data-el="notifications-button"]')
                         .should('exist')
                         .contains(1)
 
-                    cy.get('[data-el="notifications-button"').click()
+                    cy.get('[data-el="notifications-button"]').click()
                 })
 
-                cy.get('[data-el="right-drawer"').should('be.visible')
+                cy.get('[data-el="right-drawer"]').should('be.visible')
 
-                cy.get('[data-el="right-drawer"').within(() => {
+                cy.get('[data-el="right-drawer"]').within(() => {
                     cy.get('[data-el="notifications-drawer"]')
 
                     cy.get('[data-el="invitation-message"]').should('have.length', 1)
@@ -160,7 +132,7 @@ describe('FlowForge - Notifications', () => {
 
                     cy.url().should('include', 'account/teams/invitations')
                 })
-                cy.get('[data-el="notifications-button"')
+                cy.get('[data-el="notifications-button"]')
                     .should('exist')
                     .contains(1).should('not.exist')
             })
