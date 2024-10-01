@@ -1,7 +1,7 @@
 <template>
     <div class="ff-notifications-drawer" data-el="notifications-drawer">
         <div class="header">
-            <div class="flex">
+            <div class="flex content">
                 <h2 class="title flex-grow">Notifications</h2>
                 <ff-checkbox v-model="hideReadNotifications" class=" mt-2 mr-4" data-action="show-read-check">
                     Hide Read

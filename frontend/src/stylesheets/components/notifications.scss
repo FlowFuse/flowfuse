@@ -49,13 +49,22 @@ $ff-notifications-drawer-side-padding: 6px;
     padding: 10px 0;
     width: 100%;
 
-    .title {
-      padding: 0 $ff-notifications-drawer-side-padding;
-      margin: 0;
-      color: $ff-grey-800;
-      font-weight: bold;
-      font-size: 1.25rem;
-      line-height: 1.75rem;
+    .content {
+      padding: 0 $ff-notifications-drawer-side-padding*2;
+      display: flex;
+      align-items: baseline;
+
+      .title {
+        margin: 0;
+        color: $ff-grey-800;
+        font-weight: bold;
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+      }
+
+      .ff-checkbox {
+        margin: 0;
+      }
     }
 
     .actions {
@@ -168,7 +177,7 @@ $ff-notifications-drawer-side-padding: 6px;
         flex: 1;
         display: flex;
         flex-direction: column;
-        padding: 9px $ff-notifications-drawer-side-padding;
+        padding: 9px $ff-notifications-drawer-side-padding*2 9px $ff-notifications-drawer-side-padding;
 
         .header {
           gap: 5px;
