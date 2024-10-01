@@ -1,7 +1,5 @@
-const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HEALTH_CHECK_INTERVAL, KEY_SHARED_ASSETS } = require('../../db/models/ProjectSettings')
+const { KEY_SETTINGS, KEY_HEALTH_CHECK_INTERVAL, KEY_SHARED_ASSETS } = require('../../db/models/ProjectSettings')
 const { Roles } = require('../../lib/roles')
-
-const { isFQDN } = require('../../lib/validate')
 
 const ProjectActions = require('./projectActions')
 const ProjectDevices = require('./projectDevices')
@@ -384,6 +382,7 @@ module.exports = async function (app) {
         }
 
         // Hostname
+        /*
         const newHostname = request.body.hostname?.toLowerCase().replace(/\.$/, '') // trim trailing .
         const oldHostname = await request.project.getSetting(KEY_HOSTNAME)
         if (newHostname && newHostname !== oldHostname) {
@@ -401,6 +400,7 @@ module.exports = async function (app) {
 
             changesToPersist.hostname = { from: oldHostname, to: newHostname }
         }
+        */
 
         // Settings
         if (request.body.settings) {
@@ -492,7 +492,7 @@ module.exports = async function (app) {
         /// Persist the changes
         const updates = new app.auditLog.formatters.UpdatesCollection()
         const transaction = await app.db.sequelize.transaction() // start a transaction
-        const changesToProjectDefinition = (changesToPersist.stack || changesToPersist.projectType) && !changesToPersist.projectType?.firstUpdate
+        const changesToProjectDefinition = (changesToPersist.stack || changesToPersist.projectType || changesToPersist.name) && !changesToPersist.projectType?.firstUpdate
         let repliedEarly = false
         try {
             let resumeProject, targetState
@@ -518,11 +518,11 @@ module.exports = async function (app) {
                 updates.push('name', changesToPersist.name.from, changesToPersist.name.to)
             }
 
-            if (changesToPersist.hostname) {
-                await request.project.updateSetting(KEY_HOSTNAME, changesToPersist.hostname.to, { transaction })
+            // if (changesToPersist.hostname) {
+            //     await request.project.updateSetting(KEY_HOSTNAME, changesToPersist.hostname.to, { transaction })
 
-                updates.push('hostname', changesToPersist.hostname.from, changesToPersist.hostname.to)
-            }
+            //     updates.push('hostname', changesToPersist.hostname.from, changesToPersist.hostname.to)
+            // }
 
             if (changesToPersist.settings) {
                 await request.project.updateSetting(KEY_SETTINGS, changesToPersist.settings.to, { transaction })

@@ -10,7 +10,7 @@ const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
-const { KEY_HOSTNAME, KEY_HEALTH_CHECK_INTERVAL } = FF_UTIL.require('forge/db/models/ProjectSettings')
+const { KEY_HEALTH_CHECK_INTERVAL } = FF_UTIL.require('forge/db/models/ProjectSettings')
 const { START_DELAY, STOP_DELAY } = FF_UTIL.require('forge/containers/stub/index.js')
 
 describe('Project API', function () {
@@ -1500,7 +1500,13 @@ describe('Project API', function () {
                     cookies: { sid: TestObjects.tokens.alice }
                 })
                 response.statusCode.should.equal(200)
-                JSON.parse(response.payload).should.have.property('name', 'new project name')
+                await sleep(STOP_DELAY + START_DELAY + 50)
+                const newResponse = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/projects/${TestObjects.project1.id}`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                JSON.parse(newResponse.payload).should.have.property('name', 'new project name')
             })
 
             it('Updates the name fail for running instance', async function () {
@@ -1765,6 +1771,7 @@ describe('Project API', function () {
             response.statusCode.should.equal(403)
         })
 
+        /*
         describe('Update hostname', function () {
             it('Changes the projects hostname', async function () {
                 // call "Update a project" with a new hostname
@@ -1840,6 +1847,7 @@ describe('Project API', function () {
                 response.json().error.should.containEql('in use')
             })
         })
+        */
 
         it('Export to another project - includes everything ', async function () {
             // Setup some flows/credentials
