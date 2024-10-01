@@ -3,6 +3,8 @@
         :notification="notification"
         :selections="selections"
         data-el="invitation-message" :to="{name: 'User Invitations'}"
+        @selected="onSelect"
+        @deselected="onDeselect"
     >
         <template #icon>
             <UserAddIcon />
