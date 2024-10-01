@@ -1,3 +1,5 @@
+const { getNotifications } = require('../../services/notifications.js')
+
 /**
  * User Notification api routes
  *
@@ -27,35 +29,46 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const paginationOptions = app.getPaginationOptions(request)
-        const notifications = await app.db.models.Notification.forUser(request.session.User, paginationOptions)
-        notifications.notifications = app.db.views.Notification.notificationList(notifications.notifications)
+        const notifications = await getNotifications(app, request)
+
         reply.send(notifications)
     })
 
     // Bulk update
-    // app.put('/', {
-    //     schema: {
-    //         summary: 'Mark notifications as read',
-    //         tags: ['User'],
-    //         body: {
-    //             type: 'object',
-    //             properties: {
-    //                 id: { type: 'string' },
-    //                 read: { type: 'boolean' }
-    //             }
-    //         },
-    //         response: {
-    //             200: {
-    //                 $ref: 'APIStatus'
-    //             },
-    //             '4xx': {
-    //                 $ref: 'APIError'
-    //             }
-    //         }
-    //     }
-    // }, async (request, reply) => {
-    // })
+    app.put('/', {
+        schema: {
+            summary: 'Mark notifications as read',
+            tags: ['User'],
+            body: {
+                type: 'object',
+                properties: {
+                    ids: { type: 'array', items: { type: 'string' } },
+                    read: { type: 'boolean' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        notifications: { $ref: 'NotificationList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const payload = { read: request.body.read, ids: request.body.ids }
+
+        await app.db.models.Notification.markNotificationsAsRead(payload, request.session.User)
+
+        const notifications = await getNotifications(app, request)
+
+        reply.send(notifications)
+    })
 
     // Bulk delete
     // app.delete('/', {

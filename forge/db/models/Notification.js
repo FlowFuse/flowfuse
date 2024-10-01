@@ -89,6 +89,23 @@ module.exports = {
                         count,
                         notifications: rows
                     }
+                },
+                markNotificationsAsRead: async ({ read = true, ids = [] }, user) => {
+                    if (ids.length === 0) {
+                        return
+                    }
+
+                    ids = ids.map(id => Number.isNaN(id) ? M.Notification.decodeHashid(id) : id)
+
+                    await M.Notification.update(
+                        { read: read ? 1 : 0 },
+                        {
+                            where: {
+                                id: ids.map(M.Notification.decodeHashid),
+                                UserId: user.id
+                            }
+                        }
+                    )
                 }
             }
         }
