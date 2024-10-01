@@ -19,6 +19,9 @@
             </div>
         </div>
         <div class="footer">
+            <div class="action" @click.prevent.stop>
+                <ff-checkbox v-model="isSelected" @click="toggleSelection" />
+            </div>
             <slot name="timestamp">
                 <span v-ff-tooltip:left="tooltip"> {{ notification.createdSince }} </span>
             </slot>
@@ -133,6 +136,15 @@ export default {
 
             .counter .ff-notification-pill {
                 background-color: $info;
+            }
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+
+            .action {
+                margin-left: -15px;
             }
         }
     }
