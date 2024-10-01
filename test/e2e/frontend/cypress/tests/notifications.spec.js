@@ -1,6 +1,7 @@
 const aliceInviteToATeam = require('../fixtures/notifications/alice-invites-to-ateam.json')
 const bobInviteToATeam = require('../fixtures/notifications/bob-invites-to-bteam.json')
 const eddyAcceptedInvite = require('../fixtures/notifications/eddy-accepted-invite-to-ateam.json')
+const instanceCrash = require('../fixtures/notifications/instance-crashed.json')
 
 describe('FlowForge - Notifications', () => {
     describe('Team Invitations', () => {
@@ -139,7 +140,7 @@ describe('FlowForge - Notifications', () => {
                     .contains(1).should('not.exist')
             })
 
-            it.only('shows a user accepted invitation notification', () => {
+            it('shows a user accepted invitation notification', () => {
                 cy.login('alice', 'aaPassword')
 
                 cy.intercept('/api/*/user').as('getUser')
@@ -190,6 +191,61 @@ describe('FlowForge - Notifications', () => {
                     cy.wait('@markInvitationRead')
                     cy.url().should('include', '/members/general')
                 })
+            })
+        })
+    })
+
+    describe('Instance Crashes', () => {
+        it('appear as notification messages', () => {
+            cy.login('alice', 'aaPassword')
+
+            cy.intercept('/api/*/user').as('getUser')
+            cy.intercept('/api/*/settings').as('getSettings')
+            cy.intercept('/api/*/user/teams').as('getTeams')
+            cy.intercept('/api/*/user/notifications', {
+                meta: {},
+                count: 1,
+                notifications: [
+                    {
+                        ...instanceCrash,
+                        createdAt: new Date().setTime((new Date()).getTime() - 3600000)
+                    }
+                ]
+            }).as('getNotifications')
+
+            cy.intercept('PUT', '/api/*/user/notifications/*', {}).as('markInvitationRead')
+
+            cy.intercept('/api/*/admin/stats').as('getAdminStats')
+            cy.intercept('/api/*/admin/license').as('getAdminLicense')
+
+            cy.visit('/')
+
+            cy.wait('@getUser')
+            cy.wait('@getSettings')
+            cy.wait('@getTeams')
+            cy.wait('@getNotifications')
+
+            cy.get('[data-el="desktop-nav-right"]').within(() => {
+                cy.get('[data-el="notifications-button"]')
+                    .should('exist')
+                    .contains(2)
+
+                cy.get('[data-el="notifications-button"]').click()
+            })
+
+            cy.get('[data-el="right-drawer"]').should('be.visible')
+
+            cy.get('[data-el="right-drawer"]').within(() => {
+                cy.get('[data-el="notifications-drawer"]')
+
+                cy.get('[data-el="generic-notification"]').should('have.length', 1)
+
+                cy.get('[data-el="generic-notification"]').contains('Node-RED Instance Crashed')
+                cy.get('[data-el="generic-notification"]').contains('"instance-1-1" has crashed')
+
+                cy.get('[data-el="generic-notification"]').contains('Node-RED Instance Crashed').click()
+                cy.wait('@markInvitationRead')
+                cy.url().should('match', /instance\/.*\/overview/)
             })
         })
     })
