@@ -381,27 +381,6 @@ module.exports = async function (app) {
             changesToPersist.name = { from: projectName, to: reqName }
         }
 
-        // Hostname
-        /*
-        const newHostname = request.body.hostname?.toLowerCase().replace(/\.$/, '') // trim trailing .
-        const oldHostname = await request.project.getSetting(KEY_HOSTNAME)
-        if (newHostname && newHostname !== oldHostname) {
-            if (!isFQDN(newHostname)) {
-                reply.status(409).type('application/json').send({ code: 'invalid_hostname', error: 'Hostname is not an FQDN' })
-                return
-            }
-
-            const hostnameInUse = await app.db.models.ProjectSettings.isHostnameUsed(newHostname)
-            const hostnameMatchesDomain = (app.config.domain && newHostname.endsWith(app.config.domain.toLowerCase()))
-            if (hostnameInUse || hostnameMatchesDomain) {
-                reply.status(409).type('application/json').send({ code: 'invalid_hostname', error: 'Hostname is already in use' })
-                return
-            }
-
-            changesToPersist.hostname = { from: oldHostname, to: newHostname }
-        }
-        */
-
         // Settings
         if (request.body.settings) {
             let bodySettings
@@ -517,12 +496,6 @@ module.exports = async function (app) {
 
                 updates.push('name', changesToPersist.name.from, changesToPersist.name.to)
             }
-
-            // if (changesToPersist.hostname) {
-            //     await request.project.updateSetting(KEY_HOSTNAME, changesToPersist.hostname.to, { transaction })
-
-            //     updates.push('hostname', changesToPersist.hostname.from, changesToPersist.hostname.to)
-            // }
 
             if (changesToPersist.settings) {
                 await request.project.updateSetting(KEY_SETTINGS, changesToPersist.settings.to, { transaction })
