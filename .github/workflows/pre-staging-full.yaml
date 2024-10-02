@@ -69,7 +69,7 @@ jobs:
       github.event_name == 'workflow_dispatch' &&
       github.event.action != 'closed' &&
       inputs.driver-k8s-branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@feat-publish-package-from-branch'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.33.0'
     with:
       package_name: driver-k8s
       publish_package: true
@@ -87,7 +87,7 @@ jobs:
       github.event_name == 'workflow_dispatch' &&
       github.event.action != 'closed' &&
       inputs.nr_launcher_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@feat-publish-package-from-branch'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.33.0'
     with:
       package_name: flowfuse-nr-launcher
       publish_package: true
@@ -107,7 +107,7 @@ jobs:
       github.event_name == 'workflow_dispatch' &&
       github.event.action != 'closed' &&
       (always() && needs.publish_nr_launcher.result != 'failure')
-    uses: flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml@refactor-container-build
+    uses: flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml@v0.33.0
     with:
       image_name: 'node-red'
       dockerfile_path: Dockerfile
