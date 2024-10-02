@@ -120,7 +120,6 @@ jobs:
       build_platform: "linux/arm64"
       npm_registry_url: ${{ vars.PUBLIC_NPM_REGISTRY_URL }}
     secrets:
-      npm_registry_auth_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
       temporary_registry_token: ${{ secrets.GITHUB_TOKEN }}
 
   upload-node-red:
