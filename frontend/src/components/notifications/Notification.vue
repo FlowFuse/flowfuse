@@ -1,7 +1,7 @@
 <template>
     <div class="message-wrapper" :class="messageClass" @click="go(to)">
         <div class="action" @click.prevent.stop>
-            <ff-checkbox v-model="isSelected" @click="toggleSelection" />
+            <ff-checkbox v-model="isSelected" data-action="select-notification" @click="toggleSelection" />
         </div>
         <div class="body">
             <div class="header">
@@ -63,7 +63,8 @@ export default {
             return {
                 unread: !this.notification.read,
                 warning: this.notification.data?.meta?.severity === 'warning',
-                error: this.notification.data?.meta?.severity === 'error'
+                error: this.notification.data?.meta?.severity === 'error',
+                selected: this.isSelected
             }
         }
     },

@@ -9,10 +9,38 @@
             </div>
 
             <div class="actions">
-                <span class="forge-badge" :class="{disabled: !canSelectAll}" @click="selectAll">select all</span>
-                <span class="forge-badge" :class="{disabled: !canDeselectAll}" @click="deselectAll">deselect all</span>
-                <span class="forge-badge" :class="{disabled: !canMarkAsRead}" @click="bulkNotificationAction(true)">mark as read</span>
-                <span class="forge-badge" :class="{disabled: !canMarkAsUnread}" @click="bulkNotificationAction(false)">mark as unread</span>
+                <span
+                    class="forge-badge"
+                    :class="{disabled: !canSelectAll}"
+                    data-action="select-all"
+                    @click="selectAll"
+                >
+                    select all
+                </span>
+                <span
+                    class="forge-badge"
+                    :class="{disabled: !canDeselectAll}"
+                    data-action="deselect-all"
+                    @click="deselectAll"
+                >
+                    deselect all
+                </span>
+                <span
+                    class="forge-badge"
+                    :class="{disabled: !canMarkAsRead}"
+                    data-action="mark-as-read"
+                    @click="bulkNotificationAction(true)"
+                >
+                    mark as read
+                </span>
+                <span
+                    class="forge-badge"
+                    :class="{disabled: !canMarkAsUnread}"
+                    data-action="mark-as-unread"
+                    @click="bulkNotificationAction(false)"
+                >
+                    mark as unread
+                </span>
             </div>
         </div>
         <ul v-if="hasNotificationMessages" class="messages-wrapper" data-el="messages-wrapper">

@@ -249,4 +249,169 @@ describe('FlowForge - Notifications', () => {
             })
         })
     })
+
+    describe('Can preform bulk actions', () => {
+        beforeEach(() => {
+            cy.login('alice', 'aaPassword')
+
+            cy.intercept('/api/*/user').as('getUser')
+            cy.intercept('/api/*/settings').as('getSettings')
+            cy.intercept('/api/*/user/teams').as('getTeams')
+
+            cy.intercept('PUT', '/api/*/user/notifications/*', {}).as('markInvitationRead')
+
+            cy.intercept('/api/*/admin/stats').as('getAdminStats')
+            cy.intercept('/api/*/admin/license').as('getAdminLicense')
+
+            cy.visit('/')
+        })
+
+        it('has all of the action buttons disabled when no notifications are present', () => {
+            cy.intercept('/api/*/user/notifications', {
+                meta: {},
+                count: 0,
+                notifications: []
+            }).as('getNotifications')
+
+            cy.wait('@getUser')
+            cy.wait('@getSettings')
+            cy.wait('@getTeams')
+            cy.wait('@getNotifications')
+
+            cy.get('[data-el="desktop-nav-right"]').within(() => {
+                cy.get('[data-el="notifications-button"]').click()
+            })
+
+            cy.get('[data-el="right-drawer"]').should('be.visible')
+
+            cy.get('[data-el="notifications-drawer"]').within(() => {
+                cy.get('[data-action="select-all"]').should('have.class', 'disabled')
+                cy.get('[data-action="deselect-all"]').should('have.class', 'disabled')
+                cy.get('[data-action="mark-as-read"]').should('have.class', 'disabled')
+                cy.get('[data-action="mark-as-unread"]').should('have.class', 'disabled')
+            })
+        })
+
+        it('can select and deselect notifications', () => {
+            cy.intercept('/api/*/user/notifications', {
+                meta: {},
+                count: 4,
+                notifications: [
+                    {
+                        ...aliceInviteToATeam,
+                        createdAt: new Date().setTime((new Date()).getTime() - 3600000)
+                    },
+                    {
+                        ...bobInviteToATeam,
+                        createdAt: new Date().setTime((new Date()).getTime() - 3600000)
+                    },
+                    {
+                        ...eddyAcceptedInvite,
+                        createdAt: new Date().setTime((new Date()).getTime() - 3600000),
+                        read: true
+                    },
+                    {
+                        ...instanceCrash,
+                        createdAt: new Date().setTime((new Date()).getTime() - 3600000)
+                    }
+                ]
+            }).as('getNotifications')
+
+            cy.wait('@getUser')
+            cy.wait('@getSettings')
+            cy.wait('@getTeams')
+            cy.wait('@getNotifications')
+
+            cy.get('[data-el="desktop-nav-right"]').within(() => {
+                cy.get('[data-el="notifications-button"]').click()
+            })
+
+            cy.get('[data-el="right-drawer"]').should('be.visible')
+
+            cy.get('[data-el="notifications-drawer"]').within(() => {
+                // has 4 notifications available, should be able to select all but not deselect or mark as read/unread
+                cy.get('[data-action="select-all"]').should('not.have.class', 'disabled')
+                cy.get('[data-action="deselect-all"]').should('have.class', 'disabled')
+                cy.get('[data-action="mark-as-read"]').should('have.class', 'disabled')
+                cy.get('[data-action="mark-as-unread"]').should('have.class', 'disabled')
+
+                // select one read notification
+                //      select all should be enabled because we have other notifications that can be selected
+                //      deselect should be enabled
+                //      mark as read should be enabled
+                //      mark as unread should be disabled
+                //      notification should have class selected?
+                cy.get('[data-el="messages-wrapper"] [data-el="message"]').should('have.length', 3)
+                cy.get('[data-el="messages-wrapper"] [data-el="message"]:first-of-type [data-action="select-notification"]')
+                    .click()
+                cy.get('[data-action="select-all"]').should('not.have.class', 'disabled')
+                cy.get('[data-action="deselect-all"]').should('not.have.class', 'disabled')
+                cy.get('[data-action="mark-as-read"]').should('not.have.class', 'disabled')
+                cy.get('[data-action="mark-as-unread"]').should('have.class', 'disabled')
+                cy.get('[data-el="messages-wrapper"] [data-el="message"] .selected').should('have.length', 1)
+
+                // clicking select all will select all notifications
+                cy.get('[data-action="select-all"]').click()
+                cy.get('[data-action="select-all"]').should('have.class', 'disabled')
+                cy.get('[data-action="deselect-all"]').should('not.have.class', 'disabled')
+                cy.get('[data-el="messages-wrapper"] [data-el="message"] .selected').should('have.length', 3)
+
+                // clicking deselect all will select all notifications
+                cy.get('[data-action="deselect-all"]').click()
+                cy.get('[data-action="deselect-all"]').should('have.class', 'disabled')
+                cy.get('[data-action="select-all"]').should('not.have.class', 'disabled')
+                cy.get('[data-el="messages-wrapper"] [data-el="message"] .selected').should('have.length', 0)
+
+                // selecting all and showing read notifications allows you to select more
+                cy.get('[data-action="select-all"]').click()
+                cy.get('[data-action="select-all"]').should('have.class', 'disabled')
+                cy.get('[data-action="deselect-all"]').should('not.have.class', 'disabled')
+                cy.get('[data-el="messages-wrapper"] [data-el="message"] .selected').should('have.length', 3)
+                cy.get('[data-action="mark-as-read"]').should('not.have.class', 'disabled')
+                cy.get('[data-action="mark-as-unread"]').should('have.class', 'disabled')
+                cy.get('[data-action="show-read-check"]').click()
+                cy.get('[data-action="select-all"]').should('not.have.class', 'disabled')
+
+                // selecting unread notifications will enable the mark as unread button
+                cy.get('[data-action="select-all"]').click()
+                cy.get('[data-action="select-all"]').should('have.class', 'disabled')
+                cy.get('[data-action="mark-as-unread"]').should('not.have.class', 'disabled')
+
+                // marking notifications as read will preform an api call and refresh the notifications list
+                cy.intercept('/api/*/user/notifications', {
+                    meta: {},
+                    count: 4,
+                    notifications: [
+                        {
+                            ...aliceInviteToATeam,
+                            createdAt: new Date().setTime((new Date()).getTime() - 3600000),
+                            read: true
+                        },
+                        {
+                            ...bobInviteToATeam,
+                            createdAt: new Date().setTime((new Date()).getTime() - 3600000),
+                            read: true
+                        },
+                        {
+                            ...eddyAcceptedInvite,
+                            createdAt: new Date().setTime((new Date()).getTime() - 3600000),
+                            read: true
+                        },
+                        {
+                            ...instanceCrash,
+                            createdAt: new Date().setTime((new Date()).getTime() - 3600000),
+                            read: true
+                        }
+                    ]
+                }).as('getNotifications')
+                cy.get('[data-action="mark-as-read"]').click()
+
+                // selecting only read notifications will enable the mark as unread button and keep the mark as read button disabled
+                cy.get('[data-action="select-all"]').click()
+                cy.get('[data-action="select-all"]').should('have.class', 'disabled')
+                cy.get('[data-action="mark-as-unread"]').should('not.have.class', 'disabled')
+                cy.get('[data-action="mark-as-read"]').should('have.class', 'disabled')
+            })
+        })
+    })
 })
