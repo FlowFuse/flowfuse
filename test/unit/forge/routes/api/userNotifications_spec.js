@@ -15,9 +15,11 @@ describe('User Notifications API', async function () {
 
         TestObjects.alice = await app.db.models.User.byUsername('alice')
         TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword', admin: true, sso_enabled: true })
+        TestObjects.colin = await app.db.models.User.create({ username: 'colin', name: 'Colin Solo', email: 'colin@example.com', email_verified: true, password: 'ccPassword', admin: false, sso_enabled: true })
 
         await login('alice', 'aaPassword')
         await login('bob', 'bbPassword')
+        await login('colin', 'ccPassword')
     }
 
     before(async function () {
@@ -179,8 +181,8 @@ describe('User Notifications API', async function () {
         it('user can mark notification as read/unread in bulk', async function () {
             const notificationType = 'crashed'
             const notificationRef = `${notificationType}:${TestObjects.Project1.id}`
-            await app.notifications.send(TestObjects.alice, notificationType, { user: 'alice', i: 1 }, notificationRef, { upsert: false })
-            await app.notifications.send(TestObjects.alice, notificationType, { user: 'alice', i: 1 }, notificationRef, { upsert: false })
+            await app.notifications.send(TestObjects.colin, notificationType, { user: 'colin', i: 1 }, notificationRef, { upsert: false })
+            await app.notifications.send(TestObjects.colin, notificationType, { user: 'colin', i: 1 }, notificationRef, { upsert: false })
 
             const aliceNotifications = await getNotifications(TestObjects.tokens.alice)
             aliceNotifications.should.have.property('count', 2)
