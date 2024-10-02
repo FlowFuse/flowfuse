@@ -416,6 +416,7 @@ jobs:
   notify-slack:
     name: Notify about pre-staging deployment
     needs: 
+      - deploy
       - create-custom-stack
     if: |
       always() &&
