@@ -21,7 +21,7 @@
                 <template v-else-if="stage.action === StageAction.PROMPT">
                     use the snapshot selected below from "{{ stage.name }}" and
                 </template>
-                copy over all flows, nodes and credentials to "{{ target?.name }}".
+                copy over all flows, nodes, environment variables and credentials to "{{ target?.name }}".
             </p>
             <template v-if="target?.stageType === StageType.DEVICEGROUP">
                 <p class="my-4">
@@ -34,8 +34,7 @@
                 </p>
             </template>
             <p class="my-4">
-                It will also transfer the keys, but not the values, of any newly created Environment
-                Variables not currently in the target {{ targetTypeName }}.
+                NOTE: Environment Variable keys that already exist in the target {{ targetTypeName }} will not be overwritten.
             </p>
 
             <template v-if="(promptForSnapshot || useLatestSnapshot) && loadingSnapshots">
