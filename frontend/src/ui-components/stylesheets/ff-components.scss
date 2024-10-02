@@ -77,7 +77,7 @@
   line-height: 20px;
   height: 32px;
   position: relative;
-  
+
   justify-content: center;
   font-weight: bold;
   height: auto;
@@ -94,7 +94,7 @@
     line-height: 16px;
     height: 24px;
   }
-  
+
   &.ff-btn-fwidth {
     justify-content: center;
   }
@@ -410,7 +410,7 @@ li.ff-list-item {
     border-radius: 4px;
     background-color: transparent;
     border: 1px solid;
-    border-color: $ff-grey-400;    
+    border-color: $ff-grey-400;
   }
   &:hover:not([disabled=true]) {
     .checkbox {
@@ -573,7 +573,7 @@ li.ff-list-item {
     border-radius: 4px;
     background-color: transparent;
     border: 1px solid $ff-grey-400;
-    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e")    
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e")
   }
 }
 
@@ -676,7 +676,7 @@ li.ff-list-item {
 }
 
 /*
-  FF Data Table 
+  FF Data Table
 */
 .ff-data-table {
   width: 100%;
