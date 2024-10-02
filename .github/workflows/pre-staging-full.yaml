@@ -415,9 +415,10 @@ jobs:
 
   notify-slack:
     name: Notify about pre-staging deployment
-    needs: [deploy]
+    needs: 
+      - create-custom-stack
     if: |
-      ( success() || failure() ) &&
+      always() &&
       github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     env:
