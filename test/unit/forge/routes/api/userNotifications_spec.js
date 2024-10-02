@@ -176,6 +176,40 @@ describe('User Notifications API', async function () {
             aliceNotifications3.notifications[0].should.have.property('read', false)
             aliceNotifications3.notifications[1].should.have.property('read', false)
         })
+        it('user can mark notification as read/unread in bulk', async function () {
+            const notificationType = 'crashed'
+            const notificationRef = `${notificationType}:${TestObjects.Project1.id}`
+            await app.notifications.send(TestObjects.alice, notificationType, { user: 'alice', i: 1 }, notificationRef, { upsert: false })
+            await app.notifications.send(TestObjects.alice, notificationType, { user: 'alice', i: 1 }, notificationRef, { upsert: false })
+
+            const aliceNotifications = await getNotifications(TestObjects.tokens.alice)
+            aliceNotifications.should.have.property('count', 2)
+
+            const ids = aliceNotifications.notifications.map(n => n.id)
+            const response1 = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/notifications/',
+                payload: { read: true, ids },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response1.statusCode.should.equal(200)
+
+            const aliceNotifications2 = await getNotifications(TestObjects.tokens.alice)
+            aliceNotifications2.notifications[0].should.have.property('read', true)
+            aliceNotifications2.notifications[1].should.have.property('read', true)
+
+            const response2 = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/notifications/',
+                payload: { read: false, ids },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response2.statusCode.should.equal(200)
+
+            const aliceNotifications3 = await getNotifications(TestObjects.tokens.alice)
+            aliceNotifications3.notifications[0].should.have.property('read', false)
+            aliceNotifications3.notifications[1].should.have.property('read', false)
+        })
         it('user cannot modify another users notification', async function () {
             const aliceNotifications = await getNotifications(TestObjects.tokens.alice)
             // Try to update alice's notifications using bob
