@@ -204,6 +204,7 @@ jobs:
           if [ -n "$customStackId" ]; then
             echo "Stack already exists, updating..."
             curl -ks -X PUT \
+              --fail-with-body \
               -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
               -H "Content-Type: application/json" \
               -d '{"properties": {"container": "'"${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ needs.upload-node-red.outputs.nr_custom_image_tag }}"'"}}' \
@@ -212,6 +213,7 @@ jobs:
             echo "Stack does not exists, creating..."
             projectTypeId=$(curl -ks -XGET -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" https://$PR_NUMBER.$FLOWFUSE_DOMAIN/api/v1/project-types/ | jq -r '.types[].id')
             curl -ks -w "\n" -XPOST \
+              --fail-with-body \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
               -d '{"name":"'"NR-40-Custom"'","label":"'"4.0.x-custom"'", "projectType":"'"$projectTypeId"'","properties":{ "cpu":'"30"',"memory":'"256"',"container":"'"${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ needs.upload-node-red.outputs.nr_custom_image_tag }}"'"}}' \
@@ -412,83 +414,83 @@ jobs:
           echo "**Deployed commit SHA:** ${{ github.event.pull_request.head.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "**Deployed to:** [https://${{ env.PR_NUMBER }}.flowfuse.dev](https://${{ env.PR_NUMBER }}.flowfuse.dev)" >> $GITHUB_STEP_SUMMARY
 
-  # notify-slack:
-  #   name: Notify about pre-staging deployment
-  #   needs: [deploy]
-  #   if: |
-  #     ( success() || failure() ) &&
-  #     github.actor != 'dependabot[bot]'
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     PR_NUMBER: ${{ github.event.number }}
+  notify-slack:
+    name: Notify about pre-staging deployment
+    needs: [deploy]
+    if: |
+      ( success() || failure() ) &&
+      github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    env:
+      PR_NUMBER: ${{ github.event.number }}
 
-  #   steps:
-  #   - name: Map users  
-  #     id: map-actor-to-slack
-  #     uses: icalia-actions/map-github-actor@v0.0.2
-  #     with:
-  #       actor-map: ${{ vars.SLACK_GITHUB_USERS_MAP }}
-  #       default-mapping: C067BD0377F
+    steps:
+    - name: Map users  
+      id: map-actor-to-slack
+      uses: icalia-actions/map-github-actor@v0.0.2
+      with:
+        actor-map: ${{ vars.SLACK_GITHUB_USERS_MAP }}
+        default-mapping: C067BD0377F
 
-  #   - name: Post to a Slack channel
-  #     id: slack
-  #     uses: slackapi/slack-github-action@v1.27.0
-  #     with:
-  #       channel-id: 'C067BD0377F'
-  #       payload: |
-  #         {
-  #           "blocks": [
-  #             {
-  #               "type": "header",
-  #               "text": {
-  #                 "type": "plain_text",
-  #                 "text": "Pull Request ${{ env.PR_NUMBER }} pre-staging deployment",
-  #                 "emoji": true
-  #               }
-  #             },
-  #             {
-  #               "type": "section",
-  #               "fields": [
-  #                 {
-  #                   "type": "mrkdwn",
-  #                   "text": "*Status:*\n${{ needs.deploy.result == 'success' && ':white_check_mark: Success' || ':x: Failure '}}"
-  #                 },
-  #                 {
-  #                   "type": "mrkdwn",
-  #                   "text": "*Pull Request:*\n<https://github.com/FlowFuse/flowfuse/pull/${{ env.PR_NUMBER }}|${{ github.event.pull_request.title }}>"
-  #                 },
-  #                 {
-  #                   "type": "mrkdwn",
-  #                   "text": "*Workflow run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
-  #                 }
-  #               ]
-  #             },
-  #             {
-  #               "type": "section",
-  #               "fields": [
-  #                 {
-  #                   "type": "mrkdwn",
-  #                   "text": "*Author:*\n<@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>"
-  #                 },
-  #                 {
-  #                   "type": "mrkdwn",
-  #                   "text": "*Commit SHA:*\n<${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}|${{ github.event.pull_request.head.sha }}>"
-  #                 },
-  #                 {
-  #                   "type": "mrkdwn",
-  #                   "text": "*Deployed to:*\n<https://${{ env.PR_NUMBER }}.flowfuse.dev|https://${{ env.PR_NUMBER }}.flowfuse.dev>"
-  #                 },
-  #                 {
-  #                   "type": "mrkdwn",
-  #                   "text": "*Logs:*\n<https://${{ env.GRAFANA_URL }}/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22editorMode%22:%22code%22,%22expr%22:%22%7Bnamespace%3D%5C%22pr-${{ env.PR_NUMBER }}%5C%22%7D%20%7C%3D%20%60%60%20%7C%20json%22,%22queryType%22:%22range%22%7D%5D,%22range%22:%7B%22from%22:%22now-30m%22,%22to%22:%22now%22%7D%7D|View>"
-  #                 }
-  #               ]
-  #             }
-  #           ]
-  #         }
-  #     env:
-  #       SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
-  #       GRAFANA_URL: ${{ secrets.STAGING_GRAFANA_URL }}
+    - name: Post to a Slack channel
+      id: slack
+      uses: slackapi/slack-github-action@v1.27.0
+      with:
+        channel-id: 'C067BD0377F'
+        payload: |
+          {
+            "blocks": [
+              {
+                "type": "header",
+                "text": {
+                  "type": "plain_text",
+                  "text": "Pull Request ${{ env.PR_NUMBER }} pre-staging deployment",
+                  "emoji": true
+                }
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Status:*\n${{ needs.deploy.result == 'success' && ':white_check_mark: Success' || ':x: Failure '}}"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Pull Request:*\n<https://github.com/FlowFuse/flowfuse/pull/${{ env.PR_NUMBER }}|${{ toJson(github.event.pull_request.title) }}>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Workflow run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
+                  }
+                ]
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Author:*\n<@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Commit SHA:*\n<${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}|${{ github.event.pull_request.head.sha }}>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Deployed to:*\n<https://${{ env.PR_NUMBER }}.flowfuse.dev|https://${{ env.PR_NUMBER }}.flowfuse.dev>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Logs:*\n<https://${{ env.GRAFANA_URL }}/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22editorMode%22:%22code%22,%22expr%22:%22%7Bnamespace%3D%5C%22pr-${{ env.PR_NUMBER }}%5C%22%7D%20%7C%3D%20%60%60%20%7C%20json%22,%22queryType%22:%22range%22%7D%5D,%22range%22:%7B%22from%22:%22now-30m%22,%22to%22:%22now%22%7D%7D|View>"
+                  }
+                ]
+              }
+            ]
+          }
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
+        GRAFANA_URL: ${{ secrets.STAGING_GRAFANA_URL }}
 
 
   destroy:
