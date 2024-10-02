@@ -437,7 +437,9 @@ jobs:
       uses: slackapi/slack-github-action@v1.27.0
       with:
         channel-id: 'C067BD0377F'
-        payload: |
+        payload: ${{ toJson(env.MESSAGE) }}
+      env:
+        MESSAGE: |
           {
             "blocks": [
               {
@@ -457,7 +459,7 @@ jobs:
                   },
                   {
                     "type": "mrkdwn",
-                    "text": "*Pull Request:*\n<https://github.com/FlowFuse/flowfuse/pull/${{ env.PR_NUMBER }}|${{ toJson(github.event.pull_request.title) }}>"
+                    "text": "*Pull Request:*\n<https://github.com/FlowFuse/flowfuse/pull/${{ env.PR_NUMBER }}|${{ github.event.pull_request.title }}>"
                   },
                   {
                     "type": "mrkdwn",
@@ -488,7 +490,6 @@ jobs:
               }
             ]
           }
-      env:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
         GRAFANA_URL: ${{ secrets.STAGING_GRAFANA_URL }}
 
