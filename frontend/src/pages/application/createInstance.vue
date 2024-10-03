@@ -128,7 +128,11 @@ export default {
             } catch (err) {
                 this.instanceDetails = instanceFields
                 if (err.response?.status === 409) {
-                    this.errors.name = err.response.data.error
+                    if (err.response.data?.code === 'invalid_application_name') {
+                        this.errors.applicationName = err.response.data.error
+                    } else {
+                        this.errors.name = err.response.data.error
+                    }
                 } else if (err.response?.status === 400) {
                     Alerts.emit('Failed to create instance: ' + err.response.data.error, 'warning', 7500)
                 } else {

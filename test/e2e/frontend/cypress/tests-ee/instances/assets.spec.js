@@ -15,7 +15,7 @@ function interceptTeamFeature () {
         .as('getTeam')
 }
 
-function interceptInstanceMeta () {
+function interceptInstanceMeta (body = {}) {
     cy.intercept('GET', '/api/*/projects/*', (req) => req.reply(res => {
         // this.instance?.meta?.versions?.launcher
         res.body = {
@@ -26,7 +26,8 @@ function interceptInstanceMeta () {
                         launcher: '2.8.0'
                     }
                 }
-            }
+            },
+            ...body
         }
         return res
     })).as('getInstanceStatus')
@@ -340,9 +341,234 @@ describe('FlowForge - Instance - Assets', () => {
 
             cy.get('[data-el="folder-breadcrumbs"]').contains('hello_world')
 
-            cy.get('[data-el="folder-breadcrumbs"]').contains('Storage').click()
+            cy.get('[data-action="navigate-back"]').click()
 
             cy.get('[data-el="folder-breadcrumbs"]').should('not.contain', 'hello_world')
+
+            cy.get('[data-el="files-table"] table tbody').contains('hello_world')
+        })
+    })
+
+    describe('the Folder Breadcrumbs', () => {
+        beforeEach(() => {
+            interceptTeamFeature()
+            interceptInstanceMeta()
+
+            navigateToProject('BTeam', 'instance-2-1', 'assets')
+        })
+
+        it('displays a disabled visibility selector on the default root folder and correct folder path', () => {
+            interceptFiles([
+                { name: 'hello_world', type: 'directory', lastModified: new Date() }
+            ])
+            cy.wait('@getFiles')
+
+            cy.intercept('GET', '/api/*/projects/*/files/_/hello_world', ({
+                meta: { },
+                files: [],
+                count: 0
+            })).as('getNestedFiles')
+
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
+                .click()
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]').should('have.attr', 'data-headlessui-state', 'disabled')
+            cy.get('[data-el="folder-breadcrumbs"]').contains('Storage')
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="ff-data-cell"]:nth-child(4) .path').should('be.empty')
+        })
+
+        it('displays an enabled visibility selector on nested folders and correct folder path', () => {
+            interceptFiles([
+                { name: 'hello_world', type: 'directory', lastModified: new Date() }
+            ])
+            cy.intercept('GET', '/api/*/projects/*/files/_/hello_world', ({
+                meta: { },
+                files: [],
+                count: 0
+            })).as('getNestedFiles')
+            cy.wait('@getFiles')
+
+            cy.intercept('GET', '/api/*/projects/*/files/_/hello_world', ({
+                meta: { },
+                files: [],
+                count: 0
+            })).as('getNestedFiles')
+
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
+                .click()
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]').should('have.attr', 'data-headlessui-state', 'disabled')
+
+            cy.get('[data-el="folder-breadcrumbs"]').contains('Storage')
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="ff-data-cell"]:nth-child(4) .path').should('be.empty')
+
+            cy.get('[data-el="files-table"] table tbody tr').contains('hello_world').click()
+            cy.wait('@getNestedFiles')
+
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
+                .click()
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-options')
+                .should('be.visible')
+
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="ff-data-cell"]:nth-child(2)').contains('hello_world')
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="ff-data-cell"]:nth-child(4)').contains('hello_world/')
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="ff-data-cell"]:nth-child(5)').contains('Not Available')
+        })
+
+        it('prevents users to set private visibility when the folder is private', () => {
+            const spy = cy.spy().as('updateVisibilityCall')
+            cy.intercept('PUT', '/api/*/projects/*/files/_/hello_world', spy)
+            interceptFiles([
+                { name: 'hello_world', type: 'directory', lastModified: new Date() }
+            ])
+            cy.intercept('GET', '/api/*/projects/*/files/_/hello_world', ({
+                meta: { },
+                files: [],
+                count: 0
+            })).as('getNestedFiles')
+            cy.wait('@getFiles')
+
+            cy.get('[data-el="files-table"] table tbody tr').contains('hello_world').click()
+            cy.wait('@getNestedFiles')
+
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
+                .click()
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-options')
+                .should('be.visible')
+                .within(() => {
+                    cy.get('[data-action="select-private"]').click()
+                    cy.get('@updateVisibilityCall').should('not.have.been.called')
+                })
+        })
+
+        it('allows users to set private visibility when the folder is public', () => {
+            const spy = cy.spy().as('updateVisibilityCall')
+            cy.intercept('PUT', '/api/*/projects/*/files/_/hello_world', spy)
+            interceptFiles([
+                {
+                    name: 'hello_world',
+                    type: 'directory',
+                    lastModified: new Date(),
+                    share: {
+                        root: 'hello_public'
+                    }
+                }
+            ])
+            cy.intercept('GET', '/api/*/projects/*/files/_/hello_world', ({
+                meta: { },
+                files: [],
+                count: 0
+            })).as('getNestedFiles')
+            cy.wait('@getFiles')
+
+            cy.get('[data-el="files-table"] table tbody tr').contains('hello_world').click()
+            cy.wait('@getNestedFiles')
+
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
+                .click()
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-options')
+                .should('be.visible')
+                .within(() => {
+                    cy.get('[data-action="select-private"]').click()
+                    cy.get('@updateVisibilityCall').should('have.been.called', 1)
+                })
+        })
+
+        it('allows users to set public visibility when the directory is private', () => {
+            cy.intercept('PUT', '/api/*/projects/*/files/_/hello_world', { }).as('updateVisibility')
+            interceptFiles([
+                {
+                    name: 'hello_world',
+                    type: 'directory',
+                    lastModified: new Date()
+                }
+            ])
+            cy.intercept('GET', '/api/*/projects/*/files/_/hello_world', ({
+                meta: { },
+                files: [],
+                count: 0
+            })).as('getNestedFiles')
+            cy.wait('@getFiles')
+
+            cy.get('[data-el="files-table"] table tbody tr').contains('hello_world').click()
+            cy.wait('@getNestedFiles')
+
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
+                .click()
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-options')
+                .should('be.visible')
+                .within(() => {
+                    cy.get('[data-action="select-public"]').click()
+                })
+
+            cy.get('[data-el="select-static-path-dialog"]')
+                .should('be.visible')
+            cy.get('[data-el="select-static-path-dialog"] input').type('public_path')
+            cy.get('[data-el="select-static-path-dialog"]').within(() => {
+                cy.get('[data-action="dialog-confirm"]').click()
+            })
+
+            cy.wait('@updateVisibility')
+            cy.get('[data-el="notification-alert"]').should('be.visible')
+            cy.get('[data-el="notification-alert"]').contains('Instance settings successfully updated. Restart the instance to apply the changes.')
+        })
+
+        it('allows users to set public visibility when the directory is public', () => {
+            cy.intercept('PUT', '/api/*/projects/*/files/_/hello_world', { }).as('updateVisibility')
+            interceptFiles([
+                {
+                    name: 'hello_world',
+                    type: 'directory',
+                    lastModified: new Date(),
+                    share: {
+                        root: 'public-path'
+                    }
+                }
+            ])
+            cy.intercept('GET', '/api/*/projects/*/files/_/hello_world', ({
+                meta: { },
+                files: [],
+                count: 0
+            })).as('getNestedFiles')
+            cy.wait('@getFiles')
+
+            cy.get('[data-el="files-table"] table tbody tr').contains('hello_world').click()
+            cy.wait('@getNestedFiles')
+
+            cy.get('[data-el="folder-breadcrumbs"]').contains('public-path/')
+
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
+                .click()
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-options')
+                .should('be.visible')
+                .within(() => {
+                    cy.get('[data-action="select-public"]').click()
+                })
+
+            cy.get('[data-el="select-static-path-dialog"]')
+                .should('be.visible')
+            cy.get('[data-el="select-static-path-dialog"] input').type('public_path')
+            cy.get('[data-el="select-static-path-dialog"]').within(() => {
+                cy.get('[data-action="dialog-confirm"]').click()
+            })
+
+            cy.wait('@updateVisibility')
+            cy.get('[data-el="notification-alert"]').should('be.visible')
+            cy.get('[data-el="notification-alert"]').contains('Instance settings successfully updated. Restart the instance to apply the changes.')
+        })
+
+        it('is disabled when the instance state is not running', () => {
+            interceptInstanceMeta({ meta: { state: 'suspended' } })
+
+            cy.get('[data-el="status-badge-suspended"]').should('exist')
+            cy.get('[data-el="files-table"]').contains('The instance must be running to access its assets.')
+
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]').click()
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]').should('have.attr', 'data-headlessui-state', 'disabled')
+
+            // checking folder path
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="ff-data-cell"]:nth-child(4)').contains('Not Available')
+
+            // checking Base URL
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="ff-data-cell"]:nth-child(5)').contains('Not Available')
         })
     })
 })

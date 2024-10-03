@@ -20,7 +20,7 @@
                         <td class="w-40 font-medium">Type</td>
                         <td class="flex flex-row items-center">
                             <span class="flex-grow">{{ input.teamType }} </span>
-                            <ff-button kind="secondary" size="small" :to="{name: 'TeamChangeType'}">Change Team Type</ff-button>
+                            <ff-button v-if="!team.suspended" kind="secondary" size="small" :to="{name: 'TeamChangeType'}">Change Team Type</ff-button>
                         </td>
                     </tr>
                     <tr class="border-b">
@@ -55,7 +55,7 @@
             </div>
         </div>
     </div>
-    <div class="space-x-4 whitespace-nowrap">
+    <div v-if="!team.suspended" class="space-x-4 whitespace-nowrap">
         <template v-if="!editing">
             <ff-button kind="primary" @click="editName">Edit team settings</ff-button>
         </template>

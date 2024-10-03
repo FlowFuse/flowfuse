@@ -1,11 +1,11 @@
 import { mapState } from 'vuex'
 
-import { Roles } from '../../../forge/lib/roles.js'
 import InstanceApi from '../api/instances.js'
 import SnapshotApi from '../api/projectSnapshots.js'
 import alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 import { InstanceStateMutator } from '../utils/InstanceStateMutator.js'
+import { Roles } from '../utils/roles.js'
 
 import permissionsMixin from './Permissions.js'
 

@@ -11,13 +11,14 @@
     <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Snapshots..." />
         <template v-if="snapshots.length > 0">
-            <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
+            <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
+            <ff-data-table data-el="snapshots" class="space-y-4 mb-14" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
                 <template v-if="hasPermission('project:snapshot:create')" #actions>
                     <ff-button v-if="hasPermission('snapshot:import')" kind="secondary" data-action="import-snapshot" :disabled="busy" @click="showImportSnapshotDialog"><template #icon-left><UploadIcon /></template>Upload Snapshot</ff-button>
                     <ff-button kind="primary" data-action="create-snapshot" :disabled="busy" @click="showCreateSnapshotDialog"><template #icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
                 </template>
                 <template #context-menu="{row}">
-                    <ff-list-item :disabled="!hasPermission('project:snapshot:rollback')" label="Deploy Snapshot" @click="showRollbackDialog(row)" />
+                    <ff-list-item :disabled="!hasPermission('project:snapshot:rollback')" label="Restore Snapshot" @click="showRollbackDialog(row)" />
                     <ff-list-item :disabled="!hasPermission('snapshot:edit')" label="Edit Snapshot" @click="showEditSnapshotDialog(row)" />
                     <ff-list-item :disabled="!hasPermission('snapshot:full')" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
                     <ff-list-item :disabled="!hasPermission('snapshot:full')" label="Compare Snapshot..." @click="showCompareSnapshotDialog(row)" />
@@ -228,7 +229,7 @@ export default {
         // snapshot actions - rollback
         showRollbackDialog (snapshot) {
             Dialog.show({
-                header: 'Deploy Snapshot',
+                header: 'Restore Snapshot',
                 kind: 'danger',
                 text: `This will overwrite the current instance.
                        All changes to the flows, settings and environment variables made since the last snapshot will be lost.

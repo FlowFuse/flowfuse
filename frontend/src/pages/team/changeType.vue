@@ -32,6 +32,9 @@
                             Please contact <a href="https://flowfuse.com/support/" class="underline" target="_blank">Support</a> for help.
                         </p>
                     </div>
+                    <div v-else-if="isCurrentUnavailable">
+                        <p>Your current team plan is no longer available. Please select a new plan to continue.</p>
+                    </div>
                 </div>
                 <!-- TeamType Type -->
                 <div class="grid">
@@ -62,6 +65,7 @@
                         <div class="mb-8 text-sm text-gray-500 space-y-2">
                             <p v-if="isContactRequired">To learn more about our {{ input.teamType?.name }} plan, click below to contact our sales team.</p>
                             <p v-if="trialMode && !trialHasEnded">Setting up billing will bring your free trial to an end</p>
+                            <p v-if="!isContactRequired && team.suspended">Setting up billing will unsuspend your team</p>
                             <p v-if="isTypeChange">Your billing subscription will be updated to reflect the new costs</p>
                         </div>
                     </template>
@@ -129,7 +133,11 @@ export default {
     computed: {
         ...mapState('account', ['user', 'team', 'features']),
         formValid () {
-            return !this.isUnmanaged && this.input.teamTypeId && (!this.isTypeChange || this.input.teamTypeId !== this.team.type.id) && this.upgradeErrors.length === 0
+            return !this.isUnmanaged &&
+                    this.input.teamTypeId &&
+                    this.isSelectionAvailable &&
+                    (!this.isTypeChange || this.input.teamTypeId !== this.team.type.id) &&
+                    this.upgradeErrors.length === 0
         },
         billingEnabled () {
             return this.features.billing
@@ -154,7 +162,27 @@ export default {
                    !this.user.admin &&
                    this.input.teamType && this.input.teamType.properties?.billing?.requireContact
         },
+        isSelectionAvailable () {
+            if (this.input.teamTypeId) {
+                // Ensure that this.inputs.teamTypeId is one of the available types
+                if (this.teamTypes.length === 0) {
+                    return false
+                }
+                return !!this.teamTypes.find(tt => tt.id === this.input.teamTypeId)
+            }
+            return false
+        },
+        isCurrentUnavailable () {
+            if (this.teamTypes.length === 0) {
+                return false
+            }
+            // The team's current type is no longer available
+            return !this.teamTypes.find(tt => tt.id === this.team.type.id)
+        },
         upgradeErrors () {
+            if (!this.input.teamType) {
+                return
+            }
             try {
                 // Check the following limits:
                 // - User count
@@ -228,6 +256,9 @@ export default {
         'input.teamTypeId': function (v) {
             if (v) {
                 this.input.teamType = this.teamTypes.find(tt => tt.id === v)
+                if (!this.input.teamType && this.team.type.id === v) {
+                    this.input.teamType = this.team.type
+                }
             } else {
                 this.input.teamType = null
             }

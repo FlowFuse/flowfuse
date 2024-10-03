@@ -1,9 +1,9 @@
-import { RoleNames, Roles } from '../../../forge/lib/roles.js'
 import product from '../services/product.js'
 
 import daysSince from '../utils/daysSince.js'
 import elapsedTime from '../utils/elapsedTime.js'
 import paginateUrl from '../utils/paginateUrl.js'
+import { RoleNames, Roles } from '../utils/roles.js'
 
 import client from './client.js'
 
@@ -136,6 +136,20 @@ const getTeamInstances = async (teamId) => {
         return r
     })
     await Promise.all(promises)
+    return res.data
+}
+
+const getTeamDashboards = async (teamId) => {
+    const res = await client.get(`/api/v1/teams/${teamId}/dashboard-instances`)
+    res.data.projects = res.data.projects.map(r => {
+        r.createdSince = daysSince(r.createdAt)
+        r.updatedSince = daysSince(r.updatedAt)
+        r.flowLastUpdatedSince = daysSince(r.flowLastUpdatedAt)
+
+        r.link = { name: 'Application', params: { id: r.id } }
+
+        return r
+    })
     return res.data
 }
 
@@ -422,6 +436,7 @@ export default {
     getTeamApplicationsAssociationsStatuses,
     getTeamInstances,
     getTeamInstancesList,
+    getTeamDashboards,
     getTeamMembers,
     changeTeamMemberRole,
     removeTeamMember,

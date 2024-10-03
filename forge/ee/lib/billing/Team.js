@@ -278,4 +278,40 @@ module.exports = function (app) {
         }
         return this.TeamType.getProperty('runtimes.limit', -1)
     }
+
+    app.db.models.Team.prototype._suspend = app.db.models.Team.prototype.suspend
+    /**
+     * Overloads the default suspend to include billing activity
+     * - deletes the team subscription (if one exists)
+     * - call the original suspend function to actually suspend the team's instances
+     */
+    app.db.models.Team.prototype.suspend = async function () {
+        const subscription = await this.getSubscription()
+        if (subscription) {
+            await app.billing.closeSubscription(subscription)
+        }
+        await this._suspend()
+    }
+
+    app.db.models.Team.addHook('beforeDestroy', 'clearBilling', async (team, options) => {
+        // The team is being deleted. At this point, all other checks have occured
+        // in the base beforeDestroy hook. We now need to tidy up billing. We do this
+        // *before* deleting the team in case there is an issue.
+        if (app.license.active() && app.billing) {
+            const subscription = await team.getSubscription()
+            if (subscription) {
+                if (!subscription.isTrial() && !subscription.isUnmanaged()) {
+                    const subId = subscription.subscription || 'unknown'
+                    try {
+                        await app.billing.closeSubscription(subscription)
+                    } catch (err) {
+                        app.log.warn(`Error canceling subscription ${subId} for team ${team.hashid}`)
+                        app.log.warn(err)
+                    }
+                }
+                // Delete the subscription
+                await subscription.destroy()
+            }
+        }
+    })
 }

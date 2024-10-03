@@ -179,6 +179,7 @@ module.exports = async function (app) {
                     response.status(200).send()
                     return
                 }
+                let teamModified = false
                 let currentTeamType = team.TeamType
                 if (metadata.teamTypeId) {
                     const [teamTypeId] = app.db.models.TeamType.decodeHashid(metadata.teamTypeId)
@@ -189,10 +190,19 @@ module.exports = async function (app) {
                             new: { id: newTeamType.hashid, name: newTeamType.name }
                         }
                         team.TeamTypeId = teamTypeId
-                        await team.save()
+                        teamModified = true
                         currentTeamType = newTeamType
                         await app.auditLog.Team.team.type.changed(request.session?.User || 'system', null, team, auditUpdates)
                     }
+                }
+                if (team.suspended) {
+                    app.auditLog.Team.team.unsuspended(request.session?.User || 'system', null, team)
+                    app.auditLog.Platform.platform.team.unsuspended(request.session?.User || 'system', null, team)
+                    team.suspended = false
+                    teamModified = true
+                }
+                if (teamModified) {
+                    await team.save()
                 }
                 await app.db.controllers.Subscription.createSubscription(team, stripeSubscriptionId, stripeCustomerId)
                 await app.auditLog.Team.billing.session.completed(request.session?.User || 'system', null, team, event.data.object)

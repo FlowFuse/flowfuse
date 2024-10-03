@@ -41,6 +41,18 @@ export default {
         },
         isStaticAssetFeatureEnabled () {
             return this.isStaticAssetFeatureEnabledForPlatform && this.isStaticAssetsFeatureEnabledForTeam
+        },
+        isHTTPBearerTokensFeatureEnabledForTeam () {
+            return this.settings.features.httpBearerTokens && this.team.type.properties.features.teamHttpSecurity
+        },
+        isBOMFeatureEnabledForPlatform () {
+            return !!this.features.bom
+        },
+        isBOMFeatureEnabledForTeam () {
+            return !!this.team?.type?.properties?.features?.bom
+        },
+        isBOMFeatureEnabled () {
+            return this.isBOMFeatureEnabledForPlatform && this.isBOMFeatureEnabledForTeam
         }
     }
 }

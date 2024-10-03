@@ -1,8 +1,8 @@
-import { RoleNames, Roles } from '../../../forge/lib/roles.js'
 import product from '../services/product.js'
 
 import daysSince from '../utils/daysSince.js'
 import elapsedTime from '../utils/elapsedTime.js'
+import { RoleNames, Roles } from '../utils/roles.js'
 
 import client from './client.js'
 
@@ -26,7 +26,11 @@ const verifyMFAToken = (token) => {
 
 const logout = () => {
     return client.post('/account/logout').then((res) => {
-        window.posthog?.reset()
+        try {
+            window.posthog?.reset()
+        } catch (err) {
+            console.error('posthog error resetting user data')
+        }
         return res.data
     })
 }
