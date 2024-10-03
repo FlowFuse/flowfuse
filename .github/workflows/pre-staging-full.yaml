@@ -87,7 +87,7 @@ jobs:
       github.event_name == 'workflow_dispatch' &&
       github.event.action != 'closed' &&
       inputs.nr_launcher_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.33.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@fix-separate-checkout-workdir'
     with:
       package_name: flowfuse-nr-launcher
       publish_package: true
