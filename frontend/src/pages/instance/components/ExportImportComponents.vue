@@ -1,9 +1,12 @@
 <template>
-    <div class="space-y-4 my-3">
+    <div class="space-y-4">
+        <p v-if="header" class="text-gray-800 block text-sm font-medium">
+            {{ header }}
+        </p>
         <FormRow v-model="parts.flows" type="checkbox">
             Flows
         </FormRow>
-        <div :class="parts.flows?'opacity-100':'opacity-30'">
+        <div v-if="showCredentials" :class="parts.flows?'opacity-100':'opacity-30'">
             <FormRow v-model="parts.credentials" type="checkbox" :disabled="!parts.flows">
                 Credentials
             </FormRow>
@@ -24,6 +27,7 @@
         <div :class="['space-y-4', envVarOpts.envVars?'opacity-100':'opacity-30']">
             <ff-radio-group v-model="envVarOpts.envVarsKo" class="ml-9" orientation="vertical" :options="envVarKeyOptions" />
         </div>
+        <div v-if="error" class="text-red-400 text-xs">{{ error }}</div>
     </div>
 </template>
 
@@ -39,11 +43,40 @@ import FormRow from '../../../components/FormRow.vue'
  * envVarsKo
  */
 export default {
-    name: 'ExportInstanceComponents',
+    name: 'ExportImportComponents',
     components: {
         FormRow
     },
-    props: ['modelValue', 'showSecret', 'showTemplate', 'showSettings'],
+    props: {
+        modelValue: {
+            type: Object,
+            required: true
+        },
+        showSecret: {
+            type: Boolean,
+            default: false
+        },
+        showTemplate: {
+            type: Boolean,
+            default: false
+        },
+        showCredentials: {
+            type: Boolean,
+            default: true
+        },
+        showSettings: {
+            type: Boolean,
+            default: false
+        },
+        header: {
+            type: String,
+            default: ''
+        },
+        error: {
+            type: String,
+            default: ''
+        }
+    },
     emits: ['update:modelValue'],
     setup () {
         return {
