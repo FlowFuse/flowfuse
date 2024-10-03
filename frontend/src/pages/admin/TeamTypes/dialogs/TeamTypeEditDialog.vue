@@ -101,9 +101,10 @@
                     <FormRow v-model="input.properties.features.editorLimits" type="checkbox">API/Debug Length Limits</FormRow>
                     <FormRow v-model="input.properties.features.customHostnames" type="checkbox">Custom Hostnames</FormRow>
                     <FormRow v-model="input.properties.features.staticAssets" type="checkbox">Static Assets</FormRow>
-                    <!-- to make the grid work nicely, only needed if there is an odd number of checkbox features above-->
-                    <!-- <span />-->
                     <FormRow v-model="input.properties.features.bom" type="checkbox">Bill of Materials / Dependencies</FormRow>
+                    <FormRow v-model="input.properties.features.teamBroker" type="checkbox">Team Broker</FormRow>
+                    <!-- to make the grid work nicely, only needed if there is an odd number of checkbox features above-->
+                    <span />
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
                 </div>

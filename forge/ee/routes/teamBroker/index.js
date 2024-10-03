@@ -20,58 +20,162 @@ module.exports = async function (app) {
                 request.team = await app.db.models.Team.byId(request.params.teamId)
                 if (!request.team) {
                     reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                    return
+                }
+
+                const teamType = await request.team.getTeamType()
+                if (!teamType.getFeatureProperty('teamBroker', false)) {
+                    reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                    return // eslint-disable-line no-useless-return
                 }
             }
         }
     })
 
     app.get('/users', {
-
+        schema: {
+            summary: 'List MQTT users for the team',
+            tags: ['MQTT Broker'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'string' },
+                        username: { type: 'string' },
+                        acls: { type: 'array' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
-        console.log('team', request.team)
-        console.log(app.db.models.TeamBrokerUser)
-        reply.send(await app.db.models.TeamBrokerUser.byTeam(request.team.hashid))
+        const users = await app.db.models.TeamBrokerUser.byTeam(request.team.hashid)
+        reply.send(app.db.views.TeamBrokerUser.users(users))
     })
 
     app.post('/user', {
-
+        schema: {
+            summary: 'Create new MQTT user for the team',
+            tags: ['MQTT Broker'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    acls: { type: 'array' },
+                    username: { type: 'string' },
+                    password: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'string' },
+                        username: { type: 'string' },
+                        acls: { type: 'array' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         try {
-            console.log(request.body)
             const newUser = request.body
             newUser.acls = JSON.stringify(newUser.acls)
             const user = await app.db.models.TeamBrokerUser.create({ ...request.body, TeamId: request.team.id})
-            console.log(user)
-            reply.send({
-                username: user.username,
-                acls: user.acls
-            })
+            reply.send(app.db.views.TeamBrokerUser.user(user))
         } catch  (err) {
             console.log(err)
-            reply.status(500).send({})
+            reply.status(500).send({error: '', code: ''})
         }
     })
 
     app.get('/user/:username', {
-
+        schema: {
+            summary: 'Get details about a specific MQTT User',
+            tags: ['MQTT Broker'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' },
+                    username: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'string' },
+                        username: { type: 'string' },
+                        acls: { type: 'array' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const user = await app.db.models.TeamBrokerUser.byUsername(request.params.username, request.team.hashid)
         if (user) {
-            reply.send({
-                username: user.username,
-                acls: user.acls
-            })
+            reply.send(app.db.views.TeamBrokerUser.user(user))
         } else {
             reply.status(404).send({})
         }
     })
 
     app.delete('/user/:username', {
-
+        schema: {
+            summary: 'Delete a MQTT User',
+            tags: ['MQTT Broker'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' },
+                    username: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
         const user = await app.db.models.TeamBrokerUser.byUsername(request.params.username, request.team.hashid)
         if (user) {
             await user.destroy()
+            replysend({ status: 'okay' })
         } else {
             reply.status(404).send({})
         }
