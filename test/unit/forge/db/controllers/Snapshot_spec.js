@@ -4,7 +4,7 @@ const should = require('should') // eslint-disable-line
 const { decryptCreds } = require('../../../../lib/credentials.js')
 const setup = require('../setup')
 
-describe.only('Snapshot controller', function () {
+describe('Snapshot controller', function () {
     // Use standard test data.
     let app
     let projectInstanceCount = 0
