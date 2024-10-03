@@ -15,7 +15,6 @@
                         </ff-button>
                     </template>
                 </FormRow>
-                <FormRow v-if="snapshotNeedsSecret" v-model="input.secret" :error="validateField.secret ? errors.secret : ''" data-form="import-snapshot-secret">Credentials Secret</FormRow>
                 <FormRow v-model="input.name" :error="validateField.name ? errors.name : ''" data-form="import-snapshot-name">Name</FormRow>
                 <FormRow data-form="import-snapshot-description">
                     Description
@@ -23,6 +22,8 @@
                         <textarea v-model="input.description" rows="8" class="ff-input ff-text-input" style="height: auto" />
                     </template>
                 </FormRow>
+                <ImportInstanceComponents v-model="parts" header="Select the components to include in the upload" :error="validateField.parts ? errors.parts : ''" :showCredentials="snapshotNeedsSecret" />
+                <FormRow v-if="snapshotNeedsSecret && parts.credentials !== false" v-model="input.secret" :error="validateField.secret ? errors.secret : ''" data-form="import-snapshot-secret">Credentials Secret</FormRow>
             </form>
         </template>
     </ff-dialog>
@@ -32,6 +33,7 @@
 import { DocumentIcon } from '@heroicons/vue/outline'
 
 import snapshotsApi from '../../api/snapshots.js'
+import ImportInstanceComponents from '../../pages/instance/components/ExportImportComponents.vue'
 import alerts from '../../services/alerts.js'
 import { isSnapshot } from '../../utils/snapshot.js'
 import FormRow from '../FormRow.vue'
@@ -40,7 +42,8 @@ export default {
     name: 'SnapshotImportDialog',
     components: {
         FormRow,
-        DocumentIcon
+        DocumentIcon,
+        ImportInstanceComponents
     },
     props: {
         owner: {
@@ -84,21 +87,31 @@ export default {
             errors: {
                 file: '',
                 secret: '',
-                name: ''
+                name: '',
+                parts: ''
             },
             validateField: {
                 file: false,
                 secret: false,
-                name: false
+                name: false,
+                parts: false
+            },
+            parts: {
+                flows: true,
+                credentials: true,
+                envVars: 'all'
             }
         }
     },
     computed: {
         formValid () {
-            return !Object.values(this.errors).some(error => !!error) && this.input.file && this.input.name && (!this.snapshotNeedsSecret || this.input.secret)
+            return !Object.values(this.errors).some(error => !!error) && this.input.file && this.input.name && (this.parts.flows || this.parts.envVars)
         },
         snapshotNeedsSecret () {
-            return !!(this.input.snapshot && this.input.snapshot.flows?.credentials)
+            if (!this.input.snapshot?.flows?.credentials) {
+                return false
+            }
+            return Object.keys(this.input.snapshot.flows.credentials).length > 0
         }
     },
     watch: {
@@ -119,6 +132,15 @@ export default {
                 this.validateField.secret = true
                 this.validate()
             }
+        },
+        parts: {
+            handler () {
+                if (this.shown) {
+                    this.validateField.parts = true
+                    this.validate()
+                }
+            },
+            deep: true
         }
     },
     mounted () {
@@ -129,6 +151,7 @@ export default {
             this.errors.file = null
             this.validateField.file = true
             this.validateField.secret = true
+            this.validateField.parts = true
             const reader = new FileReader()
             reader.onload = () => {
                 const data = reader.result
@@ -157,7 +180,12 @@ export default {
         validate () {
             this.errors.file = !this.input.file ? 'Snapshot file is required' : ''
             this.errors.name = !this.input.name ? 'Name is required' : ''
-            this.errors.secret = this.snapshotNeedsSecret ? (this.input.secret ? '' : 'Secret is required') : ''
+            if (this.parts.flows && this.parts.credentials) {
+                this.errors.secret = this.snapshotNeedsSecret ? (this.input.secret ? '' : 'Secret is required') : ''
+            } else {
+                this.errors.secret = ''
+            }
+            this.errors.parts = !this.parts.flows && this.parts.envVars === false ? 'At least one component must be selected' : ''
             return this.formValid
         },
         confirm () {
@@ -177,7 +205,12 @@ export default {
                 if (this.snapshotNeedsSecret) {
                     secret = this.input.secret
                 }
-                snapshotsApi.importSnapshot(this.owner.id, this.ownerType, importSnapshot, secret).then((response) => {
+                const components = {
+                    flows: this.parts.flows,
+                    credentials: this.parts.credentials,
+                    envVars: this.parts.envVars
+                }
+                snapshotsApi.importSnapshot(this.owner.id, this.ownerType, importSnapshot, secret, { components }).then((response) => {
                     this.$emit('snapshot-import-success', response)
                     this.$refs.dialog.close()
                     this.shown = false

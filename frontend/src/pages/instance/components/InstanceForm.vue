@@ -255,7 +255,7 @@ import NameGenerator from '../../../utils/name-generator/index.js'
 
 import BlueprintTileSmall from '../Blueprints/BlueprintTileSmall.vue'
 
-import ExportInstanceComponents from './ExportInstanceComponents.vue'
+import ExportInstanceComponents from './ExportImportComponents.vue'
 import InstanceChargesTable from './InstanceChargesTable.vue'
 import InstanceCreditBanner from './InstanceCreditBanner.vue'
 
