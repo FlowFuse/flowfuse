@@ -44,12 +44,7 @@ module.exports = async function (app) {
             },
             response: {
                 200: {
-                    type: 'object',
-                    properties: {
-                        id: { type: 'string' },
-                        username: { type: 'string' },
-                        acls: { type: 'array' }
-                    }
+                    type: 'array'
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -83,7 +78,7 @@ module.exports = async function (app) {
                 }
             },
             response: {
-                200: {
+                201: {
                     type: 'object',
                     properties: {
                         id: { type: 'string' },
@@ -104,10 +99,11 @@ module.exports = async function (app) {
             const newUser = request.body
             newUser.acls = JSON.stringify(newUser.acls)
             const user = await app.db.models.TeamBrokerUser.create({ ...request.body, TeamId: request.team.id})
-            reply.send(app.db.views.TeamBrokerUser.user(user))
+            reply.status(201).send(app.db.views.TeamBrokerUser.user(user))
         } catch  (err) {
             console.log(err)
-            reply.status(500).send({error: '', code: ''})
+            // TODO fix error message
+            reply.status(500).send({error: 'unknow_error', code: 'Unknown Error'})
         }
     })
 
@@ -175,7 +171,7 @@ module.exports = async function (app) {
         const user = await app.db.models.TeamBrokerUser.byUsername(request.params.username, request.team.hashid)
         if (user) {
             await user.destroy()
-            replysend({ status: 'okay' })
+            reply.send({ status: 'okay' })
         } else {
             reply.status(404).send({})
         }

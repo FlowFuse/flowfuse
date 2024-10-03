@@ -4,7 +4,6 @@ module.exports = {
         users.forEach(u => {
             filtered.push(this.user(app,u))
         });
-        console.log(filtered)
         return filtered
     },
     user: function(app, u) {
