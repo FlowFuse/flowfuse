@@ -37,7 +37,7 @@ module.exports = async function (app) {
     // Bulk update
     app.put('/', {
         schema: {
-            summary: 'Mark notifications as read',
+            summary: 'Bulk update notifications',
             tags: ['User'],
             body: {
                 type: 'object',
