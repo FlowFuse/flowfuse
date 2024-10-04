@@ -90,7 +90,7 @@ module.exports = {
                         notifications: rows
                     }
                 },
-                markNotificationsAsRead: async ({ read = true, ids = [] }, user) => {
+                updateNotificationState: async ({ read = true, ids = [] }, user) => {
                     if (ids.length === 0) {
                         return
                     }
