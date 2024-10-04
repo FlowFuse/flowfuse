@@ -5,6 +5,8 @@
 
 const { DataTypes, QueryInterface } = require('sequelize')
 
+const { hash } = require('../../db/utils')
+
 module.exports = {
     /**
      * @param {QueryInterface} context Sequelize.QueryInterface
@@ -33,7 +35,7 @@ module.exports = {
                 onUpdate: 'cascade'
             }
         })
-        await context.addIndex('TeamBrokerUsers', { name: 'broker_users_team_unique', fields: ['username','TeamId'], unique: true })
+        await context.addIndex('TeamBrokerUsers', { name: 'broker_users_team_unique', fields: ['username', 'TeamId'], unique: true })
     },
     down: async (context) => {
     }

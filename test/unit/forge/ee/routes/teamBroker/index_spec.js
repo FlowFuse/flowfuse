@@ -2,9 +2,7 @@ const should = require('should') // eslint-disable-line
 
 const setup = require('../../setup')
 
-const FF_UTIL = require('flowforge-test-utils')
-
-describe.only('Team Broker API', function () {
+describe('Team Broker API', function () {
     let app
     const TestObjects = { tokens: {} }
 
@@ -46,7 +44,7 @@ describe.only('Team Broker API', function () {
             const response = await app.inject({
                 method: 'POST',
                 url: `/api/v1/teams/${app.team.hashid}/broker/user`,
-                cookies: { sid: TestObjects.tokens.alice},
+                cookies: { sid: TestObjects.tokens.alice },
                 body: {
                     username: 'alice',
                     password: 'aaPassword',
@@ -71,7 +69,7 @@ describe.only('Team Broker API', function () {
             const response = await app.inject({
                 method: 'GET',
                 url: `/api/v1/teams/${app.team.hashid}/broker/users`,
-                cookies: { sid: TestObjects.tokens.alice}
+                cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
             const result = response.json()
@@ -83,7 +81,7 @@ describe.only('Team Broker API', function () {
             const response = await app.inject({
                 method: 'DELETE',
                 url: `/api/v1/teams/${app.team.hashid}/broker/user/alice`,
-                cookies: { sid: TestObjects.tokens.alice}
+                cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
             const result = response.json()
@@ -95,7 +93,7 @@ describe.only('Team Broker API', function () {
             await app.inject({
                 method: 'POST',
                 url: `/api/v1/teams/${app.team.hashid}/broker/user`,
-                cookies: { sid: TestObjects.tokens.alice},
+                cookies: { sid: TestObjects.tokens.alice },
                 body: {
                     username: 'alice',
                     password: 'aaPassword',
@@ -112,14 +110,14 @@ describe.only('Team Broker API', function () {
             await app.inject({
                 method: 'DELETE',
                 url: `/api/v1/teams/${app.team.hashid}/broker/user/alice`,
-                cookies: { sid: TestObjects.tokens.alice}
+                cookies: { sid: TestObjects.tokens.alice }
             })
         })
         it('Test Authentication pass', async function () {
             const response = await app.inject({
                 method: 'POST',
                 url: '/api/broker/auth',
-                cookies: { sid: TestObjects.tokens.alice},
+                cookies: { sid: TestObjects.tokens.alice },
                 body: {
                     username: `alice@${app.team.hashid}`,
                     password: 'aaPassword',
@@ -137,7 +135,7 @@ describe.only('Team Broker API', function () {
             const response = await app.inject({
                 method: 'POST',
                 url: '/api/broker/auth',
-                cookies: { sid: TestObjects.tokens.alice},
+                cookies: { sid: TestObjects.tokens.alice },
                 body: {
                     username: `alice@${app.team.hashid}`,
                     password: 'bbPassword',
@@ -152,7 +150,7 @@ describe.only('Team Broker API', function () {
             const response = await app.inject({
                 method: 'POST',
                 url: '/api/broker/acls',
-                cookies: { sid: TestObjects.tokens.alice},
+                cookies: { sid: TestObjects.tokens.alice },
                 body: {
                     username: `alice@${app.team.hashid}`,
                     topic: 'foo/bar',
@@ -167,7 +165,7 @@ describe.only('Team Broker API', function () {
             const response = await app.inject({
                 method: 'POST',
                 url: '/api/broker/acls',
-                cookies: { sid: TestObjects.tokens.alice},
+                cookies: { sid: TestObjects.tokens.alice },
                 body: {
                     username: `alice@${app.team.hashid}`,
                     topic: 'bar/foo',
@@ -182,5 +180,38 @@ describe.only('Team Broker API', function () {
          * Need tests for the project nodes and devices both
          * Auth and ACL
          */
+        it('Test Authentication forge_platform pass', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/broker/auth',
+                cookies: { sid: TestObjects.tokens.alice },
+                body: {
+                    username: 'forge_platform',
+                    password: await app.settings.get('commsToken'),
+                    clientId: 'alice'
+                }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('result', 'allow')
+            result.should.have.property('is_superuser', false)
+            result.should.have.property('client_attrs')
+            result.client_attrs.should.have.property('team', 'team/internal/')
+        })
+        it('Test Authentication forge_platform fail', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/broker/auth',
+                cookies: { sid: TestObjects.tokens.alice },
+                body: {
+                    username: 'forge_platform',
+                    password: 'fooo',
+                    clientId: 'forge_platform'
+                }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('result', 'deny')
+        })
     })
 })

@@ -2,11 +2,11 @@ module.exports = {
     users: function (app, users) {
         const filtered = []
         users.forEach(u => {
-            filtered.push(this.user(app,u))
-        });
+            filtered.push(this.user(app, u))
+        })
         return filtered
     },
-    user: function(app, u) {
+    user: function (app, u) {
         const result = u.toJSON()
         const filtered = {
             id: result.hashid,

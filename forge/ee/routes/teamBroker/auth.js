@@ -1,7 +1,7 @@
 const mqttMatch = require('mqtt-match')
 
 module.exports = async function (app) {
-    app.post('/auth',{
+    app.post('/auth', {
         schema: {
             body: {
                 type: 'object',
@@ -17,20 +17,19 @@ module.exports = async function (app) {
                     type: 'object',
                     required: ['result'],
                     properties: {
-                        result: { type: 'string'},
+                        result: { type: 'string' },
                         is_superuser: { type: 'boolean' },
-                        client_attrs: { type: 'object',  additionalProperties: true }
+                        client_attrs: { type: 'object', additionalProperties: true }
                     },
                     additionalProperties: true
                 }
             }
         }
     }, async (request, reply) => {
-        if ((request.body.username.startsWith('device:') && request.body.password.startsWith('ffbd_')) || 
+        if ((request.body.username.startsWith('device:') && request.body.password.startsWith('ffbd_')) ||
             (request.body.username.startsWith('project:') && request.body.password.startsWith('ffbp_')) ||
             (request.body.username.startsWith('frontend:') && request.body.password.startsWith('ffbf_')) ||
             (request.body.username === 'forge_platform')) {
-            console.log('broker auth internal')
             const isValid = await app.db.controllers.BrokerClient.authenticateCredentials(
                 request.body.username,
                 request.body.password
@@ -52,7 +51,8 @@ module.exports = async function (app) {
             const auth = await app.db.controllers.TeamBrokerUser.authenticateCredentials(request.body.username, request.body.password)
             if (auth) {
                 const parts = request.body.username.split('@')
-                const user = await app.db.models.TeamBrokerUser.byUsername(parts[0],parts[1])
+                // we might pass ACL values here
+                // const user = await app.db.models.TeamBrokerUser.byUsername(parts[0], parts[1])
                 reply.send({
                     result: 'allow',
                     is_superuser: false,
@@ -93,40 +93,40 @@ module.exports = async function (app) {
         const username = request.body.username
         const topic = request.body.topic
         const action = request.body.action
-        if ((username.startsWith('device:') || 
-            username.startsWith('platform:') || 
-            username.startsWith('frontend:') || 
-            username === 'forge_platform' ) && !username.includes('@')) {
-            const acc = action === 'subscribe' ?  1 : 2
+        if ((username.startsWith('device:') ||
+            username.startsWith('platform:') ||
+            username.startsWith('frontend:') ||
+            username === 'forge_platform') && !username.includes('@')) {
+            const acc = action === 'subscribe' ? 1 : 2
             const allowed = await app.comms.aclManager.verify(username, topic, acc)
             if (allowed) {
-                reply.send({ result: 'allow'})
+                reply.send({ result: 'allow' })
             } else {
-                reply.send({ result: 'deny'})
+                reply.send({ result: 'deny' })
             }
-            return
+            // return
         } else {
             const parts = request.body.username.split('@')
-            const user = await app.db.models.TeamBrokerUser.byUsername(parts[0],parts[1])
+            const user = await app.db.models.TeamBrokerUser.byUsername(parts[0], parts[1])
             const acls = JSON.parse(user.acls)
             for (const acl in acls) {
                 if (request.body.action === 'subscribe') {
-                    if(mqttMatch(acls[acl].pattern, request.body.topic)) {
+                    if (mqttMatch(acls[acl].pattern, request.body.topic)) {
                         if (acls[acl].action === 'both' || acls[acl].action === 'subscribe') {
-                            reply.send({ result: 'allow'})
+                            reply.send({ result: 'allow' })
                             return
                         }
                     }
                 } else {
-                    if(mqttMatch(acls[acl].pattern, request.body.topic)) {
+                    if (mqttMatch(acls[acl].pattern, request.body.topic)) {
                         if (acls[acl].action === 'both' || acls[acl].action === 'publish') {
-                            reply.send({ result: 'allow'})
+                            reply.send({ result: 'allow' })
                             return
                         }
                     }
                 }
             }
-            reply.send({ result: 'deny'})
+            reply.send({ result: 'deny' })
         }
     })
 }

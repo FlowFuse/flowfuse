@@ -3,7 +3,7 @@ module.exports = async function (app) {
 
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.teamId !== undefined || request.params.teamSlug !== undefined) {
-            let teamId = request.params.teamId
+            // let teamId = request.params.teamId
             if (request.params.teamSlug) {
                 // If :teamSlug is provided, need to lookup the team to get
                 // its id for subsequent checks
@@ -12,7 +12,7 @@ module.exports = async function (app) {
                     reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                     return
                 }
-                teamId = request.team.hashid
+                // teamId = request.team.hashid
             }
 
             if (!request.team) {
@@ -98,12 +98,12 @@ module.exports = async function (app) {
         try {
             const newUser = request.body
             newUser.acls = JSON.stringify(newUser.acls)
-            const user = await app.db.models.TeamBrokerUser.create({ ...request.body, TeamId: request.team.id})
+            const user = await app.db.models.TeamBrokerUser.create({ ...request.body, TeamId: request.team.id })
             reply.status(201).send(app.db.views.TeamBrokerUser.user(user))
-        } catch  (err) {
-            console.log(err)
+        } catch (err) {
             // TODO fix error message
-            reply.status(500).send({error: 'unknow_error', code: 'Unknown Error'})
+            // console.log(err)
+            reply.status(500).send({ error: 'unknow_error', code: 'Unknown Error' })
         }
     })
 
