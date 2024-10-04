@@ -69,7 +69,26 @@ module.exports = async function (app) {
     })
 
     app.post('/acls', {
-
+        schema: {
+            body: {
+                type: 'object',
+                properties: {
+                    username: { type: 'string' },
+                    topic: { type: 'string' },
+                    action: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    required: ['result'],
+                    properties: {
+                        result: { type: 'string' }
+                    },
+                    additionalProperties: true
+                }
+            }
+        }
     }, async (request, reply) => {
         const username = request.body.username
         const topic = request.body.topic
@@ -94,7 +113,6 @@ module.exports = async function (app) {
                 if (request.body.action === 'subscribe') {
                     if(mqttMatch(acls[acl].pattern, request.body.topic)) {
                         if (acls[acl].action === 'both' || acls[acl].action === 'subscribe') {
-                            console.log('allow')
                             reply.send({ result: 'allow'})
                             return
                         }
