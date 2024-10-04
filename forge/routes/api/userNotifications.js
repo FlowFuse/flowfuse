@@ -63,7 +63,7 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const payload = { read: request.body.read, ids: request.body.ids }
 
-        await app.db.models.Notification.markNotificationsAsRead(payload, request.session.User)
+        await app.db.models.Notification.updateNotificationsState(payload, request.session.User)
 
         const notifications = await getNotifications(app, request)
 
