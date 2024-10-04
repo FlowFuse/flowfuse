@@ -90,7 +90,7 @@ module.exports = {
                         notifications: rows
                     }
                 },
-                updateNotificationState: async ({ read = true, ids = [] }, user) => {
+                updateNotificationsState: async ({ read = true, ids = [] }, user) => {
                     if (ids.length === 0) {
                         return
                     }
