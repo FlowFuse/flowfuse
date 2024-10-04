@@ -7,7 +7,7 @@
                     <FormRow containerClass="w-auto mt-6" :error="errors.secret" data-form="snapshot-secret">
                         Secret
                         <template #description>
-                            <p class="text-sm">A key used to encrypt any credentials in the snapshot.</p>
+                            <p class="text-sm">A key used to encrypt any credentials in the snapshot's flow.</p>
                         </template>
                         <template #input>
                             <div class="flex items-center w-full">
