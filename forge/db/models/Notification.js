@@ -95,13 +95,15 @@ module.exports = {
                         return
                     }
 
-                    ids = ids.map(id => Number.isNaN(id) ? M.Notification.decodeHashid(id) : id)
+                    ids = ids.map(id => typeof id === 'string'
+                        ? M.Notification.decodeHashid(id)?.[0]
+                        : id)
 
                     await M.Notification.update(
                         { read: read ? 1 : 0 },
                         {
                             where: {
-                                id: ids.map(M.Notification.decodeHashid),
+                                id: ids.filter(e => e),
                                 UserId: user.id
                             }
                         }
