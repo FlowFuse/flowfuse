@@ -371,8 +371,7 @@ describe('FlowForge - Instance - Assets', () => {
 
             cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
                 .click()
-            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-dropdown-options')
-                .should('not.be.visible')
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]').should('have.attr', 'data-headlessui-state', 'disabled')
             cy.get('[data-el="folder-breadcrumbs"]').contains('Storage')
             cy.get('[data-el="folder-breadcrumbs"] [data-el="ff-data-cell"]:nth-child(4) .path').should('be.empty')
         })
@@ -396,8 +395,7 @@ describe('FlowForge - Instance - Assets', () => {
 
             cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
                 .click()
-            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-dropdown-options')
-                .should('not.be.visible')
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]').should('have.attr', 'data-headlessui-state', 'disabled')
 
             cy.get('[data-el="folder-breadcrumbs"]').contains('Storage')
             cy.get('[data-el="folder-breadcrumbs"] [data-el="ff-data-cell"]:nth-child(4) .path').should('be.empty')
@@ -407,7 +405,7 @@ describe('FlowForge - Instance - Assets', () => {
 
             cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
                 .click()
-            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-dropdown-options')
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-options')
                 .should('be.visible')
 
             cy.get('[data-el="folder-breadcrumbs"] [data-el="ff-data-cell"]:nth-child(2)').contains('hello_world')
@@ -433,7 +431,7 @@ describe('FlowForge - Instance - Assets', () => {
 
             cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
                 .click()
-            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-dropdown-options')
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-options')
                 .should('be.visible')
                 .within(() => {
                     cy.get('[data-action="select-private"]').click()
@@ -466,7 +464,7 @@ describe('FlowForge - Instance - Assets', () => {
 
             cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
                 .click()
-            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-dropdown-options')
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-options')
                 .should('be.visible')
                 .within(() => {
                     cy.get('[data-action="select-private"]').click()
@@ -495,7 +493,7 @@ describe('FlowForge - Instance - Assets', () => {
 
             cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
                 .click()
-            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-dropdown-options')
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-options')
                 .should('be.visible')
                 .within(() => {
                     cy.get('[data-action="select-public"]').click()
@@ -539,7 +537,7 @@ describe('FlowForge - Instance - Assets', () => {
 
             cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
                 .click()
-            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-dropdown-options')
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-options')
                 .should('be.visible')
                 .within(() => {
                     cy.get('[data-action="select-public"]').click()
@@ -564,8 +562,7 @@ describe('FlowForge - Instance - Assets', () => {
             cy.get('[data-el="files-table"]').contains('The instance must be running to access its assets.')
 
             cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]').click()
-            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-dropdown-options')
-                .should('not.be.visible')
+            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]').should('have.attr', 'data-headlessui-state', 'disabled')
 
             // checking folder path
             cy.get('[data-el="folder-breadcrumbs"] [data-el="ff-data-cell"]:nth-child(4)').contains('Not Available')

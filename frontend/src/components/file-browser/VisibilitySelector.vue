@@ -1,18 +1,32 @@
 <template>
-    <ff-dropdown :disabled="isDisabled" data-el="visibility-selector" class="visibility-selector">
-        <template #placeholder>
+    <ff-listbox :disabled="isDisabled" data-el="visibility-selector" class="ff-dropdown visibility-selector">
+        <template #button>
             <div v-if="isCurrentFolderPublic" class="flex gap-2"><GlobeAltIcon class="ff-icon" /> Public</div>
             <div v-else class="flex gap-2"><ProjectIcon class="ff-icon" /> Node-RED Only</div>
         </template>
-        <template #default>
-            <ff-dropdown-option data-action="select-private" :disabled="!isCurrentFolderPublic" @click="selected('private')">
-                <div class="flex gap-2"><ProjectIcon class="ff-icon" /> Node-RED Only</div>
-            </ff-dropdown-option>
-            <ff-dropdown-option data-action="select-public" @click="showStaticPathSelectionDialog">
-                <div class="flex gap-2"><GlobeAltIcon class="ff-icon" /> Public</div>
-            </ff-dropdown-option>
+        <template #options>
+            <ListboxOption
+                class="ff-option"
+                :class="[!isCurrentFolderPublic ? 'cursor-not-allowed bg-gray-200 text-gray-500' : '']"
+                :disabled="!isCurrentFolderPublic"
+                data-action="select-private"
+                @click="selected('private')"
+            >
+                <li>
+                    <div class="ff-option-content">
+                        <div class="flex gap-2"><ProjectIcon class="ff-icon" /> Node-RED Only</div>
+                    </div>
+                </li>
+            </ListboxOption>
+            <ListboxOption class="ff-option" data-action="select-public" @click="showStaticPathSelectionDialog">
+                <li>
+                    <div class="ff-option-content">
+                        <div class="flex gap-2"><GlobeAltIcon class="ff-icon" /> Public</div>
+                    </div>
+                </li>
+            </ListboxOption>
         </template>
-    </ff-dropdown>
+    </ff-listbox>
     <ff-dialog
         ref="selectStaticPath" data-el="select-static-path-dialog"
         header="Select a static path"
@@ -39,15 +53,22 @@
 </template>
 
 <script>
+import { ListboxOption } from '@headlessui/vue'
 import { GlobeAltIcon } from '@heroicons/vue/outline'
 
 import ProjectIcon from '../../components/icons/Projects.js'
 import { removeSlashes } from '../../composables/String.js'
 import Alerts from '../../services/alerts.js'
+import FfListbox from '../../ui-components/components/form/ListBox.vue'
 
 export default {
     name: 'VisibilitySelector',
-    components: { ProjectIcon, GlobeAltIcon },
+    components: {
+        ListboxOption,
+        FfListbox,
+        ProjectIcon,
+        GlobeAltIcon
+    },
     inheritAttrs: false,
     props: {
         breadcrumbs: {
@@ -137,16 +158,17 @@ export default {
 .ff-dropdown.visibility-selector {
   min-width: 130px;
 
-  .ff-dropdown-selected {
+  .ff-button {
     padding-left: 0;
     padding-right: 0;
     border: none;
+    background: none !important;
   }
 
-  .ff-dropdown-options {
+  .ff-options {
     border: 1px solid $ff-grey-200 !important;
 
-    .ff-dropdown-option {
+    .ff-option {
       background: white !important;
       border: none !important;
 
