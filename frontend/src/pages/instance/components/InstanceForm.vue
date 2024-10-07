@@ -82,7 +82,7 @@
                     <template v-if="creatingNew" #appended-description>
                         <p v-if="hasValidName" class="instance-name-confirmation">
                             <CheckCircleIcon class="ff-btn--icon" />
-                            <span>Your instance will be created as "<i>{{ instanceName }}</i>".</span>
+                            <span>Your instance will be created as "<i>{{ instanceName.toLowerCase() }}</i>".</span>
                         </p>
                         The instance name is used to access the editor, so it must be suitable for use in a URL. It is not currently possible to rename the instance after it has been created.
                     </template>
@@ -470,7 +470,7 @@ export default {
             return this.projectTypes.filter(pt => !pt.disabled)
         },
         instanceName () {
-            return this.input.name.trim().replace(/\s/g, '-').toLowerCase()
+            return this.input.name.trim().replace(/\s/g, '-')
         },
         hasValidName () {
             return this.validateName(this.input.name)
@@ -740,7 +740,7 @@ export default {
                 'on-submit',
                 {
                     ...this.input,
-                    name: this.input.name.trim()
+                    name: this.instanceName
                 },
                 this.copyParts
             )
