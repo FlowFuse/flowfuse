@@ -109,7 +109,7 @@ export default {
         fileNodesDisabled () {
             const settingsFile = this.instance.settings.palette?.nodesExcludes?.includes('10-file.js')
             const templateFile = this.instance.template.settings.palette?.nodesExcludes?.includes('10-file.js')
-            if (this.includes.settings.palette?.nodesExcludes) {
+            if (this.instance.settings.palette?.nodesExcludes) {
                 // override template so only need to check settings
                 return settingsFile
             } else {
