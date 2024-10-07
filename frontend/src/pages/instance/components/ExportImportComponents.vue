@@ -105,6 +105,20 @@ export default {
             set (localValue) {
                 this.$emit('update:modelValue', localValue)
             }
+        },
+        envVarOptions: {
+            get () {
+                const opts = this.envVarKeyOptions.map(opt => {
+                    return {
+                        ...opt,
+                        disabled: this.parts.envVars === false
+                    }
+                })
+                return opts
+            },
+            set (localValue) {
+                this.envVarOpts = localValue
+            }
         }
     },
     watch: {
@@ -117,17 +131,27 @@ export default {
                     this.parts.envVars = value.envVarsKo
                 }
             }
+        },
+        'parts.envVars': {
+            handler: function (value) {
+                this.syncEnvVars()
+            }
         }
     },
     mounted () {
-        if (this.parts.envVars === false) {
-            this.envVarOpts.envVars = false
-        } else if (this.parts.envVars === true || this.parts.envVars === 'all') {
-            this.envVarOpts.envVars = true
-            this.envVarOpts.envVarsKo = 'all'
-        } else {
-            this.envVarOpts.envVars = true
-            this.envVarOpts.envVarsKo = 'keys'
+        this.syncEnvVars()
+    },
+    methods: {
+        syncEnvVars () {
+            if (this.parts.envVars === false) {
+                this.envVarOpts.envVars = false
+            } else if (this.parts.envVars === true || this.parts.envVars === 'all') {
+                this.envVarOpts.envVars = true
+                this.envVarOpts.envVarsKo = 'all'
+            } else {
+                this.envVarOpts.envVars = true
+                this.envVarOpts.envVarsKo = 'keys'
+            }
         }
     }
 }
