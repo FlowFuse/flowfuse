@@ -22,6 +22,13 @@
                         <textarea v-model="input.description" rows="8" class="ff-input ff-text-input" style="height: auto" />
                     </template>
                 </FormRow>
+                <ImportInstanceComponents
+                    v-model="parts"
+                    header="Select the components to include in the upload"
+                    :error="validateField.parts ? errors.parts : ''"
+                    :showCredentials="snapshotNeedsSecret"
+                    data-form="import-snapshot-components"
+                />
                 <FormRow v-if="snapshotNeedsSecret && parts.flows !== false && parts.credentials !== false" v-model="input.secret" :error="validateField.secret ? errors.secret : ''" data-form="import-snapshot-secret">Credentials Secret</FormRow>
             </form>
         </template>

@@ -2,7 +2,11 @@
     <ff-dialog ref="dialog" header="Download Snapshot" confirm-label="Download" :closeOnConfirm="false" :disable-primary="!formValid" data-el="snapshot-download-dialog" @confirm="confirm()">
         <template #default>
             <form data-form="snapshot-export" @submit.prevent>
-                <ExportInstanceComponents v-model="parts" :error="errors.parts" header="Select the components to include in the snapshot" />
+                <ExportInstanceComponents
+                    v-model="parts"
+                    :error="errors.parts" header="Select the components to include in the snapshot"
+                    data-form="export-snapshot-components"
+                />
                 <template v-if="needsSecret">
                     <FormRow containerClass="w-auto mt-6" :error="errors.secret" data-form="snapshot-secret">
                         Secret

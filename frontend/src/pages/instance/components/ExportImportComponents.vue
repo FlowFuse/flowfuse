@@ -3,11 +3,11 @@
         <p v-if="header" class="text-gray-800 block text-sm font-medium">
             {{ header }}
         </p>
-        <FormRow v-model="parts.flows" type="checkbox">
+        <FormRow v-model="parts.flows" type="checkbox" data-form="component-flows">
             Flows
         </FormRow>
         <div v-if="showCredentials" :class="parts.flows?'opacity-100':'opacity-30'">
-            <FormRow v-model="parts.credentials" type="checkbox" :disabled="!parts.flows">
+            <FormRow v-model="parts.credentials" type="checkbox" :disabled="!parts.flows" data-form="component-credentials">
                 Credentials
             </FormRow>
         </div>
@@ -21,13 +21,13 @@
         <FormRow v-if="showSettings" v-model="parts.settings" type="checkbox">
             Instance Settings
         </FormRow>
-        <FormRow v-model="envVarOpts.envVars" type="checkbox">
+        <FormRow v-model="envVarOpts.envVars" type="checkbox" data-form="component-environment-variables">
             Environment Variables
         </FormRow>
-        <div :class="['space-y-4', envVarOpts.envVars?'opacity-100':'opacity-30']">
-            <ff-radio-group v-model="envVarOpts.envVarsKo" class="ml-9" orientation="vertical" :options="envVarKeyOptions" />
+        <div :class="['space-y-4', envVarOpts.envVars?'opacity-100':'opacity-30']" data-form="component-environment-variables-options">
+            <ff-radio-group v-model="envVarOpts.envVarsKo" class="ml-9" orientation="vertical" :options="envVarOptions" />
         </div>
-        <div v-if="error" class="text-red-400 text-xs">{{ error }}</div>
+        <div v-if="error" data-el="form-row-error" class="text-red-400 inline text-xs">{{ error }}</div>
     </div>
 </template>
 
