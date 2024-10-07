@@ -61,9 +61,8 @@ export default {
                 this.input.secret = this.generateRandomKey()
                 this.snapshot = snapshot
                 this.submitted = false
-                this.errors = {
-                    secret: ''
-                }
+                this.errors.secret = ''
+                this.errors.parts = ''
                 this.$refs.secret.focus()
             }
         }
@@ -75,7 +74,10 @@ export default {
                 secret: ''
             },
             snapshot: null,
-            errors: {},
+            errors: {
+                secret: '',
+                parts: ''
+            },
             parts: {
                 flows: true,
                 credentials: true,
