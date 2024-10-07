@@ -32,7 +32,7 @@ jobs:
       build_package: true
       publish_package: true
       package_dependencies: |
-        @flowfuse/driver-localfs
+        @flowfuse/driver-localfs=nightly
     secrets:
       npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
       sentry_auth_token: ${{ secrets.SENTRY_AUTH_TOKEN }}
