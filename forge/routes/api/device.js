@@ -333,7 +333,7 @@ module.exports = async function (app) {
                 reply.send(response)
             } finally {
                 if (app.license.active() && app.billing) {
-                    await app.billing.updateTeamDeviceCount(team)
+                    await app.billing.updateTeamBillingCounts(team)
                 }
             }
         } catch (err) {
@@ -378,7 +378,7 @@ module.exports = async function (app) {
             await request.device.destroy()
             await app.auditLog.Team.team.device.deleted(request.session.User, null, team, request.device)
             if (app.license.active() && app.billing) {
-                await app.billing.updateTeamDeviceCount(team)
+                await app.billing.updateTeamBillingCounts(team)
             }
             reply.send({ status: 'okay' })
         } catch (err) {
