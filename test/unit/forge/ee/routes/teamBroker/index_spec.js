@@ -73,8 +73,8 @@ describe('Team Broker API', function () {
             })
             response.statusCode.should.equal(200)
             const result = response.json()
-            result.should.have.a.lengthOf(1)
-            result[0].should.have.property('username', 'alice')
+            result.clients.should.have.a.lengthOf(1)
+            result.clients[0].should.have.property('username', 'alice')
         })
 
         it('Delete MQTT Broker User', async function () {

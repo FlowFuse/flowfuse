@@ -36,6 +36,7 @@ module.exports = async function (app) {
         schema: {
             summary: 'List MQTT users for the team',
             tags: ['MQTT Broker'],
+            query: { $ref: 'PaginationParams' },
             params: {
                 type: 'object',
                 properties: {
@@ -44,7 +45,13 @@ module.exports = async function (app) {
             },
             response: {
                 200: {
-                    type: 'array'
+                    type: 'object',
+                    properties: {
+                        clients: { type: 'array' },
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'integer' }
+                    },
+                    additionalProperties: true
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -55,7 +62,8 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const users = await app.db.models.TeamBrokerUser.byTeam(request.team.hashid)
+        const paginationOptions = app.getPaginationOptions(request)
+        const users = await app.db.models.TeamBrokerUser.byTeam(request.team.hashid, paginationOptions)
         reply.send(app.db.views.TeamBrokerUser.users(users))
     })
 

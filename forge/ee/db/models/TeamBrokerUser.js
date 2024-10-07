@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize')
 
-const { hash } = require('../../../db/utils')
+const { hash, buildPaginationSearchClause } = require('../../../db/utils')
 
 module.exports = {
     name: 'TeamBrokerUser',
@@ -32,15 +32,37 @@ module.exports = {
                         where: { username, TeamId: teamId }
                     })
                 },
-                byTeam: async (teamHashId) => {
+                byTeam: async (teamHashId, pagination = {}, where = {}) => {
                     const teamId = M.Team.decodeHashid(teamHashId)
-                    return this.findAll({
-                        include: {
-                            model: M.Team,
-                            attributes: ['name'],
-                            where: { id: teamId }
-                        }
-                    })
+                    const limit = Math.min(parseInt(pagination.limit) || 100, 100)
+                    if (pagination.cursor) {
+                        pagination.cursor = M.TeamBrokerUser.decodeHashid(pagination.cursor)
+                    }
+                    const [rows, count] = await Promise.all([
+                        this.findAll({
+                            where: buildPaginationSearchClause(pagination, where, ['TeamBrokerUser.username']),
+                            include: {
+                                model: M.Team,
+                                attributes: ['name'],
+                                where: { id: teamId }
+                            },
+                            order: [['id', 'ASC']],
+                            limit
+                        }),
+                        this.count({
+                            include: {
+                                model: M.Team,
+                                where: { id: teamId }
+                            }
+                        })
+                    ])
+                    return {
+                        meta: {
+                            next_cursor: rows.length === limit ? rows[rows.length - 1].hashid : undefined
+                        },
+                        count,
+                        clients: rows
+                    }
                 }
             }
         }
