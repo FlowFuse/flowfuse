@@ -740,7 +740,7 @@ export default {
                 'on-submit',
                 {
                     ...this.input,
-                    name: this.instanceName
+                    name: this.input.name.trim()
                 },
                 this.copyParts
             )
