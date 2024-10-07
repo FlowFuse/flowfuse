@@ -562,7 +562,11 @@ export default {
                 // Need to combine the projectType billing info with any overrides
                 // from the current teamType
                 const teamTypeInstanceProperties = this.team.type.properties.instances[pt.id]
-                const existingInstanceCount = this.team.instanceCountByType?.[pt.id] || 0
+                let existingInstanceCount = this.team.instanceCountByType?.[pt.id] || 0
+                if (this.team.type.properties.devices?.combinedFreeType === pt.id) {
+                    // Need to include device count as they use a combined free allocation
+                    existingInstanceCount += this.team.deviceCount
+                }
                 pt.price = ''
                 pt.priceInterval = ''
                 pt.currency = ''
