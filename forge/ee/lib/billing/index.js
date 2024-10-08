@@ -4,6 +4,7 @@ module.exports.init = async function (app) {
 
     const ONE_DAY = 86400000
 
+    /** @type {import('stripe').default } */
     const stripe = require('stripe')(app.config.billing.stripe.key)
 
     app.housekeeper.registerTask({
