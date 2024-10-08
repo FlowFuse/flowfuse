@@ -7,12 +7,14 @@
         <template #tools>
             <div style="display: flex;align-items: center;">
                 <div class="mr-2"><strong>Instance:</strong></div>
-                <ff-dropdown ref="dropdown" v-model="input.instanceId" class="w-full">
-                    <ff-dropdown-option
-                        v-for="inputInstance in instances" :key="inputInstance.id"
-                        :label="inputInstance.name" :value="inputInstance.id"
-                    />
-                </ff-dropdown>
+                <ff-listbox
+                    ref="dropdown"
+                    v-model="input.instanceId"
+                    :options="instances"
+                    label-key="name"
+                    value-key="id"
+                    class="w-full"
+                />
                 <router-link v-if="instance?.meta" :to="{ name: 'Instance', params: { id: instance.id }}">
                     <InstanceStatusBadge :status="instance.meta?.state" :pendingStateChange="instance?.pendingStateChange" :optimisticStateChange="instance.optimisticStateChange" class="ml-2" />
                 </router-link>
