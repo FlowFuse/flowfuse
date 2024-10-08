@@ -36,6 +36,17 @@ module.exports.init = async function (app) {
     }
 
     return {
+        /**
+         * Create a Stripe subscription session for the given team
+         * The Stripe subscription will be populated with the appropriate items
+         * As a user may be modifying their team type at the same time, this function
+         * accepts an optional teamTypeId for the target team type. If that is not
+         * provided, it will use the billing ids for the team's existing type.
+         * @param {*} team The team to setup billing for
+         * @param {*} user An optional user who may have credits associated with them
+         * @param {*} teamTypeId An optional teamTypeId if the team is being upgraded at the same time
+         * @returns A Stripe checkout session object
+         */
         createSubscriptionSession: async (team, user = null, teamTypeId = null) => {
             // When setting up the initial subscription we'll default to the billing
             // ids of current team type. However, the subscription setup could be done
@@ -167,11 +178,26 @@ module.exports.init = async function (app) {
             app.log.info(`Creating Subscription for team ${team.hashid}` + (sub.discounts ? ` code='${userBillingCode.code}'` : ''))
             return session
         },
-
+        /**
+         * Add an instance to the team's billing.
+         * This passes straight through to `app.billing.updateTeamBillingCounts` as
+         * we no longer track individual instance billing state
+         * @param {*} team The team to update billing for
+         * @param {*} project The instance that was added
+         * @returns
+         */
         addProject: async (team, project) => {
             return app.billing.updateTeamBillingCounts(team)
         },
 
+        /**
+         * Remove an instance from the team's billing.
+         * This passes straight through to `app.billing.updateTeamBillingCounts` as
+         * we no longer track individual instance billing state
+         * @param {*} team The team to update billing for
+         * @param {*} project The instance that was removed
+         * @returns
+         */
         removeProject: async (team, project) => {
             return app.billing.updateTeamBillingCounts(team)
         },
@@ -205,6 +231,30 @@ module.exports.init = async function (app) {
             await app.billing.updateTeamBillingCounts(team)
         },
 
+        /**
+         * Gets the counts of all instances/devices that are billable. This takes
+         * into account any free allocation a teamType may have.
+         * It also includes the stripe billing ids to save looking them up multiple times
+         * by the calling functions.
+         * The response format is as follows. The keys under `instances` are the hashids
+         * of the different instance types.
+         * {
+         *     instances: {
+         *         abcde: 0,
+         *         fghij: 1,
+         *         klmno: 0
+         *     },
+         *     devices: 27,
+         *     billingIds: {
+         *         abcde: { price: 'stripe_price_id', product: 'stripe_product_id' },
+         *         ....
+         *         devices: { price: 'stripe_price_id', product: 'stripe_product_id' },
+         *     }
+         * }
+         * @param {*} team The team to get the counts for
+         * @param {*} teamType An optional teamType to get the billing ids for
+         * @returns The billable counts and ids for the team
+         */
         getTeamBillableCounts: async (team, teamType) => {
             await team.ensureTeamTypeExists()
             if (!teamType) {
