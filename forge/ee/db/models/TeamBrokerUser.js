@@ -63,6 +63,15 @@ module.exports = {
                         count,
                         clients: rows
                     }
+                },
+                countTeam: async (teamHashId) => {
+                    const teamId = M.Team.decodeHashid(teamHashId)
+                    return await this.count({
+                        include: {
+                            model: M.Team,
+                            where: { id: teamId }
+                        }
+                    })
                 }
             }
         }

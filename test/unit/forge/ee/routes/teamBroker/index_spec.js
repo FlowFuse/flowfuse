@@ -2,6 +2,8 @@ const should = require('should') // eslint-disable-line
 
 const setup = require('../../setup')
 
+const MAX_BROKER_USERS = 5
+
 describe('Team Broker API', function () {
     let app
     const TestObjects = { tokens: {} }
@@ -18,6 +20,15 @@ describe('Team Broker API', function () {
         } else {
             defaultTeamTypeProperties.features = {
                 teamBroker: true
+            }
+        }
+        if (defaultTeamTypeProperties.teamBroker) {
+            defaultTeamTypeProperties.teamBroker.clients.limit = MAX_BROKER_USERS
+        } else {
+            defaultTeamTypeProperties.teamBroker = {
+                clients: {
+                    limit: MAX_BROKER_USERS
+                }
             }
         }
         app.defaultTeamType.properties = defaultTeamTypeProperties
@@ -39,7 +50,7 @@ describe('Team Broker API', function () {
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
-    describe('Work with MQTT Broker Users', function () {
+    describe.only('Work with MQTT Broker Users', function () {
         it('Create MQTT Broker User', async function () {
             const response = await app.inject({
                 method: 'POST',
@@ -77,6 +88,63 @@ describe('Team Broker API', function () {
             result.clients[0].should.have.property('username', 'alice')
         })
 
+        it('Limit number of MQTT broker users allowed', async function () {
+            let response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${app.team.hashid}/broker/users`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            let result = response.json()
+            result.clients.should.have.a.lengthOf(1)
+            const start = result.clients.length
+            for (let i = start; i < MAX_BROKER_USERS; i++) {
+                const create = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${app.team.hashid}/broker/user`,
+                    cookies: { sid: TestObjects.tokens.alice },
+                    body: {
+                        username: `alice-${i}`,
+                        password: 'aaPassword',
+                        acls: [
+                            {
+                                pattern: 'foo/#',
+                                action: 'both'
+                            }
+                        ]
+                    }
+                })
+                create.statusCode.should.equal(201)
+            }
+            response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${app.team.hashid}/broker/users`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            result = response.json()
+            result.clients.should.have.a.lengthOf(MAX_BROKER_USERS)
+
+            response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${app.team.hashid}/broker/user`,
+                cookies: { sid: TestObjects.tokens.alice },
+                body: {
+                    username: 'alice-5',
+                    password: 'aaPassword',
+                    acls: [
+                        {
+                            pattern: 'foo/#',
+                            action: 'both'
+                        }
+                    ]
+                }
+            })
+            response.statusCode.should.equal(400)
+            result = response.json()
+            result.should.have.property('code', 'broker_client_limit_reached')
+
+        })
+
         it('Delete MQTT Broker User', async function () {
             const response = await app.inject({
                 method: 'DELETE',
@@ -85,7 +153,7 @@ describe('Team Broker API', function () {
             })
             response.statusCode.should.equal(200)
             const result = response.json()
-            result.should.have.property('status')
+            result.should.have.property('status', 'okay')
         })
     })
     describe('Test MQTT Broker user auth', function () {

@@ -32,6 +32,12 @@ module.exports = async function (app) {
         }
     })
 
+    /**
+     * Get the Teams MQTT Clients
+     * @name /api/v1/team/:teamId/broker/users
+     * @static
+     * @memberof forge.routes.api.team.broker
+     */
     app.get('/users', {
         schema: {
             summary: 'List MQTT users for the team',
@@ -106,12 +112,16 @@ module.exports = async function (app) {
         try {
             const newUser = request.body
             newUser.acls = JSON.stringify(newUser.acls)
+            await request.team.checkTeamBrokerUserCreateAllowed()
             const user = await app.db.models.TeamBrokerUser.create({ ...request.body, TeamId: request.team.id })
             reply.status(201).send(app.db.views.TeamBrokerUser.user(user))
         } catch (err) {
-            // TODO fix error message
-            // console.log(err)
-            reply.status(500).send({ error: 'unknow_error', code: 'Unknown Error' })
+            return reply
+                .code(err.statusCode || 400)
+                .send({
+                    code: err.code || 'unknown_error',
+                    error: err.error || err.message
+                })
         }
     })
 
