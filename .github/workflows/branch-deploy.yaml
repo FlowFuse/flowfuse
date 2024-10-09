@@ -77,7 +77,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ./ci
           file: "./ci/Dockerfile"
           tags: ${{ env.tagged_image }}
           push: false
