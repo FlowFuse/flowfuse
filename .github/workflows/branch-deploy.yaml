@@ -93,7 +93,7 @@ jobs:
   deploy:
     name: Deploy application
     needs: [ validate-user, build ]
-    if: faslse
+    if: false
     # if: |
     #   needs.validate-user.outputs.is_org_member == 'true' &&
     #   github.event_name == 'pull_request' && 
