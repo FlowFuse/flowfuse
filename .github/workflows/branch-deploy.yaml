@@ -148,190 +148,190 @@ jobs:
           docker tag ${{ env.tagged_image }} ${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }}
           docker push ${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }}
 
-      - name: Configure AWS credentials for EKS interaction
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
-          aws-region: eu-west-1
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/K8sAdmin
-          role-duration-seconds: 1200
+  #     - name: Configure AWS credentials for EKS interaction
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+  #         aws-region: eu-west-1
+  #         role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/K8sAdmin
+  #         role-duration-seconds: 1200
 
-      - name: Configure kubeconfig
-        run: |
-          aws eks update-kubeconfig --region eu-west-1 --name ${{ secrets.EKS_CLUSTER_NAME }}
+  #     - name: Configure kubeconfig
+  #       run: |
+  #         aws eks update-kubeconfig --region eu-west-1 --name ${{ secrets.EKS_CLUSTER_NAME }}
 
-      - name: Install 1Password CLI
-        uses: 1password/install-cli-action@v1
-        with:
-          version: 2.25.0
+  #     - name: Install 1Password CLI
+  #       uses: 1password/install-cli-action@v1
+  #       with:
+  #         version: 2.25.0
 
-      - name: Check out FlowFuse/helm repository (to access latest helm chart)
-        uses: actions/checkout@v4
-        with:
-          repository: 'FlowFuse/helm'
-          ref: 'main'
-          path: 'helm-repo'
-          token: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Check out FlowFuse/helm repository (to access latest helm chart)
+  #       uses: actions/checkout@v4
+  #       with:
+  #         repository: 'FlowFuse/helm'
+  #         ref: 'main'
+  #         path: 'helm-repo'
+  #         token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check if deployment exists
-        id: check-initial-setup
-        run: |
-          if helm status --namespace "pr-${{ env.PR_NUMBER }}" flowfuse-pr-${{ env.PR_NUMBER }} &> /dev/null; then
-            echo "initialSetup=false" >> $GITHUB_ENV
-          else
-            echo "initialSetup=true" >> $GITHUB_ENV
-          fi
+  #     - name: Check if deployment exists
+  #       id: check-initial-setup
+  #       run: |
+  #         if helm status --namespace "pr-${{ env.PR_NUMBER }}" flowfuse-pr-${{ env.PR_NUMBER }} &> /dev/null; then
+  #           echo "initialSetup=false" >> $GITHUB_ENV
+  #         else
+  #           echo "initialSetup=true" >> $GITHUB_ENV
+  #         fi
 
-      - name: Deploy
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        run: |
-          helm upgrade --install \
-            --create-namespace \
-            --namespace "pr-${{ env.PR_NUMBER }}" \
-            --timeout 300s \
-            --wait \
-            --atomic \
-            --values ci/ci-values.yaml \
-            --set forge.image=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }} \
-            --set forge.entryPoint=${{ env.PR_NUMBER }}.flowfuse.dev \
-            --set forge.broker.hostname=${{ env.PR_NUMBER }}-mqtt.flowfuse.dev \
-            --set forge.projectNamespace=pr-${{ env.PR_NUMBER }}-projects \
-            --set forge.clusterRole.name=pr-${{ env.PR_NUMBER }}-clusterrole \
-            --set forge.license=${{ secrets.PRE_STAGING_LICENSE }} \
-            --set forge.aws.IAMRole=arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/flowforge_service_account_role \
-            --set forge.email.ses.sourceArn=arn:aws:ses:eu-west-1:${{ secrets.AWS_ACCOUNT_ID }}:identity/flowfuse.com \
-            --set forge.assistant.service.url=$(op read op://ci/staging_flowfuse/assistant_url) \
-            --set forge.assistant.service.token=$(op read op://ci/staging_flowfuse/assistant_token) \
-            flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowforge
+  #     - name: Deploy
+  #       env:
+  #         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+  #       run: |
+  #         helm upgrade --install \
+  #           --create-namespace \
+  #           --namespace "pr-${{ env.PR_NUMBER }}" \
+  #           --timeout 300s \
+  #           --wait \
+  #           --atomic \
+  #           --values ci/ci-values.yaml \
+  #           --set forge.image=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }} \
+  #           --set forge.entryPoint=${{ env.PR_NUMBER }}.flowfuse.dev \
+  #           --set forge.broker.hostname=${{ env.PR_NUMBER }}-mqtt.flowfuse.dev \
+  #           --set forge.projectNamespace=pr-${{ env.PR_NUMBER }}-projects \
+  #           --set forge.clusterRole.name=pr-${{ env.PR_NUMBER }}-clusterrole \
+  #           --set forge.license=${{ secrets.PRE_STAGING_LICENSE }} \
+  #           --set forge.aws.IAMRole=arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/flowforge_service_account_role \
+  #           --set forge.email.ses.sourceArn=arn:aws:ses:eu-west-1:${{ secrets.AWS_ACCOUNT_ID }}:identity/flowfuse.com \
+  #           --set forge.assistant.service.url=$(op read op://ci/staging_flowfuse/assistant_url) \
+  #           --set forge.assistant.service.token=$(op read op://ci/staging_flowfuse/assistant_token) \
+  #           flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowforge
 
-      - name: Initial setup
-        if: ${{ env.initialSetup == 'true' }}
-        run: |
-          ./.github/scripts/initial-setup.sh ${{ env.PR_NUMBER }} ${{ secrets.INIT_CONFIG_PASSWORD_HASH }} ${{ secrets.INIT_CONFIG_ACCESS_TOKEN_HASH }} ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }} ${{ secrets.INIT_CONFIG_PASSWORD }}
+  #     - name: Initial setup
+  #       if: ${{ env.initialSetup == 'true' }}
+  #       run: |
+  #         ./.github/scripts/initial-setup.sh ${{ env.PR_NUMBER }} ${{ secrets.INIT_CONFIG_PASSWORD_HASH }} ${{ secrets.INIT_CONFIG_ACCESS_TOKEN_HASH }} ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }} ${{ secrets.INIT_CONFIG_PASSWORD }}
           
-      - name: Summary
-        run: |
-          echo "### :rocket: Deployment succeeded" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Deployed commit SHA:** ${{ github.event.pull_request.head.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Deployed to:** [https://${{ env.PR_NUMBER }}.flowfuse.dev](https://${{ env.PR_NUMBER }}.flowfuse.dev)" >> $GITHUB_STEP_SUMMARY
+  #     - name: Summary
+  #       run: |
+  #         echo "### :rocket: Deployment succeeded" >> $GITHUB_STEP_SUMMARY
+  #         echo "" >> $GITHUB_STEP_SUMMARY
+  #         echo "**Deployed commit SHA:** ${{ github.event.pull_request.head.sha }}" >> $GITHUB_STEP_SUMMARY
+  #         echo "**Deployed to:** [https://${{ env.PR_NUMBER }}.flowfuse.dev](https://${{ env.PR_NUMBER }}.flowfuse.dev)" >> $GITHUB_STEP_SUMMARY
 
-  notify-slack:
-    name: Notify about pre-staging deployment
-    needs: [deploy]
-    if: |
-      ( success() || failure() ) &&
-      github.actor != 'dependabot[bot]'
-    runs-on: ubuntu-latest
-    env:
-      PR_NUMBER: ${{ github.event.number }}
+  # notify-slack:
+  #   name: Notify about pre-staging deployment
+  #   needs: [deploy]
+  #   if: |
+  #     ( success() || failure() ) &&
+  #     github.actor != 'dependabot[bot]'
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     PR_NUMBER: ${{ github.event.number }}
 
-    steps:
-    - name: Map users  
-      id: map-actor-to-slack
-      uses: icalia-actions/map-github-actor@v0.0.2
-      with:
-        actor-map: ${{ vars.SLACK_GITHUB_USERS_MAP }}
-        default-mapping: C067BD0377F
+  #   steps:
+  #   - name: Map users  
+  #     id: map-actor-to-slack
+  #     uses: icalia-actions/map-github-actor@v0.0.2
+  #     with:
+  #       actor-map: ${{ vars.SLACK_GITHUB_USERS_MAP }}
+  #       default-mapping: C067BD0377F
 
-    - name: Post to a Slack channel
-      id: slack
-      uses: slackapi/slack-github-action@v1.27.0
-      with:
-        channel-id: 'C067BD0377F'
-        payload: |
-          {
-            "blocks": [
-              {
-                "type": "header",
-                "text": {
-                  "type": "plain_text",
-                  "text": "Pull Request ${{ env.PR_NUMBER }} pre-staging deployment",
-                  "emoji": true
-                }
-              },
-              {
-                "type": "section",
-                "fields": [
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Status:*\n${{ needs.deploy.result == 'success' && ':white_check_mark: Success' || ':x: Failure '}}"
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": ${{ toJson(env.PR_TEXT) }}
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Workflow run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
-                  }
-                ]
-              },
-              {
-                "type": "section",
-                "fields": [
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Author:*\n<@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>"
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Commit SHA:*\n<${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}|${{ github.event.pull_request.head.sha }}>"
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Deployed to:*\n<https://${{ env.PR_NUMBER }}.flowfuse.dev|https://${{ env.PR_NUMBER }}.flowfuse.dev>"
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Logs:*\n<https://${{ env.GRAFANA_URL }}/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22editorMode%22:%22code%22,%22expr%22:%22%7Bnamespace%3D%5C%22pr-${{ env.PR_NUMBER }}%5C%22%7D%20%7C%3D%20%60%60%20%7C%20json%22,%22queryType%22:%22range%22%7D%5D,%22range%22:%7B%22from%22:%22now-30m%22,%22to%22:%22now%22%7D%7D|View>"
-                  }
-                ]
-              }
-            ]
-          }
-      env:
-        PR_TEXT: |
-          *Pull Request:*
-          <https://github.com/FlowFuse/flowfuse/pull/${{ env.PR_NUMBER }}|${{ github.event.pull_request.title }}>
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
-        GRAFANA_URL: ${{ secrets.STAGING_GRAFANA_URL }}
+  #   - name: Post to a Slack channel
+  #     id: slack
+  #     uses: slackapi/slack-github-action@v1.27.0
+  #     with:
+  #       channel-id: 'C067BD0377F'
+  #       payload: |
+  #         {
+  #           "blocks": [
+  #             {
+  #               "type": "header",
+  #               "text": {
+  #                 "type": "plain_text",
+  #                 "text": "Pull Request ${{ env.PR_NUMBER }} pre-staging deployment",
+  #                 "emoji": true
+  #               }
+  #             },
+  #             {
+  #               "type": "section",
+  #               "fields": [
+  #                 {
+  #                   "type": "mrkdwn",
+  #                   "text": "*Status:*\n${{ needs.deploy.result == 'success' && ':white_check_mark: Success' || ':x: Failure '}}"
+  #                 },
+  #                 {
+  #                   "type": "mrkdwn",
+  #                   "text": ${{ toJson(env.PR_TEXT) }}
+  #                 },
+  #                 {
+  #                   "type": "mrkdwn",
+  #                   "text": "*Workflow run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
+  #                 }
+  #               ]
+  #             },
+  #             {
+  #               "type": "section",
+  #               "fields": [
+  #                 {
+  #                   "type": "mrkdwn",
+  #                   "text": "*Author:*\n<@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>"
+  #                 },
+  #                 {
+  #                   "type": "mrkdwn",
+  #                   "text": "*Commit SHA:*\n<${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}|${{ github.event.pull_request.head.sha }}>"
+  #                 },
+  #                 {
+  #                   "type": "mrkdwn",
+  #                   "text": "*Deployed to:*\n<https://${{ env.PR_NUMBER }}.flowfuse.dev|https://${{ env.PR_NUMBER }}.flowfuse.dev>"
+  #                 },
+  #                 {
+  #                   "type": "mrkdwn",
+  #                   "text": "*Logs:*\n<https://${{ env.GRAFANA_URL }}/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22editorMode%22:%22code%22,%22expr%22:%22%7Bnamespace%3D%5C%22pr-${{ env.PR_NUMBER }}%5C%22%7D%20%7C%3D%20%60%60%20%7C%20json%22,%22queryType%22:%22range%22%7D%5D,%22range%22:%7B%22from%22:%22now-30m%22,%22to%22:%22now%22%7D%7D|View>"
+  #                 }
+  #               ]
+  #             }
+  #           ]
+  #         }
+  #     env:
+  #       PR_TEXT: |
+  #         *Pull Request:*
+  #         <https://github.com/FlowFuse/flowfuse/pull/${{ env.PR_NUMBER }}|${{ github.event.pull_request.title }}>
+  #       SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
+  #       GRAFANA_URL: ${{ secrets.STAGING_GRAFANA_URL }}
 
 
-  destroy:
-    name: Remove application
-    needs: [ validate-user ]
-    runs-on: ubuntu-latest
-    if: |
-      needs.validate-user.outputs.is_org_member == 'true' &&
-      github.event_name == 'pull_request' && 
-      github.event.action == 'closed'
-    environment: staging
-    env:
-      IMAGE_NAME: 'forge-k8s'
-      PR_NUMBER: ${{ github.event.number }}
-    steps:
-      - name: Configure AWS credentials for EKS interaction
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
-          aws-region: eu-west-1
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/K8sAdmin
-          role-duration-seconds: 1200
+  # destroy:
+  #   name: Remove application
+  #   needs: [ validate-user ]
+  #   runs-on: ubuntu-latest
+  #   if: |
+  #     needs.validate-user.outputs.is_org_member == 'true' &&
+  #     github.event_name == 'pull_request' && 
+  #     github.event.action == 'closed'
+  #   environment: staging
+  #   env:
+  #     IMAGE_NAME: 'forge-k8s'
+  #     PR_NUMBER: ${{ github.event.number }}
+  #   steps:
+  #     - name: Configure AWS credentials for EKS interaction
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+  #         aws-region: eu-west-1
+  #         role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/K8sAdmin
+  #         role-duration-seconds: 1200
 
-      - name: Configure kubeconfig
-        run: |
-          aws eks update-kubeconfig --region eu-west-1 --name ${{ secrets.EKS_CLUSTER_NAME }}
+  #     - name: Configure kubeconfig
+  #       run: |
+  #         aws eks update-kubeconfig --region eu-west-1 --name ${{ secrets.EKS_CLUSTER_NAME }}
       
-      - name: Remove resources
-        run: |
-          if helm list -n "pr-${{ env.PR_NUMBER }}" --filter "^flowfuse-pr-${{ env.PR_NUMBER }}$" | grep "flowfuse-pr-${{ env.PR_NUMBER }}"; then
-            helm uninstall --namespace "pr-${{ env.PR_NUMBER }}" flowfuse-pr-${{ env.PR_NUMBER }}
-            sleep 15
-            kubectl delete namespace "pr-${{ env.PR_NUMBER }}"
-          else
-            echo "Release flowfuse-pr-${{ env.PR_NUMBER }} does not exist"
-          fi
+  #     - name: Remove resources
+  #       run: |
+  #         if helm list -n "pr-${{ env.PR_NUMBER }}" --filter "^flowfuse-pr-${{ env.PR_NUMBER }}$" | grep "flowfuse-pr-${{ env.PR_NUMBER }}"; then
+  #           helm uninstall --namespace "pr-${{ env.PR_NUMBER }}" flowfuse-pr-${{ env.PR_NUMBER }}
+  #           sleep 15
+  #           kubectl delete namespace "pr-${{ env.PR_NUMBER }}"
+  #         else
+  #           echo "Release flowfuse-pr-${{ env.PR_NUMBER }} does not exist"
+  #         fi
