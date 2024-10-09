@@ -93,10 +93,11 @@ jobs:
   deploy:
     name: Deploy application
     needs: [ validate-user, build ]
-    if: |
-      needs.validate-user.outputs.is_org_member == 'true' &&
-      github.event_name == 'pull_request' && 
-      github.event.action != 'closed'
+    if: faslse
+    # if: |
+    #   needs.validate-user.outputs.is_org_member == 'true' &&
+    #   github.event_name == 'pull_request' && 
+    #   github.event.action != 'closed'
     runs-on: ubuntu-latest
     environment: staging
     env:
@@ -221,9 +222,10 @@ jobs:
   notify-slack:
     name: Notify about pre-staging deployment
     needs: [deploy]
-    if: |
-      ( success() || failure() ) &&
-      github.actor != 'dependabot[bot]'
+    if: false
+    # if: |
+    #   ( success() || failure() ) &&
+    #   github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     env:
       PR_NUMBER: ${{ github.event.number }}
@@ -304,10 +306,11 @@ jobs:
     name: Remove application
     needs: [ validate-user ]
     runs-on: ubuntu-latest
-    if: |
-      needs.validate-user.outputs.is_org_member == 'true' &&
-      github.event_name == 'pull_request' && 
-      github.event.action == 'closed'
+    if: false
+    # if: |
+    #   needs.validate-user.outputs.is_org_member == 'true' &&
+    #   github.event_name == 'pull_request' && 
+    #   github.event.action == 'closed'
     environment: staging
     env:
       IMAGE_NAME: 'forge-k8s'
