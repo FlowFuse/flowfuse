@@ -1,0 +1,18 @@
+{
+    "name": "@flowfuse/flowfuse-k8s",
+    "version": "2.9.0",
+    "description": "FlowFuse in Docker",
+    "private": true,
+    "author": {
+        "name": "FlowForge Inc."
+    },
+    "dependencies": {
+        "@flowfuse/flowfuse": "nightly",
+        "@flowfuse/driver-kubernetes": "nightly",
+        "pg": "^8.7.1",
+        "pg-hstore": "^2.3.4"
+    },
+    "engines": {
+        "node": ">=16.x"
+    }
+}
