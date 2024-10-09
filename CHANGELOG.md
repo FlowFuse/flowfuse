@@ -1,3 +1,67 @@
+#### 2.9.0: Release
+
+ - Enable BOM feature for Enterprise team on pre-staging (#4550)
+ - Bump flowfuse/github-actions-workflows from 0.29.0 to 0.30.0 (#4547)
+ - Bump flowfuse/github-actions-workflows from 0.28.0 to 0.29.0 (#4471)
+ - Bump flowfuse/github-actions-workflows from 0.21.0 to 0.28.0 (#4442)
+ - Bump slackapi/slack-github-action from 1.26.0 to 1.27.0 (#4441)
+ - Bump tj-actions/changed-files from 44 to 45 (#4404)
+ - ci: Add possibility to send e-mails from pre-staging environments (#4437)
+ - ci: Set Node-RED v4 as a default stack on pre-staging (#4436)
+ - ci: Enable latest features on pre-staging environment (#4435)
+ - Make the immersive editor collapse button permanently visible when the drawer is open (#4569) @cstns
+ - Add bill of materials docs (#4523) @cstns
+ - Add an user education modal to trial users (#4540) @cstns
+ - Add warning about file nodes to Assets page (#4541) @hardillb
+ - Implement history timeline API (backend) (#4509) @Steve-Mcl
+ - Use the provided user info sent to the audit endpoint to get which user is triggering an operation (#4530) @Steve-Mcl
+ - improved alert notification messages on asset service file/folder upload (#4542) @cstns
+ - handle new logout event from nr-editor (#4544) @cstns
+ - Bump find-my-way from 8.1.0 to 8.2.2 (#4513) @app/dependabot
+ - Allow users to delete accounts even when they have active teams (reapplied) (#4531) @knolleary
+ -  Update BOM API use project model versions (#4535) @Steve-Mcl
+ - Add egress to banned list of instance names (#4533) @hardillb
+ - Revert "Allow users to delete accounts even when they have active teams" (#4528) @knolleary
+ - Add versions info to Project model (#4526) @knolleary
+ - fix visibility selector styling propagation (#4525) @cstns
+ - adds a fallback for missing semver/installed node-red versions for k8/docker deployments (#4520) @cstns
+ - Software bill of materials API (#4376) @Steve-Mcl
+ - Update docs following the static file service navivagtion and visibility selector changes (#4514) @cstns
+ - Add a directory navigation component (#4473) @cstns
+ - Update File Node docs to cover new Persistent Storage (#4516) @hardillb
+ - Wrap last PostHog API call in try catch (#4515) @hardillb
+ - Bump serve-static and express (#4492) @app/dependabot
+ - Ensure user has selected an available team type on upgrade (#4510) @knolleary
+ - Ensure consistent pictograms are used across devices and instances (#4466) @Steve-Mcl
+ - Add guards on PostHog API calls (#4508) @hardillb
+ - fix remaining HS chat bubble issues (#4504) @Steve-Mcl
+ - Improve user feedback when developer mode change fails (#4469) @Steve-Mcl
+ - Update ffc docs to include data security details (#4496) @knolleary
+ - Bump @vitejs/plugin-vue from 5.0.4 to 5.1.2 (#4324) @app/dependabot
+ - Bump sinon from 17.0.1 to 19.0.2 (#4491) @app/dependabot
+ - Only get tokens if team feature enabled (#4487) @hardillb
+ - Remove temp background highlight from HS chat bubble (#4486) @Steve-Mcl
+ - Mitigate chat widget blocking elements (#4477) @Steve-Mcl
+ - 4439 hide instance asset tab from users (#4448) @cstns
+ - Add debug logging for SSO Groups (#4470) @hardillb
+ - Handle team with inactive team-type when viewing change-type (#4464) @knolleary
+ - fix: Asset upload dialog (#4465) @Steve-Mcl
+ - Show missing application selection error in the right place (#4462) @knolleary
+ - Improve dashboard only landing page (#4444) @cstns
+ - Add suspended state for teams (#4446) @knolleary
+ - Ensure subscription is deleted from db when team is deleted (#4457) @knolleary
+ - Fix pipeline tests due to name reuse (#4460) @knolleary
+ - Don't try and create default items more than once (#4454) @hardillb
+ - ci: Enable FlowFuse Assistant on pre-staging environment (#4445) @ppawlowski
+ - Don't overwrite theme with pipeline (#4425) @hardillb
+ - Add static asset service user docs (#4426) @cstns
+ - Provide proactive feedback when trying to change team type to incompatible type (#4378) @knolleary
+ - Remove the file browser entry selectors because we don't support bulk operations (#4432) @cstns
+ - Bump webpack from 5.91.0 to 5.94.0 (#4405) @app/dependabot
+ - Update introduction.md (#4429) @sumitshinde-84
+ - Add missing alert notification for create folder error (#4428) @cstns
+ - Fix the file upload component not clearing when clearing the component (#4427) @cstns
+
 #### 2.8.0: Release
 
  - docs: Docker Engine on Windows how-to article (#4406)
