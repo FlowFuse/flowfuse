@@ -261,7 +261,7 @@ jobs:
                   },
                   {
                     "type": "mrkdwn",
-                    "text": "*Pull Request:*\n<https://github.com/FlowFuse/flowfuse/pull/${{ env.PR_NUMBER }}|${{ github.event.pull_request.title }}>"
+                    "text": ${{ toJson(env.PR_TEXT) }}
                   },
                   {
                     "type": "mrkdwn",
@@ -293,6 +293,9 @@ jobs:
             ]
           }
       env:
+        PR_TEXT: |
+          *Pull Request:*
+          <https://github.com/FlowFuse/flowfuse/pull/${{ env.PR_NUMBER }}|${{ github.event.pull_request.title }}>
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
         GRAFANA_URL: ${{ secrets.STAGING_GRAFANA_URL }}
 

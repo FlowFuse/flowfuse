@@ -33,8 +33,7 @@ module.exports = (htmlContent) => {
                                             <td align="center" valign="top"
                                                 style="border-collapse:collapse;font-family:Helvetica,Arial,sans-serif;color:#33475b;word-break:break-word;text-align:center;padding:16px 20px;font-size:0px">
                                                 <a href="https://flowfuse.com/" style="color:#00a4bd" target="_blank">
-                                                    <img alt="ff-logo--wordmark--dark"
-                                                         src="https://flowfuse.com/handbook/images/logos/ff-logo--wordmark--dark.png"
+                                                    <img src="https://flowfuse.com/handbook/images/logos/ff-logo--wordmark--dark.png"
                                                          style="outline:none;text-decoration:none;border:none;max-width:100%;font-size:16px"
                                                          width="183" align="middle" data-bit="iit">
                                                 </a>
