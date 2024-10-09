@@ -7,8 +7,8 @@
         "name": "FlowForge Inc."
     },
     "dependencies": {
-        "@flowfuse/flowfuse": "^2.9.0",
-        "@flowfuse/driver-kubernetes": "latest",
+        "@flowfuse/flowfuse": "nightly",
+        "@flowfuse/driver-kubernetes": "nightly",
         "pg": "^8.7.1",
         "pg-hstore": "^2.3.4"
     },
