@@ -138,7 +138,7 @@
         "file-loader": "^6.2.0",
         "html-link-extractor": "^1.0.5",
         "html-webpack-plugin": "^5.5.3",
-        "jsdom": "^22.1.0",
+        "jsdom": "^25.0.1",
         "mini-css-extract-plugin": "^2.7.6",
         "mocha": "^10.2.0",
         "mocha-cli": "^1.0.1",
