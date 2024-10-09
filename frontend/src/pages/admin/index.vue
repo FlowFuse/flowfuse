@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import { ChevronLeftIcon, CogIcon, CollectionIcon, ColorSwatchIcon, DatabaseIcon, DesktopComputerIcon, TemplateIcon, UserGroupIcon, UsersIcon } from '@heroicons/vue/solid'
+import { ChatIcon, ChevronLeftIcon, CogIcon, CollectionIcon, ColorSwatchIcon, DatabaseIcon, DesktopComputerIcon, TemplateIcon, UserGroupIcon, UsersIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
 import adminApi from '../../api/admin.js'
@@ -53,6 +53,7 @@ export default {
         ...mapState('account', ['features', 'user', 'team']),
         navigation: function () {
             return [
+                // todo replace hardcoded paths with named routes
                 { name: 'Overview', path: '/admin/overview', tag: 'admin-overview', icon: CollectionIcon },
                 { name: 'Users', path: '/admin/users', tag: 'admin-users', icon: UsersIcon },
                 { name: 'Teams', path: '/admin/teams', tag: 'admin-teams', icon: UserGroupIcon },
@@ -62,6 +63,7 @@ export default {
                 { name: 'Templates', path: '/admin/templates', tag: 'admin-templates', icon: TemplateIcon },
                 { name: 'Flow Blueprints', path: '/admin/flow-blueprints', tag: 'admin-flow-blueprints', icon: TemplateIcon, featureUnavailable: !this.features.flowBlueprints },
                 { name: 'Activity', path: '/admin/audit-log', tag: 'admin-auditlog', icon: DatabaseIcon },
+                { name: 'Notifications Hub', path: { name: 'NotificationsHub' }, tag: 'admin-settings', icon: ChatIcon },
                 { name: 'Settings', path: '/admin/settings', tag: 'admin-settings', icon: CogIcon }
             ]
         }
