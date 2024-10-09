@@ -93,11 +93,10 @@ jobs:
   deploy:
     name: Deploy application
     needs: [ validate-user, build ]
-    if: false
-    # if: |
-    #   needs.validate-user.outputs.is_org_member == 'true' &&
-    #   github.event_name == 'pull_request' && 
-    #   github.event.action != 'closed'
+    if: |
+      needs.validate-user.outputs.is_org_member == 'true' &&
+      github.event_name == 'pull_request' && 
+      github.event.action != 'closed'
     runs-on: ubuntu-latest
     environment: staging
     env:
@@ -149,68 +148,68 @@ jobs:
           docker tag ${{ env.tagged_image }} ${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }}
           docker push ${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }}
 
-      - name: Configure AWS credentials for EKS interaction
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
-          aws-region: eu-west-1
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/K8sAdmin
-          role-duration-seconds: 1200
+      # - name: Configure AWS credentials for EKS interaction
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+      #     aws-region: eu-west-1
+      #     role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/K8sAdmin
+      #     role-duration-seconds: 1200
 
-      - name: Configure kubeconfig
-        run: |
-          aws eks update-kubeconfig --region eu-west-1 --name ${{ secrets.EKS_CLUSTER_NAME }}
+      # - name: Configure kubeconfig
+      #   run: |
+      #     aws eks update-kubeconfig --region eu-west-1 --name ${{ secrets.EKS_CLUSTER_NAME }}
 
-      - name: Install 1Password CLI
-        uses: 1password/install-cli-action@v1
-        with:
-          version: 2.25.0
+      # - name: Install 1Password CLI
+      #   uses: 1password/install-cli-action@v1
+      #   with:
+      #     version: 2.25.0
 
-      - name: Check out FlowFuse/helm repository (to access latest helm chart)
-        uses: actions/checkout@v4
-        with:
-          repository: 'FlowFuse/helm'
-          ref: 'main'
-          path: 'helm-repo'
-          token: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Check out FlowFuse/helm repository (to access latest helm chart)
+      #   uses: actions/checkout@v4
+      #   with:
+      #     repository: 'FlowFuse/helm'
+      #     ref: 'main'
+      #     path: 'helm-repo'
+      #     token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check if deployment exists
-        id: check-initial-setup
-        run: |
-          if helm status --namespace "pr-${{ env.PR_NUMBER }}" flowfuse-pr-${{ env.PR_NUMBER }} &> /dev/null; then
-            echo "initialSetup=false" >> $GITHUB_ENV
-          else
-            echo "initialSetup=true" >> $GITHUB_ENV
-          fi
+      # - name: Check if deployment exists
+      #   id: check-initial-setup
+      #   run: |
+      #     if helm status --namespace "pr-${{ env.PR_NUMBER }}" flowfuse-pr-${{ env.PR_NUMBER }} &> /dev/null; then
+      #       echo "initialSetup=false" >> $GITHUB_ENV
+      #     else
+      #       echo "initialSetup=true" >> $GITHUB_ENV
+      #     fi
 
-      - name: Deploy
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        run: |
-          helm upgrade --install \
-            --create-namespace \
-            --namespace "pr-${{ env.PR_NUMBER }}" \
-            --timeout 300s \
-            --wait \
-            --atomic \
-            --values ci/ci-values.yaml \
-            --set forge.image=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }} \
-            --set forge.entryPoint=${{ env.PR_NUMBER }}.flowfuse.dev \
-            --set forge.broker.hostname=${{ env.PR_NUMBER }}-mqtt.flowfuse.dev \
-            --set forge.projectNamespace=pr-${{ env.PR_NUMBER }}-projects \
-            --set forge.clusterRole.name=pr-${{ env.PR_NUMBER }}-clusterrole \
-            --set forge.license=${{ secrets.PRE_STAGING_LICENSE }} \
-            --set forge.aws.IAMRole=arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/flowforge_service_account_role \
-            --set forge.email.ses.sourceArn=arn:aws:ses:eu-west-1:${{ secrets.AWS_ACCOUNT_ID }}:identity/flowfuse.com \
-            --set forge.assistant.service.url=$(op read op://ci/staging_flowfuse/assistant_url) \
-            --set forge.assistant.service.token=$(op read op://ci/staging_flowfuse/assistant_token) \
-            flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowforge
+      # - name: Deploy
+      #   env:
+      #     OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+      #   run: |
+      #     helm upgrade --install \
+      #       --create-namespace \
+      #       --namespace "pr-${{ env.PR_NUMBER }}" \
+      #       --timeout 300s \
+      #       --wait \
+      #       --atomic \
+      #       --values ci/ci-values.yaml \
+      #       --set forge.image=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }} \
+      #       --set forge.entryPoint=${{ env.PR_NUMBER }}.flowfuse.dev \
+      #       --set forge.broker.hostname=${{ env.PR_NUMBER }}-mqtt.flowfuse.dev \
+      #       --set forge.projectNamespace=pr-${{ env.PR_NUMBER }}-projects \
+      #       --set forge.clusterRole.name=pr-${{ env.PR_NUMBER }}-clusterrole \
+      #       --set forge.license=${{ secrets.PRE_STAGING_LICENSE }} \
+      #       --set forge.aws.IAMRole=arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/flowforge_service_account_role \
+      #       --set forge.email.ses.sourceArn=arn:aws:ses:eu-west-1:${{ secrets.AWS_ACCOUNT_ID }}:identity/flowfuse.com \
+      #       --set forge.assistant.service.url=$(op read op://ci/staging_flowfuse/assistant_url) \
+      #       --set forge.assistant.service.token=$(op read op://ci/staging_flowfuse/assistant_token) \
+      #       flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowforge
 
-      - name: Initial setup
-        if: ${{ env.initialSetup == 'true' }}
-        run: |
-          ./.github/scripts/initial-setup.sh ${{ env.PR_NUMBER }} ${{ secrets.INIT_CONFIG_PASSWORD_HASH }} ${{ secrets.INIT_CONFIG_ACCESS_TOKEN_HASH }} ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }} ${{ secrets.INIT_CONFIG_PASSWORD }}
+      # - name: Initial setup
+      #   if: ${{ env.initialSetup == 'true' }}
+      #   run: |
+      #     ./.github/scripts/initial-setup.sh ${{ env.PR_NUMBER }} ${{ secrets.INIT_CONFIG_PASSWORD_HASH }} ${{ secrets.INIT_CONFIG_ACCESS_TOKEN_HASH }} ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }} ${{ secrets.INIT_CONFIG_PASSWORD }}
           
       - name: Summary
         run: |
