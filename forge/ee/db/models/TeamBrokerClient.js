@@ -3,7 +3,7 @@ const { DataTypes } = require('sequelize')
 const { hash, buildPaginationSearchClause } = require('../../../db/utils')
 
 module.exports = {
-    name: 'TeamBrokerUser',
+    name: 'TeamBrokerClient',
     schema: {
         username: { type: DataTypes.STRING, allowNull: false },
         password: {
@@ -36,11 +36,11 @@ module.exports = {
                     const teamId = M.Team.decodeHashid(teamHashId)
                     const limit = Math.min(parseInt(pagination.limit) || 100, 100)
                     if (pagination.cursor) {
-                        pagination.cursor = M.TeamBrokerUser.decodeHashid(pagination.cursor)
+                        pagination.cursor = M.TeamBrokerClient.decodeHashid(pagination.cursor)
                     }
                     const [rows, count] = await Promise.all([
                         this.findAll({
-                            where: buildPaginationSearchClause(pagination, where, ['TeamBrokerUser.username']),
+                            where: buildPaginationSearchClause(pagination, where, ['TeamBrokerClient.username']),
                             include: {
                                 model: M.Team,
                                 attributes: ['name'],

@@ -69,8 +69,8 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
-        const users = await app.db.models.TeamBrokerUser.byTeam(request.team.hashid, paginationOptions)
-        reply.send(app.db.views.TeamBrokerUser.users(users))
+        const users = await app.db.models.TeamBrokerClient.byTeam(request.team.hashid, paginationOptions)
+        reply.send(app.db.views.TeamBrokerClient.users(users))
     })
 
     app.post('/user', {
@@ -112,9 +112,9 @@ module.exports = async function (app) {
         try {
             const newUser = request.body
             newUser.acls = JSON.stringify(newUser.acls)
-            await request.team.checkTeamBrokerUserCreateAllowed()
-            const user = await app.db.models.TeamBrokerUser.create({ ...request.body, TeamId: request.team.id })
-            reply.status(201).send(app.db.views.TeamBrokerUser.user(user))
+            await request.team.checkTeamBrokerClientCreateAllowed()
+            const user = await app.db.models.TeamBrokerClient.create({ ...request.body, TeamId: request.team.id })
+            reply.status(201).send(app.db.views.TeamBrokerClient.user(user))
         } catch (err) {
             return reply
                 .code(err.statusCode || 400)
@@ -154,9 +154,9 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const user = await app.db.models.TeamBrokerUser.byUsername(request.params.username, request.team.hashid)
+        const user = await app.db.models.TeamBrokerClient.byUsername(request.params.username, request.team.hashid)
         if (user) {
-            reply.send(app.db.views.TeamBrokerUser.user(user))
+            reply.send(app.db.views.TeamBrokerClient.user(user))
         } else {
             reply.status(404).send({})
         }
@@ -186,7 +186,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const user = await app.db.models.TeamBrokerUser.byUsername(request.params.username, request.team.hashid)
+        const user = await app.db.models.TeamBrokerClient.byUsername(request.params.username, request.team.hashid)
         if (user) {
             await user.destroy()
             reply.send({ status: 'okay' })

@@ -6,7 +6,7 @@ module.exports.init = function (app) {
      * need to add functions here to boot clients when team
      * or when client creds removed
      */
-    app.db.models.Team.prototype.checkTeamBrokerUserCreateAllowed = async function () {
+    app.db.models.Team.prototype.checkTeamBrokerClientCreateAllowed = async function () {
         if (this.suspended) {
             const err = new Error()
             err.code = 'team_suspended'
@@ -16,7 +16,7 @@ module.exports.init = function (app) {
         await this.ensureTeamTypeExists()
         const teamType = await this.getTeamType()
         if (teamType.getFeatureProperty('teamBroker', false)) {
-            const clientCount = await app.db.models.TeamBrokerUser.countTeam(this.hashid)
+            const clientCount = await app.db.models.TeamBrokerClient.countTeam(this.hashid)
             const max = teamType.getProperty('teamBroker.clients.limit', -1)
             if (max > -1) {
                 if (clientCount >= max) {

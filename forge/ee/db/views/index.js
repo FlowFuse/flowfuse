@@ -3,7 +3,7 @@ const modelTypes = [
     'Pipeline',
     'PipelineStage',
     'FlowTemplate',
-    'TeamBrokerUser'
+    'TeamBrokerClient'
 ]
 
 async function init (app) {

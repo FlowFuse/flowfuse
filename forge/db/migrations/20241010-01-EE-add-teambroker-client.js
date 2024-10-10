@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /**
- * Add TeamBrokerUser
+ * Add TeamBrokerClient
  */
 
 const { DataTypes, QueryInterface } = require('sequelize')
@@ -12,7 +12,7 @@ module.exports = {
      * @param {QueryInterface} context Sequelize.QueryInterface
      */
     up: async (context) => {
-        await context.createTable('TeamBrokerUsers', {
+        await context.createTable('TeamBrokerClients', {
             id: {
                 type: DataTypes.INTEGER,
                 primaryKey: true,
@@ -35,7 +35,7 @@ module.exports = {
                 onUpdate: 'cascade'
             }
         })
-        await context.addIndex('TeamBrokerUsers', { name: 'broker_users_team_unique', fields: ['username', 'TeamId'], unique: true })
+        await context.addIndex('TeamBrokerClients', { name: 'broker_users_team_unique', fields: ['username', 'TeamId'], unique: true })
     },
     down: async (context) => {
     }

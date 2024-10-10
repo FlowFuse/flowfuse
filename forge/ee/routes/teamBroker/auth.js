@@ -51,12 +51,12 @@ module.exports = async function (app) {
                 })
             }
         } else {
-            const auth = await app.db.controllers.TeamBrokerUser.authenticateCredentials(username, password)
+            const auth = await app.db.controllers.TeamBrokerClient.authenticateCredentials(username, password)
             // this test is to ensure that only a fixed number of clients can connect
             if (auth && username === clientId) {
                 const parts = username.split('@')
                 // we might pass ACL values here
-                // const user = await app.db.models.TeamBrokerUser.byUsername(parts[0], parts[1])
+                // const user = await app.db.models.TeamBrokerClient.byUsername(parts[0], parts[1])
                 reply.send({
                     result: 'allow',
                     is_superuser: false,
@@ -111,7 +111,7 @@ module.exports = async function (app) {
             // return
         } else {
             const parts = request.body.username.split('@')
-            const user = await app.db.models.TeamBrokerUser.byUsername(parts[0], parts[1])
+            const user = await app.db.models.TeamBrokerClient.byUsername(parts[0], parts[1])
             const acls = JSON.parse(user.acls)
             for (const acl in acls) {
                 if (request.body.action === 'subscribe') {
