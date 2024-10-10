@@ -188,7 +188,7 @@ describe('Team Broker API', function () {
                 body: {
                     username: `alice@${app.team.hashid}`,
                     password: 'aaPassword',
-                    clientId: 'alice'
+                    clientId: `alice@${app.team.hashid}`
                 }
             })
             response.statusCode.should.equal(200)
