@@ -130,7 +130,7 @@ module.exports = {
         })
 
         // record acceptance in product analytics tool
-        app.product.capture(invitedUser.email, '$ff-invite-accepted', {
+        app.product.capture(invitedUser.username, '$ff-invite-accepted', {
             'accepted-at': new Date().toISOString(),
             'invite-id': invitation.hashid
         }, {
