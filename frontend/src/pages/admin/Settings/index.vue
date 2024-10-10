@@ -1,26 +1,27 @@
 <template>
-    <SectionTopMenu hero="Settings" :options="sideNavigation" />
-    <div class="flex-grow">
-        <router-view />
+    <div class="clear-page-gutters">
+        <div class="ff-instance-header">
+            <ff-page-header title="Settings" :tabs="sideNavigation" />
+        </div>
+        <div class="px-3 py-3 md:px-6 md:py-6">
+            <div class="flex-grow">
+                <router-view />
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
 import { mapState } from 'vuex'
 
-import SectionTopMenu from '../../../components/SectionTopMenu.vue'
-
 export default {
     name: 'AdminSettings',
-    components: {
-        SectionTopMenu
-    },
     data () {
         return {
             sideNavigation: [
-                { name: 'General', path: './general' },
-                { name: 'License', path: './license' },
-                { name: 'Email', path: './email' }
+                { label: 'General', to: './general', tag: 'general' },
+                { label: 'License', to: './license', tag: 'license' },
+                { label: 'Email', to: './email', tag: 'email' }
             ]
         }
     },
@@ -29,8 +30,14 @@ export default {
     },
     mounted () {
         if (this.features.sso) {
-            this.sideNavigation.push({ name: 'SSO', path: './sso' })
+            this.sideNavigation.push({ label: 'SSO', to: './sso' })
         }
     }
 }
 </script>
+
+<style lang="scss" scoped>
+.clear-page-gutters {
+    margin: -1.75rem
+}
+</style>

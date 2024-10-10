@@ -1,24 +1,25 @@
 <template>
-    <SectionTopMenu hero="Users" :options="sideNavigation" />
-    <div class="flex-grow">
-        <router-view />
+    <div class="clear-page-gutters">
+        <div class="ff-instance-header">
+            <ff-page-header title="Users" :tabs="sideNavigation" />
+        </div>
+        <div class="px-3 py-3 md:px-6 md:py-6">
+            <div class="flex-grow">
+                <router-view />
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
 
-import SectionTopMenu from '../../../components/SectionTopMenu.vue'
-
 const sideNavigation = [
-    { name: 'Users', path: './general' },
-    { name: 'Invitations', path: './invitations' }
+    { label: 'Users', to: './general' },
+    { label: 'Invitations', to: './invitations' }
 ]
 
 export default {
     name: 'AdminUsers',
-    components: {
-        SectionTopMenu
-    },
     setup () {
         return {
             sideNavigation
@@ -26,3 +27,9 @@ export default {
     }
 }
 </script>
+
+<style lang="scss" scoped>
+.clear-page-gutters {
+    margin: -1.75rem
+}
+</style>
