@@ -51,11 +51,27 @@ const generateStatsAccessToken = async () => {
         return res.data
     })
 }
+
 const deleteStatsAccessToken = async () => {
     return client.delete('/api/v1/admin/stats-token').then(res => {
         return res.data
     })
 }
+
+const getAnnouncementNotifications = async () => {
+    return client.get('/api/v1/admin/announcements')
+        .then(res => {
+            return res.data
+        })
+}
+
+const sendAnnouncementNotification = async () => {
+    return client.post('/api/v1/admin/announcements')
+        .then(res => {
+            return res.data
+        })
+}
+
 /**
  * Calls api routes in admin.js
  * See [routes/api/admin.js](../../../forge/routes/api/admin.js)
@@ -67,5 +83,7 @@ export default {
     getInvitations,
     getPlatformAuditLog,
     generateStatsAccessToken,
-    deleteStatsAccessToken
+    deleteStatsAccessToken,
+    getAnnouncementNotifications,
+    sendAnnouncementNotification
 }
