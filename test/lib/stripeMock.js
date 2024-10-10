@@ -42,24 +42,30 @@ module.exports = (testSpecificMock = {}) => {
                 if (update.items) {
                     // Do not mutate the passed-in object as we have tests
                     // that check these functions were called with the expected object
-                    const items = update.items.map(originalItem => {
-                        const item = { ...originalItem }
-                        item.id = `item-${stripeItemCounter++}`
-                        item.plan = {
-                            product: (item.price || 'price').replace('price', 'product')
-                        }
-                        item._price = item.price
-                        item.price = {
-                            unit_amount: 123,
-                            product: {
-                                name: (item.price || 'price').replace('price', 'product')
+
+                    const existingItems = {}
+                    stripeData[subId].items.data.forEach(item => {
+                        existingItems[item.id] = item
+                    })
+
+                    update.items.forEach(item => {
+                        if (item.deleted) {
+                            delete existingItems[item.id]
+                            delete stripeItems[item.id]
+                        } else if (item.id) {
+                            existingItems[item.id].quantity = item.quantity
+                        } else {
+                            const id = `item-${stripeItemCounter++}`
+                            existingItems[id] = {
+                                id,
+                                quantity: item.quantity,
+                                price: { id: item.price, product: item.price.replace('price', 'product') }
                             }
+                            stripeItems[id] = existingItems[id]
                         }
-                        stripeItems[item.id] = item
-                        return item
                     })
                     stripeData[subId].items = {
-                        data: items
+                        data: Object.values(existingItems)
                     }
                 }
             }),

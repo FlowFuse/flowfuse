@@ -111,10 +111,16 @@ export default {
     computed: {
         ...mapState('account', ['features', 'team']),
         deviceIsBillable () {
+            let freeAllocation = this.team.type.properties.devices.free || 0
+            let deviceCount = this.teamDeviceCount
+            if (this.team.type.properties.devices?.combinedFreeType) {
+                deviceCount += this.team.instanceCountByType?.[this.team.type.properties.devices.combinedFreeType] || 0
+                freeAllocation = this.team.type.properties.instances[this.team.type.properties.devices.combinedFreeType]?.free || 0
+            }
             return this.features.billing && // billing enabled
                 !this.team.billing?.unmanaged &&
                 this.team.type.properties.devices?.description && // >0 per device cost
-                (this.team.type.properties.devices.free || 0) <= this.teamDeviceCount // no remaining free allocation
+                freeAllocation <= deviceCount // no remaining free allocation
         },
         deviceBillingInformation () {
             if (this.deviceIsBillable && this.team.type.properties.devices?.description) {
