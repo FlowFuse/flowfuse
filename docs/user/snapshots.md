@@ -44,9 +44,17 @@ A snapshot can be downloaded to your local machine for backup or sharing.
 
 To download a snapshot:
 
-1. Go to the instance's page and select the **Snapshots** tab.
+1. Go to the desired application, instance or device overview page and select the **Snapshots** tab.
 2. Open the dropdown menu to the right of the snapshot you want to download and
-   select the **Download Snapshot** option.
+   click the **Download Snapshot** option to open the download dialog.
+3. Select the required components to download.
+   - **Flows**: Include the snapshot flows
+   - **Credentials**: Include the snapshot flows credentials
+   - **Environment Variables**: Include environment variables in the snapshot
+      - **Keys and Values**: Include the keys and values of the environment variables
+      - **Keys Only**: Include only the keys of the environment variables
+4. Enter a secret to encrypt any credentials in the snapshot (optional, depends on components selected).
+5. Click **Download**
 
 ## Upload a snapshot
 
@@ -54,13 +62,19 @@ A snapshot can be uploaded to a Node-RED instance in FlowFuse.
 
 To upload a snapshot:
 
-1. Go to the instance's page and select the **Snapshots** tab.
+1.  Go to the desired instance or device overview page and select the **Snapshots** tab.
 2. Click the **Upload Snapshot** button.
 3. Select the snapshot file from your local machine.
-4. If the snapshot contains credentials, you will be asked to enter the credentials secret.
-   This is the secret that was used to encrypt the credentials in the snapshot.
-5. Update the name and description if required.
-6. Click **Upload**
+4. Update the name and description if required.
+5. Select the components to upload:
+   - **Flows**: Include the snapshots flows
+   - **Credentials**: Include the snapshots flows credentials (visible only if the snapshot contains credentials)
+   - **Environment Variables**: Include environment variables in the snapshot
+      - **Keys and Values**: Include the keys and values of the environment variables
+      - **Keys Only**: Include only the keys of the environment variables
+6. If the snapshot contains credentials and the `Credentials` component is checked,
+   you will be asked to enter a Secret. This will be used to later decrypt any credentials in the snapshots flows.
+7. Click **Upload**
 
 ## Delete a snapshot
 

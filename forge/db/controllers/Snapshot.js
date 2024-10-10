@@ -20,9 +20,22 @@ module.exports = {
      * @param {String} [options.credentialSecret] secret to encrypt credentials with.
      * @param {Object} [options.credentials] (Optional) credentials to export. If omitted, credentials of the current owner will be re-encrypted with the provided `credentialSecret`.
      * @param {Object} [options.owner] (Optional) The owner project or device. If omitted, the snapshot's owner will be obtained from the database.
+     * @param {Object} [options.components] (Optional) Components to include in the snapshot. Defaults to all components.
+     * @param {Boolean} [options.components.flows] (Optional) Include flows in the snapshot. Defaults to true.
+     * @param {Boolean} [options.components.credentials] (Optional) Include credentials in the snapshot. Defaults to true if `options.components.flows` is true, otherwise false.
+     * @param {'all' | 'keys' | false} [options.components.envVars='all'] (Optional) Env Var options: `'All'` will keep keys and values, `'keys'` will keep only keys, `false` will remove them.
      */
     exportSnapshot: async function (app, snapshot, options) {
-        if (!options.credentialSecret) {
+        const components = {
+            flows: options.components?.flows ?? true,
+            credentials: options.components?.credentials ?? true,
+            envVars: ['all', 'keys', false].includes(options.components?.envVars) ? options.components.envVars : 'all'
+        }
+        if (components.flows === false) {
+            components.credentials = false // no flows, no credentials!
+        }
+
+        if (components.credentials !== false && !options.credentialSecret) {
             return null
         }
 
@@ -54,6 +67,28 @@ module.exports = {
             ...snapshot.toJSON()
         }
 
+        // include/exclude components of the snapshot
+        if (components.flows === false) {
+            result.flows = {
+                flows: [],
+                credentials: {} // no flows, no credentials!
+            }
+        } else if (components.credentials === false) {
+            result.flows = {
+                flows: snapshot.flows.flows || [],
+                credentials: {} // no credentials!
+            }
+        }
+        if (components.envVars === false) {
+            result.settings.env = {}
+        } else if (components.envVars === 'keys' && snapshot.settings?.env && Object.keys(snapshot.settings.env).length > 0) {
+            const keysOnly = Object.keys(snapshot.settings.env).reduce((acc, key) => {
+                acc[key] = ''
+                return acc
+            }, {})
+            result.settings = Object.assign({}, snapshot.settings, { env: keysOnly })
+        }
+
         // loop keys of result.settings.env and remove any that match FF_*
         Object.keys(result.settings.env).forEach((key) => {
             if (key.startsWith('FF_')) {
@@ -61,15 +96,19 @@ module.exports = {
             }
         })
 
-        // use the secret stored in the snapshot, if available...
-        const currentSecret = result.credentialSecret || owner.credentialSecret || (owner.getCredentialSecret && await owner.getCredentialSecret())
-        const credentials = options.credentials ? options.credentials : result.flows.credentials
+        if (components.flows === false || components.credentials === false) {
+            result.flows.credentials = {}
+        } else {
+            // use the secret stored in the snapshot, if available...
+            const currentSecret = result.credentialSecret || owner.credentialSecret || (owner.getCredentialSecret && await owner.getCredentialSecret())
+            const credentials = options.credentials ? options.credentials : result.flows.credentials
 
-        // if provided credentials already encrypted: "exportCredentials" will just return the same credentials
-        // if provided credentials are raw: "exportCredentials" will encrypt them with the secret provided
-        // if credentials are not provided: project's flows credentials will be used, they will be encrypted with the provided secret
-        const keyToDecrypt = (options.credentials && options.credentials.$) ? options.credentialSecret : currentSecret
-        result.flows.credentials = app.db.controllers.Project.exportCredentials(credentials || {}, keyToDecrypt, options.credentialSecret)
+            // if provided credentials already encrypted: "exportCredentials" will just return the same credentials
+            // if provided credentials are raw: "exportCredentials" will encrypt them with the secret provided
+            // if credentials are not provided: project's flows credentials will be used, they will be encrypted with the provided secret
+            const keyToDecrypt = (options.credentials && options.credentials.$) ? options.credentialSecret : currentSecret
+            result.flows.credentials = app.db.controllers.Project.exportCredentials(credentials || {}, keyToDecrypt, options.credentialSecret)
+        }
 
         return result
     },
@@ -143,8 +182,13 @@ module.exports = {
      * @param {*} snapshot - snapshot data
      * @param {String} credentialSecret - secret to encrypt credentials with. Can be null if the snapshot does not contain credentials.
      * @param {*} user - user who uploaded the snapshot
+     * @param {Object} [options] - additional options
+     * @param {Object} [options.components] - Include flows in the snapshot. Defaults to true.
+     * @param {Boolean} [options.components.flows] - Include flows in the snapshot. Defaults to true.
+     * @param {Boolean} [options.components.credentials] - Include credentials in the snapshot. Defaults to true if `options.components.flows` is true, otherwise false.
+     * @param {'all' | 'keys' | false} [options.components.envVars='all'] - Env Var options: `'All'` will keep keys and values, `'keys'` will keep only keys, `false` will remove them.
      */
-    async uploadSnapshot (app, owner, snapshot, credentialSecret, user) {
+    async uploadSnapshot (app, owner, snapshot, credentialSecret, user, options) {
         // Validate the owner
         let ownerType
         if (owner.constructor.name === 'Project') {
@@ -155,33 +199,70 @@ module.exports = {
             throw new Error('Invalid owner type')
         }
 
+        const components = {
+            flows: options?.components?.flows ?? true,
+            credentials: options?.components?.credentials ?? true,
+            envVars: ['all', 'keys', false].includes(options?.components?.envVars) ? options?.components.envVars : 'all'
+        }
+        if (components.flows === false) {
+            components.credentials = false // no flows, no credentials!
+        }
+
+        // shallow clone the snapshot before modifying it
+        const importSnapshot = Object.assign({}, snapshot)
+
+        // include/exclude components of the snapshot
+        if (components.flows === false) {
+            importSnapshot.flows = {
+                flows: [],
+                credentials: {} // no flows, no credentials!
+            }
+        } else if (components.credentials === false) {
+            importSnapshot.flows = {
+                flows: snapshot.flows.flows || [],
+                credentials: {} // no credentials!
+            }
+        }
+        if (components.envVars === false) {
+            importSnapshot.settings = {
+                ...snapshot.settings,
+                env: {} // no env vars!
+            }
+        } else if (components.envVars === 'keys' && snapshot.settings?.env && Object.keys(snapshot.settings.env).length > 0) {
+            const keysOnly = Object.keys(snapshot.settings.env).reduce((acc, key) => {
+                acc[key] = ''
+                return acc
+            }, {})
+            importSnapshot.settings = Object.assign({}, snapshot.settings, { env: keysOnly })
+        }
+
         const targetCredentialSecret = owner.credentialSecret || (owner.getCredentialSecret && await owner.getCredentialSecret()) || credentialSecret
         // 1. If the snapshot includes credentials but no credentialSecret, we should reject it
         // 2. if the snapshot includes credentials and a credentialSecret, we should reencrypt for the owner
-        if (snapshot.flows.credentials?.$) {
+        if (importSnapshot.flows.credentials?.$) {
             if (!credentialSecret) {
                 throw new Error('Missing credentialSecret')
             }
             // Need to re-encrypt the credentials for the target
-            snapshot.flows.credentials = app.db.controllers.Project.exportCredentials(snapshot.flows.credentials, credentialSecret, targetCredentialSecret)
+            importSnapshot.flows.credentials = app.db.controllers.Project.exportCredentials(importSnapshot.flows.credentials, credentialSecret, targetCredentialSecret)
         }
 
         const ProjectId = ownerType === 'instance' ? owner.id : null
         const DeviceId = ownerType === 'device' ? owner.id : null
 
         const snapshotOptions = {
-            name: snapshot.name,
-            description: snapshot.description || '',
+            name: importSnapshot.name,
+            description: importSnapshot.description || '',
             credentialSecret: targetCredentialSecret,
             settings: {
-                settings: snapshot.settings?.settings || {},
-                env: snapshot.settings?.env || {},
-                modules: snapshot.settings?.modules || {}
+                settings: importSnapshot.settings?.settings || {},
+                env: importSnapshot.settings?.env || {},
+                modules: importSnapshot.settings?.modules || {}
 
             },
             flows: {
-                flows: snapshot.flows.flows || [],
-                credentials: snapshot.flows.credentials || { }
+                flows: importSnapshot.flows.flows || [],
+                credentials: importSnapshot.flows.credentials || { }
             },
             ProjectId,
             DeviceId,

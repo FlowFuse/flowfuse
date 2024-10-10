@@ -28,14 +28,17 @@ module.exports = {
                             // fileName looks like a regex
                             debug = debug + JSON.stringify(files)
                             const filteredList = files.filter(file => !!file.match(re))
-                            return filteredList.length === 1
+                            if (filteredList.length === 1) {
+                                return filteredList[0]
+                            }
+                            return false
                         }
                         return false
                     }).then(result => {
                         if (!result) {
                             throw new Error(`${fileName} not found in ${baseDir} ${debug}`)
                         }
-                        return true
+                        return result
                     })
                 },
                 // Clear all files in the downloads folder
