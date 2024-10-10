@@ -26,13 +26,16 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        if ((request.body.username.startsWith('device:') && request.body.password.startsWith('ffbd_')) ||
-            (request.body.username.startsWith('project:') && request.body.password.startsWith('ffbp_')) ||
-            (request.body.username.startsWith('frontend:') && request.body.password.startsWith('ffbf_')) ||
-            (request.body.username === 'forge_platform')) {
+        const username = request.body.username
+        const password = request.body.password
+        const clientId = request.body.clientId
+        if ((username.startsWith('device:') && password.startsWith('ffbd_')) ||
+            (username.startsWith('project:') && password.startsWith('ffbp_')) ||
+            (username.startsWith('frontend:') && password.startsWith('ffbf_')) ||
+            (username === 'forge_platform')) {
             const isValid = await app.db.controllers.BrokerClient.authenticateCredentials(
-                request.body.username,
-                request.body.password
+                username,
+                password
             )
             if (isValid) {
                 reply.send({
@@ -48,9 +51,10 @@ module.exports = async function (app) {
                 })
             }
         } else {
-            const auth = await app.db.controllers.TeamBrokerUser.authenticateCredentials(request.body.username, request.body.password)
-            if (auth) {
-                const parts = request.body.username.split('@')
+            const auth = await app.db.controllers.TeamBrokerUser.authenticateCredentials(username, password)
+            // this test is to ensure that only a fixed number of clients can connect
+            if (auth && username === clientId) {
+                const parts = username.split('@')
                 // we might pass ACL values here
                 // const user = await app.db.models.TeamBrokerUser.byUsername(parts[0], parts[1])
                 reply.send({
