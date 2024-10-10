@@ -375,7 +375,7 @@ describe('Team Broker API', function () {
                 url: '/api/v1/broker/acls',
                 cookies: { sid: TestObjects.tokens.alice },
                 body: {
-                    username: `forge_platform`,
+                    username: 'forge_platform',
                     topic: 'ff/v1/+/l/+/status',
                     action: 'subscribe'
                 }
@@ -390,7 +390,7 @@ describe('Team Broker API', function () {
                 url: '/api/v1/broker/acls',
                 cookies: { sid: TestObjects.tokens.alice },
                 body: {
-                    username: `forge_platform`,
+                    username: 'forge_platform',
                     topic: 'ff/v1/+/l/+/status',
                     action: 'publish'
                 }
