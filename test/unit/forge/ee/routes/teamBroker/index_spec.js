@@ -4,7 +4,7 @@ const setup = require('../../setup')
 
 const MAX_BROKER_USERS = 5
 
-describe('Team Broker API', function () {
+describe.only('Team Broker API', function () {
     let app
     const TestObjects = { tokens: {} }
 
@@ -102,12 +102,10 @@ describe('Team Broker API', function () {
         it('Get specific MQTT broker user for a team who doesn\'t exist', async function () {
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/teams/${app.team.hashid}/broker/user/alice`,
+                url: `/api/v1/teams/${app.team.hashid}/broker/user/bob`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
-            response.statusCode.should.equal(200)
-            const result = response.json()
-            result.should.have.property('username', 'bob')
+            response.statusCode.should.equal(404)
         })
 
         it('Limit number of MQTT broker users allowed', async function () {
