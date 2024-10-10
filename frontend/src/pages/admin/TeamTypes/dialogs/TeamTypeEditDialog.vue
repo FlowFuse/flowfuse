@@ -94,7 +94,6 @@
                     </div>
                 </template>
 
-
                 <FormHeading>Features</FormHeading>
                 <div class="grid gap-3 grid-cols-2">
                     <FormRow v-model="input.properties.features['shared-library']" type="checkbox">Team Library</FormRow>
@@ -184,7 +183,7 @@ export default {
                     }
                     this.input.order = '' + (teamType.order || 0)
 
-                    if (this.input.properties.teamBroker?.clients == undefined) {
+                    if (this.input.properties.teamBroker?.clients === undefined) {
                         this.input.properties.teamBroker = {
                             clients: {}
                         }

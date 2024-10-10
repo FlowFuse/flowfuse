@@ -50,7 +50,7 @@ describe('Team Broker API', function () {
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
-    describe.only('Work with MQTT Broker Users', function () {
+    describe('Work with MQTT Broker Users', function () {
         it('Create MQTT Broker User', async function () {
             const response = await app.inject({
                 method: 'POST',
@@ -142,7 +142,6 @@ describe('Team Broker API', function () {
             response.statusCode.should.equal(400)
             result = response.json()
             result.should.have.property('code', 'broker_client_limit_reached')
-
         })
 
         it('Delete MQTT Broker User', async function () {
@@ -184,7 +183,7 @@ describe('Team Broker API', function () {
         it('Test Authentication pass', async function () {
             const response = await app.inject({
                 method: 'POST',
-                url: '/api/broker/auth',
+                url: '/api/v1/broker/auth',
                 cookies: { sid: TestObjects.tokens.alice },
                 body: {
                     username: `alice@${app.team.hashid}`,
@@ -202,7 +201,7 @@ describe('Team Broker API', function () {
         it('Test Authentication pass', async function () {
             const response = await app.inject({
                 method: 'POST',
-                url: '/api/broker/auth',
+                url: '/api/v1/broker/auth',
                 cookies: { sid: TestObjects.tokens.alice },
                 body: {
                     username: `alice@${app.team.hashid}`,
@@ -217,7 +216,7 @@ describe('Team Broker API', function () {
         it('Test subscribe allowed', async function () {
             const response = await app.inject({
                 method: 'POST',
-                url: '/api/broker/acls',
+                url: '/api/v1/broker/acls',
                 cookies: { sid: TestObjects.tokens.alice },
                 body: {
                     username: `alice@${app.team.hashid}`,
@@ -232,7 +231,7 @@ describe('Team Broker API', function () {
         it('Test subscribe not allowed', async function () {
             const response = await app.inject({
                 method: 'POST',
-                url: '/api/broker/acls',
+                url: '/api/v1/broker/acls',
                 cookies: { sid: TestObjects.tokens.alice },
                 body: {
                     username: `alice@${app.team.hashid}`,
@@ -251,7 +250,7 @@ describe('Team Broker API', function () {
         it('Test Authentication forge_platform pass', async function () {
             const response = await app.inject({
                 method: 'POST',
-                url: '/api/broker/auth',
+                url: '/api/v1/broker/auth',
                 cookies: { sid: TestObjects.tokens.alice },
                 body: {
                     username: 'forge_platform',
@@ -269,7 +268,7 @@ describe('Team Broker API', function () {
         it('Test Authentication forge_platform fail', async function () {
             const response = await app.inject({
                 method: 'POST',
-                url: '/api/broker/auth',
+                url: '/api/v1/broker/auth',
                 cookies: { sid: TestObjects.tokens.alice },
                 body: {
                     username: 'forge_platform',
