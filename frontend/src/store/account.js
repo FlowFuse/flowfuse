@@ -389,6 +389,9 @@ const actions = {
             })
             .catch(_ => {})
     },
+    setNotifications (state, notifications) {
+        state.commit('setNotifications', notifications)
+    },
     async getInvitations (state) {
         await userApi.getTeamInvitations()
             .then((invitations) => {
