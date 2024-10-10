@@ -88,6 +88,17 @@ describe('Team Broker API', function () {
             result.clients[0].should.have.property('username', 'alice')
         })
 
+        it('Get specific MQTT broker user for a team', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${app.team.hashid}/broker/user/alice`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('username', 'alice')
+        })
+
         it('Limit number of MQTT broker users allowed', async function () {
             let response = await app.inject({
                 method: 'GET',
@@ -237,6 +248,36 @@ describe('Team Broker API', function () {
                     username: `alice@${app.team.hashid}`,
                     topic: 'bar/foo',
                     action: 'subscribe'
+                }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('result', 'deny')
+        })
+        it('Test publish allowed', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/broker/acls',
+                cookies: { sid: TestObjects.tokens.alice },
+                body: {
+                    username: `alice@${app.team.hashid}`,
+                    topic: 'foo/foo',
+                    action: 'publish'
+                }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('result', 'allow')
+        })
+        it('Test publish not allowed', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/broker/acls',
+                cookies: { sid: TestObjects.tokens.alice },
+                body: {
+                    username: `alice@${app.team.hashid}`,
+                    topic: 'bar/foo',
+                    action: 'publish'
                 }
             })
             response.statusCode.should.equal(200)
