@@ -99,6 +99,17 @@ describe('Team Broker API', function () {
             result.should.have.property('username', 'alice')
         })
 
+        it('Get specific MQTT broker user for a team who doesn\'t exist', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${app.team.hashid}/broker/user/alice`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('username', 'bob')
+        })
+
         it('Limit number of MQTT broker users allowed', async function () {
             let response = await app.inject({
                 method: 'GET',
@@ -165,6 +176,15 @@ describe('Team Broker API', function () {
             const result = response.json()
             result.should.have.property('status', 'okay')
         })
+
+        it('Delete MQTT Broker User who doesn\'t exist', async function () {
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/teams/${app.team.hashid}/broker/user/bob`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(404)
+        })
     })
     describe('Test MQTT Broker user auth', function () {
         before(async function () {
@@ -209,13 +229,28 @@ describe('Team Broker API', function () {
             result.should.have.property('client_attrs')
             result.client_attrs.should.have.property('team')
         })
-        it('Test Authentication pass', async function () {
+        it('Test Authentication fail', async function () {
             const response = await app.inject({
                 method: 'POST',
                 url: '/api/v1/broker/auth',
                 cookies: { sid: TestObjects.tokens.alice },
                 body: {
                     username: `alice@${app.team.hashid}`,
+                    password: 'bbPassword',
+                    clientId: 'alice'
+                }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('result', 'deny')
+        })
+        it('Test Authentication fail none existent user', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/broker/auth',
+                cookies: { sid: TestObjects.tokens.alice },
+                body: {
+                    username: `alice@${app.team.hashid}-foo`,
                     password: 'bbPassword',
                     clientId: 'alice'
                 }
