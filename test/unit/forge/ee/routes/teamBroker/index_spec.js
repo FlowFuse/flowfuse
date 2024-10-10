@@ -235,7 +235,7 @@ describe('Team Broker API', function () {
                 body: {
                     username: `alice@${app.team.hashid}`,
                     password: 'bbPassword',
-                    clientId: 'alice'
+                    clientId: `alice@${app.team.hashid}`
                 }
             })
             response.statusCode.should.equal(200)
@@ -250,7 +250,22 @@ describe('Team Broker API', function () {
                 body: {
                     username: `alice@${app.team.hashid}-foo`,
                     password: 'bbPassword',
-                    clientId: 'alice'
+                    clientId: `alice@${app.team.hashid}`
+                }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('result', 'deny')
+        })
+        it('Test Authentication fail no password', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/broker/auth',
+                cookies: { sid: TestObjects.tokens.alice },
+                body: {
+                    username: `alice@${app.team.hashid}`,
+                    password: '',
+                    clientId: `alice@${app.team.hashid}`
                 }
             })
             response.statusCode.should.equal(200)
@@ -348,6 +363,36 @@ describe('Team Broker API', function () {
                     username: 'forge_platform',
                     password: 'fooo',
                     clientId: 'forge_platform'
+                }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('result', 'deny')
+        })
+        it('Test Authorization forge_platform subscribe', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/broker/acls',
+                cookies: { sid: TestObjects.tokens.alice },
+                body: {
+                    username: `forge_platform`,
+                    topic: 'ff/v1/+/l/+/status',
+                    action: 'subscribe'
+                }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('result', 'allow')
+        })
+        it('Test Authorization forge_platform publish deny', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/broker/acls',
+                cookies: { sid: TestObjects.tokens.alice },
+                body: {
+                    username: `forge_platform`,
+                    topic: 'ff/v1/+/l/+/status',
+                    action: 'publish'
                 }
             })
             response.statusCode.should.equal(200)
