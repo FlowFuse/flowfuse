@@ -279,6 +279,17 @@ module.exports = {
                         count,
                         users: rows
                     }
+                },
+                byTeamRole: async (roles = []) => {
+                    return M.User.findAll({
+                        include: {
+                            model: M.TeamMember,
+                            attributes: ['role'],
+                            where: {
+                                role: roles
+                            }
+                        }
+                    })
                 }
             },
             instance: {
